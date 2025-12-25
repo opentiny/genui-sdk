@@ -1,0 +1,12 @@
+{
+  "name": "@opentiny/genui-sdk",
+  "version": "1.0.0",
+  "description": "OpenTiny GenUI SDK",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "OpenTiny",
+  "packageManager": "pnpm@10.12.1"
+}

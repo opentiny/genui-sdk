@@ -3,7 +3,7 @@
 layout: home
 
 hero:
-  name: 'Genui-SDK'
+  name: 'GenUI-SDK'
   text: '重塑大模型交互方式'
 
   actions:

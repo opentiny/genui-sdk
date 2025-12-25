@@ -6,7 +6,7 @@ export default defineConfig({
   title: 'GenUI SDK',
   description: 'GenUI SDK Documentation',
   srcDir: 'src',
-  base: '/genui-sdk/',
+  base: '/genui-sdk-docs/',
   ignoreDeadLinks: true,
   markdown: {
     config(md) {

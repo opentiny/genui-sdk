@@ -1,0 +1,3 @@
+[submodule "projects/tiny-schema-renderer"]
+	path = projects/tiny-schema-renderer
+	url = git@github.com:opentiny/tiny-schema-renderer.git
