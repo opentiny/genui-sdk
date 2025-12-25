@@ -8,7 +8,13 @@
     "build:projects": "pnpm --filter tiny-schema-renderer build && pnpm --filter tiny-schema-renderer-ng build",
     "build:lib": "pnpm --filter schema-card-renderer build",
     "prebuild": "pnpm build:projects &&  pnpm build:lib && pnpm --filter schema-renderer-ng-adpater build",
-    "build": "pnpm --filter genui-sdk-playground build"
+    "build": "pnpm --filter genui-sdk-playground build",
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "devDependencies": {
+    "vitepress": "^1.5.2"
   },
   "keywords": [],
   "author": "OpenTiny",
