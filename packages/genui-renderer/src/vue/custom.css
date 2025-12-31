@@ -1,0 +1,38 @@
+:deep(.tiny-card.tiny-card.tiny-card) {
+  width: 100%;
+  background-color: var(--content-bg);
+  border-radius: 24px;
+  .tiny-card--logo__main {
+    color: var(--text-color);
+  }
+  .tiny-card--logo {
+    max-width: 100%;
+  }
+}
+:deep(.tiny-row.tiny-row) {
+  line-height: 2;
+}
+
+/* 重写tiny-vue的覆盖样式 */
+:deep(ol[data-tag='ol']) {
+  list-style: revert;
+  margin: revert;
+  padding: revert;
+}
+
+:deep(ul[data-tag='ul']) {
+  list-style: revert;
+  margin: revert;
+  padding: revert;
+}
+
+:deep(li[data-tag='li']) {
+  margin: revert;
+  padding: revert;
+}
+
+:deep(*),
+:deep(*::before),
+:deep(*::after) {
+  box-sizing: border-box;
+}

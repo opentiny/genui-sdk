@@ -1,0 +1,64 @@
+<ng-container *ngIf="condition">
+  <ng-container *ngIf="loopList?.length">
+    <ng-container *ngFor="let item of loopList; let index = index">
+      <ng-template
+        [ngTemplateOutlet]="renderElement"
+        [ngTemplateOutletContext]="{
+          index,
+          mergeScope:
+            {
+              item,
+              index,
+              loopArgs,
+              scope,
+            } | loopScope,
+        }"
+      ></ng-template>
+    </ng-container>
+  </ng-container>
+  <ng-container *ngIf="!loopList?.length">
+    <ng-template
+      [ngTemplateOutlet]="renderElement"
+      [ngTemplateOutletContext]="{
+        mergeScope: scope,
+      }"
+    ></ng-template>
+  </ng-container>
+</ng-container>
+<ng-template #renderElement let-index="index" let-mergeScope="mergeScope">
+  <ng-template
+    [componentOutlet]="component"
+    [componentOutletNgModule]="moduleRef"
+    [componentOutletProps]="context | parseData: props : mergeScope"
+    [componentOutletDirectives]="directives | autoApplyDirectives: schema | getDirectives "
+    [componentOutletContent]="
+      {
+        children: children,
+        scope: mergeScope,
+      } | embeddedView: childrenTemplate : viewContainerRef
+    "
+    attrAndEvent
+    [attrs]="
+      [
+        context | parseData: props : mergeScope | propsFilter: 'attributes' : component,
+        innerAttributes
+      ] | mergeObject
+    "
+    [events]="
+      [
+        context | parseData: props : mergeScope | propsFilter: 'events' : component,
+      ] | mergeObject
+    "
+  ></ng-template>
+</ng-template>
+
+<ng-template #childrenTemplate let-children="children" let-scope="scope">
+  <ng-container *ngIf="isArray(children)">
+    <ng-container *ngFor="let child of children">
+      <schema-renderer [schema]="child" [scope]="scope" [parent]="schema"></schema-renderer>
+    </ng-container>
+  </ng-container>
+  <ng-container *ngIf="isString(children)">
+    {{ children }}
+  </ng-container>
+</ng-template>

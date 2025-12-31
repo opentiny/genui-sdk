@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["es2017", "DOM"],
+    "module": "esnext",
+    "outDir": "./dist",
+    "strict": true,
+    "sourceMap": false,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "typeRoots": ["./node_modules/@types"]
+  },
+  "include": ["src", "src/*.d.ts"]
+}

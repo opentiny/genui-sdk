@@ -1,10 +1,14 @@
 {
-  "name": "@opentiny/genui-sdk",
+  "name": "genui-sdk",
   "version": "1.0.0",
   "description": "OpenTiny GenUI SDK",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "pnpm --filter genui-sdk-playground dev",
+    "build:projects": "pnpm --filter tiny-schema-renderer build && pnpm --filter tiny-schema-renderer-ng build",
+    "build:lib": "pnpm --filter schema-card-renderer build",
+    "prebuild": "pnpm build:projects &&  pnpm build:lib && pnpm --filter schema-renderer-ng-adpater build",
+    "build": "pnpm --filter genui-sdk-playground build"
   },
   "keywords": [],
   "author": "OpenTiny",

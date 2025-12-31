@@ -1,0 +1,73 @@
+{
+  "deepseek": {
+    "name": "deepseek",
+    "baseUrlEnvName": "DEEPSEEK_BASE_URL",
+    "apiKeyEnvName": "DEEPSEEK_API_KEY",
+    "models": [
+      {
+        "name": "qwen3-coder-30b-a3b-instruct（推荐）",
+        "id": "qwen3-coder-30b-a3b-instruct"
+      },
+      {
+        "name": "qwen3-30b-a3b-instruct-2507",
+        "id": "qwen3-30b-a3b-instruct-2507",
+        "specificPrompt": ""
+      },
+      {
+        "name": "gpt-oss-20b（推荐）",
+        "id": "gpt-oss-20b"
+      },
+      {
+        "name": "qwen3-32b",
+        "id": "qwen3-32b",
+        "supportJsonFormat": true
+      },
+      {
+        "name": "qwen2.5-coder-7b-instruct",
+        "id": "qwen2.5-coder-7b-instruct"
+      },
+      {
+        "name": "qwen2.5-coder-32b-instruct",
+        "id": "qwen2.5-coder-32b-instruct"
+      },
+      {
+        "name": "deepseek-r1-distill-qwen-32b",
+        "id": "deepseek-r1-distill-qwen-32b",
+        "supportJsonFormat": true
+      },
+      {
+        "name": "gpt-oss-120b（不稳定）",
+        "id": "gpt-oss-120b"
+      },
+      {
+        "name": "qwen3-coder-480b-a35b-instruct（不稳定）",
+        "id": "qwen3-coder-480b-a35b-instruct",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "internvl3-78b",
+        "id": "internvl3-78b",
+        "supportJsonFormat": false,
+        "features": {
+          "supportImage": true
+        }
+      },
+      {
+        "name": "qwen3-vl-32b-instruct",
+        "id": "qwen3-vl-32b-instruct",
+        "supportJsonFormat": false,
+        "features": {
+          "supportImage": true
+        }
+      },
+      {
+        "name": "qwen3-vl-30b-a3b-instruct",
+        "id": "qwen3-vl-30b-a3b-instruct",
+        "supportJsonFormat": false,
+        "features": {
+          "supportImage": true
+        }
+      }
+    ]
+  }
+}

@@ -1,5 +1,63 @@
 {
     "name": "tiny-schema-renderer-ng",
-    "version": "0.0.1",
-    "private": true
-}
+    "version": "0.0.0",
+    "main": "dist/renderer-element/browser/index.js",
+    "scripts": {
+      "ng": "ng",
+      "start": "ng serve tiny-schema-renderer-ng",
+      "build": "ng build renderer-element",
+      "build:lib": "ng build renderer",
+      "watch": "ng build renderer-element --watch --configuration development",
+      "test": "ng test"
+    },
+    "prettier": {
+      "printWidth": 100,
+      "singleQuote": true,
+      "overrides": [
+        {
+          "files": "*.html",
+          "options": {
+            "parser": "angular"
+          }
+        }
+      ]
+    },
+    "private": true,
+    "dependencies": {
+      "@angular/animations": "^20.3.14",
+      "@angular/cdk": "^20.2.14",
+      "@angular/common": "^20.3.0",
+      "@angular/compiler": "^20.3.0",
+      "@angular/core": "^20.3.0",
+      "@angular/elements": "^21.0.0",
+      "@angular/forms": "^20.3.0",
+      "@angular/material": "^20.2.14",
+      "@angular/platform-browser": "^20.3.0",
+      "@angular/router": "^20.3.0",
+      "@opentiny/ng": "^1.0.3",
+      "@opentiny/ng-themes": "^1.0.3",
+      "lodash": "4.17.21",
+      "postcss": "8.5.6",
+      "postcss-selector-parser": "7.1.0",
+      "rxjs": "~7.8.0",
+      "tslib": "^2.3.0",
+      "zone.js": "~0.15.0"
+    },
+    "devDependencies": {
+      "@angular/build": "^20.3.10",
+      "@angular/cli": "^20.3.10",
+      "@angular/compiler-cli": "^20.3.0",
+      "@types/jasmine": "~5.1.0",
+      "@types/lodash": "^4.17.21",
+      "jasmine-core": "~5.9.0",
+      "karma": "~6.4.0",
+      "karma-chrome-launcher": "~3.2.0",
+      "karma-coverage": "~2.2.0",
+      "karma-jasmine": "~5.1.0",
+      "karma-jasmine-html-reporter": "~2.1.0",
+      "less": "^4.2.0",
+      "ng-packagr": "^20.3.0",
+      "typescript": "~5.9.2"
+    }
+  }
+  

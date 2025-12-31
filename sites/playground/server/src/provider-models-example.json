@@ -1,0 +1,34 @@
+{
+  "deepseek": {
+    "name": "deepseek",
+    "baseUrl": "https://api.modelarts-maas.com/v1/",
+    "apiKeyEnvName": "DEEPSEEK_API_KEY",
+    "models": [
+      {
+        "name": "模型一",
+        "id": "qwen3-30b-a3b",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "模型二",
+        "id": "deepseek-v3.1",
+        "supportJsonFormat": true
+      },
+      {
+        "name": "模型三",
+        "id": "qwen3-235b-a22b",
+        "supportJsonFormat": true
+      },
+      {
+        "name": "模型四",
+        "id": "qwen3-235b-a22b",
+        "supportJsonFormat": true
+      },
+      {
+        "name": "模型五",
+        "id": "DeepSeek-V3",
+        "supportJsonFormat": true
+      }
+    ]
+  }
+}

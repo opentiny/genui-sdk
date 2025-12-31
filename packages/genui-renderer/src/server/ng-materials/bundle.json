@@ -1,0 +1,6036 @@
+{
+  "data": {
+    "framework": "Angular",
+    "materials": {
+      "components": [
+        {
+          "id": 1,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "按钮"
+          },
+          "component": "TiButton",
+          "icon": "button",
+          "description": "按钮组件，支持多种样式和尺寸",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/button",
+          "screenshot": "",
+          "tags": "button,按钮,基础组件",
+          "keywords": "button,按钮,点击",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiButtonComponent",
+            "destructuring": false
+          },
+          "group": "基础组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "color",
+                "size",
+                "disabled"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "color",
+                    "label": {
+                      "text": {
+                        "zh_CN": "按钮颜色"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "按钮颜色，可选值：default、primary、danger"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "default",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "default",
+                            "value": "default"
+                          },
+                          {
+                            "label": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "label": "danger",
+                            "value": "danger"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "size",
+                    "label": {
+                      "text": {
+                        "zh_CN": "按钮尺寸"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "按钮尺寸，可选值：xs、small、middle、large"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "middle",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "xs",
+                            "value": "xs"
+                          },
+                          {
+                            "label": "small",
+                            "value": "small"
+                          },
+                          {
+                            "label": "middle",
+                            "value": "middle"
+                          },
+                          {
+                            "label": "large",
+                            "value": "large"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用， 值只有true和null，没有false"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用按钮"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "loading",
+                    "label": {
+                      "text": {
+                        "zh_CN": "加载状态"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示加载状态"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onClick": {
+                "label": {
+                  "zh_CN": "点击事件"
+                },
+                "description": {
+                  "zh_CN": "按钮点击时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Event",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "原生事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 2,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "输入框"
+          },
+          "component": "TiText",
+          "icon": "input",
+          "description": "通过鼠标或键盘输入字符",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/text",
+          "screenshot": "",
+          "tags": "input,输入框,表单组件",
+          "keywords": "input,输入框,表单",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiTextComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "placeholder",
+                "disabled",
+                "size"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "输入框绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "输入框占位文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用输入框"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "readonly",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否只读"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否只读"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "size",
+                    "label": {
+                      "text": {
+                        "zh_CN": "尺寸"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "输入框尺寸"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "medium",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "small",
+                            "value": "small"
+                          },
+                          {
+                            "label": "medium",
+                            "value": "medium"
+                          },
+                          {
+                            "label": "large",
+                            "value": "large"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "maxlength",
+                    "label": {
+                      "text": {
+                        "zh_CN": "最大长度"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "最大输入长度"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "输入值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "string",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前输入值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onBlur": {
+                "label": {
+                  "zh_CN": "失去焦点事件"
+                },
+                "description": {
+                  "zh_CN": "输入框失去焦点时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "FocusEvent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "焦点事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onFocus": {
+                "label": {
+                  "zh_CN": "获取焦点事件"
+                },
+                "description": {
+                  "zh_CN": "输入框获取焦点时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "FocusEvent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "焦点事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 3,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "表格"
+          },
+          "component": "TiTable",
+          "icon": "table",
+          "description": "用于展示多条结构类似的数据",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/table",
+          "screenshot": "",
+          "tags": "table,表格,数据展示",
+          "keywords": "table,表格,数据",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiTableComponent",
+            "destructuring": false
+          },
+          "relatedComponents": [
+            "TiCellIconsComponent",
+            "TiCellTextComponent",
+            "TiColClickDirective",
+            "TiColsResizableDirective",
+            "TiColsToggleComponent",
+            "TiColspanDirective",
+            "TiColumnFixedDirective",
+            "TiDetailsIconComponent",
+            "TiDetailsTrDirective",
+            "TiHeadFilterComponent",
+            "TiHeadMenuComponent",
+            "TiHeadSortComponent",
+            "TiTableFixedSizeVirtualScrollDirective",
+            "TiTableVirtualScrollViewportComponent"
+          ],
+          "group": "数据展示",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "TiTableColumn",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "srcData",
+                "displayedData",
+                "columns"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "srcData",
+                    "label": {
+                      "text": {
+                        "zh_CN": "源数据"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表格源数据及其状态，包含 data（源数据数组）和 state（数据状态：searched、sorted、paginated）"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "object",
+                    "widget": {
+                      "component": "ObjectConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "displayedData",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示数据"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表格呈现的数据，只需在初始化时将其设置为空数组即可，组件内部会对其赋值和更新"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "defaultValue": [
+                    ],
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "columns",
+                    "label": {
+                      "text": {
+                        "zh_CN": "列配置"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表格各列的配置信息"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "border",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否显示边框"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示表格边框"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "stripe",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否显示斑马纹"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示斑马纹"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "size",
+                    "label": {
+                      "text": {
+                        "zh_CN": "表格尺寸"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表格尺寸"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "medium",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "small",
+                            "value": "small"
+                          },
+                          {
+                            "label": "medium",
+                            "value": "medium"
+                          },
+                          {
+                            "label": "large",
+                            "value": "large"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onDisplayedDataChange": {
+                "label": {
+                  "zh_CN": "显示数据变化事件"
+                },
+                "description": {
+                  "zh_CN": "当表格显示数据发生变化时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "displayedData",
+                      "type": "any[]",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前显示的表格数据数组"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onStateUpdate": {
+                "label": {
+                  "zh_CN": "状态更新事件"
+                },
+                "description": {
+                  "zh_CN": "当表格状态（搜索、排序、分页）更新时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "tableComponent",
+                      "type": "TiTableComponent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "表格组件实例，可通过 getDataState() 方法获取当前数据状态"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 4,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "对话框"
+          },
+          "component": "TiModal",
+          "icon": "dialog",
+          "description": "在保留当前页面状态的情况下，告知用户并承载相关操作",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/modal",
+          "screenshot": "",
+          "tags": "dialog,对话框,弹窗,modal",
+          "keywords": "dialog,对话框,弹窗,modal",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiModalComponent",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": true,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "title",
+                "visible",
+                "width"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "title",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标题"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "对话框标题"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "visible",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否显示"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示对话框"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "width",
+                    "label": {
+                      "text": {
+                        "zh_CN": "宽度"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "对话框宽度"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "50%",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "closeOnClickModal",
+                    "label": {
+                      "text": {
+                        "zh_CN": "点击遮罩层关闭"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否可以通过点击遮罩层关闭对话框"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": true,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "showClose",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示关闭按钮"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示关闭按钮"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": true,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onClose": {
+                "label": {
+                  "zh_CN": "关闭事件"
+                },
+                "description": {
+                  "zh_CN": "对话框关闭时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onOpen": {
+                "label": {
+                  "zh_CN": "打开事件"
+                },
+                "description": {
+                  "zh_CN": "对话框打开时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "对话框内容"
+                },
+                "description": {
+                  "zh_CN": "对话框的主要内容"
+                }
+              },
+              "footer": {
+                "label": {
+                  "zh_CN": "底部内容"
+                },
+                "description": {
+                  "zh_CN": "对话框底部内容"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 5,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "选择器"
+          },
+          "component": "TiSelect",
+          "icon": "select",
+          "description": "当选项过多时，使用下拉菜单展示并选择内容",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/select",
+          "screenshot": "",
+          "tags": "select,选择器,下拉选择",
+          "keywords": "select,选择器,下拉",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiSelectComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": true,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "options",
+                "placeholder"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "选择器的绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "options",
+                    "label": {
+                      "text": {
+                        "zh_CN": "选项数据"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "选项数据源"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "选择器占位文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用选择器"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "multiple",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否多选"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否支持多选"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "clearable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否可清空"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否可以清空选项"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "选择值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "any",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中的值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onVisibleChange": {
+                "label": {
+                  "zh_CN": "下拉框显示/隐藏事件"
+                },
+                "description": {
+                  "zh_CN": "下拉框显示或隐藏时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "visible",
+                      "type": "boolean",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "是否显示"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 6,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "日期选择器"
+          },
+          "component": "TiDate",
+          "icon": "datepick",
+          "description": "用于选择或输入日期",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/date",
+          "screenshot": "",
+          "tags": "datepicker,日期选择器,日期",
+          "keywords": "datepicker,日期,选择",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiDateComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": true,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "placeholder",
+                "format"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "日期选择器的绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "date",
+                    "widget": {
+                      "component": "DateConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "输入框占位文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "format",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示格式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "日期显示格式"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "yyyy-MM-dd",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用日期选择器"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "clearable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否可清空"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否可以清空日期"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": true,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "日期值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "Date",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中的日期"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 7,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "分页"
+          },
+          "component": "TiPagination",
+          "icon": "pagination",
+          "description": "当数据量过多时，使用分页分解数据",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/pagination",
+          "screenshot": "",
+          "tags": "pagination,分页,翻页",
+          "keywords": "pagination,分页",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiPaginationComponent",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "currentPage",
+                "pageSize",
+                "total"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "currentPage",
+                    "label": {
+                      "text": {
+                        "zh_CN": "当前页"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "当前页码"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 1,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "pageSize",
+                    "label": {
+                      "text": {
+                        "zh_CN": "每页条数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "每页显示的数据条数"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 10,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "total",
+                    "label": {
+                      "text": {
+                        "zh_CN": "总条数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "数据总条数"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 0,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "pageSizes",
+                    "label": {
+                      "text": {
+                        "zh_CN": "每页条数选项"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "每页条数选项数组"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "defaultValue": [
+                      10,
+                      20,
+                      50,
+                      100
+                    ],
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "layout",
+                    "label": {
+                      "text": {
+                        "zh_CN": "布局"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "组件布局，子组件名用逗号分隔"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "prev, pager, next, jumper, ->, total",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onCurrentPageChange": {
+                "label": {
+                  "zh_CN": "当前页改变事件"
+                },
+                "description": {
+                  "zh_CN": "当前页改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "currentPage",
+                      "type": "number",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前页码"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onPageSizeChange": {
+                "label": {
+                  "zh_CN": "每页条数改变事件"
+                },
+                "description": {
+                  "zh_CN": "每页条数改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "pageSize",
+                      "type": "number",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "每页条数"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 8,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "标签页"
+          },
+          "component": "TiTabs",
+          "icon": "tabs",
+          "description": "分隔内容上有关联但属于不同类别的数据集合",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/tabs",
+          "screenshot": "",
+          "tags": "tabs,标签页,选项卡",
+          "keywords": "tabs,标签页,tab",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiTabsComponent",
+            "destructuring": false
+          },
+          "group": "导航组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "TiTab",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "panelWidth",
+                "panelAlign"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "panelWidth",
+                    "label": {
+                      "text": {
+                        "zh_CN": "下拉面板宽度"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "下拉面板的宽度。1.\"justified\": 下拉面板宽度与页签项宽度保持一致；2.\"auto\": 下拉面板宽度根据下拉项的内容自动撑开；3.固定的下拉面板宽度: 不小于页签项的宽度，例如：\"200px\"；"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "100px",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "panelAlign",
+                    "label": {
+                      "text": {
+                        "zh_CN": "下拉面板对齐方式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "下拉面板对齐方式"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "right",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "left",
+                            "value": "left"
+                          },
+                          {
+                            "label": "right",
+                            "value": "right"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "panelMaxHeight",
+                    "label": {
+                      "text": {
+                        "zh_CN": "下拉面板最大高度"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "下拉面板最大高度"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "methods": {
+              "changeActive": {
+                "label": {
+                  "zh_CN": "页签激活状态变更后执行"
+                },
+                "description": {
+                  "zh_CN": "页签激活状态变更后执行"
+                },
+                "type": "method",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "tab",
+                      "type": "TiTabComponent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "页签组件实例"
+                      }
+                    }
+                  ],
+                  "returns": {
+                    "type": "void"
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 16,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "标签页项"
+          },
+          "component": "TiTab",
+          "icon": "tab",
+          "description": "标签页的单个标签项",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/tabs",
+          "screenshot": "",
+          "tags": "tab,标签页项,选项卡",
+          "keywords": "tab,标签页项",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiTabComponent",
+            "destructuring": false
+          },
+          "group": "导航组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "TiTabs",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "header",
+                "id"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "header",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标题"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "页签标题"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "id",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标识"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "页签标识，用于标识当前标签页"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "active",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否激活"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "当前页签是否激活，该接口是双向绑定的"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用标签页"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onActiveChange": {
+                "label": {
+                  "zh_CN": "激活状态改变事件"
+                },
+                "description": {
+                  "zh_CN": "页签激活状态发生改变时触发，参数为当前页签是否为激活状态"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "active",
+                      "type": "boolean",
+                      "defaultValue": false,
+                      "description": {
+                        "zh_CN": "当前页签是否为激活状态"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onBeforeActiveChange": {
+                "label": {
+                  "zh_CN": "激活状态改变前事件"
+                },
+                "description": {
+                  "zh_CN": "页签激活状态发生改变前触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "标签页内容"
+                },
+                "description": {
+                  "zh_CN": "标签页的主要内容"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 9,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "复选框"
+          },
+          "component": "TiCheckbox",
+          "icon": "checkbox",
+          "description": "一组备选项中进行多选",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/checkbox",
+          "screenshot": "",
+          "tags": "checkbox,复选框,多选",
+          "keywords": "checkbox,复选框",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiCheckboxComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "type",
+                "ngModel",
+                "label",
+                "disabled"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "类型"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "复选框类型（必填，必须是type='checkbox'）"
+                    },
+                    "required": true,
+                    "readOnly": true,
+                    "disabled": true,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "'checkbox'",
+                    "defaultValue": "checkbox",
+                    "widget": {
+                      "component": "InputConfigurator"
+                    }
+                  },
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "复选框的绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "label",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标签"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "复选框标签文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用复选框"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "indeterminate",
+                    "label": {
+                      "text": {
+                        "zh_CN": "半选状态"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "设置 indeterminate 状态，只负责样式控制"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "复选框值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "boolean",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中状态"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 17,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "复选框组"
+          },
+          "component": "TiCheckboxGroup",
+          "icon": "checkbox-group",
+          "description": "用于管理多个复选框的容器组件",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/checkbox",
+          "screenshot": "",
+          "tags": "checkbox-group,复选框组,多选",
+          "keywords": "checkbox-group,复选框组",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiCheckboxGroupComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "TiCheckbox",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "items"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "复选框组的绑定值，数组类型"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "items",
+                    "label": {
+                      "text": {
+                        "zh_CN": "选项数据"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "复选框选项数据源"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用整个复选框组"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "复选框组值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "any[]",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中的值数组"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 10,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "单选框"
+          },
+          "component": "TiRadio",
+          "icon": "radio",
+          "description": "在一组备选项中进行单选",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/radio",
+          "screenshot": "",
+          "tags": "radio,单选框,单选",
+          "keywords": "radio,单选框",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiRadioComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "TiRadioGroup",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "type",
+                "name",
+                "ngModel",
+                "label",
+                "disabled",
+                "value"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "类型"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框类型"
+                    },
+                    "required": true,
+                    "readOnly": true,
+                    "disabled": true,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "'radio'",
+                    "defaultValue": "radio",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "name",
+                    "label": {
+                      "text": {
+                        "zh_CN": "名称"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框的名称，用于分组。同一组单选框应具有相同的 name 值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框的绑定值，用于双向数据绑定"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "value",
+                    "label": {
+                      "text": {
+                        "zh_CN": "单选框的值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框的值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "label",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标签"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框标签文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用单选框"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 18,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "单选框组"
+          },
+          "component": "TiRadioGroup",
+          "icon": "radio-group",
+          "description": "用于管理多个单选框的容器组件",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/radio",
+          "screenshot": "",
+          "tags": "radio-group,单选框组,单选",
+          "keywords": "radio-group,单选框组",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiRadioGroupComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "TiRadio",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "items"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框组的绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "items",
+                    "label": {
+                      "text": {
+                        "zh_CN": "选项数据"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选框选项数据源"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用整个单选框组"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "单选框组值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "any",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中的值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 11,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "开关"
+          },
+          "component": "TiSwitch",
+          "icon": "switch",
+          "description": "表示两种相互对立的状态间的切换，多用于触发「开/关」",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/switch",
+          "screenshot": "",
+          "tags": "switch,开关,切换",
+          "keywords": "switch,开关",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiSwitchComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "disabled"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "开关的绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用开关"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "activeText",
+                    "label": {
+                      "text": {
+                        "zh_CN": "打开时的文字描述"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "开关打开时的文字描述"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "inactiveText",
+                    "label": {
+                      "text": {
+                        "zh_CN": "关闭时的文字描述"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "开关关闭时的文字描述"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "开关值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "boolean",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前开关状态"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 12,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "消息提示"
+          },
+          "component": "TiMessage",
+          "icon": "message",
+          "description": "常用于主动操作后的反馈提示",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/message",
+          "screenshot": "",
+          "tags": "message,消息,提示",
+          "keywords": "message,消息,提示",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiMessageService",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": false,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "type",
+                "message"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "消息类型"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "消息类型，可选值：success、warning、info、error"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "info",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "success",
+                            "value": "success"
+                          },
+                          {
+                            "label": "warning",
+                            "value": "warning"
+                          },
+                          {
+                            "label": "info",
+                            "value": "info"
+                          },
+                          {
+                            "label": "error",
+                            "value": "error"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "message",
+                    "label": {
+                      "text": {
+                        "zh_CN": "消息内容"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "消息提示内容"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "duration",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示时长"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "消息显示时长，单位为毫秒"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 3000,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 13,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "工具提示"
+          },
+          "component": "TiTip",
+          "icon": "tooltip",
+          "description": "常用于展示鼠标 hover 时的提示信息",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/tip",
+          "screenshot": "",
+          "tags": "tooltip,工具提示,提示",
+          "keywords": "tooltip,工具提示",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiTipDirective",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": true,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "content",
+                "placement"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "content",
+                    "label": {
+                      "text": {
+                        "zh_CN": "提示内容"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "提示框显示的内容"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "placement",
+                    "label": {
+                      "text": {
+                        "zh_CN": "出现位置"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "提示框出现的位置"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "top",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "top",
+                            "value": "top"
+                          },
+                          {
+                            "label": "top-start",
+                            "value": "top-start"
+                          },
+                          {
+                            "label": "top-end",
+                            "value": "top-end"
+                          },
+                          {
+                            "label": "bottom",
+                            "value": "bottom"
+                          },
+                          {
+                            "label": "bottom-start",
+                            "value": "bottom-start"
+                          },
+                          {
+                            "label": "bottom-end",
+                            "value": "bottom-end"
+                          },
+                          {
+                            "label": "left",
+                            "value": "left"
+                          },
+                          {
+                            "label": "left-start",
+                            "value": "left-start"
+                          },
+                          {
+                            "label": "left-end",
+                            "value": "left-end"
+                          },
+                          {
+                            "label": "right",
+                            "value": "right"
+                          },
+                          {
+                            "label": "right-start",
+                            "value": "right-start"
+                          },
+                          {
+                            "label": "right-end",
+                            "value": "right-end"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "trigger",
+                    "label": {
+                      "text": {
+                        "zh_CN": "触发方式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "提示框触发方式"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "hover",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "hover",
+                            "value": "hover"
+                          },
+                          {
+                            "label": "focus",
+                            "value": "focus"
+                          },
+                          {
+                            "label": "click",
+                            "value": "click"
+                          },
+                          {
+                            "label": "manual",
+                            "value": "manual"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 14,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "卡片"
+          },
+          "component": "TiCard",
+          "icon": "card",
+          "description": "将信息聚合在卡片容器中展示",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/card",
+          "screenshot": "",
+          "tags": "card,卡片,容器",
+          "keywords": "card,卡片",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiCardComponent",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "shadow",
+                "bordered",
+                "hoverable"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "shadow",
+                    "label": {
+                      "text": {
+                        "zh_CN": "阴影效果"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "卡片阴影效果"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "always",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "always",
+                            "value": "always"
+                          },
+                          {
+                            "label": "hover",
+                            "value": "hover"
+                          },
+                          {
+                            "label": "never",
+                            "value": "never"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "bordered",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否显示边框"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示卡片边框"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": true,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "hoverable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "悬停效果"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "鼠标悬停时是否显示阴影效果"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "卡片内容"
+                },
+                "description": {
+                  "zh_CN": "卡片的主要内容"
+                }
+              },
+              "header": {
+                "label": {
+                  "zh_CN": "卡片头部"
+                },
+                "description": {
+                  "zh_CN": "卡片头部内容"
+                }
+              },
+              "footer": {
+                "label": {
+                  "zh_CN": "卡片底部"
+                },
+                "description": {
+                  "zh_CN": "卡片底部内容"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 15,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "上传"
+          },
+          "component": "TiUpload",
+          "icon": "upload",
+          "description": "通过点击或者拖拽上传文件",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/upload",
+          "screenshot": "",
+          "tags": "upload,上传,文件",
+          "keywords": "upload,上传,文件",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiUploadComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "action",
+                "multiple",
+                "accept"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "action",
+                    "label": {
+                      "text": {
+                        "zh_CN": "上传地址"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "上传的地址"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "multiple",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否支持多选"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否支持多选文件"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "accept",
+                    "label": {
+                      "text": {
+                        "zh_CN": "接受的文件类型"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "接受上传的文件类型"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "limit",
+                    "label": {
+                      "text": {
+                        "zh_CN": "最大上传数量"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "最大允许上传文件数量"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onSuccess": {
+                "label": {
+                  "zh_CN": "上传成功事件"
+                },
+                "description": {
+                  "zh_CN": "文件上传成功时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "response",
+                      "type": "any",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "服务器响应数据"
+                      }
+                    },
+                    {
+                      "name": "file",
+                      "type": "File",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "上传的文件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onError": {
+                "label": {
+                  "zh_CN": "上传失败事件"
+                },
+                "description": {
+                  "zh_CN": "文件上传失败时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "error",
+                      "type": "Error",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "错误信息"
+                      }
+                    },
+                    {
+                      "name": "file",
+                      "type": "File",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "上传的文件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 19,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "表单"
+          },
+          "component": "TiFormField",
+          "icon": "form-field",
+          "description": "表单容器，用于包裹表单项",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/form-field",
+          "screenshot": "",
+          "tags": "form-field,表单项,表单布局",
+          "keywords": "form-field,表单项,表单",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiFormfieldComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "TiItem",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": true,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "vertical",
+                "labelPosition",
+                "labelWidth"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "vertical",
+                    "label": {
+                      "text": {
+                        "zh_CN": "垂直布局"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否垂直排列表单项"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "true | null",
+                    "defaultValue": null,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "labelPosition",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标签位置"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表单标签的位置"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "left",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "left",
+                            "value": "left"
+                          },
+                          {
+                            "label": "right",
+                            "value": "right"
+                          },
+                          {
+                            "label": "top",
+                            "value": "top"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "labelWidth",
+                    "label": {
+                      "text": {
+                        "zh_CN": "标签宽度"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "标签宽度，支持像素值和百分比，例如 '100px' 或 '20%'"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "100px",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "表单内容"
+                },
+                "description": {
+                  "zh_CN": "表单的主要内容，通常放置 TiItem 表单项"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 20,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "表单项容器"
+          },
+          "component": "TiItem",
+          "icon": "form-item",
+          "description": "表单项容器，用于包裹表单控件和标签",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/item",
+          "screenshot": "",
+          "tags": "item,表单项布局,表单布局",
+          "keywords": "item,表单项,布局",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiItemComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "TiFormField",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": true,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "span",
+                "offset",
+                "gutter"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "span",
+                    "label": {
+                      "text": {
+                        "zh_CN": "栅格占据的列数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "栅格占据的列数，共24列"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 24,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "offset",
+                    "label": {
+                      "text": {
+                        "zh_CN": "栅格左侧的间隔格数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "栅格左侧的间隔格数"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 0,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "gutter",
+                    "label": {
+                      "text": {
+                        "zh_CN": "栅格间隔"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "栅格间隔，单位px"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "表单项内容"
+                },
+                "description": {
+                  "zh_CN": "表单项布局的主要内容"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 21,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "卡片头部"
+          },
+          "component": "TiCardHeader",
+          "icon": "card-header",
+          "description": "卡片头部组件，用于展示卡片的标题和操作按钮",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/card-header",
+          "screenshot": "",
+          "tags": "card-header,卡片头部,卡片",
+          "keywords": "card-header,卡片头部",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiCardHeaderComponent",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "TiCard",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "头部内容"
+                },
+                "description": {
+                  "zh_CN": "自定义头部内容"
+                }
+              },
+              "title": {
+                "label": {
+                  "zh_CN": "标题插槽"
+                },
+                "description": {
+                  "zh_CN": "自定义标题内容"
+                }
+              },
+              "subtitle": {
+                "label": {
+                  "zh_CN": "副标题插槽"
+                },
+                "description": {
+                  "zh_CN": "自定义副标题内容"
+                }
+              },
+              "actions": {
+                "label": {
+                  "zh_CN": "操作按钮插槽"
+                },
+                "description": {
+                  "zh_CN": "头部右侧操作按钮"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 22,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "日期范围选择器"
+          },
+          "component": "TiDateRange",
+          "icon": "daterange",
+          "description": "用于选择日期范围",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/date-range",
+          "screenshot": "",
+          "tags": "daterange,日期范围,日期选择",
+          "keywords": "daterange,日期范围,日期",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiDateRangeComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": true,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "placeholder",
+                "format"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "日期范围选择器的绑定值，数组类型 [开始日期, 结束日期]"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "输入框占位文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "format",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示格式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "日期显示格式"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "defaultValue": "yyyy-MM-dd",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用日期范围选择器"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "日期范围值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "Date[]",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中的日期范围 [开始日期, 结束日期]"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 23,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "滑块"
+          },
+          "component": "TiSlider",
+          "icon": "slider",
+          "description": "通过拖动滑块在一个固定区间内进行选择",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/slider",
+          "screenshot": "",
+          "tags": "slider,滑块,滑动选择",
+          "keywords": "slider,滑块,滑动",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiSliderComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "min",
+                "max",
+                "step"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "滑块的当前值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 0,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "min",
+                    "label": {
+                      "text": {
+                        "zh_CN": "最小值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "滑块的最小值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 0,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "max",
+                    "label": {
+                      "text": {
+                        "zh_CN": "最大值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "滑块的最大值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 100,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "step",
+                    "label": {
+                      "text": {
+                        "zh_CN": "步长"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "滑块移动的步长"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 1,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用滑块"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "滑块值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "number",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前滑块的值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 24,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "评分"
+          },
+          "component": "TiRate",
+          "icon": "rate",
+          "description": "用于对事物进行评级操作",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/rate",
+          "screenshot": "",
+          "tags": "rate,评分,星级",
+          "keywords": "rate,评分,星级",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiRateComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "ngModel",
+                "count",
+                "disabled"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "评分的当前值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 0,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "count",
+                    "label": {
+                      "text": {
+                        "zh_CN": "星星总数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "评分星星的总数"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 5,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用评分"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "评分值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "number",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前评分的值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 25,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "多行文本"
+          },
+          "component": "TiTextArea",
+          "icon": "textarea",
+          "description": "用于输入多行文本信息",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/textarea",
+          "screenshot": "",
+          "tags": "textarea,多行文本,文本域,表单组件",
+          "keywords": "textarea,多行文本,文本域,表单",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiTextareaComponent",
+            "destructuring": false
+          },
+          "group": "表单组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "placeholder",
+                "disabled",
+                "rows"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "文本域绑定值"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "文本域占位文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用文本域"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "readonly",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否只读"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否只读"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "rows",
+                    "label": {
+                      "text": {
+                        "zh_CN": "行数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "文本域显示的行数"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "defaultValue": 3,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "maxlength",
+                    "label": {
+                      "text": {
+                        "zh_CN": "最大长度"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "最大输入长度"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "输入值改变时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "string",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前输入值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onBlur": {
+                "label": {
+                  "zh_CN": "失去焦点事件"
+                },
+                "description": {
+                  "zh_CN": "文本域失去焦点时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "FocusEvent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "焦点事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              },
+              "onFocus": {
+                "label": {
+                  "zh_CN": "获取焦点事件"
+                },
+                "description": {
+                  "zh_CN": "文本域获取焦点时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "FocusEvent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "焦点事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "slots": {
+            }
+          }
+        }
+      ],
+      "packages": [
+        {
+          "name": "@opentiny/ng",
+          "package": "@opentiny/ng",
+          "version": "3.8.0",
+          "destructuring": false,
+          "script": "",
+          "css": ""
+        }
+      ],
+      "snippets": [
+        {
+          "group": "basic",
+          "label": {
+            "zh_CN": "基础组件"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "按钮"
+              },
+              "icon": "button",
+              "screenshot": "",
+              "snippetName": "TiButton",
+              "schema": {
+                "componentName": "TiButton",
+                "props": {
+                  "color": "primary",
+                  "size": "middle"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "输入框"
+              },
+              "icon": "input",
+              "screenshot": "",
+              "snippetName": "TiText",
+              "schema": {
+                "componentName": "input",
+                "props": {
+                  "ngModel": "",
+                  "placeholder": "请输入内容"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "卡片"
+              },
+              "icon": "card",
+              "screenshot": "",
+              "snippetName": "TiCard",
+              "schema": {
+                "componentName": "TiCard",
+                "children": [
+                  {
+                    "componentName": "TiCardHeader",
+                    "props": {
+                      "height": "30px"
+                    },
+                    "children": [
+                      {
+                        "componentName": "h3",
+                        "children": "卡片标题"
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "div",
+                    "children": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "卡片内容"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "group": "form",
+          "label": {
+            "zh_CN": "表单组件"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "选择器"
+              },
+              "icon": "select",
+              "screenshot": "",
+              "snippetName": "TiSelect",
+              "schema": {
+                "componentName": "TiSelect",
+                "props": {
+                  "ngModel": "",
+                  "placeholder": "请选择",
+                  "options": [
+                    {
+                      "label": "选项1",
+                      "value": "1"
+                    },
+                    {
+                      "label": "选项2",
+                      "value": "2"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "多行文本"
+              },
+              "icon": "textarea",
+              "screenshot": "",
+              "snippetName": "TiTextArea",
+              "schema": {
+                "componentName": "TiTextArea",
+                "props": {
+                  "ngModel": "",
+                  "placeholder": "请输入内容",
+                  "rows": 3
+                },
+                "directives": [
+                  {
+                    "directiveName": "ngModel"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "日期选择器"
+              },
+              "icon": "datepick",
+              "screenshot": "",
+              "snippetName": "TiDate",
+              "schema": {
+                "componentName": "TiDate",
+                "props": {
+                  "ngModel": "",
+                  "placeholder": "请选择日期",
+                  "format": "yyyy-MM-dd"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "复选框"
+              },
+              "icon": "checkbox",
+              "screenshot": "",
+              "snippetName": "TiCheckbox",
+              "schema": {
+                "componentName": "TiCheckbox",
+                "props": {
+                  "type": "checkbox",
+                  "ngModel": false,
+                  "label": "复选框标签"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "复选框组"
+              },
+              "icon": "checkbox-group",
+              "screenshot": "",
+              "snippetName": "TiCheckboxGroup",
+              "schema": {
+                "componentName": "TiCheckboxGroup",
+                "props": {
+                  "ngModel": {
+                    "type": "JSExpression",
+                    "model": true,
+                    "value": "this.state.checkboxGroupValue"
+                  },
+                  "items": [
+                    {
+                      "label": "选项1",
+                      "value": "1"
+                    },
+                    {
+                      "label": "选项2",
+                      "value": "2"
+                    },
+                    {
+                      "label": "选项3",
+                      "value": "3"
+                    }
+                  ]
+                },
+                "directives": [
+                  {
+                    "directiveName": "ngModel"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "单选框"
+              },
+              "icon": "radio",
+              "screenshot": "",
+              "snippetName": "TiRadio",
+              "schema": {
+                "componentName": "TiRadio",
+                "props": {
+                  "type": "radio",
+                  "value": "1",
+                  "label": "单选项1"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "单选框组"
+              },
+              "icon": "radio-group",
+              "screenshot": "",
+              "snippetName": "TiRadioGroup",
+              "schema": {
+                "componentName": "TiRadioGroup",
+                "props": {
+                  "ngModel": {
+                    "type": "JSExpression",
+                    "model": true,
+                    "value": "this.state.radioGroupValue"
+                  },
+                  "items": [
+                    {
+                      "label": "选项1",
+                      "value": "1"
+                    },
+                    {
+                      "label": "选项2",
+                      "value": "2"
+                    },
+                    {
+                      "label": "选项3",
+                      "value": "3"
+                    }
+                  ]
+                },
+                "directives": [
+                  {
+                    "directiveName": "ngModel"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "开关"
+              },
+              "icon": "switch",
+              "screenshot": "",
+              "snippetName": "TiSwitch",
+              "schema": {
+                "componentName": "TiSwitch",
+                "props": {
+                  "ngModel": false
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "上传"
+              },
+              "icon": "upload",
+              "screenshot": "",
+              "snippetName": "TiUpload",
+              "schema": {
+                "componentName": "TiUpload",
+                "props": {
+                  "action": "/api/upload",
+                  "multiple": false
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "日期范围"
+              },
+              "icon": "daterange",
+              "screenshot": "",
+              "snippetName": "TiDateRange",
+              "schema": {
+                "componentName": "TiDateRange",
+                "props": {
+                  "ngModel": {
+                    "type": "JSExpression",
+                    "model": true,
+                    "value": "this.state.dateRangeValue"
+                  },
+                  "placeholder": "请选择日期范围",
+                  "format": "yyyy-MM-dd"
+                },
+                "directives": [
+                  {
+                    "directiveName": "ngModel"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "滑块"
+              },
+              "icon": "slider",
+              "screenshot": "",
+              "snippetName": "TiSlider",
+              "schema": {
+                "componentName": "TiSlider",
+                "props": {
+                  "ngModel": {
+                    "type": "JSExpression",
+                    "model": true,
+                    "value": "this.state.sliderValue"
+                  },
+                  "min": 0,
+                  "max": 100,
+                  "step": 1
+                },
+                "directives": [
+                  {
+                    "directiveName": "ngModel"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "评分"
+              },
+              "icon": "rate",
+              "screenshot": "",
+              "snippetName": "TiRate",
+              "schema": {
+                "componentName": "TiRate",
+                "props": {
+                  "ngModel": {
+                    "type": "JSExpression",
+                    "model": true,
+                    "value": "this.state.rateValue"
+                  },
+                  "count": 5,
+                  "allowHalf": false
+                },
+                "directives": [
+                  {
+                    "directiveName": "ngModel"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "表单项"
+              },
+              "icon": "form-field",
+              "screenshot": "",
+              "snippetName": "TiFormField",
+              "schema": {
+                "componentName": "TiFormField",
+                "children": [
+                  {
+                    "componentName": "TiItem",
+                    "props": {
+                      "label": "国家",
+                      "required": true
+                    },
+                    "children": [
+                      {
+                        "componentName": "TiText",
+                        "props": {
+                          "ngModel": {
+                            "type": "JSExpression",
+                            "model": true,
+                            "value": "this.state.contryValue"
+                          }
+                        },
+                        "directives": [
+                          {
+                            "directiveName": "ngModel"
+                          },
+                          {
+                            "directiveName": "defaultValueAccessor"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "TiItem",
+                    "props": {
+                      "label": "性别",
+                      "required": true
+                    },
+                    "children": [
+                      {
+                        "componentName": "TiText",
+                        "props": {
+                          "ngModel": {
+                            "type": "JSExpression",
+                            "model": true,
+                            "value": "this.state.sexValue"
+                          }
+                        },
+                        "directives": [
+                          {
+                            "directiveName": "ngModel"
+                          },
+                          {
+                            "directiveName": "defaultValueAccessor"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "TiItem",
+                    "props": {
+                      "label": "身份证号码",
+                      "required": true
+                    },
+                    "children": [
+                      {
+                        "componentName": "TiText",
+                        "props": {
+                          "ngModel": {
+                            "type": "JSExpression",
+                            "model": true,
+                            "value": "this.state.IDValue"
+                          }
+                        },
+                        "directives": [
+                          {
+                            "directiveName": "ngModel"
+                          },
+                          {
+                            "directiveName": "defaultValueAccessor"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "TiItem",
+                    "props": {
+                      "label": "Email",
+                      "required": true
+                    },
+                    "children": [
+                      {
+                        "componentName": "TiText",
+                        "props": {
+                          "ngModel": {
+                            "type": "JSExpression",
+                            "model": true,
+                            "value": "this.state.emailValue"
+                          }
+                        },
+                        "directives": [
+                          {
+                            "directiveName": "ngModel"
+                          },
+                          {
+                            "directiveName": "defaultValueAccessor"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "TiItem",
+                    "props": {
+                      "label": "昵称",
+                      "required": {
+                        "type": "JSExpression",
+                        "value": "this.state.nickRequired"
+                      }
+                    },
+                    "children": [
+                      {
+                        "componentName": "TiText",
+                        "props": {
+                          "ngModel": {
+                            "type": "JSExpression",
+                            "model": true,
+                            "value": "this.state.nickValue"
+                          }
+                        },
+                        "directives": [
+                          {
+                            "directiveName": "ngModel"
+                          },
+                          {
+                            "directiveName": "defaultValueAccessor"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "group": "data-display",
+          "label": {
+            "zh_CN": "数据展示"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "表格"
+              },
+              "icon": "table",
+              "screenshot": "",
+              "snippetName": "TiTable",
+              "schema": {
+                "componentName": "TiTable",
+                "props": {
+                  "srcData": {
+                    "type": "JSExpression",
+                    "value": "this.state.srcData"
+                  },
+                  "displayedData": {
+                    "type": "JSExpression",
+                    "model": true,
+                    "value": "this.state.displayedData"
+                  },
+                  "columns": {
+                    "type": "JSExpression",
+                    "value": "this.state.columns"
+                  }
+                },
+                "children": [
+                  {
+                    "componentName": "table",
+                    "children": [
+                      {
+                        "componentName": "thead",
+                        "children": [
+                          {
+                            "componentName": "tr",
+                            "children": [
+                              {
+                                "componentName": "th",
+                                "children": [
+                                  {
+                                    "componentName": "Text",
+                                    "props": {
+                                      "text": {
+                                        "type": "JSExpression",
+                                        "value": "column.title"
+                                      }
+                                    }
+                                  }
+                                ],
+                                "loop": {
+                                  "type": "JSExpression",
+                                  "value": "this.state.columns"
+                                },
+                                "loopArgs": [
+                                  "column"
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "componentName": "tbody",
+                        "children": [
+                          {
+                            "componentName": "tr",
+                            "loop": {
+                              "type": "JSExpression",
+                              "value": "this.state.displayedData"
+                            },
+                            "loopArgs": [
+                              "row"
+                            ],
+                            "children": [
+                              {
+                                "componentName": "td",
+                                "children": [
+                                  {
+                                    "componentName": "Text",
+                                    "props": {
+                                      "text": {
+                                        "type": "JSExpression",
+                                        "value": "row.firstName"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "componentName": "td",
+                                "children": [
+                                  {
+                                    "componentName": "Text",
+                                    "props": {
+                                      "text": {
+                                        "type": "JSExpression",
+                                        "value": "row.lastName"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "componentName": "td",
+                                "children": [
+                                  {
+                                    "componentName": "Text",
+                                    "props": {
+                                      "text": {
+                                        "type": "JSExpression",
+                                        "value": "row.age"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "componentName": "td",
+                                "children": [
+                                  {
+                                    "componentName": "Text",
+                                    "props": {
+                                      "text": {
+                                        "type": "JSExpression",
+                                        "value": "row.email"
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "分页"
+              },
+              "icon": "pagination",
+              "screenshot": "",
+              "snippetName": "TiPagination",
+              "schema": {
+                "componentName": "TiPagination",
+                "props": {
+                  "currentPage": 1,
+                  "pageSize": 10,
+                  "total": 100
+                }
+              }
+            }
+          ]
+        },
+        {
+          "group": "navigation",
+          "label": {
+            "zh_CN": "导航组件"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "标签页"
+              },
+              "icon": "tabs",
+              "screenshot": "",
+              "snippetName": "TiTabs",
+              "schema": {
+                "componentName": "TiTabs",
+                "props": {
+                },
+                "children": [
+                  {
+                    "componentName": "TiTab",
+                    "props": {
+                      "header": "标签页1",
+                      "id": "tab1",
+                      "active": true
+                    }
+                  },
+                  {
+                    "componentName": "TiTab",
+                    "props": {
+                      "header": "标签页2",
+                      "id": "tab2"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "group": "feedback",
+          "label": {
+            "zh_CN": "反馈组件"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "对话框"
+              },
+              "icon": "dialog",
+              "screenshot": "",
+              "snippetName": "TiModal",
+              "schema": {
+                "componentName": "TiModal",
+                "props": {
+                  "title": "对话框标题",
+                  "visible": false,
+                  "width": "50%"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "工具提示"
+              },
+              "icon": "tooltip",
+              "screenshot": "",
+              "snippetName": "TiTip",
+              "schema": {
+                "componentName": "div",
+                "props": {
+                  "tiTip": "提示内容",
+                  "placement": "top"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "blocks": [
+      ]
+    }
+  }
+}

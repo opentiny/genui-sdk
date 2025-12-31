@@ -1,0 +1,15 @@
+<svg viewBox="0 0 520 133" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="520.000000" height="133.000000" fill="none">
+	<defs>
+		<radialGradient id="paint_radial_0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,-73.3429,110.29,0,158.434,153.806)">
+			<stop stop-color="rgb(255,239,248)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(255,239,248)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,119.025,-178.985,0,332.947,114.155)">
+			<stop stop-color="rgb(230,240,255)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(230,240,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+	</defs>
+	<rect id="容器 2" width="520.000000" height="133.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+	<rect id="show_mask_2" width="220.867935" height="146.685822" x="48.000000" y="80.465088" rx="73.342911" fill="url(#paint_radial_0)" />
+	<rect id="show_mask_1" width="437.894287" height="290.820618" x="114.000000" y="-31.254883" rx="145.410309" fill="url(#paint_radial_1)" />
+</svg>

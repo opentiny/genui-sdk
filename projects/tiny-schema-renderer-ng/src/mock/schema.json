@@ -1,0 +1,883 @@
+{
+  "componentName": "Page",
+  "state": {
+    "inputValue": "输入框默认值",
+    "selectValue": {},
+    "obj": {
+      "name": "张三"
+    },
+    "selectedHobbies": [],
+    "formData": {
+      "name": "",
+      "email": "",
+      "phone": "",
+      "department": "",
+      "position": "",
+      "joinDate": null,
+      "description": "",
+      "gender": "",
+      "agreement": false,
+      "hobbies": []
+    },
+    "srcData": {
+      "data": [
+        {
+          "id": "001",
+          "name": "张三",
+          "department": "技术部",
+          "email": "zhangsan@example.com"
+        },
+        {
+          "id": "002",
+          "name": "李四",
+          "department": "市场部",
+          "email": "lisi@example.com"
+        },
+        {
+          "id": "003",
+          "name": "王五",
+          "department": "人事部",
+          "email": "wangwu@example.com"
+        },
+        {
+          "id": "004",
+          "name": "赵六",
+          "department": "财务部",
+          "email": "zhaoliu@example.com"
+        }
+      ]
+    },
+    "displayedData": [],
+    "columns": [
+      {
+        "field": "id",
+        "title": "ID"
+      },
+      {
+        "field": "name",
+        "title": "姓名"
+      },
+      {
+        "field": "department",
+        "title": "部门"
+      },
+      {
+        "field": "email",
+        "title": "邮箱"
+      }
+    ]
+  },
+  "methods": {
+    "handleReset": {
+      "type": "JSFunction",
+      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '', department: '', position: '', joinDate: null, description: '', gender: '', agreement: false, hobbies: [] } }"
+    },
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function handleSubmit() { console.log('表单提交数据:', this.state.formData) }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {},
+      "children": [
+        {
+          "componentName": "h2",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": "信息展示卡片"
+        },
+        {
+          "componentName": "Img",
+          "props": {
+            "src": "https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/designer-default-icon.jpg",
+            "alt": "示例图片",
+            "style": "width: 100%; max-width: 300px; display: block; margin: 0 auto 16px;"
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "style": "color:red",
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.obj.name"
+            }
+          }
+        },
+        {
+          "componentName": "TiButton",
+          "directives": [
+            {
+              "directiveName": "log"
+            }
+          ],
+          "props": {
+            "onLog": {
+              "type": "JSExpression",
+              "value": "(data) => { console.log('log', data) }"
+            }
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "item + '序号' + index"
+                },
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "(event) => { console.log('onClick', event, item, index); if (index=== 2) {console.log(this.state)} }"
+                }
+              }
+            }
+          ],
+          "loop": {
+            "type": "JSExpression",
+            "value": "[ '按钮1', '按钮2', '按钮3' ]"
+          },
+          "loopArgs": ["item", "index"]
+        },
+        {
+          "componentName": "TiSelect",
+          "props": {
+            "options": {
+              "type": "JSExpression",
+              "value": "[ { label: '选项1', value: '选项1' }, { label: '选项2', value: '选项2' }, { label: '选项3', value: '选项3' } ]"
+            },
+            "ngModel": {
+              "type": "JSExpression",
+              "value": "this.state.selectValue"
+            },
+            "onBlur": {
+              "type": "JSFunction",
+              "value": "() => { console.log('onBlur') }"
+            },
+            "onNgModelChange": {
+              "type": "JSFunction",
+              "value": "(data) => { console.log('onNgModelChange'), this.state.selectValue = data }"
+            },
+            "placeholder": {
+              "type": "JSExpression",
+              "value": "'请选择国家'"
+            }
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            }
+          ]
+        },
+        {
+          "componentName": "TiText",
+          "props": {
+            "ngModel": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.obj.name"
+            },
+            "placeholder": "请输入"
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            },
+            {
+              "directiveName": "defaultValueAccessor"
+            }
+          ]
+        },
+        {
+          "componentName": "input",
+          "props": {
+            "ngModel": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.inputValue"
+            }
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            },
+            {
+              "directiveName": "defaultValueAccessor"
+            }
+          ]
+        },
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-bottom: 8px;"
+          },
+          "children": "无序列表"
+        },
+        {
+          "componentName": "ul",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "li",
+              "children": "无序列表项1"
+            },
+            {
+              "componentName": "li",
+              "children": "无序列表项2"
+            },
+            {
+              "componentName": "li",
+              "children": "无序列表项3"
+            }
+          ]
+        },
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-bottom: 8px;"
+          },
+          "children": "有序列表"
+        },
+        {
+          "componentName": "ol",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "li",
+              "children": "有序列表项1"
+            },
+            {
+              "componentName": "li",
+              "children": "有序列表项2"
+            },
+            {
+              "componentName": "li",
+              "children": "有序列表项3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "style": "display: flex; flex-direction: column; gap: 16px; padding: 20px;"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "font-size: 16px; font-weight: bold; margin-bottom: 10px;"
+          },
+          "children": "请选择兴趣爱好（可多选）"
+        },
+        {
+          "componentName": "TiSelect",
+          "props": {
+            "ngModel": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.selectedHobbies"
+            },
+            "options": [
+              {"label": "阅读", "value": "reading"},
+              {"label": "运动", "value": "sports"},
+              {"label": "音乐", "value": "music"},
+              {"label": "旅行", "value": "travel"},
+              {"label": "烹饪", "value": "cooking"},
+              {"label": "摄影", "value": "photography"}
+            ],
+            "placeholder": "请选择兴趣爱好",
+            "multiple": true,
+            "clearable": true
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "TiTabs",
+      "props": {
+        "activeTab": "tab1",
+        "type": "line"
+      },
+      "children": [
+        {
+          "componentName": "TiTab",
+          "props": {
+            "header": "基本信息",
+            "id": "tab1",
+            "active": true
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "padding: 20px;"
+              },
+              "children": [
+                {
+                  "componentName": "h4",
+                  "children": "个人信息"
+                },
+                {
+                  "componentName": "p",
+                  "children": "这里显示基本信息内容"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TiTab",
+          "props": {
+            "header": "详细信息",
+            "id": "tab2"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "padding: 20px;"
+              },
+              "children": [
+                {
+                  "componentName": "h4",
+                  "children": "详细资料"
+                },
+                {
+                  "componentName": "p",
+                  "children": "这里显示详细信息内容"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TiTab",
+          "props": {
+            "header": "设置",
+            "id": "tab3"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "padding: 20px;"
+              },
+              "children": [
+                {
+                  "componentName": "h4",
+                  "children": "系统设置"
+                },
+                {
+                  "componentName": "p",
+                  "children": "这里显示设置选项"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "TiTable",
+      "props": {
+        "srcData": {
+          "type": "JSExpression",
+          "value": "this.state.srcData"
+        },
+        "displayedData": {
+          "type": "JSExpression",
+          "model": true,
+          "value": "this.state.displayedData"
+        },
+        "columns": {
+          "type": "JSExpression",
+          "value": "this.state.columns"
+        },
+        "border": true,
+        "stripe": true,
+        "size": "medium"
+      },
+      "children": [
+        {
+          "componentName": "table",
+          "children": [
+            {
+              "componentName": "thead",
+              "children": [
+                {
+                  "componentName": "tr",
+                  "children": [
+                    {
+                      "componentName": "th",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "column.title"
+                            }
+                          }
+                        }
+                      ],
+                      "loop": {
+                        "type": "JSExpression",
+                        "value": "this.state.columns"
+                      },
+                      "loopArgs": ["column"]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "tbody",
+              "children": [
+                {
+                  "componentName": "tr",
+                  "loop": {
+                    "type": "JSExpression",
+                    "value": "this.state.displayedData"
+                  },
+                  "loopArgs": ["row"],
+                  "children": [
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.id"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.name"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.department"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.email"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "TiCard",
+      "props": {
+        "header": "员工信息表单",
+        "style": "width: 500px; margin: 20px auto;"
+      },
+      "children": [
+        {
+          "componentName": "TiFormField",
+          "props": {
+            "style": "padding: 20px;"
+          },
+          "children": [
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "姓名",
+                "required": true,
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiText",
+                  "props": {
+                    "placeholder": "请输入姓名",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.name"
+                    }
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    },
+                    {
+                      "directiveName": "defaultValueAccessor"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "邮箱",
+                "required": true,
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiText",
+                  "props": {
+                    "placeholder": "请输入邮箱",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.email"
+                    }
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    },
+                    {
+                      "directiveName": "defaultValueAccessor"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "电话",
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiText",
+                  "props": {
+                    "placeholder": "请输入联系电话",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.phone"
+                    }
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    },
+                    {
+                      "directiveName": "defaultValueAccessor"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "部门",
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiSelect",
+                  "props": {
+                    "placeholder": "请选择部门",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.department"
+                    },
+                    "options": [
+                      {
+                        "label": "技术部",
+                        "value": "tech"
+                      },
+                      {
+                        "label": "市场部",
+                        "value": "marketing"
+                      },
+                      {
+                        "label": "人事部",
+                        "value": "hr"
+                      },
+                      {
+                        "label": "财务部",
+                        "value": "finance"
+                      }
+                    ]
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "职位",
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiText",
+                  "props": {
+                    "placeholder": "请输入职位",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.position"
+                    }
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    },
+                    {
+                      "directiveName": "defaultValueAccessor"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "入职日期",
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiDate",
+                  "props": {
+                    "placeholder": "请选择日期",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.joinDate"
+                    },
+                    "format": "yyyy-MM-dd"
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "个人描述",
+                "labelWidth": "100px"
+              },
+              "children": [
+                {
+                  "componentName": "TiTextArea",
+                  "props": {
+                    "placeholder": "请输入个人描述",
+                    "rows": 3,
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.description"
+                    }
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    },
+                    {
+                      "directiveName": "defaultValueAccessor"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "性别",
+                "required": true
+              },
+              "children": [
+                {
+                  "componentName": "TiRadioGroup",
+                  "props": {
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.gender"
+                    },
+                    "items": [
+                      {
+                        "label": "男",
+                        "value": "male"
+                      },
+                      {
+                        "label": "女",
+                        "value": "female"
+                      }
+                    ]
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "兴趣爱好",
+                "required": false
+              },
+              "children": [
+                {
+                  "componentName": "TiCheckboxGroup",
+                  "props": {
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.hobbies"
+                    },
+                    "items": [
+                      {
+                        "label": "阅读",
+                        "value": "reading"
+                      },
+                      {
+                        "label": "运动",
+                        "value": "sports"
+                      },
+                      {
+                        "label": "音乐",
+                        "value": "music"
+                      },
+                      {
+                        "label": "旅行",
+                        "value": "travel"
+                      }
+                    ]
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TiItem",
+              "props": {
+                "label": "协议同意",
+                "required": true
+              },
+              "children": [
+                {
+                  "componentName": "TiCheckbox",
+                  "props": {
+                    "type": "checkbox",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.agreement"
+                    },
+                    "label": "我已阅读并同意相关协议"
+                  },
+                  "directives": [
+                    {
+                      "directiveName": "ngModel"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "style": "display: flex; gap: 12px; margin-top: 20px; justify-content: flex-end;"
+              },
+              "children": [
+                {
+                  "componentName": "TiButton",
+                  "props": {
+                    "color": "default",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.handleReset"
+                    }
+                  },
+                  "children": "重置"
+                },
+                {
+                  "componentName": "TiButton",
+                  "props": {
+                    "color": "primary",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.handleSubmit"
+                    }
+                  },
+                  "children": "提交"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

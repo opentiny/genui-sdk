@@ -1,0 +1,570 @@
+{
+  "data": {
+    "framework": "Vue",
+    "materials": {
+      "components": [
+        {
+          "name": {
+            "zh_CN": "卡片组件"
+          },
+          "component": "TinyCard",
+          "icon": "card",
+          "description": "强大卡片组件，用于包裹展示内容。",
+          "doc_url": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "dev_mode": "proCode",
+          "npm": {
+          },
+          "group": "component",
+          "configure": {
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "description": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "auto-width",
+                    "label": {
+                      "text": {
+                        "zh_CN": "自动撑开"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "卡片的宽度是否自动撑开，设置后将不再给卡片设置固定宽度"
+                    }
+                  },
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "卡片类型"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "设置卡片类型,可选值为\"text\",  \"image\",  \"video\",  \"logo\", 默认是\"text\""
+                    }
+                  },
+                  {
+                    "property": "src",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图片或者视频的地址"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "图片或者视频的地址"
+                    }
+                  },
+                  {
+                    "property": "title",
+                    "label": {
+                      "text": {
+                        "zh_CN": "卡片的标题,字号比正文略大，比h3小"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "卡片的标题,字号比正文略大，比h3小"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": {
+            "zh_CN": "可交互按钮"
+          },
+          "component": "ActionButton",
+          "icon": "card",
+          "description": "可交互按钮，已默认绑定了点击事件，使用时禁止再绑定点击事件，若要绑定事件，请使用TinyButton组件",
+          "doc_url": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "dev_mode": "proCode",
+          "npm": {
+          },
+          "group": "component",
+          "configure": {
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "description": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "text",
+                    "type": "string",
+                    "defaultValue": "按钮文案",
+                    "label": {
+                      "text": {
+                        "zh_CN": "按钮文字"
+                      }
+                    },
+                    "cols": 12,
+                    "hidden": false,
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "widget": {
+                      "component": "I18nConfigurator",
+                      "props": {
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "按钮文字"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "size",
+                    "type": "select",
+                    "label": {
+                      "text": {
+                        "zh_CN": "大小"
+                      }
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "hidden": false,
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "large",
+                            "value": "large"
+                          },
+                          {
+                            "label": "medium",
+                            "value": "medium"
+                          },
+                          {
+                            "label": "small",
+                            "value": "small"
+                          },
+                          {
+                            "label": "mini",
+                            "value": "mini"
+                          }
+                        ]
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "按钮大小"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否被禁用"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "类型"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "label": "success",
+                            "value": "success"
+                          },
+                          {
+                            "label": "info",
+                            "value": "info"
+                          },
+                          {
+                            "label": "warning",
+                            "value": "warning"
+                          },
+                          {
+                            "label": "danger",
+                            "value": "danger"
+                          },
+                          {
+                            "label": "text",
+                            "value": "text"
+                          }
+                        ]
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "设置不同的主题样式"
+                    },
+                    "labelPosition": "left"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": {
+            "zh_CN": "ol"
+          },
+          "component": "有序列表",
+          "description": "有序列表",
+          "group": "component"
+        },
+        {
+          "name": {
+            "zh_CN": "ul"
+          },
+          "component": "无序列表",
+          "description": "无序列表",
+          "group": "component"
+        },
+        {
+          "name": {
+            "zh_CN": "li"
+          },
+          "component": "列表项",
+          "description": "列表项",
+          "group": "component"
+        },
+        {
+          "name": {
+            "zh_CN": "看板画布"
+          },
+          "component": "GridStack",
+          "description": "看板画布，可完成对看板瓷砖的布局",
+          "group": "component",
+          "schema": {
+            "properties": [
+            ],
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "自定义看板内容"
+                },
+                "description": {
+                  "zh_CN": "看板画布的内容，通常为看板瓷砖列表"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": {
+            "zh_CN": "看板瓷砖组件"
+          },
+          "description": "看板瓷砖，包裹展示内容,生成看板所需参数，看板在画布中完成布局，画布整体由12 * 12个格子排列，举例：看板占据2行2列，参数各项取值为[{x: 0, y: 0, w: 2, h: 2}]",
+          "component": "GridStackItem",
+          "group": "component",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "x",
+                    "label": {
+                      "text": {
+                        "zh_CN": "整体布局中横坐标，每个图片按高度和宽度占用情况分配坐标，取值从0开始"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "整体布局中横坐标，每个图片按高度和宽度占用情况分配坐标，取值从0开始"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "type": "number"
+                  },
+                  {
+                    "property": "y",
+                    "label": {
+                      "text": {
+                        "zh_CN": "整体布局中纵坐标，每个图片按高度和宽度占用情况分配坐标，取值从0开始"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "整体布局中纵坐标，每个图片按高度和宽度占用情况分配坐标，取值从0开始"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "type": "number"
+                  },
+                  {
+                    "property": "w",
+                    "label": {
+                      "text": {
+                        "zh_CN": "看板在画布中占据的列数，画布总共12列，即该数值取值范围为0到11"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "看板在画布中占据的列数，画布总共12列，即该数值取值范围为0到11"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "type": "number"
+                  },
+                  {
+                    "property": "h",
+                    "label": {
+                      "text": {
+                        "zh_CN": "看板在画布中占据的行数，画布总共12行，即该数值取值范围为0到11"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "看板在画布中占据的行数，画布总共12行，即该数值取值范围为0到11"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "type": "number"
+                  },
+                  {
+                    "property": "id",
+                    "label": {
+                      "text": {
+                        "zh_CN": "唯一标识"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "唯一标识，要保证唯一性"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "type": "string"
+                  },
+                  {
+                    "property": "autoPosition",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否开启自动在画布中定位"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否开启自动在画布中定位"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "type": "string"
+                  }
+                ]
+              }
+            ],
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "自定义看板瓷砖内容"
+                },
+                "description": {
+                  "zh_CN": "可以使用其他组件作为瓷砖内容，也可以自定义实现"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "snippets": [
+        {
+          "group": "Card",
+          "label": {
+            "zh_CN": "卡片"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "内容展示卡片"
+              },
+              "snippetName": "TinyCard",
+              "schema": {
+                "componentName": "TinyCard",
+                "children": [
+                  {
+                    "componentName": "h2",
+                    "children": "员工信息列表"
+                  },
+                  {
+                    "componentName": "TinyGrid",
+                    "props": {
+                      "editConfig": {
+                        "trigger": "click",
+                        "mode": "cell",
+                        "showStatus": true
+                      },
+                      "columns": [
+                        {
+                          "type": "index",
+                          "width": 60
+                        },
+                        {
+                          "type": "selection",
+                          "width": 60
+                        },
+                        {
+                          "field": "employees",
+                          "title": "员工数"
+                        },
+                        {
+                          "field": "created_date",
+                          "title": "创建日期"
+                        },
+                        {
+                          "field": "city",
+                          "title": "城市"
+                        }
+                      ],
+                      "data": [
+                        {
+                          "id": "1",
+                          "name": "GFD科技有限公司",
+                          "city": "福州",
+                          "employees": 800,
+                          "created_date": "2014-04-30 00:56:00",
+                          "boole": false
+                        },
+                        {
+                          "id": "2",
+                          "name": "WWW科技有限公司",
+                          "city": "深圳",
+                          "employees": 300,
+                          "created_date": "2016-07-08 12:36:22",
+                          "boole": true
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "图片卡片"
+              },
+              "snippetName": "TinyCard",
+              "schema": {
+                "componentName": "TinyCard",
+                "props": {
+                  "title": "卡片标题",
+                  "type": "image",
+                  "src": "https://res.hc-cdn.com/tiny-vue-web-doc/3.26.1/static/images/dsj.png"
+                },
+                "children": [
+                  {
+                    "componentName": "p",
+                    "children": "这是一段长文本内容，这是一段长文本内容，这是一段长文本内容，这是一段长文本内容。"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "group": "list",
+          "label": {
+            "zh_CN": "列表"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "有序列表"
+              },
+              "snippetName": "ul",
+              "schema": {
+                "componentName": "ul",
+                "children": [
+                  {
+                    "componentName": "li",
+                    "children": "无序列表项1"
+                  },
+                  {
+                    "componentName": "li",
+                    "children": "无序列表项2"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "有序列表"
+              },
+              "snippetName": "ol",
+              "schema": {
+                "componentName": "ol",
+                "children": [
+                  {
+                    "componentName": "li",
+                    "children": "有序列表项1"
+                  },
+                  {
+                    "componentName": "li",
+                    "children": "有序列表项2"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@opentiny/genui-sdk-vue",
+  "version": "0.0.1-alpha.7",
+  "main": "dist/index.js",
+  "types": "dist/vue/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@opentiny/tiny-robot": "0.3.1-alpha.3",
+    "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
+    "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3",
+    "@opentiny/vue": "^3.25.0",
+    "@opentiny/vue-button": "^3.25.0",
+    "@opentiny/vue-config-provider": "^3.25.0",
+    "@opentiny/vue-chart-bar": "~3.14.0",
+    "@opentiny/vue-chart-histogram": "~3.14.0",
+    "@opentiny/vue-chart-line": "~3.14.0",
+    "@opentiny/vue-chart-pie": "~3.14.0",
+    "@opentiny/vue-chart-radar": "~3.14.0",
+    "@opentiny/vue-chart-ring": "3.14.0",
+    "@opentiny/vue-select": "^3.25.0",
+    "@opentiny/vue-icon": "^3.25.0",
+    "@opentiny/vue-tabs": "^3.25.0",
+    "@opentiny/vue-theme": "^3.25.0",
+    "vue": "^3.5.13"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/vue/index.d.ts"
+    }
+  }
+}

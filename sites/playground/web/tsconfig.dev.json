@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@opentiny/genui-sdk-vue": [
+        "../../../packages/genui-renderer/src/vue/index.ts"
+      ],
+      "@opentiny/genui-sdk": [
+        "../../../packages/genui-renderer/src/core/index.ts"
+      ],
+      "@opentiny/tiny-schema-renderer": [
+        "../../../projects/tiny-schema-renderer/index.js"
+      ],
+      "schema-renderer-ng-adpater": [
+        "../schema-renderer-ng-adpater/src/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../**/*",
+    "../../../projects/tiny-schema-renderer/**"
+  ]
+}

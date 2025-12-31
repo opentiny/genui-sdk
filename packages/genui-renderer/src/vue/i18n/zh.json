@@ -1,0 +1,58 @@
+{
+  "loading": {
+    "response": "响应中...",
+    "generatingCard": "正在生成卡片...",
+    "thinking": "正在思考中..."
+  },
+  "toolStatus": {
+    "running": "正在调用",
+    "success": "已调用",
+    "failed": "调用失败",
+    "cancelled": "已取消"
+  },
+  "error": {
+    "title": "出错了"
+  },
+  "placeholder": {
+    "thinking": "正在思考中...",
+    "input": "请输入您的问题～"
+  },
+  "footer": {
+    "aiGenerated": "内容由AI生成，仅供参考"
+  },
+  "conversation": {
+    "newConversation": "新会话"
+  },
+  "continueChat": {
+    "description": "继续对话， 框用于表单的提交按钮等",
+    "messageParam": "相关参数为：",
+    "paramDescription": "对话消息,可以是按钮文本等，也可以是其他内容"
+  },
+  "actionButton": {
+    "clickMessage": "点击了{text}按钮，相关数据为：{state}, 若任务未完成，请继续完成任务。"
+  },
+  "toolCall": {
+    "context": "工具名称：{toolName}，工具参数：{toolParams}，工具结果：{toolResult}"
+  },
+  "fileUpload": {
+    "error": {
+      "processFailed": "文件处理失败",
+      "validationFailed": "文件验证失败",
+      "unknownError": "未知错误",
+      "fileSizeExceeded": "文件大小不能超过 {maxSizeMB}MB，当前文件大小：{currentSizeMB}MB",
+      "unsupportedModel": "不支持的模型",
+      "unsupportedFormat": "模型不支持 .{extension} 文件格式",
+      "sizeLimitExceeded": "文件大小超过限制（最大 {maxSize}MB）",
+      "maxFilesExceeded": "单次最多支持 {maxFiles} 个文件",
+      "unsupportedFileType": "模型不支持处理此类型的文件: {fileCategory}"
+    }
+  },
+  "renderer": {
+    "error": {
+      "displayError": "[显示异常]"
+    }
+  },
+  "message": {
+    "requestFailed": "请求失败，请稍后重试"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@opentiny/genui-sdk": [
+        "../../../packages/genui-renderer/src/index.ts"
+      ],
+      "@opentiny/genui-sdk/server": [
+        "../../../packages/genui-renderer/src/server/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "../../../packages/**/*.ts"
+  ]
+}
