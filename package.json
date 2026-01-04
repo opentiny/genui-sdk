@@ -7,7 +7,8 @@
     "dev": "pnpm --filter genui-sdk-playground dev",
     "build:projects": "pnpm --filter tiny-schema-renderer build && pnpm --filter tiny-schema-renderer-ng build",
     "build:lib": "pnpm --filter schema-card-renderer build",
-    "prebuild": "pnpm build:projects &&  pnpm build:lib && pnpm --filter schema-renderer-ng-adpater build",
+    "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
+    "prebuild": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build",
     "build": "pnpm --filter genui-sdk-playground build"
   },
   "keywords": [],
