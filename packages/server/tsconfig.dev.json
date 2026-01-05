@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "paths": {
+      "@opentiny/genui-sdk": [
+        "../genui-renderer/src/core/index.ts"
+      ],
+      "@opentiny/genui-sdk/server": [
+        "../genui-renderer/src/server/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "../genui-renderer/**/*"
+  ]
+}
