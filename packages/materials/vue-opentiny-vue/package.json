@@ -1,4 +1,7 @@
 {
     "name": "@opentiny/genui-sdk-materials-vue-opentiny-vue",
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module"
 }

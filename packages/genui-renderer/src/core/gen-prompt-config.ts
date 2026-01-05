@@ -1,4 +1,4 @@
-import type { IFunctionInfo } from './materials';
+import type { IFunctionInfo } from '../../../core/src/protocols/materials';
 import type { CardSchema, NodeSchema } from './schema';
 
 export interface IGenPromptComponentProperty {

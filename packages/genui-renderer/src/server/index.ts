@@ -1,3 +1,2 @@
-export * from './vue-materials';
-export * from './ng-materials';
-export * from './prompt';
+export * from '../../../materials/vue-opentiny-vue';
+export * from '../../../materials/angular-opentiny-ng';

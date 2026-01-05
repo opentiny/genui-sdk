@@ -1,4 +1,4 @@
-import type { ISchemaCardMessageItem, IMarkdownMessageItem } from '../core/chat';
+import type { ISchemaCardMessageItem, IMarkdownMessageItem } from '../../../core/src/protocols/chat';
 
 export function extractMarkdownAndSchemaJson(input: string): (ISchemaCardMessageItem | IMarkdownMessageItem)[] {
   const result: (ISchemaCardMessageItem | IMarkdownMessageItem)[] = [];

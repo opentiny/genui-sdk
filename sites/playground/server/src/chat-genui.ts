@@ -5,7 +5,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
-import { rendererConfig, ngRendererConfig } from '@opentiny/genui-sdk/server';
+import { rendererConfig } from '../../../../packages/materials/vue-opentiny-vue'; //TODO: replace with package name
+import { ngRendererConfig } from '../../../../packages/materials/angular-opentiny-ng'; //TODO: replace with package name
 import { genPrompt } from '@opentiny/genui-sdk-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
