@@ -1,4 +1,14 @@
 {
     "name": "@opentiny/genui-sdk-core",
-    "version": "0.0.1"
+    "version": "0.0.1",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
+    "type": "module",
+    "dependencies": {
+        "zod": "^3.24.2",
+        "zod-to-json-schema": "^3.24.6"
+    },
+    "devDependencies": {
+
+    }
 }

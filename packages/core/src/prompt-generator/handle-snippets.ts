@@ -1,4 +1,4 @@
-import type { IMaterials } from '../../core';
+import type { IMaterials } from '../../../genui-renderer/src/core'; //TODO: replace with package name
 import type { IWhiteList } from './prompt';
 
 export const extractSnippets = (materialsList: any[]) => {

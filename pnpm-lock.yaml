@@ -12,7 +12,14 @@ importers:
 
   packages/chat-completion: {}
 
-  packages/core: {}
+  packages/core:
+    dependencies:
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
+      zod-to-json-schema:
+        specifier: ^3.24.6
+        version: 3.25.1(zod@3.25.76)
 
   packages/genui-renderer:
     dependencies:
@@ -418,6 +425,9 @@ importers:
       '@opentiny/genui-sdk':
         specifier: workspace:*
         version: link:../../../packages/genui-renderer/genui-sdk/core
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../../../packages/core
       ai:
         specifier: 5.0.10
         version: 5.0.10(zod@3.25.76)

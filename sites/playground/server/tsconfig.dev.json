@@ -8,11 +8,14 @@
       ],
       "@opentiny/genui-sdk/server": [
         "../../../packages/genui-renderer/src/server/index.ts"
+      ],
+      "@opentiny/genui-sdk-core": [
+        "../../../packages/core/src/index.ts"
       ]
     }
   },
   "include": [
     "src",
-    "../../../packages/**/*.ts"
+    "../../../packages/**/*"
   ]
 }

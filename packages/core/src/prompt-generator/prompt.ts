@@ -1,8 +1,8 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import type { IMaterials, IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '../../core';
-import { genRootSchema } from '../../core/schema';
-import { getComponentsName, getComponentsInfo } from './handleComponents';
-import { getSnippetsInfo } from './handleSnippets';
+import type { IMaterials, IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '../../../genui-renderer/src/core';//TODO: replace with package name
+import { genRootSchema } from '../../../genui-renderer/src/core'; //TODO: replace with package name
+import { getComponentsName, getComponentsInfo } from './handle-component';
+import { getSnippetsInfo } from './handle-snippets';
 import { genCustomActionsPrompt } from './action';
 import { aboutThis } from './about-this';
 
