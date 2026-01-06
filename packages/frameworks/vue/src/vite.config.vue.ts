@@ -9,7 +9,7 @@ import packageJson from './package.json';
 
 export default defineConfig(({  mode }) => {
   return {
-    root: path.resolve(__dirname, './genui-sdk/vue'),
+    root: path.resolve(__dirname, './'),
     plugins: [
       vue(),
       mode === 'no-obfuscator' ? null : obfuscator({
@@ -32,11 +32,11 @@ export default defineConfig(({  mode }) => {
     ],
     build: {
       lib: {
-        entry: path.resolve(__dirname, './src/vue/index.ts'),
+        entry: path.resolve(__dirname, './src/index.ts'),
         formats: ['es'],
         fileName: `index`,
       },
-      outDir: path.resolve(__dirname, './genui-sdk/vue/dist'),
+      outDir: path.resolve(__dirname, './dist'),
       sourcemap: false,
       minify: 'terser',
       terserOptions: {

@@ -584,7 +584,7 @@ defineExpose({
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
-  background: url('../assets/sender-bg.svg') no-repeat center;
+  background: url('./assets/sender-bg.svg') no-repeat center;
   .attachments-container {
     padding: 0 20px;
   }

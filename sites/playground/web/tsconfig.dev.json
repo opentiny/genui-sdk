@@ -4,10 +4,10 @@
     "baseUrl": "./",
     "paths": {
       "@opentiny/genui-sdk-vue": [
-        "../../../packages/genui-renderer/src/vue/index.ts"
+        "../../../packages/frameworks/vue/src/index.ts"
       ],
       "@opentiny/genui-sdk": [
-        "../../../packages/genui-renderer/src/core/index.ts"
+        "../../../packages/core/src/index.ts"
       ],
       "@opentiny/tiny-schema-renderer": [
         "../../../projects/tiny-schema-renderer/index.js"
