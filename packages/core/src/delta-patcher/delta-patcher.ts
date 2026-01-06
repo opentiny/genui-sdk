@@ -2,7 +2,7 @@ import type { Delta } from 'jsondiffpatch';
 import * as jsonDiffPatch from 'jsondiffpatch';
 import { flatten } from 'flat';
 import { get } from 'radash';
-import { jsonSelectorMatcher } from './json-selector-matcher';
+import { jsonSelectorMatcher } from '../delta-json-path-selector/json-selector-matcher';
 // import DiffMatchPatch from 'diff-match-patch';
 
 type ISchema = any;

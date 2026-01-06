@@ -3,7 +3,7 @@ import { parsePartialJson } from 'ai';
 import { ref, watch, computed, provide, inject, nextTick } from 'vue';
 // @ts-ignore
 import defualtSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
-import { DeltaPatcher } from '../../utils';
+import { DeltaPatcher } from '../../../../core/src/delta-patcher'; //TODO: replace with package name
 import { exentdMapper } from '../exentd-renderer';
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from '../config';
 import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../injection-tokens';
