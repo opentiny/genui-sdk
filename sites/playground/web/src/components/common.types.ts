@@ -1,0 +1,38 @@
+
+export interface IBubbleSlotsProps {
+  index: number;
+  bubbleProps: { [key: string]: any };
+  isFinished: boolean;
+  messageManager: { [key: string]: any 
+  };
+}
+
+export interface IRendererSlotsProps {
+  schema: any;
+  isError: boolean;
+  isFinished: boolean;
+}
+
+export interface INotificationEventEmitter {
+  on(eventName: 'notification', callback: (payload: any) => void, once?: boolean): void;
+  off(eventName: 'notification', callback: (payload: any) => void): void;
+  emit(eventName: 'notification', payload: any): void;
+  once(eventName: 'notification', callback: (payload: any) => void): void;
+}
+
+interface IMessageItem {
+  type: string;
+  content: string;
+  [customKey: string]: any;
+}
+export interface IMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  messages?: IMessageItem[];
+}
+
+export interface IGeneratingComponentProps {
+  emitter: INotificationEventEmitter;
+  message: IMessage;
+  showThinkingResult: boolean;
+}

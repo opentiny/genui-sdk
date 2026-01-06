@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@opentiny/genui-sdk-vue": [
+        "../schema-card-renderer/genui-sdk/vue/dist/index.js"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "../schema-card-renderer/**"
+  ]
+}

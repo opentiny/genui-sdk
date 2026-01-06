@@ -1,0 +1,77 @@
+<ng-template #rendererTemplate let-schema="schema" let-scope="scope" let-parent="parent" let-template="template" let-viewContainerRef="viewContainerRef" let-injector="injector" let-internalAttributes="internalAttributes">
+  <ng-container *ngIf="schema.condition ?? true">
+    <ng-container *ngIf="(context | parseData: schema.loop : scope) | isArray; else singleTemplate">
+      <ng-container *ngFor="let item of context | parseData: schema.loop : scope; let index = index">
+        <ng-template
+          [ngTemplateOutlet]="renderElement"
+          [ngTemplateOutletContext]="{
+            index,
+            mergeScope:
+              {
+                item,
+                index,
+                loopArgs: schema.loopArgs,
+                scope,
+              } | loopScope,
+          }"
+        ></ng-template>
+      </ng-container>
+    </ng-container>
+    <ng-template #singleTemplate>
+      <ng-template
+        [ngTemplateOutlet]="renderElement"
+        [ngTemplateOutletContext]="{
+          mergeScope: scope,
+        }"
+      ></ng-template>
+    </ng-template>
+  </ng-container>
+  <ng-template #renderElement let-index="index" let-mergeScope="mergeScope">
+    <ng-template
+      [componentOutlet]="schema.componentName | getComponent"
+      [componentOutletNgModule]="schema.componentName | getModuleRef"
+      [componentOutletInjector]="injector"
+      [componentOutletProps]="context | parseData: schema.props : mergeScope"
+      [componentOutletDirectives]="schema.directives | autoApplyDirectives: schema | getDirectives "
+      [componentOutletContent]="
+        {
+          children: schema.children,
+          scope: mergeScope,
+        } | embeddedView: childrenTemplate : viewContainerRef
+      "
+      attrAndEvent
+      [attrs]="
+        [
+          context | parseData: schema.props : mergeScope | propsFilter: 'attributes' : (schema.componentName | getComponent),
+          internalAttributes
+        ] | mergeObject
+      "
+      [events]="
+        [
+          context | parseData: schema.props : mergeScope | propsFilter: 'events' : (schema.componentName | getComponent),
+        ] | mergeObject
+      "
+      #componentOutlet="componentOutlet"
+    ></ng-template>
+
+    <ng-template #childrenTemplate let-children="children" let-scope="scope">
+      <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
+        <ng-container *ngFor="let child of children">
+          <ng-template 
+              rendererTemplate
+              [schema]="child" 
+              [scope]="scope" 
+              [parent]="schema"
+              [template]="template"
+              [injector]="componentOutlet.componentInjector"
+          ></ng-template>
+        </ng-container>
+      </ng-container>
+      <ng-container *ngIf="children | isString">
+        {{ children }}
+      </ng-container>
+    </ng-template>
+  </ng-template>
+</ng-template>
+  
+  

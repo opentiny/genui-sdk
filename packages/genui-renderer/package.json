@@ -1,0 +1,59 @@
+{
+  "name": "schema-card-renderer",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest",
+    "dev": "vite",
+    "build": "pnpm build:core && pnpm build:vue-no-obfuscator",
+    "build:vue": "vite build --config vite.config.vue.ts",
+    "build:vue-no-obfuscator": "vite build --config vite.config.vue.ts --mode no-obfuscator",
+    "build:core": "vite build --config vite.config.core.ts"
+  },
+  "dependencies": {
+    "@opentiny/tiny-robot": "0.3.1-alpha.3",
+    "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
+    "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3",
+    "@opentiny/tiny-schema-renderer": "workspace:*",
+    "@opentiny/vue": "^3.25.0",
+    "@opentiny/vue-button": "^3.25.0",
+    "@opentiny/vue-config-provider": "^3.25.0",
+    "@opentiny/vue-select": "^3.25.0",
+    "@opentiny/vue-icon": "^3.25.0",
+    "@opentiny/vue-tabs": "^3.25.0",
+    "@opentiny/vue-theme": "^3.25.0",
+    "@types/diff-match-patch": "^1.0.36",
+    "diff-match-patch": "^1.0.5",
+    "flat": "^6.0.1",
+    "gridstack": "^12.2.1",
+    "jsondiffpatch": "^0.7.3",
+    "radash": "^12.1.1",
+    "uuid": "^11.1.0",
+    "vue": "^3.5.13",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "ai": "5.0.10",
+    "escape-string-regexp": "^5.0.0",
+    "terser": "^5.4.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.0.0",
+    "vite-plugin-bundle-obfuscator": "^1.8.0",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^3.2.4"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  }
+}

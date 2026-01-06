@@ -1,0 +1,21 @@
+{
+  "name": "vite-commit-hash-plugin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "~5.8.3"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "genui-sdk-playground",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter genui-sdk-playground-server dev\" \"pnpm --filter genui-sdk-playground-web dev\"",
+    "build": "concurrently \"pnpm --filter genui-sdk-playground-server build\" \"pnpm --filter genui-sdk-playground-web build\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
