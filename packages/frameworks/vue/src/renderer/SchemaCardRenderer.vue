@@ -5,11 +5,11 @@ import { ref, watch, computed, provide, inject, nextTick } from 'vue';
 import defualtSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '../../../../core/src/delta-patcher'; //TODO: replace with package name
 import { exentdMapper } from '../../../../materials/vue-opentiny-vue/exentd-renderer';
-import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from '../../../../genui-renderer/src/vue/config';
-import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../../../../genui-renderer/src/vue/injection-tokens';
+import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
+import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
-import { cardIdSymbol } from '../../../../genui-renderer/src/vue/genui-chat/useChat';
-import { useI18n } from '../../../../genui-renderer/src/vue/i18n';
+import { cardIdSymbol } from '../chat/useChat';
+import { useI18n } from '../chat/i18n'; //TODO: replace with package name
 
 const props = defineProps<IRendererProps>();
 

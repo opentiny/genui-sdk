@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import TinyButton from '@opentiny/vue-button';
 import { useAttrs, computed, inject } from 'vue';
-import { useI18n } from '../../../genui-renderer/src/vue/i18n'; //TODO: replace with package name
+import { useI18n } from '../../../frameworks/vue/src/chat/i18n'; //TODO: replace with package name
 
 const attrs = useAttrs();
 const buttonAttrs: any = computed(() => {

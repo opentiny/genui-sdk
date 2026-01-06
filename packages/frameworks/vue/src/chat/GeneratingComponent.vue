@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import type { INotificationPayload } from '../../core/chat';
+import type { INotificationPayload } from '../../../../core/src/protocols/chat';
 import type { IGeneratingComponentProps } from './chat.types';
-import { useI18n } from '../i18n';
+import { useI18n } from './i18n'; //TODO: replace with package name
 
 const props = defineProps<IGeneratingComponentProps>();
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { iconChevronRight, iconOperationfaild } from '@opentiny/vue-icon';
-import { useI18n } from '../i18n';
+import { useI18n } from './i18n';
 
 const IconRight = iconChevronRight();
 const IconError = iconOperationfaild();

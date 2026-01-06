@@ -1,9 +1,9 @@
 import type { UserItem } from '@opentiny/tiny-robot';
 import { TinyNotify } from '@opentiny/vue';
 import { ref, type Ref } from 'vue';
-import { type FileMeta, processFiles, serializeFile } from '../file-upload/file-utils';
+import { type FileMeta, processFiles, serializeFile } from './file-upload/file-utils';
 import type { ModelCapability } from './chat.types';
-import { useI18n } from '../i18n';
+import { useI18n } from './i18n';
 
 const useFileUpload = () => {
   const { t } = useI18n();

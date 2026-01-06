@@ -22,21 +22,21 @@ import { CustomModelProvider } from './CustomModelProvider';
 import SchemaRenderer from '../../../../frameworks/vue/src/renderer/SchemaCardRenderer.vue'; //TODO: replace with package name
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
-import AttachmentsRenderer from '../renderer/AttachmentsRenderer.vue';
-import TemplateDataRenderer from '../renderer/TemplateDataRenderer.vue';
-import ToolRenderer from '../renderer/ToolRenderer.vue';
-import { type FileMeta, MIME_TYPE_MAP } from '../file-upload/file-utils';
+import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
+import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue';
+import ToolRenderer from './renderer/ToolRenderer.vue';
+import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
 import { emitter } from './event-emitter';
 import type { IChatProps, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useContinueChatAction } from './continue-chat-action';
 import type { IMessageItem } from '../../../../core/src/protocols/chat';
-import type { IRendererProps } from '../../../../frameworks/vue/src/renderer/renderer.types'; //TODO: replace with package name
+import type { IRendererProps } from '../renderer/renderer.types'; //TODO: replace with package name
 import ErrorText from './ErrorText.vue';
-import { useResize } from '../composable/use-resize';
-import { useConversation } from '../tiny-robot-patch/useConversation';
-import { useI18n } from '../i18n';
+import { useResize } from './composable/use-resize';
+import { useConversation } from './tiny-robot-patch/useConversation';
+import { useI18n } from './i18n';
 
 const props = defineProps<IChatProps>();
 
