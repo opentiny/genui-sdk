@@ -4,12 +4,12 @@ import { ref, watch, computed, provide, inject, nextTick } from 'vue';
 // @ts-ignore
 import defualtSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '../../../../core/src/delta-patcher'; //TODO: replace with package name
-import { exentdMapper } from '../exentd-renderer';
-import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from '../config';
-import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../injection-tokens';
+import { exentdMapper } from '../../../../materials/vue-opentiny-vue/exentd-renderer';
+import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from '../../../../genui-renderer/src/vue/config';
+import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../../../../genui-renderer/src/vue/injection-tokens';
 import type { IRendererProps } from './renderer.types';
-import { cardIdSymbol } from '../genui-chat/useChat';
-import { useI18n } from '../i18n';
+import { cardIdSymbol } from '../../../../genui-renderer/src/vue/genui-chat/useChat';
+import { useI18n } from '../../../../genui-renderer/src/vue/i18n';
 
 const props = defineProps<IRendererProps>();
 
@@ -127,7 +127,7 @@ watch(() => rendererInstance.value, (newVal) => {
 </template>
 
 <style scoped>
-@import url('../custom.css');
+@import url('./custom.css');
 
 .schema-render-container {
   position: relative;

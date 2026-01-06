@@ -1,5 +1,5 @@
 import type { Component, VNode } from 'vue';
-import type { CardSchema } from '../../core/schema';
+import type { CardSchema } from '../../../../genui-renderer/src/core/schema';
 
 export interface IRendererProps {
   content: string | { [prop: string]: any };
