@@ -5,10 +5,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
-import { rendererConfig } from '../../../../packages/materials/vue-opentiny-vue'; //TODO: replace with package name
-import { ngRendererConfig } from '../../../../packages/materials/angular-opentiny-ng'; //TODO: replace with package name
+import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
+import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config'; 
 import { genPrompt } from '@opentiny/genui-sdk-core';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'; 
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { useProviderModelMapperSync } from './use-provider-mapper.js';

@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "pnpm --filter genui-sdk-playground dev",
     "build:projects": "pnpm --filter tiny-schema-renderer build && pnpm --filter tiny-schema-renderer-ng build",
+    "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
+    "prebuild:lib": "pnpm build:materials",
     "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build",
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
     "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build",

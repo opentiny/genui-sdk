@@ -4,7 +4,7 @@ import { ref, watch, computed, provide, inject, nextTick } from 'vue';
 // @ts-ignore
 import defualtSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '@opentiny/genui-sdk-core';
-import { exentdMapper } from '../../../../materials/vue-opentiny-vue/exentd-renderer'; //TODO: replace with package name
+import { exentdMapper } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer'; //TODO: 耦合
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';

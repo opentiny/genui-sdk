@@ -1,6 +1,6 @@
 import { type JsonSchema7Type, zodToJsonSchema } from 'zod-to-json-schema';
 import type { IMaterials} from '../protocols';
-import { genRootSchema } from '../protocols';
+import { genRootSchema } from '../protocols'; // TODO: protocal cannnot contains methods
 import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from './gen-prompt-config';
 import { getComponentsName, getComponentsInfo } from './handle-component';
 import { getSnippetsInfo } from './handle-snippets';

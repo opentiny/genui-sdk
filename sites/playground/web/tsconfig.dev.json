@@ -14,6 +14,12 @@
       ],
       "schema-renderer-ng-adpater": [
         "../schema-renderer-ng-adpater/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-vue-opentiny-vue": [
+        "../../../packages/materials/vue-opentiny-vue/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-opentiny-ng": [
+        "../../../packages/materials/angular-opentiny-ng/src/index.ts"
       ]
     }
   },
