@@ -2,10 +2,10 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
 import escapeStringRegexp from 'escape-string-regexp';
-import packageJson from './genui-sdk/core/package.json';
+import packageJson from './package.json';
 
 export default defineConfig({
-  root: path.resolve(__dirname, './genui-sdk/core'),
+  root: path.resolve(__dirname, './'),
   resolve: {
     extensions: ['.ts', '.js'],
   },
@@ -16,11 +16,11 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: path.resolve(__dirname, './src/core/index.ts'),
+      entry: path.resolve(__dirname, './src/index.ts'),
       formats: ['es'],
       fileName: `index`,
     },
-    outDir: path.resolve(__dirname, './genui-sdk/core/dist'),
+    outDir: path.resolve(__dirname, './dist'),
     rollupOptions: {
       external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
     },

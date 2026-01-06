@@ -19,8 +19,8 @@
     ]
   },
   "include": [
-    "../../src/core",
-    "../../src/core/*.d.ts",
-    "../../src/utils/extract-schema-json.ts"
+    "./src",
+    "./src/*.d.ts",
+    "./deprecated/extract-schema-json.ts"
   ]
 }

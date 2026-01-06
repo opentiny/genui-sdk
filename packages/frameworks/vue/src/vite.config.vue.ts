@@ -5,7 +5,7 @@ import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import escapeStringRegexp from 'escape-string-regexp';
 import dts from 'vite-plugin-dts';
 import vue from '@vitejs/plugin-vue';
-import packageJson from './genui-sdk/vue/package.json';
+import packageJson from './package.json';
 
 export default defineConfig(({  mode }) => {
   return {

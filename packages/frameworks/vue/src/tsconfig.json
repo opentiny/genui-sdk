@@ -20,9 +20,9 @@
     ]
   },
   "include": [
-    "../../src/vue/**/*"
+    "./src//**/*"
   ],
   "files": [
-    "../../src/vue/index.ts"
+    "./src/vue/index.ts"
   ]
 }
