@@ -1,5 +1,5 @@
 import type { Component, VNode } from 'vue';
-import type { CardSchema } from '../../../../core/src/protocols/schema'; //TODO: replace with package name
+import type { CardSchema } from '@opentiny/genui-sdk-core';
 
 export interface IRendererProps {
   content: string | { [prop: string]: any };

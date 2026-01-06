@@ -1,4 +1,4 @@
-import type { IChatMessage } from '../../core/chat';
+import type { IChatMessage } from '@opentiny/genui-sdk-core';
 
 /**
  * Schema 流式处理 Hook

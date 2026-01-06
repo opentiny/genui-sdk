@@ -7,6 +7,10 @@
   "files": [
     "dist"
   ],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest"
+  },
   "dependencies": {
     "@opentiny/tiny-robot": "0.3.1-alpha.3",
     "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
@@ -26,10 +30,12 @@
     "@opentiny/vue-theme": "^3.25.0",
     "vue": "^3.5.13"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/vue/index.d.ts"
-    }
+  "devDependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "vite-plugin-dts": "^4.0.0",
+    "typescript": "^5.9.3",
+    "escape-string-regexp": "^1.0.5",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
   }
 }

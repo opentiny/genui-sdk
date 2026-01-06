@@ -1,4 +1,4 @@
-import type { ModelCapability } from '../genui-chat/chat.types';
+import type { ModelCapability } from '../chat.types';
 
 export type FileCategory = 'image' | 'document';
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import type { INotificationPayload } from '@opentiny/genui-sdk';
+import type { INotificationPayload } from '@opentiny/genui-sdk-core';
 import type { IGeneratingComponentProps } from './common.types';
 
 const props = defineProps<IGeneratingComponentProps>();

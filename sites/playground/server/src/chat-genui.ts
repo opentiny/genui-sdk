@@ -202,7 +202,7 @@ export function createChatGenui() {
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
       const text = await fs.readFile(
-        path.join(fileURLToPath(import.meta.url), '../../chat-ui-replay/replay.txt'),
+        path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'),
         'utf-8',
       );
       const data = text.split(/\r?\n\r?\n/);

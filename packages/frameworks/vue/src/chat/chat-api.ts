@@ -1,4 +1,4 @@
-import type { ICustomConfig, LLMConfig } from '../../../../genui-renderer/src/vue/genui-chat/chat.types';
+import type { ICustomConfig, LLMConfig } from './chat.types';
 const removeCustomActionsExucueFunction = (customActions: any) => {
   return customActions.map((action: any) => {
     return {

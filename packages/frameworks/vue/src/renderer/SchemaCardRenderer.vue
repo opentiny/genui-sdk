@@ -3,13 +3,13 @@ import { parsePartialJson } from 'ai';
 import { ref, watch, computed, provide, inject, nextTick } from 'vue';
 // @ts-ignore
 import defualtSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
-import { DeltaPatcher } from '../../../../core/src/delta-patcher'; //TODO: replace with package name
-import { exentdMapper } from '../../../../materials/vue-opentiny-vue/exentd-renderer';
+import { DeltaPatcher } from '@opentiny/genui-sdk-core';
+import { exentdMapper } from '../../../../materials/vue-opentiny-vue/exentd-renderer'; //TODO: replace with package name
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
-import { useI18n } from '../chat/i18n'; //TODO: replace with package name
+import { useI18n } from '../chat/i18n';
 
 const props = defineProps<IRendererProps>();
 

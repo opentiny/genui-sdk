@@ -6,7 +6,7 @@
       "@opentiny/genui-sdk-vue": [
         "../../../packages/frameworks/vue/src/index.ts"
       ],
-      "@opentiny/genui-sdk": [
+      "@opentiny/genui-sdk-core": [
         "../../../packages/core/src/index.ts"
       ],
       "@opentiny/tiny-schema-renderer": [
@@ -20,6 +20,7 @@
   "include": [
     "src/**/*",
     "../**/*",
+    "../../../packages/**/*",
     "../../../projects/tiny-schema-renderer/**"
   ]
 }

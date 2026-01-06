@@ -4,7 +4,7 @@ import { reactive, toRaw } from 'vue';
 import type { LLMConfig, IGenuiConfig, ICustomConfig } from './chat.types';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
-import type { IStreamDelta, IMessageItem, IChatMessage } from '../../../../core/src/protocols/chat'; //TODO: replace with package name
+import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
 import { v4 as uuidv4 } from 'uuid';
 import { useI18n } from './i18n';
 

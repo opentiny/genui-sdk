@@ -1,11 +1,12 @@
-import { zodToJsonSchema } from 'zod-to-json-schema';
-import type { IMaterials} from '../protocols/materials';
+import { type JsonSchema7Type, zodToJsonSchema } from 'zod-to-json-schema';
+import type { IMaterials} from '../protocols';
+import { genRootSchema } from '../protocols';
 import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from './gen-prompt-config';
-import { genRootSchema } from '../protocols/schema';
 import { getComponentsName, getComponentsInfo } from './handle-component';
 import { getSnippetsInfo } from './handle-snippets';
 import { genCustomActionsPrompt } from './action';
 import { aboutThis } from './about-this';
+import { ZodTypeAny } from 'zod';
 
 export type IWhiteList = string[];
 
@@ -113,9 +114,10 @@ ${additionRules.map((rule) => ` - ${rule}`).join('\n')}
 \`\`\`
 `;
 
-export const genSchema = (rendererConfig: IRendererConfig) => genRootSchema(rendererConfig.whiteList);
+export const genSchema = (rendererConfig: IRendererConfig) => genRootSchema(rendererConfig.whiteList) as ZodTypeAny;
 
-export const genJsonSchema = (rendererConfig: IRendererConfig) => zodToJsonSchema(genSchema(rendererConfig));
+// @ts-ignore
+export const genJsonSchema = (rendererConfig: IRendererConfig) => zodToJsonSchema(genSchema(rendererConfig)) as JsonSchema7Type;
 
 const getExtendWhiteList = (whiteList: string[], customComponents: IGenPromptComponent[]) => {
   if (!Array.isArray(customComponents) || customComponents.length === 0) {

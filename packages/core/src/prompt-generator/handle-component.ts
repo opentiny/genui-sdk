@@ -1,4 +1,4 @@
-import type { IMaterials } from '../protocols/materials';
+import type { IMaterials } from '../protocols';
 import type { IWhiteList } from './prompt';
 
 export interface IUsefulPropInfo {

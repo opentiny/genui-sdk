@@ -3,5 +3,12 @@
     "version": "0.0.1",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
-    "type": "module"
+    "type": "module",
+    "scripts": {
+        "build": "vite build"
+    },
+    "dependencies": {
+        "vue": "^3.5.13"
+    }
+
 }

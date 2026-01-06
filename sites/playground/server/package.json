@@ -17,7 +17,6 @@
     "@modelcontextprotocol/sdk": "^1.13.0",
     "@modelcontextprotocol/server-sequential-thinking": "^2025.7.1",
     "@openrouter/ai-sdk-provider": "^1.1.2",
-    "@opentiny/genui-sdk": "workspace:*",
     "@opentiny/genui-sdk-core": "workspace:*",
     "ai": "5.0.10",
     "cors": "^2.8.5",

@@ -19,7 +19,7 @@ import type {
 import { ref, watch, computed, h, inject, nextTick } from 'vue';
 import type { Ref } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
-import SchemaRenderer from '../../../../frameworks/vue/src/renderer/SchemaCardRenderer.vue'; //TODO: replace with package name
+import SchemaRenderer from '../renderer/SchemaCardRenderer.vue';
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
@@ -31,8 +31,8 @@ import { emitter } from './event-emitter';
 import type { IChatProps, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useContinueChatAction } from './continue-chat-action';
-import type { IMessageItem } from '../../../../core/src/protocols/chat';
-import type { IRendererProps } from '../renderer/renderer.types'; //TODO: replace with package name
+import type { IMessageItem } from '@opentiny/genui-sdk-core';
+import type { IRendererProps } from '../renderer';
 import ErrorText from './ErrorText.vue';
 import { useResize } from './composable/use-resize';
 import { useConversation } from './tiny-robot-patch/useConversation';

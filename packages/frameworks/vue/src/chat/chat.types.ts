@@ -1,9 +1,9 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { Component } from 'vue';
-import type { IRendererSlots } from '../renderer/renderer.types';
+import type { IRendererSlots } from '../renderer';
 import type { EventEmitter } from './event-emitter';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
-import type { INotificationPayload } from '../../core/chat';
+import type { INotificationPayload } from '@opentiny/genui-sdk-core';
 
 export interface IRolesConfig {
   user: Partial<BubbleRoleConfig>;
