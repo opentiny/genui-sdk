@@ -94,6 +94,7 @@ dist
 # vuepress v2.x temp and cache directory
 .temp
 .cache
+.DS_Store
 
 # Sveltekit cache directory
 .svelte-kit/
