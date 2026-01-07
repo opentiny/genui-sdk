@@ -24,10 +24,7 @@ const getModelName = (model?: LanguageModel) => {
   }
 };
 
-export const transformMap: Record<
-  string,
-  (chunk: any, transformOptions: ITransformOptions) => any
-> = {
+export const transformMap: Record<string, (chunk: any, transformOptions: ITransformOptions) => any> = {
   'text-delta': (chunk: any, transformOptions: ITransformOptions) => {
     const newChunk = {
       id: chunk.id,
@@ -146,10 +143,7 @@ export const openaiCompatibleTransfrom =
     });
   };
 
-export const openaiCompatibleTransfromChunk = (
-  chunk: any,
-  transformOptions: ITransformOptions,
-): any => {
+export const openaiCompatibleTransfromChunk = (chunk: any, transformOptions: ITransformOptions): any => {
   const transformFn = transformMap[chunk.type as keyof typeof transformMap];
   if (transformFn) {
     return transformFn(chunk, transformOptions);

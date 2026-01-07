@@ -24,7 +24,6 @@ export function requestTransform(
 ): ChatCompletionCreateParamsBase {
   const newParams = structuredClone(params);
 
-
   const { tinygenui: tgCustomConfigStr } = newParams.metadata || {};
   let tgCustomConfig: IGenPromptConfig;
   try {

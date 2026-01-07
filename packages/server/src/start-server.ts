@@ -31,7 +31,9 @@ export function startServer(options: IStartServerOptions): void {
   const tryListen = () => {
     if (attempts >= maxAttempts) {
       console.error(
-        `Failed to start server: Unable to find an available port after ${maxAttempts} attempts (tried ports ${port} to ${currentPort - 1})`,
+        `Failed to start server: Unable to find an available port after ${maxAttempts} attempts (tried ports ${port} to ${
+          currentPort - 1
+        })`,
       );
       process.exit(1);
     }

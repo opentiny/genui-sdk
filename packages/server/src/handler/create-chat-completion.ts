@@ -31,7 +31,6 @@ export function createChatCompletionHandler(config: IChatCompletionHandlerConfig
 
     // 处理流错误的通用函数
     const handleStreamError = (err: Error | unknown, sourceStream?: any) => {
-
       // 如果客户端已经关闭或响应已结束，忽略错误
       if (isClientClosed || res.writableEnded || res.destroyed) {
         console.error('Stream has been aborted or closed');

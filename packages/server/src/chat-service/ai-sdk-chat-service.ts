@@ -41,7 +41,10 @@ export class AiSdkChatService extends BaseChatService {
     });
   }
 
-  async *chatStream(params: ChatCompletionCreateParamsBase, options: IOpenaiCompatibleRequestOptions): AsyncGenerator<any> {
+  async *chatStream(
+    params: ChatCompletionCreateParamsBase,
+    options: IOpenaiCompatibleRequestOptions,
+  ): AsyncGenerator<any> {
     const { temperature, messages, tools, model } = params;
     try {
       const modelInstance = this.providerInstance(model);
