@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig } from 'vite';
+import { defineConfig, PluginOption } from 'vite';
 import obfuscator from 'vite-plugin-bundle-obfuscator';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import escapeStringRegexp from 'escape-string-regexp';
@@ -24,7 +24,7 @@ export default defineConfig(({  mode }) => {
           stringArray: true,
           transformObjectKeys: true,
         },
-      }),
+      }) as PluginOption, // TODO: pluginOption types are not equal
       cssInjectedByJsPlugin(),
       dts({ rollupTypes: true }),
     ],
