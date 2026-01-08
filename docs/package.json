@@ -1,3 +1,17 @@
 {
-    "name": "genui-sdk-docs"
+  "name": "genui-sdk-docs",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "vitepress": "^1.6.3",
+    "vitepress-demo-plugin": "^1.4.1"
+  }
 }
