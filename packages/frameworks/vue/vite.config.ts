@@ -26,9 +26,7 @@ export default defineConfig(({  mode }) => {
         },
       }),
       cssInjectedByJsPlugin(),
-      // TODO: 这里需要优化，配置rollupTypes会报错，暂时使用非rollupTypes的dts插件
-      // dts({ rollupTypes: true }),
-      dts(),
+      dts({ rollupTypes: true }),
     ],
     build: {
       lib: {
