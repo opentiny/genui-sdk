@@ -149,6 +149,9 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite-plugin-css-injected-by-js:
+        specifier: ^3.5.2
+        version: 3.5.2(vite@6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
       vite-plugin-dts:
         specifier: ^4.0.0
         version: 4.5.4(@types/node@22.19.3)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
