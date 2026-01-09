@@ -116,7 +116,7 @@ ${additionRules.map((rule) => ` - ${rule}`).join('\n')}
 
 export const genSchema = (rendererConfig: IRendererConfig) => genRootSchema(rendererConfig.whiteList) as ZodTypeAny;
 
-// @ts-ignore
+// @ts-ignore //TODO: remove this "Type instantiation is excessively deep and possibly infinite."
 export const genJsonSchema = (rendererConfig: IRendererConfig) => zodToJsonSchema(genSchema(rendererConfig)) as JsonSchema7Type;
 
 const getExtendWhiteList = (whiteList: string[], customComponents: IGenPromptComponent[]) => {

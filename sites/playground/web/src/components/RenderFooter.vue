@@ -6,9 +6,7 @@ import { AutoTip } from '@opentiny/vue-directive';
 import copy from 'clipboard-copy';
 const props = defineProps<IRendererSlotsProps>();
 
-// @ts-ignore 引入AutoTip指令
-// eslint-disable-next-line vue/no-unused-components
-const VAutoTip = AutoTip;
+const vAutoTip = AutoTip;
 
 const CopyIcon = iconCopy();
 

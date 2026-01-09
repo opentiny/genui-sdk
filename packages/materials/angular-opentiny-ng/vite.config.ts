@@ -17,7 +17,7 @@ export default defineConfig({
         'render-config': path.resolve(__dirname, './src/render-config/index.ts'),
       },
       formats: ['es'],
-      fileName: (format, entryName) => `${entryName}.js`, //TODO: CSS 打包不会自动引入
+      fileName: (format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
