@@ -37,7 +37,7 @@ export class FetchChatService extends BaseChatService {
         ...params,
         stream: true,
       }),
-      signal: options?.signal ?? undefined,
+      signal: options?.signal,
     };
 
     const response = await fetch(url, fetchOptions);

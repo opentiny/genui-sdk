@@ -19,9 +19,8 @@ const getModelName = (model?: LanguageModel) => {
   }
   if (typeof model === 'string') {
     return model;
-  } else {
-    return model.modelId;
   }
+  return model.modelId;
 };
 
 export const transformMap: Record<string, (chunk: any, transformOptions: ITransformOptions) => any> = {
