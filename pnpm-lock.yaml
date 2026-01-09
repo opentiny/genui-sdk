@@ -143,27 +143,74 @@ importers:
       vue:
         specifier: ^3.5.13
         version: 3.5.26(typescript@5.9.3)
-    devDependencies:
-      '@vitejs/plugin-vue':
-        specifier: ^5.0.0
-        version: 5.2.4(vite@6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))(vue@3.5.26(typescript@5.9.3))
-      escape-string-regexp:
+
+  packages/materials/angular-opentiny-ng: {}
+
+  packages/materials/vue-opentiny-vue: {}
+
+  packages/server:
+    dependencies:
+      '@ai-sdk/anthropic':
+        specifier: ^2.0.5
+        version: 2.0.57(zod@4.1.13)
+      '@ai-sdk/deepseek':
         specifier: ^1.0.5
-        version: 1.0.5
+        version: 1.0.33(zod@4.1.13)
+      '@ai-sdk/openai':
+        specifier: ^2.0.10
+        version: 2.0.89(zod@4.1.13)
+      '@opentiny/genui-sdk':
+        specifier: workspace:*
+        version: link:../genui-renderer/genui-sdk/core
+      ai:
+        specifier: ^5.0.10
+        version: 5.0.10(zod@4.1.13)
+      commander:
+        specifier: ^14.0.0
+        version: 14.0.2
+      cors:
+        specifier: ^2.8.5
+        version: 2.8.5
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
+      express:
+        specifier: ^5.1.0
+        version: 5.2.1
+      openai:
+        specifier: ^5.12.0
+        version: 5.23.2(ws@8.18.3)(zod@4.1.13)
+      raw-body:
+        specifier: ^3.0.0
+        version: 3.0.2
+    devDependencies:
+      '@types/commander':
+        specifier: ^2.12.2
+        version: 2.12.5
+      '@types/express':
+        specifier: ^5.0.3
+        version: 5.0.6
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.27
+      tsx:
+        specifier: ^4.8.1
+        version: 4.21.0
       typescript:
-        specifier: ^5.8.2
+        specifier: ^5.0.0
         version: 5.9.3
       vite:
-        specifier: ^6.0.0
-        version: 6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
-      vite-plugin-css-injected-by-js:
-        specifier: ^3.5.2
-        version: 3.5.2(vite@6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        specifier: ^7.0.0
+        version: 7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite-jsconfig-paths:
+        specifier: ^2.0.1
+        version: 2.0.1(vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+      vite-plugin-bundle-obfuscator:
+        specifier: ^1.8.0
+        version: 1.10.0(vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
       vite-plugin-dts:
         specifier: ^4.0.0
-        version: 4.5.4(@types/node@24.10.4)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
-
-  packages/server: {}
+        version: 4.5.4(@types/node@20.19.27)(rollup@4.54.0)(typescript@5.9.3)(vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
 
   projects/tiny-schema-renderer:
     dependencies:
@@ -4450,6 +4497,10 @@ packages:
   '@types/chai@5.2.3':
     resolution: {integrity: sha512-Mw558oeA9fFbv65/y4mHtXDs9bPnFMZAL/jxdPFUpOHHIXX91mcgEHbS5Lahr+pwZFR8A7GQleRWeI6cGFC2UA==}
 
+  '@types/commander@2.12.5':
+    resolution: {integrity: sha512-YXGZ/rz+s57VbzcvEV9fUoXeJlBt5HaKu5iUheiIWNsJs23bz6AnRuRiZBRVBLYyPnixNvVnuzM5pSaxr8Yp/g==}
+    deprecated: This is a stub types definition. commander provides its own type definitions, so you do not need this installed.
+
   '@types/connect@3.4.38':
     resolution: {integrity: sha512-K6uROf1LD88uDQqJCktA4yzL1YYAK6NgfsI0v/mTgyPKWsX1CnJ0XPSDhViejru1GcRkLWb8RlzFYJRqGUbaug==}
 
@@ -6507,6 +6558,22 @@ packages:
   oniguruma-to-es@3.1.1:
     resolution: {integrity: sha512-bUH8SDvPkH3ho3dvwJwfonjlQ4R80vjyvrU8YpxuROddv55vAEJrTuCuCVUhhsHbtlD9tGGbaNApGQckXhS8iQ==}
 
+  openai@5.23.2:
+    resolution: {integrity: sha512-MQBzmTulj+MM5O8SKEk/gL8a7s5mktS9zUtAkU257WjvobGc9nKcBuVwjyEEcb9SI8a8Y2G/mzn3vm9n1Jlleg==}
+    hasBin: true
+    peerDependencies:
+      ws: ^8.18.0
+      zod: ^3.23.8
+    peerDependenciesMeta:
+      ws:
+        optional: true
+      zod:
+        optional: true
+
+  optionator@0.8.3:
+    resolution: {integrity: sha512-+IW9pACdk3XWmmTXG8m3upGUJst5XRGzxMRjXzAuJ1XnIFNvfhjjIuYkDvysnPQ7qzqVzLt78BCruntqRhWQbA==}
+    engines: {node: '>= 0.8.0'}
+
   ora@8.2.0:
     resolution: {integrity: sha512-weP+BZ8MVNnlCm8c0Qdc1WSWq4Qn7I+9CJGm7Qali6g44e/PUzbjNqJX5NJ9ljlNMosfJvg1fKEGILklK9cwnw==}
     engines: {node: '>=18'}
@@ -7834,11 +7901,23 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.20(zod@3.25.76)
       zod: 3.25.76
 
+  '@ai-sdk/anthropic@2.0.57(zod@4.1.13)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.1
+      '@ai-sdk/provider-utils': 3.0.20(zod@4.1.13)
+      zod: 4.1.13
+
   '@ai-sdk/deepseek@1.0.33(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.1
       '@ai-sdk/provider-utils': 3.0.20(zod@3.25.76)
       zod: 3.25.76
+
+  '@ai-sdk/deepseek@1.0.33(zod@4.1.13)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.1
+      '@ai-sdk/provider-utils': 3.0.20(zod@4.1.13)
+      zod: 4.1.13
 
   '@ai-sdk/gateway@1.0.4(zod@3.25.76)':
     dependencies:
@@ -7846,11 +7925,23 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.1(zod@3.25.76)
       zod: 3.25.76
 
+  '@ai-sdk/gateway@1.0.4(zod@4.1.13)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.1(zod@4.1.13)
+      zod: 4.1.13
+
   '@ai-sdk/openai@2.0.89(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.1
       '@ai-sdk/provider-utils': 3.0.20(zod@3.25.76)
       zod: 3.25.76
+
+  '@ai-sdk/openai@2.0.89(zod@4.1.13)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.1
+      '@ai-sdk/provider-utils': 3.0.20(zod@4.1.13)
+      zod: 4.1.13
 
   '@ai-sdk/provider-utils@3.0.1(zod@3.25.76)':
     dependencies:
@@ -7860,12 +7951,27 @@ snapshots:
       zod: 3.25.76
       zod-to-json-schema: 3.25.1(zod@3.25.76)
 
+  '@ai-sdk/provider-utils@3.0.1(zod@4.1.13)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@standard-schema/spec': 1.1.0
+      eventsource-parser: 3.0.6
+      zod: 4.1.13
+      zod-to-json-schema: 3.25.1(zod@4.1.13)
+
   '@ai-sdk/provider-utils@3.0.20(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.1
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.0.6
       zod: 3.25.76
+
+  '@ai-sdk/provider-utils@3.0.20(zod@4.1.13)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.1
+      '@standard-schema/spec': 1.1.0
+      eventsource-parser: 3.0.6
+      zod: 4.1.13
 
   '@ai-sdk/provider@2.0.0':
     dependencies:
@@ -8994,11 +9100,65 @@ snapshots:
   '@lmdb/lmdb-win32-x64@3.4.2':
     optional: true
 
+  '@microsoft/api-extractor-model@7.32.2(@types/node@20.19.27)':
+    dependencies:
+      '@microsoft/tsdoc': 0.16.0
+      '@microsoft/tsdoc-config': 0.18.0
+      '@rushstack/node-core-library': 5.19.1(@types/node@20.19.27)
+    transitivePeerDependencies:
+      - '@types/node'
+
+  '@microsoft/api-extractor-model@7.32.2(@types/node@22.19.3)':
+    dependencies:
+      '@microsoft/tsdoc': 0.16.0
+      '@microsoft/tsdoc-config': 0.18.0
+      '@rushstack/node-core-library': 5.19.1(@types/node@22.19.3)
+    transitivePeerDependencies:
+      - '@types/node'
+
   '@microsoft/api-extractor-model@7.32.2(@types/node@24.10.4)':
     dependencies:
       '@microsoft/tsdoc': 0.16.0
       '@microsoft/tsdoc-config': 0.18.0
       '@rushstack/node-core-library': 5.19.1(@types/node@24.10.4)
+    transitivePeerDependencies:
+      - '@types/node'
+
+  '@microsoft/api-extractor@7.55.2(@types/node@20.19.27)':
+    dependencies:
+      '@microsoft/api-extractor-model': 7.32.2(@types/node@20.19.27)
+      '@microsoft/tsdoc': 0.16.0
+      '@microsoft/tsdoc-config': 0.18.0
+      '@rushstack/node-core-library': 5.19.1(@types/node@20.19.27)
+      '@rushstack/rig-package': 0.6.0
+      '@rushstack/terminal': 0.19.5(@types/node@20.19.27)
+      '@rushstack/ts-command-line': 5.1.5(@types/node@20.19.27)
+      diff: 8.0.2
+      lodash: 4.17.21
+      minimatch: 10.0.3
+      resolve: 1.22.11
+      semver: 7.5.4
+      source-map: 0.6.1
+      typescript: 5.8.2
+    transitivePeerDependencies:
+      - '@types/node'
+
+  '@microsoft/api-extractor@7.55.2(@types/node@22.19.3)':
+    dependencies:
+      '@microsoft/api-extractor-model': 7.32.2(@types/node@22.19.3)
+      '@microsoft/tsdoc': 0.16.0
+      '@microsoft/tsdoc-config': 0.18.0
+      '@rushstack/node-core-library': 5.19.1(@types/node@22.19.3)
+      '@rushstack/rig-package': 0.6.0
+      '@rushstack/terminal': 0.19.5(@types/node@22.19.3)
+      '@rushstack/ts-command-line': 5.1.5(@types/node@22.19.3)
+      diff: 8.0.2
+      lodash: 4.17.21
+      minimatch: 10.0.3
+      resolve: 1.22.11
+      semver: 7.5.4
+      source-map: 0.6.1
+      typescript: 5.8.2
     transitivePeerDependencies:
       - '@types/node'
 
@@ -12742,6 +12902,32 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
+  '@rushstack/node-core-library@5.19.1(@types/node@20.19.27)':
+    dependencies:
+      ajv: 8.13.0
+      ajv-draft-04: 1.0.0(ajv@8.13.0)
+      ajv-formats: 3.0.1(ajv@8.13.0)
+      fs-extra: 11.3.3
+      import-lazy: 4.0.0
+      jju: 1.4.0
+      resolve: 1.22.11
+      semver: 7.5.4
+    optionalDependencies:
+      '@types/node': 20.19.27
+
+  '@rushstack/node-core-library@5.19.1(@types/node@22.19.3)':
+    dependencies:
+      ajv: 8.13.0
+      ajv-draft-04: 1.0.0(ajv@8.13.0)
+      ajv-formats: 3.0.1(ajv@8.13.0)
+      fs-extra: 11.3.3
+      import-lazy: 4.0.0
+      jju: 1.4.0
+      resolve: 1.22.11
+      semver: 7.5.4
+    optionalDependencies:
+      '@types/node': 22.19.3
+
   '@rushstack/node-core-library@5.19.1(@types/node@24.10.4)':
     dependencies:
       ajv: 8.13.0
@@ -12755,6 +12941,14 @@ snapshots:
     optionalDependencies:
       '@types/node': 24.10.4
 
+  '@rushstack/problem-matcher@0.1.1(@types/node@20.19.27)':
+    optionalDependencies:
+      '@types/node': 20.19.27
+
+  '@rushstack/problem-matcher@0.1.1(@types/node@22.19.3)':
+    optionalDependencies:
+      '@types/node': 22.19.3
+
   '@rushstack/problem-matcher@0.1.1(@types/node@24.10.4)':
     optionalDependencies:
       '@types/node': 24.10.4
@@ -12764,6 +12958,22 @@ snapshots:
       resolve: 1.22.11
       strip-json-comments: 3.1.1
 
+  '@rushstack/terminal@0.19.5(@types/node@20.19.27)':
+    dependencies:
+      '@rushstack/node-core-library': 5.19.1(@types/node@20.19.27)
+      '@rushstack/problem-matcher': 0.1.1(@types/node@20.19.27)
+      supports-color: 8.1.1
+    optionalDependencies:
+      '@types/node': 20.19.27
+
+  '@rushstack/terminal@0.19.5(@types/node@22.19.3)':
+    dependencies:
+      '@rushstack/node-core-library': 5.19.1(@types/node@22.19.3)
+      '@rushstack/problem-matcher': 0.1.1(@types/node@22.19.3)
+      supports-color: 8.1.1
+    optionalDependencies:
+      '@types/node': 22.19.3
+
   '@rushstack/terminal@0.19.5(@types/node@24.10.4)':
     dependencies:
       '@rushstack/node-core-library': 5.19.1(@types/node@24.10.4)
@@ -12771,6 +12981,24 @@ snapshots:
       supports-color: 8.1.1
     optionalDependencies:
       '@types/node': 24.10.4
+
+  '@rushstack/ts-command-line@5.1.5(@types/node@20.19.27)':
+    dependencies:
+      '@rushstack/terminal': 0.19.5(@types/node@20.19.27)
+      '@types/argparse': 1.0.38
+      argparse: 1.0.10
+      string-argv: 0.3.2
+    transitivePeerDependencies:
+      - '@types/node'
+
+  '@rushstack/ts-command-line@5.1.5(@types/node@22.19.3)':
+    dependencies:
+      '@rushstack/terminal': 0.19.5(@types/node@22.19.3)
+      '@types/argparse': 1.0.38
+      argparse: 1.0.10
+      string-argv: 0.3.2
+    transitivePeerDependencies:
+      - '@types/node'
 
   '@rushstack/ts-command-line@5.1.5(@types/node@24.10.4)':
     dependencies:
@@ -12887,6 +13115,10 @@ snapshots:
     dependencies:
       '@types/deep-eql': 4.0.2
       assertion-error: 2.0.1
+
+  '@types/commander@2.12.5':
+    dependencies:
+      commander: 14.0.2
 
   '@types/connect@3.4.38':
     dependencies:
@@ -13341,6 +13573,14 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.1(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
       zod: 3.25.76
+
+  ai@5.0.10(zod@4.1.13):
+    dependencies:
+      '@ai-sdk/gateway': 1.0.4(zod@4.1.13)
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.1(zod@4.1.13)
+      '@opentelemetry/api': 1.9.0
+      zod: 4.1.13
 
   ajv-draft-04@1.0.0(ajv@8.13.0):
     optionalDependencies:
@@ -15399,6 +15639,20 @@ snapshots:
       regex: 6.1.0
       regex-recursion: 6.0.2
 
+  openai@5.23.2(ws@8.18.3)(zod@4.1.13):
+    optionalDependencies:
+      ws: 8.18.3
+      zod: 4.1.13
+
+  optionator@0.8.3:
+    dependencies:
+      deep-is: 0.1.4
+      fast-levenshtein: 2.0.6
+      levn: 0.3.0
+      prelude-ls: 1.1.2
+      type-check: 0.3.2
+      word-wrap: 1.2.5
+
   ora@8.2.0:
     dependencies:
       chalk: 5.6.2
@@ -16426,6 +16680,16 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
+  vite-jsconfig-paths@2.0.1(vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      debug: 4.4.3
+      globrex: 0.1.2
+      recrawl-sync: 2.2.3
+      tsconfig-paths: 3.15.0
+      vite: 7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+    transitivePeerDependencies:
+      - supports-color
+
   vite-jsconfig-paths@2.0.1(vite@7.3.0(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       debug: 4.4.3
@@ -16478,6 +16742,19 @@ snapshots:
       - terser
       - tsx
       - yaml
+    optional: true
+
+  vite-plugin-bundle-obfuscator@1.10.0(vite@6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      '@jridgewell/remapping': 2.3.5
+      javascript-obfuscator: 4.2.2
+      vite: 6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+
+  vite-plugin-bundle-obfuscator@1.10.0(vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      '@jridgewell/remapping': 2.3.5
+      javascript-obfuscator: 4.2.2
+      vite: 7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
 
   vite-plugin-css-injected-by-js@3.5.2(vite@5.4.21(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)):
     dependencies:
@@ -16486,6 +16763,44 @@ snapshots:
   vite-plugin-css-injected-by-js@3.5.2(vite@6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       vite: 6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+
+  vite-plugin-dts@4.5.4(@types/node@20.19.27)(rollup@4.54.0)(typescript@5.9.3)(vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      '@microsoft/api-extractor': 7.55.2(@types/node@20.19.27)
+      '@rollup/pluginutils': 5.3.0(rollup@4.54.0)
+      '@volar/typescript': 2.4.27
+      '@vue/language-core': 2.2.0(typescript@5.9.3)
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.9.3
+    optionalDependencies:
+      vite: 7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
+
+  vite-plugin-dts@4.5.4(@types/node@22.19.3)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      '@microsoft/api-extractor': 7.55.2(@types/node@22.19.3)
+      '@rollup/pluginutils': 5.3.0(rollup@4.54.0)
+      '@volar/typescript': 2.4.27
+      '@vue/language-core': 2.2.0(typescript@5.9.3)
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.9.3
+    optionalDependencies:
+      vite: 6.4.1(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
 
   vite-plugin-dts@4.5.4(@types/node@24.10.4)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
@@ -16580,6 +16895,38 @@ snapshots:
       fsevents: 2.3.3
       less: 4.5.1
       sass: 1.90.0
+      terser: 5.44.1
+      tsx: 4.21.0
+
+  vite@7.3.0(@types/node@20.19.27)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0):
+    dependencies:
+      esbuild: 0.27.2
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.54.0
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 20.19.27
+      fsevents: 2.3.3
+      less: 4.5.1
+      sass: 1.97.1
+      terser: 5.44.1
+      tsx: 4.21.0
+
+  vite@7.3.0(@types/node@22.19.3)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0):
+    dependencies:
+      esbuild: 0.27.2
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.54.0
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 22.19.3
+      fsevents: 2.3.3
+      less: 4.5.1
+      sass: 1.97.1
       terser: 5.44.1
       tsx: 4.21.0
 
