@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "strict": false,
+    "paths": {
+      "@opentiny/genui-sdk": [
+        "../schema-card-renderer/src/core/dist/index.js"
+      ],
+      "@opentiny/genui-sdk/server": [
+        "../schema-card-renderer/src/server/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*",
+  ]
+}

@@ -1,4 +1,47 @@
 {
-    "name": "@opentiny/genui-sdk-server",
-    "version": "0.0.1"
+  "name": "@opentiny/genui-sdk-server",
+  "version": "0.0.1",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "genui-sdk-server": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "prebuild": "pnpm -F @opentiny/genui-sdk build",
+    "build": "vite build",
+    "build:obfuscator": "pnpm build --mode obfuscator",
+    "dev": "tsx watch --tsconfig ./tsconfig.dev.json test/start.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.5",
+    "@ai-sdk/deepseek": "^1.0.5",
+    "@ai-sdk/openai": "^2.0.10",
+    "@opentiny/genui-sdk": "workspace:*",
+    "ai": "^5.0.10",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "commander": "^14.0.0",
+    "express": "^5.1.0",
+    "openai": "^5.12.0",
+    "raw-body": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^20.0.0",
+    "@types/commander": "^2.12.2",
+    "typescript": "^5.0.0",
+    "tsx": "^4.8.1",
+    "vite": "^7.0.0",
+    "vite-jsconfig-paths": "^2.0.1",
+    "vite-plugin-bundle-obfuscator": "^1.8.0",
+    "vite-plugin-dts": "^4.0.0"
+  }
 }
