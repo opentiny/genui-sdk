@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
       sourcemap: mode !== 'obfuscator',
       rollupOptions: {
         external: (id) => {
-          if (id.includes('@opentiny/genui-sdk/server')) {
+          if (id.includes('@opentiny/genui-sdk-core')) {
             return false;
           }
           if (id.startsWith('node:')) {

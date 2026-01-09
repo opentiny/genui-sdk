@@ -1,16 +1,20 @@
 {
   "compilerOptions": {
     "paths": {
-      "@opentiny/genui-sdk": [
-        "../genui-renderer/src/core/index.ts"
+      "@opentiny/genui-sdk-core": [
+        "../core/src/index.ts"
       ],
-      "@opentiny/genui-sdk/server": [
-        "../genui-renderer/src/server/index.ts"
+      "@opentiny/genui-sdk-materials-vue-opentiny-vue/renderer-config": [
+        "../materials/vue-opentiny-vue/src/renderer-config/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-opentiny-ng/renderer-config": [
+        "../materials/angular-opentiny-ng/renderer-config/index.ts"
       ]
     }
   },
   "include": [
     "src/**/*",
-    "../genui-renderer/**/*"
+    "../core/**/*",
+    "../materials/**/*"
   ]
 }
