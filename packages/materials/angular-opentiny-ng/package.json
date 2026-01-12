@@ -1,4 +1,30 @@
 {
-    "name": "@opentiny/genui-sdk-materials-angular-opentiny-ng",
-    "version": "0.0.1"
+  "name": "@opentiny/genui-sdk-materials-angular-opentiny-ng",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
+    },
+    "./render-config": {
+      "import": "./dist/render-config.js",
+      "types": "./dist/render-config.d.ts",
+      "require": "./dist/render-config.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "escape-string-regexp": "^1.0.5",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0",
+    "typescript": "^5.8.2"
+  }
 }

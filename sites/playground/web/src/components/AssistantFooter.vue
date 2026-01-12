@@ -7,9 +7,7 @@ import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
 const props = defineProps<IBubbleSlotsProps>();
 
-// @ts-ignore 引入AutoTip指令
-// eslint-disable-next-line vue/no-unused-components
-const VAutoTip = AutoTip;
+const vAutoTip = AutoTip;
 
 const RefreshIcon = iconRefresh();
 const CopyIcon = iconCopy();

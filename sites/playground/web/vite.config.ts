@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-// @ts-ignore
 import tsconfigPaths from 'vite-jsconfig-paths';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteGitCommitHashPlugin } from 'vite-commit-hash-plugin';

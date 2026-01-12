@@ -5,8 +5,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
-import { rendererConfig, ngRendererConfig, genPrompt } from '@opentiny/genui-sdk/server';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
+import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config'; 
+import { genPrompt } from '@opentiny/genui-sdk-core';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js'; 
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { useProviderModelMapperSync } from './use-provider-mapper.js';
@@ -200,7 +202,7 @@ export function createChatGenui() {
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
       const text = await fs.readFile(
-        path.join(fileURLToPath(import.meta.url), '../../chat-ui-replay/replay.txt'),
+        path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'),
         'utf-8',
       );
       const data = text.split(/\r?\n\r?\n/);

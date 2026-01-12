@@ -9,9 +9,7 @@ import EditInputRenderer from './EditInputRenderer.vue';
 
 const props = defineProps<IBubbleSlotsProps>();
 
-// @ts-ignore 引入AutoTip指令
-// eslint-disable-next-line vue/no-unused-components
-const VAutoTip = AutoTip;
+const vAutoTip = AutoTip;
 
 const EditIcon = IconEdit();
 const CopyIcon = iconCopy();

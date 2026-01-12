@@ -6,17 +6,7 @@
     "moduleResolution": "nodenext",
     "outDir": "./dist",
     "baseUrl": "./",
-    "skipLibCheck": true,
-    "paths": {
-      "@opentiny/genui-sdk": [
-        "../../../packages/genui-renderer/dist/index.js"
-      ]
-    },
-    "types": [
-      //临时规避module打包问题
-      "../../../packages/genui-renderer/dist/index.d.ts",
-      "../../../packages/genui-renderer/dist/component.d.ts"
-    ]
+    "skipLibCheck": true
   },
   "files": [
     "src/index.ts"

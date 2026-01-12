@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import tsconfigPaths from 'vite-jsconfig-paths';

@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "prebuild": "pnpm -F @opentiny/genui-sdk build",
+    "prebuild": "pnpm -F @opentiny/genui-sdk-core build",
     "build": "vite build",
     "build:obfuscator": "pnpm build --mode obfuscator",
     "dev": "tsx watch --tsconfig ./tsconfig.dev.json test/start.ts"
@@ -24,7 +24,9 @@
     "@ai-sdk/anthropic": "^2.0.5",
     "@ai-sdk/deepseek": "^1.0.5",
     "@ai-sdk/openai": "^2.0.10",
-    "@opentiny/genui-sdk": "workspace:*",
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "ai": "^5.0.10",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",

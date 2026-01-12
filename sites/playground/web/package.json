@@ -1,37 +1,37 @@
 {
-    "name": "genui-sdk-playground-web",
-    "private": true,
-    "version": "0.0.0",
-    "type": "module",
-    "scripts": {
-      "dev": "vite",
-      "build": "vue-tsc -b && vite build",
-      "dev:alpha": "vite --mode alpha",
-      "build:alpha": "vue-tsc -b && vite build --mode alpha-prod",
-      "preview": "vite preview"
-    },
-    "dependencies": {
-      "@opentiny/genui-sdk": "workspace:*",
-      "@opentiny/genui-sdk-vue": "workspace:*",
-      "@opentiny/tiny-robot": "0.3.1-alpha.3",
-      "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
-      "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3",
-      "@opentiny/vue": "3.25.0",
-      "@opentiny/vue-directive": "3.25.0",
-      "@opentiny/vue-icon": "3.25.0",
-      "clipboard-copy": "^4.0.1",
-      "schema-renderer-ng-adpater": "workspace:*",
-      "vite-commit-hash-plugin": "workspace:*",
-      "vue": "^3.5.18"
-    },
-    "devDependencies": {
-      "@vitejs/plugin-vue": "^6.0.1",
-      "@vue/tsconfig": "^0.7.0",
-      "gridstack": "^12.2.1",
-      "typescript": "~5.8.3",
-      "vite": "^7.1.2",
-      "vite-jsconfig-paths": "^2.0.1",
-      "vite-plugin-node-polyfills": "^0.24.0",
-      "vue-tsc": "^3.0.5"
-    }
+  "name": "genui-sdk-playground-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "dev:alpha": "vite --mode alpha",
+    "build:alpha": "vue-tsc -b && vite build --mode alpha-prod",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-vue": "workspace:*",
+    "@opentiny/tiny-robot": "0.3.1-alpha.3",
+    "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
+    "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3",
+    "@opentiny/vue": "3.25.0",
+    "@opentiny/vue-directive": "3.25.0",
+    "@opentiny/vue-icon": "3.25.0",
+    "clipboard-copy": "^4.0.1",
+    "schema-renderer-ng-adpater": "workspace:*",
+    "vite-commit-hash-plugin": "workspace:*",
+    "vue": "^3.5.18"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.7.0",
+    "gridstack": "^12.2.1",
+    "typescript": "~5.8.3",
+    "vite": "^7.1.2",
+    "vite-jsconfig-paths": "^2.0.1",
+    "vite-plugin-node-polyfills": "^0.24.0",
+    "vue-tsc": "^3.0.5"
+  }
 }

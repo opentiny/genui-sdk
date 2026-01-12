@@ -1,2 +1,1 @@
-import { default as SchemaRendererNgAdapter } from './SchemaRendererNgAdapter.vue';
-export { SchemaRendererNgAdapter };
+export { default as SchemaRendererNgAdapter } from './SchemaRendererNgAdapter.vue';

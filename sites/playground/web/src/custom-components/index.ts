@@ -1,5 +1,5 @@
 import TinyUser from './TinyUser.vue';
-import type { IGenPromptComponent } from '@opentiny/genui-sdk';
+import type { IGenPromptComponent } from '@opentiny/genui-sdk-core';
 
 type IGenPromptComponent2 = IGenPromptComponent;
 

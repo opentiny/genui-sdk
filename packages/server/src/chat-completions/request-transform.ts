@@ -1,9 +1,7 @@
 import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
-// @ts-ignore
-import type { IGenPromptConfig } from '@opentiny/genui-sdk';
-// TODO: 默认物料和genPrompt是否发包
-// @ts-ignore
-import { rendererConfig, ngRendererConfig, genPrompt } from '@opentiny/genui-sdk/server';
+import { type IGenPromptConfig, genPrompt } from '@opentiny/genui-sdk-core';
+import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
+import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
 
 const mergePrompt = (
   initialPrompt: string,
@@ -37,7 +35,7 @@ export function requestTransform(
 
   const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
   const systemMessages = newParams.messages?.find((message) => message.role === 'system');
-  const genuiPrompt = genPrompt(renderConfigForFramework, tgCustomConfig);
+  const genuiPrompt =  genPrompt(renderConfigForFramework, tgCustomConfig as any); //TODO: Argument of type 'IGenPromptConfig' is not assignable to parameter of type 'ITGCustomConfig'
   if (systemMessages) {
     systemMessages.content = mergePrompt(systemMessages.content as string, genuiPrompt, strategy);
   } else {

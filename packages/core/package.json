@@ -1,4 +1,22 @@
 {
-    "name": "@opentiny/genui-sdk-core",
-    "version": "0.0.1"
+  "name": "@opentiny/genui-sdk-core",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+    "vite-plugin-dts": "^4.0.0",
+    "typescript": "^5.9.3",
+    "escape-string-regexp": "^1.0.5",
+    "vite": "^6.0.0",
+    "vitest": "^3.0.0"
+  }
 }
