@@ -564,6 +564,8 @@ defineExpose({
   }
 }
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
+  max-width: calc(var(--messages-container-width, 200px) - 250px);
+  overflow-x: auto;
   // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
   > [type]:not([type=""]):not([type='schema-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);
