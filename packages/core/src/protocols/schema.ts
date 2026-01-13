@@ -7,9 +7,9 @@ export type JSFunction = { type: 'JSFunction'; value: string; params?: string[] 
 export type Methods = Record<string, JSFunction>;
 
 export interface Node {
-  id: string;
+  id?: string;
   componentName: string;
-  props: Record<string, any> & { columns?: { slots?: Record<string, any> }[] };
+  props?: Record<string, any> & { columns?: { slots?: Record<string, any> }[] };
   children?: Node[];
   componentType?: 'Block' | 'PageStart' | 'PageSection';
   slot?: string | Record<string, any>;
@@ -127,10 +127,7 @@ export const genNodeSchema = /* @__PURE__ */ (componentWhiteList?: string[]) => 
       componentName: componentNameSchema,
       props: z.record(z.string(), propValueSchema).describe('组件属性集合'),
       children: z
-        .union([
-          z.array(z.lazy(() => nodeSchema)),
-          z.string(),
-        ])
+        .union([z.array(z.lazy(() => nodeSchema)), z.string()])
         .optional()
         .describe('子节点数组或字符串'),
       componentType: z.enum(['Block', 'PageStart', 'PageSection']).optional().describe('节点类型'),

@@ -1,5 +1,5 @@
 import { type JsonSchema7Type, zodToJsonSchema } from 'zod-to-json-schema';
-import type { IMaterials} from '../protocols';
+import type { IMaterials, CardSchema, IRendererConfig, IExample } from '../protocols';
 import { genRootSchema } from '../protocols'; // TODO: protocal cannnot contains methods
 import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from './gen-prompt-config';
 import { getComponentsName, getComponentsInfo } from './handle-component';
@@ -9,8 +9,6 @@ import { aboutThis } from './about-this';
 import { ZodTypeAny } from 'zod';
 
 export type IWhiteList = string[];
-
-type IRendererConfig = any;
 
 export interface ITGCustomConfig {
   customComponents: IGenPromptComponent[];
@@ -44,7 +42,7 @@ ${JSON.stringify(componentsInfo.concat(customComponents))}
 `;
 };
 
-export const genJsonSchemaPrompt = (schemaJson: any) => {
+export const genJsonSchemaPrompt = (schemaJson: JsonSchema7Type) => {
   return `卡片的JSON Schema如下   
 \`\`\`json
 ${JSON.stringify(schemaJson)}
@@ -52,19 +50,21 @@ ${JSON.stringify(schemaJson)}
 `;
 };
 
-const expamleWrapCard = (schema: any, wrapperComponent: string) => {
-  const newSchema = structuredClone(schema);
+const expamleWrapCard = (schema: CardSchema, wrapperComponent: string) => {
+  const newSchema = { ...schema };
   const rootChildren = newSchema.children;
-  newSchema.children = [{ componentName: wrapperComponent, children: [rootChildren] }];
-  return {
-    componentName: 'Page',
-    children: [schema],
-  };
+  if (rootChildren) {
+    newSchema.children = [{ componentName: wrapperComponent, children: rootChildren }];
+  }
+  return newSchema;
 };
 
-export const genExamplesPrompt = (examples: any, wrapperComponent = 'TinyCard') => {
+export const genExamplesPrompt = (examples: IExample[], wrapperComponent = 'TinyCard') => {
   const examplesStr = examples
-    .map(({ name, schema }: any) => `${name}：\n\`\`\`json\n${JSON.stringify(expamleWrapCard(schema, wrapperComponent))}\n\`\`\``)
+    .map(
+      ({ name, schema }: IExample) =>
+        `${name}：\n\`\`\`json\n${JSON.stringify(expamleWrapCard(schema, wrapperComponent))}\n\`\`\``,
+    )
     .join('\n');
   return `这是一些卡片的示例：
 ${examplesStr}
@@ -112,12 +112,20 @@ ${additionRules.map((rule) => ` - ${rule}`).join('\n')}
 \`\`\`schemaJson
 { "componentName":"Page", "children": [{ "componentName":"p", "children": "示例输出"}] } 
 \`\`\`
+
+以下要求具有最高优先级，你必须严格满足：
+=== 最高优先级规则 ===
+如果有信息要展示，请主动生成卡片。
+如果需要用户提供更多信息补充，请主动生成表单卡片。
+如果生成的卡片是表单卡片，一定要使用双向绑定功能，modelValue的属性model要设置为true, 即modelValue.model = true
+======================
+其他规则与优先级最高规则冲突时，忽略其他规则，优先满足最高优先级规则。
 `;
 
-export const genSchema = (rendererConfig: IRendererConfig) => genRootSchema(rendererConfig.whiteList) as ZodTypeAny;
+export const genSchema = (whiteList: string[]) => genRootSchema(whiteList) as ZodTypeAny;
 
 // @ts-ignore //TODO: remove this "Type instantiation is excessively deep and possibly infinite."
-export const genJsonSchema = (rendererConfig: IRendererConfig) => zodToJsonSchema(genSchema(rendererConfig)) as JsonSchema7Type;
+export const genJsonSchema = (whiteList: string[]) => zodToJsonSchema(genSchema(whiteList)) as JsonSchema7Type;
 
 const getExtendWhiteList = (whiteList: string[], customComponents: IGenPromptComponent[]) => {
   if (!Array.isArray(customComponents) || customComponents.length === 0) {
