@@ -1,7 +1,7 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { LLMConfig, IGenuiConfig, ICustomConfig } from './chat.types';
+import type { LLMConfig, IGenuiConfig, ICustomConfig, CustomRequest } from './chat.types';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
 import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
@@ -13,18 +13,24 @@ export interface ICustomModelProviderOptions {
   llmConfig: LLMConfig;
   config: IGenuiConfig;
   customConfig: ICustomConfig;
+  customRequest?: CustomRequest;
+  metadata?: Record<string, string>;
 }
 export class CustomModelProvider extends BaseModelProvider {
   private url: string;
   private llmConfig: LLMConfig;
   private customConfig: ICustomConfig;
   private newConfig: IGenuiConfig;
-  constructor({ url, llmConfig, config, customConfig }: ICustomModelProviderOptions) {
+  private customRequest?: CustomRequest;
+  private metadata?: Record<string, string>;
+  constructor({ url, llmConfig, config, customConfig, customRequest, metadata }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
     this.llmConfig = llmConfig;
     this.customConfig = customConfig;
     this.newConfig = config;
+    this.customRequest = customRequest;
+    this.metadata = metadata;
   }
   validateRequest(_: ChatCompletionRequest) {}
 
@@ -33,7 +39,15 @@ export class CustomModelProvider extends BaseModelProvider {
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await chat(this.url, request.messages, this.llmConfig, request.options?.signal, this.customConfig);
+    return await chat(
+      this.url,
+      request.messages,
+      this.llmConfig,
+      request.options?.signal,
+      this.customConfig,
+      this.customRequest,
+      this.metadata,
+    );
   }
 
   async chat(_: ChatCompletionRequest) {
@@ -80,7 +94,7 @@ export class CustomModelProvider extends BaseModelProvider {
      */
     const onSchemaCard = (content: string, delta: IStreamDelta) => {
       handleSchemaStream(content, chatMessage);
-      
+
       // 如果是新创建的 schema-card，需要生成 id
       const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
       if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {

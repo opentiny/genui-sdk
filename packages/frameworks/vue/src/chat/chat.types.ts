@@ -102,16 +102,35 @@ export interface IGeneratingComponentProps {
   showThinkingResult: boolean;
 }
 
+/**
+ * 自定义请求函数类型
+ * @param url 请求地址
+ * @param options 请求选项（包含 method, headers, body, signal 等）
+ * @returns 返回 Response 对象或 Promise<Response>
+ */
+export type CustomRequest = (
+  url: string,
+  options: {
+    method: string;
+    headers: Record<string, string>;
+    body: string;
+    signal?: AbortSignal;
+  },
+) => Promise<Response> | Response;
+
 export interface IChatProps {
-  url: string;
+  url?: string;
+  model?: string;
+  temperature?: number;
   messages?: IMessage[];
-  llmConfig?: LLMConfig;
+  metadata?: Record<string, string>;
   config?: IGenuiConfig;
   customConfig?: ICustomConfig;
   rendererSlots?: IRendererSlots;
   thinkComponent?: Component<BubbleProps>;
   roles?: IRolesConfig;
   features?: ModelCapability;
+  customRequest?: CustomRequest;
 }
 
 export interface ImageFeatures {

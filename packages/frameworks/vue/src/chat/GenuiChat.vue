@@ -237,9 +237,14 @@ const appendCustomConfig = (customConfig: any) => {
 // 配置AI对话提供商
 const customModelProvider = new CustomModelProvider({
   url: props.url,
-  llmConfig: props.llmConfig || { model: '', temperature: 0.3 },
+  llmConfig: {
+    model: props.model || '',
+    temperature: props.temperature ?? 0.3,
+  },
   config: props.config || { addToolCallContext: false, showThinkingResult: false },
   customConfig: appendCustomConfig(props.customConfig || {}),
+  customRequest: props.customRequest,
+  metadata: props.metadata,
 });
 
 const client = new AIClient({
@@ -443,9 +448,9 @@ watch(
 );
 
 watch(
-  () => props.llmConfig,
-  (llmConfig) => {
-    customModelProvider.changeLlmConfig(llmConfig || { model: '', temperature: 0.3 });
+  () => [props.model, props.temperature],
+  ([model, temperature]) => {
+    customModelProvider.changeLlmConfig({ model: props.model, temperature: props.temperature ?? 0.3 });
   },
 );
 

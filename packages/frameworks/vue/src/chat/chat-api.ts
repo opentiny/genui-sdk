@@ -1,11 +1,11 @@
-import type { ICustomConfig, LLMConfig } from './chat.types';
+import type { ICustomConfig, LLMConfig, CustomRequest } from './chat.types';
 const removeCustomActionsExucueFunction = (customActions: any) => {
   return customActions.map((action: any) => {
     return {
       name: action.name,
       description: action.description,
       params: action.params,
-    }
+    };
   });
 };
 
@@ -15,6 +15,8 @@ export const chat = async (
   llmConfig: LLMConfig,
   signal: any,
   customConfig: ICustomConfig,
+  customRequest?: CustomRequest,
+  metadata?: Record<string, string>,
 ) => {
   const tgCustomConfig = {
     customComponents: customConfig.customComponentsSchema,
@@ -23,16 +25,28 @@ export const chat = async (
     customActions: removeCustomActionsExucueFunction(customConfig.customActions || []),
   };
 
+  const requestMetadata = {
+    ...metadata,
+    tinygenui: JSON.stringify(tgCustomConfig),
+  };
+
   const options = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     signal,
-    body: JSON.stringify({ messages: messages, llmConfig, metadata: { tinygenui: tgCustomConfig } }),
+    body: JSON.stringify({
+      messages: messages,
+      model: llmConfig.model,
+      temperature: llmConfig.temperature,
+      metadata: requestMetadata,
+    }),
   };
 
-  const response = await fetch(url, options);
+  // 如果提供了自定义请求函数，使用它；否则使用默认的 fetch
+  const requestFn = customRequest || fetch;
+  const response = await requestFn(url, options);
 
   if (!response.ok) {
     const errorText = await response.text();
