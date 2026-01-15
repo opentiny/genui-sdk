@@ -7,12 +7,39 @@
 ### url
 
 - **类型**: `string`
-- **必填**: 是
+- **必填**: 否
 - **说明**: 后端服务地址，用于请求大模型返回结构化数据。
 
 ```vue
 <template>
   <GenuiChat url="https://your-chat-backend/api" />
+</template>
+```
+
+
+### model
+
+- **类型**: `string`
+- **必填**: 否
+- **说明**: 大模型名称。
+
+```vue
+<template>
+  <GenuiChat :url="url" model="deepseek-v3.2" />
+</template>
+```
+
+
+### temperature
+
+- **类型**: `number`
+- **必填**: 否
+- **默认值**: `0.3`
+- **说明**: 模型温度参数，控制输出的随机性。
+
+```vue
+<template>
+  <GenuiChat :url="url" model="deepseek-v3.2" :temperature="0.7" />
 </template>
 ```
 
@@ -48,22 +75,26 @@ const initialMessages = [
 </script>
 ```
 
-### llmConfig
+### metadata
 
-- **类型**: `LLMConfig`
+- **类型**: `Record<string, string>`
 - **必填**: 否
-- **说明**: 大模型配置，可以指定大模型、模型温度以及额外的系统提示词。
+- **说明**: 额外的业务元数据，会原样透传到后端请求的 `metadata` 字段中， 注意 `tinygenui` key是Chat组件的保留字段， 自定义相关配置会通过该key传递到服务端。
 
 ```vue
 <template>
-  <GenuiChat :url="url" :llmConfig="llmConfig" />
+  <GenuiChat :url="url" model="deepseek-v3.2" :metadata="metadata" />
 </template>
 
-<script setup>
-const llmConfig = {
-  model: 'gpt-4',
-  temperature: 0.7,
-  prompt: '你是一个专业的助手，请用生成式UI的方式回复用户。'
+<script setup lang="ts">
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const url = 'https://your-chat-backend/api';
+
+const metadata: Record<string, string> = {
+  tenantId: 'tenant-001',
+  bizScene: 'playground',
+  // 注意：tinygenui 为系统保留字段，请不要手动设置
 };
 </script>
 ```
@@ -87,24 +118,139 @@ const genuiConfig = {
 </script>
 ```
 
-### customConfig
+### customComponents
 
-- **类型**: `ICustomConfig`
+- **类型**: `ICustomComponentItem[]`
 - **必填**: 否
-- **说明**: 自定义配置，包括自定义组件、片段、示例、动作等。
+- **说明**: 自定义组件数组，每个组件包含 schema 定义和可选的 ref（组件引用）。
 
 ```vue
 <template>
-  <GenuiChat :url="url" :customConfig="customConfig" />
+  <GenuiChat :url="url" :customComponents="customComponents" />
 </template>
 
-<script setup>
-const customConfig = {
-  customComponentsSchema: [],  // 自定义组件schema
-  customSnippets: [],          // 自定义片段
-  customExamples: [],          // 自定义示例
-  customActions: []            // 自定义动作
-};
+<script setup lang="ts">
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import MyCustomComponent from './MyCustomComponent.vue';
+
+const customComponents = [
+  {
+    component: 'MyCustomComponent',
+    name: '自定义组件',
+    description: '这是一个自定义组件',
+    schema: {
+      properties: [
+        {
+          property: 'title',
+          type: 'string',
+          description: '标题',
+          required: true
+        }
+      ]
+    },
+    ref: MyCustomComponent  // 组件引用，用于渲染
+  }
+];
+</script>
+```
+
+### customSnippets
+
+- **类型**: `IGenPromptSnippet[]`
+- **必填**: 否
+- **说明**: 自定义片段数组，提供常用的组件组合模式。
+
+```vue
+<template>
+  <GenuiChat :url="url" :customSnippets="customSnippets" />
+</template>
+
+<script setup lang="ts">
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const customSnippets = [
+  {
+    componentName: 'TinyForm',
+    props: {
+      labelPosition: 'top'
+    },
+    children: [
+      {
+        componentName: 'TinyFormItem',
+        props: { label: '姓名', prop: 'name' },
+        children: [
+          {
+            componentName: 'TinyInput',
+            props: { placeholder: '请输入姓名' }
+          }
+        ]
+      }
+    ]
+  }
+];
+</script>
+```
+
+### customExamples
+
+- **类型**: `IGenPromptExample[]`
+- **必填**: 否
+- **说明**: 自定义示例数组，提供组件使用示例。
+
+```vue
+<template>
+  <GenuiChat :url="url" :customExamples="customExamples" />
+</template>
+
+<script setup lang="ts">
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const customExamples = [
+  {
+    name: '商品卡片示例',
+    description: '展示如何使用商品卡片组件',
+    schema: {
+      componentName: 'ProductCard',
+      props: {
+        name: 'iPhone 15',
+        price: 5999
+      }
+    }
+  }
+];
+</script>
+```
+
+### customActions
+
+- **类型**: `any[]`
+- **必填**: 否
+- **说明**: 自定义动作数组，定义可在组件中调用的动作。
+
+```vue
+<template>
+  <GenuiChat :url="url" :customActions="customActions" />
+</template>
+
+<script setup lang="ts">
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const customActions = [
+  {
+    name: 'openPage',
+    description: '打开新页面',
+    params: [
+      {
+        name: 'url',
+        type: 'string',
+        description: '目标页面URL'
+      }
+    ],
+    execute: (params: any) => {
+      window.open(params.url, '_blank');
+    }
+  }
+];
 </script>
 ```
 
@@ -192,37 +338,7 @@ const modelFeatures = {
 </script>
 ```
 
-## Methods
 
-### clearConversation()
-
-- **说明**: 中断当前对话并清空会话。
-
-```vue
-<template>
-  <GenuiChat ref="chatRef" :url="url" />
-  <button @click="clearAll">清空会话</button>
-</template>
-
-<script setup>
-import { ref } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
-
-const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
-
-function clearAll() {
-  chatRef.value?.clearConversation();
-}
-</script>
-```
-
-## Slots
-
-`GenuiChat` 组件内部使用了 TinyRobot 的组件，可以通过插槽自定义部分内容。具体可参考 TinyRobot 的文档。
-
-## Events
-
-`GenuiChat` 组件内部管理了所有事件，不直接对外暴露事件。如需监听特定事件，可以通过 `customActions` 或 `customConfig` 进行扩展。
 
 ## Types
 
@@ -242,16 +358,6 @@ interface IMessageItem {
 }
 ```
 
-### LLMConfig
-
-```typescript
-interface LLMConfig {
-  model: string;
-  temperature: number;
-  prompt?: string;
-}
-```
-
 ### IGenuiConfig
 
 ```typescript
@@ -261,14 +367,83 @@ interface IGenuiConfig {
 }
 ```
 
-### ICustomConfig
+### ICustomComponentItem
 
 ```typescript
-interface ICustomConfig {
-  customComponentsSchema?: any[];  // 自定义组件schema数组
-  customSnippets?: any[];          // 自定义片段数组
-  customExamples?: any[];          // 自定义示例数组
-  customActions?: any[];           // 自定义动作数组
+interface ICustomComponentItem extends IGenPromptComponent {
+  ref?: Component;  // 组件引用，用于传给 SchemaRenderer
+}
+
+interface IGenPromptComponent {
+  component: string;  // 组件名
+  schema: {
+    properties?: IGenPromptComponentProperty[];
+    events?: IGenPromptComponentEvent[];
+    slots?: Record<string, any>;
+  };
+  name?: string;  // 组件label
+  description?: string;
+}
+
+interface IGenPromptComponentProperty {
+  property: string;
+  description: string;
+  type: string;
+  required?: boolean; // 默认是false
+  defaultValue?: any; // 默认是空
+  properties?: IGenPromptComponentProperty[];
+}
+
+interface IGenPromptComponentEvent {
+  type: string;
+  functionInfo?: IFunctionInfo;
+  defaultValue?: string;
+  description: string;
+}
+
+interface IFunctionInfo {
+  params: IFunctionParam[];
+  returns: Record<string, any>;
+}
+
+interface IFunctionParam {
+  name: string;
+  type: string;
+  defaultValue: string;
+  description: string;
+}
+
+
+```
+
+### IGenPromptSnippet
+
+```typescript
+type IGenPromptSnippet = NodeSchema;  // NodeSchema 类型
+
+
+interface NodeSchema {
+  componentName: string;
+  props?: Record<string, any>;
+  children?: NodeSchema[];
+  [key: string]: any;
+}
+```
+
+### IGenPromptExample
+
+```typescript
+interface IGenPromptExample {
+  name: string;
+  description?: string;
+  schema: CardSchema;
+}
+
+interface CardSchema {
+  componentName: "Page";
+  props?: Record<string, any>;
+  children?: NodeSchema[];
+  [key: string]: any;
 }
 ```
 
@@ -287,59 +462,4 @@ interface ImageFeatures {
   maxFilesPerRequest: number;
   supportedFileTypes: string[];
 }
-```
-
-## 完整示例
-
-```vue
-<template>
-  <GenuiChat
-    ref="chatRef"
-    url="https://your-chat-backend/api"
-    :messages="initialMessages"
-    :llmConfig="llmConfig"
-    :config="genuiConfig"
-    :customConfig="customConfig"
-    :features="modelFeatures"
-    :thinkComponent="CustomThinkComponent"
-    :roles="rolesConfig"
-  />
-</template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
-import CustomThinkComponent from './CustomThinkComponent.vue';
-
-const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
-
-const initialMessages = [];
-const llmConfig = {
-  model: 'gpt-4',
-  temperature: 0.7,
-  prompt: '你是一个专业的助手'
-};
-const genuiConfig = {
-  addToolCallContext: true,
-  showThinkingResult: true
-};
-const customConfig = {
-  customComponentsSchema: [],
-  customSnippets: [],
-  customExamples: [],
-  customActions: []
-};
-const modelFeatures = {
-  supportImage: {
-    enabled: true,
-    maxImageSize: 10,
-    maxFilesPerRequest: 3,
-    supportedFileTypes: ['jpg', 'jpeg', 'png']
-  }
-};
-const rolesConfig = {
-  user: { maxWidth: '80%' },
-  assistant: { maxWidth: '100%' }
-};
-</script>
 ```

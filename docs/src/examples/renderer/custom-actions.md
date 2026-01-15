@@ -1,6 +1,6 @@
 # Renderer 组件 - 自定义 Actions
 
-自定义 Actions 可以自行编写执行代码从而实现复杂的交互逻辑，需配合提示词让 LLM 输出对应 schema 调用 Actions
+自定义 Actions 可以自行编写执行代码从而实现复杂的交互逻辑，需配合提示词让 LLM 输出对应 schemaJson 调用 Actions
 
 ## 给组件传递自定义 Actions
 
@@ -18,7 +18,7 @@
 
 ### 示例 1：打开新页面
 
-```vue
+```vue {12-33}
 <template>
   <SchemaRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>
@@ -61,7 +61,7 @@ const customActions = {
 
 ### 示例 2：显示表单实时绑定的内容
 
-```vue
+```vue {12-23}
 <template>
   <SchemaRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>

@@ -171,9 +171,16 @@ const customActions = {
 
 ```typescript
 interface CardSchema {
+  componentName: "Page";
+  props?: Record<string, any>;
+  children?: NodeSchema[];
+  [key: string]: any;
+}
+
+interface NodeSchema {
   componentName: string;
   props?: Record<string, any>;
-  children?: CardSchema[];
+  children?: NodeSchema[];
   [key: string]: any;
 }
 ```

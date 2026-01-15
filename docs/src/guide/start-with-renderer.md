@@ -1,167 +1,92 @@
 # 使用 Renderer 组件
 
-如果你需要更精细的控制，可以使用 `SchemaRenderer` 组件自行搭配对话组件如 `TinyRobot`。这种方式允许你完全控制消息流、UI 渲染和交互逻辑。
+本节展示一个**最小可用示例**：使用浏览器原生 `fetch` 发起 **流式请求**，然后把流式返回的 schema 片段交给 `SchemaRenderer` 渲染即可。
 
-## 安装依赖
+不引入对话框组件、模型 SDK，只保留三件事：
 
-```bash
-npm install @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
-# 或
-pnpm add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
-# 或
-yarn add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+- **发请求**：用 `fetch` 调你的后端接口
+- **读流**：逐块读取响应体
+- **喂 Renderer**：把解析出来的 schema 赋值给 `SchemaRenderer` 的 `content` 属性
+
+## 后端返回约定（示例）
+
+这里假设你的后端以 **SSE 风格** 持续返回数据，每一行形如：
+
+- **`data: {"schema": {...}}`**：包含一份完整或增量的 schema
+- **`data: [DONE]`**：表示生成结束
+
+伪代码示例（Node.js，仅作为协议说明，可以按需调整）：
+
+```ts
+res.setHeader('Content-Type', 'text/event-stream');
+res.setHeader('Cache-Control', 'no-cache');
+
+// 生成过程中不断推送 schema（可以是全量，也可以是增量）
+const schema = { componentName: 'Page', children: [] };
+res.write(`data: ${JSON.stringify({ schema })}\n\n`);
+
+// 结束标记
+res.write('data: [DONE]\n\n');
+res.end();
 ```
 
-## 基础使用
+只要你保证前端能从每一条 `data: xxx` 中解析出一个 schema，就可以直接喂给 `SchemaRenderer`。
 
-首先，创建一个自定义的模型提供者来处理流式返回。以下是 `CustomModelProvider` 的完整实现：
+## 使用 fetch + Renderer 的完整前端示例
 
-````typescript
-import {
-  BaseModelProvider,
-  type ChatCompletionRequest,
-  type ChatCompletionStreamResponse,
-} from '@opentiny/tiny-robot-kit';
-import { reactive } from 'vue';
-import type { IChatMessage } from '@opentiny/genui-sdk-core';
-import { v4 as uuidv4 } from 'uuid';
+下面是一个最简 Vue 单文件组件示例：
 
-// 简化的 Schema 流式处理逻辑（只处理 schema-card 和 markdown）
-function useSchemaStream() {
-  let inSchemaStream = false;
-  let bufferText = '';
+- 点击按钮后，使用 `fetch` 调用后端 `/api/schema-stream`
+- 逐行读取 `data: ...`，解析出 `schema`
+- 把最新的 `schema` 赋值给 `SchemaRenderer` 的 `content`
 
-  const schemaFlag = '```schemaJson';
-  const endFlag = '```';
+```vue
+<template>
+  <div style="display: flex; gap: 16px">
+    <button :disabled="loading" @click="startGenerate">
+      {{ loading ? '生成中...' : '生成页面' }}
+    </button>
 
-  const isSchemaJsonStart = (str: string): boolean => {
-    const index = str.indexOf('`');
-    if (index === -1) return false;
-    return schemaFlag.startsWith(str.substring(index, index + schemaFlag.length));
-  };
+    <!-- 直接使用 SchemaRenderer 渲染 schema -->
+    <SchemaRenderer :content="schema" :generating="loading" />
+  </div>
+</template>
 
-  const isSchemaJsonEnd = (str: string): boolean => {
-    const index = str.lastIndexOf('\n');
-    if (index === -1) return false;
-    const newStr = str.slice(index).trim().substring(0, endFlag.length);
-    return endFlag.startsWith(newStr);
-  };
+<script setup lang="ts">
+import { ref } from 'vue';
+import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
 
-  const handleSchemaStream = (content: string, chatMessage: IChatMessage): boolean => {
-    if (!content || typeof content !== 'string') return false;
+// 当前 schema
+const schema = ref<any>({
+  componentName: 'Page',
+  children: [],
+});
 
-    const deltaPart = bufferText + content;
+const loading = ref(false);
 
-    if ((!inSchemaStream && isSchemaJsonStart(deltaPart)) || (inSchemaStream && isSchemaJsonEnd(deltaPart))) {
-      const matchFlag = inSchemaStream ? /(\n\s*)```/ : schemaFlag;
-      const matchPart = deltaPart.match(matchFlag)?.[0];
-      if (!matchPart) {
-        bufferText = deltaPart;
-        return true;
-      }
+// 使用 fetch + ReadableStream 读取后端流
+const startGenerate = async () => {
+  if (loading.value) return;
+  loading.value = true;
 
-      chatMessage.content += deltaPart;
+  try {
+    const response = await fetch('/api/schema-stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        // 这里可以传你自己的 prompt / 参数
+        prompt: '帮我生成一个包含查询表单和结果表格的页面 schema',
+        stream: true,
+      }),
+    });
 
-      if (inSchemaStream) {
-        const trimmedDelta = deltaPart.trim();
-        const [schemaPart, markdownPart] = trimmedDelta.split(matchPart);
-        const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-        if (lastMessage?.type === 'schema-card') {
-          lastMessage.content += schemaPart;
-        }
-        if (markdownPart) {
-          chatMessage.messages.push({ type: 'markdown', content: markdownPart });
-        }
-      } else {
-        const trimmedDelta = deltaPart.trim();
-        const [markdownPart, schemaPart] = trimmedDelta.split(matchPart);
-        if (markdownPart) {
-          const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-          if (lastMessage && lastMessage.type === 'markdown') {
-            lastMessage.content += markdownPart;
-          } else {
-            chatMessage.messages.push({ type: 'markdown', content: markdownPart });
-          }
-        }
-        chatMessage.messages.push({ type: 'schema-card', content: schemaPart });
-      }
-
-      inSchemaStream = !inSchemaStream;
-      bufferText = '';
-      return true;
+    if (!response.body) {
+      throw new Error('ReadableStream 不可用');
     }
 
-    bufferText = '';
-
-    if (inSchemaStream) {
-      chatMessage.content += deltaPart;
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage && lastMessage.type === 'schema-card') {
-        lastMessage.content += deltaPart;
-      }
-      return true;
-    }
-
-    chatMessage.content += deltaPart;
-    const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-    if (lastMessage?.type === 'markdown') {
-      lastMessage.content += deltaPart;
-    } else {
-      chatMessage.messages.push({ type: 'markdown', content: deltaPart });
-    }
-
-    return false;
-  };
-
-  return { handleSchemaStream };
-}
-
-export class CustomModelProvider extends BaseModelProvider {
-  constructor(private url: string) {
-    super({ provider: 'custom' });
-  }
-
-  async chatStream(
-    request: ChatCompletionRequest,
-    handler: {
-      onData: (data: ChatCompletionStreamResponse) => void;
-      onDone: () => void;
-      onError: (error: any) => void;
-    },
-  ) {
-    const { onDone, onData } = handler;
-    let response: Response;
-
-    try {
-      response = await fetch(this.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: request.messages,
-          stream: true,
-        }),
-        signal: request.options?.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      onDone({ type: 'error', error } as any);
-      return;
-    }
-
-    const reader = response.body!.getReader();
+    const reader = response.body.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
-    const { handleSchemaStream } = useSchemaStream();
-
-    const chatMessage = reactive<IChatMessage>({
-      role: 'assistant',
-      content: '',
-      messages: [],
-    });
-    onData(chatMessage as any);
 
     while (true) {
       const { done, value } = await reader.read();
@@ -169,162 +94,45 @@ export class CustomModelProvider extends BaseModelProvider {
 
       buffer += decoder.decode(value, { stream: true });
 
+      // 按行拆分（SSE 一般以 \n 分割）
       while (true) {
-        const lineEnd = buffer.indexOf('\n');
-        if (lineEnd === -1) break;
+        const lineEndIndex = buffer.indexOf('\n');
+        if (lineEndIndex === -1) break;
 
-        const line = buffer.slice(0, lineEnd).trim();
-        buffer = buffer.slice(lineEnd + 1);
+        const line = buffer.slice(0, lineEndIndex).trim();
+        buffer = buffer.slice(lineEndIndex + 1);
 
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') {
-            onDone();
-            return;
+        if (!line.startsWith('data: ')) continue;
+        const dataStr = line.slice(6); // 去掉 "data: "
+
+        if (dataStr === '[DONE]') {
+          // 生成结束
+          break;
+        }
+
+        try {
+          const payload = JSON.parse(dataStr);
+          if (payload.schema) {
+            // 这里直接把最新的 schema 喂给 Renderer
+            schema.value = payload.schema;
           }
-
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
-            const content = delta?.content;
-
-            if (content) {
-              handleSchemaStream(content, chatMessage);
-              const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-              if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-                lastMessage.id = uuidv4();
-              }
-              onData(chatMessage as any);
-            }
-          } catch (e) {
-            console.error('Parse error:', e);
-          }
+        } catch (e) {
+          console.error('解析后端数据失败:', e, dataStr);
         }
       }
     }
-
-    onDone();
-  }
-}
-````
-
-然后在你的组件中使用：
-
-```vue
-<script setup lang="ts">
-import { ref, computed, h, reactive } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
-import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
-import { AIClient, GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
-import type { ChatMessage } from '@opentiny/tiny-robot-kit';
-import '@opentiny/tiny-robot/dist/style.css';
-import type { IRendererProps } from '@opentiny/genui-sdk-vue';
-import { CustomModelProvider } from './CustomModelProvider'; // 引入上面定义的 CustomModelProvider
-
-// 初始化 AI 客户端
-const client = new AIClient({
-  provider: 'custom',
-  providerImplementation: new CustomModelProvider('https://your-chat-backend/api'),
-});
-
-// 消息管理
-const messages = ref<ChatMessage[]>([]);
-const inputMessage = ref('');
-const messageState = reactive({ status: STATUS.INIT, errorMsg: null });
-let abortController: AbortController | null = null;
-
-const generating = computed(() => GeneratingStatus.includes(messageState.status));
-
-// 发送消息
-const sendMessage = async () => {
-  if (generating.value || !inputMessage.value.trim()) return;
-
-  const userMessage: ChatMessage = {
-    role: 'user',
-    content: inputMessage.value,
-  };
-  messages.value.push(userMessage);
-  inputMessage.value = '';
-
-  messageState.status = STATUS.PROCESSING;
-  abortController = new AbortController();
-
-  try {
-    await client.chatStream(
-      {
-        messages: messages.value,
-        options: { stream: true, signal: abortController.signal },
-      },
-      {
-        onData: (data: any) => {
-          messageState.status = STATUS.STREAMING;
-          const lastMessage = messages.value[messages.value.length - 1];
-          if (lastMessage?.role === 'assistant') {
-            Object.assign(lastMessage, data);
-          } else {
-            messages.value.push(data);
-          }
-        },
-        onError: (error) => {
-          messageState.status = STATUS.ERROR;
-          console.error('Stream error:', error);
-        },
-        onDone: () => {
-          messageState.status = STATUS.FINISHED;
-        },
-      },
-    );
-  } catch (error) {
-    messageState.status = STATUS.ERROR;
+  } catch (err) {
+    console.error('请求失败:', err);
   } finally {
-    abortController = null;
+    loading.value = false;
   }
-};
-
-// 配置消息渲染器
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
-});
-
-const lastSchemaCardId = computed(() => {
-  const lastMsg = messages.value[messages.value.length - 1];
-  if (lastMsg?.role !== 'assistant') return null;
-  const items = (lastMsg as any).messages;
-  if (!Array.isArray(items) || !items.length) return null;
-  const schemaCard = items.find((m: any) => m.type === 'schema-card');
-  return schemaCard?.id || null;
-});
-
-const messageRenderers = {
-  'schema-card': (props: IRendererProps) => {
-    return h(
-      'div',
-      {},
-      h(SchemaRenderer, {
-        ...props,
-        generating: lastSchemaCardId.value === props.id ? generating.value : false,
-      }),
-    );
-  },
-  markdown: markdownRenderer,
-};
-
-const handleSend = ({ llmFriendlyMessage }: any) => {
-  inputMessage.value = llmFriendlyMessage;
-  sendMessage();
 };
 </script>
-
-<template>
-  <TrBubbleProvider :content-renderers="messageRenderers">
-    <TrBubbleList :items="messages" />
-    <TrSender v-model="inputMessage" @send="handleSend" />
-  </TrBubbleProvider>
-</template>
 ```
 
-## 下一步
+## 接下来可以做什么？
 
-- 查看 [Renderer 组件文档](/components/renderer) 了解详细的 API
-- 查看 [自定义组件示例](/examples/renderer/custom-components) 学习如何创建自定义组件
-- 查看 [自定义操作示例](/examples/renderer/custom-actions) 学习如何创建自定义操作
+- **接入真实大模型**：把 `/api/schema-stream` 换成你自己的大模型中转服务
+- **结合 requiredCompleteFieldSelectors**：需要更稳的流式渲染时，可以配合字段完整性控制一起用
+- **拆分 UI**：把按钮、表单、渲染区域拆成独立组件，但核心仍然是「流式 fetch → 更新 schema → 交给 `SchemaRenderer`」
+

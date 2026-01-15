@@ -12,7 +12,7 @@
 
 ### 基础用法
 
-```vue
+```vue {12-18}
 <template>
   <SchemaRenderer :content="content" :generating="generating" :state="savedState" />
 </template>
@@ -46,43 +46,6 @@ const customActions = {
       const state = context.state;
       alert(`全局状态: ${JSON.stringify(state)}`);
     },
-  },
-};
-</script>
-```
-
-### 历史记录回显示例
-
-当用户查看历史对话记录时，可以通过 `state` 恢复之前的状态：
-
-```vue
-<template>
-  <SchemaRenderer :content="content" :generating="false" :state="historyState" />
-</template>
-
-<script setup lang="ts">
-import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
-
-// 从历史记录中恢复的 Schema
-const content = ref({
-  componentName: 'Page',
-  state: {
-    formData: {
-      name: '',
-      age: null,
-    },
-  },
-  children: [
-    // form children
-  ],
-});
-
-// 从历史记录中恢复的状态
-const historyState = {
-  formData: {
-    name: 'John Doe',
-    age: 30,
   },
 };
 </script>

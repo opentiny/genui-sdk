@@ -1,34 +1,34 @@
-# Renderer 组件 - requiredCompleteFieldSelectors
+# Renderer 组件 - 缓冲字段
 
-`requiredCompleteFieldSelectors` 用于指定哪些字段路径需要完整后才能更新，**主要目的是防止流式返回过程中因字段不完整导致的渲染错误**。
+通过 `requiredCompleteFieldSelectors` 可以配置缓冲字段， 用于指定哪些字段路径需要完整后才应用更新，**主要目的是防止流式返回过程中因字段不完整导致的渲染错误**。
 
-## 为什么需要 requiredCompleteFieldSelectors？
+## 为什么需要缓冲字段？
 
 在流式更新场景下，AI 会逐步生成 JSON 内容。某些关键字段如果只接收到部分数据就立即更新，会导致组件渲染报错：
 
 - **函数表达式不完整**：`[type=JSFunction]` 的 `value` 字段不完整会导致 JavaScript 解析错误
 - **组件名不完整**：`componentName` 字段不完整会导致组件无法识别和渲染
-- **图片地址不完整**：`[componentName=Img] > props > src` 不完整会导致图片加载失败
+- **图片地址不完整**：`[componentName=img] > props > src` 不完整会导致图片加载失败
 - **样式字符串不完整**：`style` 字段不完整可能导致 CSS 解析错误
-- **特定组件必需字段**：如 `TinyTabItem` 的 `name`、`TinyTransfer` 的 `data` 等
+- **特定组件必需字段**：如 `TinyTabItem` 的 `name`
 
 通过 `requiredCompleteFieldSelectors`，你可以指定这些关键字段必须完整后才能更新，从而避免渲染错误。
 
 ## 选择器语法
 
-`requiredCompleteFieldSelectors` 使用类似 CSS 选择器的语法，支持多种匹配方式：
+缓冲配置的使用方法类似 CSS 选择器的语法，支持多种匹配方式：
 
 ### 基础语法
 
 - **直接匹配字段名**：`componentName` - 匹配所有 `componentName` 字段
-- **属性选择器**：`[componentName=Img]` - 匹配 `componentName` 为 `Img` 的元素
+- **属性选择器**：`[componentName=img]` - 匹配 `componentName` 为 `img` 的元素
 - **子选择器**：`>` - 匹配直接子元素
 - **祖先选择器**：空格 - 匹配任意祖先元素
 - **通配符**：`*` - 匹配任意字段
 
 ### 属性选择器操作符
 
-- `=` - 完全匹配：`[componentName=Img]`
+- `=` - 完全匹配：`[componentName=img]`
 - `^=` - 前缀匹配：`[componentName^=TinyChart]` - 匹配以 `TinyChart` 开头的组件名
 - `$=` - 后缀匹配：`[componentName$=Item]`
 - `*=` - 包含匹配：`[componentName*=Chart]`
@@ -44,8 +44,8 @@
 ### 示例
 
 ```typescript
-// 匹配组件名为 Img 的元素的 src 属性
-'[componentName=Img] > props > src';
+// 匹配组件名为 img 的元素的 src 属性
+'[componentName=img] > props > src';
 
 // 匹配所有 type 为 JSFunction 的元素
 '[type=JSFunction]';
@@ -69,7 +69,7 @@
 
 ```typescript
 export const requiredCompleteFieldSelectors = [
-  '[componentName=Img] > props > src', // 图片地址必须完整
+  '[componentName=img] > props > src', // 图片地址必须完整
   'componentName', // 组件名必须完整
   'style', // 样式字符串必须完整
   '[type=JSFunction]', // 函数代码必须完整
@@ -77,15 +77,6 @@ export const requiredCompleteFieldSelectors = [
   '[type=JSSlot][value=]', // 插槽值必须完整
   'type', // 类型字段必须完整
   ':empty:object', // 空对象必须完整
-  '[componentName=TinyTabItem] > props > name', // Tab 项名称必须完整
-  '[componentName=TinyTransfer] > props > data', // Transfer 数据必须完整
-  '[componentName=TinyNumeric] > props > controlsPosition',
-  '[componentName=TinyNumeric] > props > modelValue',
-  '[componentName^=TinyChart] > props > *', // 所有图表组件的 props 必须完整
-  '[componentName=TinyForm] > props > labelPosition',
-  // Angular 版本
-  '[componentName=img] > props > src',
-  '[componentName] > props > ngModel',
 ];
 ```
 

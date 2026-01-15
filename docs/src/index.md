@@ -13,7 +13,6 @@ hero:
     - theme: alt
       text: 组件文档
       link: /components/renderer
-
 features:
   - title: 现有AI生态兼容
     details: OpenAI格式兼容，支持MCP服务接入

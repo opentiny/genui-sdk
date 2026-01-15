@@ -22,46 +22,28 @@ import { ConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 const url = 'https://your-chat-backend/api';
 const STORAGE_KEY = 'genui-theme';
 
-const currentTheme = ref<'dark' | 'lite' | 'default'>(() => {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  return (saved as 'dark' | 'lite' | 'default') || 'default';
-});
+
+const currentTheme = ref<'dark' | 'lite' | 'default'>('default');
 
 const themeIcon = computed(() => {
   const icons = {
-    default: '🌓',
+    default: '☀️',
     dark: '🌙',
-    lite: '☀️',
   };
   return icons[currentTheme.value];
 });
 
 function toggleTheme() {
-  const themes: ('dark' | 'lite' | 'default')[] = ['default', 'dark', 'lite'];
-  const currentIndex = themes.indexOf(currentTheme.value);
-  const nextIndex = (currentIndex + 1) % themes.length;
-  currentTheme.value = themes[nextIndex];
+  currentTheme.value = currentTheme.value === 'dark' ? 'default' : 'dark';
 }
 
-// 保存主题偏好
-watch(currentTheme, (newTheme) => {
-  localStorage.setItem(STORAGE_KEY, newTheme);
-});
-
-// 初始化时检查系统主题
-onMounted(() => {
-  if (currentTheme.value === 'default') {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    // 可以根据系统主题设置初始值，但不自动切换
-  }
-});
 </script>
 
 <style scoped>
 .app {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 800px;
 }
 
 .app-header {

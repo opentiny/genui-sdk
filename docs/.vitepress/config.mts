@@ -37,7 +37,7 @@ export default defineConfig({
           text: '指引',
           items: [
             { text: '快速开始', link: '/guide/quick-start' },
-            { text: '使用 Renderer 组件自由搭配', link: '/guide/start-with-renderer' },
+            { text: '搭配 Tiny Robot 使用', link: '/guide/renderer-with-tiny-robot' },
           ],
         },
       ],
@@ -61,7 +61,7 @@ export default defineConfig({
                 { text: '自定义 Actions', link: '/examples/renderer/custom-actions' },
                 { text: '自定义 Components', link: '/examples/renderer/custom-components' },
                 {
-                  text: 'requiredCompleteFieldSelectors',
+                  text: '缓冲字段',
                   link: '/examples/renderer/required-complete-field-selectors',
                 },
                 { text: '传递合并 State', link: '/examples/renderer/state' },
@@ -71,7 +71,8 @@ export default defineConfig({
               text: 'Chat 组件',
               items: [
                 { text: '自定义 Actions', link: '/examples/chat/custom-actions' },
-                { text: '自定义 Components 及 Snippets', link: '/examples/chat/custom-components-snippets' },
+                { text: '自定义 Components', link: '/examples/chat/custom-components' },
+                { text: '自定义 Snippets', link: '/examples/chat/custom-snippets' },
                 { text: '自定义 Examples', link: '/examples/chat/custom-examples' },
                 { text: '自定义底部工具栏', link: '/examples/chat/footer-toolbar' },
                 { text: '自定义思考过程', link: '/examples/chat/thinking-process' },
@@ -98,13 +99,7 @@ export default defineConfig({
             { text: '支持自定义渲染器', link: '/advanced/custom-renderer' },
           ],
         },
-      ],
-      '/api/': [
-        {
-          text: 'API',
-          items: [{ text: 'API 参考', link: '/api/api' }],
-        },
-      ],
+      ]
     },
     socialLinks: [{ icon: 'github', link: 'https://github.com/opentiny/genui-sdk' }],
     search: {
