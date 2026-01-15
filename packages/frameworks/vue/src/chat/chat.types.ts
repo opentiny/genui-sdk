@@ -3,7 +3,7 @@ import type { Component } from 'vue';
 import type { IRendererSlots } from '../renderer';
 import type { EventEmitter } from './event-emitter';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
-import type { INotificationPayload } from '@opentiny/genui-sdk-core';
+import type { INotificationPayload, IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 
 export interface IRolesConfig {
   user: Partial<BubbleRoleConfig>;
@@ -34,6 +34,11 @@ export interface IAbilityAugmentConfig {
   customSnippets?: any;
   customExamples?: any;
   customActions?: any;
+}
+
+// 自定义组件项，扩展 IGenPromptComponent 添加 ref（组件引用）
+export interface ICustomComponentItem extends IGenPromptComponent {
+  ref?: Component; // 组件引用，用于传给 SchemaRenderer
 }
 
 export interface withMeataData<T> {
@@ -123,9 +128,11 @@ export interface IChatProps {
   model?: string;
   temperature?: number;
   messages?: IMessage[];
-  metadata?: Record<string, string>;
   config?: IGenuiConfig;
-  customConfig?: ICustomConfig;
+  customComponents?: ICustomComponentItem[];
+  customSnippets?: IGenPromptSnippet[];
+  customExamples?: IGenPromptExample[];
+  customActions?: any[];
   rendererSlots?: IRendererSlots;
   thinkComponent?: Component<BubbleProps>;
   roles?: IRolesConfig;

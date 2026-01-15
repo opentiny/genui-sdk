@@ -17,7 +17,7 @@ import type {
   UserTextItem,
 } from '@opentiny/tiny-robot';
 import { ref, watch, computed, h, inject, nextTick } from 'vue';
-import type { Ref } from 'vue';
+import type { Ref, Component } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
@@ -198,6 +198,26 @@ const messageRenderers = {
   'custom-text': (props: BubbleCommonProps & { content: string }) =>
     h('span', { class: 'tr-bubble__body-text' }, props.content),
   'schema-card': (schemaCardProps: IRendererProps) => {
+    // 将 customComponents 数组转换为 Record<string, Component> 格式
+    const customComponentsMap: Record<string, Component> = {};
+    if (props.customComponents) {
+      props.customComponents.forEach((item) => {
+        if (item.ref && item.component) {
+          customComponentsMap[item.component] = item.ref;
+        }
+      });
+    }
+    
+    // 将 customActions 数组转换为对象格式
+    const customActionsMap: Record<string, any> = {};
+    if (props.customActions) {
+      props.customActions.forEach((action) => {
+        if (action.name) {
+          customActionsMap[action.name] = action;
+        }
+      });
+    }
+    
     return h('div', {}, 
     h(
       SchemaRenderer,
@@ -207,9 +227,9 @@ const messageRenderers = {
         requiredCompleteFieldSelectors: [],
         onAction,
         generating: lastScemaCardId.value === schemaCardProps.id ? generating.value : false,
-        customComponents: props.customConfig?.customComponents,
+        customComponents: customComponentsMap,
         customActions: {
-          ...props.customConfig?.customActions,
+          ...customActionsMap,
           continueChat: continueChatAction,
           saveState: saveStateAction,
         },
@@ -227,13 +247,6 @@ const messageRenderers = {
   'loading-text': props.thinkComponent || GeneratingComponent,
   'error-text': ErrorText,
 };
-const appendCustomConfig = (customConfig: any) => {
-  return {
-    ...customConfig,
-    customActions: [...(customConfig.customActions || []), continueChatAction],
-  };
-};
-
 // 配置AI对话提供商
 const customModelProvider = new CustomModelProvider({
   url: props.url,
@@ -242,7 +255,10 @@ const customModelProvider = new CustomModelProvider({
     temperature: props.temperature ?? 0.3,
   },
   config: props.config || { addToolCallContext: false, showThinkingResult: false },
-  customConfig: appendCustomConfig(props.customConfig || {}),
+  customComponents: props.customComponents || [],
+  customSnippets: props.customSnippets || [],
+  customExamples: props.customExamples || [],
+  customActions: [...(props.customActions || []), continueChatAction],
   customRequest: props.customRequest,
   metadata: props.metadata,
 });
@@ -265,6 +281,12 @@ let conversation = useConversation({
       if (!conversations.length) {
         createConversation();
         saveConversations();
+      }
+
+      // 如果通过 props.messages 传入了初始消息，则在会话加载完成后覆盖当前会话的消息
+      if (props.messages?.length) {
+        const currentMessages = messageManager.value.messages.value;
+        currentMessages.splice(0, currentMessages.length, ...(props.messages as any));
       }
     },
     onFinish(data: any, context) {
@@ -449,7 +471,7 @@ watch(
 
 watch(
   () => [props.model, props.temperature],
-  ([model, temperature]) => {
+  () => {
     customModelProvider.changeLlmConfig({ model: props.model, temperature: props.temperature ?? 0.3 });
   },
 );

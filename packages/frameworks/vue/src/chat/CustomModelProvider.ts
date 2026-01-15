@@ -1,7 +1,8 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { LLMConfig, IGenuiConfig, ICustomConfig, CustomRequest } from './chat.types';
+import type { LLMConfig, IGenuiConfig, ICustomComponentItem, CustomRequest } from './chat.types';
+import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
 import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
@@ -12,22 +13,31 @@ export interface ICustomModelProviderOptions {
   url: string;
   llmConfig: LLMConfig;
   config: IGenuiConfig;
-  customConfig: ICustomConfig;
+  customComponents: ICustomComponentItem[];
+  customSnippets: IGenPromptSnippet[];
+  customExamples: IGenPromptExample[];
+  customActions: any[];
   customRequest?: CustomRequest;
   metadata?: Record<string, string>;
 }
 export class CustomModelProvider extends BaseModelProvider {
   private url: string;
   private llmConfig: LLMConfig;
-  private customConfig: ICustomConfig;
+  private customComponents: ICustomComponentItem[];
+  private customSnippets: IGenPromptSnippet[];
+  private customExamples: IGenPromptExample[];
+  private customActions: any[];
   private newConfig: IGenuiConfig;
   private customRequest?: CustomRequest;
   private metadata?: Record<string, string>;
-  constructor({ url, llmConfig, config, customConfig, customRequest, metadata }: ICustomModelProviderOptions) {
+  constructor({ url, llmConfig, config, customComponents, customSnippets, customExamples, customActions, customRequest, metadata }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
     this.llmConfig = llmConfig;
-    this.customConfig = customConfig;
+    this.customComponents = customComponents;
+    this.customSnippets = customSnippets;
+    this.customExamples = customExamples;
+    this.customActions = customActions;
     this.newConfig = config;
     this.customRequest = customRequest;
     this.metadata = metadata;
@@ -44,7 +54,10 @@ export class CustomModelProvider extends BaseModelProvider {
       request.messages,
       this.llmConfig,
       request.options?.signal,
-      this.customConfig,
+      this.customComponents,
+      this.customSnippets,
+      this.customExamples,
+      this.customActions,
       this.customRequest,
       this.metadata,
     );

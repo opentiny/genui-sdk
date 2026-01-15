@@ -1,4 +1,5 @@
-import type { ICustomConfig, LLMConfig, CustomRequest } from './chat.types';
+import type { ICustomComponentItem, LLMConfig, CustomRequest } from './chat.types';
+import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 const removeCustomActionsExucueFunction = (customActions: any) => {
   return customActions.map((action: any) => {
     return {
@@ -9,20 +10,31 @@ const removeCustomActionsExucueFunction = (customActions: any) => {
   });
 };
 
+// 从 customComponents 中移除 ref 字段，只保留 schema 信息
+const removeRefFromCustomComponents = (customComponents: ICustomComponentItem[]): IGenPromptComponent[] => {
+  return customComponents.map((item) => {
+    const { ref, ...rest } = item;
+    return rest;
+  });
+};
+
 export const chat = async (
   url: string,
   messages: any,
   llmConfig: LLMConfig,
   signal: any,
-  customConfig: ICustomConfig,
+  customComponents: ICustomComponentItem[],
+  customSnippets: IGenPromptSnippet[],
+  customExamples: IGenPromptExample[],
+  customActions: any[],
   customRequest?: CustomRequest,
   metadata?: Record<string, string>,
 ) => {
   const tgCustomConfig = {
-    customComponents: customConfig.customComponentsSchema,
-    customSnippets: customConfig.customSnippets,
-    customExamples: customConfig.customExamples,
-    customActions: removeCustomActionsExucueFunction(customConfig.customActions || []),
+    customComponents: removeRefFromCustomComponents(customComponents),
+    customSnippets: customSnippets,
+    customExamples: customExamples,
+    customActions: removeCustomActionsExucueFunction(customActions),
   };
 
   const requestMetadata = {
