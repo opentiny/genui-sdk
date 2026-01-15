@@ -259,7 +259,7 @@ const customModelProvider = new CustomModelProvider({
   customSnippets: props.customSnippets || [],
   customExamples: props.customExamples || [],
   customActions: [...(props.customActions || []), continueChatAction],
-  customRequest: props.customRequest,
+  customFetch: props.customFetch,
   metadata: props.metadata,
 });
 

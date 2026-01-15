@@ -1,4 +1,4 @@
-import type { ICustomComponentItem, LLMConfig, CustomRequest } from './chat.types';
+import type { ICustomComponentItem, LLMConfig, CustomFetch } from './chat.types';
 import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 const removeCustomActionsExucueFunction = (customActions: any) => {
   return customActions.map((action: any) => {
@@ -27,7 +27,7 @@ export const chat = async (
   customSnippets: IGenPromptSnippet[],
   customExamples: IGenPromptExample[],
   customActions: any[],
-  customRequest?: CustomRequest,
+  customFetch?: CustomFetch,
   metadata?: Record<string, string>,
 ) => {
   const tgCustomConfig = {
@@ -57,7 +57,7 @@ export const chat = async (
   };
 
   // 如果提供了自定义请求函数，使用它；否则使用默认的 fetch
-  const requestFn = customRequest || fetch;
+  const requestFn = customFetch || fetch;
   const response = await requestFn(url, options);
 
   if (!response.ok) {

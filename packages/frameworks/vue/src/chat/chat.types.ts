@@ -113,7 +113,7 @@ export interface IGeneratingComponentProps {
  * @param options 请求选项（包含 method, headers, body, signal 等）
  * @returns 返回 Response 对象或 Promise<Response>
  */
-export type CustomRequest = (
+export type CustomFetch = (
   url: string,
   options: {
     method: string;
@@ -137,7 +137,7 @@ export interface IChatProps {
   thinkComponent?: Component<BubbleProps>;
   roles?: IRolesConfig;
   features?: ModelCapability;
-  customRequest?: CustomRequest;
+  customFetch?: CustomFetch;
 }
 
 export interface ImageFeatures {

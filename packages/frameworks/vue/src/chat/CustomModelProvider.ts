@@ -1,7 +1,7 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { LLMConfig, IGenuiConfig, ICustomComponentItem, CustomRequest } from './chat.types';
+import type { LLMConfig, IGenuiConfig, ICustomComponentItem, CustomFetch } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
@@ -17,7 +17,7 @@ export interface ICustomModelProviderOptions {
   customSnippets: IGenPromptSnippet[];
   customExamples: IGenPromptExample[];
   customActions: any[];
-  customRequest?: CustomRequest;
+  customFetch?: CustomFetch;
   metadata?: Record<string, string>;
 }
 export class CustomModelProvider extends BaseModelProvider {
@@ -28,9 +28,9 @@ export class CustomModelProvider extends BaseModelProvider {
   private customExamples: IGenPromptExample[];
   private customActions: any[];
   private newConfig: IGenuiConfig;
-  private customRequest?: CustomRequest;
+  private customFetch?: CustomFetch;
   private metadata?: Record<string, string>;
-  constructor({ url, llmConfig, config, customComponents, customSnippets, customExamples, customActions, customRequest, metadata }: ICustomModelProviderOptions) {
+  constructor({ url, llmConfig, config, customComponents, customSnippets, customExamples, customActions, customFetch, metadata }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
     this.llmConfig = llmConfig;
@@ -39,7 +39,7 @@ export class CustomModelProvider extends BaseModelProvider {
     this.customExamples = customExamples;
     this.customActions = customActions;
     this.newConfig = config;
-    this.customRequest = customRequest;
+    this.customFetch = customFetch;
     this.metadata = metadata;
   }
   validateRequest(_: ChatCompletionRequest) {}
@@ -58,7 +58,7 @@ export class CustomModelProvider extends BaseModelProvider {
       this.customSnippets,
       this.customExamples,
       this.customActions,
-      this.customRequest,
+      this.customFetch,
       this.metadata,
     );
   }
