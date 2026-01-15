@@ -67,6 +67,8 @@ const customComponents = {
 </script>
 ```
 
+查看 [Renderer 自定义 Components](/examples/renderer/custom-components) 了解详细用法
+
 ### customActions
 
 - **类型**: `Record<string, { execute: (params: any, context: any) => void }>`
@@ -95,6 +97,8 @@ const customActions = {
 </script>
 ```
 
+查看 [Renderer 自定义 Actions](/examples/renderer/custom-actions) 了解详细用法
+
 ### requiredCompleteFieldSelectors
 
 - **类型**: `string[]`
@@ -107,17 +111,7 @@ const customActions = {
 </template>
 ```
 
-### id
-
-- **类型**: `string`
-- **必填**: 否
-- **说明**: 组件实例的唯一标识符，用于多实例场景。
-
-```vue
-<template>
-  <SchemaRenderer :content="content" id="renderer-1" />
-</template>
-```
+查看 [Renderer 配置缓冲字段](/examples/renderer/required-complete-field-selectors) 了解详细用法
 
 ### state
 
@@ -130,6 +124,8 @@ const customActions = {
   <SchemaRenderer :content="content" :state="{ userId: 123, userName: 'John' }" />
 </template>
 ```
+
+查看 [Renderer 传递合并 State](/examples/renderer/state) 了解详细用法
 
 ## Slots
 
@@ -171,7 +167,7 @@ const customActions = {
 
 ```typescript
 interface CardSchema {
-  componentName: "Page";
+  componentName: 'Page';
   props?: Record<string, any>;
   children?: NodeSchema[];
   [key: string]: any;

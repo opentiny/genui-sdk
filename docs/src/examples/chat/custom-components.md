@@ -4,7 +4,7 @@
 
 ## 基础用法
 
-```vue
+```vue { 16-43 }
 <template>
   <GenuiChat
     :url="url"
@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
-import UserProfile from './components/UserProfile.vue';
+import UserProfile from './components/user-profile.vue';
 
 const url = 'https://your-chat-backend/api';
 
@@ -85,4 +85,4 @@ const messages = [
 
 ## 完整示例
 
-<demo vue="../../../demos/chat/custom-components.vue" :vueFiles="['../../../demos/chat/custom-components.vue',  '../../../demos/chat/components/UserProfile.vue']" />
+<demo vue="../../../demos/chat/custom-components.vue" :vueFiles="['../../../demos/chat/custom-components.vue',  '../../../demos/chat/components/user-profile.vue']" />

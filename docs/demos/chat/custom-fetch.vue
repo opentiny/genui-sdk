@@ -1,16 +1,14 @@
 <template>
-  <GenuiChat
-    :url="url"
-    :customFetch="advancedFetch"
-  />
+  <GenuiChat :url="url" :customFetch="customFetch" />
 </template>
 
 <script setup lang="ts">
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import type { CustomFetch } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 
-const advancedFetch = async (url: string, options: RequestInit) => {
+const customFetch: CustomFetch = async (url, options) => {
   // 1. 添加认证
   const token = localStorage.getItem('authToken');
   const headers = {
@@ -36,10 +34,11 @@ const advancedFetch = async (url: string, options: RequestInit) => {
         status: response.status,
         error: errorText,
       });
-      
+
       // 如果是认证错误，可以尝试刷新 token
       if (response.status === 401) {
         // 刷新 token 逻辑
+        alert('认证失败，请重新登录');
       }
     }
 

@@ -6,7 +6,7 @@
     </div>
     <div class="user-info">
       <div class="user-name">{{ name }}</div>
-      <div class="user-email">{{ email }}</div>
+      <div v-if="email" class="user-email">{{ email }}</div>
     </div>
   </div>
 </template>

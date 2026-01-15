@@ -3,7 +3,7 @@
 在 `GenuiChat` 组件中， 内置了一个继续对话的Action `continueChat`，你可以通过 `customActions` prop 传递自定义 Actions，让 AI 可以在生成的 UI 中调用这些动作。
 
 ## 基础用法
-```vue
+```vue {14-34}
 <template>
   <GenuiChat 
     :url="url" 

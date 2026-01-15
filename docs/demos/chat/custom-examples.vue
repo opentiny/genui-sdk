@@ -1,9 +1,5 @@
 <template>
-  <GenuiChat
-    :url="url"
-    :customExamples="customExamples"
-    :messages="messages"
-  />
+  <GenuiChat :url="url" :customExamples="customExamples" :messages="messages" />
 </template>
 
 <script setup lang="ts">
@@ -11,107 +7,183 @@ import { GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 
-// 自定义示例
-const customExamples = [
-  {
-    name: 'ProductCard 基础用法',
-    description: '展示 ProductCard 组件的基本使用方法',
-    schema: {
-      componentName: 'ProductCard',
-      props: {
-        name: 'iPhone 15',
-        price: 5999,
-        image: 'https://example.com/iphone15.jpg'
-      }
-    }
+const userInfoCard = {
+  componentName: 'TinyCard',
+  props: {
+    style:
+      'background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%); padding: 24px; border-radius: 16px;',
   },
-  {
-    name: 'ProductCard 带点击事件',
-    description: '展示如何为 ProductCard 添加点击事件处理',
-    schema: {
-      componentName: 'ProductCard',
+  children: [
+    {
+      componentName: 'div',
       props: {
-        name: 'iPhone 15',
-        price: 5999,
-        image: 'https://example.com/iphone15.jpg',
-        onClick: {
-          type: 'JSFunction',
-          value: "function() { this.callAction('openPage', { url: '/product/iphone15' }); }"
-        }
-      }
-    }
-  },
-  {
-    name: '商品列表组合',
-    description: '展示如何使用 ProductCard 创建商品列表',
-    schema: {
-      componentName: 'Page',
+        style: 'display: flex; align-items: center; margin-bottom: 20px;',
+      },
       children: [
         {
-          componentName: 'Text',
+          componentName: 'div',
           props: {
-            text: '热门商品',
-            style: 'font-size: 24px; font-weight: bold; margin: 16px 0;'
-          }
+            style:
+              'width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #fff; margin-right: 16px; border: 3px solid rgba(255,255,255,0.5);',
+          },
+          children: '张',
         },
         {
-          componentName: 'GridStack',
+          componentName: 'div',
           props: {
-            columns: 3,
-            gap: 16
+            style: 'flex: 1;',
           },
           children: [
             {
-              componentName: 'GridStackItem',
-              children: [
-                {
-                  componentName: 'ProductCard',
-                  props: {
-                    name: '商品1',
-                    price: 99,
-                    image: 'https://example.com/product1.jpg'
-                  }
-                }
-              ]
+              componentName: 'div',
+              props: {
+                style:
+                  'font-size: 24px; font-weight: bold; color: #fff; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);',
+              },
+              children: '张三',
             },
             {
-              componentName: 'GridStackItem',
-              children: [
-                {
-                  componentName: 'ProductCard',
-                  props: {
-                    name: '商品2',
-                    price: 199,
-                    image: 'https://example.com/product2.jpg'
-                  }
-                }
-              ]
+              componentName: 'div',
+              props: {
+                style: 'font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 12px;',
+              },
+              children: 'zhangsan@example.com',
             },
             {
-              componentName: 'GridStackItem',
+              componentName: 'div',
+              props: {
+                style: 'display: flex; gap: 8px; flex-wrap: wrap;',
+              },
               children: [
                 {
-                  componentName: 'ProductCard',
+                  componentName: 'div',
                   props: {
-                    name: '商品3',
-                    price: 299,
-                    image: 'https://example.com/product3.jpg'
-                  }
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  }
+                    style:
+                      'background: rgba(255,255,255,0.25); color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);',
+                  },
+                  children: '前端开发',
+                },
+                {
+                  componentName: 'div',
+                  props: {
+                    style:
+                      'background: rgba(255,255,255,0.25); color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);',
+                  },
+                  children: 'Vue.js',
+                },
+                {
+                  componentName: 'div',
+                  props: {
+                    style:
+                      'background: rgba(255,255,255,0.25); color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.3);',
+                  },
+                  children: '5年经验',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      componentName: 'div',
+      props: {
+        style: 'border-top: 1px solid rgba(255,255,255,0.2); padding-top: 16px; margin-top: 16px;',
+      },
+      children: [
+        {
+          componentName: 'div',
+          props: {
+            style: 'display: flex; justify-content: space-around;',
+          },
+          children: [
+            {
+              componentName: 'div',
+              props: {
+                style: 'text-align: center;',
+              },
+              children: [
+                {
+                  componentName: 'div',
+                  props: {
+                    style: 'font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 4px;',
+                  },
+                  children: '128',
+                },
+                {
+                  componentName: 'div',
+                  props: {
+                    style: 'font-size: 12px; color: rgba(255,255,255,0.8);',
+                  },
+                  children: '项目数',
+                },
+              ],
+            },
+            {
+              componentName: 'div',
+              props: {
+                style: 'text-align: center;',
+              },
+              children: [
+                {
+                  componentName: 'div',
+                  props: {
+                    style: 'font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 4px;',
+                  },
+                  children: '1.2K',
+                },
+                {
+                  componentName: 'div',
+                  props: {
+                    style: 'font-size: 12px; color: rgba(255,255,255,0.8);',
+                  },
+                  children: '关注者',
+                },
+              ],
+            },
+            {
+              componentName: 'div',
+              props: {
+                style: 'text-align: center;',
+              },
+              children: [
+                {
+                  componentName: 'div',
+                  props: {
+                    style: 'font-size: 20px; font-weight: bold; color: #fff; margin-bottom: 4px;',
+                  },
+                  children: '856',
+                },
+                {
+                  componentName: 'div',
+                  props: {
+                    style: 'font-size: 12px; color: rgba(255,255,255,0.8);',
+                  },
+                  children: '获赞数',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+};
+
+// 自定义示例
+const customExamples = [
+  {
+    name: '开发者信息展示卡片',
+    description: '展示如何使用 TinyCard 组件创建绚丽的用户信息展示卡片，包含头像、姓名、邮箱、标签等信息',
+    schema: userInfoCard,
+  },
 ];
 
 // 默认消息，用于展示自定义 Examples
 const messages = [
   {
     role: 'user',
-    content: '展示商品卡片示例'
+    content: '查询张三信息',
   },
   {
     role: 'assistant',
@@ -121,26 +193,10 @@ const messages = [
         type: 'schema-card',
         content: JSON.stringify({
           componentName: 'Page',
-          children: [
-            {
-              componentName: 'Text',
-              props: {
-                text: '自定义 Examples 示例',
-                style: 'font-size: 20px; font-weight: bold; margin-bottom: 16px;'
-              }
-            },
-            {
-              componentName: 'Text',
-              props: {
-                text: '这些示例会帮助 LLM 学习如何正确使用组件',
-                style: 'color: #666; margin-bottom: 24px;'
-              }
-            }
-          ]
+          children: [userInfoCard],
         }),
-      }
-    ]
-  }
+      },
+    ],
+  },
 ];
 </script>
-

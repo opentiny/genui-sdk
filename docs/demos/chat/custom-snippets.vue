@@ -1,9 +1,5 @@
 <template>
-  <GenuiChat
-    :url="url"
-    :customSnippets="customSnippets"
-    :messages="messages"
-  />
+  <GenuiChat :url="url" :customSnippets="customSnippets" :messages="messages" />
 </template>
 
 <script setup lang="ts">
@@ -11,53 +7,56 @@ import { GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 
-// 自定义片段
+// 自定义片段 - 标签页组合
 const customSnippets = [
   {
-    componentName: 'TinyForm',
+    componentName: 'TinyTabs',
     props: {
-      labelPosition: 'top',
-      labelWidth: '120px'
+      modelValue: 'tab1',
     },
     children: [
       {
-        componentName: 'TinyFormItem',
+        componentName: 'TinyTabItem',
         props: {
-          label: '姓名',
-          prop: 'name',
-          required: true
+          title: '标签页1',
+          name: 'tab1',
         },
         children: [
           {
-            componentName: 'TinyInput',
+            componentName: 'div',
             props: {
-              placeholder: '请输入姓名'
-            }
-          }
-        ]
+              style: 'padding: 16px;',
+            },
+            children: '标签页1的内容',
+          },
+        ],
       },
       {
-        componentName: 'TinyFormItem',
+        componentName: 'TinyTabItem',
         props: {
-          label: '',
-          prop: 'submit'
+          title: '标签页2',
+          name: 'tab2',
         },
         children: [
           {
-            componentName: 'TinyButton',
+            componentName: 'div',
             props: {
-              type: 'primary',
-              children: '提交'
-            }
-          }
-        ]
-      }
-    ]
-  }
+              style: 'padding: 16px;',
+            },
+            children: '标签页2的内容',
+          },
+        ],
+      },
+    ],
+  },
 ];
 
 // 默认消息，用于展示自定义片段
 const messages = [
+  {
+    role: 'user',
+    content: '创建一个包含三个标签页的界面，分别显示个人信息、工作经历和项目经验',
+  },
   {
     role: 'assistant',
     content: '',
@@ -68,75 +67,160 @@ const messages = [
           componentName: 'Page',
           children: [
             {
-              componentName: 'Text',
-              props: {
-                text: '自定义片段示例 - 表单组合',
-                style: 'font-size: 20px; font-weight: bold; margin-bottom: 16px;'
-              }
-            },
-            {
-              componentName: 'TinyForm',
-              props: {
-                labelPosition: 'top',
-                labelWidth: '120px'
-              },
+              componentName: 'TinyCard',
               children: [
                 {
-                  componentName: 'TinyFormItem',
+                  componentName: 'TinyTabs',
                   props: {
-                    label: '姓名',
-                    prop: 'name',
-                    required: true
+                    modelValue: 'personal',
                   },
                   children: [
                     {
-                      componentName: 'TinyInput',
+                      componentName: 'TinyTabItem',
                       props: {
-                        placeholder: '请输入姓名'
-                      }
-                    }
-                  ]
+                        title: '个人信息',
+                        name: 'personal',
+                      },
+                      children: [
+                        {
+                          componentName: 'div',
+                          props: {
+                            style: 'padding: 20px;',
+                          },
+                          children: [
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'font-size: 18px; font-weight: bold; margin-bottom: 16px;',
+                              },
+                              children: '个人信息',
+                            },
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'margin-bottom: 8px;',
+                              },
+                              children: '姓名：张三',
+                            },
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'margin-bottom: 8px;',
+                              },
+                              children: '邮箱：zhangsan@example.com',
+                            },
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'margin-bottom: 8px;',
+                              },
+                              children: '电话：13800138000',
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      componentName: 'TinyTabItem',
+                      props: {
+                        title: '工作经历',
+                        name: 'work',
+                      },
+                      children: [
+                        {
+                          componentName: 'div',
+                          props: {
+                            style: 'padding: 20px;',
+                          },
+                          children: [
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'font-size: 18px; font-weight: bold; margin-bottom: 16px;',
+                              },
+                              children: '工作经历',
+                            },
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'margin-bottom: 12px; padding: 12px; background: #f5f5f5; border-radius: 4px;',
+                              },
+                              children: [
+                                {
+                                  componentName: 'div',
+                                  props: {
+                                    style: 'font-weight: bold; margin-bottom: 4px;',
+                                  },
+                                  children: '前端开发工程师 - ABC公司',
+                                },
+                                {
+                                  componentName: 'div',
+                                  props: {
+                                    style: 'font-size: 14px; color: #666;',
+                                  },
+                                  children: '2020.01 - 至今',
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                    {
+                      componentName: 'TinyTabItem',
+                      props: {
+                        title: '项目经验',
+                        name: 'project',
+                      },
+                      children: [
+                        {
+                          componentName: 'div',
+                          props: {
+                            style: 'padding: 20px;',
+                          },
+                          children: [
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'font-size: 18px; font-weight: bold; margin-bottom: 16px;',
+                              },
+                              children: '项目经验',
+                            },
+                            {
+                              componentName: 'div',
+                              props: {
+                                style: 'margin-bottom: 12px; padding: 12px; background: #f5f5f5; border-radius: 4px;',
+                              },
+                              children: [
+                                {
+                                  componentName: 'div',
+                                  props: {
+                                    style: 'font-weight: bold; margin-bottom: 4px;',
+                                  },
+                                  children: '企业管理系统',
+                                },
+                                {
+                                  componentName: 'div',
+                                  props: {
+                                    style: 'font-size: 14px; color: #666;',
+                                  },
+                                  children: '负责前端架构设计和核心功能开发',
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
                 },
-                {
-                  componentName: 'TinyFormItem',
-                  props: {
-                    label: '邮箱',
-                    prop: 'email',
-                    required: true
-                  },
-                  children: [
-                    {
-                      componentName: 'TinyInput',
-                      props: {
-                        placeholder: '请输入邮箱',
-                        type: 'email'
-                      }
-                    }
-                  ]
-                },
-                {
-                  componentName: 'TinyFormItem',
-                  props: {
-                    label: '',
-                    prop: 'submit'
-                  },
-                  children: [
-                    {
-                      componentName: 'TinyButton',
-                      props: {
-                        type: 'primary',
-                        children: '提交'
-                      }
-                    }
-                  ]
-                }
-              ]
+              ],
             }
-          ]
+          ],
         }),
-      }
-    ]
-  }
+      },
+    ],
+  },
 ];
 </script>
 

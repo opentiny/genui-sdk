@@ -5,7 +5,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
-import UserProfile from './components/UserProfile.vue';
+import UserProfile from './components/user-profile.vue';
 
 const generating = ref(false);
 const content = ref({

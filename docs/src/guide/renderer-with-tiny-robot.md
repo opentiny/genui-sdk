@@ -1,6 +1,6 @@
-# 使用 Renderer 组件
+# Renderer 组件搭配 TinyRobot 使用
 
-如果你需要更精细的控制，可以使用 `SchemaRenderer` 组件自行搭配对话组件如 `TinyRobot`。这种方式允许你完全控制消息流、UI 渲染和交互逻辑。
+本文介绍如何使用 `SchemaRenderer` 组件自行搭配对话组件如 `TinyRobot`。简单演示了如何搭配具体对话组件来控制消息流、UI 渲染和交互逻辑。
 
 ## 安装依赖
 
@@ -323,7 +323,7 @@ const handleSend = ({ llmFriendlyMessage }: any) => {
 </template>
 ```
 
-## 下一步
+## 其他相关文档
 
 - 查看 [Renderer 组件文档](/components/renderer) 了解详细的 API
 - 查看 [自定义组件示例](/examples/renderer/custom-components) 学习如何创建自定义组件

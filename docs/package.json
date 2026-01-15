@@ -11,7 +11,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@opentiny/genui-sdk-vue": "workspace:*"
+    "@opentiny/genui-sdk-vue": "workspace:*",
+    "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3"
   },
   "devDependencies": {
     "vitepress": "^1.6.3",

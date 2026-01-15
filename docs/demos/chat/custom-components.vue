@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
-import UserProfile from './components/UserProfile.vue';
+import UserProfile from './components/user-profile.vue';
 
 const url = 'https://your-chat-backend/api';
 

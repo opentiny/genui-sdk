@@ -1,99 +1,169 @@
 <template>
-  <div class="chat-with-history">
-    <div class="toolbar">
-      <button @click="saveCurrentSession">保存会话</button>
-      <button @click="loadSession">加载会话</button>
-      <button @click="clearSession">清空会话</button>
-      <button @click="exportSession">导出会话</button>
+  <div class="chat-with-sidebar">
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <button class="new-chat-btn" @click="handleNewConversation">+ 新建会话</button>
+      </div>
+      <div class="conversations-list" v-if="conversations.length > 0">
+        <div
+          v-for="conv in conversations"
+          :key="conv.id"
+          :class="['conversation-item', { active: conv.id === currentId }]"
+          @click="handleSwitchConversation(conv.id)"
+        >
+          <div class="conversation-title">{{ conv.title || '新会话' }}</div>
+          <button class="delete-btn" @click.stop="handleDeleteConversation(conv.id)">×</button>
+        </div>
+      </div>
+      <div class="empty-conversations" v-else>
+        <p>暂无会话记录</p>
+        <p class="hint">点击上方按钮创建新会话</p>
+      </div>
     </div>
-    <GenuiChat
-      ref="chatRef"
-      :url="url"
-      :messages="messages"
-    />
+
+    <!-- 聊天区域 -->
+    <div class="chat-container">
+      <GenuiChat ref="chatRef" :url="url" />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
-const messages = ref<any[]>([]);
 
-const STORAGE_KEY = 'genui-chat-session';
+// 获取会话对象和状态
+const conversation = computed(() => chatRef.value?.getConversation());
+const conversations = computed(() => conversation.value?.state.conversations || []);
+const currentId = computed(() => conversation.value?.state.currentId);
 
-onMounted(() => {
-  loadSession();
-});
+// 创建新会话
+const handleNewConversation = () => {
+  conversation.value?.createConversation();
+};
 
-function saveCurrentSession() {
-  // 注意：需要根据实际 API 获取当前消息
-  // 这里假设可以通过某种方式获取
-  const sessionData = {
-    messages: messages.value,
-    savedAt: Date.now()
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
-  alert('会话已保存');
-}
+// 切换会话
+const handleSwitchConversation = (id: string) => {
+  conversation.value?.switchConversation(id);
+};
 
-function loadSession() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    const sessionData = JSON.parse(saved);
-    messages.value = sessionData.messages || [];
-  }
-}
-
-function clearSession() {
-  chatRef.value?.clearConversation();
-  messages.value = [];
-  localStorage.removeItem(STORAGE_KEY);
-}
-
-function exportSession() {
-  const sessionData = {
-    messages: messages.value,
-    exportedAt: Date.now()
-  };
-  const blob = new Blob([JSON.stringify(sessionData, null, 2)], {
-    type: 'application/json'
-  });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `chat-session-${Date.now()}.json`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
+// 删除会话
+const handleDeleteConversation = (id: string) => {
+  conversation.value?.deleteConversation(id);
+};
 </script>
 
 <style scoped>
-.chat-with-history {
+.chat-with-sidebar {
+  display: flex;
+  height: 100vh;
+  background: #fff;
+}
+
+.sidebar {
+  width: 200px;
+  border-right: 1px solid #e5e5e5;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  background: #f9f9f9;
 }
 
-.toolbar {
+.sidebar-header {
   padding: 12px;
-  border-bottom: 1px solid #eee;
-  display: flex;
-  gap: 8px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
-.toolbar button {
-  padding: 6px 12px;
-  border: 1px solid #ddd;
+.new-chat-btn {
+  width: 100%;
+  padding: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
   border-radius: 4px;
-  background: white;
   cursor: pointer;
+  font-size: 13px;
 }
 
-.toolbar button:hover {
-  background: #f5f5f5;
+.new-chat-btn:hover {
+  background: #0056b3;
+}
+
+.conversations-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.conversation-item {
+  padding: 10px;
+  margin-bottom: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.conversation-item:hover {
+  background: #f0f0f0;
+}
+
+.conversation-item.active {
+  background: #e3f2fd;
+}
+
+.conversation-title {
+  font-size: 13px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.delete-btn {
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0;
+  padding: 0;
+}
+
+.conversation-item:hover .delete-btn {
+  opacity: 1;
+}
+
+.delete-btn:hover {
+  color: #f44336;
+}
+
+.empty-conversations {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #999;
+  text-align: center;
+  font-size: 13px;
+}
+
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 </style>
-

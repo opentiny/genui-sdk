@@ -1,6 +1,6 @@
 # Renderer 组件 - 自定义 Components
 
-自定义 Components 允许你注册自己的组件，配合相关提示词， LLM 可以在 schemaJson 输出对应组件后交由Renderer渲染。
+自定义 Components 允许你注册自己的组件，配合相关提示词， LLM 可以在 schemaJson 输出对应组件后交由 Renderer 渲染。
 
 ## 给组件传递自定义 Components
 
@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
-import UserProfile from './components/UserProfile.vue';
+import UserProfile from './components/user-profile.vue';
 
 const generating = ref(false);
 const content = ref({});
@@ -32,7 +32,7 @@ const customComponents = {
 自定义组件需要是一个标准的 Vue 组件：
 
 ```vue
-<!-- UserProfile.vue -->
+<!-- user-profile.vue -->
 <template>
   <div class="user-profile">
     <div class="avatar">
@@ -126,4 +126,4 @@ AI 生成的 Schema 可以直接使用你注册的自定义组件：
 
 #### 完整示例：
 
-<demo vue="../../../demos/renderer/custom-components.vue" :vueFiles="['../../../demos/renderer/custom-components.vue', '../../../demos/renderer/components/UserProfile.vue']"" />
+<demo vue="../../../demos/renderer/custom-components.vue" :vueFiles="['../../../demos/renderer/custom-components.vue', '../../../demos/renderer/components/user-profile.vue']"" />

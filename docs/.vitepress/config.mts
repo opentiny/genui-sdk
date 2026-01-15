@@ -37,6 +37,7 @@ export default defineConfig({
           text: '指引',
           items: [
             { text: '快速开始', link: '/guide/quick-start' },
+            { text: '使用 Renderer 组件', link: '/guide/start-with-renderer' },
             { text: '搭配 Tiny Robot 使用', link: '/guide/renderer-with-tiny-robot' },
           ],
         },
@@ -61,7 +62,7 @@ export default defineConfig({
                 { text: '自定义 Actions', link: '/examples/renderer/custom-actions' },
                 { text: '自定义 Components', link: '/examples/renderer/custom-components' },
                 {
-                  text: '缓冲字段',
+                  text: '配置缓冲字段',
                   link: '/examples/renderer/required-complete-field-selectors',
                 },
                 { text: '传递合并 State', link: '/examples/renderer/state' },
@@ -99,7 +100,7 @@ export default defineConfig({
             { text: '支持自定义渲染器', link: '/advanced/custom-renderer' },
           ],
         },
-      ]
+      ],
     },
     socialLinks: [{ icon: 'github', link: 'https://github.com/opentiny/genui-sdk' }],
     search: {

@@ -8,20 +8,90 @@
         </button>
       </div>
     </header>
-    
+
     <ConfigProvider :theme="currentTheme" id="main-chat">
-      <GenuiChat :url="url" />
+      <GenuiChat :url="url" model="deepseek-v3.2" :messages="messages" />
     </ConfigProvider>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { ConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
-const STORAGE_KEY = 'genui-theme';
 
+const messages = [
+  {
+    role: 'user',
+    content: '查询火车票',
+  },
+  {
+    role: 'assistant',
+    content: '',
+    messages: [
+      {
+        type: 'schema-card',
+        content: JSON.stringify({
+          componentName: 'Page',
+          children: [
+            {
+              componentName: 'TinyCard',
+              children: [
+                {
+                  componentName: 'TinyForm',
+                  props: {
+                    labelPosition: 'top',
+                    labelWidth: '120px',
+                  },
+                  children: [
+                    {
+                      componentName: 'TinyFormItem',
+                      props: { label: '出发地', prop: 'departure' },
+                      children: [
+                        {
+                          componentName: 'TinyInput',
+                          props: { placeholder: '请输入出发地' },
+                        },
+                      ],
+                    },
+                    {
+                      componentName: 'TinyFormItem',
+                      props: { label: '目的地', prop: 'destination' },
+                      children: [
+                        {
+                          componentName: 'TinyInput',
+                          props: { placeholder: '请输入目的地' },
+                        },
+                      ],
+                    },
+                    {
+                      componentName: 'TinyFormItem',
+                      props: {},
+                      children: [
+                        {
+                          componentName: 'TinyButton',
+                          props: {
+                            type: 'primary',
+                            text: '提交',
+                            onClick: {
+                              type: 'JSFunction',
+                              value: "function() { this.callAction('continueChat', { message: '提交' }); }",
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        }),
+      },
+    ],
+  },
+];
 
 const currentTheme = ref<'dark' | 'lite' | 'default'>('default');
 
@@ -36,7 +106,6 @@ const themeIcon = computed(() => {
 function toggleTheme() {
   currentTheme.value = currentTheme.value === 'dark' ? 'default' : 'dark';
 }
-
 </script>
 
 <style scoped>
@@ -72,4 +141,3 @@ function toggleTheme() {
   background: #f5f5f5;
 }
 </style>
-
