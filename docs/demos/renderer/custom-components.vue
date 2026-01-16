@@ -6,6 +6,7 @@
 import { ref } from 'vue';
 import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import UserProfile from './components/user-profile.vue';
+import logo from '../../src/public/logo.svg?url';
 
 const generating = ref(false);
 const content = ref({
@@ -16,7 +17,7 @@ const content = ref({
       props: {
         name: 'John Doe',
         email: 'john@example.com',
-        avatar: '/genui-sdk-docs/logo.svg',
+        avatar: logo,
       },
     },
   ],
