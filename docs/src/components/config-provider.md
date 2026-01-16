@@ -19,6 +19,8 @@
 </template>
 ```
 
+查看 [ConfigProvider 组件 - 切换主题](../examples/config-provider/theme) 了解详细用法
+
 ### id
 
 - **类型**: `string`
@@ -33,6 +35,8 @@
   </ConfigProvider>
 </template>
 ```
+
+查看 [ConfigProvider 组件 - 自定义主题](../examples/config-provider/custom-theme) 了解详细用法
 
 ## Slots
 

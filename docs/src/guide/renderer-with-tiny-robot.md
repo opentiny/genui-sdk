@@ -325,6 +325,6 @@ const handleSend = ({ llmFriendlyMessage }: any) => {
 
 ## 其他相关文档
 
-- 查看 [Renderer 组件文档](/components/renderer) 了解详细的 API
-- 查看 [自定义组件示例](/examples/renderer/custom-components) 学习如何创建自定义组件
-- 查看 [自定义操作示例](/examples/renderer/custom-actions) 学习如何创建自定义操作
+- 查看 [Renderer 组件文档](../components/renderer) 了解详细的 API
+- 查看 [自定义组件示例](../examples/renderer/custom-components) 学习如何创建自定义组件
+- 查看 [自定义操作示例](../examples/renderer/custom-actions) 学习如何创建自定义操作

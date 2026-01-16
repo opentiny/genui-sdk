@@ -168,8 +168,11 @@ html {
 </style>
 ```
 
-## 下一步
+完成以上步骤后，既可开始体验生成式 UI 了
+![使用 Renderer 组件示例](../public/quick-start.png)
 
-- 查看 [组件文档](/components/chat) 了解 `GenuiChat` 的详细 API
-- 查看 [Renderer 使用指南](/guide/start-with-renderer) 了解如何使用 `SchemaRenderer` 进行更精细的控制
-- 查看 [特性示例](/examples/chat) 学习高级用法
+## 其他相关文档
+
+- 查看 [组件文档](../components/chat) 了解 `GenuiChat` 的详细 API
+- 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `SchemaRenderer` 进行更精细的控制
+- 查看 [特性示例](../examples/chat) 学习高级用法

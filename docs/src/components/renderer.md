@@ -67,7 +67,7 @@ const customComponents = {
 </script>
 ```
 
-查看 [Renderer 自定义 Components](/examples/renderer/custom-components) 了解详细用法
+查看 [Renderer 自定义 Components](../examples/renderer/custom-components) 了解详细用法
 
 ### customActions
 
@@ -97,7 +97,7 @@ const customActions = {
 </script>
 ```
 
-查看 [Renderer 自定义 Actions](/examples/renderer/custom-actions) 了解详细用法
+查看 [Renderer 自定义 Actions](../examples/renderer/custom-actions) 了解详细用法
 
 ### requiredCompleteFieldSelectors
 
@@ -111,7 +111,7 @@ const customActions = {
 </template>
 ```
 
-查看 [Renderer 配置缓冲字段](/examples/renderer/required-complete-field-selectors) 了解详细用法
+查看 [Renderer 配置缓冲字段](../examples/renderer/required-complete-field-selectors) 了解详细用法
 
 ### state
 
@@ -125,7 +125,7 @@ const customActions = {
 </template>
 ```
 
-查看 [Renderer 传递合并 State](/examples/renderer/state) 了解详细用法
+查看 [Renderer 传递合并 State](../examples/renderer/state) 了解详细用法
 
 ## Slots
 

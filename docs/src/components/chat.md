@@ -128,6 +128,8 @@ const customComponents = [
 </script>
 ```
 
+查看 [Chat 组件 - 自定义 Components](../examples/chat/custom-components) 了解详细用法
+
 ### customSnippets
 
 - **类型**: `IGenPromptSnippet[]`
@@ -165,6 +167,8 @@ const customSnippets = [
 </script>
 ```
 
+查看 [Chat 组件 - 自定义 Snippets](../examples/chat/custom-snippets) 了解详细用法
+
 ### customExamples
 
 - **类型**: `IGenPromptExample[]`
@@ -194,6 +198,8 @@ const customExamples = [
 ];
 </script>
 ```
+
+查看 [Chat 组件 - 自定义 Examples](../examples/chat/custom-examples) 了解详细用法
 
 ### customActions
 
@@ -228,6 +234,8 @@ const customActions = [
 </script>
 ```
 
+查看 [Chat 组件 - 自定义 Actions](../examples/chat/custom-actions) 了解详细用法
+
 ### rendererSlots
 
 - **类型**: `IRendererSlots`
@@ -249,7 +257,7 @@ const rendererSlots = {
 
 ### thinkComponent
 
-- **类型**: `Component<BubbleProps>`
+- **类型**: `Component<IThinkComponentProps>`
 - **必填**: 否
 - **说明**: 自定义思考过程组件。
 
@@ -262,6 +270,8 @@ const rendererSlots = {
 import CustomThinkComponent from './custom-think-component.vue';
 </script>
 ```
+
+查看 [Chat 组件 - 自定义思考过程](../examples/chat/thinking-process) 了解详细用法和组件入参的详细类型
 
 ### roles
 
@@ -288,6 +298,8 @@ const rolesConfig = {
 </script>
 ```
 
+查看 [Chat 组件 - 自定义底部工具栏](../examples/chat/footer-toolbar) 了解详细用法
+
 ### features
 
 - **类型**: `ModelCapability`
@@ -311,6 +323,8 @@ const modelFeatures = {
 };
 </script>
 ```
+
+查看 [Chat 组件 - 上传图片](../examples/chat/image-upload) 了解详细用法
 
 ## Types
 
