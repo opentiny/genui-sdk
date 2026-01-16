@@ -11,8 +11,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@opentiny/genui-sdk-vue": "workspace:*",
-    "tiny-schema-renderer-ng": "workspace:*"
+    "@opentiny/genui-sdk-vue": "workspace:*"
   },
   "devDependencies": {
     "vitepress": "^1.6.3",
