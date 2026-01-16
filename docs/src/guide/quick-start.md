@@ -168,7 +168,7 @@ html {
 </style>
 ```
 
-完成以上步骤后，既可开始体验生成式 UI 了
+完成以上步骤后，即可开始体验生成式 UI 了
 ![使用 Renderer 组件示例](../public/quick-start.png)
 
 ## 其他相关文档

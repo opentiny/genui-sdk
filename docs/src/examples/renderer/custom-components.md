@@ -1,10 +1,10 @@
 # Renderer 组件 - 自定义 Components
 
-自定义 Components 允许你注册自己的组件，配合相关提示词， LLM 可以在 schemaJson 输出对应组件后交由 Renderer 渲染。
+自定义 Components 允许您注册自己的组件，配合相关提示词，LLM 可以在 schemaJson 输出对应组件后交由 Renderer 渲染。
 
 ## 给组件传递自定义 Components
 
-通过 `customComponents` 向 `SchemaRenderer` 组件传递自定义组件映射表。。
+通过 `customComponents` 向 `SchemaRenderer` 组件传递自定义组件映射表。
 
 ### 示例：注册自定义组件
 

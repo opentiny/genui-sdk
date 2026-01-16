@@ -326,6 +326,74 @@ const modelFeatures = {
 
 查看 [Chat 组件 - 上传图片](../examples/chat/image-upload) 了解详细用法
 
+### customFetch
+
+- **类型**: `CustomFetch`
+- **必填**: 否
+- **说明**: 自定义 fetch 函数，用于完全自定义 HTTP 请求的实现方式。适用于需要集成第三方 SDK、添加认证、处理工具调用、实现自定义流式响应等场景。
+
+```vue
+<template>
+  <GenuiChat :url="url" :customFetch="customFetch" />
+</template>
+
+<script setup lang="ts">
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import type { CustomFetch } from '@opentiny/genui-sdk-vue';
+
+const url = 'https://your-chat-backend/api';
+
+const customFetch: CustomFetch = async (url, options) => {
+  // 添加认证头
+  const headers = {
+    ...options.headers,
+    'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+  };
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  return response;
+};
+</script>
+```
+
+查看 [Chat 组件 - 自定义 Fetch](../examples/chat/custom-fetch) 了解详细用法
+
+## Methods
+
+### getConversation
+
+- **返回类型**: `UseConversationReturn`
+- **说明**: 获取会话管理对象，用于访问会话管理相关的 API，包括会话列表、当前会话、保存/加载会话等功能。
+
+```vue
+<template>
+  <GenuiChat ref="chatRef" :url="url" />
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const url = 'https://your-chat-backend/api';
+const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
+
+// 获取会话对象
+const conversation = computed(() => chatRef.value?.getConversation());
+
+// 获取所有会话列表
+const conversations = computed(() => conversation.value?.state.conversations || []);
+
+// 获取当前会话ID
+const currentId = computed(() => conversation.value?.state.currentId);
+</script>
+```
+
+查看 [Chat 组件 - 历史会话管理](../examples/chat/history) 了解详细用法
+
 ## Types
 
 ### IMessage
@@ -471,6 +539,20 @@ interface IBubbleSlotsProps {
   isFinished: boolean;
   messageManager: UseMessageReturn;
 }
+```
+
+### CustomFetch
+
+```typescript
+type CustomFetch = (
+  url: string,
+  options: {
+    method: string;
+    headers: Record<string, string>;
+    body: string;
+    signal?: AbortSignal;
+  },
+) => Promise<Response> | Response;
 ```
 
 `BubbleProps` 和 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
