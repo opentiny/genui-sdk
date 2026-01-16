@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import minimist from 'minimist';
 import { useProviderModelMapper, useProviderModelMapperSync } from './src/use-provider-mapper.js';
 import { createChatGenui, checkMcpHandler } from './src/chat-genui.js';
+import { createChatTemplate } from './src/chat-template.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -17,6 +18,7 @@ const envPath = path.resolve(__dirname, envFileName);
 dotenv.config({ path: envPath });
 dotenv.config();
 const { chatGenuiHandler } = createChatGenui();
+const { chatTemplateHandler } = createChatTemplate();
 
 useProviderModelMapper(path.resolve(__dirname, process.env.providerModelsPath || ''));
 const getModelsHandler = async (req: Request, res: Response) => {
@@ -32,6 +34,7 @@ app.use(cors());
 app.get('/get-models', getModelsHandler);
 app.post('/chat-genui', chatGenuiHandler);
 app.post('/check-mcp', checkMcpHandler);
+app.post('/chat-template', chatTemplateHandler);
 
 const port = process.env.PORT || 3008;
 app.listen(port);
