@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { INotificationPayload } from '@opentiny/genui-sdk-core';
-import type { IGeneratingComponentProps } from './chat.types';
+import type { IThinkComponentProps } from './chat.types';
 import { useI18n } from './i18n'; //TODO: replace with package name
 
-const props = defineProps<IGeneratingComponentProps>();
+const props = defineProps<IThinkComponentProps>();
 
 const { t } = useI18n();
 

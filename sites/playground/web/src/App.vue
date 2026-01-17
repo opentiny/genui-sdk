@@ -3,8 +3,9 @@ import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { ConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
-import { customComponentsSchema, customComponents, customExamples } from './custom-components';
+import { customComponents, customExamples } from './custom-components';
 import { getModelFeatures, getModelOptions } from './api';
+import { createCustomFetch } from './api/custom-fetch';
 import NewSvg from './assets/images/new.svg?raw';
 import OpenSvg from './assets/images/open.svg?raw';
 import CloseSvg from './assets/images/close.svg?raw';
@@ -56,16 +57,11 @@ const chatConfig = reactive(
   },
 );
 
-const chatLlmConfig = computed(() => {
-  const config = { ...llmConfig };
-  config.prompt = config.promptList?.join('\n') || '';
-  config.framework = framework;
-  delete config.promptList;
-  return config;
-});
 const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'default');
+
+
 
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig],
@@ -134,14 +130,12 @@ const roles = {
     },
   },
 };
-const rendererSlots = {
-  footer: RenderFooter,
-};
-const customConfig = {
-  customComponentsSchema,
-  customComponents,
-  customExamples,
-};
+
+const customFetch = createCustomFetch(() => ({
+  mcpServers: llmConfig.mcpServers,
+  framework: framework,
+  prompt: llmConfig.promptList.filter(Boolean).join('\n'),
+}));
 </script>
 
 <template>
@@ -210,11 +204,13 @@ const customConfig = {
           :url="url"
           ref="chat"
           :messages="messages"
-          :llm-config="chatLlmConfig"
+          :model="llmConfig.model"
+          :temperature="llmConfig.temperature"
           :config="chatConfig"
           :think-component="ThinkComponent"
           :roles="roles"
           :features="modelFeatures"
+          :custom-fetch="customFetch"
         />
       </ConfigProvider>
     </div>

@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { INotificationPayload } from '@opentiny/genui-sdk-core';
-import type { IGeneratingComponentProps } from './common.types';
+import type { IThinkComponentProps } from './common.types';
 
-const props = defineProps<IGeneratingComponentProps>();
+const props = defineProps<IThinkComponentProps>();
 
 const loadingText = ref('响应中...');
 

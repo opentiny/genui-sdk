@@ -38,11 +38,14 @@ export interface IGenPromptExample {
 
 export type IGenPromptSnippet = NodeSchema;
 
-export interface IGenPromptConfig {
-  framework?: 'Vue' | 'Angular';
-  strategy?: 'append' | 'override' | 'prepend';
+export interface IGenPromptCustomConfig {
   customComponents?: IGenPromptComponent[];
   customSnippets?: IGenPromptSnippet[];
   customExamples?: IGenPromptExample[];
   customActions?: any[];
+}
+
+export interface IGenPromptConfig extends IGenPromptCustomConfig {
+  framework?: 'Vue' | 'Angular';
+  strategy?: 'append' | 'override' | 'prepend';
 }

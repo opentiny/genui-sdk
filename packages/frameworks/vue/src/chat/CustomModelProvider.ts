@@ -1,7 +1,8 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { LLMConfig, IGenuiConfig, ICustomConfig } from './chat.types';
+import type { IGenuiConfig, ICustomComponentItem, CustomFetch } from './chat.types';
+import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
 import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
@@ -10,30 +11,57 @@ import { useI18n } from './i18n';
 
 export interface ICustomModelProviderOptions {
   url: string;
-  llmConfig: LLMConfig;
+  model: string;
+  temperature: number;
   config: IGenuiConfig;
-  customConfig: ICustomConfig;
+  customComponents: ICustomComponentItem[];
+  customSnippets: IGenPromptSnippet[];
+  customExamples: IGenPromptExample[];
+  customActions: any[];
+  customFetch?: CustomFetch;
 }
 export class CustomModelProvider extends BaseModelProvider {
   private url: string;
-  private llmConfig: LLMConfig;
-  private customConfig: ICustomConfig;
+  private model: string;
+  private temperature: number;
+  private customComponents: ICustomComponentItem[];
+  private customSnippets: IGenPromptSnippet[];
+  private customExamples: IGenPromptExample[];
+  private customActions: any[];
   private newConfig: IGenuiConfig;
-  constructor({ url, llmConfig, config, customConfig }: ICustomModelProviderOptions) {
+  private customFetch?: CustomFetch;
+  constructor({ url, model, temperature, config, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
-    this.llmConfig = llmConfig;
-    this.customConfig = customConfig;
+    this.model = model;
+    this.temperature = temperature;
+    this.customComponents = customComponents;
+    this.customSnippets = customSnippets;
+    this.customExamples = customExamples;
+    this.customActions = customActions;
     this.newConfig = config;
+    this.customFetch = customFetch;
   }
   validateRequest(_: ChatCompletionRequest) {}
 
-  changeLlmConfig(llmConfig: LLMConfig) {
-    this.llmConfig = llmConfig;
+  changeLlmConfig(model: string, temperature: number) {
+    this.model = model;
+    this.temperature = temperature;
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await chat(this.url, request.messages, this.llmConfig, request.options?.signal, this.customConfig);
+    return await chat(
+      this.url,
+      request.messages,
+      this.model,
+      this.temperature,
+      request.options?.signal,
+      this.customComponents,
+      this.customSnippets,
+      this.customExamples,
+      this.customActions,
+      this.customFetch,
+    );
   }
 
   async chat(_: ChatCompletionRequest) {
@@ -80,7 +108,7 @@ export class CustomModelProvider extends BaseModelProvider {
      */
     const onSchemaCard = (content: string, delta: IStreamDelta) => {
       handleSchemaStream(content, chatMessage);
-      
+
       // 如果是新创建的 schema-card，需要生成 id
       const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
       if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {

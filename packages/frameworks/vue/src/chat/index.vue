@@ -6,9 +6,11 @@ import type { IChatProps, IProviderProps } from './chat.types';
 
 const props = withDefaults(defineProps<IChatProps>(), {
   messages: () => [],
-  llmConfig: () => ({ model: '', temperature: 0.3 }),
   config: () => ({ addToolCallContext: false, showThinkingResult: false }),
-  customConfig: () => ({}),
+  customComponents: () => [],
+  customSnippets: () => [],
+  customExamples: () => [],
+  customActions: () => [],
 });
 
 const TinyGenuiConfig: any = inject('TinyGenuiConfig');

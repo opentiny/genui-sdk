@@ -1,14 +1,14 @@
 import TinyUser from './TinyUser.vue';
+import type { Component } from 'vue';
 import type { IGenPromptComponent } from '@opentiny/genui-sdk-core';
 
-type IGenPromptComponent2 = IGenPromptComponent;
+interface IChatCustomComponents extends IGenPromptComponent {
+  ref: Component;
+}
 
-export const customComponents: Record<string, any> = {
-  TinyUser,
-};
-
-export const customComponentsSchema: IGenPromptComponent2[] = [
+export const customComponents: IChatCustomComponents[] = [
   {
+    ref: TinyUser,
     name: '选择用户组件',
     description: '选择用户组件，用于选择用户，支持模糊搜索',
     component: 'TinyUser',

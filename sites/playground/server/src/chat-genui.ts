@@ -6,9 +6,9 @@ import path from 'node:path';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config'; 
-import { genPrompt } from '@opentiny/genui-sdk-core';
-import { Client } from '@modelcontextprotocol/sdk/client/index.js'; 
+import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
+import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { useProviderModelMapperSync } from './use-provider-mapper.js';
@@ -201,10 +201,7 @@ export function createChatGenui() {
     const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
-      const text = await fs.readFile(
-        path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'),
-        'utf-8',
-      );
+      const text = await fs.readFile(path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'), 'utf-8');
       const data = text.split(/\r?\n\r?\n/);
 
       for await (const item of data) {
@@ -215,21 +212,55 @@ export function createChatGenui() {
       return;
     }
 
-    const { tinygenui: tgCustomConfig } = body.metadata || {};
+    const { tinygenui: tinygenuiStr, palygroud: palygroudStr } = body.metadata || {};
 
-    const llmConfig = await generateLlmConfig(body?.llmConfig);
-    const { model, temperature, prompt: customSystemPrompt, mcpServers = [], specificPrompt } = llmConfig;
+    let tgCustomConfig: IGenPromptCustomConfig = {};
+
+    if (tinygenuiStr) {
+      try {
+        tgCustomConfig = typeof tinygenuiStr === 'string' ? JSON.parse(tinygenuiStr) : {};
+      } catch (error) {
+        console.error('Failed to parse tinygenui from metadata:', error);
+      }
+    }
+
+    // 从 palygroud 中读取 mcpServers、framework 和 prompt
+    let mcpServers: McpServersConfig = [];
+    let framework: string = 'Vue'; // 默认值
+    let userAppendPrompt: string = '';
+
+    if (palygroudStr) {
+      try {
+        const palygroundConfig = typeof palygroudStr === 'string' ? JSON.parse(palygroudStr) : {};
+        mcpServers = palygroundConfig.mcpServers || [];
+        framework = palygroundConfig.framework || 'Vue';
+        userAppendPrompt = palygroundConfig.prompt;
+      } catch (error) {
+        console.error('Failed to parse palygroud from metadata:', error);
+      }
+    }
+
+    // 从 body 直接读取 model 和 temperature（不再从 llmConfig 中读取）
+    const llmConfigParams: LLMConfigParams = {
+      model: body.model,
+      temperature: body.temperature,
+      mcpServers,
+    };
+
+    const llmConfig = await generateLlmConfig(llmConfigParams);
+    const { model, temperature, specificPrompt } = llmConfig;
     const { tools, clientsMap } = await generateAiSdkTools(
       mcpServers.filter((s) => s.enabled),
       abort.signal,
     );
-    const renderConfigForFramework = body?.llmConfig?.framework === 'Angular' ?  ngRendererConfig : rendererConfig;
+
+    const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
     let hasError = false; // 标记是否已经处理了错误
     const options: StreamTextOptions = {
       model,
       temperature,
-      system: genPrompt(renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + customSystemPrompt,
+      system: genPrompt(renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt,
       messages: body.messages,
       abortSignal: abort.signal,
       tools,
@@ -237,30 +268,30 @@ export function createChatGenui() {
       stopWhen: stepCountIs(maxSteps),
       onError: (error: any) => {
         if (hasError) {
-          return
-        }; 
+          return;
+        }
         hasError = true;
-        
+
         console.error('Error in chat-genui onError:', error);
         const actualError = error?.error?.cause ?? error?.error ?? error;
         const statusCode = actualError?.statusCode ?? 500;
         const responseBody = actualError?.responseBody || null;
-        const message = actualError?.message + (responseBody ? `; error details: ${responseBody}` : '') || 'Unknown Error Type';
-        const type = actualError?.name ||actualError?.type || 'Unknown Error Type';
+        const message =
+          actualError?.message + (responseBody ? `; error details: ${responseBody}` : '') || 'Unknown Error Type';
+        const type = actualError?.name || actualError?.type || 'Unknown Error Type';
         const param = actualError?.param || null;
         const code = statusCode;
         const errorResponse = { message, type, param, code };
 
         // headersSent为true，表明已经流式返回了数据。
         if (res.headersSent) {
-            res.write(`data: { "error": ${JSON.stringify(errorResponse)} }\n\n`);
-            res.end();
+          res.write(`data: { "error": ${JSON.stringify(errorResponse)} }\n\n`);
+          res.end();
           return;
         }
 
         res.status(statusCode).json(errorResponse);
-        
-      }
+      },
     } as const;
 
     res.on('close', async () => {
@@ -291,7 +322,6 @@ export function createChatGenui() {
           res.write('data: ' + JSON.stringify(newChunk) + '\n\n');
         }
       }
-
     } catch (error: any) {
       const statusCode = error?.statusCode ?? 500;
       const message = error?.message || 'Internal Server Error';
