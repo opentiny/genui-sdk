@@ -217,8 +217,8 @@ const customConfig = {
           :roles="roles"
           :features="modelFeatures"
         >
-          <template #empty-messages>
-            <div class="empty-messages">
+          <template #empty>
+            <div class="empty">
               <IconAi />
               <span>GenUI Playground</span>
             </div>
@@ -345,7 +345,7 @@ const customConfig = {
   flex: 1;
   height: 100%;
 }
-.empty-messages {
+.empty {
   display: flex;
   align-items: center;
   justify-content: center;

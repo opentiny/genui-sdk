@@ -465,7 +465,7 @@ defineExpose({
       <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
-        <slot v-else name="empty-messages"></slot>
+        <slot v-else name="empty"></slot>
     </div>
     <div class="sender-container">
       <div
