@@ -3,7 +3,12 @@ import type { Component } from 'vue';
 import type { IRendererSlots } from '../renderer';
 import type { EventEmitter } from './event-emitter';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
-import type { INotificationPayload, IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
+import type {
+  INotificationPayload,
+  IGenPromptComponent,
+  IGenPromptSnippet,
+  IGenPromptExample,
+} from '@opentiny/genui-sdk-core';
 
 export interface IRolesConfig {
   user: Partial<BubbleRoleConfig>;
@@ -101,7 +106,7 @@ export interface INotificationEventEmitter {
   once(eventName: 'notification', callback: (payload: INotificationPayload) => void): void;
 }
 
-export interface IGeneratingComponentProps {
+export interface IThinkComponentProps {
   emitter: INotificationEventEmitter;
   message: IMessage;
   showThinkingResult: boolean;
