@@ -1,7 +1,7 @@
 <script setup>
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
-import { ConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
 import { customComponents, customExamples } from './custom-components';
 import { getModelFeatures, getModelOptions } from './api';
@@ -199,7 +199,7 @@ const customFetch = createCustomFetch(() => ({
       </tiny-tabs>
     </div>
     <div class="chat-container">
-      <ConfigProvider :theme="theme" style="height: 100%">
+      <GenuiConfigProvider :theme="theme" style="height: 100%">
         <GenuiChat
           :url="url"
           ref="chat"
@@ -212,7 +212,7 @@ const customFetch = createCustomFetch(() => ({
           :features="modelFeatures"
           :custom-fetch="customFetch"
         />
-      </ConfigProvider>
+      </GenuiConfigProvider>
     </div>
   </div>
 </template>
