@@ -1,5 +1,10 @@
 <script setup lang="ts">
+import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
+import type { Ref } from 'vue';
 import '@opentiny/tiny-robot/dist/style.css';
+import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
+import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
+import { DeltaPatcher } from '@opentiny/genui-sdk-core';
 import {
   TrBubbleList,
   TrSender,
@@ -11,8 +16,7 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
-import type { Ref } from 'vue';
+import { requiredCompleteFieldSelectors } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from './chat.types';
 import {
   scrollEnd,
@@ -27,14 +31,10 @@ import {
 } from './utils';
 import { jsonPatchDeduplicator } from './json-patch-deduplicator';
 import SchemaVersionCard from './SchemaVersionCard.vue';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
-import { requiredCompleteFieldSelectors } from '@opentiny/genui-sdk-vue';
-import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
-import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
 import { emitter } from './event-emitter';
-import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 import useTemplate from './useTemplate';
 import AssistantFooter from './TemplateAssistantFooter.vue';
+import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 
 const props = defineProps<{
   messages?: IMessage[];
@@ -206,7 +206,7 @@ const handleSchemaVersionCardClick = (cardId: string) => {
     // 因为新的 schema 版本可能需要重新执行操作
     jsonPatchDeduplicator.clearCardOperations(cardId);
     emit('schema-version-toggle', targetSchema);
-  } catch (error) {}
+  } catch (error) { }
 };
 
 const handleRefresh = ({ index }: { index: number }) => {
@@ -379,26 +379,14 @@ onUnmounted(() => {
       </tr-bubble-provider>
     </div>
     <div class="sender-container">
-      <div
-        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
-        v-show="!isLastMessageInBottom"
-        @click="scrollToBottom"
-      >
+      <div :class="['scroll-to-bottom-button', { 'is-generating': generating }]" v-show="!isLastMessageInBottom"
+        @click="scrollToBottom">
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <tr-sender
-        v-model="inputMessage"
-        :placeholder="
-          GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
-        "
-        :clearable="true"
-        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        :showWordLimit="true"
-        :maxLength="1000"
-        @clear="clearInputMessage"
-        @submit="handleSendMessage"
-        @cancel="messageManager.abortRequest"
-      >
+      <tr-sender v-model="inputMessage" :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
+        " :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)"
+        :showWordLimit="true" :maxLength="1000" @clear="clearInputMessage" @submit="handleSendMessage"
+        @cancel="messageManager.abortRequest">
       </tr-sender>
     </div>
   </div>
@@ -416,6 +404,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: auto;
+
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
   }
@@ -424,13 +413,16 @@ onUnmounted(() => {
 .is-loading-in-top {
   margin-top: -48px;
 }
+
 .messages-container {
   flex: 1;
   overflow: auto;
+
   &::-webkit-scrollbar {
     width: 10px;
   }
 }
+
 :deep(.tr-bubble__content.border-corner) {
   max-width: 80%;
 }
@@ -447,8 +439,9 @@ onUnmounted(() => {
     box-shadow: none;
   }
 }
+
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-  > div {
+  >div {
     display: var(--thinking-display, initial);
 
     &.schema-render-container[type='schema-card'],
@@ -467,26 +460,33 @@ onUnmounted(() => {
     }
   }
 }
+
 :deep(.tr-bubble__step-tool) {
-  & + .tr-bubble__step-tool {
+  &+.tr-bubble__step-tool {
     margin-top: 16px;
   }
+
   min-width: 500px;
 }
+
 :deep(.tr-bubble__content-wrapper) {
   width: 100%;
 }
+
 :deep(.tr-bubble.placement-end) {
   width: 100%;
 }
+
 .sender-container {
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
+
   .attachments-container {
     padding: 0 20px;
   }
 }
+
 .scroll-to-bottom-button {
   position: absolute;
   left: 50%;
@@ -502,7 +502,8 @@ onUnmounted(() => {
   cursor: pointer;
   border: 1px solid #e5e5e5;
   z-index: 1000;
-  & > svg {
+
+  &>svg {
     width: 20px;
     height: 20px;
   }
@@ -544,7 +545,7 @@ onUnmounted(() => {
       z-index: 1;
     }
 
-    & > svg {
+    &>svg {
       z-index: 2;
     }
   }
@@ -554,6 +555,7 @@ onUnmounted(() => {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -563,10 +565,12 @@ onUnmounted(() => {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
 }
+
 .tiny-sender {
   width: 80%;
   margin: 0 auto;

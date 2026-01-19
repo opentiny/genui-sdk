@@ -1,9 +1,9 @@
 <script lang="ts" setup>
+  import { ref, computed } from 'vue';
+  import copy from 'clipboard-copy';
+  import { TinyButton } from '@opentiny/vue';
+  import { AutoTip } from '@opentiny/vue-directive';
 import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
-import { TinyButton } from '@opentiny/vue';
-import { AutoTip } from '@opentiny/vue-directive';
-import { ref, computed } from 'vue';
-import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './chat.types';
 
 const emit = defineEmits(['refresh']);

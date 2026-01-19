@@ -636,6 +636,9 @@ importers:
       '@opentiny/vue-icon':
         specifier: 3.25.0
         version: 3.25.0
+      ai:
+        specifier: ^5.0.10
+        version: 5.0.10(zod@4.1.13)
       clipboard-copy:
         specifier: ^4.0.1
         version: 4.0.1

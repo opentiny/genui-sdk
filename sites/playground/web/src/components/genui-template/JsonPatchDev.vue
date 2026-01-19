@@ -4,8 +4,8 @@ import { TinyDialogBox, TinyButton } from '@opentiny/vue';
 import { CodeEditor } from 'monaco-editor-vue3';
 import * as jsonDiffPatch from 'jsondiffpatch';
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
-import { textToJson } from './utils';
 import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
+import { textToJson } from './utils';
 
 const props = defineProps<{
   currentSchema: string;

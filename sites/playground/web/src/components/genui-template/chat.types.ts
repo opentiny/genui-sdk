@@ -1,5 +1,5 @@
-import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { Component } from 'vue';
+import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
 
 export interface IRolesConfig {

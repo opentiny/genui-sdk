@@ -1,8 +1,8 @@
-import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
+import { ref, shallowRef, computed } from 'vue';
 import { useConversation, IndexedDBStrategy } from '@opentiny/genui-sdk-vue';
+import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
 import { CustomModelProvider } from './template-provider';
 import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem, IMessage } from './chat.types';
-import { ref, shallowRef, computed } from 'vue';
 
 let conversation: ReturnType<typeof useConversation> | null = null;
 let templateProvider: CustomModelProvider | null = null;
@@ -160,7 +160,13 @@ export default function useTemplate(options?: UseTemplateOptions) {
     let targetMessage = null;
 
     conversation.getCurrentConversation()?.messages.some((msg: ChatMessage) => {
-      const card = (msg.messages as IMessageItem[])?.find(
+      const messages = msg.messages as IMessageItem[] | undefined;
+
+      if (!messages || !Array.isArray(messages)) {
+        return false;
+      }
+
+      const card = messages.find(
         (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
           (message.type === 'schema-card' || message.type === 'json-patch') && message.cardId === cardId
       );
