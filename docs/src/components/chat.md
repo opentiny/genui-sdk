@@ -240,7 +240,7 @@ const customActions = [
 
 - **类型**: `IRendererSlots`
 - **必填**: 否
-- **说明**: 传递给 SchemaRenderer 的插槽。
+- **说明**: 传递给 GenuiRenderer 的插槽。
 
 ```vue
 <template>
@@ -425,7 +425,7 @@ interface IGenuiConfig {
 
 ```typescript
 interface ICustomComponentItem extends IGenPromptComponent {
-  ref?: Component; // 组件引用，用于传给 SchemaRenderer
+  ref?: Component; // 组件引用，用于传给 GenuiRenderer
 }
 
 interface IGenPromptComponent {

@@ -1,6 +1,6 @@
 # genui-sdk组件
 
-## SchemaRenderer 渲染组件
+## GenuiRenderer 渲染组件
 
 渲染 Schema，支持“流式/增量”更新（可传入不完整 JSON 字符串，组件会自动解析并打补丁）。
 
@@ -15,7 +15,7 @@
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(true);
 const content = ref<string | object>('');
@@ -36,7 +36,7 @@ const sendMessage = async ({ llmFriendlyMessage, humanFriendlyMessage }: any) =>
 </script>
 
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :onAction="sendMessage" />
+  <GenuiRenderer :content="content" :generating="generating" :onAction="sendMessage" />
 </template>
 ```
 
@@ -95,9 +95,9 @@ function clearAll() {
 </template>
 ```
 
-## ConfigProvider 配置组件
+## GenuiConfigProvider 配置组件
 
-### ConfigProvider
+### GenuiConfigProvider
 
 - 用途：为渲染器提供主题能力，并将主题样式限定在特定作用域内。
 - Props
@@ -111,31 +111,31 @@ function clearAll() {
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const theme = ref<'dark' | 'lite' | 'default'>('dark');
 </script>
 
 <template>
-  <ConfigProvider :theme="theme" id="my-chat">
+  <GenuiConfigProvider :theme="theme" id="my-chat">
     <GenuiChat />
-  </ConfigProvider>
+  </GenuiConfigProvider>
 </template>
 ```
 
-**为`SchemaRenderer`定制主题：**
+**为`GenuiRenderer`定制主题：**
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ConfigProvider, SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const theme = ref<'dark' | 'lite' | 'default'>('dark');
 </script>
 
 <template>
-  <ConfigProvider :theme="theme" id="my-schema-renderer">
-    <SchemaRenderer />
-  </ConfigProvider>
+  <GenuiConfigProvider :theme="theme" id="my-schema-renderer">
+    <GenuiRenderer />
+  </GenuiConfigProvider>
 </template>
 ```

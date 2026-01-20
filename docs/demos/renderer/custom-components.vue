@@ -1,10 +1,10 @@
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :customComponents="customComponents" />
+  <GenuiRenderer :content="content" :generating="generating" :customComponents="customComponents" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import UserProfile from './components/user-profile.vue';
 import logo from '../../src/public/logo.svg?url';
 

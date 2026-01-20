@@ -1,15 +1,15 @@
 <template>
   <div class="app">
-    <ConfigProvider theme="default" id="my-custom-theme">
+    <GenuiConfigProvider theme="default" id="my-custom-theme">
       <div class="my-custom-theme">
         <GenuiChat :url="url" model="deepseek-v3.2" :messages="messages" />
       </div>
-    </ConfigProvider>
+    </GenuiConfigProvider>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 

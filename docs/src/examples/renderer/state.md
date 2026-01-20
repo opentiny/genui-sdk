@@ -4,7 +4,7 @@
 
 ## 给组件传递 State
 
-通过 `state` 向 `SchemaRenderer` 组件传递初始状态。State 会在组件初始化时合并到全局状态中，**不会动态更新**。
+通过 `state` 向 `GenuiRenderer` 组件传递初始状态。State 会在组件初始化时合并到全局状态中，**不会动态更新**。
 
 ### 应用场景
 
@@ -14,12 +14,12 @@
 
 ```vue {12-18}
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :state="savedState" />
+  <GenuiRenderer :content="content" :generating="generating" :state="savedState" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
 const content = ref({});

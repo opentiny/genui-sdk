@@ -4,7 +4,7 @@
 
 ## 给组件传递自定义 Actions
 
-通过 `customActions` prop 向 `SchemaRenderer` 组件传递自定义动作。每个自定义 Action 需要包含以下属性：
+通过 `customActions` prop 向 `GenuiRenderer` 组件传递自定义动作。每个自定义 Action 需要包含以下属性：
 
 - `name`: 动作名称
 - `description`: 动作描述
@@ -20,12 +20,12 @@
 
 ```vue {12-33}
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :customActions="customActions" />
+  <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
 const content = ref({});
@@ -63,12 +63,12 @@ const customActions = {
 
 ```vue {12-23}
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :customActions="customActions" />
+  <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
 const content = ref({});

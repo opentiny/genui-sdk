@@ -1,6 +1,6 @@
-# SchemaRenderer 组件
+# GenuiRenderer 组件
 
-`SchemaRenderer` 是 GenUI SDK 的核心渲染组件，用于将大模型返回的结构化 JSON Schema 渲染为可交互的 UI 界面。
+`GenuiRenderer` 是 GenUI SDK 的核心渲染组件（Renderer），用于将大模型返回的结构化 JSON Schema 渲染为可交互的 UI 界面。
 
 ## Props
 
@@ -12,7 +12,7 @@
 
 ```vue
 <template>
-  <SchemaRenderer :content="schemaContent" />
+  <GenuiRenderer :content="schemaContent" />
 </template>
 
 <script setup>
@@ -38,7 +38,7 @@ const schemaContent = {
 
 ```vue
 <template>
-  <SchemaRenderer :content="content" :generating="isGenerating" />
+  <GenuiRenderer :content="content" :generating="isGenerating" />
 </template>
 
 <script setup>
@@ -54,7 +54,7 @@ const isGenerating = ref(false);
 
 ```vue
 <template>
-  <SchemaRenderer :content="content" :customComponents="customComponents" />
+  <GenuiRenderer :content="content" :customComponents="customComponents" />
 </template>
 
 <script setup>
@@ -77,7 +77,7 @@ const customComponents = {
 
 ```vue
 <template>
-  <SchemaRenderer :content="content" :customActions="customActions" />
+  <GenuiRenderer :content="content" :customActions="customActions" />
 </template>
 
 <script setup>
@@ -107,7 +107,7 @@ const customActions = {
 
 ```vue
 <template>
-  <SchemaRenderer :content="content" :requiredCompleteFieldSelectors="['props.items', 'children[0].props']" />
+  <GenuiRenderer :content="content" :requiredCompleteFieldSelectors="['props.items', 'children[0].props']" />
 </template>
 ```
 
@@ -121,7 +121,7 @@ const customActions = {
 
 ```vue
 <template>
-  <SchemaRenderer :content="content" :state="{ userId: 123, userName: 'John' }" />
+  <GenuiRenderer :content="content" :state="{ userId: 123, userName: 'John' }" />
 </template>
 ```
 
@@ -136,11 +136,11 @@ const customActions = {
 
 ```vue
 <template>
-  <SchemaRenderer :content="content">
+  <GenuiRenderer :content="content">
     <template #header="{ schema, isError, isFinished }">
       <div v-if="!isError" class="renderer-header">渲染状态: {{ isFinished ? '已完成' : '生成中...' }}</div>
     </template>
-  </SchemaRenderer>
+  </GenuiRenderer>
 </template>
 ```
 
@@ -151,13 +151,13 @@ const customActions = {
 
 ```vue
 <template>
-  <SchemaRenderer :content="content">
+  <GenuiRenderer :content="content">
     <template #footer="{ schema, isError, isFinished }">
       <div v-if="isFinished" class="renderer-footer">
         <button @click="handleRefresh">刷新</button>
       </div>
     </template>
-  </SchemaRenderer>
+  </GenuiRenderer>
 </template>
 ```
 

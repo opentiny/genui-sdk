@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="app-header">
-      <h1>SchemaRenderer 主题示例</h1>
+      <h1>GenuiRenderer 主题示例</h1>
       <div class="header-actions">
         <button @click="toggleTheme" class="theme-toggle">
           {{ themeIcon }}
@@ -9,17 +9,17 @@
       </div>
     </header>
 
-    <ConfigProvider :theme="currentTheme" id="schema-renderer">
+    <GenuiConfigProvider :theme="currentTheme" id="schema-renderer">
       <div class="renderer-container" :style="{ backgroundColor: containerBgColor }">
-        <SchemaRenderer :content="content" :generating="generating" />
+        <GenuiRenderer :content="content" :generating="generating" />
       </div>
-    </ConfigProvider>
+    </GenuiConfigProvider>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { ConfigProvider, SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const currentTheme = ref<'dark' | 'lite' | 'default'>('default');
 

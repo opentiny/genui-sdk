@@ -1,6 +1,6 @@
 # Renderer 组件搭配 TinyRobot 使用
 
-本文介绍如何使用 `SchemaRenderer` 组件自行搭配对话组件如 `TinyRobot`。简单演示了如何搭配具体对话组件来控制消息流、UI 渲染和交互逻辑。
+本文介绍如何使用 `GenuiRenderer` 组件自行搭配对话组件如 `TinyRobot`。简单演示了如何搭配具体对话组件来控制消息流、UI 渲染和交互逻辑。
 
 ## 安装依赖
 
@@ -213,7 +213,7 @@ export class CustomModelProvider extends BaseModelProvider {
 ```vue
 <script setup lang="ts">
 import { ref, computed, h, reactive } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
 import { AIClient, GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -300,7 +300,7 @@ const messageRenderers = {
     return h(
       'div',
       {},
-      h(SchemaRenderer, {
+      h(GenuiRenderer, {
         ...props,
         generating: lastSchemaCardId.value === props.id ? generating.value : false,
       }),

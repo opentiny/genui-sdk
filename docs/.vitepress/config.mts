@@ -46,9 +46,9 @@ export default defineConfig({
         {
           text: '组件文档',
           items: [
-            { text: 'SchemaRenderer', link: '/components/renderer' },
+            { text: 'GenuiRenderer', link: '/components/renderer' },
             { text: 'GenuiChat', link: '/components/chat' },
-            { text: 'ConfigProvider', link: '/components/config-provider' },
+            { text: 'GenuiConfigProvider', link: '/components/config-provider' },
           ],
         },
       ],
