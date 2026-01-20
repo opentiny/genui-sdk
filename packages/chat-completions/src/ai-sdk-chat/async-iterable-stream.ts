@@ -16,5 +16,3 @@ export function createAsyncIterableStream<T>(
 
   return stream as AsyncIterableStream<T>;
 }
-
- 
