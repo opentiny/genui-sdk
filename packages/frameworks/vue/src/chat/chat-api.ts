@@ -19,17 +19,20 @@ const removeRefFromCustomComponents = (customComponents: ICustomComponentItem[])
 };
 
 export const chat = async (
-  url: string,
-  messages: any,
-  model: string,
-  temperature: number,
-  signal: any,
-  customComponents: ICustomComponentItem[],
-  customSnippets: IGenPromptSnippet[],
-  customExamples: IGenPromptExample[],
-  customActions: any[],
-  customFetch?: CustomFetch,
+  chatOptions: {
+    url: string,
+    messages: any,
+    model: string,
+    temperature: number,
+    signal: any,
+    customComponents: ICustomComponentItem[],
+    customSnippets: IGenPromptSnippet[],
+    customExamples: IGenPromptExample[],
+    customActions: any[],
+    customFetch?: CustomFetch,
+  }
 ) => {
+  const { url, messages, model, temperature, signal, customComponents, customSnippets, customExamples, customActions, customFetch } = chatOptions;
   const tgCustomConfig = {
     customComponents: removeRefFromCustomComponents(customComponents),
     customSnippets: customSnippets,

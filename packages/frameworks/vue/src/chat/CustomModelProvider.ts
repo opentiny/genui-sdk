@@ -42,7 +42,7 @@ export class CustomModelProvider extends BaseModelProvider {
     this.newConfig = config;
     this.customFetch = customFetch;
   }
-  validateRequest(_: ChatCompletionRequest) {}
+  validateRequest(_: ChatCompletionRequest) { }
 
   changeLlmConfig(model: string, temperature: number) {
     this.model = model;
@@ -51,16 +51,18 @@ export class CustomModelProvider extends BaseModelProvider {
 
   async getData(request: ChatCompletionRequest) {
     return await chat(
-      this.url,
-      request.messages,
-      this.model,
-      this.temperature,
-      request.options?.signal,
-      this.customComponents,
-      this.customSnippets,
-      this.customExamples,
-      this.customActions,
-      this.customFetch,
+      {
+        url: this.url,
+        messages: request.messages,
+        model: this.model,
+        temperature: this.temperature,
+        signal: request.options?.signal,
+        customComponents: this.customComponents,
+        customSnippets: this.customSnippets,
+        customExamples: this.customExamples,
+        customActions: this.customActions,
+        customFetch: this.customFetch,
+      }
     );
   }
 

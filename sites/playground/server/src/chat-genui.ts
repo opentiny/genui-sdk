@@ -212,7 +212,7 @@ export function createChatGenui() {
       return;
     }
 
-    const { tinygenui: tinygenuiStr, palygroud: palygroudStr } = body.metadata || {};
+    const { tinygenui: tinygenuiStr, playground: playgroundStr } = body.metadata || {};
 
     let tgCustomConfig: IGenPromptCustomConfig = {};
 
@@ -224,19 +224,19 @@ export function createChatGenui() {
       }
     }
 
-    // 从 palygroud 中读取 mcpServers、framework 和 prompt
+    // 从 playground 中读取 mcpServers、framework 和 prompt
     let mcpServers: McpServersConfig = [];
     let framework: string = 'Vue'; // 默认值
     let userAppendPrompt: string = '';
 
-    if (palygroudStr) {
+    if (playgroundStr) {
       try {
-        const palygroundConfig = typeof palygroudStr === 'string' ? JSON.parse(palygroudStr) : {};
-        mcpServers = palygroundConfig.mcpServers || [];
-        framework = palygroundConfig.framework || 'Vue';
-        userAppendPrompt = palygroundConfig.prompt;
+        const playgroundConfig = typeof playgroundStr === 'string' ? JSON.parse(playgroundStr) : {};
+        mcpServers = playgroundConfig.mcpServers || [];
+        framework = playgroundConfig.framework || 'Vue';
+        userAppendPrompt = playgroundConfig.prompt;
       } catch (error) {
-        console.error('Failed to parse palygroud from metadata:', error);
+        console.error('Failed to parse playground from metadata:', error);
       }
     }
 
@@ -367,7 +367,7 @@ export const checkMcpHandler = async (req: Request, res: Response) => {
   res.on('close', () => {
     try {
       abort.abort(new Error('/check-mcp connection closed'));
-    } catch {}
+    } catch { }
   });
 
   try {

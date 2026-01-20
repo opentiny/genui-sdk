@@ -23,7 +23,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
     const config = getConfig();
     const { mcpServers, framework, prompt } = config;
 
-    const palygroundConfig = {
+    const playgroundConfig = {
       mcpServers: mcpServers || [],
       framework: framework || 'Vue',
       prompt: prompt || '',
@@ -31,7 +31,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
 
     return fetch(url, {
       ...options,
-      body: JSON.stringify({ ...body, metadata: { ...(body.metadata || {}), palygroud: JSON.stringify(palygroundConfig) } }),
+      body: JSON.stringify({ ...body, metadata: { ...(body.metadata || {}), playground: JSON.stringify(playgroundConfig) } }),
     });
   };
 };
