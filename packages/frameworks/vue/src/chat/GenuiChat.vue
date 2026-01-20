@@ -465,11 +465,7 @@ defineExpose({
       <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
-      <div v-else class="empty-messages">
-        <!-- TODO 图表和文本支持传入 -->
-        <IconAi />
-        <span>GenUI Playground</span>
-      </div>
+        <slot v-else name="empty"></slot>
     </div>
     <div class="sender-container">
       <div
@@ -532,19 +528,6 @@ defineExpose({
   word-break: break-word;
   &::-webkit-scrollbar {
     width: 10px;
-  }
-  .empty-messages {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    height: 80%;
-    font-size: 32px;
-    font-weight: 600;
-    & > svg {
-      width: 56px;
-      height: 56px;
-    }
   }
 }
 :deep(.tr-bubble__content.border-corner) {
