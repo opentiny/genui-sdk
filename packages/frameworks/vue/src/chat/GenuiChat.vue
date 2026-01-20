@@ -489,11 +489,7 @@ defineExpose({
       <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
-      <div v-else class="empty-messages">
-        <!-- TODO 图表和文本支持传入 -->
-        <IconAi />
-        <span>GenUI Playground</span>
-      </div>
+        <slot v-else name="empty"></slot>
     </div>
     <div class="sender-container">
       <!-- TODO: 抽离到组件 -->

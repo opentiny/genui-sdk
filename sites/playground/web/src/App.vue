@@ -1,6 +1,7 @@
 <script setup>
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
+import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { GenuiConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
 import { customComponents, customExamples } from './custom-components';
@@ -211,7 +212,14 @@ const customFetch = createCustomFetch(() => ({
           :roles="roles"
           :features="modelFeatures"
           :custom-fetch="customFetch"
-        />
+        >
+          <template #empty>
+            <div class="empty">
+              <IconAi />
+              <span>GenUI Playground</span>
+            </div>
+          </template>
+        </GenuiChat>
       </GenuiConfigProvider>
     </div>
   </div>
@@ -335,5 +343,18 @@ const customFetch = createCustomFetch(() => ({
   flex: 1;
   height: 100%;
   min-width: 0;
+}
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 80%;
+  font-size: 32px;
+  font-weight: 600;
+  & > svg {
+    width: 56px;
+    height: 56px;
+  }
 }
 </style>
