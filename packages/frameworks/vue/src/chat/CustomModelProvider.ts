@@ -189,7 +189,7 @@ export class CustomModelProvider extends BaseModelProvider {
           if (data === '[DONE]') break;
           try {
             const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
+            const delta = chunk.choices?.[0]?.delta || {};
             const { tool_calls, tool_calls_result, content } = delta;
             if (tool_calls) {
               onToolCall(tool_calls, delta);
