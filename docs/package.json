@@ -10,6 +10,9 @@
   "keywords": [],
   "author": "",
   "license": "MIT",
+  "dependencies": {
+    "@opentiny/genui-sdk-vue": "workspace:*"
+  },
   "devDependencies": {
     "vitepress": "^1.6.3",
     "vitepress-demo-plugin": "^1.4.1"
