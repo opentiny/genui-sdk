@@ -2,21 +2,22 @@
 import TinyConfigProvider from '@opentiny/vue-config-provider';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
-import type { LocaleType, I18n, TranslateFunction } from './i18n';
-import { createTranslateFunction, setI18nInstance } from './i18n';
+import { I18nMessages, useI18n } from './i18n';
 
 export interface ConfigProviderProps {
   theme: string;
   id?: string;
-  locale?: LocaleType;
-  i18n?: Partial<Record<LocaleType, I18n>> | I18n;
-  t?: TranslateFunction;
+  locale?: string;
+  i18n?: I18nMessages;
 }
 
 const props = withDefaults(defineProps<ConfigProviderProps>(), {
   id: 'tiny-genui-config-provider',
-  locale: 'zh-CN' as LocaleType,
+  locale: 'zh_CN',
 });
+
+const i18n = useI18n();
+provide('genuiI18n', i18n)
 
 const transformTheme = (themeConfig: any) => {
   const newThemeConfig = structuredClone(themeConfig);
@@ -42,11 +43,10 @@ const TinyGenuiConfig = computed(() => {
 provide('TinyGenuiConfig', TinyGenuiConfig);
 
 watch(
-  () => [props.locale, props.i18n, props.t] as const,
+  () => [props.locale, props.i18n] as const,
   () => {
-    const locale = (props.locale || 'zh-CN') as LocaleType;
-    const t: TranslateFunction = props.t || createTranslateFunction(locale, props.i18n);
-    setI18nInstance(t);
+    i18n.setLocale(props.locale);
+    i18n.mergeMessages(props.i18n);
   },
   { immediate: true },
 );
