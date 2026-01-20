@@ -12,7 +12,7 @@ import CloseSvg from './assets/images/close.svg?raw';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import RenderFooter from './components/RenderFooter.vue';
-import ThinkComponent from './components/TinkComponent.vue';
+import ThinkComponent from './components/ThinkComponent.vue';
 import ModelConfig from './components/tab-components/model-config.vue';
 import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';

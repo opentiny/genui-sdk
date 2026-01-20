@@ -496,6 +496,7 @@ defineExpose({
       </div>
     </div>
     <div class="sender-container">
+      <!-- TODO: 抽离到组件 -->
       <div
         :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
         v-show="!isLastMessageInBottom"
@@ -570,9 +571,6 @@ defineExpose({
       height: 56px;
     }
   }
-}
-:deep(.tr-bubble__content.border-corner) {
-  max-width: 80%;
 }
 
 :deep(.tr-bubble__loading) {
@@ -681,6 +679,14 @@ defineExpose({
   text-align: center;
   margin-top: 16px;
 }
+
+:deep(.schema-render-container) {
+  @large-screen-min-width: 400px;
+  @min-width-safe-padding: 250px;
+  @small-screen-min-width: calc(var(--messages-container-width) - @min-width-safe-padding);
+  min-width: min(@small-screen-min-width, @large-screen-min-width);
+}
+
 @keyframes rotate-border {
   from {
     transform: rotate(0deg);
@@ -690,14 +696,7 @@ defineExpose({
   }
 }
 
-@keyframes text-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
+
 .tiny-sender {
   width: 80%;
   margin: 0 auto;

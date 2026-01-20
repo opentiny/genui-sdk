@@ -66,4 +66,14 @@ onBeforeUnmount(() => {
   -webkit-text-fill-color: transparent;
   animation: text-shimmer 6s linear infinite;
 }
+
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
 </style>

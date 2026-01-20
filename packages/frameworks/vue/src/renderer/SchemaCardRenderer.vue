@@ -132,7 +132,6 @@ watch(() => rendererInstance.value, (newVal) => {
 .schema-render-container {
   position: relative;
   color: var(--tv-color-text, #191919);
-  min-width: min(calc(var(--messages-container-width, 200px) - 250px), 400px);
 }
 
 .schema-render-container:has(.loading-warp):after {
