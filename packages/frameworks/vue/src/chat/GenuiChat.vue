@@ -555,9 +555,6 @@ defineExpose({
   flex: 1;
   overflow: auto;
   word-break: break-word;
-  &::-webkit-scrollbar {
-    width: 10px;
-  }
   .empty-messages {
     display: flex;
     align-items: center;
@@ -596,11 +593,21 @@ defineExpose({
     margin-top: 16px;
   }
 }
-:deep(.tr-bubble__content-wrapper) {
-  width: 100%;
-}
+
 :deep(.tr-bubble.placement-end) {
   width: 100%;
+}
+:deep(.tr-bubble__content-wrapper) {
+  @left-avatar-and-gap-width: 56px;
+  @right-avatar-and-gap-width: 56px;
+  max-width: calc(100% - @left-avatar-and-gap-width - @right-avatar-and-gap-width);
+  
+  .tr-bubble__content {
+    max-width: 100%;
+  }
+  .tr-bubble__content-items {
+    overflow-x: auto;
+  }
 }
 .sender-container {
   position: relative;
