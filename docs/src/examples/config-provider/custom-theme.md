@@ -1,24 +1,24 @@
-# ConfigProvider 组件 - 自定义主题
+# GenuiConfigProvider 组件 - 自定义主题
 
-`ConfigProvider` 组件支持通过 CSS 变量自定义主题样式。你可以通过覆盖 TinyRobot 以及对应物料组件库提供的 CSS 变量来定制组件的视觉效果。
+`GenuiConfigProvider` 组件支持通过 CSS 变量自定义主题样式。你可以通过覆盖 TinyRobot 以及对应物料组件库提供的 CSS 变量来定制组件的视觉效果。
 
 ## 基础用法
 
-通过 `ConfigProvider` 的 `id` 属性创建一个作用域，然后在对应的 CSS 作用域中定义自定义变量：
+通过 `GenuiConfigProvider` 的 `id` 属性创建一个作用域，然后在对应的 CSS 作用域中定义自定义变量：
 
 ```vue {22-43}
 <template>
   <div class="app">
-    <ConfigProvider theme="default" id="my-custom-theme">
+    <GenuiConfigProvider theme="default" id="my-custom-theme">
       <div class="my-custom-theme">
         <GenuiChat :url="url" model="deepseek-v3.2" :messages="messages" />
       </div>
-    </ConfigProvider>
+    </GenuiConfigProvider>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 

@@ -1,10 +1,10 @@
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :customActions="customActions" />
+  <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
 const content = ref({

@@ -9,15 +9,15 @@
       </div>
     </header>
 
-    <ConfigProvider :theme="currentTheme" id="main-chat">
+    <GenuiConfigProvider :theme="currentTheme" id="main-chat">
       <GenuiChat :url="url" model="deepseek-v3.2" :messages="messages" />
-    </ConfigProvider>
+    </GenuiConfigProvider>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { ConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 

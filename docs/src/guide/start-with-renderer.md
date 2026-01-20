@@ -1,6 +1,6 @@
 # 使用 Renderer 组件
 
-除了集成式的 Chat 组件外，还提供了核心渲染器 Renderer 组件，您可以使用其进行更自由的逻辑组合、更精密流程控制。本节展示一个**最小可用示例**：使用浏览器原生 `fetch` 发起 **流式请求**，然后把流式返回的 schema 片段交给 `SchemaRenderer` 渲染。
+除了集成式的 Chat 组件外，还提供了核心渲染器 Renderer 组件（`GenuiRenderer`），您可以使用其进行更自由的逻辑组合、更精密流程控制。本节展示一个**最小可用示例**：使用浏览器原生 `fetch` 发起 **流式请求**，然后把流式返回的 schema 片段交给 `GenuiRenderer` 渲染。
 
 ## 使用 fetch 请求服务，处理流式返回
 
@@ -145,13 +145,13 @@ export async function fetchSchemaStream(
       <input v-model="inputText" placeholder="请输入问题..." @keyup.enter="handleSend" />
       <button @click="handleSend">发送</button>
     </div>
-    <SchemaRenderer :content="schema" />
+    <GenuiRenderer :content="schema" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import { fetchSchemaStream } from './fetch-schema-stream';
 
 const inputText = ref('');

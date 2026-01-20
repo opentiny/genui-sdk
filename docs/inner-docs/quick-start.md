@@ -33,7 +33,7 @@ createApp(App).mount('#app')
 ```html
 <script setup lang="ts">
   import { ref } from 'vue';
-  import { GenuiChat, ConfigProvider } from '@opentiny/genui-sdk-vue';
+  import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
   const llmConfig = ref({
     model: 'qwen3-coder-30b-a3b-instruct（推荐）',
@@ -42,9 +42,9 @@ createApp(App).mount('#app')
 </script>
 
 <template>
-  <ConfigProvider theme="dark">
+  <GenuiConfigProvider theme="dark">
     <GenuiChat url="http://100.94.63.14:3008/chat-ui" :llm-config="llmConfig" />
-  </ConfigProvider>
+  </GenuiConfigProvider>
 </template>
 
 <style>

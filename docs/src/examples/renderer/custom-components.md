@@ -1,21 +1,21 @@
 # Renderer 组件 - 自定义 Components
 
-自定义 Components 允许您注册自己的组件，配合相关提示词，LLM 可以在 schemaJson 输出对应组件后交由 Renderer 渲染。
+自定义 Components 允许您注册自己的组件，配合相关提示词，LLM 可以在 schemaJson 输出对应组件后交由 Renderer（`GenuiRenderer`）渲染。
 
 ## 给组件传递自定义 Components
 
-通过 `customComponents` 向 `SchemaRenderer` 组件传递自定义组件映射表。
+通过 `customComponents` 向 `GenuiRenderer` 组件传递自定义组件映射表。
 
 ### 示例：注册自定义组件
 
 ```vue {8,13-15}
 <template>
-  <SchemaRenderer :content="content" :generating="generating" :customComponents="customComponents" />
+  <GenuiRenderer :content="content" :generating="generating" :customComponents="customComponents" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import UserProfile from './components/user-profile.vue';
 
 const generating = ref(false);
