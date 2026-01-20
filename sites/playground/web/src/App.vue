@@ -218,6 +218,8 @@ const customFetch = createCustomFetch(() => ({
 </template>
 <style scoped lang="less">
 .genui-playground {
+  --ti-common-scrollbar-width: 8px;
+  --ti-common-scrollbar-height: 8px;
   display: flex;
   height: 100%;
   :deep(.tiny-tabs__content) {
@@ -332,5 +334,6 @@ const customFetch = createCustomFetch(() => ({
 .chat-container {
   flex: 1;
   height: 100%;
+  min-width: 0;
 }
 </style>
