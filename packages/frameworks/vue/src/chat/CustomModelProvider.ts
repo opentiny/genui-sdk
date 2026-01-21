@@ -50,6 +50,13 @@ export class CustomModelProvider extends BaseModelProvider {
       return;
     }
     const reader = response.body!.getReader();
+    const signal = request.options?.signal;
+      signal?.addEventListener(
+        'abort',
+        () => reader.cancel().catch((err) => console.error('Error cancelling reader:', err)),
+        { once: true },
+      )
+    
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
@@ -146,6 +153,11 @@ export class CustomModelProvider extends BaseModelProvider {
       }
     };
     while (true) {
+      if (signal?.aborted) {
+        await reader.cancel()
+        break
+      }
+      
       const { done, value } = await reader.read();
       if (done) break;
       // Append new chunk to buffer
