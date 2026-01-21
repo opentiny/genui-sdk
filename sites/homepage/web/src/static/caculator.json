@@ -1,0 +1,261 @@
+{
+  "componentName": "Page",
+  "state": {
+    "displayValue": "0",
+    "firstOperand": null,
+    "operator": null,
+    "waitingForSecondOperand": false
+  },
+  "methods": {
+    "inputDigit": {
+      "type": "JSFunction",
+      "value": "function(digit) {\n  const { displayValue, waitingForSecondOperand } = this.state;\n  \n  if (waitingForSecondOperand) {\n    this.state.displayValue = String(digit);\n    this.state.waitingForSecondOperand = false;\n  } else {\n    this.state.displayValue = displayValue === '0' ? String(digit) : displayValue + digit;\n  }\n  this.callAction('saveState', { state: this.state });\n}"
+    },
+    "inputDecimal": {
+      "type": "JSFunction",
+      "value": "function() {\n  const { displayValue, waitingForSecondOperand } = this.state;\n  \n  if (waitingForSecondOperand) {\n    this.state.displayValue = '0.';\n    this.state.waitingForSecondOperand = false;\n  } else if (displayValue.indexOf('.') === -1) {\n    this.state.displayValue = displayValue + '.';\n  }\n  this.callAction('saveState', { state: this.state });\n}"
+    },
+    "handleOperator": {
+      "type": "JSFunction",
+      "value": "function(nextOperator) {\n  const { displayValue, firstOperand, operator } = this.state;\n  const inputValue = parseFloat(displayValue);\n  \n  if (firstOperand === null) {\n    this.state.firstOperand = inputValue;\n  } else if (operator) {\n    const result = this.performCalculation();\n    this.state.displayValue = String(result);\n    this.state.firstOperand = result;\n  }\n  \n  this.state.waitingForSecondOperand = true;\n  this.state.operator = nextOperator;\n  this.callAction('saveState', { state: this.state });\n}"
+    },
+    "performCalculation": {
+      "type": "JSFunction",
+      "value": "function() {\n  const { firstOperand, displayValue, operator } = this.state;\n  const inputValue = parseFloat(displayValue);\n  \n  if (operator === '+') {\n    return firstOperand + inputValue;\n  } else if (operator === '-') {\n    return firstOperand - inputValue;\n  } else if (operator === '*') {\n    return firstOperand * inputValue;\n  } else if (operator === '/') {\n    return firstOperand / inputValue;\n  }\n  \n  return inputValue;\n}"
+    },
+    "clearDisplay": {
+      "type": "JSFunction",
+      "value": "function() {\n  this.state.displayValue = '0';\n  this.state.firstOperand = null;\n  this.state.operator = null;\n  this.state.waitingForSecondOperand = false;\n  this.callAction('saveState', { state: this.state });\n}"
+    }
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "width: 100%; display: flex; justify-content: center;"
+      },
+      "children": [
+        {
+          "componentName": "div",
+          "props": {
+            "style": "width: 300px; height: 400px; background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); border-radius: 20px; padding: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.2); font-family: 'Comic Sans MS', cursive, sans-serif;"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "width: 100%; height: 60px; background: rgba(255,255,255,0.8); border-radius: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: flex-end; padding: 0 15px; font-size: 28px; font-weight: bold; color: #ff6b6b; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.displayValue"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "style": "display: grid; grid-template-columns: repeat(4, 1fr); grid-gap: 10px;"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "grid-column: 1 / span 2; background: #ff6b6b; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.clearDisplay() }"
+                    }
+                  },
+                  "children": "AC"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #4ecdc4; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.handleOperator('/') }"
+                    }
+                  },
+                  "children": "÷"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #45b7d1; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.handleOperator('*') }"
+                    }
+                  },
+                  "children": "×"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(7) }"
+                    }
+                  },
+                  "children": "7"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(8) }"
+                    }
+                  },
+                  "children": "8"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(9) }"
+                    }
+                  },
+                  "children": "9"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #4ecdc4; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.handleOperator('-') }"
+                    }
+                  },
+                  "children": "-"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(4) }"
+                    }
+                  },
+                  "children": "4"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(5) }"
+                    }
+                  },
+                  "children": "5"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(6) }"
+                    }
+                  },
+                  "children": "6"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #4ecdc4; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.handleOperator('+') }"
+                    }
+                  },
+                  "children": "+"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(1) }"
+                    }
+                  },
+                  "children": "1"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(2) }"
+                    }
+                  },
+                  "children": "2"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(3) }"
+                    }
+                  },
+                  "children": "3"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "grid-row: 4 / span 2; grid-column: 4; background: #ff6b6b; color: white; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.handleOperator('=') }"
+                    }
+                  },
+                  "children": "="
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "grid-column: 1 / span 2; background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDigit(0) }"
+                    }
+                  },
+                  "children": "0"
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "background: #f9c74f; color: white; border-radius: 15px; height: 50px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.2); transition: all 0.2s;",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.inputDecimal() }"
+                    }
+                  },
+                  "children": "."
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
