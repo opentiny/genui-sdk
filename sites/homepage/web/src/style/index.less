@@ -1,0 +1,70 @@
+.genui-sdk-container {
+  // 字体大小变量定义
+  --font-size-title-xl: 56px;
+  --font-size-title-lg: 50px;
+  --font-size-title-lg-sm: 48px;
+  --font-size-title-lg-sm-md: 44px;
+  --font-size-title-md: 36px;
+  --font-size-title-sm: 24px;
+  --font-size-title-xs: 20px;
+  --font-size-body-lg: 24px;
+  --font-size-body-md: 20px;
+  --font-size-body-sm: 18px;
+  --font-size-body-sm-sm: 16px;
+  --font-size-body-xs: 14px;
+
+  // 行高变量定义
+  --line-height-title-xl: 74px;
+  --line-height-title-lg: 72px;
+  --line-height-title-lg-sm: 64px;
+  --line-height-title-md: 48px;
+  --line-height-title-sm: 32px;
+  --line-height-body-lg: 32px;
+  --line-height-body-md: 27px;
+  --line-height-body-sm: 30px;
+  --line-height-body-xs: 20px;
+  --line-height-description: 26px;
+
+  // 媒体查询统一管理字体大小
+  @media (max-width: 1280px) {
+    --font-size-title-xl: 32px;
+    --font-size-title-lg: 28px;
+    --font-size-title-md: 24px;
+    --font-size-title-sm: 20px;
+    --font-size-title-xs: 16px;
+    --font-size-body-sm: 14px;
+    --font-size-body-lg: 16px;
+    --font-size-body-md: 14px;
+    --font-size-body-sm: 12px;
+    --font-size-body-sm-sm: 10px;
+    --font-size-body-xs: 10px;
+
+    --line-height-title-xl: 42px;
+    --line-height-title-lg: 38px;
+    --line-height-title-lg-sm: 42px;
+    --line-height-title-md: 32px;
+    --line-height-title-sm: 28px;
+    --line-height-body-md: 22px;
+    --line-height-body-sm: 20px;
+    --line-height-body-xs: 16px;
+    --line-height-description: 20px;
+  }
+}
+
+.genui-title {
+  font-size: var(--font-size-title-lg-sm);
+  line-height: var(--line-height-title-lg-sm);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+.genui-subtitle {
+  font-size: var(--font-size-title-xs);
+  line-height: var(--line-height-body-md);
+  font-weight: 400;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 60px;
+  color: rgba(128, 128, 128, 1);
+}
