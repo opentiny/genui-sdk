@@ -1,110 +1,138 @@
-import zhCN from './zh.json';
-import enUS from './en.json';
-
-export type LocaleType = 'zh-CN' | 'en-US';
-
-export interface I18n {
-  [key: string]: string | I18n;
-}
-
-export type TranslateFunction = (key: string, params?: Record<string, any>) => string;
-
-// 全局 i18n 实例管理器
-let globalI18nInstance: TranslateFunction | null = null;
-
-/**
- * 设置全局 i18n 实例（由 ConfigProvider 调用）
- */
-export function setI18nInstance(t: TranslateFunction) {
-  globalI18nInstance = t;
-}
-
-/**
- * 获取全局 i18n 实例
- */
-export function getI18nInstance(): TranslateFunction | null {
-  return globalI18nInstance;
-}
-
-export function t(key: string, params?: Record<string, any>) {
-  const globalT = getI18nInstance();
-  const t: TranslateFunction = globalT || createTranslateFunction('zh-CN');
-  
-  return t(key, params);
-}
-
-export function useI18n() {
-  const globalT = getI18nInstance();
-  const t: TranslateFunction = globalT || createTranslateFunction('zh-CN');
-  return { t };
-}
-
-export const defaultMessages: Record<LocaleType, I18n> = {
-  'zh-CN': zhCN as I18n,
-  'en-US': enUS as I18n,
-};
-
-export function createTranslateFunction(locale: LocaleType, extra?: Partial<Record<LocaleType, I18n>> | I18n): TranslateFunction {
-  const base = defaultMessages[locale] || defaultMessages['zh-CN'];
-  
-  // 如果 extra 是包含语言键的对象（如 { 'zh-CN': {...}, 'en-US': {...} }）
-  let extraI18n: I18n | undefined;
-  if (extra) {
-    // 检查是否是语言键对象（包含 'zh-CN' 或 'en-US' 键）
-    if (typeof extra === 'object' && !Array.isArray(extra) && ('zh-CN' in extra || 'en-US' in extra)) {
-      extraI18n = (extra as Partial<Record<LocaleType, I18n>>)[locale];
-    } else {
-      // 否则当作普通的 I18n 对象处理（向后兼容）
-      extraI18n = extra as I18n;
-    }
-  }
-  
-  const merged = deepMerge(base, extraI18n || {});
-
-  return (key: string, params?: Record<string, any>): string => {
-    const parts = key.split('.');
-    let cur: any = merged;
-
-    for (const p of parts) {
-      if (cur == null) {
-        return key;
-      }
-      cur = cur[p];
-    }
-
-    if (typeof cur === 'string') {
-      // 支持参数替换，例如 {text} -> 实际值
-      if (params) {
-        return cur.replace(/\{(\w+)\}/g, (match, paramKey) => {
-          return params[paramKey] !== undefined ? String(params[paramKey]) : match;
-        });
-      }
-      return cur;
-    }
-
-    return key;
+import { ref, reactive, readonly, UnwrapNestedRefs } from 'vue';
+import { I18nInstance, I18nMessages, I18nOptions, I18nMessageObject, I18nTranslateParams } from './types';
+export function createI18n(options: I18nOptions = {}): I18nInstance {
+  const defaultOptions: Required<I18nOptions> = {
+    locale: 'zh_CN',
+    messages: {}
   };
-}
 
-function deepMerge(target: any, source: any): any {
-  if (!source) {
+  const config: Required<I18nOptions> = {
+    ...defaultOptions,
+    ...options,
+    messages: { ...defaultOptions.messages, ...options.messages }
+  };
+
+  const locale = ref<string>(config.locale);
+
+  const _messages = reactive<UnwrapNestedRefs<I18nMessages>>(
+    structuredClone(config.messages) as UnwrapNestedRefs<I18nMessages>
+  );
+
+
+  /**
+   * @param target 目标对象（被合并的原有词条）
+   * @param source 源对象（要新增的词条）
+   * @returns 合并后的目标对象
+   */
+  function _deepMerge(
+    target: I18nMessageObject,
+    source: I18nMessageObject
+  ): I18nMessageObject {
+    if (typeof target !== 'object' || target === null) {
+      return structuredClone(source);
+    }
+
+    if (typeof source !== 'object' || source === null) {
+      return structuredClone(target);
+    }
+
+    for (const key in source) {
+      if (Object.prototype.hasOwnProperty.call(source, key)) {
+        const targetValue = target[key];
+        const sourceValue = source[key];
+
+        if (
+          typeof targetValue === 'object' &&
+          typeof sourceValue === 'object' &&
+          !Array.isArray(targetValue) &&
+          !Array.isArray(sourceValue) &&
+          targetValue !== null &&
+          sourceValue !== null
+        ) {
+          target[key] = _deepMerge(
+            targetValue as I18nMessageObject,
+            sourceValue as I18nMessageObject
+          );
+        } else {
+          target[key] = structuredClone(sourceValue);
+        }
+      }
+    }
+
     return target;
   }
 
-  const result: any = Array.isArray(target) ? [...target] : { ...target };
-
-  Object.keys(source).forEach((key) => {
-    const srcVal = source[key];
-    const tgtVal = (target || {})[key];
-
-    if (srcVal && typeof srcVal === 'object' && !Array.isArray(srcVal)) {
-      result[key] = deepMerge(tgtVal || {}, srcVal);
-    } else {
-      result[key] = srcVal;
+  function setLocale(lang: string): void {
+    if (typeof lang !== 'string' || lang.trim() === '') {
+      console.warn('语言标识必须是非空字符串！');
+      return;
     }
-  });
 
-  return result;
+    const trimmedLang = lang.trim();
+    if (locale.value !== trimmedLang) {
+      locale.value = trimmedLang;
+    }
+  }
+
+  /**
+   * @param newMessages 新的多语言词条
+   * @param isCoverSameKey 合并模式：false（默认）为深度合并，保留原有词条并更新相同 key；true 为完全替换，整个语言对象被新对象替换，原有词条会丢失
+   */
+  function mergeMessages(newMessages: I18nMessages, isCoverSameKey = false): void {
+    if (typeof newMessages !== 'object' || newMessages === null) {
+      console.warn('要合并的词条必须是合法对象！');
+      return;
+    }
+
+    for (const lang in newMessages) {
+      if (Object.prototype.hasOwnProperty.call(newMessages, lang)) {
+        const newLangMessages = newMessages[lang];
+        const existingLangMessages = _messages[lang];
+
+        if (!existingLangMessages || isCoverSameKey) {
+          _messages[lang] = structuredClone(newLangMessages) as I18nMessageObject;
+        } else {
+          _deepMerge(existingLangMessages, newLangMessages);
+        }
+      }
+    }
+  }
+
+  /**
+   * @param key 词条键（如 'user.login.success'）
+   * @param params 可选：插值参数对象
+   * @returns 翻译后的文本（无匹配时返回原 key）
+   */
+  function t(key: string, params: I18nTranslateParams = {}): string {
+    if (typeof key !== 'string' || key.trim() === '') {
+      return '';
+    }
+
+    const trimmedKey = key.trim();
+    const currentLang = locale.value;
+    const currentLangMessages = _messages[currentLang] || {};
+
+    // 步骤1：解析多级词条键，获取原始文本
+    const rawText = trimmedKey.split('.').reduce((current: any, nextKey) => {
+      return current?.[nextKey] || trimmedKey;
+    }, currentLangMessages);
+
+    // 步骤2：校验原始文本类型
+    if (typeof rawText !== 'string') {
+      return trimmedKey;
+    }
+
+    // 步骤3：参数插值替换（匹配 {变量名} 格式）
+    return rawText.replace(/\{(\w+)\}/g, (match, paramKey) => {
+      return params.hasOwnProperty(paramKey) ? String(params[paramKey]) : match;
+    });
+  }
+
+  return {
+    locale,
+    messages: readonly(_messages),
+    setLocale,
+    mergeMessages,
+    t
+  };
 }
-
-
