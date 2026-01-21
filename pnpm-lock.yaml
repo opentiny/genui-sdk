@@ -6,7 +6,11 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    devDependencies:
+      '@babel/parser':
+        specifier: ^7.28.3
+        version: 7.28.5
 
   docs:
     devDependencies:
