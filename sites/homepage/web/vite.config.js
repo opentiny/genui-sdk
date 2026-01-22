@@ -40,12 +40,7 @@ export default defineConfig({
     alias: {
       '@': _resolve('src'),
       '@/components': _resolve('src/components'),
-      '@/assets': _resolve('src/assets'),
-      // 使用本地构建的 GenUI SDK Vue 包，解决打包时无法解析 @opentiny/genui-sdk-vue 的问题
-      '@opentiny/genui-sdk-vue': path.resolve(
-        __dirname,
-        '../../../poc-ai-agent/packages/schema-card-renderer/genui-sdk/vue/dist/index.js'
-      )
+      '@/assets': _resolve('src/assets')
     }
   },
   build: {

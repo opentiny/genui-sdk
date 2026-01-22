@@ -8,6 +8,7 @@ import genuiActionVedioCover from "@/assets/genui_action_vedio_cover.webp";
 import genuiFlowVedioCover from "@/assets/genui_flow_vedio_cover.svg";
 import genuiActionVedio from "@/assets/genui_action_vedio.mov";
 import genuiFlowVedio from "@/assets/genui_flow_vedio.mov";
+import { LinkKey, openLink } from "@/utils/link";
 import HomeAbility from "@/components/HomeAbility.vue";
 import HomeGuide from "@/components/HomeGuide.vue";
 import HomeFeature from "@/components/HomeFeature.vue";
@@ -58,8 +59,8 @@ const abilityThreePartContent = ref({
           为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性
         </div>
         <div class="operation-button-group">
-          <tiny-button type="primary">开发文档</tiny-button>
-          <tiny-button>演练场</tiny-button>
+          <tiny-button round type="primary" @click="openLink(LinkKey.DevDoc)">开发文档</tiny-button>
+          <tiny-button round @click="openLink(LinkKey.Playground)">演练场</tiny-button>
         </div>
       </div>
       <div class="home-core-right">

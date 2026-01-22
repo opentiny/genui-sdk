@@ -1,0 +1,1 @@
+ry) return false; if (this.state.searchText && !todo.title.toLowerCase().includes(this.state.searchText.toLowerCase()) && !todo.description.toLowerCas

@@ -1,0 +1,1 @@
+":"JSExpression","value":"row.completed"},"onChange":{"type":"JSExpression","value":"() => this.toggleTodo(row.id)"}}}]}],"params":["row"]}}},{"field"

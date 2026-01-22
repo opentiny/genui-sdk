@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, onMounted, ref, watch } from 'vue'
 import hljs from 'highlight.js/lib/core'
 import { TinyButton } from '@opentiny/vue'
 import genuiChatIcon from '@/assets/genui_chat_icon.svg'
 import genuiInusecon from '@/assets/genui_inuse_icon.svg'
 import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg'
 import { guideCodeMap } from '@/config'
+import { LinkKey, openLink } from '@/utils/link'
 import HomeGuideCard from './HomeGuideCard.vue'
 
 const activeCard = ref(0)
@@ -15,6 +16,9 @@ function hightlight() {
   // 每次都要更新一下代码高亮
   nextTick(() => {
     if (codeRef.value) {
+      const codeArea = document.querySelector('.code-area')
+      delete (codeArea as HTMLElement).dataset.highlighted
+      // highlight.js 会自动处理内容更新，直接调用即可
       hljs.highlightElement(codeRef.value)
     }
   })
@@ -59,7 +63,7 @@ onMounted(() => {
           :active="activeCard === 2"
           @click="handleGuideCardClick(2)"
         />
-        <tiny-button class="home-guide-content-left-button" round size="small">开发文档</tiny-button>
+        <tiny-button class="home-guide-content-left-button" round size="small" @click="openLink(LinkKey.ChatDoc)">开发文档</tiny-button>
       </div>
       <div class="home-guide-content-right">
         <div class="home-guide-content-right-framework">
@@ -72,7 +76,7 @@ onMounted(() => {
           </div>
           <pre
             class="guide-code language-js line-numbers"
-          ><code ref="codeRef" class="language-js">{{ guideCodeMap[`step${activeCard + 1}`] }}</code></pre>
+          ><code ref="codeRef" class="language-js code-area">{{ guideCodeMap[`step${activeCard + 1}`] }}</code></pre>
         </div>
       </div>
     </div>
@@ -107,17 +111,19 @@ onMounted(() => {
 
       &-button {
         max-width: 150px;
+        margin-left: 32px;
       }
 
       @media (max-width: 1280px) {
         &-button {
-          max-width: 50px;
+          max-width: 120px;
         }
       }
     }
 
     &-right {
       flex: 1;
+      max-height: 400px;
       background: rgba(242, 242, 242, 1);
       border-radius: 24px;
       padding: 30px;
