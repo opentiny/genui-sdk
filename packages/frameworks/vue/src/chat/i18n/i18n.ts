@@ -17,6 +17,10 @@ export function createI18n(options: I18nOptions = {}): I18nInstance {
   const _messages = reactive<UnwrapNestedRefs<I18nMessages>>(
     structuredClone(config.messages) as UnwrapNestedRefs<I18nMessages>
   );
+  
+  function isPlainObject(value: unknown): value is Record<string, any> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+  }
 
 
   /**
@@ -24,15 +28,12 @@ export function createI18n(options: I18nOptions = {}): I18nInstance {
    * @param source 源对象（要新增的词条）
    * @returns 合并后的目标对象
    */
-  function _deepMerge(
-    target: I18nMessageObject,
-    source: I18nMessageObject
-  ): I18nMessageObject {
-    if (typeof target !== 'object' || target === null) {
+  function _deepMerge(target: I18nMessageObject, source: I18nMessageObject): I18nMessageObject {
+    if (!isPlainObject(target)) {
       return structuredClone(source);
     }
 
-    if (typeof source !== 'object' || source === null) {
+    if (!isPlainObject(source)) {
       return structuredClone(target);
     }
 
@@ -41,14 +42,7 @@ export function createI18n(options: I18nOptions = {}): I18nInstance {
         const targetValue = target[key];
         const sourceValue = source[key];
 
-        if (
-          typeof targetValue === 'object' &&
-          typeof sourceValue === 'object' &&
-          !Array.isArray(targetValue) &&
-          !Array.isArray(sourceValue) &&
-          targetValue !== null &&
-          sourceValue !== null
-        ) {
+        if (isPlainObject(targetValue) && isPlainObject(sourceValue)) {
           target[key] = _deepMerge(
             targetValue as I18nMessageObject,
             sourceValue as I18nMessageObject

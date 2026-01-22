@@ -3,6 +3,7 @@ import TinyConfigProvider from '@opentiny/vue-config-provider';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
 import { I18nMessages, useI18n } from './i18n';
+import { GENUI_I18N } from './injection-tokens';
 
 export interface ConfigProviderProps {
   theme: string;
@@ -17,7 +18,7 @@ const props = withDefaults(defineProps<ConfigProviderProps>(), {
 });
 
 const i18n = useI18n();
-provide('genuiI18n', i18n)
+provide(GENUI_I18N, i18n)
 
 const transformTheme = (themeConfig: any) => {
   const newThemeConfig = structuredClone(themeConfig);
