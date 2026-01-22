@@ -21,6 +21,8 @@ export interface IRendererProps {
 const props = defineProps<IRendererProps>();
 const emit = defineEmits(['click']);
 
+const { getMessageByCardId } = useTemplate();
+
 const generatedTime = computed(() => props.generatedTime ?? '');
 const generating = computed(() => !generatedTime.value);
 
@@ -38,7 +40,6 @@ const handleClick = () => {
 };
 
 const handleDev = () => {
-  const { getMessageByCardId } = useTemplate();
   const cardMessage = getMessageByCardId(props.cardId);
   const { prevSchema: prevSchemaStr, content: contentStr, schema: schemaStr } = cardMessage;
   const formattedJsonPatch = formatJsonPatch(JSON.parse(prevSchemaStr), JSON.parse(contentStr));
@@ -65,12 +66,8 @@ const handleDev = () => {
       <div v-if="errorMessage" class="error-message">解析失败</div>
     </div>
   </div>
-  <JsonPatchDev
-    v-model:visible="visible"
-    :currentSchema="currentSchema"
-    :jsonPatch="jsonPatch"
-    :prevSchema="prevSchema"
-  />
+  <JsonPatchDev v-model:visible="visible" :currentSchema="currentSchema" :jsonPatch="jsonPatch"
+    :prevSchema="prevSchema" />
 </template>
 
 <style scoped lang="less">
@@ -106,6 +103,7 @@ const handleDev = () => {
       align-items: center;
       justify-content: flex-end;
     }
+
     .icon-item {
       padding: 12px;
       text-align: right;

@@ -19,8 +19,8 @@
   
   let framework = 'Vue'; // Angular
   
-  // 通过环境变量控制是否启用模板功能，默认启用
-  const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE !== 'false';
+  // 通过环境变量控制是否启用模板功能，默认不启用
+  const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
   
   // 条件异步加载 genui-template 组件，不启用时完全不导入，构建时不会被打包
   const GenuiTemplateList = ENABLE_TEMPLATE

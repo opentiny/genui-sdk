@@ -45,11 +45,9 @@ const emit = defineEmits(['schema-version-toggle']);
 const TinyGenuiConfig: any = inject('TinyGenuiConfig');
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
-// 当前消息的 id，用于记录消息的 id，避免重复执行 patch 操作
-const currentMessageId = ref<string>('');
 const errorMessagesMap = ref<Map<string, string>>(new Map());
 
-const { conversation, templateConversationState, currentSchema, setCurrentSchema, updateTemplateTitle } = useTemplate();
+const { conversation, templateConversationState, currentSchema, currentCardId, setCurrentSchema, updateTemplateTitle, setCurrentCardId } = useTemplate();
 
 watch(
   () => TinyGenuiConfig?.value?.theme,
@@ -110,7 +108,7 @@ const schemaCardRenderer = async (props: any) => {
   try {
     const { content, cardId } = props;
 
-    if (cardId !== currentMessageId.value) {
+    if (cardId !== currentCardId.value) {
       return;
     }
 
@@ -139,7 +137,7 @@ const jsonPatchRenderer = async (props: any) => {
   try {
     const { content, cardId } = props;
 
-    if (cardId !== currentMessageId.value) {
+    if (cardId !== currentCardId.value) {
       return;
     }
 
@@ -219,7 +217,7 @@ const handleRefresh = ({ index }: { index: number }) => {
   prevSchema.value = cardMessage?.prevSchema;
   setCurrentSchema(JSON.parse(prevSchema.value));
   messages.value = messages.value.slice(0, index);
-  currentMessageId.value = messages.value[messages.value.length - 1].messageId as string;
+  setCurrentCardId(messages.value[messages.value.length - 1].messageId as string);
   send();
 };
 
@@ -319,12 +317,13 @@ const clearInputMessage = () => {
 // 发送消息
 const handleSendMessage = async () => {
   const messageContent = inputMessage.value;
-  currentMessageId.value = generateId();
+  const cardId = generateId();
+  setCurrentCardId(cardId);
 
   const userMessage: ChatMessage = {
     role: 'user',
     content: messageContent,
-    messageId: currentMessageId.value,
+    messageId: cardId,
   };
   messages.value.push(userMessage);
 

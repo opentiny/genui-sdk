@@ -10,6 +10,8 @@ let templateProvider: CustomModelProvider | null = null;
 const isTemplateInit = ref(false);
 // 当前 schema。 可能是：AI 生成的 schemaJson、AI 生成的 jsonPatch 更新后的 schema、切换到历史版本的 schema、编辑器中手动修改的 schema。
 const currentSchema = shallowRef<any>(null);
+// 当前卡片 id，用于记录卡片 id，避免重复执行 patch 操作
+const currentCardId = ref<string>('');
 const DEFAULT_TEMPLATE_TITLE = '新模板';
 
 export interface UseTemplateOptions {
@@ -108,6 +110,12 @@ export default function useTemplate(options?: UseTemplateOptions) {
     const currentConversation = conversation.getCurrentConversation();
     // 更新 schema 卡片
     let latestSchema = null;
+
+    if (!currentConversation?.messages.length) {
+      setCurrentSchema(null);
+      return
+    }
+
     const lastMessage = currentConversation?.messages[currentConversation.messages.length - 1];
 
     (lastMessage?.messages as IMessageItem[])?.some((message: IMessageItem) => {
@@ -187,16 +195,27 @@ export default function useTemplate(options?: UseTemplateOptions) {
     return targetMessage;
   };
 
+  const setCurrentCardId = (cardId: string) => {
+    currentCardId.value = cardId;
+  };
+
+  const getCurrentCardId = () => {
+    return currentCardId.value;
+  };
+
   return {
     isTemplateInit,
     templateConversationState: conversation.state,
     conversation,
     currentSchema,
+    currentCardId,
     templateProvider,
     messages,
     createTemplate,
     changeLlmConfig,
     setCurrentSchema,
+    setCurrentCardId,
+    getCurrentCardId,
     switchTemplate,
     deleteTemplate,
     updateTemplateTitle,

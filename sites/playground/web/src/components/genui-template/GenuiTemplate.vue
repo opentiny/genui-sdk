@@ -26,6 +26,7 @@ const schemaEditor = computed({
   get() {
     // 写入编辑器的代码
     if (!currentSchema.value) {
+      schemaEditorVisible.value = false;
       return '{}';
     }
 
@@ -103,7 +104,7 @@ provide('customContext', {
       </config-provider>
       <div class="schema-version-container" v-if="schemaEditorVisible">
         <div class="schema-version-toggle-button-group" v-if="schemaDiffVisible">
-          <tiny-button @click="updateSchemaVersion">还原此版本</tiny-button>
+          <!-- <tiny-button @click="updateSchemaVersion">还原此版本</tiny-button> -->
           <tiny-button type="info" @click="resetToLatestVersion">返回最新版本</tiny-button>
         </div>
         <code-editor v-model:value="schemaEditor" language="json" theme="vs" :options="editorOptions" />
