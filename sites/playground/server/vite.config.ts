@@ -14,12 +14,12 @@ export default defineConfig(({ mode }) => {
     viteStaticCopy({
       targets: [
         {
-          src: '.env.alpha',
+          src: '.env.opentiny',
           dest: './',
           rename: '.env',
         },
         {
-          src: 'alpha-models.json',
+          src: 'opentiny-models.json',
           dest: './',
         },
       ],
