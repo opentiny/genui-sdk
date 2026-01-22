@@ -1,167 +1,232 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, nextTick } from 'vue'
-import hljs from 'highlight.js/lib/core'
-import json from 'highlight.js/lib/languages/json'
-import { TinyButton, TinyButtonGroup } from '@opentiny/vue'
-import { SchemaRenderer } from '@opentiny/genui-sdk-vue'
-import { IconArrowRight } from '@opentiny/vue-icon'
-import genuiGuideDefault from '@/assets/genui_guide_default.svg'
+import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
+import hljs from "highlight.js/lib/core";
+import json from "highlight.js/lib/languages/json";
+import { TinyButton, TinyButtonGroup } from "@opentiny/vue";
+import { SchemaRenderer } from "@opentiny/genui-sdk-vue";
+import { IconArrowRight } from "@opentiny/vue-icon";
+import genuiGuideDefault from "@/assets/genui_guide_default.svg";
 
 // 注册 JSON 语言（如果尚未注册）
-if (!hljs.getLanguage('json')) {
-  hljs.registerLanguage('json', json)
+if (!hljs.getLanguage("json")) {
+  hljs.registerLanguage("json", json);
 }
 
 interface IUserMessage {
-  role: 'user'
-  content: string
-  customMessage?: string
+  role: "user";
+  content: string;
+  customMessage?: string;
 }
 
 interface IAssistantMessage {
-  role: 'assistant'
-  content: string
+  role: "assistant";
+  content: string;
 }
 
-type IMessage = IUserMessage | IAssistantMessage
+type IMessage = IUserMessage | IAssistantMessage;
 
-const TinyIconArrowRight = IconArrowRight()
+const TinyIconArrowRight = IconArrowRight();
 
-const message = ref<IMessage | null>(null)
-const extendSelect = ref('element')
-const generating = ref(false)
-const schemaRendererRef = ref<HTMLElement | null>(null)
-const hasStartedStreaming = ref(false)
+const message = ref<IMessage | null>(null);
+const extendSelect = ref("element");
+const generating = ref(false);
+const schemaRendererRef = ref<HTMLElement | null>(null);
+const hasStartedStreaming = ref(false);
+const codeRef = ref<HTMLElement | null>(null);
+// 用于控制流式加载的取消标志
+let shouldStopStreaming = false;
 
-// 生成所有 chunk 文件路径（共 239 个）
-const getChunkPath = (index: number): string => {
-  const chunkNum = String(index + 1).padStart(3, '0')
-  try {
-    // 使用 import.meta.url 构建相对于打包后文件的路径
-    // 打包后文件在 dist/index.js，静态文件在 dist/static/
-    const baseUrl = new URL(import.meta.url)
-    const staticBaseUrl = new URL('./static/', baseUrl)
-    const chunkUrl = new URL(`caculator-stream/chunk-${chunkNum}.json`, staticBaseUrl)
-    return chunkUrl.href
-  } catch (error) {
-    // 如果 import.meta.url 不可用，使用相对路径作为备选
-    // 打包后文件在 dist/index.js，静态文件在 dist/static/
-    return `./static/caculator-stream/chunk-${chunkNum}.json`
+// 生成 chunk 文件路径
+const getChunkPath = (index: number, type: string): string => {
+  const chunkNum = String(index + 1).padStart(3, "0");
+  // 根据类型选择不同的文件夹
+  const folderName = type === "element" ? "caculator-stream" : "todo-stream";
+
+  // 在开发环境中，使用绝对路径 /src/static/（Vite 开发服务器会提供 src 目录下的文件）
+  // 在生产环境中，使用相对路径（viteStaticCopy 会将文件复制到 dist/static/）
+  if (import.meta.env.DEV) {
+    // 开发环境：使用 Vite 开发服务器的绝对路径，指向 src/static
+    return `../static/${folderName}/chunk-${chunkNum}.json`;
+  } else {
+    // 生产环境：使用相对路径（相对于打包后的 index.html）
+    try {
+      // 尝试使用 import.meta.url 构建路径
+      const baseUrl = new URL(import.meta.url);
+      const staticBaseUrl = new URL("./static/", baseUrl);
+      const chunkUrl = new URL(
+        `${folderName}/chunk-${chunkNum}.json`,
+        staticBaseUrl
+      );
+      return chunkUrl.href;
+    } catch (error) {
+      // 如果 import.meta.url 不可用，使用相对路径作为备选
+      return `./static/${folderName}/chunk-${chunkNum}.json`;
+    }
   }
-}
+};
+
+const initCodeAreaHeight = () => {
+  nextTick(() => {
+    const height = document.querySelector(
+      ".home-extend-schema-renderer"
+    )?.clientHeight;
+    const codeArea = document.querySelector(".home-extend-schema-code");
+    if (height && codeArea) {
+      (codeArea as HTMLElement).style.height = `${height}px`;
+    }
+  });
+};
 
 const handleExtendClick = (value: string) => {
-  extendSelect.value = value
-}
+  // 停止当前的流式加载
+  if (generating.value) {
+    shouldStopStreaming = true;
+  }
+
+  // 重置状态
+  extendSelect.value = value;
+  hasStartedStreaming.value = false;
+
+  message.value = {
+    role: "assistant",
+    content: "",
+  };
+
+  setTimeout(() => {
+    // 触发新的流式加载
+    loadChunksStreaming();
+  }, 100);
+};
 
 const handleAction = ({
   llmFriendlyMessage,
-  humanFriendlyMessage
+  humanFriendlyMessage,
 }: {
-  llmFriendlyMessage: string
-  humanFriendlyMessage: string
+  llmFriendlyMessage: string;
+  humanFriendlyMessage: string;
 }) => {
   // 处理按钮点击事件
-  console.log('Action:', { llmFriendlyMessage, humanFriendlyMessage })
-}
+  console.log("Action:", { llmFriendlyMessage, humanFriendlyMessage });
+};
 
-const handleEnterPlayground = () => {
-
-}
+const handleEnterPlayground = () => {};
 
 // 格式化 JSON 内容用于显示
 const formattedJsonContent = computed(() => {
-  if (!message.value?.content) return ''
-  
+  if (!message.value?.content) return "";
+
   try {
     // 尝试解析 JSON，如果成功则格式化
-    const parsed = JSON.parse(message.value.content)
-    return JSON.stringify(parsed, null, 2)
+    const parsed = JSON.parse(message.value.content);
+    return JSON.stringify(parsed, null, 2);
   } catch (error) {
     // 如果 JSON 不完整（流式渲染中），直接返回原始内容
-    return message.value.content
+    return message.value.content;
   }
-})
+});
 
-// 监听 content 变化，更新代码高亮
-const codeRef = ref<HTMLElement | null>(null)
-
-watch(() => message.value?.content, () => {
-  nextTick(() => {
-    // 使用 highlight.js 更新代码高亮
-    if (codeRef.value) {
-      hljs.highlightElement(codeRef.value)
-    }
-  })
-})
+const initMessage = () => {
+  generating.value = false;
+  hasStartedStreaming.value = false;
+  shouldStopStreaming = false;
+};
 
 // 流式加载 chunk 文件
 const loadChunksStreaming = async () => {
-  if (hasStartedStreaming.value) return
-  hasStartedStreaming.value = true
+  if (hasStartedStreaming.value) return;
+  hasStartedStreaming.value = true;
 
-  generating.value = true
-  let accumulatedContent = ''
+  generating.value = true;
+  let accumulatedContent = "";
 
   // 初始化 message
   if (!message.value) {
     message.value = {
-      role: 'assistant',
-      content: ''
-    }
+      role: "assistant",
+      content: "",
+    };
   }
 
-  const totalChunks = 239
+  // 根据当前选择的应用类型确定 chunk 数量和文件夹
+  const currentType = extendSelect.value;
+  const totalChunks = currentType === "element" ? 239 : 54;
 
   try {
     for (let i = 0; i < totalChunks; i++) {
-      const chunkPath = getChunkPath(i)
+      // 检查是否需要停止加载
+      if (shouldStopStreaming && message.value?.content) {
+        initMessage();
+        return;
+      }
+
+      const chunkPath = getChunkPath(i, currentType);
 
       // 使用 fetch 读取 chunk 文件内容
-      const response = await fetch(chunkPath)
+      const response = await fetch(chunkPath);
       if (!response.ok) {
-        throw new Error(`Failed to load chunk ${i + 1}: ${response.statusText}`)
+        throw new Error(
+          `Failed to load chunk ${i + 1}: ${response.statusText}`
+        );
       }
-      const chunkContent = await response.text()
+      const chunkContent = await response.text();
+
+      // 再次检查是否需要停止（在 fetch 之后）
+      if (shouldStopStreaming && message.value?.content) {
+        initMessage();
+        return;
+      }
 
       // 拼接内容
-      accumulatedContent += chunkContent
+      accumulatedContent += chunkContent;
+      initCodeAreaHeight();
 
       // 更新 message content
       if (message.value) {
-        message.value.content = accumulatedContent
+        message.value.content = accumulatedContent;
       }
 
       // 最后一个 chunk 后，设置 generating 为 false
       if (i === totalChunks - 1) {
-        generating.value = false
-      } else {
-        // 延时 300ms 加载下一个 chunk
-        await new Promise((resolve) => setTimeout(resolve, 50))
-      }
+        generating.value = false;
+        shouldStopStreaming = false;
 
-      nextTick(() => {
-    // 使用 highlight.js 更新代码高亮
-    if (codeRef.value) {
-      hljs.highlightElement(codeRef.value)
-    }
-  })
+        nextTick(() => {
+          // 使用 highlight.js 更新代码高亮
+          if (codeRef.value) {
+            hljs.highlightElement(codeRef.value);
+          }
+        });
+      } else {
+        // 延时 50ms 加载下一个 chunk
+        await new Promise((resolve) => setTimeout(resolve, 50));
+
+        // 在延时后再次检查是否需要停止
+        if (shouldStopStreaming) {
+          initMessage();
+          return;
+        }
+      }
     }
   } catch (error) {
-    console.error('Error loading chunks:', error)
-    generating.value = false
+    // 只有在不是主动停止的情况下才记录错误
+    if (!shouldStopStreaming) {
+      console.error("Error loading chunks:", error);
+    }
+    generating.value = false;
+    hasStartedStreaming.value = false;
+    shouldStopStreaming = false;
   }
-}
+};
 
 // 使用 Intersection Observer 检测 SchemaRenderer 是否在视口中
-let observer: IntersectionObserver | null = null
+let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
   // 初始化 message 为空，等待流式加载
   message.value = {
-    role: 'assistant',
-    content: ''
-  }
+    role: "assistant",
+    content: "",
+  };
 
   // 创建 Intersection Observer
   observer = new IntersectionObserver(
@@ -169,36 +234,29 @@ onMounted(() => {
       entries.forEach((entry) => {
         if (entry.isIntersecting && !hasStartedStreaming.value) {
           // 当 SchemaRenderer 进入视口时，开始流式加载
-          loadChunksStreaming()
+          loadChunksStreaming();
         }
-      })
+      });
     },
     {
-      threshold: 0.1 // 当 10% 的元素可见时触发
+      threshold: 0.1, // 当 10% 的元素可见时触发
     }
-  )
+  );
 
   // 等待 DOM 更新后观察元素
   setTimeout(() => {
     if (schemaRendererRef.value) {
-      observer?.observe(schemaRendererRef.value)
+      observer?.observe(schemaRendererRef.value);
     }
-  }, 100)
-
-  // 初始化代码高亮
-  nextTick(() => {
-    if (codeRef.value) {
-      hljs.highlightElement(codeRef.value)
-    }
-  })
-})
+  }, 100);
+});
 
 onUnmounted(() => {
   if (observer) {
-    observer.disconnect()
-    observer = null
+    observer.disconnect();
+    observer = null;
   }
-})
+});
 </script>
 
 <template>
@@ -227,7 +285,10 @@ onUnmounted(() => {
           <div class="home-extend-schema-header-action-full"></div>
           <div class="home-extend-schema-header-action-exit"></div>
         </div>
-        <div class="home-extend-schema-header-subtitle" @click="handleEnterPlayground">
+        <div
+          class="home-extend-schema-header-subtitle"
+          @click="handleEnterPlayground"
+        >
           <span>进入 Playground</span>
           <tiny-icon-arrow-right />
         </div>
@@ -235,14 +296,14 @@ onUnmounted(() => {
       <div class="home-extend-schema-content">
         <div class="home-extend-schema-renderer-container">
           <SchemaRenderer
-          v-if="message && message.content"
-          class="home-extend-schema-renderer"
-          :content="message.content"
-          :generating="generating"
-          :onAction="handleAction"
-          @saveState="() => {}"
-        />
-        <img v-else :src="genuiGuideDefault" alt="genui-guide-default" />
+            v-if="message && message.content"
+            class="home-extend-schema-renderer"
+            :content="message.content"
+            :generating="generating"
+            :onAction="handleAction"
+            @saveState="() => {}"
+          />
+          <img v-else :src="genuiGuideDefault" alt="genui-guide-default" />
         </div>
         <div class="home-extend-schema-code">
           <pre
@@ -256,7 +317,7 @@ onUnmounted(() => {
 </template>
 
 <style lang="less" scoped>
-@import '../style/index.less';
+@import "../style/index.less";
 
 .home-extend {
   width: 100%;
@@ -273,7 +334,11 @@ onUnmounted(() => {
   &-schema {
     width: 100%;
     height: 100%;
-    background: linear-gradient(180deg, rgba(232, 238, 254, 1), rgba(232, 238, 254, 0.3) 100%);
+    background: linear-gradient(
+      180deg,
+      rgba(232, 238, 254, 1),
+      rgba(232, 238, 254, 0.3) 100%
+    );
     border-radius: 24px;
     padding: 3%;
 
@@ -330,7 +395,6 @@ onUnmounted(() => {
     }
 
     &-renderer {
-      
       &-container {
         height: 100%;
         min-width: 50%;
@@ -387,6 +451,12 @@ onUnmounted(() => {
       background-color: #fff;
     }
   }
+}
+
+/deep/ .tiny-grid-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
 

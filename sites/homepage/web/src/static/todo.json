@@ -1,0 +1,632 @@
+{
+  "componentName": "Page",
+  "state": {
+    "todoList": [
+      {
+        "id": "1",
+        "title": "完成项目需求文档",
+        "description": "整理产品需求并完成PRD文档初稿，需要与产品经理和开发团队进行沟通确认",
+        "priority": "high",
+        "completed": false,
+        "deadline": "2024-12-31",
+        "category": "work"
+      },
+      {
+        "id": "2",
+        "title": "健身锻炼",
+        "description": "完成30分钟有氧运动和力量训练，包括跑步机20分钟和器械训练",
+        "priority": "medium",
+        "completed": true,
+        "deadline": "2024-12-10",
+        "category": "life"
+      },
+      {
+        "id": "3",
+        "title": "购买生活用品",
+        "description": "去超市购买牛奶、面包、水果、蔬菜等日常必需品",
+        "priority": "low",
+        "completed": false,
+        "deadline": "2024-12-08",
+        "category": "life"
+      },
+      {
+        "id": "4",
+        "title": "学习React新特性",
+        "description": "学习React Server Components和新的Hook API，完成相关实践项目",
+        "priority": "high",
+        "completed": false,
+        "deadline": "2024-12-15",
+        "category": "study"
+      }
+    ],
+    "newTodo": {
+      "title": "",
+      "description": "",
+      "priority": "medium",
+      "deadline": "",
+      "category": "work"
+    },
+    "filterStatus": "all",
+    "filterPriority": "all",
+    "filterCategory": "all",
+    "searchText": ""
+  },
+  "methods": {
+    "addTodo": {
+      "type": "JSFunction",
+      "value": "function() { if (!this.state.newTodo.title.trim()) { return; } const newId = Date.now().toString(); const todo = { ...this.state.newTodo, id: newId, completed: false }; this.state.todoList.push(todo); this.state.newTodo.title = ''; this.state.newTodo.description = ''; this.state.newTodo.priority = 'medium'; this.state.newTodo.deadline = ''; this.state.newTodo.category = 'work'; }"
+    },
+    "toggleTodo": {
+      "type": "JSFunction",
+      "value": "function(id) { const todo = this.state.todoList.find(item => item.id === id); if (todo) { todo.completed = !todo.completed; } }"
+    },
+    "deleteTodo": {
+      "type": "JSFunction",
+      "value": "function(id) { const index = this.state.todoList.findIndex(item => item.id === id); if (index !== -1) { this.state.todoList.splice(index, 1); } }"
+    },
+    "filteredTodos": {
+      "type": "JSFunction",
+      "value": "function() { let filtered = this.state.todoList.filter(todo => { if (this.state.filterStatus === 'active' && todo.completed) return false; if (this.state.filterStatus === 'completed' && !todo.completed) return false; if (this.state.filterPriority !== 'all' && todo.priority !== this.state.filterPriority) return false; if (this.state.filterCategory !== 'all' && todo.category !== this.state.filterCategory) return false; if (this.state.searchText && !todo.title.toLowerCase().includes(this.state.searchText.toLowerCase()) && !todo.description.toLowerCase().includes(this.state.searchText.toLowerCase())) return false; return true; }); return filtered; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "h2",
+          "props": {},
+          "children": "📋 我的待办事项"
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "margin-bottom: 20px;"
+          },
+          "children": [
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 4
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySearch",
+                      "props": {
+                        "placeholder": "搜索待办事项",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.searchText"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 2
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySelect",
+                      "props": {
+                        "placeholder": "状态筛选",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.filterStatus"
+                        },
+                        "options": [
+                          {
+                            "label": "全部",
+                            "value": "all"
+                          },
+                          {
+                            "label": "未完成",
+                            "value": "active"
+                          },
+                          {
+                            "label": "已完成",
+                            "value": "completed"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 3
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySelect",
+                      "props": {
+                        "placeholder": "优先级",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.filterPriority"
+                        },
+                        "options": [
+                          {
+                            "label": "全部",
+                            "value": "all"
+                          },
+                          {
+                            "label": "高",
+                            "value": "high"
+                          },
+                          {
+                            "label": "中",
+                            "value": "medium"
+                          },
+                          {
+                            "label": "低",
+                            "value": "low"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 2
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySelect",
+                      "props": {
+                        "placeholder": "分类",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.filterCategory"
+                        },
+                        "options": [
+                          {
+                            "label": "全部",
+                            "value": "all"
+                          },
+                          {
+                            "label": "工作",
+                            "value": "work"
+                          },
+                          {
+                            "label": "生活",
+                            "value": "life"
+                          },
+                          {
+                            "label": "学习",
+                            "value": "study"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TinyGrid",
+          "props": {
+            "columns": [
+              {
+                "type": "index",
+                "width": 60,
+                "title": "序号"
+              },
+              {
+                "field": "completed",
+                "title": "状态",
+                "width": 80,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "div",
+                        "children": [
+                          {
+                            "componentName": "TinySwitch",
+                            "props": {
+                              "modelValue": {
+                                "type": "JSExpression",
+                                "value": "row.completed"
+                              },
+                              "onChange": {
+                                "type": "JSExpression",
+                                "value": "() => this.toggleTodo(row.id)"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "title",
+                "title": "标题",
+                "width": 200,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "div",
+                        "props": {
+                          "style": {
+                            "type": "JSExpression",
+                            "value": "row.completed ? 'text-decoration: line-through; color: #999;' : 'font-weight: bold;'"
+                          }
+                        },
+                        "children": [
+                          {
+                            "componentName": "Text",
+                            "props": {
+                              "text": {
+                                "type": "JSExpression",
+                                "value": "row.title"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "description",
+                "title": "描述",
+                "min-width": 300,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "row.description"
+                          },
+                          "style": {
+                            "type": "JSExpression",
+                            "value": "row.completed ? 'color: #999;' : ''"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "priority",
+                "title": "优先级",
+                "width": 100,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "div",
+                        "props": {
+                          "style": {
+                            "type": "JSExpression",
+                            "value": "row.priority === 'high' ? 'color: #ff4d4f' : row.priority === 'medium' ? 'color: #faad14' : 'color: #52c41a'"
+                          }
+                        },
+                        "children": [
+                          {
+                            "componentName": "Text",
+                            "props": {
+                              "text": {
+                                "type": "JSExpression",
+                                "value": "{ high: '高', medium: '中', low: '低' }[row.priority]"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "deadline",
+                "title": "截止日期",
+                "width": 120,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "row.deadline || '无'"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "category",
+                "title": "分类",
+                "width": 120,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "{ work: '工作', life: '生活', study: '学习' }[row.category] || row.category"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "title": "操作",
+                "width": 100,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "TinyButton",
+                        "props": {
+                          "text": "删除",
+                          "type": "danger",
+                          "size": "small",
+                          "onClick": {
+                            "type": "JSExpression",
+                            "value": "() => this.deleteTodo(row.id)"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              }
+            ],
+            "data": {
+              "type": "JSExpression",
+              "value": "this.filteredTodos()"
+            },
+            "max-height": "150px"
+          }
+        },
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-top: 30px; margin-bottom: 20px;"
+          },
+          "children": "➕ 添加新待办"
+        },
+        {
+          "componentName": "TinyForm",
+          "props": {
+            "model": {
+              "type": "JSExpression",
+              "value": "this.state.newTodo"
+            },
+            "label-position": "top"
+          },
+          "children": [
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "标题",
+                        "required": true
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinyInput",
+                          "props": {
+                            "placeholder": "请输入待办事项标题",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.title"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "优先级"
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinySelect",
+                          "props": {
+                            "placeholder": "请选择优先级",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.priority"
+                            },
+                            "options": [
+                              {
+                                "label": "高",
+                                "value": "high"
+                              },
+                              {
+                                "label": "中",
+                                "value": "medium"
+                              },
+                              {
+                                "label": "低",
+                                "value": "low"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "分类"
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinySelect",
+                          "props": {
+                            "placeholder": "请选择分类",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.category"
+                            },
+                            "options": [
+                              {
+                                "label": "工作",
+                                "value": "work"
+                              },
+                              {
+                                "label": "生活",
+                                "value": "life"
+                              },
+                              {
+                                "label": "学习",
+                                "value": "study"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "截止日期"
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinyDatePicker",
+                          "props": {
+                            "placeholder": "请选择截止日期",
+                            "format": "yyyy/MM/dd",
+                            "value-format": "yyyy-MM-dd",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.deadline"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": ""
+              },
+              "children": [
+                {
+                  "componentName": "TinyButton",
+                  "props": {
+                    "text": "添加待办",
+                    "type": "primary",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.addTodo"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

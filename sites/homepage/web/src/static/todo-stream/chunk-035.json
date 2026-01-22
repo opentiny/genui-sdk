@@ -1,0 +1,1 @@
+ : 'color: #52c41a'"}},"children":[{"componentName":"Text","props":{"text":{"type":"JSExpression","value":"{ high: '高', medium: '中', low: '低' }[row.pr

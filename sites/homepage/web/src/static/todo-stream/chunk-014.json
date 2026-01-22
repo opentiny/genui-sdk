@@ -1,0 +1,1 @@
+ll' && todo.priority !== this.state.filterPriority) return false; if (this.state.filterCategory !== 'all' && todo.category !== this.state.filterCatego

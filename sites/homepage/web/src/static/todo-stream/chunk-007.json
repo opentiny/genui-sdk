@@ -1,0 +1,1 @@
+:"function() { if (!this.state.newTodo.title.trim()) { return; } const newId = Date.now().toString(); const todo = { ...this.state.newTodo, id: newId,
