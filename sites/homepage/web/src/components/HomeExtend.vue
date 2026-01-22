@@ -459,7 +459,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-.extend-code-content {
+/deep/ .extend-code-content {
   background: #ffffff !important;
   padding: 0 !important;
   margin: 0 !important;
