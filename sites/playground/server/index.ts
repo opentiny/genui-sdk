@@ -20,6 +20,7 @@ const { chatGenuiHandler } = createChatGenui();
 
 useProviderModelMapper(path.resolve(__dirname, process.env.providerModelsPath || ''));
 const getModelsHandler = async (req: Request, res: Response) => {
+  console.log('Received request to /get-models');
   const providerModelMapper = useProviderModelMapperSync();
   const models = providerModelMapper.getAllModelInfos();
 
