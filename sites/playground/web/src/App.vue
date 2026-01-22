@@ -2,7 +2,7 @@
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
-import { GenuiConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
 import { customComponents, customExamples } from './custom-components';
 import { getModelFeatures, getModelOptions } from './api';
@@ -28,7 +28,7 @@ if (location.search.includes('framework=angular')) {
   const SchemaRendererNgAdapter = defineAsyncComponent(() =>
     import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
   );
-  provide(SCHEMA_RENDERER_INJECTION_TOKEN, SchemaRendererNgAdapter);
+  provide(GENUI_RENDERER, SchemaRendererNgAdapter);
   framework = 'Angular';
 }
 
@@ -60,7 +60,7 @@ const chatConfig = reactive(
 
 const modelData = ref([]);
 const modelFeatures = ref({});
-const theme = ref(cacheTheme || 'default');
+const theme = ref(cacheTheme || 'vivid');
 
 
 
@@ -80,7 +80,7 @@ watch(
   { deep: true },
 );
 const themeData = ref([
-  { text: '默认', value: 'default' },
+  { text: '灵动', value: 'vivid' },
   { text: '暗黑', value: 'dark' },
   { text: '清新', value: 'lite' },
 ]);

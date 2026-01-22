@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { CUSTOM_CONTEXT } from '@opentiny/genui-sdk-vue';
 import TinyButton from '@opentiny/vue-button';
 import { useAttrs, computed, inject } from 'vue';
 import { useI18n } from '../../../../frameworks/vue/src/chat/i18n'; //TODO: replace with package name
@@ -9,8 +10,8 @@ const buttonAttrs: any = computed(() => {
     ...attrs,
   };
 });
-const customContext: any = inject('customContext');
-const pageContext: any = inject('pageContext');
+const customContext: any = inject(CUSTOM_CONTEXT, null);
+const pageContext: any = inject('pageContext', null);
 
 const { onAction } = (customContext.value || {}) as any;
 const { state } = (pageContext || {}) as any;

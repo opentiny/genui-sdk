@@ -4,6 +4,7 @@ import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/them
 import { watch, provide, computed, onMounted, ref } from 'vue';
 import type { LocaleType, I18n, TranslateFunction } from './i18n';
 import { createTranslateFunction, setI18nInstance } from './i18n';
+import { GENUI_CONFIG } from './injection-tokens';
 
 export interface ConfigProviderProps {
   theme: string;
@@ -27,7 +28,7 @@ const transformTheme = (themeConfig: any) => {
 const themeMap: Record<string, any> = {
   dark: transformTheme(tinyDarkTheme),
   lite: transformTheme(tinyOldTheme),
-  default: { css: ' ' },
+  vivid: { css: ' ' },
 };
 
 const themeTool = new ThemeTool();
@@ -39,7 +40,7 @@ const TinyGenuiConfig = computed(() => {
   };
 });
 
-provide('TinyGenuiConfig', TinyGenuiConfig);
+provide(GENUI_CONFIG, TinyGenuiConfig);
 
 watch(
   () => [props.locale, props.i18n, props.t] as const,
@@ -54,7 +55,7 @@ watch(
 watch(
   () => props.theme,
   (newVal) => {
-    const themeConfig = themeMap[newVal] || themeMap.default;
+    const themeConfig = themeMap[newVal] || themeMap.vivid;
     themeTool.changeTheme(themeConfig);
   },
   {

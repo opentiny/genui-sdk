@@ -16,7 +16,7 @@ import type {
   UserItem,
   UserTextItem,
 } from '@opentiny/tiny-robot';
-import { ref, watch, computed, h, inject } from 'vue';
+import { ref, watch, computed, h, inject, provide } from 'vue';
 import type { Ref, Component } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
@@ -37,10 +37,11 @@ import ErrorText from './ErrorText.vue';
 import { useResize } from './composable/use-resize';
 import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
+import { GENUI_CONFIG, CUSTOM_CONTEXT } from './injection-tokens';
 
 const props = defineProps<IChatProps>();
 
-const TinyGenuiConfig: any = inject('TinyGenuiConfig');
+const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
 
 const { setColorMode } = useTheme();
@@ -155,6 +156,7 @@ const saveState = (context: Record<string | symbol, any>) => {
   }
   saveConversations();
 }
+
 const onAction = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) => {
   saveState(context);
   messageManager.value.addMessage({
@@ -164,6 +166,15 @@ const onAction = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) =>
   });
   messageManager.value.send();
 };
+
+const customContext = computed(() => {
+  return {
+    onAction: onAction,
+    generating: generating.value,
+  };
+});
+
+provide(CUSTOM_CONTEXT, customContext);
 
 const { continueChatAction } = useContinueChatAction(onAction); //TODO: Refactor
 const saveStateAction = {
@@ -182,7 +193,7 @@ const markdownRenderer = new BubbleMarkdownContentRenderer({
   mdConfig: { html: true },
 });
 
-const lastScemaCardId = computed(() => {
+const lastSchemaCardId = computed(() => {
   const lastChatMessage = messages.value[messages.value.length - 1];
   if (lastChatMessage?.role !== 'assistant') {
     return null;
@@ -224,9 +235,9 @@ const messageRenderers = {
       {
         
         ...schemaCardProps,
-        requiredCompleteFieldSelectors: [],
+        requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
         onAction,
-        generating: lastScemaCardId.value === schemaCardProps.id ? generating.value : false,
+        generating: lastSchemaCardId.value === schemaCardProps.id ? generating.value : false,
         customComponents: customComponentsMap,
         customActions: {
           ...customActionsMap,
@@ -252,7 +263,7 @@ const customModelProvider = new CustomModelProvider({
   url: props.url,
   model: props.model || '',
   temperature: props.temperature ?? 0.3,
-  config: props.config || { addToolCallContext: false, showThinkingResult: false },
+  chatConfig: props.chatConfig || { addToolCallContext: false, showThinkingResult: false },
   customComponents: props.customComponents || [],
   customSnippets: props.customSnippets || [],
   customExamples: props.customExamples || [],
@@ -357,7 +368,7 @@ const showMessages = computed(() => {
               type: 'loading-text',
               emitter: emitter,
               message: lastMessage,
-              showThinkingResult: props.config?.showThinkingResult,
+              showThinkingResult: props.chatConfig?.showThinkingResult,
             },
           ],
         },
@@ -483,7 +494,7 @@ defineExpose({
   <div
     class="tg-chat-container"
     :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }"
-    :style="props.config?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
+    :style="props.chatConfig?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
   >
     <div class="messages-container" ref="messagesContainer" :style="{ '--messages-container-width': messagesContainerWidth + 'px' }">
       <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">

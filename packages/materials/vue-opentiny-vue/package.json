@@ -8,6 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@opentiny/genui-sdk-vue": "workspace:*",
     "@opentiny/vue-button": "^3.25.0",
     "@opentiny/vue-chart-bar": "~3.14.0",
     "@opentiny/vue-chart-histogram": "~3.14.0",
