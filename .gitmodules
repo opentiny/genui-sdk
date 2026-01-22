@@ -1,6 +1,3 @@
 [submodule "projects/tiny-schema-renderer"]
 	path = projects/tiny-schema-renderer
 	url = git@github.com:opentiny/tiny-schema-renderer.git
-[submodule "poc-ai-agent"]
-	path = poc-ai-agent
-	url = git@github.com:opentiny/poc-ai-agent.git
