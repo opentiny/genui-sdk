@@ -21,7 +21,7 @@
 import { ref, computed } from 'vue';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
-const currentTheme = ref<'dark' | 'lite' | 'default'>('default');
+const currentTheme = ref<'dark' | 'lite' | 'vivid'>('vivid');
 
 const themeIcon = computed(() => {
   const icons = {
@@ -36,7 +36,7 @@ const containerBgColor = computed(() => {
 });
 
 function toggleTheme() {
-  currentTheme.value = currentTheme.value === 'dark' ? 'default' : 'dark';
+  currentTheme.value = currentTheme.value === 'dark' ? 'vivid' : 'dark';
 }
 
 const generating = ref(false);

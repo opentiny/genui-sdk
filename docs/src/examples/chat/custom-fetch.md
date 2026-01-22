@@ -436,7 +436,7 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
       :customFetch="defaultCustomFetch"
       model="deepseek-v3.2"
       :temperature="0.5"
-      :config="config"
+      :chatConfig="chatConfig"
     />
   </div>
 </template>
@@ -445,7 +445,7 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
 import { defaultCustomFetch } from './api/custom-fetch';
 
-const config = {
+const chatConfig = {
   addToolCallContext: true,
   showThinkingResult: true,
 };

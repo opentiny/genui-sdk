@@ -94,7 +94,7 @@ function clearAll() {
 
 - 用途：为渲染器提供主题能力，并将主题样式限定在特定作用域内。
 - Props
-  - `theme: 'dark' | 'lite' | 'default'`
+  - `theme: 'dark' | 'lite' | 'vivid'`
   - `id?: string`：容器元素 id，默认 `tiny-genui-config-provider`。
 
 ### 示例
@@ -106,7 +106,7 @@ function clearAll() {
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
-const theme = ref<'dark' | 'lite' | 'default'>('dark');
+const theme = ref<'dark' | 'lite' | 'vivid'>('dark');
 </script>
 
 <template>
@@ -123,7 +123,7 @@ const theme = ref<'dark' | 'lite' | 'default'>('dark');
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
-const theme = ref<'dark' | 'lite' | 'default'>('dark');
+const theme = ref<'dark' | 'lite' | 'vivid'>('dark');
 </script>
 
 <template>

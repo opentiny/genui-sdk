@@ -73,19 +73,19 @@ const initialMessages = [
 </script>
 ```
 
-### config
+### chatConfig
 
-- **类型**: `IGenuiConfig`
+- **类型**: `IChatConfig`
 - **必填**: 否
-- **说明**: GenUI 相关配置。
+- **说明**: 对话相关配置。
 
 ```vue
 <template>
-  <GenuiChat :url="url" :config="genuiConfig" />
+  <GenuiChat :url="url" :chatConfig="chatConfig" />
 </template>
 
 <script setup>
-const genuiConfig = {
+const chatConfig = {
   addToolCallContext: true, // 是否添加工具调用上下文
   showThinkingResult: true, // 是否显示思考结果
 };
@@ -362,6 +362,57 @@ const customFetch: CustomFetch = async (url, options) => {
 
 查看 [Chat 组件 - 自定义 Fetch](../examples/chat/custom-fetch) 了解详细用法
 
+### requiredCompleteFieldSelectors
+
+- **类型**: `string[]`
+- **必填**: 否
+- **说明**: 缓冲字段选择器数组，用于指定哪些字段路径需要完整后才应用更新。该属性会透传给 `GenuiRenderer` 组件，用于防止流式返回过程中因字段不完整导致的渲染错误。
+
+```vue
+<template>
+  <GenuiChat :url="url" :requiredCompleteFieldSelectors="selectors" />
+</template>
+
+<script setup>
+const selectors = [
+  '[componentName=TinySelect] > props > items', // TinySelect 的 items 数组必须完整
+  '[componentName=TinyTabItem] > props > name', // TinyTabItem 的 name 属性必须完整
+];
+</script>
+```
+
+查看 [Renderer 组件 - 缓冲字段](../examples/renderer/required-complete-field-selectors) 了解详细用法和选择器语法
+
+## Slots
+
+### empty
+
+- **说明**: 自定义空状态插槽。如果当前没有任何会话内容时，会渲染该插槽的内容，便于自定义欢迎文案、引导文案或占位 UI。
+- **插槽参数**: 无
+
+```vue
+<template>
+  <GenuiChat :url="url">
+    <template #empty>
+      <div class="genui-chat-empty">
+        <h2>欢迎使用 GenuiChat</h2>
+      </div>
+    </template>
+  </GenuiChat>
+</template>
+
+<style scoped>
+.genui-chat-empty {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+}
+</style>
+```
+
 ## Methods
 
 ### getConversation
@@ -412,10 +463,10 @@ interface IMessageItem {
 }
 ```
 
-### IGenuiConfig
+### IChatConfig
 
 ```typescript
-interface IGenuiConfig {
+interface IChatConfig {
   addToolCallContext?: boolean; // 是否添加工具调用上下文
   showThinkingResult?: boolean; // 是否显示思考结果
 }

@@ -87,6 +87,7 @@ export default defineConfig({
               items: [
                 { text: '切换主题', link: '/examples/config-provider/theme' },
                 { text: '自定义主题', link: '/examples/config-provider/custom-theme' },
+                { text: '国际化配置', link: '/examples/config-provider/i18n' },
               ],
             },
           ],
