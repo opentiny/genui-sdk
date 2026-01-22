@@ -34,10 +34,20 @@ const schemaRendererRef = ref<HTMLElement | null>(null)
 const hasStartedStreaming = ref(false)
 
 // 生成所有 chunk 文件路径（共 239 个）
-const getChunkPath = (index: number) => {
+const getChunkPath = (index: number): string => {
   const chunkNum = String(index + 1).padStart(3, '0')
-  // 使用 ?raw 后缀导入原始文本内容
-  return `../static/caculator-stream/chunk-${chunkNum}.json?raw`
+  try {
+    // 使用 import.meta.url 构建相对于打包后文件的路径
+    // 打包后文件在 dist/index.js，静态文件在 dist/static/
+    const baseUrl = new URL(import.meta.url)
+    const staticBaseUrl = new URL('./static/', baseUrl)
+    const chunkUrl = new URL(`caculator-stream/chunk-${chunkNum}.json`, staticBaseUrl)
+    return chunkUrl.href
+  } catch (error) {
+    // 如果 import.meta.url 不可用，使用相对路径作为备选
+    // 打包后文件在 dist/index.js，静态文件在 dist/static/
+    return `./static/caculator-stream/chunk-${chunkNum}.json`
+  }
 }
 
 const handleExtendClick = (value: string) => {
@@ -107,10 +117,12 @@ const loadChunksStreaming = async () => {
     for (let i = 0; i < totalChunks; i++) {
       const chunkPath = getChunkPath(i)
 
-      // 使用动态导入读取 chunk 文件内容（?raw 后缀会返回原始字符串）
-      const chunkModule = await import(/* @vite-ignore */ chunkPath)
-      // ?raw 导入会返回 default 导出为字符串
-      const chunkContent = chunkModule.default as string
+      // 使用 fetch 读取 chunk 文件内容
+      const response = await fetch(chunkPath)
+      if (!response.ok) {
+        throw new Error(`Failed to load chunk ${i + 1}: ${response.statusText}`)
+      }
+      const chunkContent = await response.text()
 
       // 拼接内容
       accumulatedContent += chunkContent

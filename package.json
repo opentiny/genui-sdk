@@ -12,6 +12,7 @@
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
     "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build",
     "build:playground": "pnpm --filter genui-sdk-playground build",
+    "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
     "build": "pnpm build:playground"
   },
   "keywords": [],
