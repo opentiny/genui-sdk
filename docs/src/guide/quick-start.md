@@ -104,7 +104,7 @@ const temperature = ref(0.7); // [!code ++]
 
 ## 通过 GenuiConfigProvider 配置主题
 
-你可以使用 `GenuiConfigProvider` 组件为 `GenuiChat` 配置主题。目前内置了三种主题：`'dark'`（深色）、`'lite'`（浅色）和 `'default'`（默认）。
+你可以使用 `GenuiConfigProvider` 组件为 `GenuiChat` 配置主题。目前内置了三种主题：`'dark'`（深色）、`'lite'`（浅色）和 `'vivid'`（灵动），默认为`'vivid'`。
 
 ### 基础用法
 
@@ -142,7 +142,7 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
 const temperature = ref(0.7);
-const theme = ref<'dark' | 'lite' | 'default'>('dark');
+const theme = ref<'dark' | 'lite' | 'vivid'>('dark');
 </script>
 
 <template>
