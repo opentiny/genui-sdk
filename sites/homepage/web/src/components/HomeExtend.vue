@@ -458,9 +458,7 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-</style>
 
-<style>
 .extend-code-content {
   background: #ffffff !important;
   padding: 0 !important;

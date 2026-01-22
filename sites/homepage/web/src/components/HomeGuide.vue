@@ -178,9 +178,7 @@ onMounted(() => {
     }
   }
 }
-</style>
 
-<style lang="less">
 .guide-code {
   background: #0b1020;
   padding: 20px;
@@ -275,3 +273,4 @@ onMounted(() => {
   }
 }
 </style>
+
