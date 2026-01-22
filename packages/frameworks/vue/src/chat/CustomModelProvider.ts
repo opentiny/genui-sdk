@@ -1,7 +1,7 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { IGenuiConfig, ICustomComponentItem, CustomFetch } from './chat.types';
+import type { IChatConfig, ICustomComponentItem, CustomFetch } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
@@ -13,7 +13,7 @@ export interface ICustomModelProviderOptions {
   url: string;
   model: string;
   temperature: number;
-  config: IGenuiConfig;
+  chatConfig: IChatConfig;
   customComponents: ICustomComponentItem[];
   customSnippets: IGenPromptSnippet[];
   customExamples: IGenPromptExample[];
@@ -28,9 +28,9 @@ export class CustomModelProvider extends BaseModelProvider {
   private customSnippets: IGenPromptSnippet[];
   private customExamples: IGenPromptExample[];
   private customActions: any[];
-  private newConfig: IGenuiConfig;
+  private chatConfig: IChatConfig;
   private customFetch?: CustomFetch;
-  constructor({ url, model, temperature, config, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
+  constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
     this.model = model;
@@ -39,7 +39,7 @@ export class CustomModelProvider extends BaseModelProvider {
     this.customSnippets = customSnippets;
     this.customExamples = customExamples;
     this.customActions = customActions;
-    this.newConfig = config;
+    this.chatConfig = chatConfig;
     this.customFetch = customFetch;
   }
   validateRequest(_: ChatCompletionRequest) { }
@@ -164,7 +164,7 @@ export class CustomModelProvider extends BaseModelProvider {
           chatMessage: structuredClone(toRaw(chatMessage)),
         });
 
-        if (this.newConfig.addToolCallContext) {
+        if (this.chatConfig.addToolCallContext) {
           const { t } = useI18n();
           chatMessage.content +=
             t('toolCall.context', {

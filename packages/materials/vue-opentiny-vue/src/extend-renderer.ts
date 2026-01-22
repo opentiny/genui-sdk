@@ -6,7 +6,7 @@ import GridStack from './components/GridStack.vue';
 import GridStackItem from './components/GridStackItem.vue';
 
 export let extened = false;
-export const exentdMapper = (Mapper: any, customComponents: Record<string, Component>) => {
+export const extendMapper = (Mapper: any, customComponents: Record<string, Component>) => {
   if (extened) return;
   extened = true;
   Mapper.TinySelect = TinySelectWrap;

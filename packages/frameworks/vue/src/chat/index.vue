@@ -3,6 +3,7 @@ import { ThemeProvider, type BubbleProps } from '@opentiny/tiny-robot';
 import GenuiChat from './GenuiChat.vue';
 import { ref, inject, computed } from 'vue';
 import type { IChatProps, IProviderProps } from './chat.types';
+import { GENUI_CONFIG } from './injection-tokens';
 
 const props = withDefaults(defineProps<IChatProps>(), {
   messages: () => [],
@@ -13,7 +14,7 @@ const props = withDefaults(defineProps<IChatProps>(), {
   customActions: () => [],
 });
 
-const TinyGenuiConfig: any = inject('TinyGenuiConfig');
+const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 
 const providerProps = computed(() => {
   const props: IProviderProps = {};

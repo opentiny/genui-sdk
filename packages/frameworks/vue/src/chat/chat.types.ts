@@ -24,7 +24,7 @@ export interface ICustomComponentItem extends IGenPromptComponent {
   ref?: Component; // 组件引用，用于传给 SchemaRenderer
 }
 
-export interface IGenuiConfig {
+export interface IChatConfig {
   addToolCallContext?: boolean;
   showThinkingResult?: boolean;
 }
@@ -85,7 +85,8 @@ export interface IChatProps {
   model?: string;
   temperature?: number;
   messages?: IMessage[];
-  config?: IGenuiConfig;
+  chatConfig?: IChatConfig;
+  requiredCompleteFieldSelectors?: string[];
   customComponents?: ICustomComponentItem[];
   customSnippets?: IGenPromptSnippet[];
   customExamples?: IGenPromptExample[];
