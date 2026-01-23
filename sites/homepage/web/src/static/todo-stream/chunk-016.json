@@ -1,1 +1,0 @@
-e().includes(this.state.searchText.toLowerCase())) return false; return true; }); return filtered; }"}},"children":[{"componentName":"TinyCard","child

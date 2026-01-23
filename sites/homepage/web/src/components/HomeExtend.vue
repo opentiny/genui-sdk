@@ -4,8 +4,10 @@ import hljs from "highlight.js/lib/core";
 import json from "highlight.js/lib/languages/json";
 import { TinyButton, TinyButtonGroup } from "@opentiny/vue";
 import { SchemaRenderer } from "@opentiny/genui-sdk-vue";
-import { IconArrowRight } from "@opentiny/vue-icon";
+import { IconArrowRight, IconRefresh } from "@opentiny/vue-icon";
 import genuiGuideDefault from "@/assets/genui_guide_default.svg";
+import { LinkKey, openLink } from "@/utils/link";
+import { splitJsonIntoChunks } from "@/utils/jsonUtil";
 
 // 注册 JSON 语言（如果尚未注册）
 if (!hljs.getLanguage("json")) {
@@ -26,6 +28,7 @@ interface IAssistantMessage {
 type IMessage = IUserMessage | IAssistantMessage;
 
 const TinyIconArrowRight = IconArrowRight();
+const TinyIconRefresh = IconRefresh();
 
 const message = ref<IMessage | null>(null);
 const extendSelect = ref("element");
@@ -36,31 +39,20 @@ const codeRef = ref<HTMLElement | null>(null);
 // 用于控制流式加载的取消标志
 let shouldStopStreaming = false;
 
-// 生成 chunk 文件路径
-const getChunkPath = (index: number, type: string): string => {
-  const chunkNum = String(index + 1).padStart(3, "0");
-  // 根据类型选择不同的文件夹
-  const folderName = type === "element" ? "caculator-stream" : "todo-stream";
+// 获取 JSON 文件路径
+const getJsonPath = (type: string): string => {
+  const fileName = type === "element" ? "caculator.json" : "todo.json";
 
-  // 在开发环境中，使用绝对路径 /src/static/（Vite 开发服务器会提供 src 目录下的文件）
-  // 在生产环境中，使用相对路径（viteStaticCopy 会将文件复制到 dist/static/）
   if (import.meta.env.DEV) {
-    // 开发环境：使用 Vite 开发服务器的绝对路径，指向 src/static
-    return `../static/${folderName}/chunk-${chunkNum}.json`;
+    return `../static/${fileName}`;
   } else {
-    // 生产环境：使用相对路径（相对于打包后的 index.html）
     try {
-      // 尝试使用 import.meta.url 构建路径
       const baseUrl = new URL(import.meta.url);
       const staticBaseUrl = new URL("./static/", baseUrl);
-      const chunkUrl = new URL(
-        `${folderName}/chunk-${chunkNum}.json`,
-        staticBaseUrl
-      );
-      return chunkUrl.href;
+      const jsonUrl = new URL(fileName, staticBaseUrl);
+      return jsonUrl.href;
     } catch (error) {
-      // 如果 import.meta.url 不可用，使用相对路径作为备选
-      return `./static/${folderName}/chunk-${chunkNum}.json`;
+      return `./static/${fileName}`;
     }
   }
 };
@@ -75,6 +67,10 @@ const initCodeAreaHeight = () => {
       (codeArea as HTMLElement).style.height = `${height}px`;
     }
   });
+};
+
+const handleRefresh = () => {
+  handleExtendClick(extendSelect.value);
 };
 
 const handleExtendClick = (value: string) => {
@@ -109,8 +105,6 @@ const handleAction = ({
   console.log("Action:", { llmFriendlyMessage, humanFriendlyMessage });
 };
 
-const handleEnterPlayground = () => {};
-
 // 格式化 JSON 内容用于显示
 const formattedJsonContent = computed(() => {
   if (!message.value?.content) return "";
@@ -131,7 +125,7 @@ const initMessage = () => {
   shouldStopStreaming = false;
 };
 
-// 流式加载 chunk 文件
+// 流式加载并处理 JSON 分块
 const loadChunksStreaming = async () => {
   if (hasStartedStreaming.value) return;
   hasStartedStreaming.value = true;
@@ -147,37 +141,39 @@ const loadChunksStreaming = async () => {
     };
   }
 
-  // 根据当前选择的应用类型确定 chunk 数量和文件夹
+  // 根据当前选择的应用类型确定 JSON 文件路径
   const currentType = extendSelect.value;
-  const totalChunks = currentType === "element" ? 239 : 54;
+  const totalChunks = 150;
 
   try {
-    for (let i = 0; i < totalChunks; i++) {
+    // 读取完整的 JSON 文件
+    const jsonPath = getJsonPath(currentType);
+    const response = await fetch(jsonPath);
+    if (!response.ok) {
+      throw new Error(`Failed to load JSON file: ${response.statusText}`);
+    }
+    const jsonContent = await response.text();
+    const jsonData = JSON.parse(jsonContent);
+
+    // 检查是否需要停止（在解析之后）
+    if (shouldStopStreaming) {
+      initMessage();
+      return;
+    }
+
+    // 将 JSON 分块处理
+    const chunks = splitJsonIntoChunks(jsonData, totalChunks);
+
+    // 流式输出每个 chunk
+    for (let i = 0; i < chunks.length; i++) {
       // 检查是否需要停止加载
       if (shouldStopStreaming && message.value?.content) {
         initMessage();
         return;
       }
 
-      const chunkPath = getChunkPath(i, currentType);
-
-      // 使用 fetch 读取 chunk 文件内容
-      const response = await fetch(chunkPath);
-      if (!response.ok) {
-        throw new Error(
-          `Failed to load chunk ${i + 1}: ${response.statusText}`
-        );
-      }
-      const chunkContent = await response.text();
-
-      // 再次检查是否需要停止（在 fetch 之后）
-      if (shouldStopStreaming && message.value?.content) {
-        initMessage();
-        return;
-      }
-
       // 拼接内容
-      accumulatedContent += chunkContent;
+      accumulatedContent += chunks[i];
       initCodeAreaHeight();
 
       // 更新 message content
@@ -186,7 +182,7 @@ const loadChunksStreaming = async () => {
       }
 
       // 最后一个 chunk 后，设置 generating 为 false
-      if (i === totalChunks - 1) {
+      if (i === chunks.length - 1) {
         generating.value = false;
         shouldStopStreaming = false;
 
@@ -197,7 +193,7 @@ const loadChunksStreaming = async () => {
           }
         });
       } else {
-        // 延时 50ms 加载下一个 chunk
+        // 延时 50ms 输出下一个 chunk
         await new Promise((resolve) => setTimeout(resolve, 50));
 
         // 在延时后再次检查是否需要停止
@@ -210,7 +206,7 @@ const loadChunksStreaming = async () => {
   } catch (error) {
     // 只有在不是主动停止的情况下才记录错误
     if (!shouldStopStreaming) {
-      console.error("Error loading chunks:", error);
+      console.error("Error loading JSON:", error);
     }
     generating.value = false;
     hasStartedStreaming.value = false;
@@ -287,7 +283,7 @@ onUnmounted(() => {
         </div>
         <div
           class="home-extend-schema-header-subtitle"
-          @click="handleEnterPlayground"
+          @click="openLink(LinkKey.Playground)"
         >
           <span>进入 Playground</span>
           <tiny-icon-arrow-right />
@@ -304,20 +300,21 @@ onUnmounted(() => {
             @saveState="() => {}"
           />
           <img v-else :src="genuiGuideDefault" alt="genui-guide-default" />
-        </div>
-        <div class="home-extend-schema-code">
-          <pre
-            v-if="message && message.content"
-            class="extend-code-content"
-          ><code ref="codeRef" class="language-json">{{ formattedJsonContent }}</code></pre>
+          <tiny-button
+            class="refresh-button"
+            circle
+            size="medium"
+            :icon="TinyIconRefresh"
+            @click="handleRefresh"
+          ></tiny-button>
         </div>
       </div>
     </div>
   </section>
 </template>
-
 <style lang="less" scoped>
 @import "../style/index.less";
+@import "../mixin.less";
 
 .home-extend {
   width: 100%;
@@ -332,8 +329,11 @@ onUnmounted(() => {
   }
 
   &-schema {
+    position: relative;
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: column;
     background: linear-gradient(
       180deg,
       rgba(232, 238, 254, 1),
@@ -388,18 +388,21 @@ onUnmounted(() => {
 
     &-content {
       display: flex;
+      justify-content: center;
+      align-items: center;
       width: 100%;
       background: #fff;
       border-radius: 12px;
       padding: 5% 5%;
+      overflow: auto;
+      .pcRem(height, 4000);
     }
 
     &-renderer {
       &-container {
-        height: 100%;
-        min-width: 50%;
-        padding-right: 3%;
-        border-right: 1px solid rgba(205, 218, 253, 1);
+        display: flex;
+        flex-direction: column;
+        width: 100%;
       }
     }
 
@@ -416,12 +419,18 @@ onUnmounted(() => {
     }
   }
 
-  /deep/ .tiny-button {
-    margin-left: 0;
-    border-radius: 0;
-    border: none;
-    background-color: rgba(243, 243, 244, 1);
+  @media (max-width: 768px) {
+    &-schema {
+      padding: 5%;
+    }
   }
+}
+
+.refresh-button {
+  position: absolute;
+  right: calc(4%);
+  bottom: calc(5% + 18px);
+  box-shadow: 0 2px 4px #00000029;
 }
 
 .extend-button-group {
@@ -437,6 +446,9 @@ onUnmounted(() => {
   .extend-button {
     height: 100%;
     width: 200px;
+    margin-left: 0;
+    border-radius: 0;
+    border: none;
     background-color: rgba(243, 243, 244, 1);
 
     &-element-1 {
@@ -451,12 +463,12 @@ onUnmounted(() => {
       background-color: #fff;
     }
   }
-}
 
-/deep/ .tiny-grid-cell {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  @media (max-width: 768px) {
+    .extend-button {
+      width: 80px;
+    }
+  }
 }
 
 /deep/ .extend-code-content {

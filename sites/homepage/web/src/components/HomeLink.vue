@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { TinyButton } from '@opentiny/vue'
+import { TinyButton } from "@opentiny/vue";
 </script>
 
 <template>
   <section class="home-link">
     <div class="home-link-content">
       <div class="home-link-title genui-title">即可体验OpenTiny生成式UI</div>
-      <div class="home-link-description genui-subtitle">增强大模型对话显示与交互，打造极致顺滑的智能体验</div>
+      <div class="home-link-description genui-subtitle">
+        增强大模型对话显示与交互，打造极致顺滑的智能体验
+      </div>
       <div class="home-link-button-group">
         <tiny-button type="primary" round>立即体验</tiny-button>
         <tiny-button round>产品文档</tiny-button>
@@ -16,7 +18,7 @@ import { TinyButton } from '@opentiny/vue'
 </template>
 
 <style lang="less" scoped>
-@import '../style/index.less';
+@import "../style/index.less";
 
 .home-link {
   width: 100%;
@@ -25,7 +27,7 @@ import { TinyButton } from '@opentiny/vue'
   justify-content: center;
   align-items: center;
   padding: 102px 12.5%;
-  background-image: url('@/assets/genui_ability_bg_3.svg');
+  background-image: url("@/assets/genui_ability_bg_3.svg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

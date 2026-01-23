@@ -1,1 +1,0 @@
- completed: false }; this.state.todoList.push(todo); this.state.newTodo.title = ''; this.state.newTodo.description = ''; this.state.newTodo.priority =

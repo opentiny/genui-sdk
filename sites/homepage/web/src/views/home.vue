@@ -59,8 +59,12 @@ const abilityThreePartContent = ref({
           为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性
         </div>
         <div class="operation-button-group">
-          <tiny-button round type="primary" @click="openLink(LinkKey.DevDoc)">开发文档</tiny-button>
-          <tiny-button round @click="openLink(LinkKey.Playground)">演练场</tiny-button>
+          <tiny-button round type="primary" @click="openLink(LinkKey.DevDoc)"
+            >开发文档</tiny-button
+          >
+          <tiny-button round @click="openLink(LinkKey.Playground)"
+            >演练场</tiny-button
+          >
         </div>
       </div>
       <div class="home-core-right">
@@ -165,7 +169,6 @@ const abilityThreePartContent = ref({
 
 <style lang="less" scoped>
 @import "../style/index.less";
-@import '../mixin.less';
 
 .genui-sdk-container {
   display: flex;
@@ -180,15 +183,11 @@ const abilityThreePartContent = ref({
     align-items: center;
     justify-content: center;
     width: 100%;
-    .pcPadding(10%, 12.5%);
     background-image: url("@/assets/genui_ability_bg_1.svg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-
-    @media (max-width: 1280px) {
-      padding: 8% 10%;
-    }
+    padding: 10% 12.5%;
 
     &-left {
       display: flex;
@@ -213,6 +212,7 @@ const abilityThreePartContent = ref({
       font-weight: 700;
       text-align: left;
       margin-bottom: 6px;
+      white-space: nowrap;
     }
 
     &-subtitle {
@@ -230,6 +230,7 @@ const abilityThreePartContent = ref({
       );
       background-clip: text;
       margin-bottom: 26px;
+      white-space: nowrap;
     }
 
     &-decsription {
@@ -243,6 +244,24 @@ const abilityThreePartContent = ref({
       @media (max-width: 1280px) {
         margin-bottom: 42px;
       }
+    }
+
+    @media (max-width: 768px) {
+      &-right {
+        display: none;
+      }
+
+      &-title {
+        white-space: normal;
+      }
+
+      &-subtitle {
+        white-space: normal;
+      }
+    }
+
+    @media (max-width: 1280px) {
+      padding: 8% 10%;
     }
 
     @media (min-width: 1280px) and (max-width: 1920px) {
@@ -330,6 +349,7 @@ const abilityThreePartContent = ref({
     &-label {
       margin: 5px 0px 2px 0px;
     }
+
     &-parameters {
       gap: 5px;
     }
@@ -354,6 +374,46 @@ const abilityThreePartContent = ref({
       font-weight: 400;
       line-height: var(--line-height-body-sm);
       color: rgba(102, 102, 102, 1);
+    }
+  }
+
+  @media (max-width: 768px) {
+    &-left {
+      padding: 20px 0px 20px 20px;
+
+      &-header {
+        &-title {
+          font-size: 10px;
+          line-height: 10px;
+        }
+
+        &-subtitle {
+          font-size: 8px;
+          line-height: 8px;
+        }
+      }
+    }
+
+    &-label {
+      font-size: 8px;
+      line-height: 8px;
+    }
+
+    &-parameter {
+      &-label {
+        font-size: 6px;
+        line-height: 6px;
+
+        /deep/ .tiny-tag {
+          font-size: 6px;
+          line-height: 6px;
+        }
+      }
+
+      &-description {
+        font-size: 6px;
+        line-height: 6px;
+      }
     }
   }
 }

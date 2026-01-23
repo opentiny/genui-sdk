@@ -1,1 +1,0 @@
- 'medium'; this.state.newTodo.deadline = ''; this.state.newTodo.category = 'work'; }"},"toggleTodo":{"type":"JSFunction","value":"function(id) { const
