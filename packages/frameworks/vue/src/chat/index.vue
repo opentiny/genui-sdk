@@ -29,6 +29,10 @@ defineExpose({
 </script>
 <template>
   <ThemeProvider v-bind="providerProps">
-    <GenuiChat ref="chat" v-bind="props" />
+    <GenuiChat ref="chat" v-bind="props">
+      <template #empty>
+        <slot name="empty"></slot>
+      </template>
+    </GenuiChat>
   </ThemeProvider>
 </template>

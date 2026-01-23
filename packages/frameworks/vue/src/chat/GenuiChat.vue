@@ -465,11 +465,7 @@ defineExpose({
       <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
-      <div v-else class="empty-messages">
-        <!-- TODO 图表和文本支持传入 -->
-        <IconAi />
-        <span>GenUI Playground</span>
-      </div>
+        <slot v-else name="empty"></slot>
     </div>
     <div class="sender-container">
       <div
@@ -510,6 +506,10 @@ defineExpose({
 .tg-chat-container {
   --ti-gen-chat-container-bg-color: #f0f0f0;
   --thinking-display: initial;
+  --sender-bg: url('./assets/sender-light.svg') no-repeat center;
+  --sender-border-color: #e5e5e5;
+  --generating-bg-before: linear-gradient(90deg, #fff, #a2c7f4);
+  --generating-bg-after: #fff;
   box-sizing: border-box;
   height: 100%;
   color: var(--tr-text-primary);
@@ -520,6 +520,10 @@ defineExpose({
   overflow: auto;
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
+    --sender-bg: url('./assets/sender-dark.svg') no-repeat center;
+    --sender-border-color: #333;
+    --generating-bg-before: linear-gradient(90deg, #262626, #808080);
+    --generating-bg-after: #191919;
   }
 }
 
@@ -532,19 +536,6 @@ defineExpose({
   word-break: break-word;
   &::-webkit-scrollbar {
     width: 10px;
-  }
-  .empty-messages {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    height: 80%;
-    font-size: 32px;
-    font-weight: 600;
-    & > svg {
-      width: 56px;
-      height: 56px;
-    }
   }
 }
 :deep(.tr-bubble__content.border-corner) {
@@ -584,7 +575,7 @@ defineExpose({
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
-  background: url('./assets/sender-bg.svg') no-repeat center;
+  background: var(--sender-bg);
   .attachments-container {
     padding: 0 20px;
   }
@@ -596,13 +587,13 @@ defineExpose({
   top: -35px;
   width: 40px;
   height: 40px;
-  background-color: #fff;
+  background-color: var(--generating-bg-after);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--sender-border-color);
   z-index: 1000;
   & > svg {
     width: 20px;
@@ -629,7 +620,7 @@ defineExpose({
       width: calc(100% + 4px);
       height: calc(100% + 4px);
       border-radius: 50%;
-      background: conic-gradient(from 0deg, #f5f7ff, #d9e0f5, #bfc8e0, #d9e0f5, #f5f7ff);
+      background: var(--generating-bg-before);
       z-index: 0;
       animation: rotate-border 2s linear infinite;
     }
@@ -642,7 +633,7 @@ defineExpose({
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background-color: #fff;
+      background-color: var(--generating-bg-after);
       z-index: 1;
     }
 

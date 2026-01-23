@@ -1,6 +1,7 @@
 <script setup>
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
+import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { ConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
 import { customComponentsSchema, customComponents, customExamples } from './custom-components';
@@ -215,7 +216,14 @@ const customConfig = {
           :think-component="ThinkComponent"
           :roles="roles"
           :features="modelFeatures"
-        />
+        >
+          <template #empty>
+            <div class="empty">
+              <IconAi />
+              <span>GenUI Playground</span>
+            </div>
+          </template>
+        </GenuiChat>
       </ConfigProvider>
     </div>
   </div>
@@ -336,5 +344,18 @@ const customConfig = {
 .chat-container {
   flex: 1;
   height: 100%;
+}
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 80%;
+  font-size: 32px;
+  font-weight: 600;
+  & > svg {
+    width: 56px;
+    height: 56px;
+  }
 }
 </style>

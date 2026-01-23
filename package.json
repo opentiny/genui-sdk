@@ -19,5 +19,8 @@
   },
   "keywords": [],
   "author": "OpenTiny",
-  "packageManager": "pnpm@10.12.1"
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@babel/parser": "^7.28.3"
+  }
 }

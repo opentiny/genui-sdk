@@ -1,0 +1,22 @@
+<svg viewBox="0 0 1244 186" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1244.000000" height="186.000000" fill="none">
+	<defs>
+		<clipPath id="clipPath_0">
+			<rect width="1083.000122" height="276.998108" x="81.000000" y="0.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+		<radialGradient id="paint_radial_0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-229.7,0,0,-152.751,410.969,285.331)">
+			<stop stop-color="rgb(255,239,248)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(255,239,248)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(372.771,0,0,193.995,774,236.999)">
+			<stop stop-color="rgb(230,240,255)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(230,240,255)" offset="1" stop-opacity="0" />
+		</radialGradient>
+	</defs>
+	<rect id="亮色背景" width="1244.000000" height="186.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+	<g id="对话框背景 1" clip-path="url(#clipPath_0)" customFrame="url(#clipPath_0)">
+		<rect id="对话框背景 1" width="1083.000122" height="276.998108" x="81.000000" y="0.000000" />
+		<rect id="容器 2" width="1083.000122" height="276.998108" x="81.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+		<rect id="show_mask_2" width="460.000000" height="305.501465" x="180.969238" y="132.583984" rx="152.750717" fill="url(#paint_radial_0)" />
+		<rect id="show_mask_1" width="912.000000" height="474.000000" x="318.000000" y="0.000000" rx="237.000000" fill="url(#paint_radial_1)" />
+	</g>
+</svg>

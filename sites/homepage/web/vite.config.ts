@@ -12,7 +12,6 @@ function _resolve(dir) {
 export default defineConfig({
   plugins: [
     vue(),
-    // 将 src/static 下的内容拷贝到打包产物的 dist/static 目录（包括所有子目录）
     viteStaticCopy({
       targets: [
         {
@@ -43,7 +42,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
-    sourcemap: true,
+    sourcemap: false,
     lib: {
       entry: _resolve('src/views/home.vue'),
       name: 'GenuiSdkHome',
