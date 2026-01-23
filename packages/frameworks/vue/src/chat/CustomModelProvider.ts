@@ -1,7 +1,7 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { IChatConfig, ICustomComponentItem, CustomFetch } from './chat.types';
+import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
@@ -17,7 +17,7 @@ export interface ICustomModelProviderOptions {
   customComponents: ICustomComponentItem[];
   customSnippets: IGenPromptSnippet[];
   customExamples: IGenPromptExample[];
-  customActions: any[];
+  customActions: ICustomActionItem[];
   customFetch?: CustomFetch;
 }
 export class CustomModelProvider extends BaseModelProvider {
@@ -27,7 +27,7 @@ export class CustomModelProvider extends BaseModelProvider {
   private customComponents: ICustomComponentItem[];
   private customSnippets: IGenPromptSnippet[];
   private customExamples: IGenPromptExample[];
-  private customActions: any[];
+  private customActions: ICustomActionItem[];
   private chatConfig: IChatConfig;
   private customFetch?: CustomFetch;
   constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {

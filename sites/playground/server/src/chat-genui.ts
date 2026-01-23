@@ -247,7 +247,6 @@ export function createChatGenui() {
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
     const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
 
-    // 从 body 直接读取 model 和 temperature（不再从 llmConfig 中读取）
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
       temperature: playgroundConfig.temperature,

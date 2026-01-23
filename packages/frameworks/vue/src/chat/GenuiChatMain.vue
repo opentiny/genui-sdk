@@ -183,7 +183,7 @@ const saveStateAction = {
   execute: (params: any, context: Record<string | symbol, any>) => {
     saveState(context);
   },
-  params: {}
+  params: []
 }
 
 const generating = computed(() => GeneratingStatus.includes(messageManager.value.messageState.status));
@@ -257,6 +257,7 @@ const messageRenderers = {
   'loading-text': props.thinkComponent || GeneratingComponent,
   'error-text': ErrorText,
 };
+
 // 配置AI对话提供商
 const customModelProvider = new CustomModelProvider({
   url: props.url,
@@ -266,7 +267,7 @@ const customModelProvider = new CustomModelProvider({
   customComponents: props.customComponents || [],
   customSnippets: props.customSnippets || [],
   customExamples: props.customExamples || [],
-  customActions: [...(props.customActions || []), continueChatAction],
+  customActions: [...(props.customActions || []), continueChatAction, saveStateAction],
   customFetch: props.customFetch,
 });
 
