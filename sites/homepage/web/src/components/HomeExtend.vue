@@ -314,7 +314,6 @@ onUnmounted(() => {
 </template>
 <style lang="less" scoped>
 @import "../style/index.less";
-@import "../mixin.less";
 
 .home-extend {
   width: 100%;
@@ -391,11 +390,11 @@ onUnmounted(() => {
       justify-content: center;
       align-items: center;
       width: 100%;
+      height: 500px;
       background: #fff;
       border-radius: 12px;
       padding: 5% 5%;
       overflow: auto;
-      .pcRem(height, 4000);
     }
 
     &-renderer {
