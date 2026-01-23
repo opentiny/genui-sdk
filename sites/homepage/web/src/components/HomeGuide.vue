@@ -116,7 +116,6 @@ const handleGuideCardClick = (index: number) => {
 
 <style lang="less" scoped>
 @import "../style/index.less";
-@import "../mixin.less";
 
 .home-guide {
   display: flex;
@@ -178,6 +177,12 @@ const handleGuideCardClick = (index: number) => {
       }
     }
 
+    @media (max-width: 768px) {
+      &-right {
+        width: 490px;
+      }
+    }
+
     &-right {
       flex: 1;
       max-height: 400px;
@@ -186,7 +191,7 @@ const handleGuideCardClick = (index: number) => {
       padding: 30px;
       margin-left: 10%;
       height: -webkit-fill-available;
-      .pcRem(width, 4913);
+      width: 600px;
 
       &-framework {
         height: 100%;
