@@ -1,0 +1,68 @@
+<svg viewBox="0 0 1244 186" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1244.000000" height="186.000000" fill="none">
+	<mask id="mask_3" width="528.384094" height="282.593811" x="111.420166" y="110.491211" maskUnits="userSpaceOnUse">
+		<g filter="url(#pixso_custom_mask_type_outline)">
+			<rect id="蒙版" width="528.384094" height="282.593811" x="111.420166" y="110.491211" rx="141.296906" fill="rgb(255,255,255)" />
+		</g>
+	</mask>
+	<mask id="mask_2" width="1047.578979" height="560.273071" x="276.827148" y="-104.525391" maskUnits="userSpaceOnUse">
+		<g filter="url(#pixso_custom_mask_type_outline)">
+			<rect id="蒙版" width="1047.578979" height="560.273071" x="276.827148" y="-104.525391" rx="235.379578" fill="rgb(255,255,255)" />
+		</g>
+	</mask>
+	<mask id="mask_1" width="639.804199" height="342.184357" x="374.463623" y="-30.191406" maskUnits="userSpaceOnUse">
+		<g filter="url(#pixso_custom_mask_type_outline)">
+			<rect id="蒙版" width="639.804199" height="342.184357" x="374.463623" y="-30.191406" rx="171.092178" fill="rgb(255,255,255)" />
+		</g>
+	</mask>
+	<mask id="mask_0" width="1244.000000" height="360.000000" x="0.000000" y="38.000000" maskUnits="userSpaceOnUse">
+		<g filter="url(#pixso_custom_mask_type_alpha)">
+			<ellipse id="椭圆形" rx="622.000000" ry="180.000000" cx="622" cy="218" fill="url(#paint_radial_2)" />
+			<ellipse id="椭圆形" rx="621.500000" ry="179.500000" cx="622" cy="218" stroke="rgb(151,151,151)" stroke-opacity="0" stroke-width="1" />
+		</g>
+	</mask>
+	<defs>
+		<clipPath id="clipPath_1">
+			<rect width="1244.000000" height="148.000000" x="0.000000" y="38.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+		<radialGradient id="paint_radial_2" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(689.165,0,0,158.722,622,218)">
+			<stop stop-color="rgb(0,0,0)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(68.3036,68.2353,68.2353)" offset="0.309297144" stop-opacity="1" />
+			<stop stop-color="rgb(0,0,0)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<filter id="pixso_custom_mask_type_alpha">
+			<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0 " />
+		</filter>
+		<radialGradient id="paint_radial_3" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(319.485,0,0,171.092,694.366,140.901)">
+			<stop stop-color="rgb(144.576,104.098,32.8582)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(129.777,92.7956,27.1351)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<filter id="pixso_custom_mask_type_outline">
+			<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0 " />
+		</filter>
+		<radialGradient id="paint_radial_4" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(652.421,0,0,349.387,800.617,175.611)">
+			<stop stop-color="rgb(18.6076,39.3967,70.5804)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(22.209,47.0218,84.2411)" offset="1" stop-opacity="0" />
+		</radialGradient>
+		<radialGradient id="paint_radial_5" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(263.848,0,0,141.297,375.612,251.788)">
+			<stop stop-color="rgb(75.1339,33.8103,57.0548)" offset="0" stop-opacity="1" />
+			<stop stop-color="rgb(75.1339,33.4688,56.9054)" offset="1" stop-opacity="0" />
+		</radialGradient>
+	</defs>
+	<rect id="暗色背景" width="1244.000000" height="186.000000" x="0.000000" y="0.000000" fill="rgb(25,25,25)" fill-opacity="0" />
+	<g id="组合 5542">
+		<g id="容器 4" clip-path="url(#clipPath_1)" customFrame="url(#clipPath_1)">
+			<rect id="容器 4" width="1244.000000" height="148.000000" x="0.000000" y="38.000000" fill="rgb(25,25,25)" fill-opacity="0" />
+			<g id="椭圆形 4" mask="url(#mask_0)">
+				<g id="BLUE备份 2" opacity="0.100000001" showMaskRef="url(#show_mask_0)" mask="url(#mask_1)">
+					<rect id="show_mask_0" width="639.804199" height="342.184357" x="374.463623" y="-30.191406" rx="171.092178" fill="url(#paint_radial_3)" />
+				</g>
+				<g id="BLUE备份 3" showMaskRef="url(#show_mask_1)" mask="url(#mask_2)">
+					<rect id="show_mask_1" width="1047.578979" height="560.273071" x="276.827148" y="-104.525391" rx="235.379578" fill="url(#paint_radial_4)" />
+				</g>
+				<g id="BLUE备份 4" showMaskRef="url(#show_mask_2)" mask="url(#mask_3)">
+					<rect id="show_mask_2" width="528.384094" height="282.593811" x="111.420166" y="110.491211" rx="141.296906" fill="url(#paint_radial_5)" />
+				</g>
+			</g>
+		</g>
+	</g>
+</svg>
