@@ -16,7 +16,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-})
+});
 </script>
 
 <template>
@@ -36,7 +36,7 @@ const props = defineProps({
 </template>
 
 <style lang="less" scoped>
-@import '../style/index.less';
+@import "../style/index.less";
 
 .home-guide-card {
   display: flex;

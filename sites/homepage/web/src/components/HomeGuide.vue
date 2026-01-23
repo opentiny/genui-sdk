@@ -1,47 +1,72 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch } from 'vue'
-import hljs from 'highlight.js/lib/core'
-import { TinyButton } from '@opentiny/vue'
-import genuiChatIcon from '@/assets/genui_chat_icon.svg'
-import genuiInusecon from '@/assets/genui_inuse_icon.svg'
-import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg'
-import { guideCodeMap } from '@/config'
-import { LinkKey, openLink } from '@/utils/link'
-import HomeGuideCard from './HomeGuideCard.vue'
+import { nextTick, onMounted, onUnmounted, ref } from "vue";
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import { TinyButton } from "@opentiny/vue";
+import genuiChatIcon from "@/assets/genui_chat_icon.svg";
+import genuiInusecon from "@/assets/genui_inuse_icon.svg";
+import gneuiSettingsIcon from "@/assets/genui_settings_icon.svg";
+import { guideCodeMap } from "@/config";
+import { LinkKey, openLink } from "@/utils/link";
+import HomeGuideCard from "./HomeGuideCard.vue";
+import HomeGuideMobile from "./HomeGuideMobile.vue";
 
-const activeCard = ref(0)
-const codeRef = ref<HTMLElement | null>(null)
+const activeCard = ref(0);
+const codeRef = ref<HTMLElement | null>(null);
+const isMobile = ref(false);
+
+// 更新移动端状态
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth < 768;
+};
+
+onMounted(() => {
+  updateIsMobile();
+  // 监听窗口大小变化
+  window.addEventListener("resize", updateIsMobile);
+  // 初始化代码高亮
+  hightlight();
+});
+
+onUnmounted(() => {
+  // 移除监听器
+  window.removeEventListener("resize", updateIsMobile);
+});
+
+hljs.registerLanguage("javascript", javascript);
 
 function hightlight() {
   // 每次都要更新一下代码高亮
   nextTick(() => {
     if (codeRef.value) {
-      const codeArea = document.querySelector('.code-area')
-      delete (codeArea as HTMLElement).dataset.highlighted
+      const codeArea = document.querySelector(".code-area");
+      delete (codeArea as HTMLElement).dataset.highlighted;
       // highlight.js 会自动处理内容更新，直接调用即可
-      hljs.highlightElement(codeRef.value)
+      hljs.highlightElement(codeRef.value);
     }
-  })
+  });
 }
 
 const handleGuideCardClick = (index: number) => {
-  activeCard.value = index
-  hightlight()
-}
-
-onMounted(() => {
-  hightlight()
-})
+  activeCard.value = index;
+  hightlight();
+};
 </script>
 
 <template>
-  <section class="home-guide">
+  <section class="home-guide" :class="isMobile ? 'home-guide-mobile' : ''">
     <div class="home-guide-header">
       <div class="home-guide-header-title genui-title">快速集成生成式UI</div>
-      <div class="home-guide-header-subtitle genui-subtitle">提供强大的渲染组件和开箱即用的对话组件</div>
+      <div class="home-guide-header-subtitle genui-subtitle">
+        提供强大的渲染组件和开箱即用的对话组件
+      </div>
     </div>
-    <div class="home-guide-content">
-      <div class="home-guide-content-left">
+    <div :class="isMobile ? 'home-guide-content-mobile' : 'home-guide-content'">
+      <home-guide-mobile
+        v-if="isMobile"
+        @change="handleGuideCardClick"
+      ></home-guide-mobile>
+      <div v-else class="home-guide-content-left">
         <home-guide-card
           title="步骤1：引入并使用chat组件"
           description="开箱即用的caht组件内置了对话界面与消息管理"
@@ -63,7 +88,13 @@ onMounted(() => {
           :active="activeCard === 2"
           @click="handleGuideCardClick(2)"
         />
-        <tiny-button class="home-guide-content-left-button" round size="small" @click="openLink(LinkKey.ChatDoc)">开发文档</tiny-button>
+        <tiny-button
+          class="home-guide-content-left-button"
+          round
+          size="small"
+          @click="openLink(LinkKey.ChatDoc)"
+          >开发文档</tiny-button
+        >
       </div>
       <div class="home-guide-content-right">
         <div class="home-guide-content-right-framework">
@@ -84,7 +115,8 @@ onMounted(() => {
 </template>
 
 <style lang="less" scoped>
-@import '../style/index.less';
+@import "../style/index.less";
+@import "../mixin.less";
 
 .home-guide {
   display: flex;
@@ -92,6 +124,17 @@ onMounted(() => {
   justify-content: center;
   align-content: center;
   padding: 110px 12.5% 0px 12.5%;
+
+  &-mobile {
+    width: 100%;
+    padding-left: 5%;
+    padding-right: 5%;
+
+    .home-guide-content-right {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
 
   &-header {
     display: flex;
@@ -104,13 +147,27 @@ onMounted(() => {
     justify-content: space-between;
     align-items: center;
 
+    &-mobile {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .home-guide-content-right {
+        width: 100%;
+
+        &-framework {
+          height: 300px;
+        }
+      }
+    }
+
     &-left {
       display: flex;
       flex-direction: column;
       gap: 12px;
 
       &-button {
-        max-width: 150px;
+        max-width: 110px;
         margin-left: 32px;
       }
 
@@ -129,12 +186,17 @@ onMounted(() => {
       padding: 30px;
       margin-left: 10%;
       height: -webkit-fill-available;
+      .pcRem(width, 4913);
 
       &-framework {
         height: 100%;
         display: flex;
         flex-direction: column;
-        background: linear-gradient(180, rgba(47, 47, 47, 1), rgba(19, 19, 19, 1) 100%);
+        background: linear-gradient(
+          180,
+          rgba(47, 47, 47, 1),
+          rgba(19, 19, 19, 1) 100%
+        );
         border-radius: 12px;
 
         .guide-code {
@@ -185,8 +247,8 @@ onMounted(() => {
   margin: 0;
   overflow: auto;
   border-radius: 0 0 12px 12px;
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
-    monospace;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
   font-size: 13px;
   line-height: 1.6;
   color: #e5e7eb;
@@ -273,4 +335,3 @@ onMounted(() => {
   }
 }
 </style>
-

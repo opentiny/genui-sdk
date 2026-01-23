@@ -297,7 +297,7 @@
               {
                 "field": "description",
                 "title": "描述",
-                "min-width": 300,
+                "minWidth": "300px",
                 "slots": {
                   "default": {
                     "type": "JSSlot",
@@ -436,7 +436,7 @@
               "type": "JSExpression",
               "value": "this.filteredTodos()"
             },
-            "max-height": "150px"
+            "max-height": "400px"
           }
         },
         {
@@ -602,6 +602,27 @@
                       ]
                     }
                   ]
+                }
+              ]
+            },
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": "详细描述"
+              },
+              "children": [
+                {
+                  "componentName": "TinyInput",
+                  "props": {
+                    "type": "textarea",
+                    "rows": 3,
+                    "placeholder": "请输入待办事项的详细描述",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.newTodo.description"
+                    }
+                  }
                 }
               ]
             },

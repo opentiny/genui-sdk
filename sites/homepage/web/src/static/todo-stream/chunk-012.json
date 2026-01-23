@@ -1,1 +1,0 @@
-,"filteredTodos":{"type":"JSFunction","value":"function() { let filtered = this.state.todoList.filter(todo => { if (this.state.filterStatus === 'activ

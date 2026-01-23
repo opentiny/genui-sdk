@@ -1,1 +1,0 @@
-":"function(id) { const index = this.state.todoList.findIndex(item => item.id === id); if (index !== -1) { this.state.todoList.splice(index, 1); } }"}

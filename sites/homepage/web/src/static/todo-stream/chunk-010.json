@@ -1,1 +1,0 @@
- todo = this.state.todoList.find(item => item.id === id); if (todo) { todo.completed = !todo.completed; } }"},"deleteTodo":{"type":"JSFunction","value

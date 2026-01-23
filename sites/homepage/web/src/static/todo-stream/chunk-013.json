@@ -1,1 +1,0 @@
-e' && todo.completed) return false; if (this.state.filterStatus === 'completed' && !todo.completed) return false; if (this.state.filterPriority !== 'a
