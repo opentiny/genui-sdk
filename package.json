@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter genui-sdk-playground dev",
+    "dev:homepage": "pnpm --filter genui-sdk-homepage-web dev",
     "build:projects": "pnpm --filter tiny-schema-renderer build && pnpm --filter tiny-schema-renderer-ng build",
     "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
     "prebuild:lib": "pnpm build:materials",

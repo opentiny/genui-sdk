@@ -36,8 +36,6 @@ const props = defineProps({
 </template>
 
 <style lang="less" scoped>
-@import "../style/index.less";
-
 .home-guide-card {
   display: flex;
   padding: 5%;

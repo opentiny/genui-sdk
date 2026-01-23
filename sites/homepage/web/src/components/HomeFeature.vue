@@ -93,8 +93,6 @@ const features = [
 </template>
 
 <style lang="less" scoped>
-@import "../style/index.less";
-
 .home-feature {
   display: flex;
   flex-direction: column;

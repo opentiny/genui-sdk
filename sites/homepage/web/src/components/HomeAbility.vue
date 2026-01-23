@@ -37,8 +37,6 @@ const backgroundClass = computed(() =>
 </template>
 
 <style lang="less" scoped>
-@import "../style/index.less";
-
 .home-ability {
   display: flex;
   flex-direction: column;

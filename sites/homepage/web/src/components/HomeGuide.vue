@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, ref } from "vue";
 import hljs from "highlight.js/lib/core";
 import javascript from "highlight.js/lib/languages/javascript";
-import { TinyButton } from "@opentiny/vue";
+import { Button as TinyButton } from "@opentiny/vue";
 import genuiChatIcon from "@/assets/genui_chat_icon.svg";
 import genuiInusecon from "@/assets/genui_inuse_icon.svg";
 import gneuiSettingsIcon from "@/assets/genui_settings_icon.svg";
@@ -15,33 +15,27 @@ const activeCard = ref(0);
 const codeRef = ref<HTMLElement | null>(null);
 const isMobile = ref(false);
 
-// 更新移动端状态
 const updateIsMobile = () => {
   isMobile.value = window.innerWidth < 768;
 };
 
 onMounted(() => {
   updateIsMobile();
-  // 监听窗口大小变化
   window.addEventListener("resize", updateIsMobile);
-  // 初始化代码高亮
   hightlight();
 });
 
 onUnmounted(() => {
-  // 移除监听器
   window.removeEventListener("resize", updateIsMobile);
 });
 
 hljs.registerLanguage("javascript", javascript);
 
 function hightlight() {
-  // 每次都要更新一下代码高亮
   nextTick(() => {
     if (codeRef.value) {
       const codeArea = document.querySelector(".code-area");
       delete (codeArea as HTMLElement).dataset.highlighted;
-      // highlight.js 会自动处理内容更新，直接调用即可
       hljs.highlightElement(codeRef.value);
     }
   });
@@ -115,8 +109,6 @@ const handleGuideCardClick = (index: number) => {
 </template>
 
 <style lang="less" scoped>
-@import "../style/index.less";
-
 .home-guide {
   display: flex;
   flex-direction: column;
@@ -258,19 +250,16 @@ const handleGuideCardClick = (index: number) => {
   line-height: 1.6;
   color: #e5e7eb;
 
-  /* highlight.js 基础样式 */
   code.hljs {
     background: transparent;
     color: inherit;
     padding: 0;
   }
 
-  /* 选中高亮行号或文本时的背景 */
   ::selection {
     background: rgba(96, 165, 250, 0.35);
   }
 
-  /* 语法高亮配色（暗色主题） */
   .hljs-comment,
   .hljs-quote {
     color: #6b7280;
@@ -309,7 +298,6 @@ const handleGuideCardClick = (index: number) => {
     font-weight: 500;
   }
 
-  // class 名单独稍微再亮一点
   .hljs-title.class_ {
     color: #facc15;
     font-weight: 600;

@@ -1,19 +1,11 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch, nextTick } from "vue";
-import hljs from "highlight.js/lib/core";
-import json from "highlight.js/lib/languages/json";
+import { computed, onMounted, onUnmounted, ref, nextTick } from "vue";
 import { TinyButton, TinyButtonGroup } from "@opentiny/vue";
 import { SchemaRenderer } from "@opentiny/genui-sdk-vue";
 import { IconArrowRight, IconRefresh } from "@opentiny/vue-icon";
 import genuiGuideDefault from "@/assets/genui_guide_default.svg";
 import { LinkKey, openLink } from "@/utils/link";
 import { splitJsonIntoChunks } from "@/utils/jsonUtil";
-
-// 注册 JSON 语言（如果尚未注册）
-if (!hljs.getLanguage("json")) {
-  hljs.registerLanguage("json", json);
-}
-
 interface IUserMessage {
   role: "user";
   content: string;
@@ -36,10 +28,8 @@ const generating = ref(false);
 const schemaRendererRef = ref<HTMLElement | null>(null);
 const hasStartedStreaming = ref(false);
 const codeRef = ref<HTMLElement | null>(null);
-// 用于控制流式加载的取消标志
 let shouldStopStreaming = false;
 
-// 获取 JSON 文件路径
 const getJsonPath = (type: string): string => {
   const fileName = type === "element" ? "caculator.json" : "todo.json";
 
@@ -74,12 +64,10 @@ const handleRefresh = () => {
 };
 
 const handleExtendClick = (value: string) => {
-  // 停止当前的流式加载
   if (generating.value) {
     shouldStopStreaming = true;
   }
 
-  // 重置状态
   extendSelect.value = value;
   hasStartedStreaming.value = false;
 
@@ -89,7 +77,6 @@ const handleExtendClick = (value: string) => {
   };
 
   setTimeout(() => {
-    // 触发新的流式加载
     loadChunksStreaming();
   }, 100);
 };
@@ -101,20 +88,16 @@ const handleAction = ({
   llmFriendlyMessage: string;
   humanFriendlyMessage: string;
 }) => {
-  // 处理按钮点击事件
   console.log("Action:", { llmFriendlyMessage, humanFriendlyMessage });
 };
 
-// 格式化 JSON 内容用于显示
 const formattedJsonContent = computed(() => {
   if (!message.value?.content) return "";
 
   try {
-    // 尝试解析 JSON，如果成功则格式化
     const parsed = JSON.parse(message.value.content);
     return JSON.stringify(parsed, null, 2);
   } catch (error) {
-    // 如果 JSON 不完整（流式渲染中），直接返回原始内容
     return message.value.content;
   }
 });
@@ -125,7 +108,6 @@ const initMessage = () => {
   shouldStopStreaming = false;
 };
 
-// 流式加载并处理 JSON 分块
 const loadChunksStreaming = async () => {
   if (hasStartedStreaming.value) return;
   hasStartedStreaming.value = true;
@@ -133,7 +115,6 @@ const loadChunksStreaming = async () => {
   generating.value = true;
   let accumulatedContent = "";
 
-  // 初始化 message
   if (!message.value) {
     message.value = {
       role: "assistant",
@@ -141,12 +122,10 @@ const loadChunksStreaming = async () => {
     };
   }
 
-  // 根据当前选择的应用类型确定 JSON 文件路径
   const currentType = extendSelect.value;
-  const totalChunks = 150;
+  const chunkSize = 30;
 
   try {
-    // 读取完整的 JSON 文件
     const jsonPath = getJsonPath(currentType);
     const response = await fetch(jsonPath);
     if (!response.ok) {
@@ -155,48 +134,32 @@ const loadChunksStreaming = async () => {
     const jsonContent = await response.text();
     const jsonData = JSON.parse(jsonContent);
 
-    // 检查是否需要停止（在解析之后）
     if (shouldStopStreaming) {
       initMessage();
       return;
     }
 
-    // 将 JSON 分块处理
-    const chunks = splitJsonIntoChunks(jsonData, totalChunks);
+    const chunks = splitJsonIntoChunks(jsonData, chunkSize);
 
-    // 流式输出每个 chunk
     for (let i = 0; i < chunks.length; i++) {
-      // 检查是否需要停止加载
       if (shouldStopStreaming && message.value?.content) {
         initMessage();
         return;
       }
 
-      // 拼接内容
       accumulatedContent += chunks[i];
       initCodeAreaHeight();
 
-      // 更新 message content
       if (message.value) {
         message.value.content = accumulatedContent;
       }
 
-      // 最后一个 chunk 后，设置 generating 为 false
       if (i === chunks.length - 1) {
         generating.value = false;
         shouldStopStreaming = false;
-
-        nextTick(() => {
-          // 使用 highlight.js 更新代码高亮
-          if (codeRef.value) {
-            hljs.highlightElement(codeRef.value);
-          }
-        });
       } else {
-        // 延时 50ms 输出下一个 chunk
         await new Promise((resolve) => setTimeout(resolve, 50));
 
-        // 在延时后再次检查是否需要停止
         if (shouldStopStreaming) {
           initMessage();
           return;
@@ -204,7 +167,6 @@ const loadChunksStreaming = async () => {
       }
     }
   } catch (error) {
-    // 只有在不是主动停止的情况下才记录错误
     if (!shouldStopStreaming) {
       console.error("Error loading JSON:", error);
     }
@@ -214,32 +176,27 @@ const loadChunksStreaming = async () => {
   }
 };
 
-// 使用 Intersection Observer 检测 SchemaRenderer 是否在视口中
 let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
-  // 初始化 message 为空，等待流式加载
   message.value = {
     role: "assistant",
     content: "",
   };
 
-  // 创建 Intersection Observer
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting && !hasStartedStreaming.value) {
-          // 当 SchemaRenderer 进入视口时，开始流式加载
           loadChunksStreaming();
         }
       });
     },
     {
-      threshold: 0.1, // 当 10% 的元素可见时触发
+      threshold: 0.1,
     }
   );
 
-  // 等待 DOM 更新后观察元素
   setTimeout(() => {
     if (schemaRendererRef.value) {
       observer?.observe(schemaRendererRef.value);
@@ -313,8 +270,6 @@ onUnmounted(() => {
   </section>
 </template>
 <style lang="less" scoped>
-@import "../style/index.less";
-
 .home-extend {
   width: 100%;
   display: flex;
@@ -467,56 +422,6 @@ onUnmounted(() => {
     .extend-button {
       width: 80px;
     }
-  }
-}
-
-/deep/ .extend-code-content {
-  background: #ffffff !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  overflow: auto !important;
-  max-height: 100%;
-
-  /* highlight.js 样式 */
-  .hljs {
-    display: block;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 0.5em;
-    color: rgb(25, 25, 25);
-    background: #ffffff;
-  }
-
-  .hljs-attr {
-    color: rgb(0, 0, 255);
-  }
-
-  .hljs-string {
-    color: rgb(148, 43, 41);
-  }
-
-  .hljs-number {
-    color: rgb(5, 129, 4);
-  }
-
-  .hljs-literal {
-    color: rgb(5, 129, 4);
-  }
-
-  .hljs-keyword {
-    color: rgb(0, 0, 255);
-  }
-
-  .hljs-punctuation {
-    color: rgb(25, 25, 25);
-  }
-
-  .hljs-operator {
-    color: rgb(25, 25, 25);
-  }
-
-  .hljs-built_in {
-    color: rgb(5, 129, 4);
   }
 }
 </style>

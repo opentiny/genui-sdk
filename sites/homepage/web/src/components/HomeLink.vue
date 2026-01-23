@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { TinyButton } from "@opentiny/vue";
+import { Button as TinyButton } from "@opentiny/vue";
 </script>
 
 <template>
   <section class="home-link">
     <div class="home-link-content">
-      <div class="home-link-title genui-title">即可体验OpenTiny生成式UI</div>
+      <div class="home-link-title genui-title">即刻体验OpenTiny生成式UI</div>
       <div class="home-link-description genui-subtitle">
         增强大模型对话显示与交互，打造极致顺滑的智能体验
       </div>
@@ -18,8 +18,6 @@ import { TinyButton } from "@opentiny/vue";
 </template>
 
 <style lang="less" scoped>
-@import "../style/index.less";
-
 .home-link {
   width: 100%;
   display: flex;

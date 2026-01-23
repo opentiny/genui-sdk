@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { TinyButton, TinyTag } from "@opentiny/vue";
+import { Button as TinyButton, Tag as TinyTag } from "@opentiny/vue";
 import genuiAbility1 from "@/assets/genui_ability_1.svg";
 import genuiAbility2 from "@/assets/genui_ability_2.png";
 import genuiAbility3 from "@/assets/genui_ability_3.svg";
@@ -167,9 +167,11 @@ const abilityThreePartContent = ref({
   </div>
 </template>
 
-<style lang="less" scoped>
+<style lang="less">
 @import "../style/index.less";
+</style>
 
+<style lang="less" scoped>
 .genui-sdk-container {
   display: flex;
   flex-direction: column;
