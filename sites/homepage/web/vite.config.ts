@@ -38,9 +38,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': _resolve('src'),
-      '@/components': _resolve('src/components'),
-      '@/assets': _resolve('src/assets')
+      '@': _resolve('src')
     }
   },
   build: {
@@ -48,7 +46,7 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     // 完全禁用 sourcemap，避免生成 .js.map 文件
-    sourcemap: true,
+    sourcemap: false,
     // 以库模式构建，将首页打成一个可直接 import 的组件（包含样式注入）
     lib: {
       entry: _resolve('src/views/home.vue'),
