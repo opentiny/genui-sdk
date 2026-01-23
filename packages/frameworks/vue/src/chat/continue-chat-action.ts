@@ -1,7 +1,7 @@
 import { useI18n } from './i18n';
 
 export function useContinueChatAction(
-  onAction: (_: { llmFriendlyMessage: string; humanFriendlyMessage: string; context: Record<string, any> }) => void,
+  chat: (_: { llmFriendlyMessage: string; humanFriendlyMessage: string; context: Record<string, any> }) => void,
 ) {
   const { t } = useI18n();
   
@@ -10,7 +10,7 @@ export function useContinueChatAction(
       name: 'continueChat',
       description: t('continueChat.description'),
       execute: (params: any, context: Record<string, any>) => {
-        onAction({
+        chat({
           llmFriendlyMessage: `${params.message},${t('continueChat.messageParam')}${JSON.stringify(context.state || {})}`,
           humanFriendlyMessage: params.message,
           context,

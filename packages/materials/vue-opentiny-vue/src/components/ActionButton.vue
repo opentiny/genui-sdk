@@ -13,14 +13,14 @@ const buttonAttrs: any = computed(() => {
 const customContext: any = inject(CUSTOM_CONTEXT, null);
 const pageContext: any = inject('pageContext', null);
 
-const { onAction } = (customContext.value || {}) as any;
+const { chat } = (customContext.value || {}) as any;
 const { state } = (pageContext || {}) as any;
 const { t } = useI18n();
 
 const doAction = () => {
-  if (typeof onAction === 'function' && !customContext?.value?.generating) {
+  if (typeof chat === 'function' && !customContext?.value?.generating) {
     const text = buttonAttrs.value.text;
-    onAction({
+    chat({
       llmFriendlyMessage: t('actionButton.clickMessage', { text, state: JSON.stringify(state) }),
       humanFriendlyMessage: text,
     });

@@ -157,7 +157,7 @@ const saveState = (context: Record<string | symbol, any>) => {
   saveConversations();
 }
 
-const onAction = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) => {
+const chat = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) => {
   saveState(context);
   messageManager.value.addMessage({
     role: 'user',
@@ -169,14 +169,14 @@ const onAction = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) =>
 
 const customContext = computed(() => {
   return {
-    onAction: onAction,
+    chat,
     generating: generating.value,
   };
 });
 
 provide(CUSTOM_CONTEXT, customContext);
 
-const { continueChatAction } = useContinueChatAction(onAction); //TODO: Refactor
+const { continueChatAction } = useContinueChatAction(chat); //TODO: Refactor
 const saveStateAction = {
   name: 'saveState',
   description: '保存状态， 用于保存组件状态',
@@ -236,7 +236,6 @@ const messageRenderers = {
         
         ...schemaCardProps,
         requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
-        onAction,
         generating: lastSchemaCardId.value === schemaCardProps.id ? generating.value : false,
         customComponents: customComponentsMap,
         customActions: {
