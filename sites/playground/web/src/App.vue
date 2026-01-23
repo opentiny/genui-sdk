@@ -60,7 +60,7 @@ const chatConfig = reactive(
 
 const modelData = ref([]);
 const modelFeatures = ref({});
-const theme = ref(cacheTheme || 'vivid');
+const theme = ref(cacheTheme || 'light');
 
 
 
@@ -80,7 +80,7 @@ watch(
   { deep: true },
 );
 const themeData = ref([
-  { text: '灵动', value: 'vivid' },
+  { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
   { text: '清新', value: 'lite' },
 ]);
@@ -133,9 +133,8 @@ const roles = {
 };
 
 const customFetch = createCustomFetch(() => ({
-  mcpServers: llmConfig.mcpServers,
-  framework: framework,
-  prompt: llmConfig.promptList.filter(Boolean).join('\n'),
+  ...llmConfig,
+  framework,
 }));
 </script>
 
@@ -205,8 +204,6 @@ const customFetch = createCustomFetch(() => ({
           :url="url"
           ref="chat"
           :messages="messages"
-          :model="llmConfig.model"
-          :temperature="llmConfig.temperature"
           :config="chatConfig"
           :think-component="ThinkComponent"
           :roles="roles"
