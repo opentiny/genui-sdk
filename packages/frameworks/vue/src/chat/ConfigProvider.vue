@@ -29,19 +29,19 @@ const transformTheme = (themeConfig: any) => {
 const themeMap: Record<string, any> = {
   dark: transformTheme(tinyDarkTheme),
   lite: transformTheme(tinyOldTheme),
-  vivid: { css: ' ' },
+  light: { css: ' ' },
 };
 
 const themeTool = new ThemeTool();
 
-const TinyGenuiConfig = computed(() => {
+const genuiConfig = computed(() => {
   return {
     theme: props.theme,
     id: props.id,
   };
 });
 
-provide(GENUI_CONFIG, TinyGenuiConfig);
+provide(GENUI_CONFIG, genuiConfig);
 
 watch(
   () => [props.locale, props.i18n] as const,
@@ -55,7 +55,7 @@ watch(
 watch(
   () => props.theme,
   (newVal) => {
-    const themeConfig = themeMap[newVal] || themeMap.vivid;
+    const themeConfig = themeMap[newVal] || themeMap.light;
     themeTool.changeTheme(themeConfig);
   },
   {

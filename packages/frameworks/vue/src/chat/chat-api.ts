@@ -1,7 +1,7 @@
-import type { ICustomComponentItem, CustomFetch } from './chat.types';
+import type { ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
 import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-const removeCustomActionsExucueFunction = (customActions: any) => {
-  return customActions.map((action: any) => {
+const removeCustomActionsExecuteFunction = (customActions: ICustomActionItem[]) => {
+  return customActions.map((action: ICustomActionItem) => {
     return {
       name: action.name,
       description: action.description,
@@ -28,7 +28,7 @@ export const chat = async (
     customComponents: ICustomComponentItem[],
     customSnippets: IGenPromptSnippet[],
     customExamples: IGenPromptExample[],
-    customActions: any[],
+    customActions: ICustomActionItem[],
     customFetch?: CustomFetch,
   }
 ) => {
@@ -37,7 +37,7 @@ export const chat = async (
     customComponents: removeRefFromCustomComponents(customComponents),
     customSnippets: customSnippets,
     customExamples: customExamples,
-    customActions: removeCustomActionsExucueFunction(customActions),
+    customActions: removeCustomActionsExecuteFunction(customActions),
   };
 
   const requestMetadata = {

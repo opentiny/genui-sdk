@@ -14,15 +14,15 @@ const customContext: any = inject(CUSTOM_CONTEXT, null);
 const pageContext: any = inject('pageContext', null);
 
 const i18n = inject('genuiI18n') as any;
-const { onAction } = (customContext.value || {}) as any;
+const { chat } = (customContext.value || {}) as any;
 const { state } = (pageContext || {}) as any;
 
 i18n?.mergeMessages(i18nMessages)
 
 const doAction = () => {
-  if (typeof onAction === 'function' && !customContext?.value?.generating) {
+  if (typeof chat === 'function' && !customContext?.value?.generating) {
     const text = buttonAttrs.value.text;
-    onAction({
+    chat({
       llmFriendlyMessage: i18n?.t('actionButton.clickMessage', { text, state: JSON.stringify(state) }),
       humanFriendlyMessage: text,
       context: {},

@@ -195,6 +195,26 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
   };
 }
 
+const getPlaygroundConfig = (playgroundStr: string) => {
+  let playgroundConfig = {}
+
+  try {
+    playgroundConfig = JSON.parse(playgroundStr);
+  } catch (error) {
+    console.error('Failed to parse playground from metadata:', error);
+  }
+  
+
+  return {
+    mcpServers: playgroundConfig.mcpServers || [],
+    framework: playgroundConfig.framework || 'Vue',
+    userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
+    model: playgroundConfig.model || '',
+    temperature: playgroundConfig.temperature || 0.3,
+  };
+
+}
+
 export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
     const abort = new AbortController();
@@ -224,28 +244,15 @@ export function createChatGenui() {
       }
     }
 
-    // 从 playground 中读取 mcpServers、framework 和 prompt
-    let mcpServers: McpServersConfig = [];
-    let framework: string = 'Vue'; // 默认值
-    let userAppendPrompt: string = '';
+    const playgroundConfig = getPlaygroundConfig(playgroundStr);
+    const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
 
-    if (playgroundStr) {
-      try {
-        const playgroundConfig = typeof playgroundStr === 'string' ? JSON.parse(playgroundStr) : {};
-        mcpServers = playgroundConfig.mcpServers || [];
-        framework = playgroundConfig.framework || 'Vue';
-        userAppendPrompt = playgroundConfig.prompt;
-      } catch (error) {
-        console.error('Failed to parse playground from metadata:', error);
-      }
-    }
-
-    // 从 body 直接读取 model 和 temperature（不再从 llmConfig 中读取）
     const llmConfigParams: LLMConfigParams = {
-      model: body.model,
-      temperature: body.temperature,
+      model: playgroundConfig.model,
+      temperature: playgroundConfig.temperature,
       mcpServers,
     };
+
 
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt } = llmConfig;
