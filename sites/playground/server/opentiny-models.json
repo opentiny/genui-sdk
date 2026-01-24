@@ -1,0 +1,55 @@
+{
+  "deepseek": {
+    "name": "deepseek",
+    "apiKeyEnvName": "API_KEY",
+    "baseUrlEnvName": "BASE_URL",
+    "models": [
+      {
+        "name": "DeepSeek-V3",
+        "id": "deepseek-ai/DeepSeek-V3",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "DeepSeek-R1",
+        "id": "deepseek-ai/DeepSeek-R1",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "Deepseek",
+        "id": "deepseek-v3.2-exp",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "qwen-plus",
+        "id": "qwen-plus",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "qwen-max",
+        "id": "qwen-max",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "qwen-vl-plus",
+        "id": "qwen3-vl-plus",
+        "supportJsonFormat": false,
+        "features": {
+          "supportImage": true
+        }
+      },
+      {
+        "name": "qwen-vl-max",
+        "id": "qwen3-vl-max",
+        "supportJsonFormat": false,
+        "features": {
+          "supportImage": true
+        }
+      },
+      {
+        "name": "qwen-long",
+        "id": "qwen-long",
+        "supportJsonFormat": false
+      }
+    ]
+  }
+}

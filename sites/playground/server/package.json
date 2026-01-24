@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch --include maas-models.json --tsconfig tsconfig.dev.json --clear-screen=false index.ts",
-    "build": "vite build --config vite.config.ts",
-    "dev:playground-alpha": "tsx watch --include ./alpha-models.json --tsconfig ./tsconfig.dev.json --clear-screen=false index.ts --mode=alpha",
-    "build:playground-alpha": "vite build --config vite.config.ts",
+    "build": "vite build",
+    "dev:alpha": "tsx watch --include ./alpha-models.json --tsconfig ./tsconfig.dev.json --clear-screen=false index.ts --mode=alpha",
+    "build:alpha": "vite build --mode alpha",
+    "build:agent-alpha": "vite build --mode agent-alpha",
     "serve": "node --import=extensionless/register dist/index.js"
   },
   "main": "dist/index.js",
