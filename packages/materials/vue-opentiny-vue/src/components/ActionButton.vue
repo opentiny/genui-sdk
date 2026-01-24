@@ -2,7 +2,8 @@
 import { CUSTOM_CONTEXT } from '@opentiny/genui-sdk-vue';
 import TinyButton from '@opentiny/vue-button';
 import { useAttrs, computed, inject } from 'vue';
-import { useI18n } from '../../../../frameworks/vue/src/chat/i18n'; //TODO: replace with package name
+import { GENUI_I18N } from '@opentiny/genui-sdk-vue';
+import { i18nMessages } from './i18n';
 
 const attrs = useAttrs();
 const buttonAttrs: any = computed(() => {
@@ -13,16 +14,19 @@ const buttonAttrs: any = computed(() => {
 const customContext: any = inject(CUSTOM_CONTEXT, null);
 const pageContext: any = inject('pageContext', null);
 
+const i18n = inject(GENUI_I18N) as any;
 const { chat } = (customContext.value || {}) as any;
 const { state } = (pageContext || {}) as any;
-const { t } = useI18n();
+
+i18n?.mergeMessages(i18nMessages)
 
 const doAction = () => {
   if (typeof chat === 'function' && !customContext?.value?.generating) {
     const text = buttonAttrs.value.text;
     chat({
-      llmFriendlyMessage: t('actionButton.clickMessage', { text, state: JSON.stringify(state) }),
+      llmFriendlyMessage: i18n?.t('actionButton.clickMessage', { text, state: JSON.stringify(state) }),
       humanFriendlyMessage: text,
+      context: {},
     });
   }
 };

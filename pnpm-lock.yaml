@@ -195,6 +195,9 @@ importers:
 
   packages/materials/vue-opentiny-vue:
     dependencies:
+      '@opentiny/genui-sdk-vue':
+        specifier: workspace:*
+        version: link:../../frameworks/vue
       '@opentiny/vue-button':
         specifier: ^3.25.0
         version: 3.25.0
