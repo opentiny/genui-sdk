@@ -1,17 +1,19 @@
 <script setup>
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
-import { ConfigProvider, GenuiChat, SCHEMA_RENDERER_INJECTION_TOKEN } from '@opentiny/genui-sdk-vue';
+import { IconAi } from '@opentiny/tiny-robot-svgs';
+import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
-import { customComponentsSchema, customComponents, customExamples } from './custom-components';
+import { customComponents, customExamples } from './custom-components';
 import { getModelFeatures, getModelOptions } from './api';
+import { createCustomFetch } from './api/custom-fetch';
 import NewSvg from './assets/images/new.svg?raw';
 import OpenSvg from './assets/images/open.svg?raw';
 import CloseSvg from './assets/images/close.svg?raw';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import RenderFooter from './components/RenderFooter.vue';
-import ThinkComponent from './components/TinkComponent.vue';
+import ThinkComponent from './components/ThinkComponent.vue';
 import ModelConfig from './components/tab-components/model-config.vue';
 import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
@@ -26,7 +28,7 @@ if (location.search.includes('framework=angular')) {
   const SchemaRendererNgAdapter = defineAsyncComponent(() =>
     import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
   );
-  provide(SCHEMA_RENDERER_INJECTION_TOKEN, SchemaRendererNgAdapter);
+  provide(GENUI_RENDERER, SchemaRendererNgAdapter);
   framework = 'Angular';
 }
 
@@ -56,16 +58,11 @@ const chatConfig = reactive(
   },
 );
 
-const chatLlmConfig = computed(() => {
-  const config = { ...llmConfig };
-  config.prompt = config.promptList?.join('\n') || '';
-  config.framework = framework;
-  delete config.promptList;
-  return config;
-});
 const modelData = ref([]);
 const modelFeatures = ref({});
-const theme = ref(cacheTheme || 'default');
+const theme = ref(cacheTheme || 'light');
+
+
 
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig],
@@ -83,7 +80,7 @@ watch(
   { deep: true },
 );
 const themeData = ref([
-  { text: '默认', value: 'default' },
+  { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
   { text: '清新', value: 'lite' },
 ]);
@@ -134,14 +131,11 @@ const roles = {
     },
   },
 };
-const rendererSlots = {
-  footer: RenderFooter,
-};
-const customConfig = {
-  customComponentsSchema,
-  customComponents,
-  customExamples,
-};
+
+const customFetch = createCustomFetch(() => ({
+  ...llmConfig,
+  framework,
+}));
 </script>
 
 <template>
@@ -205,23 +199,32 @@ const customConfig = {
       </tiny-tabs>
     </div>
     <div class="chat-container">
-      <ConfigProvider :theme="theme" style="height: 100%">
+      <GenuiConfigProvider :theme="theme" style="height: 100%">
         <GenuiChat
           :url="url"
           ref="chat"
           :messages="messages"
-          :llm-config="chatLlmConfig"
           :config="chatConfig"
           :think-component="ThinkComponent"
           :roles="roles"
           :features="modelFeatures"
-        />
-      </ConfigProvider>
+          :custom-fetch="customFetch"
+        >
+          <template #empty>
+            <div class="empty">
+              <IconAi />
+              <span>GenUI Playground</span>
+            </div>
+          </template>
+        </GenuiChat>
+      </GenuiConfigProvider>
     </div>
   </div>
 </template>
 <style scoped lang="less">
 .genui-playground {
+  --ti-common-scrollbar-width: 8px;
+  --ti-common-scrollbar-height: 8px;
   display: flex;
   height: 100%;
   :deep(.tiny-tabs__content) {
@@ -336,5 +339,19 @@ const customConfig = {
 .chat-container {
   flex: 1;
   height: 100%;
+  min-width: 0;
+}
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 80%;
+  font-size: 32px;
+  font-weight: 600;
+  & > svg {
+    width: 56px;
+    height: 56px;
+  }
 }
 </style>
