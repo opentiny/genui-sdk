@@ -6,9 +6,9 @@
 
 ### theme
 
-- **类型**: `'dark' | 'lite' | 'vivid'`
+- **类型**: `'dark' | 'lite' | 'light'`
 - **必填**: 否
-- **默认值**: `'vivid'`
+- **默认值**: `'light'`
 - **说明**: 主题模式。
 
 ```vue
@@ -109,7 +109,7 @@ const customI18n: I18nMessages = {
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
-const theme = ref<'dark' | 'lite' | 'vivid'>('dark');
+const theme = ref<'dark' | 'lite' | 'light'>('dark');
 
 function toggleTheme() {
   theme.value = theme.value === 'dark' ? 'lite' : 'dark';
@@ -130,7 +130,7 @@ function toggleTheme() {
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
-const theme = ref<'dark' | 'lite' | 'vivid'>('dark');
+const theme = ref<'dark' | 'lite' | 'light'>('dark');
 const content = ref({});
 const generating = ref(false);
 </script>

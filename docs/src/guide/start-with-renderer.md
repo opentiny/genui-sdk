@@ -140,12 +140,12 @@ export async function fetchSchemaStream(
 
 ```vue
 <template>
-  <div class="container">
+  <div class="demo-container">
     <div class="input-group">
       <input v-model="inputText" placeholder="请输入问题..." @keyup.enter="handleSend" />
       <button @click="handleSend">发送</button>
     </div>
-    <GenuiRenderer :content="schema" />
+    <GenuiRenderer :content="schema" :key="rendererKey" />
   </div>
 </template>
 
@@ -156,6 +156,7 @@ import { fetchSchemaStream } from './fetch-schema-stream';
 
 const inputText = ref('');
 const schema = ref<any>({ componentName: 'Page', children: [] });
+const rendererKey = ref(0);
 const generating = ref(false);
 
 const handleSend = async () => {
@@ -163,6 +164,7 @@ const handleSend = async () => {
 
   generating.value = true;
   schema.value = '';
+  rendererKey.value++;
   const userInput = inputText.value;
   inputText.value = '';
 
@@ -179,8 +181,9 @@ const handleSend = async () => {
 </script>
 
 <style scoped>
-.container {
+.demo-container {
   padding: 16px;
+  box-sizing: border-box;
 }
 
 .input-group {

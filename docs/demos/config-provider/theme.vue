@@ -93,18 +93,18 @@ const messages = [
   },
 ];
 
-const currentTheme = ref<'dark' | 'lite' | 'vivid'>('vivid');
+const currentTheme = ref<'dark' | 'lite' | 'light'>('light');
 
 const themeIcon = computed(() => {
   const icons = {
-    default: '☀️',
+    light: '☀️',
     dark: '🌙',
   };
   return icons[currentTheme.value];
 });
 
 function toggleTheme() {
-  currentTheme.value = currentTheme.value === 'dark' ? 'vivid' : 'dark';
+  currentTheme.value = currentTheme.value === 'dark' ? 'light' : 'dark';
 }
 </script>
 

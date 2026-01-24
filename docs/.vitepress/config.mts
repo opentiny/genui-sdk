@@ -44,7 +44,7 @@ export default defineConfig({
       ],
       '/components/': [
         {
-          text: '组件文档',
+          text: 'Vue组件文档',
           items: [
             { text: 'GenuiRenderer', link: '/components/renderer' },
             { text: 'GenuiChat', link: '/components/chat' },
@@ -54,7 +54,7 @@ export default defineConfig({
       ],
       '/examples/': [
         {
-          text: '特性示例',
+          text: 'Vue组件特性示例',
           items: [
             {
               text: 'Renderer 组件',
@@ -77,9 +77,9 @@ export default defineConfig({
                 { text: '自定义 Examples', link: '/examples/chat/custom-examples' },
                 { text: '自定义底部工具栏', link: '/examples/chat/footer-toolbar' },
                 { text: '自定义思考过程', link: '/examples/chat/thinking-process' },
+                { text: '自定义 Fetch', link: '/examples/chat/custom-fetch' },
                 { text: '上传图片', link: '/examples/chat/image-upload' },
                 { text: '历史会话管理', link: '/examples/chat/history' },
-                { text: 'customFetch', link: '/examples/chat/custom-fetch' },
               ],
             },
             {

@@ -7,7 +7,7 @@
 - `url`: 请求地址
 - `options.method`: HTTP 方法（通常为 'POST'）
 - `options.headers`: 请求头对象
-- `options.body`: 请求体（JSON 字符串），包含 `messages`、`model`、`temperature`、`metadata` (带有处理好的`customComponents`/`customSnippets`/`customExamples`/`customActions`)
+- `options.body`: 请求体（JSON 字符串），包含 `messages`、`model`、`temperature`、`metadata` (带有处理好的`customComponents`、`customSnippets`、`customExamples`、`customActions`信息)
 - `options.signal`: AbortSignal，用于取消请求
 
 ## 返回值
@@ -109,7 +109,84 @@ export const availableTools: Record<
 接下来，我们实现 `customFetch` 函数来处理工具调用和多轮对话：
 
 ```typescript
-export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
+import OpenAI from 'openai';
+import type { CustomRequest } from '@opentiny/genui-sdk-vue';
+import { availableTools } from './tools';
+
+/**
+ * OpenAI SDK 配置
+ */
+export interface OpenAIConfig {
+  apiKey: string;
+  baseURL?: string;
+  organization?: string;
+}
+
+/**
+ * 执行工具调用
+ */
+async function executeToolCall(toolName: string, args: any): Promise<string> {
+  const tool = availableTools[toolName];
+  if (!tool) {
+    throw new Error(`Tool ${toolName} not found`);
+  }
+
+  try {
+    const result = await tool.execute(args);
+    return typeof result === 'string' ? result : JSON.stringify(result);
+  } catch (error) {
+    return JSON.stringify({
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}
+
+/**
+ * 累积工具调用数据
+ * 将流式返回的工具调用增量数据累积成完整的工具调用对象
+ */
+function accumulateToolCalls(toolCalls: any[], toolCallDeltas: any[]): void {
+  for (const delta of toolCallDeltas) {
+    const index = delta.index ?? 0;
+    const toolCall = (toolCalls[index] ??= {
+      id: delta.id ?? '',
+      type: 'function',
+      function: { name: '', arguments: '' },
+    });
+    if (delta.id) toolCall.id = delta.id;
+    if (delta.function?.name) toolCall.function.name += delta.function.name;
+    if (delta.function?.arguments) toolCall.function.arguments += delta.function.arguments;
+  }
+}
+
+/**
+ * 执行单个工具调用并返回结果
+ */
+async function executeSingleToolCall(toolCall: any, currentMessages: any[]): Promise<any> {
+  const createResult = (result: string) => {
+    currentMessages.push({ role: 'tool', tool_call_id: toolCall.id, content: result });
+    return {
+      id: toolCall.id,
+      type: 'function',
+      function: { name: toolCall.function.name, arguments: toolCall.function.arguments, result },
+    };
+  };
+  try {
+    const args = JSON.parse(toolCall.function.arguments);
+    const result = await executeToolCall(toolCall.function.name, args);
+    return createResult(result);
+  } catch (error) {
+    return createResult(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }));
+  }
+}
+
+/**
+ * 使用 OpenAI SDK 创建 customRequest 函数（处理工具调用和多轮对话）
+ *
+ * @param config OpenAI 配置
+ * @returns CustomRequest 函数
+ */
+export function createOpenAICustomFetch(config: OpenAIConfig): CustomRequest {
   return async (
     url: string,
     options: {
@@ -121,7 +198,7 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
   ): Promise<Response> => {
     // 解析请求体
     const requestBody = JSON.parse(options.body);
-    const { messages, model, temperature, metadata } = requestBody;
+    const { messages, model, temperature } = requestBody;
 
     try {
       const openai = new OpenAI({
@@ -140,7 +217,6 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
           try {
             let currentMessages = [...messages];
             let stepCount = 0;
-            let completionId = `chatcmpl-${Date.now()}`;
 
             while (stepCount < maxSteps) {
               // 创建流式请求
@@ -148,7 +224,7 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
                 {
                   model,
                   messages: currentMessages,
-                  temperature: temperature,
+                  temperature,
                   tools: tools.length > 0 ? tools : undefined,
                   tool_choice: tools.length > 0 ? 'auto' : undefined,
                   stream: true,
@@ -158,203 +234,59 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
                 },
               );
 
-              let assistantMessage: any = {
-                role: 'assistant',
-                content: null,
-              };
               let toolCalls: any[] = [];
-              let contentDelta = '';
+              let hasToolCalls = false;
 
               // 处理流式响应
               for await (const chunk of stream) {
-                const choice = chunk.choices[0];
+                const choice = chunk.choices?.[0];
                 if (!choice) continue;
 
                 const delta = choice.delta;
 
-                // 处理内容增量
-                if (delta.content) {
-                  contentDelta += delta.content;
-                  const chunkData = {
-                    id: chunk.id || completionId,
-                    object: 'chat.completion.chunk',
-                    model: chunk.model || model,
-                    created: chunk.created || Math.floor(Date.now() / 1000),
-                    choices: [
-                      {
-                        index: 0,
-                        delta: { content: delta.content },
-                        finish_reason: null,
-                      },
-                    ],
-                  };
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunkData)}\n\n`));
-                }
-
-                // 处理工具调用（累积数据，不立即发送）
+                // 累积工具调用数据
                 if (delta.tool_calls) {
-                  for (const toolCallDelta of delta.tool_calls) {
-                    const index = toolCallDelta.index || 0;
-                    if (!toolCalls[index]) {
-                      toolCalls[index] = {
-                        id: toolCallDelta.id || '',
-                        type: 'function',
-                        function: {
-                          name: '',
-                          arguments: '',
-                        },
-                      };
-                    }
-                    if (toolCallDelta.id) {
-                      toolCalls[index].id = toolCallDelta.id;
-                    }
-                    if (toolCallDelta.function?.name) {
-                      toolCalls[index].function.name =
-                        (toolCalls[index].function.name || '') + toolCallDelta.function.name;
-                    }
-                    if (toolCallDelta.function?.arguments) {
-                      toolCalls[index].function.arguments =
-                        (toolCalls[index].function.arguments || '') + toolCallDelta.function.arguments;
-                    }
-                  }
+                  hasToolCalls = true;
+                  accumulateToolCalls(toolCalls, delta.tool_calls);
                 }
 
-                // 处理完成
-                if (choice.finish_reason) {
-                  if (choice.finish_reason === 'tool_calls' && toolCalls.length > 0) {
-                    // 发送完整的工具调用信息（只发送一次）
-                    const toolCallChunk = {
-                      id: chunk.id || completionId,
+                // 透传原始 chunk
+                controller.enqueue(encoder.encode(`data: ${JSON.stringify(chunk)}\n\n`));
+
+                // 处理完成原因
+                if (choice.finish_reason === 'tool_calls' && toolCalls.length > 0) {
+                  // 执行工具调用
+                  currentMessages.push({ role: 'assistant', content: null, tool_calls: toolCalls });
+                  const toolResults = await Promise.all(
+                    toolCalls.map((toolCall, i) =>
+                      executeSingleToolCall(toolCall, currentMessages).then((result) => ({ ...result, index: i })),
+                    ),
+                  );
+
+                  // 发送工具调用结果
+                  if (toolResults.length > 0) {
+                    const toolResultChunk = {
+                      id: chunk.id,
                       object: 'chat.completion.chunk',
                       model: chunk.model || model,
                       created: chunk.created || Math.floor(Date.now() / 1000),
-                      choices: [
-                        {
-                          index: 0,
-                          delta: {
-                            tool_calls: toolCalls.map((toolCall, idx) => ({
-                              index: idx,
-                              id: toolCall.id,
-                              type: 'function',
-                              function: {
-                                name: toolCall.function.name,
-                                arguments: toolCall.function.arguments,
-                              },
-                            })),
-                          },
-                          finish_reason: null,
-                        },
-                      ],
+                      choices: [{ index: 0, delta: { tool_calls_result: toolResults }, finish_reason: 'tool_calls' }],
                     };
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(toolCallChunk)}\n\n`));
-
-                    // 执行工具调用
-                    assistantMessage = {
-                      role: 'assistant',
-                      content: contentDelta || null,
-                      tool_calls: toolCalls,
-                    };
-                    currentMessages.push(assistantMessage);
-
-                    // 执行所有工具调用
-                    const toolResults: any[] = [];
-                    for (let i = 0; i < toolCalls.length; i++) {
-                      const toolCall = toolCalls[i];
-                      try {
-                        const args = JSON.parse(toolCall.function.arguments);
-                        const result = await executeToolCall(toolCall.function.name, args);
-
-                        // 添加工具调用结果到消息历史
-                        currentMessages.push({
-                          role: 'tool',
-                          tool_call_id: toolCall.id,
-                          content: result,
-                        });
-
-                        toolResults.push({
-                          index: i,
-                          id: toolCall.id,
-                          type: 'function',
-                          function: {
-                            name: toolCall.function.name,
-                            arguments: toolCall.function.arguments,
-                            result,
-                          },
-                        });
-                      } catch (error) {
-                        const errorResult = JSON.stringify({
-                          error: error instanceof Error ? error.message : 'Unknown error',
-                        });
-                        currentMessages.push({
-                          role: 'tool',
-                          tool_call_id: toolCall.id,
-                          content: errorResult,
-                        });
-                        toolResults.push({
-                          index: i,
-                          id: toolCall.id,
-                          type: 'function',
-                          function: {
-                            name: toolCall.function.name,
-                            arguments: toolCall.function.arguments,
-                            result: errorResult,
-                          },
-                        });
-                      }
-                    }
-
-                    // 发送所有工具调用结果块
-                    if (toolResults.length > 0) {
-                      const toolResultChunk = {
-                        id: completionId,
-                        object: 'chat.completion.chunk',
-                        model: chunk.model || model,
-                        created: chunk.created || Math.floor(Date.now() / 1000),
-                        choices: [
-                          {
-                            index: 0,
-                            delta: {
-                              tool_calls_result: toolResults,
-                            },
-                            finish_reason: 'tool_calls',
-                          },
-                        ],
-                      };
-                      controller.enqueue(encoder.encode(`data: ${JSON.stringify(toolResultChunk)}\n\n`));
-                    }
-
-                    stepCount++;
-                    // 继续下一轮对话
-                    continue;
-                  } else {
-                    // 正常完成
-                    if (contentDelta) {
-                      assistantMessage.content = contentDelta;
-                      currentMessages.push(assistantMessage);
-                    }
-
-                    // 发送完成块
-                    const finishChunk = {
-                      id: chunk.id || completionId,
-                      object: 'chat.completion.chunk',
-                      model: chunk.model || model,
-                      created: chunk.created || Math.floor(Date.now() / 1000),
-                      choices: [
-                        {
-                          index: 0,
-                          delta: {},
-                          finish_reason: choice.finish_reason,
-                        },
-                      ],
-                    };
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(finishChunk)}\n\n`));
-                    break;
+                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(toolResultChunk)}\n\n`));
                   }
+
+                  stepCount++;
+                  break;
+                }
+
+                if (choice.finish_reason) {
+                  // 正常完成，退出外层循环
+                  break;
                 }
               }
 
               // 如果没有工具调用，退出循环
-              if (toolCalls.length === 0) {
+              if (!hasToolCalls) {
                 break;
               }
             }
@@ -372,9 +304,6 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`));
             controller.error(error);
           }
-        },
-        cancel() {
-          // 清理资源
         },
       });
 
@@ -411,6 +340,14 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
     }
   };
 }
+
+/**
+ * 默认的 customFetch 实现（使用环境变量配置）
+ */
+export const defaultCustomFetch = createOpenAICustomFetch({
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY || 'sk-test',
+  baseURL: 'https://your-chat-backend/api',
+});
 ```
 
 关键实现点：
@@ -418,7 +355,6 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
 1. **多轮对话循环**：使用 `while` 循环处理多轮工具调用，最多执行 `maxSteps` 次
 2. **消息历史管理**：维护 `currentMessages` 数组，包含用户消息、助手消息和工具调用结果
 3. **工具调用处理**：
-   - 累积流式响应中的工具调用数据
    - 当 `finish_reason` 为 `tool_calls` 时，执行所有工具调用
    - 将工具调用结果添加到`currentMessages`中，继续下一轮对话
 4. **流式响应转换**：将 OpenAI SDK 的流式响应转换为 SSE 格式，否则组件无法正常处理，
@@ -431,13 +367,7 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
 ```vue
 <template>
   <div class="app-container">
-    <GenuiChat
-      url="http://localhost:3100/"
-      :customFetch="defaultCustomFetch"
-      model="deepseek-v3.2"
-      :temperature="0.5"
-      :chatConfig="chatConfig"
-    />
+    <GenuiChat :customFetch="defaultCustomFetch" model="deepseek-v3.2" :temperature="0.5" :chatConfig="chatConfig" />
   </div>
 </template>
 
