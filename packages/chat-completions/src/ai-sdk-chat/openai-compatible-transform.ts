@@ -1,4 +1,5 @@
-import type { ToolSet, LanguageModel, ToolCallPart, ToolResultPart } from 'ai';
+import type { ToolSet, LanguageModel, ToolCallPart, ToolResultPart, TextStreamPart } from 'ai';
+import type { ChatCompletionChunk } from 'openai/resources';
 
 export interface ITransformOptions {
   model?: LanguageModel;
@@ -142,7 +143,7 @@ export const openaiCompatibleTransfrom =
     });
   };
 
-export const openaiCompatibleTransfromChunk = (chunk: any, transformOptions: ITransformOptions): any => {
+export const openaiCompatibleTransformChunk = (chunk: TextStreamPart<any>, transformOptions: ITransformOptions): ChatCompletionChunk => {
   const transformFn = transformMap[chunk.type as keyof typeof transformMap];
   if (transformFn) {
     return transformFn(chunk, transformOptions);

@@ -1,6 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 import { equipChatCompletions, type IEquipChatCompletionsOptions } from './equip-chat-completions';
+import { Server } from 'http';
 
 export interface IStartServerOptions extends Omit<IEquipChatCompletionsOptions, 'route'> {
   port?: number;
@@ -26,7 +27,7 @@ export function startServer(options: IStartServerOptions): void {
 
   let currentPort = port ?? 3100;
   let attempts = 0;
-  let server: any = null;
+  let server: Server | null = null;
 
   const tryListen = () => {
     if (attempts >= maxAttempts) {

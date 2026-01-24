@@ -2,6 +2,9 @@
   "compilerOptions": {
     "baseUrl": "./",
     "paths": {
+      "@opentiny/genui-sdk-chat-completions": [
+        "../chat-completions/src/index.ts"
+      ],
       "@opentiny/genui-sdk-core": [
         "../core/src/index.ts"
       ],
@@ -16,6 +19,7 @@
   "include": [
     "src/**/*",
     "../core/**/*",
-    "../materials/**/*"
+    "../materials/**/*",
+    "../chat-completions/**/*"
   ]
 }

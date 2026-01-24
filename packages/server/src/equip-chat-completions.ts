@@ -1,6 +1,5 @@
 import type { Express } from 'express';
-import { FetchChatService } from './chat-service/fetch-chat-service';
-import { Genui } from './chat-completions/chat-completions';
+import { FetchChatCompletions } from '@opentiny/genui-sdk-chat-completions';
 import { createChatCompletionHandler } from './handler/create-chat-completion';
 
 export interface IEquipChatCompletionsOptions {
@@ -12,15 +11,13 @@ export interface IEquipChatCompletionsOptions {
 export function equipChatCompletions(app: Express, options: IEquipChatCompletionsOptions) {
   const { route, apiKey, baseURL } = options;
 
-  const fetchChatService = new FetchChatService({
+  const chatCompletion = new FetchChatCompletions({
     apiKey,
     baseURL,
   });
 
-  const genui = new Genui({ chatService: fetchChatService });
-
   const { handler: chatCompletionHandler } = createChatCompletionHandler({
-    chatCompletions: genui.chatCompletions.bind(genui) as any,
+    chatCompletions: (params, options) => chatCompletion.chatStream(params, options),
   });
 
   app.post(route, chatCompletionHandler);
