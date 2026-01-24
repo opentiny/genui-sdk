@@ -80,6 +80,14 @@ export class CustomModelProvider extends BaseModelProvider {
       return;
     }
     const reader = response.body!.getReader();
+    const signal = request.options?.signal;
+      signal?.addEventListener('abort',
+        () => {
+          reader.cancel();
+        },
+        { once: true }
+      )
+    
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
