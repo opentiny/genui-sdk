@@ -222,13 +222,11 @@ import '@opentiny/tiny-robot/dist/style.css';
 import type { IRendererProps } from '@opentiny/genui-sdk-vue';
 import { CustomModelProvider } from './CustomModelProvider'; // 引入上面定义的 CustomModelProvider
 
-// 初始化 AI 客户端
 const client = new AIClient({
   provider: 'custom',
   providerImplementation: new CustomModelProvider('https://your-chat-backend/api'),
 });
 
-// 消息管理
 const messages = ref<ChatMessage[]>([]);
 const inputMessage = ref('');
 const messageState = reactive({ status: STATUS.INIT, errorMsg: null });
@@ -236,7 +234,6 @@ let abortController: AbortController | null = null;
 
 const generating = computed(() => GeneratingStatus.includes(messageState.status));
 
-// 发送消息
 const sendMessage = async (messageContent: string) => {
   if (generating.value || !messageContent.trim()) return;
 
@@ -282,13 +279,11 @@ const sendMessage = async (messageContent: string) => {
   }
 };
 
-// 取消请求
 const abortRequest = () => {
   abortController?.abort();
   messageState.status = STATUS.FINISHED;
 };
 
-// 配置消息渲染器
 const markdownRenderer = new BubbleMarkdownContentRenderer({
   defaultAttrs: { class: 'markdown-content' },
 });

@@ -30,10 +30,9 @@ export async function fetchSchemaStream(
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
 
-  // Schema 流式处理状态
   let inSchemaStream = false;
-  let bufferText = ''; // 用于处理跨 chunk 的标记
-  let schemaFinished = false; // 第一个 schema 是否已处理完成
+  let bufferText = ''; 
+  let schemaFinished = false; 
   const startFlag = '```schemaJson';
   const endFlag = '```';
 
@@ -59,7 +58,6 @@ export async function fetchSchemaStream(
 
       buffer += decoder.decode(value, { stream: true });
 
-      // 按行拆分（SSE 格式以 \n 分割）
       while (true) {
         const lineEndIndex = buffer.indexOf('\n');
         if (lineEndIndex === -1) break;
@@ -95,7 +93,6 @@ export async function fetchSchemaStream(
             }
 
             if (inSchemaStream) {
-              // 结束 schema 流
               const trimmedDelta = deltaPart.trim();
               const [schemaPart] = trimmedDelta.split(matchPart);
               if (schemaPart) {
@@ -104,23 +101,19 @@ export async function fetchSchemaStream(
               schemaFinished = true;
               return;
             } else {
-              // 开始 schema 流，提取开始标记后的内容
               const trimmedDelta = deltaPart.trim();
               const [, schemaPart] = trimmedDelta.split(matchPart);
-              // 进入流模式，后续内容会直接传递
               inSchemaStream = true;
               bufferText = '';
-              // 如果有开始标记后的内容，传递它
               if (schemaPart) {
                 onSchemaUpdate(schemaPart);
               }
-              continue; // 跳过后续处理，避免重复传递 content
+              continue;
             }
           }
 
           bufferText = '';
           if (inSchemaStream) {
-            // 在 schema 流中，直接传递内容
             onSchemaUpdate(deltaPart);
           }
         } catch (e) {

@@ -89,7 +89,6 @@ const customActions = {
   },
   showNotification: {
     execute: (params) => {
-      // 显示通知
       console.log('通知:', params.message);
     },
   },

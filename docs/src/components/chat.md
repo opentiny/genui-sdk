@@ -292,7 +292,6 @@ const rolesConfig = {
   },
   assistant: {
     maxWidth: '100%',
-    // 其他TinyRobot的BubbleRoleConfig配置
   },
 };
 </script>
@@ -522,7 +521,7 @@ interface IFunctionParam {
 ### IGenPromptSnippet
 
 ```typescript
-type IGenPromptSnippet = NodeSchema; // NodeSchema 类型
+type IGenPromptSnippet = NodeSchema; 
 
 interface NodeSchema {
   componentName: string;
@@ -579,8 +578,8 @@ interface BubbleRoleConfig {
   avatar?: Component | VNode; // 头像组件
   maxWidth?: string; // 消息最大宽度
   slots?: {
-    // 插槽配置
-    trailer?: Component<IBubbleSlotsProps>; // 底部工具栏组件
+    // 插槽配置,可用于配置底部工具栏
+    trailer?: Component<IBubbleSlotsProps>;
   };
 }
 
