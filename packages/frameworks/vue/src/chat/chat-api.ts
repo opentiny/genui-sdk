@@ -1,26 +1,47 @@
-import type { ICustomConfig, LLMConfig } from './chat.types';
-const removeCustomActionsExucueFunction = (customActions: any) => {
-  return customActions.map((action: any) => {
+import type { ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
+import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
+const removeCustomActionsExecuteFunction = (customActions: ICustomActionItem[]) => {
+  return customActions.map((action: ICustomActionItem) => {
     return {
       name: action.name,
       description: action.description,
       params: action.params,
-    }
+    };
+  });
+};
+
+// 从 customComponents 中移除 ref 字段，只保留 schema 信息
+const removeRefFromCustomComponents = (customComponents: ICustomComponentItem[]): IGenPromptComponent[] => {
+  return customComponents.map((item) => {
+    const { ref, ...rest } = item;
+    return rest;
   });
 };
 
 export const chat = async (
-  url: string,
-  messages: any,
-  llmConfig: LLMConfig,
-  signal: any,
-  customConfig: ICustomConfig,
+  chatOptions: {
+    url: string,
+    messages: any,
+    model: string,
+    temperature: number,
+    signal: any,
+    customComponents: ICustomComponentItem[],
+    customSnippets: IGenPromptSnippet[],
+    customExamples: IGenPromptExample[],
+    customActions: ICustomActionItem[],
+    customFetch?: CustomFetch,
+  }
 ) => {
+  const { url, messages, model, temperature, signal, customComponents, customSnippets, customExamples, customActions, customFetch } = chatOptions;
   const tgCustomConfig = {
-    customComponents: customConfig.customComponentsSchema,
-    customSnippets: customConfig.customSnippets,
-    customExamples: customConfig.customExamples,
-    customActions: removeCustomActionsExucueFunction(customConfig.customActions || []),
+    customComponents: removeRefFromCustomComponents(customComponents),
+    customSnippets: customSnippets,
+    customExamples: customExamples,
+    customActions: removeCustomActionsExecuteFunction(customActions),
+  };
+
+  const requestMetadata = {
+    tinygenui: JSON.stringify(tgCustomConfig),
   };
 
   const options = {
@@ -29,10 +50,17 @@ export const chat = async (
       'Content-Type': 'application/json',
     },
     signal,
-    body: JSON.stringify({ messages: messages, llmConfig, metadata: { tinygenui: tgCustomConfig } }),
+    body: JSON.stringify({
+      messages: messages,
+      model: model,
+      temperature: temperature,
+      metadata: requestMetadata,
+    }),
   };
 
-  const response = await fetch(url, options);
+  // 如果提供了自定义请求函数，使用它；否则使用默认的 fetch
+  const requestFn = customFetch || fetch;
+  const response = await requestFn(url, options);
 
   if (!response.ok) {
     const errorText = await response.text();

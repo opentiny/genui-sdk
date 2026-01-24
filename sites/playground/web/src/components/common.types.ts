@@ -1,10 +1,8 @@
-
 export interface IBubbleSlotsProps {
   index: number;
   bubbleProps: { [key: string]: any };
   isFinished: boolean;
-  messageManager: { [key: string]: any 
-  };
+  messageManager: { [key: string]: any };
 }
 
 export interface IRendererSlotsProps {
@@ -31,7 +29,7 @@ export interface IMessage {
   messages?: IMessageItem[];
 }
 
-export interface IGeneratingComponentProps {
+export interface IThinkComponentProps {
   emitter: INotificationEventEmitter;
   message: IMessage;
   showThinkingResult: boolean;

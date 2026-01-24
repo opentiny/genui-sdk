@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { INotificationPayload } from '@opentiny/genui-sdk-core';
-import type { IGeneratingComponentProps } from './common.types';
+import type { IThinkComponentProps } from './common.types';
 
-const props = defineProps<IGeneratingComponentProps>();
+const props = defineProps<IThinkComponentProps>();
 
 const loadingText = ref('响应中...');
 
@@ -65,5 +65,15 @@ onBeforeUnmount(() => {
   background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: text-shimmer 6s linear infinite;
+}
+
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 </style>

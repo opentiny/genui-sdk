@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "build:no-obfuscator": "vite build --mode no-obfuscator",
     "test": "vitest"
   },
   "dependencies": {

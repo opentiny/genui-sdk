@@ -1,7 +1,7 @@
 import { type JsonSchema7Type, zodToJsonSchema } from 'zod-to-json-schema';
 import type { IMaterials, CardSchema, IRendererConfig, IExample } from '../protocols';
 import { genRootSchema } from '../protocols'; // TODO: protocal cannnot contains methods
-import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from './gen-prompt-config';
+import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample, IGenPromptCustomConfig } from './gen-prompt-config';
 import { getComponentsName, getComponentsInfo } from './handle-component';
 import { getSnippetsInfo } from './handle-snippets';
 import { genCustomActionsPrompt } from './action';
@@ -9,13 +9,6 @@ import { aboutThis } from './about-this';
 import { ZodTypeAny } from 'zod';
 
 export type IWhiteList = string[];
-
-export interface ITGCustomConfig {
-  customComponents: IGenPromptComponent[];
-  customSnippets: IGenPromptSnippet[];
-  customExamples: IGenPromptExample[];
-  customActions: any[];
-}
 
 export const promptPrefix = `
 仔细阅读以下内容，并根据内容生成一个卡片的schema的JSON。
@@ -137,7 +130,7 @@ const getExtendWhiteList = (whiteList: string[], customComponents: IGenPromptCom
 
 export const genPrompt = (
   rendererConfig: IRendererConfig,
-  tgCustomConfig?: ITGCustomConfig,
+  tgCustomConfig?: IGenPromptCustomConfig,
   options?: { isSkill?: boolean },
 ) => {
   const { materialsList, examples, whiteList, wrapperComponent = 'TinyCard' } = rendererConfig;

@@ -13,6 +13,13 @@ importers:
         version: 7.28.5
 
   docs:
+    dependencies:
+      '@opentiny/genui-sdk-vue':
+        specifier: workspace:*
+        version: link:../packages/frameworks/vue
+      tiny-schema-renderer-ng:
+        specifier: workspace:*
+        version: link:../projects/tiny-schema-renderer-ng
     devDependencies:
       vitepress:
         specifier: ^1.6.3
@@ -649,6 +656,85 @@ importers:
       vue:
         specifier: ^3.5.18
         version: 3.5.26(typescript@5.8.3)
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: ^6.0.1
+        version: 6.0.3(vite@7.3.0(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))(vue@3.5.26(typescript@5.8.3))
+      '@vue/tsconfig':
+        specifier: ^0.7.0
+        version: 0.7.0(typescript@5.8.3)(vue@3.5.26(typescript@5.8.3))
+      gridstack:
+        specifier: ^12.2.1
+        version: 12.4.2
+      typescript:
+        specifier: ~5.8.3
+        version: 5.8.3
+      vite:
+        specifier: ^7.1.2
+        version: 7.3.0(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite-jsconfig-paths:
+        specifier: ^2.0.1
+        version: 2.0.1(vite@7.3.0(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+      vite-plugin-node-polyfills:
+        specifier: ^0.24.0
+        version: 0.24.0(rollup@4.54.0)(vite@7.3.0(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+      vue-tsc:
+        specifier: ^3.0.5
+        version: 3.2.1(typescript@5.8.3)
+
+  sites/playground/web2:
+    dependencies:
+      '@ai-sdk/deepseek':
+        specifier: ^1.0.5
+        version: 1.0.33(zod@3.25.76)
+      '@ai-sdk/openai':
+        specifier: ^2.0.10
+        version: 2.0.89(zod@3.25.76)
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../../../packages/core
+      '@opentiny/genui-sdk-vue':
+        specifier: workspace:*
+        version: link:../../../packages/frameworks/vue
+      '@opentiny/tiny-robot':
+        specifier: 0.3.1-alpha.3
+        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+      '@opentiny/tiny-robot-kit':
+        specifier: 0.3.1-alpha.3
+        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+      '@opentiny/tiny-robot-svgs':
+        specifier: 0.3.1-alpha.3
+        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+      '@opentiny/vue':
+        specifier: 3.25.0
+        version: 3.25.0
+      '@opentiny/vue-directive':
+        specifier: 3.25.0
+        version: 3.25.0
+      '@opentiny/vue-icon':
+        specifier: 3.25.0
+        version: 3.25.0
+      ai:
+        specifier: ^5.0.10
+        version: 5.0.10(zod@3.25.76)
+      clipboard-copy:
+        specifier: ^4.0.1
+        version: 4.0.1
+      openai:
+        specifier: ^5.12.0
+        version: 5.23.2(ws@8.18.3)(zod@3.25.76)
+      schema-renderer-ng-adpater:
+        specifier: workspace:*
+        version: link:../schema-renderer-ng-adpater
+      vite-commit-hash-plugin:
+        specifier: workspace:*
+        version: link:../vite-commit-hash-plugin
+      vue:
+        specifier: ^3.5.18
+        version: 3.5.26(typescript@5.8.3)
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^6.0.1
@@ -16011,6 +16097,11 @@ snapshots:
       emoji-regex-xs: 1.0.0
       regex: 6.1.0
       regex-recursion: 6.0.2
+
+  openai@5.23.2(ws@8.18.3)(zod@3.25.76):
+    optionalDependencies:
+      ws: 8.18.3
+      zod: 3.25.76
 
   openai@5.23.2(ws@8.18.3)(zod@4.1.13):
     optionalDependencies:
