@@ -8,13 +8,17 @@ import type {
   IGenPromptComponent,
   IGenPromptSnippet,
   IGenPromptExample,
+  IGenPromptAction,
 } from '@opentiny/genui-sdk-core';
+
+export interface ICustomActionItem extends IGenPromptAction {
+  execute: (params: any, context: Record<string, any>) => void;
+}
 
 export interface IRolesConfig {
   user: Partial<BubbleRoleConfig>;
   assistant: Partial<BubbleRoleConfig>;
 }
-
 export interface IProviderProps {
   targetElement?: string;
 }
@@ -90,7 +94,7 @@ export interface IChatProps {
   customComponents?: ICustomComponentItem[];
   customSnippets?: IGenPromptSnippet[];
   customExamples?: IGenPromptExample[];
-  customActions?: any[];
+  customActions?: ICustomActionItem[];
   rendererSlots?: IRendererSlots;
   thinkComponent?: Component<BubbleProps>;
   roles?: IRolesConfig;

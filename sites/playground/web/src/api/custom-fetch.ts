@@ -10,10 +10,12 @@ export interface IMcpServerConfig {
 export interface IPlaygroundConfig {
   mcpServers: IMcpServerConfig[];
   framework: string;
-  prompt: string;
+  promptList: string[];
+  model: string;
+  temperature: number;
 }
 
-// 创建 customFetch，将 mcpServers、framework 和 prompt 传递到 metadata
+// 创建 customFetch，将 mcpServers、framework、promptList、model 和 temperature 传递到 metadata
 export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
   return (url: string, options) => {
     // 解析请求 body
@@ -21,12 +23,14 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
 
     // 动态获取最新的配置
     const config = getConfig();
-    const { mcpServers, framework, prompt } = config;
+    const { mcpServers, framework, promptList, model, temperature } = config;
 
     const playgroundConfig = {
-      mcpServers: mcpServers || [],
+      mcpServers,
       framework: framework || 'Vue',
-      prompt: prompt || '',
+      promptList,
+      model,
+      temperature,
     };
 
     return fetch(url, {

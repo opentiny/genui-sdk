@@ -36,13 +36,26 @@ export interface IGenPromptExample {
   schema: CardSchema;
 }
 
+export interface IGenPromptActionParam {
+  name: string;
+  description?: string;
+  type?: string;
+  required?: boolean;
+}
+
+export interface IGenPromptAction {
+  name: string;
+  description?: string;
+  params?: IGenPromptActionParam[];
+}
+
 export type IGenPromptSnippet = NodeSchema;
 
 export interface IGenPromptCustomConfig {
   customComponents?: IGenPromptComponent[];
   customSnippets?: IGenPromptSnippet[];
   customExamples?: IGenPromptExample[];
-  customActions?: any[];
+  customActions?: IGenPromptAction[];
 }
 
 export interface IGenPromptConfig extends IGenPromptCustomConfig {

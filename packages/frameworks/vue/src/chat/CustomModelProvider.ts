@@ -1,7 +1,7 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { IChatConfig, ICustomComponentItem, CustomFetch } from './chat.types';
+import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
 import useSchemaStream from './useSchemaStream';
@@ -17,7 +17,7 @@ export interface ICustomModelProviderOptions {
   customComponents: ICustomComponentItem[];
   customSnippets: IGenPromptSnippet[];
   customExamples: IGenPromptExample[];
-  customActions: any[];
+  customActions: ICustomActionItem[];
   customFetch?: CustomFetch;
 }
 export class CustomModelProvider extends BaseModelProvider {
@@ -27,7 +27,7 @@ export class CustomModelProvider extends BaseModelProvider {
   private customComponents: ICustomComponentItem[];
   private customSnippets: IGenPromptSnippet[];
   private customExamples: IGenPromptExample[];
-  private customActions: any[];
+  private customActions: ICustomActionItem[];
   private chatConfig: IChatConfig;
   private customFetch?: CustomFetch;
   constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
@@ -83,6 +83,7 @@ export class CustomModelProvider extends BaseModelProvider {
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
+    let inProcessToolCallId;
     const { handleSchemaStream, clearSchemaState } = useSchemaStream();
     const chatMessage = reactive<IChatMessage>({
       role: 'assistant',
@@ -125,18 +126,32 @@ export class CustomModelProvider extends BaseModelProvider {
       toolCalls.forEach((toolCall) => {
         const {
           id,
-          function: { name, arguments: args },
+          function: { name, arguments: argsDelta },
         } = toolCall;
-        const toolCallItem: IMessageItem & { type: 'tool' } = reactive({
-          type: 'tool',
-          name: name,
-          formatPretty: true,
-          status: 'running',
-          content: args ? JSON.stringify({ arguments: args }, null, 2) : '',
-          id,
-        });
-        toolCallIdMap[id] = toolCallItem;
-        chatMessage.messages.push(toolCallItem);
+
+        let toolCallItem: IMessageItem & { type: 'tool' };
+        // 有id的就是首次工具调用返回
+        if (id) {
+          inProcessToolCallId = id;
+          toolCallItem = reactive({
+            type: 'tool',
+            name: name,
+            formatPretty: true,
+            status: 'running',
+            content: JSON.stringify({ arguments: argsDelta || '' }, null, 2),
+            id,
+          });
+          toolCallIdMap[id] = toolCallItem;
+          chatMessage.messages.push(toolCallItem);
+        } else {
+          toolCallItem = toolCallIdMap[inProcessToolCallId];
+          const prevArgs = JSON.parse(toolCallItem.content).arguments;
+          const nextArgs = prevArgs + (argsDelta || '');
+  
+          toolCallItem.content = JSON.stringify({ arguments: nextArgs }, null, 2);
+        }
+
+
 
         emitter.emit('notification', {
           type: 'tool',
