@@ -29,7 +29,6 @@ export default defineConfig({
       { text: '快速开始', link: '/guide/quick-start' },
       { text: '组件文档', link: '/components/renderer' },
       { text: '特性示例', link: '/examples/renderer/custom-actions' },
-      { text: '更多技术栈', link: '/advanced/angular-support' },
     ],
     sidebar: {
       '/guide/': [
@@ -50,6 +49,10 @@ export default defineConfig({
             { text: 'GenuiChat', link: '/components/chat' },
             { text: 'GenuiConfigProvider', link: '/components/config-provider' },
           ],
+        },
+        {
+          text: 'Angular组件文档',
+          items: [{ text: 'GenuiRenderer(未开放)', link: '/components/angular-renderer' }],
         },
       ],
       '/examples/': [
@@ -90,15 +93,6 @@ export default defineConfig({
                 { text: '国际化配置', link: '/examples/config-provider/i18n' },
               ],
             },
-          ],
-        },
-      ],
-      '/advanced/': [
-        {
-          text: '更多技术栈',
-          items: [
-            { text: '支持 Angular', link: '/advanced/angular-support' },
-            { text: '支持自定义渲染器', link: '/advanced/custom-renderer' },
           ],
         },
       ],
