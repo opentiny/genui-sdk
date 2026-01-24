@@ -21,11 +21,11 @@
 import { ref, computed } from 'vue';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
-const currentTheme = ref<'dark' | 'lite' | 'vivid'>('vivid');
+const currentTheme = ref<'dark' | 'lite' | 'light'>('light');
 
 const themeIcon = computed(() => {
   const icons = {
-    default: '☀️',
+    light: '☀️',
     dark: '🌙',
   };
   return icons[currentTheme.value];
@@ -36,7 +36,7 @@ const containerBgColor = computed(() => {
 });
 
 function toggleTheme() {
-  currentTheme.value = currentTheme.value === 'dark' ? 'vivid' : 'dark';
+  currentTheme.value = currentTheme.value === 'dark' ? 'light' : 'dark';
 }
 
 const generating = ref(false);
@@ -118,7 +118,6 @@ const content = ref({
 </script>
 
 <style scoped>
-
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -151,4 +150,3 @@ const content = ref({
   overflow: auto;
 }
 </style>
-

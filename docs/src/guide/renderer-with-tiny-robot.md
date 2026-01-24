@@ -24,7 +24,6 @@ import {
 } from '@opentiny/tiny-robot-kit';
 import { reactive } from 'vue';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
-import { v4 as uuidv4 } from 'uuid';
 
 // 简化的 Schema 流式处理逻辑（只处理 schema-card 和 markdown）
 function useSchemaStream() {
@@ -138,6 +137,7 @@ export class CustomModelProvider extends BaseModelProvider {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: request.messages,
+          model: 'deepseek-v3.2',
           stream: true,
         }),
         signal: request.options?.signal,
@@ -192,7 +192,8 @@ export class CustomModelProvider extends BaseModelProvider {
               handleSchemaStream(content, chatMessage);
               const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
               if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-                lastMessage.id = uuidv4();
+                // 演示示例，使用Math.random作为key
+                lastMessage.id = Math.random().toString(36).substring(2, 15);
               }
               onData(chatMessage as any);
             }
@@ -236,15 +237,14 @@ let abortController: AbortController | null = null;
 const generating = computed(() => GeneratingStatus.includes(messageState.status));
 
 // 发送消息
-const sendMessage = async () => {
-  if (generating.value || !inputMessage.value.trim()) return;
+const sendMessage = async (messageContent: string) => {
+  if (generating.value || !messageContent.trim()) return;
 
   const userMessage: ChatMessage = {
     role: 'user',
-    content: inputMessage.value,
+    content: messageContent,
   };
   messages.value.push(userMessage);
-  inputMessage.value = '';
 
   messageState.status = STATUS.PROCESSING;
   abortController = new AbortController();
@@ -265,8 +265,9 @@ const sendMessage = async () => {
             messages.value.push(data);
           }
         },
-        onError: (error) => {
+        onError: (error: any) => {
           messageState.status = STATUS.ERROR;
+          messageState.errorMsg = error;
           console.error('Stream error:', error);
         },
         onDone: () => {
@@ -279,6 +280,12 @@ const sendMessage = async () => {
   } finally {
     abortController = null;
   }
+};
+
+// 取消请求
+const abortRequest = () => {
+  abortController?.abort();
+  messageState.status = STATUS.FINISHED;
 };
 
 // 配置消息渲染器
@@ -309,18 +316,61 @@ const messageRenderers = {
   markdown: markdownRenderer,
 };
 
-const handleSend = ({ llmFriendlyMessage }: any) => {
-  inputMessage.value = llmFriendlyMessage;
-  sendMessage();
+const handleSubmit = (content: string) => {
+  sendMessage(content);
+};
+
+const roles = {
+  user: {
+    placement: 'end',
+  },
+  assistant: {
+    placement: 'start',
+    customContentField: 'messages',
+  },
 };
 </script>
 
 <template>
-  <TrBubbleProvider :content-renderers="messageRenderers">
-    <TrBubbleList :items="messages" />
-    <TrSender v-model="inputMessage" @send="handleSend" />
-  </TrBubbleProvider>
+  <div class="chat-container">
+    <div class="messages-container">
+      <TrBubbleProvider :content-renderers="messageRenderers">
+        <TrBubbleList :items="messages" :roles="roles" />
+      </TrBubbleProvider>
+    </div>
+    <div class="sender-container">
+      <TrSender
+        v-model="inputMessage"
+        :loading="generating"
+        :placeholder="generating ? '思考中...' : '请输入消息'"
+        @submit="handleSubmit"
+        @cancel="abortRequest"
+      />
+    </div>
+  </div>
 </template>
+
+<style scoped>
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #f5f5f5;
+}
+
+.messages-container {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.sender-container {
+  flex-shrink: 0;
+  padding: 16px;
+  background: #fff;
+  border-top: 1px solid #e5e5e5;
+}
+</style>
 ```
 
 ## 其他相关文档
