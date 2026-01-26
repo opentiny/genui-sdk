@@ -4,12 +4,10 @@ import { Button as TinyButton, Tag as TinyTag } from "@opentiny/vue";
 import genuiAbility1 from "@/assets/genui_ability_1.svg";
 import genuiAbility2 from "@/assets/genui_ability_2.png";
 import genuiAbility3 from "@/assets/genui_ability_3.svg";
-import genuiActionVedioCover from "@/assets/genui_action_vedio_cover.webp";
-import genuiFlowVedioCover from "@/assets/genui_flow_vedio_cover.svg";
-import genuiActionVedio from "@/assets/genui_action_vedio.mov";
-import genuiFlowVedio from "@/assets/genui_flow_vedio.mov";
 import { LinkKey, openLink } from "@/utils/link";
 import HomeAbility from "@/components/HomeAbility.vue";
+import HomeActionVideo from "@/components/HomeActionVideo.vue";
+import HomeFlowVideo from "@/components/HomeFlowVideo.vue";
 import HomeGuide from "@/components/HomeGuide.vue";
 import HomeFeature from "@/components/HomeFeature.vue";
 import HomeLink from "@/components/HomeLink.vue";
@@ -82,20 +80,7 @@ const abilityThreePartContent = ref({
     </home-ability>
 
     <!-- 第三屏 -->
-    <home-ability
-      class="home-ability-2"
-      title="更加流畅的交互方式"
-      subtitle="打破两步交互，实现界面到对话的一站式流转"
-    >
-      <video
-        class="cover-image ability-image"
-        id="genui-action-vedio"
-        controls
-        :poster="genuiActionVedioCover"
-      >
-        <source :src="genuiActionVedio" type="video/mp4" />
-      </video>
-    </home-ability>
+    <home-action-video></home-action-video>
 
     <home-ability
       class="home-ability-3"
@@ -144,20 +129,7 @@ const abilityThreePartContent = ref({
       </div>
     </home-ability>
 
-    <home-ability
-      class="home-ability-4"
-      title="界面混排与流式渲染"
-      subtitle="生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
-    >
-      <video
-        class="cover-image ability-image"
-        id="genui-flow-vedio"
-        controls
-        :poster="genuiFlowVedioCover"
-      >
-        <source :src="genuiFlowVedio" type="video/mp4" />
-      </video>
-    </home-ability>
+    <home-flow-video></home-flow-video>
 
     <home-extend></home-extend>
 
