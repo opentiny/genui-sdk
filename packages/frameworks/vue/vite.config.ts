@@ -26,7 +26,7 @@ export default defineConfig(({  mode }) => {
         },
       }) as PluginOption, // TODO: pluginOption types are not equal
       cssInjectedByJsPlugin(),
-      dts({ rollupTypes: true })
+      dts({ rollupTypes: true }),
     ],
     build: {
       lib: {
