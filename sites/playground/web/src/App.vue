@@ -4,7 +4,6 @@ import { iconPlus } from '@opentiny/vue-icon';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
-import { customComponents, customExamples } from './custom-components';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import NewSvg from './assets/images/new.svg?raw';
@@ -12,8 +11,6 @@ import OpenSvg from './assets/images/open.svg?raw';
 import CloseSvg from './assets/images/close.svg?raw';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
-import RenderFooter from './components/RenderFooter.vue';
-import ThinkComponent from './components/ThinkComponent.vue';
 import ModelConfig from './components/tab-components/model-config.vue';
 import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
@@ -204,8 +201,7 @@ const customFetch = createCustomFetch(() => ({
           :url="url"
           ref="chat"
           :messages="messages"
-          :config="chatConfig"
-          :think-component="ThinkComponent"
+          :chat-config="chatConfig"
           :roles="roles"
           :features="modelFeatures"
           :custom-fetch="customFetch"
