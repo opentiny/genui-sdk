@@ -72,7 +72,7 @@ bundle.json + built-in.json + chart.json 提供了丰富的组件信息，通过
 
 ### 1. 增量渲染 JsonDiffPatch
 
-TinySchemaRenderer渲染器重复渲染会有一定的性能卡顿问题，通过提取增量填充回去渲染有利于卡片性能。
+GenuiRenderer 渲染器重复渲染会有一定的性能卡顿问题，通过提取增量填充回去渲染有利于卡片性能。
 
 JsonDiffatch 提取 Delta 再重新把 Delta 赋值给原对象，能做到：
 
