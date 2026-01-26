@@ -19,13 +19,11 @@ export interface IRolesConfig {
   user: Partial<BubbleRoleConfig>;
   assistant: Partial<BubbleRoleConfig>;
 }
-export interface IProviderProps {
-  targetElement?: string;
-}
+
 
 // 自定义组件项，扩展 IGenPromptComponent 添加 ref（组件引用）
 export interface ICustomComponentItem extends IGenPromptComponent {
-  ref?: Component; // 组件引用，用于传给 SchemaRenderer
+  ref: Component; // 组件引用，用于传给 SchemaRenderer
 }
 
 export interface IChatConfig {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import TinyConfigProvider from '@opentiny/vue-config-provider';
+import { ThemeProvider } from '@opentiny/tiny-robot';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
 import { I18nMessages, useI18n } from './i18n';
@@ -10,6 +11,10 @@ export interface ConfigProviderProps {
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
+}
+
+interface IRobotProviderProps {
+  targetElement?: string;
 }
 
 const props = withDefaults(defineProps<ConfigProviderProps>(), {
@@ -67,11 +72,21 @@ const providerRef = ref();
 onMounted(() => {
   providerRef.value?.$el.classList.remove('tiny-config-provider');
 });
+
+const robotProviderProps = computed(() => {
+  const providerProps: IRobotProviderProps = {};
+  if (genuiConfig?.value?.id) {
+    providerProps.targetElement = '#' + genuiConfig.value.id;
+  }
+  return providerProps;
+});
 </script>
 
 <template>
   <TinyConfigProvider ref="providerRef" class="tg-config-provider" :id="props.id">
-    <slot />
+    <ThemeProvider v-bind="robotProviderProps">
+      <slot />
+    </ThemeProvider>
   </TinyConfigProvider>
 </template>
 
