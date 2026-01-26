@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, nextTick } from "vue";
-import { TinyButton, TinyButtonGroup } from "@opentiny/vue";
-import { GenuiRenderer } from "@opentiny/genui-sdk-vue";
-import { IconArrowRight, IconRefresh } from "@opentiny/vue-icon";
-import genuiGuideDefault from "@/assets/genui_guide_default.svg";
-import { LinkKey, openLink } from "@/utils/link";
-import { splitJsonIntoChunks } from "@/utils/jsonUtil";
+import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+import { TinyButton, TinyButtonGroup } from '@opentiny/vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { IconArrowRight, IconRefresh } from '@opentiny/vue-icon';
+import genuiGuideDefault from '@/assets/genui_guide_default.svg';
+import { LinkKey, openLink } from '@/utils/link';
+import { splitJsonIntoChunks } from '@/utils/jsonUtil';
+import caculatorJson from '@/static/caculator.json';
+import todoJson from '@/static/todo.json';
+
 interface IUserMessage {
-  role: "user";
+  role: 'user';
   content: string;
   customMessage?: string;
 }
 
 interface IAssistantMessage {
-  role: "assistant";
+  role: 'assistant';
   content: string;
 }
 
@@ -23,36 +26,22 @@ const TinyIconArrowRight = IconArrowRight();
 const TinyIconRefresh = IconRefresh();
 
 const message = ref<IMessage | null>(null);
-const extendSelect = ref("element");
+const extendSelect = ref('element');
 const generating = ref(false);
 const schemaRendererRef = ref<HTMLElement | null>(null);
 const hasStartedStreaming = ref(false);
-const codeRef = ref<HTMLElement | null>(null);
 let shouldStopStreaming = false;
 
-const getJsonPath = (type: string): string => {
-  const fileName = type === "element" ? "caculator.json" : "todo.json";
-
-  if (import.meta.env.DEV) {
-    return `../static/${fileName}`;
-  } else {
-    try {
-      const baseUrl = new URL(import.meta.url);
-      const staticBaseUrl = new URL("./static/", baseUrl);
-      const jsonUrl = new URL(fileName, staticBaseUrl);
-      return jsonUrl.href;
-    } catch (error) {
-      return `./static/${fileName}`;
-    }
-  }
+const getJsonData = (type: string) => {
+  return type === 'element' ? caculatorJson : todoJson;
 };
 
 const initCodeAreaHeight = () => {
   nextTick(() => {
     const height = document.querySelector(
-      ".home-extend-schema-renderer"
+      '.home-extend-schema-renderer'
     )?.clientHeight;
-    const codeArea = document.querySelector(".home-extend-schema-code");
+    const codeArea = document.querySelector('.home-extend-schema-code');
     if (height && codeArea) {
       (codeArea as HTMLElement).style.height = `${height}px`;
     }
@@ -72,8 +61,8 @@ const handleExtendClick = (value: string) => {
   hasStartedStreaming.value = false;
 
   message.value = {
-    role: "assistant",
-    content: "",
+    role: 'assistant',
+    content: '',
   };
 
   setTimeout(() => {
@@ -88,19 +77,8 @@ const handleAction = ({
   llmFriendlyMessage: string;
   humanFriendlyMessage: string;
 }) => {
-  console.log("Action:", { llmFriendlyMessage, humanFriendlyMessage });
+  console.log('Action:', { llmFriendlyMessage, humanFriendlyMessage });
 };
-
-const formattedJsonContent = computed(() => {
-  if (!message.value?.content) return "";
-
-  try {
-    const parsed = JSON.parse(message.value.content);
-    return JSON.stringify(parsed, null, 2);
-  } catch (error) {
-    return message.value.content;
-  }
-});
 
 const initMessage = () => {
   generating.value = false;
@@ -113,12 +91,12 @@ const loadChunksStreaming = async () => {
   hasStartedStreaming.value = true;
 
   generating.value = true;
-  let accumulatedContent = "";
+  let accumulatedContent = '';
 
   if (!message.value) {
     message.value = {
-      role: "assistant",
-      content: "",
+      role: 'assistant',
+      content: '',
     };
   }
 
@@ -126,13 +104,7 @@ const loadChunksStreaming = async () => {
   const chunkSize = 30;
 
   try {
-    const jsonPath = getJsonPath(currentType);
-    const response = await fetch(jsonPath);
-    if (!response.ok) {
-      throw new Error(`Failed to load JSON file: ${response.statusText}`);
-    }
-    const jsonContent = await response.text();
-    const jsonData = JSON.parse(jsonContent);
+    const jsonData = getJsonData(currentType);
 
     if (shouldStopStreaming) {
       initMessage();
@@ -168,7 +140,7 @@ const loadChunksStreaming = async () => {
     }
   } catch (error) {
     if (!shouldStopStreaming) {
-      console.error("Error loading JSON:", error);
+      console.error('Error loading JSON:', error);
     }
     generating.value = false;
     hasStartedStreaming.value = false;
@@ -180,8 +152,8 @@ let observer: IntersectionObserver | null = null;
 
 onMounted(() => {
   message.value = {
-    role: "assistant",
-    content: "",
+    role: 'assistant',
+    content: '',
   };
 
   observer = new IntersectionObserver(
@@ -269,6 +241,7 @@ onUnmounted(() => {
     </div>
   </section>
 </template>
+
 <style lang="less" scoped>
 .home-extend {
   width: 100%;

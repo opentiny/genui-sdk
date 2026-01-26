@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Button as TinyButton } from "@opentiny/vue";
+import { Button as TinyButton } from '@opentiny/vue';
 </script>
 
 <template>
@@ -25,7 +25,7 @@ import { Button as TinyButton } from "@opentiny/vue";
   justify-content: center;
   align-items: center;
   padding: 102px 12.5%;
-  background-image: url("@/assets/genui_ability_bg_3.svg");
+  background-image: url('@/assets/genui_ability_bg_3.svg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

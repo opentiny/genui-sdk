@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { ButtonGroup as TinyButtonGroup, Button as TinyButton } from "@opentiny/vue";
+import { ref } from 'vue';
+import { ButtonGroup as TinyButtonGroup, Button as TinyButton } from '@opentiny/vue';
 
-const emit = defineEmits(["change"]);
+const emit = defineEmits(['change']);
 
 const activeGuide = ref(0);
 const handleGuideChange = (index: number) => {
-  emit("change", index);
+  emit('change', index);
 };
 </script>
 

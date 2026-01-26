@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from "vue";
-import hljs from "highlight.js/lib/core";
-import javascript from "highlight.js/lib/languages/javascript";
-import { Button as TinyButton } from "@opentiny/vue";
-import genuiChatIcon from "@/assets/genui_chat_icon.svg";
-import genuiInusecon from "@/assets/genui_inuse_icon.svg";
-import gneuiSettingsIcon from "@/assets/genui_settings_icon.svg";
-import { guideCodeMap } from "@/config";
-import { LinkKey, openLink } from "@/utils/link";
-import HomeGuideCard from "./HomeGuideCard.vue";
-import HomeGuideMobile from "./HomeGuideMobile.vue";
+import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import hljs from 'highlight.js/lib/core';
+import javascript from 'highlight.js/lib/languages/javascript';
+import { Button as TinyButton } from '@opentiny/vue';
+import genuiChatIcon from '@/assets/genui_chat_icon.svg';
+import genuiInusecon from '@/assets/genui_inuse_icon.svg';
+import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg';
+import { guideCodeMap } from '@/config';
+import { LinkKey, openLink } from '@/utils/link';
+import HomeGuideCard from './HomeGuideCard.vue';
+import HomeGuideMobile from './HomeGuideMobile.vue';
 
 const activeCard = ref(0);
 const codeRef = ref<HTMLElement | null>(null);
@@ -21,20 +21,20 @@ const updateIsMobile = () => {
 
 onMounted(() => {
   updateIsMobile();
-  window.addEventListener("resize", updateIsMobile);
+  window.addEventListener('resize', updateIsMobile);
   hightlight();
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateIsMobile);
+  window.removeEventListener('resize', updateIsMobile);
 });
 
-hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage('javascript', javascript);
 
 function hightlight() {
   nextTick(() => {
     if (codeRef.value) {
-      const codeArea = document.querySelector(".code-area");
+      const codeArea = document.querySelector('.code-area');
       delete (codeArea as HTMLElement).dataset.highlighted;
       hljs.highlightElement(codeRef.value);
     }

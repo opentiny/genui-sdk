@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, PropType } from "vue";
+import { computed, PropType } from 'vue';
 
 const props = defineProps({
   title: {
@@ -11,14 +11,14 @@ const props = defineProps({
     required: true,
   },
   background: {
-    type: String as PropType<"default" | "morandi">,
+    type: String as PropType<'default' | 'morandi'>,
     required: false,
-    default: "default",
+    default: 'default',
   },
 });
 
 const backgroundClass = computed(() =>
-  props.background === "default" ? "default-background" : "morandi-background"
+  props.background === 'default' ? 'default-background' : 'morandi-background'
 );
 </script>
 
