@@ -1,67 +1,52 @@
-## 核心模块说明
+## 核心模块使用说明
 
-### Genui 类
+### ChatCompletion 类
 
-`Genui` 类是聊天补全的核心，负责：
+`ChatCompletion` 类是聊天补全的核心，负责：
 
 - 接收 OpenAI 格式的请求参数
-- 通过 `requestTransform` 注入 GenUI 提示词
+- 在preTransform阶段
 - 调用底层的 `ChatService` 获取流式响应
 
 ```typescript
-import { Genui } from '@huawei/tiny-genui-server';
-import { FetchChatService } from '@huawei/tiny-genui-server';
+import { FetchChatCompletion } from '@opentiny/genui-sdk-chat-completion';
 
-const chatService = new FetchChatService({
+const chatCompletion = new FetchChatCompletion({
   apiKey: 'your-api-key',
   baseURL: 'https://api.openai.com/v1',
 });
 
-const genui = new Genui({ chatService });
-
-const stream = await genui.chatCompletions({
+const response = await chatCompletion.chatStream({
   model: 'gpt-4',
   messages: [{ role: 'user', content: 'Hello' }],
   stream: true,
 });
 ```
 
-### ChatService 实现
+### ChatCompletion 实现
 
-#### FetchChatService
+#### FetchChatCompletion
 
 使用原生 `fetch` 调用 OpenAI 兼容接口，返回 `Response` 对象：
 
 ```typescript
-import { FetchChatService } from '@huawei/tiny-genui-server';
+import { FetchChatCompletion } from '@opentiny/genui-sdk-chat-completion';
 
-const service = new FetchChatService({
+const chatCompletion = new FetchChatCompletion({
   apiKey: 'your-api-key',
   baseURL: 'https://api.openai.com/v1',
 });
 ```
 
-#### OpenaiChatService
-
-使用 OpenAI 官方 SDK：
-
-```typescript
-import { OpenaiChatService } from '@huawei/tiny-genui-server';
-
-const service = new OpenaiChatService({
-  apiKey: 'your-api-key',
-  baseURL: 'https://api.openai.com/v1',
-});
-```
 
 #### AiSdkChatService
 
-使用 Vercel AI SDK，支持多种提供商：
+使用 Vercel AI SDK，支持多种提供商， 返回`AsyncIterableStream`：
 
 ```typescript
-import { AiSdkChatService } from '@huawei/tiny-genui-server';
+import { AiSdkChatCompletion } from '@opentiny/genui-sdk-chat-completion';
 
-const service = new AiSdkChatService({
+const chatCompletion = new AiSdkChatCompletion({
   apiKey: 'your-api-key',
   baseURL: 'https://api.openai.com/v1',
   provider: 'openai', // 'openai' | 'anthropic' | 'deepseek'
@@ -79,29 +64,21 @@ const service = new AiSdkChatService({
 - SSE 格式输出
 
 ```typescript
-import { createChatCompletionHandler } from '@huawei/tiny-genui-server';
+import { createChatCompletionHandler } from '@opentiny/genui-sdk-server';
 
 const { handler } = createChatCompletionHandler({
-  chatCompletions: async (params, options) => {
-    // 返回 Response 或 AsyncIterable
-  },
+  chatCompletions: async (bodyParams, extraOptions: IRequestOptions) => {
+    // do something
+   },
 });
 ```
 
 ## 类型定义
 
-### IOpenaiCompatibleRequestOptions
+### IRequestOptions
 
 ```typescript
-interface IOpenaiCompatibleRequestOptions {
-  maxRetries?: number;
-  timeout?: number;
+interface IRequestOptions {
   signal?: AbortSignal | undefined | null;
 }
-```
-
-### IOpenaiCompatibleChunk
-
-```typescript
-type IOpenaiCompatibleChunk = ChatCompletionChunk;
 ```

@@ -1,13 +1,13 @@
-import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
-import { type IGenPromptConfig, genPrompt } from '@opentiny/genui-sdk-core';
+import { type IGenPromptConfig, genPrompt, ITGCustomConfig } from '@opentiny/genui-sdk-core';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
+import { IChatCompletionCreateParams, ChatCompletionCreateParamsBase } from './types';
 
-const mergePrompt = (
+function mergePrompt( 
   initialPrompt: string,
   additionalPrompt: string,
-  strategy: IGenPromptConfig['strategy'] = 'append',
-): string => {
+  strategy: IGenPromptConfig['strategy'] = 'append'
+): string {
   if (strategy === 'override') {
     return additionalPrompt;
   }
@@ -15,34 +15,33 @@ const mergePrompt = (
     return additionalPrompt + '\n' + initialPrompt;
   }
   return initialPrompt + '\n' + additionalPrompt;
-};
+}
 
 export function requestTransform(
-  params: ChatCompletionCreateParamsBase & { metadata?: { tinygenui?: string } },
+  params: IChatCompletionCreateParams
 ): ChatCompletionCreateParamsBase {
   const newParams = structuredClone(params);
 
-  const { tinygenui: tgCustomConfigStr } = newParams.metadata || {};
+  const { tinygenui: customConfigString = '{}' as JsonSerialized<IGenPromptConfig> } = newParams.metadata || {};
   let tgCustomConfig: IGenPromptConfig;
   try {
-    tgCustomConfig = JSON.parse(tgCustomConfigStr || '{}');
+    tgCustomConfig = JSON.parse<IGenPromptConfig>(customConfigString);
   } catch (error) {
     console.error('parse tgCustomConfig failed', error);
     throw error;
   }
+  delete newParams.metadata?.tinygenui;
 
-  const { framework = 'Vue', strategy = 'append' } = tgCustomConfig || {};
+  const { framework = 'Vue', strategy = 'append', ...promptConfig } = tgCustomConfig;
 
   const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
   const systemMessages = newParams.messages?.find((message) => message.role === 'system');
-  const genuiPrompt =  genPrompt(renderConfigForFramework, tgCustomConfig as any); //TODO: Argument of type 'IGenPromptConfig' is not assignable to parameter of type 'ITGCustomConfig'
+  const prompt =  genPrompt(renderConfigForFramework, promptConfig as unknown as ITGCustomConfig); // TODO: fix type
   if (systemMessages) {
-    systemMessages.content = mergePrompt(systemMessages.content as string, genuiPrompt, strategy);
+    systemMessages.content = mergePrompt(systemMessages.content as string, prompt, strategy);
   } else {
-    newParams.messages?.unshift({ role: 'system', content: genuiPrompt });
+    newParams.messages?.unshift({ role: 'system', content: prompt });
   }
-
-  delete newParams.metadata?.tinygenui;
 
   return newParams;
 }

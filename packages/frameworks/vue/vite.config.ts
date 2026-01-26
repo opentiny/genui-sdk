@@ -36,7 +36,6 @@ export default defineConfig(({  mode }) => {
       },
       outDir: path.resolve(__dirname, './dist'),
       sourcemap: false,
-      minify: 'terser',
       terserOptions: {
         mangle: {
           toplevel: true,

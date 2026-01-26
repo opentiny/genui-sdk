@@ -2,21 +2,23 @@
 import TinyConfigProvider from '@opentiny/vue-config-provider';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
-import type { LocaleType, I18n, TranslateFunction } from './i18n';
-import { createTranslateFunction, setI18nInstance } from './i18n';
+import { I18nMessages, useI18n } from './i18n';
+import { GENUI_I18N, GENUI_CONFIG } from './injection-tokens';
 
 export interface ConfigProviderProps {
   theme: string;
   id?: string;
-  locale?: LocaleType;
-  i18n?: Partial<Record<LocaleType, I18n>> | I18n;
-  t?: TranslateFunction;
+  locale?: string;
+  i18n?: I18nMessages;
 }
 
 const props = withDefaults(defineProps<ConfigProviderProps>(), {
   id: 'tiny-genui-config-provider',
-  locale: 'zh-CN' as LocaleType,
+  locale: 'zh_CN',
 });
+
+const i18n = useI18n();
+provide(GENUI_I18N, i18n)
 
 const transformTheme = (themeConfig: any) => {
   const newThemeConfig = structuredClone(themeConfig);
@@ -27,26 +29,25 @@ const transformTheme = (themeConfig: any) => {
 const themeMap: Record<string, any> = {
   dark: transformTheme(tinyDarkTheme),
   lite: transformTheme(tinyOldTheme),
-  default: { css: ' ' },
+  light: { css: ' ' },
 };
 
 const themeTool = new ThemeTool();
 
-const TinyGenuiConfig = computed(() => {
+const genuiConfig = computed(() => {
   return {
     theme: props.theme,
     id: props.id,
   };
 });
 
-provide('TinyGenuiConfig', TinyGenuiConfig);
+provide(GENUI_CONFIG, genuiConfig);
 
 watch(
-  () => [props.locale, props.i18n, props.t] as const,
+  () => [props.locale, props.i18n] as const,
   () => {
-    const locale = (props.locale || 'zh-CN') as LocaleType;
-    const t: TranslateFunction = props.t || createTranslateFunction(locale, props.i18n);
-    setI18nInstance(t);
+    i18n.setLocale(props.locale);
+    i18n.mergeMessages(props.i18n);
   },
   { immediate: true },
 );
@@ -54,7 +55,7 @@ watch(
 watch(
   () => props.theme,
   (newVal) => {
-    const themeConfig = themeMap[newVal] || themeMap.default;
+    const themeConfig = themeMap[newVal] || themeMap.light;
     themeTool.changeTheme(themeConfig);
   },
   {
