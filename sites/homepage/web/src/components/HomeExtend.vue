@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, nextTick } from "vue";
 import { TinyButton, TinyButtonGroup } from "@opentiny/vue";
-import { SchemaRenderer } from "@opentiny/genui-sdk-vue";
+import { GenuiRenderer } from "@opentiny/genui-sdk-vue";
 import { IconArrowRight, IconRefresh } from "@opentiny/vue-icon";
 import genuiGuideDefault from "@/assets/genui_guide_default.svg";
 import { LinkKey, openLink } from "@/utils/link";
@@ -248,7 +248,7 @@ onUnmounted(() => {
       </div>
       <div class="home-extend-schema-content">
         <div class="home-extend-schema-renderer-container">
-          <SchemaRenderer
+          <GenuiRenderer
             v-if="message && message.content"
             class="home-extend-schema-renderer"
             :content="message.content"
