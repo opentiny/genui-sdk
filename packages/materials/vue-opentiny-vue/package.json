@@ -1,6 +1,6 @@
 {
   "name": "@opentiny/genui-sdk-materials-vue-opentiny-vue",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -8,7 +8,6 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-vue": "workspace:*",
     "@opentiny/vue-button": "^3.25.0",
     "@opentiny/vue-chart-bar": "~3.14.0",
     "@opentiny/vue-chart-histogram": "~3.14.0",

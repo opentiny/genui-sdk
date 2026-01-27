@@ -34,7 +34,7 @@ export default defineConfig(({  mode }) => {
         formats: ['es'],
         fileName: `index`,
       },
-      outDir: path.resolve(__dirname, './dist'),
+      outDir: path.resolve(__dirname, './output/dist'),
       sourcemap: false,
       terserOptions: {
         mangle: {

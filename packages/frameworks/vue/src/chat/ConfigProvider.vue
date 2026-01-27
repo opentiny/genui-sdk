@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TinyConfigProvider from '@opentiny/vue-config-provider';
+import { TinyConfigProvider } from '@opentiny/vue';
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<ConfigProviderProps>(), {
 });
 
 const i18n = useI18n();
-provide(GENUI_I18N, i18n)
+provide(GENUI_I18N, i18n);
 
 const transformTheme = (themeConfig: any) => {
   const newThemeConfig = structuredClone(themeConfig);
