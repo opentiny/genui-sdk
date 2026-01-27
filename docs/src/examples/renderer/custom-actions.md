@@ -18,7 +18,7 @@
 
 ### 示例 1：打开新页面
 
-```vue {12-33}
+```vue {12-35}
 <template>
   <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>
@@ -38,18 +38,20 @@ const customActions = {
       const { url, target = '_self' } = params;
       window.open(url, target);
     },
-    params: [
-      {
-        name: 'url',
-        type: 'string',
-        description: '要打开的页面地址',
+    parameters: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: '要打开的页面地址',
+        },
+        target: {
+          type: 'string',
+          description: '打开方式，可选值：_self（当前窗口）、_blank（新窗口）',
+        },
       },
-      {
-        name: 'target',
-        type: 'string',
-        description: '打开方式，默认为 _self',
-      },
-    ],
+      required: ['url', 'target'],
+    },
   },
 };
 </script>
@@ -61,7 +63,7 @@ const customActions = {
 
 ### 示例 2：显示表单实时绑定的内容
 
-```vue {12-23}
+```vue {12-33}
 <template>
   <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
 </template>
@@ -82,6 +84,16 @@ const customActions = {
       const message = JSON.stringify(state);
 
       alert(`${params.title}：${message}`);
+    },
+    parameters: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: '通知标题',
+        },
+      },
+      required: ['title'],
     },
   },
 };
