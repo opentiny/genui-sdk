@@ -1,5 +1,6 @@
 import type { IFunctionInfo } from '../protocols/materials';
 import type { CardSchema, NodeSchema } from '../protocols/schema';
+import type { JsonSchema7Type } from 'zod-to-json-schema';
 
 export interface IGenPromptComponentProperty {
   property: string;
@@ -46,7 +47,7 @@ export interface IGenPromptActionParam {
 export interface IGenPromptAction {
   name: string;
   description?: string;
-  params?: IGenPromptActionParam[];
+  params?: JsonSchema7Type;
 }
 
 export type IGenPromptSnippet = NodeSchema;
