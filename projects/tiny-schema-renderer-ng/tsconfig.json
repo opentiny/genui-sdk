@@ -18,7 +18,8 @@
     },
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "esnext",
+    "moduleResolution": "node"
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

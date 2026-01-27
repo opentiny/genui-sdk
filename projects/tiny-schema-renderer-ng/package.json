@@ -1,7 +1,7 @@
 {
-    "name": "tiny-schema-renderer-ng",
+    "name": "@opentiny/tiny-schema-renderer-ng",
     "version": "0.0.0",
-    "main": "dist/renderer-element/browser/index.js",
+    "type": "module",
     "scripts": {
       "ng": "ng",
       "start": "ng serve tiny-schema-renderer-ng",
@@ -22,7 +22,6 @@
         }
       ]
     },
-    "private": true,
     "dependencies": {
       "@angular/animations": "^20.3.14",
       "@angular/cdk": "^20.2.14",
