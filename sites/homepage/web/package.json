@@ -17,7 +17,7 @@
     "@opentiny/vue-tag": "~3.25.0",
     "@opentiny/vue-button-group": "~3.25.0",
     "@opentiny/vue-button": "~3.25.0",
-    "@opentiny/genui-sdk-vue": "workspace:*",
+    "@opentiny/genui-sdk-vue": "0.0.1-alpha.10",
     "highlight.js": "^11.5.1",
     "vue": "~3.4.32"
   },

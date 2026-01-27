@@ -476,8 +476,8 @@ importers:
   sites/homepage/web:
     dependencies:
       '@opentiny/genui-sdk-vue':
-        specifier: workspace:*
-        version: link:../../../packages/frameworks/vue
+        specifier: 0.0.1-alpha.10
+        version: 0.0.1-alpha.10(typescript@5.9.3)
       '@opentiny/vue':
         specifier: ~3.25.0
         version: 3.25.0
@@ -2353,6 +2353,12 @@ packages:
   '@opentiny/fluent-editor@3.25.6':
     resolution: {integrity: sha512-RHXb7JKKWntia7HM/yJAQQYFWZz+3Ieq65FHhJNhrkLy3Quv/SQb46YbpHhVmJGlDkUHBxLZe3/GrwCpn/0XVw==}
 
+  '@opentiny/genui-sdk-core@0.0.1-alpha.1':
+    resolution: {integrity: sha512-lFGNMHsALrUr/VHZjoI8DGtHOK4ST5BWmO5JiNW96R/wpulxx6XQGymlgmHzunmYYhtJIs7WeVuzzJ151zCc8w==, tarball: https://registry.npmmirror.com/@opentiny/genui-sdk-core/-/genui-sdk-core-0.0.1-alpha.1.tgz}
+
+  '@opentiny/genui-sdk-vue@0.0.1-alpha.10':
+    resolution: {integrity: sha512-cXv5oJBEPmohcBtWR5cJ93FxIt2lLE8abgLtLSlnR9sJJcb0pmt7yQ1sOvQah2GEC+p+ufy/CFEPyCAp1cQSVg==, tarball: https://registry.npmmirror.com/@opentiny/genui-sdk-vue/-/genui-sdk-vue-0.0.1-alpha.10.tgz}
+
   '@opentiny/ng-accordion@1.0.3':
     resolution: {integrity: sha512-45v5Is3bF+SVjQhCu7StEfHAvAR5oZLjQXoYds1KRzLZk7u6EyOikW5m4XKmi8/8vplU+NlCQZZ5/5jh2HZBPQ==, tarball: https://registry.npmmirror.com/@opentiny/ng-accordion/-/ng-accordion-1.0.3.tgz}
     peerDependencies:
@@ -3581,8 +3587,18 @@ packages:
       '@opentiny/vue-renderless': ^3.20.0
       vue: ^3.4.15
 
+  '@opentiny/tiny-robot-kit@0.3.1':
+    resolution: {integrity: sha512-ecbPu7i0Uo7Fany8q9LKDhxJx7NjU9YHKJKd64QhQ4zGkEEcLkf7R99IDdmuul7AY7+kXm6zoSfE4dFdABlISw==, tarball: https://registry.npmmirror.com/@opentiny/tiny-robot-kit/-/tiny-robot-kit-0.3.1.tgz}
+    peerDependencies:
+      vue: '>=3.0.0'
+
   '@opentiny/tiny-robot-kit@0.3.1-alpha.3':
     resolution: {integrity: sha512-1wYLnArNBy5EF/eL6P3KVjC9V2ZQ2A2zHrfvuZkGUopDjuqhsJ3cselsUUYTcSLlaq7r1zws81T/Tiw6A6PMLA==}
+    peerDependencies:
+      vue: '>=3.0.0'
+
+  '@opentiny/tiny-robot-svgs@0.3.1':
+    resolution: {integrity: sha512-W/NnCDLiI93huO4zCaw2tgVz5n/A7Ry1VSJr835UisqZODT5Al/CNac/f84YECDUtycdA0h8+O2dQOGc3MWLxQ==, tarball: https://registry.npmmirror.com/@opentiny/tiny-robot-svgs/-/tiny-robot-svgs-0.3.1.tgz}
     peerDependencies:
       vue: '>=3.0.0'
 
@@ -3590,6 +3606,11 @@ packages:
     resolution: {integrity: sha512-uI+5f137CdlNlED/EhZy1VqtMpKff2MqJC63R2SrD3u6+9N1jvzMSQAt7aqo7jIZep6q2rSwbRxWzRDzCzqWmA==}
     peerDependencies:
       vue: '>=3.0.0'
+
+  '@opentiny/tiny-robot@0.3.1':
+    resolution: {integrity: sha512-K4EfI5iiJQZ5H11kp4xNf4+93CgbtfxgaQXEjzVMQ4dnOde/wWtVbXY3TF+/5e3mPctckIbilv2GV2xFvgT9fA==, tarball: https://registry.npmmirror.com/@opentiny/tiny-robot/-/tiny-robot-0.3.1.tgz}
+    peerDependencies:
+      vue: ^3.3.11
 
   '@opentiny/tiny-robot@0.3.1-alpha.3':
     resolution: {integrity: sha512-hqCe1qz+bT6In40Zed3jvbBEz19ASbSkw4SLPuXORMnxxg2JhDwB26jjJAORpQ743Fi0MmrM2ODhQ/l7pzddqg==}
@@ -6794,6 +6815,9 @@ packages:
   iconv-lite@0.7.1:
     resolution: {integrity: sha512-2Tth85cXwGFHfvRgZWszZSvdo+0Xsqmw8k8ZwxScfcBneNUraK+dxRxRm24nszx80Y0TVio8kKLt5sLE7ZCLlw==}
     engines: {node: '>=0.10.0'}
+
+  idb@8.0.3:
+    resolution: {integrity: sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg==, tarball: https://registry.npmmirror.com/idb/-/idb-8.0.3.tgz}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -11059,6 +11083,28 @@ snapshots:
       lodash-es: 4.17.22
       quill: 2.0.3
 
+  '@opentiny/genui-sdk-core@0.0.1-alpha.1':
+    dependencies:
+      flat: 6.0.1
+      jsondiffpatch: 0.7.3
+      radash: 12.1.1
+      zod: 3.25.76
+      zod-to-json-schema: 3.25.1(zod@3.25.76)
+
+  '@opentiny/genui-sdk-vue@0.0.1-alpha.10(typescript@5.9.3)':
+    dependencies:
+      '@opentiny/genui-sdk-core': 0.0.1-alpha.1
+      '@opentiny/tiny-robot': 0.3.1(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/tiny-robot-kit': 0.3.1(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/vue': 3.25.0
+      '@opentiny/vue-icon': 3.25.0
+      '@opentiny/vue-theme': 3.25.0
+      uuid: 11.1.0
+      vue: 3.5.26(typescript@5.9.3)
+    transitivePeerDependencies:
+      - typescript
+
   '@opentiny/ng-accordion@1.0.3(e235849e1e82bfc7f15a2631cb953652)':
     dependencies:
       '@angular/animations': 20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))
@@ -12289,11 +12335,20 @@ snapshots:
       - debug
       - vite
 
+  '@opentiny/tiny-robot-kit@0.3.1(vue@3.5.26(typescript@5.9.3))':
+    dependencies:
+      idb: 8.0.3
+      vue: 3.5.26(typescript@5.9.3)
+
   '@opentiny/tiny-robot-kit@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
     dependencies:
       vue: 3.5.26(typescript@5.8.3)
 
   '@opentiny/tiny-robot-kit@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
+    dependencies:
+      vue: 3.5.26(typescript@5.9.3)
+
+  '@opentiny/tiny-robot-svgs@0.3.1(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
 
@@ -12303,6 +12358,15 @@ snapshots:
 
   '@opentiny/tiny-robot-svgs@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
     dependencies:
+      vue: 3.5.26(typescript@5.9.3)
+
+  '@opentiny/tiny-robot@0.3.1(vue@3.5.26(typescript@5.9.3))':
+    dependencies:
+      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/vue': 3.25.0
+      '@vueuse/core': 13.9.0(vue@3.5.26(typescript@5.9.3))
+      dompurify: 3.3.1
+      markdown-it: 14.1.0
       vue: 3.5.26(typescript@5.9.3)
 
   '@opentiny/tiny-robot@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
@@ -17322,6 +17386,8 @@ snapshots:
   iconv-lite@0.7.1:
     dependencies:
       safer-buffer: 2.1.2
+
+  idb@8.0.3: {}
 
   ieee754@1.2.1: {}
 
