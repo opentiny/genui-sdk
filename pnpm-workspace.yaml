@@ -3,3 +3,4 @@ packages:
   - sites/**/*
   - docs
   - projects/**/*
+  - '!packages/frameworks/vue/output/**'

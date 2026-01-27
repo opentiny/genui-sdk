@@ -6,7 +6,16 @@ import { viteGitCommitHashPlugin } from 'vite-commit-hash-plugin';
 
 const pkgRoot = fileURLToPath(new URL('.', import.meta.url));
 
+const modelsFileMap = {
+  alpha: 'alpha-models.json',
+  'agent-alpha': 'opentiny-models.json',
+  'production': 'opentiny-models.json',
+  'default': 'maas-models.json',
+};
+
 export default defineConfig(({ mode }) => {
+  const envFileName = mode ? `.env.${mode}` : '.env';
+  const modelsFileName = modelsFileMap[mode] || modelsFileMap.default;
   const plugins = [
     tsconfigPaths({
       projects: ['./tsconfig.dev.json'],
@@ -14,12 +23,12 @@ export default defineConfig(({ mode }) => {
     viteStaticCopy({
       targets: [
         {
-          src: '.env.alpha',
+          src: envFileName,
           dest: './',
           rename: '.env',
         },
         {
-          src: 'alpha-models.json',
+          src: modelsFileName,
           dest: './',
         },
       ],

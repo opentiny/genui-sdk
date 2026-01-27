@@ -1,38 +1,36 @@
 {
   "name": "@opentiny/genui-sdk-vue",
-  "version": "0.0.1-alpha.7",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "version": "1.0.0",
+  "main": "output/dist/index.js",
+  "types": "output/dist/index.d.ts",
   "type": "module",
   "files": [
     "dist"
   ],
   "scripts": {
     "build": "vite build",
-    "build:no-obfuscator": "vite build --mode no-obfuscator",
+    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
+    "postbuild": "tsx scripts/postbuild.ts",
     "test": "vitest"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
-    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
-    "@opentiny/tiny-schema-renderer": "workspace:*",
+    "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/tiny-robot": "0.3.1-alpha.3",
     "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
     "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3",
-    "@opentiny/vue-config-provider": "^3.25.0",
     "@opentiny/vue": "^3.25.0",
     "@opentiny/vue-icon": "^3.25.0",
-    "@opentiny/vue-tabs": "^3.25.0",
     "@opentiny/vue-theme": "^3.25.0",
-    "ai": "^5.0.10",
     "uuid": "^11.1.0",
     "vue": "^3.5.13"
   },
   "devDependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/tiny-schema-renderer": "workspace:*",
+    "ai": "^5.0.10",
     "vite-plugin-bundle-obfuscator": "^1.8.0",
     "vite-plugin-css-injected-by-js": "^3.5.2",
-    "@vitejs/plugin-vue": "^5.0.0",
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",
     "escape-string-regexp": "^1.0.5",

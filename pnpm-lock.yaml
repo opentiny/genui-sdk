@@ -13,6 +13,10 @@ importers:
         version: 7.28.5
 
   docs:
+    dependencies:
+      '@opentiny/genui-sdk-vue':
+        specifier: workspace:*
+        version: link:../packages/frameworks/vue
     devDependencies:
       vitepress:
         specifier: ^1.6.3
@@ -100,12 +104,9 @@ importers:
 
   packages/frameworks/vue:
     dependencies:
-      '@opentiny/genui-sdk-materials-angular-opentiny-ng':
+      '@opentiny/genui-sdk-core':
         specifier: workspace:*
-        version: link:../../materials/angular-opentiny-ng
-      '@opentiny/genui-sdk-materials-vue-opentiny-vue':
-        specifier: workspace:*
-        version: link:../../materials/vue-opentiny-vue
+        version: link:../../core
       '@opentiny/tiny-robot':
         specifier: 0.3.1-alpha.3
         version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
@@ -115,27 +116,15 @@ importers:
       '@opentiny/tiny-robot-svgs':
         specifier: 0.3.1-alpha.3
         version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
-      '@opentiny/tiny-schema-renderer':
-        specifier: workspace:*
-        version: link:../../../projects/tiny-schema-renderer
       '@opentiny/vue':
-        specifier: ^3.25.0
-        version: 3.25.0
-      '@opentiny/vue-config-provider':
         specifier: ^3.25.0
         version: 3.25.0
       '@opentiny/vue-icon':
         specifier: ^3.25.0
         version: 3.25.0
-      '@opentiny/vue-tabs':
-        specifier: ^3.25.0
-        version: 3.25.0
       '@opentiny/vue-theme':
         specifier: ^3.25.0
         version: 3.25.0
-      ai:
-        specifier: ^5.0.10
-        version: 5.0.10(zod@4.1.13)
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -143,12 +132,18 @@ importers:
         specifier: ^3.5.13
         version: 3.5.26(typescript@5.9.3)
     devDependencies:
-      '@opentiny/genui-sdk-core':
+      '@opentiny/genui-sdk-materials-vue-opentiny-vue':
         specifier: workspace:*
-        version: link:../../core
+        version: link:../../materials/vue-opentiny-vue
+      '@opentiny/tiny-schema-renderer':
+        specifier: workspace:*
+        version: link:../../../projects/tiny-schema-renderer
       '@vitejs/plugin-vue':
         specifier: ^5.0.0
         version: 5.2.4(vite@6.4.1(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))(vue@3.5.26(typescript@5.9.3))
+      ai:
+        specifier: ^5.0.10
+        version: 5.0.10(zod@4.1.13)
       escape-string-regexp:
         specifier: ^1.0.5
         version: 1.0.5
@@ -188,9 +183,6 @@ importers:
 
   packages/materials/vue-opentiny-vue:
     dependencies:
-      '@opentiny/genui-sdk-vue':
-        specifier: workspace:*
-        version: link:../../frameworks/vue
       '@opentiny/vue-button':
         specifier: ^3.25.0
         version: 3.25.0
