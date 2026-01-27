@@ -108,14 +108,17 @@ importers:
         specifier: workspace:*
         version: link:../../core
       '@opentiny/tiny-robot':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/tiny-robot-kit':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/tiny-robot-svgs':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/tiny-schema-renderer':
+        specifier: workspace:*
+        version: link:../../../projects/tiny-schema-renderer
       '@opentiny/vue':
         specifier: ^3.25.0
         version: 3.25.0
@@ -638,14 +641,14 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/frameworks/vue
       '@opentiny/tiny-robot':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/tiny-robot-kit':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/tiny-robot-svgs':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/vue':
         specifier: 3.25.0
         version: 3.25.0
@@ -3478,18 +3481,18 @@ packages:
       '@opentiny/vue-renderless': ^3.20.0
       vue: ^3.4.15
 
-  '@opentiny/tiny-robot-kit@0.3.1-alpha.3':
-    resolution: {integrity: sha512-1wYLnArNBy5EF/eL6P3KVjC9V2ZQ2A2zHrfvuZkGUopDjuqhsJ3cselsUUYTcSLlaq7r1zws81T/Tiw6A6PMLA==}
+  '@opentiny/tiny-robot-kit@0.3.1':
+    resolution: {integrity: sha512-ecbPu7i0Uo7Fany8q9LKDhxJx7NjU9YHKJKd64QhQ4zGkEEcLkf7R99IDdmuul7AY7+kXm6zoSfE4dFdABlISw==}
     peerDependencies:
       vue: '>=3.0.0'
 
-  '@opentiny/tiny-robot-svgs@0.3.1-alpha.3':
-    resolution: {integrity: sha512-uI+5f137CdlNlED/EhZy1VqtMpKff2MqJC63R2SrD3u6+9N1jvzMSQAt7aqo7jIZep6q2rSwbRxWzRDzCzqWmA==}
+  '@opentiny/tiny-robot-svgs@0.3.1':
+    resolution: {integrity: sha512-W/NnCDLiI93huO4zCaw2tgVz5n/A7Ry1VSJr835UisqZODT5Al/CNac/f84YECDUtycdA0h8+O2dQOGc3MWLxQ==}
     peerDependencies:
       vue: '>=3.0.0'
 
-  '@opentiny/tiny-robot@0.3.1-alpha.3':
-    resolution: {integrity: sha512-hqCe1qz+bT6In40Zed3jvbBEz19ASbSkw4SLPuXORMnxxg2JhDwB26jjJAORpQ743Fi0MmrM2ODhQ/l7pzddqg==}
+  '@opentiny/tiny-robot@0.3.1':
+    resolution: {integrity: sha512-K4EfI5iiJQZ5H11kp4xNf4+93CgbtfxgaQXEjzVMQ4dnOde/wWtVbXY3TF+/5e3mPctckIbilv2GV2xFvgT9fA==}
     peerDependencies:
       vue: ^3.3.11
 
@@ -6099,6 +6102,9 @@ packages:
   iconv-lite@0.7.1:
     resolution: {integrity: sha512-2Tth85cXwGFHfvRgZWszZSvdo+0Xsqmw8k8ZwxScfcBneNUraK+dxRxRm24nszx80Y0TVio8kKLt5sLE7ZCLlw==}
     engines: {node: '>=0.10.0'}
+
+  idb@8.0.3:
+    resolution: {integrity: sha512-LtwtVyVYO5BqRvcsKuB2iUMnHwPVByPCXFXOpuU96IZPPoPN6xjOGxZQ74pgSVVLQWtUOYgyeL4GE98BY5D3wg==}
 
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
@@ -10971,34 +10977,36 @@ snapshots:
       - debug
       - vite
 
-  '@opentiny/tiny-robot-kit@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
+  '@opentiny/tiny-robot-kit@0.3.1(vue@3.5.26(typescript@5.8.3))':
+    dependencies:
+      idb: 8.0.3
+      vue: 3.5.26(typescript@5.8.3)
+
+  '@opentiny/tiny-robot-kit@0.3.1(vue@3.5.26(typescript@5.9.3))':
+    dependencies:
+      idb: 8.0.3
+      vue: 3.5.26(typescript@5.9.3)
+
+  '@opentiny/tiny-robot-svgs@0.3.1(vue@3.5.26(typescript@5.8.3))':
     dependencies:
       vue: 3.5.26(typescript@5.8.3)
 
-  '@opentiny/tiny-robot-kit@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
+  '@opentiny/tiny-robot-svgs@0.3.1(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
 
-  '@opentiny/tiny-robot-svgs@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
+  '@opentiny/tiny-robot@0.3.1(vue@3.5.26(typescript@5.8.3))':
     dependencies:
-      vue: 3.5.26(typescript@5.8.3)
-
-  '@opentiny/tiny-robot-svgs@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.26(typescript@5.9.3)
-
-  '@opentiny/tiny-robot@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
-    dependencies:
-      '@opentiny/tiny-robot-svgs': 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/vue': 3.25.0
       '@vueuse/core': 13.9.0(vue@3.5.26(typescript@5.8.3))
       dompurify: 3.3.1
       markdown-it: 14.1.0
       vue: 3.5.26(typescript@5.8.3)
 
-  '@opentiny/tiny-robot@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
+  '@opentiny/tiny-robot@0.3.1(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@opentiny/tiny-robot-svgs': 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/vue': 3.25.0
       '@vueuse/core': 13.9.0(vue@3.5.26(typescript@5.9.3))
       dompurify: 3.3.1
@@ -15257,6 +15265,8 @@ snapshots:
   iconv-lite@0.7.1:
     dependencies:
       safer-buffer: 2.1.2
+
+  idb@8.0.3: {}
 
   ieee754@1.2.1: {}
 
