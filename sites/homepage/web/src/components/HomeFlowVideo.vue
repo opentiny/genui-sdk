@@ -1,7 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import HomeAbility from './HomeAbility.vue';
 import genuiFlowVedioCover from '@/assets/genui_flow_vedio_cover.svg';
 import genuiFlowVedio from '@/assets/genui_flow_vedio.mov';
+import { useLazyVideo } from '@/composables/useLazyVideo';
+
+const videoRef = ref<HTMLVideoElement | null>(null);
+const { videoSrc } = useLazyVideo(videoRef, genuiFlowVedio);
 </script>
 
 <template>
@@ -11,12 +16,14 @@ import genuiFlowVedio from '@/assets/genui_flow_vedio.mov';
     subtitle="生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
   >
     <video
+      ref="videoRef"
       class="cover-image ability-image"
       id="genui-flow-vedio"
       controls
+      preload="none"
       :poster="genuiFlowVedioCover"
     >
-      <source :src="genuiFlowVedio" type="video/mp4" />
+      <source v-if="videoSrc" :src="videoSrc" type="video/mp4" />
     </video>
   </home-ability>
 </template>

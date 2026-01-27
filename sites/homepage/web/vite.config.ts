@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import importPlugin from '@opentiny/vue-vite-import'
+import viteImagemin from 'vite-plugin-imagemin'
+import { vitePluginVideoCompress } from './vite-plugin-video-compress'
 import path from 'path'
 
 function _resolve(dir: string) {
@@ -23,6 +25,33 @@ export default defineConfig({
       ],
       'pc'
     ),
+    viteImagemin({
+      optipng: {
+        optimizationLevel: 7,
+      },
+      pngquant: {
+        quality: [0.8, 0.9],
+        speed: 4,
+      },
+      svgo: {
+        plugins: [
+          {
+            name: 'removeViewBox',
+          },
+          {
+            name: 'removeEmptyAttrs',
+            active: false,
+          },
+        ],
+      },
+      webp: {
+        quality: 80,
+      },
+    }),
+    vitePluginVideoCompress({
+      quality: 28,
+      codec: 'libx264',
+    }),
   ],
   resolve: {
     alias: {
@@ -30,7 +59,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'dist',
+    outDir: path.resolve(__dirname, './dist'),
     emptyOutDir: true,
     sourcemap: false,
     assetsInlineLimit: 0,
@@ -45,6 +74,7 @@ export default defineConfig({
       external: [
         'vue',
         'vue-router',
+        /^@vue\/*/,
         /^@opentiny\/vue.*/,
         /^@opentiny\/genui-sdk-vue.*/
       ],

@@ -140,7 +140,7 @@ const abilityThreePartContent = ref({
 </template>
 
 <style lang="less">
-@import "../style/index.less";
+@import "./home.less";
 </style>
 
 <style lang="less" scoped>
