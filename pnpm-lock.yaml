@@ -108,14 +108,14 @@ importers:
         specifier: workspace:*
         version: link:../../core
       '@opentiny/tiny-robot':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/tiny-robot-kit':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/tiny-robot-svgs':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/vue':
         specifier: ^3.25.0
         version: 3.25.0
@@ -680,14 +680,14 @@ importers:
         specifier: workspace:*
         version: link:../../../packages/frameworks/vue
       '@opentiny/tiny-robot':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/tiny-robot-kit':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/tiny-robot-svgs':
-        specifier: 0.3.1-alpha.3
-        version: 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+        specifier: 0.3.1
+        version: 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/vue':
         specifier: 3.25.0
         version: 3.25.0
@@ -3592,28 +3592,13 @@ packages:
     peerDependencies:
       vue: '>=3.0.0'
 
-  '@opentiny/tiny-robot-kit@0.3.1-alpha.3':
-    resolution: {integrity: sha512-1wYLnArNBy5EF/eL6P3KVjC9V2ZQ2A2zHrfvuZkGUopDjuqhsJ3cselsUUYTcSLlaq7r1zws81T/Tiw6A6PMLA==}
-    peerDependencies:
-      vue: '>=3.0.0'
-
   '@opentiny/tiny-robot-svgs@0.3.1':
     resolution: {integrity: sha512-W/NnCDLiI93huO4zCaw2tgVz5n/A7Ry1VSJr835UisqZODT5Al/CNac/f84YECDUtycdA0h8+O2dQOGc3MWLxQ==, tarball: https://registry.npmmirror.com/@opentiny/tiny-robot-svgs/-/tiny-robot-svgs-0.3.1.tgz}
     peerDependencies:
       vue: '>=3.0.0'
 
-  '@opentiny/tiny-robot-svgs@0.3.1-alpha.3':
-    resolution: {integrity: sha512-uI+5f137CdlNlED/EhZy1VqtMpKff2MqJC63R2SrD3u6+9N1jvzMSQAt7aqo7jIZep6q2rSwbRxWzRDzCzqWmA==}
-    peerDependencies:
-      vue: '>=3.0.0'
-
   '@opentiny/tiny-robot@0.3.1':
     resolution: {integrity: sha512-K4EfI5iiJQZ5H11kp4xNf4+93CgbtfxgaQXEjzVMQ4dnOde/wWtVbXY3TF+/5e3mPctckIbilv2GV2xFvgT9fA==, tarball: https://registry.npmmirror.com/@opentiny/tiny-robot/-/tiny-robot-0.3.1.tgz}
-    peerDependencies:
-      vue: ^3.3.11
-
-  '@opentiny/tiny-robot@0.3.1-alpha.3':
-    resolution: {integrity: sha512-hqCe1qz+bT6In40Zed3jvbBEz19ASbSkw4SLPuXORMnxxg2JhDwB26jjJAORpQ743Fi0MmrM2ODhQ/l7pzddqg==}
     peerDependencies:
       vue: ^3.3.11
 
@@ -5094,7 +5079,7 @@ packages:
     resolution: {integrity: sha512-HbvCmZdzAu3VGi/pWYm5Ut+Kd9mn1ZHnn4L5G8kOQTPs/IwIAmJoBrmYk2ckLArgMXZj0AW3n5CAejLUO+PhdQ==}
 
   '@vueuse/core@13.9.0':
-    resolution: {integrity: sha512-ts3regBQyURfCE2BcytLqzm8+MmLlo5Ln/KLoxDVcsZ2gzIwVNnQpQOL/UKV8alUqjSZOlpFZcRNsLRqj+OzyA==}
+    resolution: {integrity: sha512-ts3regBQyURfCE2BcytLqzm8+MmLlo5Ln/KLoxDVcsZ2gzIwVNnQpQOL/UKV8alUqjSZOlpFZcRNsLRqj+OzyA==, tarball: https://registry.npmmirror.com/@vueuse/core/-/core-13.9.0.tgz}
     peerDependencies:
       vue: ^3.5.0
 
@@ -5143,13 +5128,13 @@ packages:
     resolution: {integrity: sha512-rAyLGEuoBJ/Il5AmFHiziCPdQzRt88VxR+Y/A/QhJ1EWtWqPBBAxTAFaSkviwEuOEZNtW8pvkPgoCZQ+HxqW1A==}
 
   '@vueuse/metadata@13.9.0':
-    resolution: {integrity: sha512-1AFRvuiGphfF7yWixZa0KwjYH8ulyjDCC0aFgrGRz8+P4kvDFSdXLVfTk5xAN9wEuD1J6z4/myMoYbnHoX07zg==}
+    resolution: {integrity: sha512-1AFRvuiGphfF7yWixZa0KwjYH8ulyjDCC0aFgrGRz8+P4kvDFSdXLVfTk5xAN9wEuD1J6z4/myMoYbnHoX07zg==, tarball: https://registry.npmmirror.com/@vueuse/metadata/-/metadata-13.9.0.tgz}
 
   '@vueuse/shared@12.8.2':
     resolution: {integrity: sha512-dznP38YzxZoNloI0qpEfpkms8knDtaoQ6Y/sfS0L7Yki4zh40LFHEhur0odJC6xTHG5dxWVPiUWBXn+wCG2s5w==}
 
   '@vueuse/shared@13.9.0':
-    resolution: {integrity: sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==}
+    resolution: {integrity: sha512-e89uuTLMh0U5cZ9iDpEI2senqPGfbPRTHM/0AaQkcxnpqjkZqDYP8rpfm7edOz8s+pOCOROEy1PIveSW8+fL5g==, tarball: https://registry.npmmirror.com/@vueuse/shared/-/shared-13.9.0.tgz}
     peerDependencies:
       vue: ^3.5.0
 
@@ -5273,7 +5258,7 @@ packages:
     resolution: {integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==}
 
   argparse@2.0.1:
-    resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
+    resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==, tarball: https://registry.npmmirror.com/argparse/-/argparse-2.0.1.tgz}
 
   array-differ@3.0.0:
     resolution: {integrity: sha512-THtfYS6KtME/yIAhKjZ2ul7XI96lQGHRputJQHO80LAWQnuGP4iCIN8vdMRboGbIEYBwU33q8Tch1os2+X0kMg==}
@@ -5963,7 +5948,7 @@ packages:
     engines: {node: '>= 4'}
 
   dompurify@3.3.1:
-    resolution: {integrity: sha512-qkdCKzLNtrgPFP1Vo+98FRzJnBRGe4ffyCea9IwHB1fyxPOeNTHpLKYGd4Uk9xvNoH0ZoOjwZxNptyMwqrId1Q==}
+    resolution: {integrity: sha512-qkdCKzLNtrgPFP1Vo+98FRzJnBRGe4ffyCea9IwHB1fyxPOeNTHpLKYGd4Uk9xvNoH0ZoOjwZxNptyMwqrId1Q==, tarball: https://registry.npmmirror.com/dompurify/-/dompurify-3.3.1.tgz}
 
   domutils@2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==, tarball: https://registry.npmmirror.com/domutils/-/domutils-2.8.0.tgz}
@@ -7245,7 +7230,7 @@ packages:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
   linkify-it@5.0.0:
-    resolution: {integrity: sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==}
+    resolution: {integrity: sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==, tarball: https://registry.npmmirror.com/linkify-it/-/linkify-it-5.0.0.tgz}
 
   listr2@9.0.1:
     resolution: {integrity: sha512-SL0JY3DaxylDuo/MecFeiC+7pedM0zia33zl0vcjgwcq1q1FWWF1To9EIauPbl8GbMCU0R2e0uJ8bZunhYKD2g==}
@@ -7378,7 +7363,7 @@ packages:
     resolution: {integrity: sha512-1I+1qpDt4idfgLQG+BNWmrqku+7/2bi5nLf4YwF8y8zXvmfiTBY3PV3ZibfrjBueCByROpuBjLLFCajqkgYoLQ==}
 
   markdown-it@14.1.0:
-    resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
+    resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==, tarball: https://registry.npmmirror.com/markdown-it/-/markdown-it-14.1.0.tgz}
     hasBin: true
 
   math-intrinsics@1.1.0:
@@ -7398,7 +7383,7 @@ packages:
     resolution: {integrity: sha512-dn6wd0uw5GsdswPFfsgMp5NSB0/aDe6fK94YJV/AJDYXL6HVLWBsxeq7js7Ad+mU2K9LAlwpk6kN2D5mwCPVow==, tarball: https://registry.npmmirror.com/mdn-data/-/mdn-data-2.0.14.tgz}
 
   mdurl@2.0.0:
-    resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==}
+    resolution: {integrity: sha512-Lf+9+2r+Tdp5wXDXC4PcIBjTDtq4UKjCPMQhKIuzpJNW0b96kVqSwW0bT7FhRSfmAiFYgP+SCRvdrDozfh0U5w==, tarball: https://registry.npmmirror.com/mdurl/-/mdurl-2.0.0.tgz}
 
   media-typer@0.3.0:
     resolution: {integrity: sha512-dq+qelQ9akHpcOl/gUVRTxVIOkAJ1wR3QAvb4RsVjS8oVoFjDGTc679wJYmUmknUF5HwMLOgb5O+a3KxfWapPQ==}
@@ -8135,7 +8120,7 @@ packages:
     resolution: {integrity: sha512-todwxLMY7/heScKmntwQG8CXVkWUOdYxIvY2s0VWAAMh/nd8SoYiRaKjlr7+iCs984f2P8zvrfWcDDYVb73NfA==, tarball: https://registry.npmmirror.com/pump/-/pump-3.0.3.tgz}
 
   punycode.js@2.3.1:
-    resolution: {integrity: sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==}
+    resolution: {integrity: sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==, tarball: https://registry.npmmirror.com/punycode.js/-/punycode.js-2.3.1.tgz}
     engines: {node: '>=6'}
 
   punycode@1.4.1:
@@ -8926,7 +8911,7 @@ packages:
     hasBin: true
 
   uc.micro@2.1.0:
-    resolution: {integrity: sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==}
+    resolution: {integrity: sha512-ARDJmphmdvUk6Glw7y9DQ2bFkKBHwQHLi2lsaH6PPmz/Ka9sFOBsBluozhDltWmnv9u/cF6Rt87znRTPV+yp/A==, tarball: https://registry.npmmirror.com/uc.micro/-/uc.micro-2.1.0.tgz}
 
   ufo@1.6.1:
     resolution: {integrity: sha512-9a4/uxlTWJ4+a5i0ooc1rU7C7YOw3wT+UGqdeNNHWnOF9qcMBgLRS+4IYUqbczewFx4mLEig6gawh7X6mFlEkA==}
@@ -12335,52 +12320,36 @@ snapshots:
       - debug
       - vite
 
+  '@opentiny/tiny-robot-kit@0.3.1(vue@3.5.26(typescript@5.8.3))':
+    dependencies:
+      idb: 8.0.3
+      vue: 3.5.26(typescript@5.8.3)
+
   '@opentiny/tiny-robot-kit@0.3.1(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       idb: 8.0.3
       vue: 3.5.26(typescript@5.9.3)
 
-  '@opentiny/tiny-robot-kit@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
+  '@opentiny/tiny-robot-svgs@0.3.1(vue@3.5.26(typescript@5.8.3))':
     dependencies:
       vue: 3.5.26(typescript@5.8.3)
-
-  '@opentiny/tiny-robot-kit@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.26(typescript@5.9.3)
 
   '@opentiny/tiny-robot-svgs@0.3.1(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
 
-  '@opentiny/tiny-robot-svgs@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
+  '@opentiny/tiny-robot@0.3.1(vue@3.5.26(typescript@5.8.3))':
     dependencies:
-      vue: 3.5.26(typescript@5.8.3)
-
-  '@opentiny/tiny-robot-svgs@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
-    dependencies:
-      vue: 3.5.26(typescript@5.9.3)
-
-  '@opentiny/tiny-robot@0.3.1(vue@3.5.26(typescript@5.9.3))':
-    dependencies:
-      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.9.3))
-      '@opentiny/vue': 3.25.0
-      '@vueuse/core': 13.9.0(vue@3.5.26(typescript@5.9.3))
-      dompurify: 3.3.1
-      markdown-it: 14.1.0
-      vue: 3.5.26(typescript@5.9.3)
-
-  '@opentiny/tiny-robot@0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))':
-    dependencies:
-      '@opentiny/tiny-robot-svgs': 0.3.1-alpha.3(vue@3.5.26(typescript@5.8.3))
+      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.8.3))
       '@opentiny/vue': 3.25.0
       '@vueuse/core': 13.9.0(vue@3.5.26(typescript@5.8.3))
       dompurify: 3.3.1
       markdown-it: 14.1.0
       vue: 3.5.26(typescript@5.8.3)
 
-  '@opentiny/tiny-robot@0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))':
+  '@opentiny/tiny-robot@0.3.1(vue@3.5.26(typescript@5.9.3))':
     dependencies:
-      '@opentiny/tiny-robot-svgs': 0.3.1-alpha.3(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/tiny-robot-svgs': 0.3.1(vue@3.5.26(typescript@5.9.3))
       '@opentiny/vue': 3.25.0
       '@vueuse/core': 13.9.0(vue@3.5.26(typescript@5.9.3))
       dompurify: 3.3.1
