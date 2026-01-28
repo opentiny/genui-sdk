@@ -12,7 +12,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "tiny-schema-renderer-ng": "workspace:*",
+    "@opentiny/tiny-schema-renderer-ng": "workspace:*",
     "vue": "^3.5.26"
   },
   "devDependencies": {
