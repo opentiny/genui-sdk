@@ -1,0 +1,156 @@
+@break-point: 814px;
+
+/** pc端设计稿是1920px， 通过mixin实现设计稿中的像素转成rem 
+  用法：
+  .pcRem(font-size, 100); 将会转换成：
+  font-size: 1rem; // 1920 1rem对应是 100px
+*/
+
+.pcRem(@property, @size) {
+  @{property}: @size * 0.01rem;
+}
+
+/** 移动端端设计稿是768px， 通过mixin实现设计稿中的像素转成rem 
+  用法：
+  .mobileRem(font-size, 100); 将会转换成：
+  font-size: 1rem; // 1920 2.5rem对应是 100px
+*/
+.mobileRem(@property, @size) {
+  @{property}: @size * 0.025rem;
+}
+
+/** pc端设计稿是1920px，移动端设计稿是768px, 通过mixin实现设计稿中的像素转成rem 
+  用法：
+  .rem(font-size, 100, 50); 将会转换成：
+  font-size: 1rem; // 1920对应是 100px
+   @media screen and (max-width: 814px) {
+    font-size: 1.25rem; // 768对应是 50px
+  }
+
+*/
+.response(@property, @pc, @mobile) {
+  @{property}: @pc;
+  @media screen and (max-width: 814px) {
+    @{property}: @mobile;
+  }
+}
+
+.pc(@property, @size) {
+  @{property}: if((isnumber(@size) and not (ispixel(@size))), @size * 0.01rem, @size);
+}
+
+.mobile(@property, @size) {
+  @{property}: if((isnumber(@size) and not (ispixel(@size))), @size * 0.025rem, @size);
+}
+
+.pcPadding(@top, @right, @bottom, @left) {
+  .pc(padding-top, @top);
+  .pc(padding-right, @right);
+  .pc(padding-bottom, @bottom);
+  .pc(padding-left, @left);
+}
+
+.pcPadding(@top, @horizon, @bottom) {
+  .pc(padding-top, @top);
+  .pc(padding-right, @horizon);
+  .pc(padding-bottom, @bottom);
+  .pc(padding-left, @horizon);
+}
+
+.pcPadding(@vertical, @horizon) {
+  .pc(padding-top, @vertical);
+  .pc(padding-right, @horizon);
+  .pc(padding-bottom, @vertical);
+  .pc(padding-left, @horizon);
+}
+
+.pcPadding(@size) {
+  .pc(padding-top, @size);
+  .pc(padding-right, @size);
+  .pc(padding-bottom, @size);
+  .pc(padding-left, @size);
+}
+
+.mobilePadding(@top, @right, @bottom, @left) {
+  .mobile(padding-top, @top);
+  .mobile(padding-right, @right);
+  .mobile(padding-bottom, @bottom);
+  .mobile(padding-left, @left);
+}
+
+.mobilePadding(@top, @horizon, @bottom) {
+  .mobile(padding-top, @top);
+  .mobile(padding-right, @horizon);
+  .mobile(padding-bottom, @bottom);
+  .mobile(padding-left, @horizon);
+}
+
+.mobilePadding(@vertical, @horizon) {
+  .mobile(padding-top, @vertical);
+  .mobile(padding-right, @horizon);
+  .mobile(padding-bottom, @vertical);
+  .mobile(padding-left, @horizon);
+}
+
+.mobilePadding(@size) {
+  .mobile(padding-top, @size);
+  .mobile(padding-right, @size);
+  .mobile(padding-bottom, @size);
+  .mobile(padding-left, @size);
+}
+
+.pcMargin(@top, @right, @bottom, @left) {
+  .pc(margin-top, @top);
+  .pc(margin-right, @right);
+  .pc(margin-bottom, @bottom);
+  .pc(margin-left, @left);
+}
+
+.pcMargin(@top, @horizon, @bottom) {
+  .pc(margin-top, @top);
+  .pc(margin-right, @horizon);
+  .pc(margin-bottom, @bottom);
+  .pc(margin-left, @horizon);
+}
+
+.pcMargin(@vertical, @horizon) {
+  .pc(margin-top, @vertical);
+  .pc(margin-right, @horizon);
+  .pc(margin-bottom, @vertical);
+  .pc(margin-left, @horizon);
+}
+
+.pcMargin(@size) {
+  .pc(margin-top, @size);
+  .pc(margin-right, @size);
+  .pc(margin-bottom, @size);
+  .pc(margin-left, @size);
+}
+
+.mobileMargin(@top, @right, @bottom, @left) {
+  .mobile(margin-top, @top);
+  .mobile(margin-right, @right);
+  .mobile(margin-bottom, @bottom);
+  .mobile(margin-left, @left);
+}
+
+.mobileMargin(@top, @horizon, @bottom) {
+  .mobile(margin-top, @top);
+  .mobile(margin-right, @horizon);
+  .mobile(margin-bottom, @bottom);
+  .mobile(margin-left, @horizon);
+}
+
+.mobileMargin(@vertical, @horizon) {
+  .mobile(margin-top, @vertical);
+  .mobile(margin-right, @horizon);
+  .mobile(margin-bottom, @vertical);
+  .mobile(margin-left, @horizon);
+}
+
+.mobileMargin(@size) {
+  .mobile(margin-top, @size);
+  .mobile(margin-right, @size);
+  .mobile(margin-bottom, @size);
+  .mobile(margin-left, @size);
+}
