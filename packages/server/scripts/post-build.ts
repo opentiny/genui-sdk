@@ -37,8 +37,9 @@ const replaceOutputPath = (value: any): any => {
   return value;
 };
 
+// 处理 exports和bin 中的路径，将其中的 "output/" 前缀去掉
 outputPackageJson.exports = replaceOutputPath(packageJson.exports);
-
+outputPackageJson.bin = replaceOutputPath(packageJson.bin);
 
 const outputDir = join(__dirname, '../output');
 
