@@ -5,6 +5,7 @@ import packageJson from './package.json';
 import jsconfigPaths from 'vite-jsconfig-paths';
 import type { PluginOption } from 'vite';
 import obfuscator from 'vite-plugin-bundle-obfuscator';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => {
   console.log(mode);
@@ -19,7 +20,13 @@ export default defineConfig(({ mode }) => {
     }) as PluginOption,
   ];
 
-  if (mode === 'obfuscator') {
+  if (mode === 'no-obfuscator') {
+    plugins.push(
+      visualizer({
+        open: true,
+      }),
+    );
+  } else {
     plugins.push(
       obfuscator({
         apply: 'build',
@@ -49,8 +56,8 @@ export default defineConfig(({ mode }) => {
         },
         formats: ['es'],
       },
-      outDir: 'dist',
-      sourcemap: mode !== 'obfuscator',
+      outDir: 'output/dist',
+      sourcemap: mode === 'no-obfuscator',
       rollupOptions: {
         external: (id) => {
           if (id.includes('@opentiny/genui-sdk-core')) {

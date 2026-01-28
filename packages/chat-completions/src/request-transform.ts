@@ -1,4 +1,4 @@
-import { type IGenPromptConfig, genPrompt, ITGCustomConfig } from '@opentiny/genui-sdk-core';
+import { type IGenPromptConfig, genPrompt } from '@opentiny/genui-sdk-core';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
 import { IChatCompletionCreateParams, ChatCompletionCreateParamsBase } from './types';
@@ -36,7 +36,7 @@ export function requestTransform(
 
   const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
   const systemMessages = newParams.messages?.find((message) => message.role === 'system');
-  const prompt =  genPrompt(renderConfigForFramework, promptConfig as unknown as ITGCustomConfig); // TODO: fix type
+  const prompt =  genPrompt(renderConfigForFramework, promptConfig);
   if (systemMessages) {
     systemMessages.content = mergePrompt(systemMessages.content as string, prompt, strategy);
   } else {

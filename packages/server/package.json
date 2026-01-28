@@ -2,27 +2,29 @@
   "name": "@opentiny/genui-sdk-server",
   "version": "0.0.1",
   "description": "",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "output/dist/index.js",
+  "types": "output/dist/index.d.ts",
   "type": "module",
   "bin": {
-    "genui-sdk-server": "dist/cli.js"
+    "genui-sdk-server": "output/dist/cli.js"
   },
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "import": "./output/dist/index.js",
+      "types": "./output/dist/index.d.ts"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
     "build": "vite build",
-    "build:obfuscator": "pnpm build --mode obfuscator",
+    "postbuild": "tsx scripts/post-build.ts",
+    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
     "dev": "tsx watch --tsconfig ./tsconfig.dev.json test/start.ts"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-chat-completions": "workspace:*",
-    "@opentiny/genui-sdk-core": "workspace:*",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "commander": "^14.0.0",
@@ -30,9 +32,12 @@
     "raw-body": "^3.0.0"
   },
   "devDependencies": {
+    "@opentiny/genui-sdk-chat-completions": "workspace:*",
+    "@opentiny/genui-sdk-core": "workspace:*",
     "@types/express": "^5.0.3",
     "@types/node": "^20.0.0",
     "@types/commander": "^2.12.2",
+    "rollup-plugin-visualizer": "^6.0.5",
     "typescript": "^5.0.0",
     "tsx": "^4.8.1",
     "vite": "^7.0.0",
