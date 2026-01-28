@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, nextTick } from 'vue';
-import { TinyButton, TinyButtonGroup } from '@opentiny/vue';
+import { TinyButton, TinyButtonGroup, TinyTooltip } from '@opentiny/vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import { IconArrowRight, IconRefresh } from '@opentiny/vue-icon';
 import genuiGuideDefault from '@/assets/genui_guide_default.svg';
@@ -229,13 +229,15 @@ onUnmounted(() => {
             @saveState="() => {}"
           />
           <img v-else :src="genuiGuideDefault" alt="genui-guide-default" />
-          <tiny-button
-            class="refresh-button"
-            circle
-            size="medium"
-            :icon="TinyIconRefresh"
-            @click="handleRefresh"
-          ></tiny-button>
+          <tiny-tooltip content="重新播放" placement="top" effect="light">
+            <tiny-button
+              class="refresh-button"
+              circle
+              size="medium"
+              :icon="TinyIconRefresh"
+              @click="handleRefresh"
+            ></tiny-button>
+          </tiny-tooltip>
         </div>
       </div>
     </div>
@@ -331,6 +333,12 @@ onUnmounted(() => {
       }
     }
 
+    @media (min-width: 1280px) {
+      &-content {
+        height: 575px;
+      }
+    }
+
     &-renderer {
       &-container {
         display: flex;
@@ -363,7 +371,7 @@ onUnmounted(() => {
 .refresh-button {
   position: absolute;
   right: calc(4%);
-  bottom: calc(5% + 18px);
+  bottom: calc(8% + 18px);
   box-shadow: 0 2px 4px #00000029;
 }
 

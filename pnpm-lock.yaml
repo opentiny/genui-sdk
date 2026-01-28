@@ -526,6 +526,9 @@ importers:
       '@opentiny/vue-tag':
         specifier: ~3.25.0
         version: 3.25.0
+      '@opentiny/vue-tooltip':
+        specifier: ~3.25.0
+        version: 3.25.0
       highlight.js:
         specifier: ^11.5.1
         version: 11.11.1
