@@ -280,12 +280,6 @@ importers:
 
   packages/server:
     dependencies:
-      '@opentiny/genui-sdk-chat-completions':
-        specifier: workspace:*
-        version: link:../chat-completions
-      '@opentiny/genui-sdk-core':
-        specifier: workspace:*
-        version: link:../core
       commander:
         specifier: ^14.0.0
         version: 14.0.2
@@ -302,6 +296,12 @@ importers:
         specifier: ^3.0.0
         version: 3.0.2
     devDependencies:
+      '@opentiny/genui-sdk-chat-completions':
+        specifier: workspace:*
+        version: link:../chat-completions
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../core
       '@types/commander':
         specifier: ^2.12.2
         version: 2.12.5
@@ -311,6 +311,9 @@ importers:
       '@types/node':
         specifier: ^20.0.0
         version: 20.19.27
+      rollup-plugin-visualizer:
+        specifier: ^6.0.5
+        version: 6.0.5(rollup@4.54.0)
       tsx:
         specifier: ^4.8.1
         version: 4.21.0
