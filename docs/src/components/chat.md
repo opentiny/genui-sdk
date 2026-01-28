@@ -219,13 +219,16 @@ const customActions = [
   {
     name: 'openPage',
     description: '打开新页面',
-    params: [
-      {
-        name: 'url',
-        type: 'string',
-        description: '目标页面URL',
+    parameters: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: '目标页面URL',
+        },
       },
-    ],
+      required: ['url'],
+    },
     execute: (params: any) => {
       window.open(params.url, '_blank');
     },
