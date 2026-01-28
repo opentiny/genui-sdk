@@ -18,7 +18,7 @@
     "@opentiny/vue-button-group": "~3.25.0",
     "@opentiny/vue-button": "~3.25.0",
     "@opentiny/vue-tooltip": "~3.25.0",
-    "@opentiny/genui-sdk-vue": "0.0.1-alpha.11",
+    "@opentiny/genui-sdk-vue": "1.0.0-beta.1",
     "highlight.js": "^11.5.1",
     "vue": "~3.4.32"
   },
