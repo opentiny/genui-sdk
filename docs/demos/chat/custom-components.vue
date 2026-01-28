@@ -5,7 +5,6 @@
 <script setup lang="ts">
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
 import UserProfile from './components/user-profile.vue';
-import logoUrl from '../../src/public/logo.svg?url';
 
 const url = 'https://your-chat-backend/api';
 
@@ -57,8 +56,7 @@ const messages = [
               componentName: 'UserProfile',
               props: {
                 name: 'John Doe',
-                email: 'john@example.com',
-                avatar: logoUrl,
+                email: 'john@example.com'
               },
             },
           ],
