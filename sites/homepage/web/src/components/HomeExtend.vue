@@ -70,14 +70,12 @@ const handleExtendClick = (value: string) => {
   }, 100);
 };
 
-const handleAction = ({
-  llmFriendlyMessage,
-  humanFriendlyMessage,
-}: {
-  llmFriendlyMessage: string;
-  humanFriendlyMessage: string;
-}) => {
-  console.log('Action:', { llmFriendlyMessage, humanFriendlyMessage });
+const customActions = {
+  saveState: {
+    execute: () => {
+      // do nothing
+    },
+  },
 };
 
 const initMessage = () => {
@@ -225,8 +223,7 @@ onUnmounted(() => {
             class="home-extend-schema-renderer"
             :content="message.content"
             :generating="generating"
-            :onAction="handleAction"
-            @saveState="() => {}"
+            :customActions="customActions"
           />
           <img v-else :src="genuiGuideDefault" alt="genui-guide-default" />
           <tiny-button
