@@ -76,6 +76,6 @@ export const whiteList = [
   'TinyChartBar',
   'TinyChartRadar',
   'TinyChartRing',
-  'GridStack',
-  'GridStackItem'
+  // 'GridStack',
+  // 'GridStackItem'
 ];
