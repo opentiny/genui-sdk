@@ -11,24 +11,25 @@ const customActions = [
   {
     name: 'openPage',
     description: '打开新页面',
-    params: [
-      {
-        name: 'url',
-        type: 'string',
-        description: '目标页面URL',
-      },
-      {
-        name: 'target',
-        type: 'string',
-        description: '打开方式，可选值：_self（当前窗口）、_blank（新窗口）',
-      },
-    ],
     execute: (params: any) => {
       window.open(params.url, params.target || '_self');
     },
+    parameters: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: '要打开的页面地址',
+        },
+        target: {
+          type: 'string',
+          description: '打开方式，可选值：_self（当前窗口）、_blank（新窗口）',
+        },
+      },
+      required: ['url', 'target'],
+    },
   },
 ];
-
 // 默认消息，用于展示自定义 Actions
 const messages = [
   {

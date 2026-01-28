@@ -27,9 +27,9 @@ import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
 import { emitter } from './event-emitter';
-import type { IChatProps, IRolesConfig } from './chat.types';
+import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
-import { useContinueChatAction } from './continue-chat-action';
+import { useChatAction } from './continue-chat-action';
 import type { IMessageItem } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
@@ -175,15 +175,8 @@ const customContext = computed(() => {
 
 provide(CUSTOM_CONTEXT, customContext);
 
-const { continueChatAction } = useContinueChatAction(chat); //TODO: Refactor
-const saveStateAction = {
-  name: 'saveState',
-  description: '保存状态， 用于保存组件状态',
-  execute: (params: any, context: Record<string | symbol, any>) => {
-    saveState(context);
-  },
-  params: [],
-};
+const { continueChatAction, saveStateAction } = useChatAction({chat, saveState}); //TODO: Refactor
+
 
 const generating = computed(() => GeneratingStatus.includes(messageManager.value.messageState.status));
 
@@ -218,7 +211,7 @@ const messageRenderers = {
     }
 
     // 将 customActions 数组转换为对象格式
-    const customActionsMap: Record<string, any> = {};
+    const customActionsMap: Record<string, ICustomActionItem> = {};
     if (props.customActions) {
       props.customActions.forEach((action) => {
         if (action.name) {

@@ -100,6 +100,16 @@ const customActions = {
 
       alert(`${params.title}：${message}`);
     },
+    parameters: {
+      type: 'object',
+      properties: {
+        title: {
+          type: 'string',
+          description: '通知标题',
+        },
+      },
+      required: ['title'],
+    },
   },
 };
 </script>

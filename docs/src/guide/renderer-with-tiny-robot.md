@@ -4,13 +4,20 @@
 
 ## 安装依赖
 
+:::: tabs
+== npm
 ```bash
-npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-core @opentiny/tiny-robot @opentiny/tiny-robot-kit
-# 或
-pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-core @opentiny/tiny-robot @opentiny/tiny-robot-kit
-# 或
-yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-core @opentiny/tiny-robot @opentiny/tiny-robot-kit
+npm install @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
+== pnpm
+```bash
+pnpm add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+```
+== yarn
+```bash
+yarn add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+```
+::::
 
 ## 基础使用
 
@@ -23,7 +30,7 @@ import {
   type ChatCompletionStreamResponse,
 } from '@opentiny/tiny-robot-kit';
 import { reactive } from 'vue';
-import type { IChatMessage } from '@opentiny/genui-sdk-core';
+import type { IChatMessage } from '@opentiny/genui-sdk-vue';
 
 // 简化的 Schema 流式处理逻辑（只处理 schema-card 和 markdown）
 function useSchemaStream() {

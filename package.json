@@ -12,6 +12,7 @@
     "prebuild:lib": "pnpm build:materials",
     "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build",
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
+    "build:server": "pnpm --filter @opentiny/genui-sdk-server build",
     "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build",
     "build:playground": "pnpm --filter genui-sdk-playground build",
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",

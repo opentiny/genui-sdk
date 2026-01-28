@@ -5,7 +5,7 @@ const removeCustomActionsExecuteFunction = (customActions: ICustomActionItem[]) 
     return {
       name: action.name,
       description: action.description,
-      params: action.params,
+      parameters: action.parameters,
     };
   });
 };
