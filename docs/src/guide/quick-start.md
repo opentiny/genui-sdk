@@ -7,18 +7,8 @@
 ## 初始化项目
 
 首先，创建一个新的 Vue 项目：
-::: tabs
-== npm
 ```bash
 npm create vue@latest genui-chat
-```
-== pnpm
-```bash
-pnpm create vite@latest genui-chat
-```
-== yarn
-```bash
-yarn create vite@latest genui-chat
 ```
 :::
 按照默认提示进行项目初始化。

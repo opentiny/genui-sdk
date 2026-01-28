@@ -373,7 +373,7 @@ export const defaultCustomFetch = createOpenAICustomFetch({
 
 <script setup lang="ts">
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
-import { defaultCustomFetch } from './api/custom-fetch';
+import { defaultCustomFetch } from './api/custom-fetch'; // 上面定义的customFetch
 
 const chatConfig = {
   addToolCallContext: true,

@@ -56,6 +56,13 @@ export default defineConfig({
           text: 'Angular组件文档',
           items: [{ text: 'GenuiRenderer(未开放)', link: '/components/angular-renderer' }],
         },
+        {
+          text: 'Server包文档',
+          base: '/components//server/',
+          items: [
+            { text: '使用文档', link: 'usage' }, 
+          ],
+        }
       ],
       '/examples/': [
         {
