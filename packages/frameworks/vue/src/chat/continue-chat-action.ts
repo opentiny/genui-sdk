@@ -21,7 +21,7 @@ export function useChatAction({
         });
       },
       parameters: {
-        type: 'object',
+        type: 'object' as const,
         properties: {
           message: {
             type: 'string',
@@ -36,7 +36,7 @@ export function useChatAction({
       execute: (params: any, context: Record<string | symbol, any>) => {
         saveState(context);
       },
-      parameters: { type: 'null'},
+      parameters: { type: 'null' as const},
     },
   };
 }

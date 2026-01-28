@@ -393,9 +393,6 @@ importers:
       eval5:
         specifier: ^1.4.8
         version: 1.4.8
-      rollup-plugin-visualizer:
-        specifier: ^6.0.5
-        version: 6.0.5(rollup@4.54.0)
       vite:
         specifier: ^5.4.2
         version: 5.4.21(@types/node@24.10.4)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)
