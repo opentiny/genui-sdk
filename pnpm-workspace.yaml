@@ -4,5 +4,6 @@ packages:
   - docs
   - projects/**/*
   - '!packages/frameworks/vue/output/**'
+  - '!packages/server/output/**'
   - '!packages/frameworks/angular/**/*'
   - '!projects/tiny-schema-renderer-ng/**/*'

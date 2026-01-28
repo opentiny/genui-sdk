@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter genui-sdk-playground dev",
     "docs:dev": "pnpm --filter genui-sdk-docs dev",
+    "homepage:dev": "pnpm --filter genui-sdk-homepage-web dev",
     "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build",
     "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
     "prebuild:lib": "pnpm build:materials",
@@ -13,6 +14,8 @@
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
     "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build",
     "build:playground": "pnpm --filter genui-sdk-playground build",
+    "prebuild:homepage": "pnpm build:projects && pnpm build:materials && pnpm build:lib",
+    "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
     "build": "pnpm build:playground"
   },
   "keywords": [],
