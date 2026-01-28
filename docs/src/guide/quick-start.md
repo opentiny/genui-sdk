@@ -7,25 +7,32 @@
 ## 初始化项目
 
 首先，创建一个新的 Vue 项目：
-
 ```bash
 npm create vue@latest genui-chat
 ```
-
+:::
 按照默认提示进行项目初始化。
 
 ## 安装依赖
 
 进入项目目录并安装 GenUI SDK：
-
+::: tabs
+== npm
 ```bash
 cd genui-chat
 npm install @opentiny/genui-sdk-vue
-# 或
+```
+== pnpm
+```bash
+cd genui-chat
 pnpm add @opentiny/genui-sdk-vue
-# 或
+```
+== yarn
+```bash
+cd genui-chat
 yarn add @opentiny/genui-sdk-vue
 ```
+:::
 
 ## 改造项目
 

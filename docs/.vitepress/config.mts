@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress';
 import { vitepressDemoPlugin } from 'vitepress-demo-plugin';
+import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -11,6 +12,7 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(vitepressDemoPlugin);
+      md.use(tabsMarkdownPlugin);
     },
   },
   vite: {
@@ -37,7 +39,7 @@ export default defineConfig({
           items: [
             { text: '快速开始', link: '/guide/quick-start' },
             { text: '使用 Renderer 组件', link: '/guide/start-with-renderer' },
-            { text: '搭配 Tiny Robot 使用', link: '/guide/renderer-with-tiny-robot' },
+            { text: '搭配 TinyRobot 使用', link: '/guide/renderer-with-tiny-robot' },
           ],
         },
       ],
@@ -54,6 +56,13 @@ export default defineConfig({
           text: 'Angular组件文档',
           items: [{ text: 'GenuiRenderer(未开放)', link: '/components/angular-renderer' }],
         },
+        {
+          text: 'Server包文档',
+          base: '/components/server/',
+          items: [
+            { text: '使用文档', link: 'usage' }, 
+          ],
+        }
       ],
       '/examples/': [
         {
