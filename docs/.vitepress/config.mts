@@ -58,7 +58,7 @@ export default defineConfig({
         },
         {
           text: 'Server包文档',
-          base: '/components//server/',
+          base: '/components/server/',
           items: [
             { text: '使用文档', link: 'usage' }, 
           ],
