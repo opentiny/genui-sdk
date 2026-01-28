@@ -158,8 +158,7 @@ interface IStreamDelta {
 ```vue
 <script lang="ts" setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
-import type { INotificationPayload } from '@opentiny/genui-sdk-core';
-import type { IThinkComponentProps } from './common.types';
+import type { INotificationPayload, IThinkComponentProps } from '@opentiny/genui-sdk-vue';
 
 const props = defineProps<IThinkComponentProps>();
 

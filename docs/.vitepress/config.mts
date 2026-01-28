@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress';
 import { vitepressDemoPlugin } from 'vitepress-demo-plugin';
+import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -11,6 +12,7 @@ export default defineConfig({
   markdown: {
     config(md) {
       md.use(vitepressDemoPlugin);
+      md.use(tabsMarkdownPlugin);
     },
   },
   vite: {

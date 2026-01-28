@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "vitepress": "^1.6.3",
-    "vitepress-demo-plugin": "^1.4.1"
+    "vitepress-demo-plugin": "^1.4.1",
+    "vitepress-plugin-tabs": "^0.7.3"
   }
 }
