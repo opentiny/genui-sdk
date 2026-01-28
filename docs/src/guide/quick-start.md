@@ -10,7 +10,7 @@
 ```bash
 npm create vue@latest genui-chat
 ```
-:::
+
 按照默认提示进行项目初始化。
 
 ## 安装依赖

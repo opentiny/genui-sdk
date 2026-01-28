@@ -31,9 +31,7 @@
     "@opentiny/vue-chart-ring": "3.14.0",
     "@opentiny/vue-select": "^3.28.0",
     "@opentiny/vue-tabs": "^3.28.0",
-    "@opentiny/tiny-engine-builtin-component": "^2.6.0",
-    "@babel/core": "7.18.13",
-    "@vue/babel-plugin-jsx": "^1.2.5"
+    "@opentiny/tiny-engine-builtin-component": "^2.6.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
