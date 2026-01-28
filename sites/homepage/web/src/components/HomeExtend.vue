@@ -101,7 +101,7 @@ const loadChunksStreaming = async () => {
   }
 
   const currentType = extendSelect.value;
-  const chunkSize = 30;
+  const chunkSize = extendSelect.value === 'element' ? 30 : 20;
 
   try {
     const jsonData = getJsonData(currentType);
@@ -323,6 +323,12 @@ onUnmounted(() => {
       border-radius: 12px;
       padding: 5% 5%;
       overflow: auto;
+
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
     }
 
     &-renderer {
@@ -330,6 +336,7 @@ onUnmounted(() => {
         display: flex;
         flex-direction: column;
         width: 100%;
+        height: 100%;
       }
     }
 
