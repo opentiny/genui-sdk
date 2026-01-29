@@ -251,7 +251,7 @@ const messageRenderers = {
   'error-text': ErrorText,
 };
 
-// 配置AI对话提供商
+
 const customModelProvider = new CustomModelProvider({
   url: props.url,
   model: props.model || '',
@@ -278,7 +278,6 @@ let conversation = useConversation({
       preventDefault();
     },
     onLoaded(conversations) {
-      // 如果历史会话为空，则创建一个默认会话
       if (!conversations.length) {
         createConversation();
         saveConversations();
@@ -304,16 +303,18 @@ let conversation = useConversation({
 });
 const { messageManager, createConversation, updateTitle, state: conversationState, saveConversations } = conversation;
 
-// 当前会话的 messages 代理
 const messages = computed(() => messageManager.value.messages.value);
 
-// 当前会话的 inputMessage 代理，给 v-model 使用
 const inputMessage = computed({
   get: () => messageManager.value.inputMessage.value,
   set: (v: string) => {
     messageManager.value.inputMessage.value = v;
   },
 });
+
+const setInputMessage = (message: string) => {
+  inputMessage.value = message;
+}
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -392,7 +393,6 @@ const handleRemoveAttachment = (item: FileMeta | undefined) => {
   templateData.value = templateData.value.filter((data) => data.type !== 'template' || data.content !== item.name);
 };
 
-// 发送消息
 const handleSendMessage = async (ipt: string) => {
   const messageContent = ipt;
   const userMessageContent: BubbleContentItem[] = [];
@@ -405,7 +405,7 @@ const handleSendMessage = async (ipt: string) => {
     content: messageContent,
   };
   messages.value.push(userMessage);
-  // 附件处理
+
   if (attachmentsValue.length > 0) {
     const result = await processAttachments(attachmentsValue, props.features || {});
     if (!result) {
@@ -479,6 +479,7 @@ watch(
 );
 
 defineExpose({
+  setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
 });

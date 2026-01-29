@@ -14,6 +14,7 @@ import UserFooter from './components/UserFooter.vue';
 import ModelConfig from './components/tab-components/model-config.vue';
 import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
+import { useInputMessage } from './use-input-message';
 
 let framework = 'Vue'; // Angular
 
@@ -97,7 +98,10 @@ const handleKeydown = (event) => {
   }
 };
 
+const { initInputMessage } = useInputMessage(chat);
+
 onMounted(() => {
+  initInputMessage();
   getModelOptions()
     .then(async (data) => {
       if (!data.find((item) => item.value === llmConfig.model)) {
