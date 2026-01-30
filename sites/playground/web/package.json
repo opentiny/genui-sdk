@@ -13,9 +13,9 @@
   "dependencies": {
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-vue": "workspace:*",
-    "@opentiny/tiny-robot": "0.3.1",
-    "@opentiny/tiny-robot-kit": "0.3.1",
-    "@opentiny/tiny-robot-svgs": "0.3.1",
+    "@opentiny/tiny-robot": "0.3.3",
+    "@opentiny/tiny-robot-kit": "0.3.3",
+    "@opentiny/tiny-robot-svgs": "0.3.3",
     "@opentiny/vue": "^3.28.0",
     "@opentiny/vue-directive": "^3.28.0",
     "@opentiny/vue-icon": "^3.28.0",
