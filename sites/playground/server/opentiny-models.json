@@ -5,50 +5,73 @@
     "baseUrlEnvName": "BASE_URL",
     "models": [
       {
-        "name": "DeepSeek-V3",
-        "id": "deepseek-ai/DeepSeek-V3",
-        "supportJsonFormat": false
+        "name": "DeepSeek V3.2",
+        "id": "deepseek/deepseek-chat"
       },
       {
-        "name": "DeepSeek-R1",
-        "id": "deepseek-ai/DeepSeek-R1",
-        "supportJsonFormat": false
+        "name": "DeepSeek V3.2-think",
+        "id": "deepseek/deepseek-reasoner"
       },
       {
-        "name": "Deepseek",
-        "id": "deepseek-v3.2-exp",
-        "supportJsonFormat": false
+        "name": "Qwen Flash",
+        "id": "qwen/qwen-flash"
       },
       {
-        "name": "qwen-plus",
-        "id": "qwen-plus",
-        "supportJsonFormat": false
+        "name": "Qwen Max",
+        "id": "qwen/qwen-max"
       },
       {
-        "name": "qwen-max",
-        "id": "qwen-max",
-        "supportJsonFormat": false
+        "name": "Qwen Plus",
+        "id": "qwen/qwen-plus"
       },
       {
-        "name": "qwen-vl-plus",
-        "id": "qwen3-vl-plus",
-        "supportJsonFormat": false,
+        "name": "Qwen Long",
+        "id": "qwen/qwen-long"
+      },
+      {
+        "name": "Qwen3 VL Plus",
+        "id": "qwen/qwen3-vl-plus",
         "features": {
           "supportImage": true
         }
       },
       {
-        "name": "qwen-vl-max",
-        "id": "qwen3-vl-max",
-        "supportJsonFormat": false,
+        "name": "Qwen3 VL Max",
+        "id": "qwen/qwen3-vl-max",
         "features": {
           "supportImage": true
         }
       },
       {
-        "name": "qwen-long",
-        "id": "qwen-long",
-        "supportJsonFormat": false
+        "name": "DeepSeek V3.2 (modelscope)",
+        "id": "modelscope/deepseek-ai/DeepSeek-V3.2"
+      },
+      {
+        "name": "GLM 4.7",
+        "id": "modelscope/ZhipuAI/GLM-4.7"
+      },
+      {
+        "name": "Qwen3 235B",
+        "id": "modelscope/Qwen/Qwen3-235B-A22B-Instruct-2507"
+      },
+      {
+        "name": "Qwen3 VL 235B",
+        "id": "modelscope/Qwen/Qwen3-VL-235B-A22B-Instruct",
+        "features": {
+          "supportImage": true
+        }
+      },
+      {
+        "name": "Qwen3 Coder 480B",
+        "id": "modelscope/Qwen/Qwen3-Coder-480B-A35B-Instruct"
+      },
+      {
+        "name": "Qwen3 32B",
+        "id": "modelscope/Qwen/Qwen3-32B"
+      },
+      {
+        "name": "DeepSeek R1 0528",
+        "id": "modelscope/deepseek-ai/DeepSeek-R1-0528"
       }
     ]
   }
