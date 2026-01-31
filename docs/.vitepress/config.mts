@@ -30,7 +30,7 @@ export default defineConfig({
     nav: [
       { text: '快速开始', link: '/guide/quick-start' },
       { text: '组件文档', link: '/components/renderer' },
-      { text: '特性示例', link: '/examples/renderer/custom-actions' },
+      { text: '特性示例', link: '/examples/renderer/custom-actions' }
     ],
     sidebar: {
       '/guide/': [
@@ -40,6 +40,7 @@ export default defineConfig({
             { text: '快速开始', link: '/guide/quick-start' },
             { text: '使用 Renderer 组件', link: '/guide/start-with-renderer' },
             { text: '搭配 TinyRobot 使用', link: '/guide/renderer-with-tiny-robot' },
+            { text: 'Server 包使用文档', link: '/guide/server-usage' },
           ],
         },
       ],
@@ -55,13 +56,6 @@ export default defineConfig({
         {
           text: 'Angular组件文档',
           items: [{ text: 'GenuiRenderer(未开放)', link: '/components/angular-renderer' }],
-        },
-        {
-          text: 'Server包文档',
-          base: '/components/server/',
-          items: [
-            { text: '使用文档', link: 'usage' }, 
-          ],
         }
       ],
       '/examples/': [
