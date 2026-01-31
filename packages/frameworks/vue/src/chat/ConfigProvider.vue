@@ -52,7 +52,7 @@ watch(
   () => [props.locale, props.i18n] as const,
   () => {
     i18n.setLocale(props.locale);
-    i18n.mergeMessages(props.i18n);
+    props.i18n && i18n.mergeMessages(props.i18n);
   },
   { immediate: true },
 );
