@@ -7,6 +7,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import dts from 'vite-plugin-dts';
 import vue from '@vitejs/plugin-vue';
 import packageJson from './package.json';
+
 export default defineConfig(({ mode }) => {
   return {
     root: path.resolve(__dirname, './'),
@@ -30,7 +31,23 @@ export default defineConfig(({ mode }) => {
           },
         }) as PluginOption, // TODO: pluginOption types are not equal
       cssInjectedByJsPlugin(),
-      dts({ rollupTypes: true }),
+      dts({
+        rollupTypes: true,
+        bundledPackages: [
+          '@opentiny/genui-sdk-core',
+          '@opentiny/genui-sdk-materials-vue-opentiny-vue',
+          '@opentiny/tiny-schema-renderer',
+          'zod',
+          'zod-to-json-schema',
+        ],
+        compilerOptions: {
+          paths: {
+            // 临时规避此包无.d.ts文件的问题
+            '@opentiny/tiny-schema-renderer': ['../src/types/tiny-schema-renderer.d.ts'],
+          },
+          include: ['../src/types/tiny-schema-renderer.d.ts'],
+        }
+      }),
     ],
     build: {
       lib: {
