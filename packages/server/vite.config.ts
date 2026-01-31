@@ -12,8 +12,11 @@ export default defineConfig(({ mode }) => {
 
   const plugins = [
     dts({
-      tsconfigPath: './tsconfig.json',
       rollupTypes: true,
+      bundledPackages: [
+        '@opentiny/genui-sdk-core',
+        '@opentiny/genui-sdk-chat-completions'
+      ]
     }),
     jsconfigPaths({
       projects: ['./tsconfig.json'],
