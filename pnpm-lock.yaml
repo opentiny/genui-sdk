@@ -361,7 +361,7 @@ importers:
         specifier: ^7.23.0
         version: 7.28.5
       '@opentiny/vue':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.0
       '@opentiny/vue-chart-bar':
         specifier: ~3.14.0
@@ -382,10 +382,10 @@ importers:
         specifier: 3.14.0
         version: 3.14.0
       '@opentiny/vue-icon':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.3
       '@opentiny/vue-theme':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.0
       '@vitejs/plugin-vue':
         specifier: ^5.1.2
