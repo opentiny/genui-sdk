@@ -30,7 +30,7 @@ export default defineConfig({
     nav: [
       { text: '快速开始', link: '/guide/quick-start' },
       { text: '组件文档', link: '/components/renderer' },
-      { text: '特性示例', link: '/examples/renderer/custom-actions' }
+      { text: '特性示例', link: '/examples/renderer/custom-actions' },
     ],
     sidebar: {
       '/guide/': [
