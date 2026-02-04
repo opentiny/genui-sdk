@@ -18,7 +18,6 @@ export default defineConfig({
   vite: {
     server: {
       host: '0.0.0.0', // 允许外部访问
-      port: 3011, // 指定端口号
       open: true, // 开发时自动打开浏览器
     },
   },
