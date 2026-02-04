@@ -1,4 +1,4 @@
-export const genCustomActionsPrompt = (actionDefinitions: any[]) => `
+export const genCustomActionsPrompt = (actionDefinitions: any[]) => actionDefinitions?.length > 0 ? `
 以下是一些Action的定义：
 ${JSON.stringify(actionDefinitions, null, 2)}
 
@@ -18,4 +18,4 @@ Action的参数需要根据Action的定义来填写.
   children: ["点击继续对话"]
 }
 \`\`\`
-`;
+` : '';
