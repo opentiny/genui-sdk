@@ -29,7 +29,8 @@
     "dotenv": "^16.6.1",
     "commander": "^14.0.0",
     "express": "^5.1.0",
-    "raw-body": "^3.0.0"
+    "raw-body": "^3.0.0",
+    "openai": "^5.12.0"
   },
   "devDependencies": {
     "@opentiny/genui-sdk-chat-completions": "workspace:*",

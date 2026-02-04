@@ -6,7 +6,6 @@
 import { ref } from 'vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import UserProfile from './components/user-profile.vue';
-import logo from '../../src/public/logo.svg?url';
 
 const generating = ref(false);
 const content = ref({
@@ -16,8 +15,7 @@ const content = ref({
       componentName: 'UserProfile',
       props: {
         name: 'John Doe',
-        email: 'john@example.com',
-        avatar: logo,
+        email: 'john@example.com'
       },
     },
   ],
