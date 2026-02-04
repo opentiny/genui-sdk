@@ -12,7 +12,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { useProviderModelMapperSync } from './use-provider-mapper.js';
-import { openaiCompatibleTransfromChunk, type IOpenaiCompatibleChunk } from './openai-compatible-transform.js';
+import { openaiCompatibleTransformChunk, type IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
@@ -203,7 +203,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   } catch (error) {
     console.error('Failed to parse playground from metadata:', error);
   }
-  
+
 
   return {
     mcpServers: playgroundConfig.mcpServers || [],
@@ -320,7 +320,7 @@ export function createChatGenui() {
         if (abort.signal.aborted || hasError) {
           break;
         }
-        const newChunk = openaiCompatibleTransfromChunk(chunk, { model });
+        const newChunk = openaiCompatibleTransformChunk(chunk, { model });
         if (newChunk) {
           // 在第一次真正写入前再设置为 SSE，避免出错时无法返回普通 JSON
           if (!res.headersSent) {
