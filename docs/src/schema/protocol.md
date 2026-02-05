@@ -124,6 +124,7 @@ interface JSExpression {
   type: 'JSExpression';          // 固定为 'JSExpression'
   value: string;                 // 表达式字符串
   model?: boolean;               // 是否为双向绑定模型值
+  params?: string[];                // 作用域插槽传递的参数
 }
 ```
 
@@ -156,7 +157,6 @@ interface JSExpression {
 interface JSFunction {
   type: 'JSFunction';            // 固定为 'JSFunction'
   value: string;                 // 函数体字符串（可序列化）
-  params?: string[];             // 函数参数名列表
 }
 ```
 
@@ -165,8 +165,7 @@ interface JSFunction {
 {
   "onClick": {
     "type": "JSFunction",
-    "value": "function() { alert('按钮被点击'); }",
-    "params": []
+    "value": "function() { alert('按钮被点击'); }"
   }
 }
 ```
@@ -419,16 +418,16 @@ interface JSSlot {
 ```json
 {
   "componentName": "Page",
+  "state": {
+    "formData": {
+      "name": "",
+      "email": ""
+    }
+  },
   "methods": {
-    "handleClick": {
-      "type": "JSFunction",
-      "value": "function() { alert('按钮被点击'); }",
-      "params": []
-    },
     "handleSubmit": {
       "type": "JSFunction",
-      "value": "function(data) { console.log('提交数据:', data); }",
-      "params": ["data"]
+      "value": "function($event) { console.log('触发的事件对象', $event); console.log('提交数据:', this.state.formData); }"
     }
   }
 }
@@ -462,8 +461,7 @@ interface JSSlot {
     "text": "提交",
     "onClick": {
       "type": "JSFunction",
-      "value": "function() { console.log('提交按钮被点击'); }",
-      "params": []
+      "value": "function() { console.log('提交按钮被点击'); }"
     }
   }
 }
@@ -534,8 +532,7 @@ interface JSSlot {
   "methods": {
     "handleClick": {
       "type": "JSFunction",
-      "value": "function() { alert('按钮被点击了！'); }",
-      "params": []
+      "value": "function() { alert('按钮被点击了！'); }"
     }
   },
   "children": [
@@ -676,14 +673,14 @@ interface JSSlot {
 export type JSExpression = { 
   type: 'JSExpression'; 
   value: string; 
-  model?: boolean 
+  model?: boolean;
+  params?: string[];
 };
 
 // JS 函数
 export type JSFunction = { 
   type: 'JSFunction'; 
   value: string; 
-  params?: string[] 
 };
 
 // 插槽

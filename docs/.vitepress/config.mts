@@ -31,7 +31,7 @@ export default defineConfig({
       { text: '快速开始', link: '/guide/quick-start' },
       { text: '组件文档', link: '/components/renderer' },
       { text: '特性示例', link: '/examples/renderer/custom-actions' },
-      { text: 'Schema 协议', link: '/schema/protocol' },
+      { text: '协议规范', link: '/schema/protocol' },
     ],
     sidebar: {
       '/guide/': [
@@ -59,7 +59,7 @@ export default defineConfig({
           items: [{ text: 'GenuiRenderer(未开放)', link: '/components/angular-renderer' }],
         },
         {
-          text: 'Server 组件文档',
+          text: 'Server 库文档',
           items: [
             { text: 'API 参考', link: '/components/server/api' },
             { text: 'CLI', link: '/components/server/cli' }
