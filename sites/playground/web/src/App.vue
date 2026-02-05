@@ -81,6 +81,7 @@ const themeData = ref([
   { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
   { text: '清新', value: 'lite' },
+  { text: '自动', value: 'auto' },
 ]);
 
 const messages = ref([]);
