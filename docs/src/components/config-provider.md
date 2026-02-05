@@ -6,10 +6,14 @@
 
 ### theme
 
-- **类型**: `'dark' | 'lite' | 'light'`
+- **类型**: `'dark' | 'lite' | 'light' | 'auto'`
 - **必填**: 否
 - **默认值**: `'light'`
 - **说明**: 主题模式。
+  - `'dark'`：深色主题
+  - `'lite'`：清新主题
+  - `'light'`：浅色主题
+  - `'auto'`：自动跟随浏览器
 
 ```vue
 <template>
@@ -109,7 +113,7 @@ const customI18n: I18nMessages = {
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
-const theme = ref<'dark' | 'lite' | 'light'>('dark');
+const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
 
 function toggleTheme() {
   theme.value = theme.value === 'dark' ? 'lite' : 'dark';
@@ -130,7 +134,7 @@ function toggleTheme() {
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
-const theme = ref<'dark' | 'lite' | 'light'>('dark');
+const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
 const content = ref({});
 const generating = ref(false);
 </script>

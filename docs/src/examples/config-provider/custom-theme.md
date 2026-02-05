@@ -9,7 +9,7 @@
 ```vue {22-43}
 <template>
   <div class="app">
-    <GenuiConfigProvider theme="default" id="my-custom-theme">
+    <GenuiConfigProvider theme="light" id="my-custom-theme">
       <div class="my-custom-theme">
         <GenuiChat :url="url" model="deepseek-v3.2" :messages="messages" />
       </div>
