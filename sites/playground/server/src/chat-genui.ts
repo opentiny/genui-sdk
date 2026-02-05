@@ -204,7 +204,6 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     console.error('Failed to parse playground from metadata:', error);
   }
 
-
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
