@@ -4,3 +4,4 @@
 
 // export * from './renderer';
 export * from './renderer-main';
+export * from './parser/material-getter';

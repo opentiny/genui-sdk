@@ -10,10 +10,10 @@
   display: none;
 }
 
-:deep(.loading-warp.loading-warp) {
+:host ::ng-deep .loading-warp.loading-warp {
   display: none;
 }
 
-:deep(.loading-warp .loading) {
+:host ::ng-deep .loading-warp .loading {
   display: none;
 }
