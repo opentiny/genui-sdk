@@ -115,7 +115,7 @@ export class DeltaPatcher {
             } else {
               delete target[selfKey];
             }
-          } 
+          }
         } else {
           delete target[selfKey];
         }
@@ -155,11 +155,27 @@ export class DeltaPatcher {
     return { actualKey: result.join('.'), index };
   }
 
+  protected isAddKey(key: string | null, delta: Delta) {
+    if (!key) {
+      return false;
+    }
+    const target = get(delta, key);
+    return Array.isArray(target) && target.length === 1;
+  }
+
   protected getPatchDelta(schema: ISchema, delta: Delta) {
+
     const flattenKeys = Object.keys(this.filterDiffFlatten(delta));
     const lastKey = flattenKeys[flattenKeys.length - 1];
 
-    if (!this.isNeedCompleteKeys(schema, this.getActualKey(lastKey, delta))) {
+    const actualKey = this.getActualKey(lastKey, delta);
+
+    // 如果最后一个key是删除或者修改的内容，说明不在流式返回中。
+    if (!this.isAddKey(actualKey, delta)) {
+      return delta;
+    }
+
+    if (!this.isNeedCompleteKeys(schema, actualKey)) {
       return delta;
     }
 
