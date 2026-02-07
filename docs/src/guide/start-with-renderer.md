@@ -138,7 +138,7 @@ export async function fetchSchemaStream(
       <input v-model="inputText" placeholder="请输入问题..." @keyup.enter="handleSend" />
       <button @click="handleSend">发送</button>
     </div>
-    <GenuiRenderer :content="schema" :key="rendererKey" />
+    <GenuiRenderer :content="schema" />
   </div>
 </template>
 
@@ -149,7 +149,6 @@ import { fetchSchemaStream } from './fetch-schema-stream';
 
 const inputText = ref('');
 const schema = ref<any>({ componentName: 'Page', children: [] });
-const rendererKey = ref(0);
 const generating = ref(false);
 
 const handleSend = async () => {
@@ -157,7 +156,6 @@ const handleSend = async () => {
 
   generating.value = true;
   schema.value = '';
-  rendererKey.value++;
   const userInput = inputText.value;
   inputText.value = '';
 
