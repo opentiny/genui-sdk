@@ -10,6 +10,7 @@
   "scripts": {
     "build": "vite build",
     "build:no-obfuscator": "pnpm build --mode no-obfuscator",
+    "build:web-component": "vite build --config vite.config.web-component.ts",
     "postbuild": "tsx scripts/postbuild.ts",
     "test": "vitest"
   },
