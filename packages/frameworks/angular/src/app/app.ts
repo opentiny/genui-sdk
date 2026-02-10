@@ -1,4 +1,4 @@
-import { Component, NgZone, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { fetchSchemaStream } from '../fetch-schema-stream';
 import { FormsModule } from '@angular/forms';
 import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
@@ -14,7 +14,6 @@ export class App {
   schema = '';
   rendererKey = '';
   generating = false;
-  constructor(private ngZone: NgZone) {}
   async handleSend() {
     if (!this.inputText.trim() || this.generating) return;
 
@@ -26,9 +25,7 @@ export class App {
   
     try {
       await fetchSchemaStream('http://localhost:3100/chat/completions', userInput, (schemaChunk: string) => {
-        this.ngZone.run(() => {
-          this.schema += schemaChunk;
-        });
+        this.schema += schemaChunk;
       });
     } catch (error) {
       console.error('请求失败:', error);

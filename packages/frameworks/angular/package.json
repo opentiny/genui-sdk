@@ -10,7 +10,7 @@
   "scripts": {
     "ng": "ng",
     "start:server": "pnpm -F @opentiny/genui-sdk-server dev",
-    "start": "concurrently \"pnpm start:server\" \"ng serve\"",
+    "start": "concurrently \"pnpm start:server\" \"ng serve renderer-use\"",
     "prebuild": "ng build --project genui-renderer",
     "build": "ng build",
     "prebuild:lib": "pnpm -F @opentiny/tiny-schema-renderer-ng build:lib",

@@ -5,7 +5,6 @@ import { parsePartialJson } from 'ai';
 import { RendererMain as Renderer, Mapper, directiveMap, ModuleRef } from '@opentiny/tiny-schema-renderer-ng';
 import { requiredCompleteFieldSelectors } from './config';
 
-
 export const CARD_ID = Symbol('schema-card-id');
 export interface ICustomAction {
   execute: (params: any, context: Record<string, any>) => void;
@@ -58,7 +57,6 @@ export class GenuiRenderer implements OnInit {
     return this.schema;
   }
 
-  constructor() { }
   callAction(actionName: string, params: any) {
     if (!this.customActions?.[actionName]) {
       console.warn(`Action ${actionName} not found`);
@@ -105,14 +103,18 @@ export class GenuiRenderer implements OnInit {
   protected async processNewContent(newVal: string | object) {
     let json: any = newVal;
     let isCompleted = true
-    if (typeof newVal === 'string' && newVal) {
-      const { value, state } = await parsePartialJson(newVal);
-      if (!value) {
-        this.isError = true;
-        return;
+    if (typeof newVal === 'string') {
+      if (newVal.trim()) {
+        const { value, state } = await parsePartialJson(newVal);
+        if (!value) {
+          this.isError = true;
+          return;
+        }
+        json = value;
+        isCompleted = state === 'successful-parse';
+      } else {
+        json = {};
       }
-      json = value;
-      isCompleted = state === 'successful-parse'
     }
     if (this.deltaPatcher) {
       this.deltaPatcher.patchWithDelta(this.schema, json, isCompleted);
