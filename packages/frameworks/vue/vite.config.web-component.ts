@@ -1,11 +1,13 @@
 import path from 'path';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
-import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+import { visualizer } from 'rollup-plugin-visualizer';
+// import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
   root: path.resolve(__dirname, './'),
   plugins: [
+    visualizer({ open: true }),
     vue({
       template: {
         compilerOptions: {
@@ -13,13 +15,13 @@ export default defineConfig({
         },
       },
     }),
-    cssInjectedByJsPlugin(),
+    // cssInjectedByJsPlugin(),
   ],
   build: {
     lib: {
       entry: path.resolve(__dirname, './src/web-component/index.ts'),
       formats: ['es'],
-      fileName: 'web-component',
+      fileName: 'genui-renderer',
     },
     outDir: path.resolve(__dirname, './output/web-component'),
     sourcemap: false,
