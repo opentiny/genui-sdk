@@ -621,6 +621,9 @@ importers:
       '@openrouter/ai-sdk-provider':
         specifier: ^1.1.2
         version: 1.5.4(ai@5.0.10(zod@3.25.76))(zod@3.25.76)
+      '@opentiny/genui-sdk-chat-completions':
+        specifier: workspace:*
+        version: link:../../../packages/chat-completions
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../../packages/core
