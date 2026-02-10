@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitepress';
 import { vitepressDemoPlugin } from 'vitepress-demo-plugin';
-import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs'
+import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs';
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
@@ -38,6 +38,7 @@ export default defineConfig({
       { text: '快速开始', link: '/guide/quick-start' },
       { text: '组件文档', link: '/components/renderer' },
       { text: '特性示例', link: '/examples/renderer/custom-actions' },
+      { text: '协议规范', link: '/schema/protocol' },
     ],
     sidebar: {
       '/guide/': [
@@ -65,7 +66,7 @@ export default defineConfig({
       ],
       '/components/': [
         {
-          text: 'Vue组件文档',
+          text: 'Vue 组件文档',
           items: [
             { text: 'GenuiRenderer', link: '/components/renderer' },
             { text: 'GenuiChat', link: '/components/chat' },
@@ -73,11 +74,18 @@ export default defineConfig({
           ],
         },
         {
-          text: 'Angular组件文档',
+          text: 'Angular 组件文档',
           items: [
             { text: 'GenuiRenderer', link: '/components/angular/renderer' }
           ],
-        }
+        },
+        {
+          text: 'Server 库文档',
+          items: [
+            { text: 'API 参考', link: '/components/server/api' },
+            { text: 'CLI', link: '/components/server/cli' }
+          ],
+        },
       ],
       '/examples/': [
         {
