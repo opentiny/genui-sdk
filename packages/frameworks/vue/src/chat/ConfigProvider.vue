@@ -8,8 +8,9 @@ import { GENUI_I18N, GENUI_CONFIG } from './injection-tokens';
 
 export interface ConfigProviderProps {
   theme: string;
-  id?: string;
+  framework: string;
   locale?: string;
+  id?: string;
   i18n?: I18nMessages;
 }
 

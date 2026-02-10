@@ -9,6 +9,7 @@ export interface IRendererProps {
   requiredCompleteFieldSelectors?: string[];
   id?: string;
   state?: Record<string, any>;
+  framework?: string;
 }
 
 export interface IRendererSlotsProps {

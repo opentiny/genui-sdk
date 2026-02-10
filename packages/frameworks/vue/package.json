@@ -31,7 +31,8 @@
     "@opentiny/vue-chart-ring": "3.14.0",
     "@opentiny/vue-select": "^3.28.0",
     "@opentiny/vue-tabs": "^3.28.0",
-    "@opentiny/tiny-engine-builtin-component": "^2.6.0"
+    "@opentiny/tiny-engine-builtin-component": "^2.6.0",
+    "schema-renderer-ng-adpater": "workspace:*"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

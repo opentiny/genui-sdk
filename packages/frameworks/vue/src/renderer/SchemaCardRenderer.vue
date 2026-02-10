@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { parsePartialJson } from 'ai';
-import { ref, watch, computed, inject, nextTick } from 'vue';
+import { ref, watch, computed, inject, nextTick, defineAsyncComponent } from 'vue';
 // @ts-ignore
 import defaultSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '@opentiny/genui-sdk-core';
@@ -25,7 +25,17 @@ const callAction = (actionName: string, params: any) => {
   props.customActions[actionName]?.execute(params, rendererInstance.value.getContext());
 };
 
-const SchemaRenderer = inject(GENUI_RENDERER, defaultSchemaRenderer);
+// const SchemaRenderer = inject(GENUI_RENDERER, defaultSchemaRenderer);
+
+const SchemaRendererNgAdapter = defineAsyncComponent(() =>
+  import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
+);
+const rendererMap = {
+  'Vue': defaultSchemaRenderer,
+  'Angular': SchemaRendererNgAdapter,
+}
+
+const SchemaRenderer = computed(() => rendererMap[props.framework || 'Vue']);
 
 const deltaPatcher = new DeltaPatcher({
   requiredCompleteFieldSelectors: [
@@ -113,7 +123,8 @@ watch(() => rendererInstance.value, (newVal) => {
 <template>
   <div class="schema-render-container">
     <slot name="header" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
-    <SchemaRenderer :schema="displaySchema" ref="rendererInstance" />
+    <!-- <SchemaRenderer :schema="displaySchema" ref="rendererInstance" /> -->
+    <component :is="SchemaRenderer" :schema="displaySchema" ref="rendererInstance" />
     <slot name="footer" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
   </div>
 </template>

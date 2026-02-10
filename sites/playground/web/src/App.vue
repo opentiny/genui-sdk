@@ -16,19 +16,26 @@ import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
 import { useInputMessage } from './use-input-message';
 
-let framework = 'Vue'; // Angular
+// let framework = 'Vue'; // Angular
+// /**
+//  * tiny-schema-renderer-ng
+//  */
 
-/**
- * tiny-schema-renderer-ng
- */
+// if (location.search.includes('framework=angular')) {
+//   const SchemaRendererNgAdapter = defineAsyncComponent(() =>
+//     import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
+//   );
+//   provide(GENUI_RENDERER, SchemaRendererNgAdapter);
+//   framework = 'Angular';
+// }
+const framework = ref('Vue');
 
-if (location.search.includes('framework=angular')) {
-  const SchemaRendererNgAdapter = defineAsyncComponent(() =>
-    import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
-  );
-  provide(GENUI_RENDERER, SchemaRendererNgAdapter);
-  framework = 'Angular';
-}
+const frameworkData = ref([
+  { text: 'Vue', value: 'Vue' },
+  { text: 'Angular', value: 'Angular' },
+]);
+
+
 
 const activeName = ref('model');
 const TinyIconPlus = iconPlus();
@@ -135,7 +142,7 @@ const roles = {
 
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
-  framework,
+  framework: framework.value,
 }));
 </script>
 
@@ -154,13 +161,8 @@ const customFetch = createCustomFetch(() => ({
             <span v-if="isOpen" class="svg-icon" :innerHTML="CloseSvg" title="收起" @click="isOpen = false"></span>
             <span v-else class="svg-icon" :innerHTML="OpenSvg" title="展开" @click="isOpen = true"></span>
           </div>
-          <span
-            v-if="!isOpen"
-            class="svg-icon"
-            :innerHTML="NewSvg"
-            title="新建会话"
-            @click="chat.handleNewConversation()"
-          ></span>
+          <span v-if="!isOpen" class="svg-icon" :innerHTML="NewSvg" title="新建会话"
+            @click="chat.handleNewConversation()"></span>
         </div>
       </header>
       <!-- 新建会话按钮 -->
@@ -176,23 +178,19 @@ const customFetch = createCustomFetch(() => ({
       </div>
       <tiny-tabs class="sidebar-tabs" v-model="activeName" v-show="isOpen">
         <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig
-            :llm-config="llmConfig"
-            :model-data="modelData"
-            @update:llm-config="Object.assign(llmConfig, $event)"
-          />
+          <ModelConfig :llm-config="llmConfig" :model-data="modelData"
+            @update:llm-config="Object.assign(llmConfig, $event)" />
         </tiny-tab-item>
         <tiny-tab-item title="工具" name="tools">
-          <McpTools
-            :llm-config="llmConfig"
-            :chat-config="chatConfig"
+          <McpTools :llm-config="llmConfig" :chat-config="chatConfig"
             @update:llm-config="Object.assign(llmConfig, $event)"
-            @update:chat-config="Object.assign(chatConfig, $event)"
-          />
+            @update:chat-config="Object.assign(chatConfig, $event)" />
         </tiny-tab-item>
         <tiny-tab-item title="主题" name="theme">
           <div class="config-title">切换主题</div>
           <tiny-button-group size="small" :data="themeData" v-model="theme"></tiny-button-group>
+          <div class="config-title">切换技术栈</div>
+          <tiny-button-group size="small" :data="frameworkData" v-model="framework"></tiny-button-group>
         </tiny-tab-item>
         <tiny-tab-item title="历史会话" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
@@ -200,16 +198,9 @@ const customFetch = createCustomFetch(() => ({
       </tiny-tabs>
     </div>
     <div class="chat-container">
-      <GenuiConfigProvider :theme="theme" style="height: 100%">
-        <GenuiChat
-          :url="url"
-          ref="chat"
-          :messages="messages"
-          :chat-config="chatConfig"
-          :roles="roles"
-          :features="modelFeatures"
-          :custom-fetch="customFetch"
-        >
+      <GenuiConfigProvider :theme="theme" :framework="framework" style="height: 100%">
+        <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
+          :features="modelFeatures" :custom-fetch="customFetch">
           <template #empty>
             <div class="empty">
               <IconAi />
@@ -227,12 +218,14 @@ const customFetch = createCustomFetch(() => ({
   --ti-common-scrollbar-height: 8px;
   display: flex;
   height: 100%;
+
   :deep(.tiny-tabs__content) {
     height: 100%;
     overflow: auto;
     padding: 0 24px 90px;
   }
 }
+
 .config-tabs {
   --config-tas-width: 370px;
   --config-tas-width-collapsed: 48px;
@@ -242,29 +235,36 @@ const customFetch = createCustomFetch(() => ({
   height: 100%;
   box-sizing: border-box;
   transition: all 0.3s ease;
-  display: flex; /* 新增：纵向布局 */
-  flex-direction: column; /* 新增 */
+  display: flex;
+  /* 新增：纵向布局 */
+  flex-direction: column;
+
+  /* 新增 */
   .sidebar_header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 24px 24px 0;
+
     &.sidebar_header--collapsed {
       flex-direction: column;
       gap: 20px;
     }
+
     .sidebar_brand {
       display: flex;
       align-items: center;
       gap: 8px;
       font-weight: 600;
     }
+
     .sidebar_actions {
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
   }
+
   .sidebar_new_task {
     padding: 20px 24px 10px;
 
@@ -315,6 +315,7 @@ const customFetch = createCustomFetch(() => ({
       }
     }
   }
+
   .sidebar-tabs {
     .config-title {
       font-size: 14px;
@@ -322,25 +323,31 @@ const customFetch = createCustomFetch(() => ({
       margin-bottom: 12px;
       line-height: 32px;
     }
+
     flex: 1;
     min-height: 0;
     overflow: hidden;
+
     :deep(.tiny-tabs__header.is-top) {
       padding: 0 24px;
     }
   }
+
   &.config-tabs--collapsed {
     width: var(--config-tas-width-collapsed);
   }
+
   .svg-icon {
     cursor: pointer;
   }
 }
+
 .chat-container {
   flex: 1;
   height: 100%;
   min-width: 0;
 }
+
 .empty {
   display: flex;
   align-items: center;
@@ -349,7 +356,8 @@ const customFetch = createCustomFetch(() => ({
   height: 80%;
   font-size: 32px;
   font-weight: 600;
-  & > svg {
+
+  &>svg {
     width: 56px;
     height: 56px;
   }

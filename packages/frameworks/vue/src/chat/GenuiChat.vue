@@ -201,6 +201,7 @@ const messageRenderers = {
   'custom-text': (props: BubbleCommonProps & { content: string }) =>
     h('span', { class: 'tr-bubble__body-text' }, props.content),
   'schema-card': (schemaCardProps: IRendererProps) => {
+    console.log('schemaCardProps', schemaCardProps);
     const customComponentsMap: Record<string, Component> = {};
     if (props.customComponents) {
       props.customComponents.forEach((item) => {
@@ -236,6 +237,7 @@ const messageRenderers = {
             saveState: saveStateAction,
           },
           key: schemaCardProps.id,
+          framework: genuiConfig?.value?.framework,
         },
         {
           header: toSlotFunction(props.rendererSlots?.header),

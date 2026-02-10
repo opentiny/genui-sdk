@@ -320,7 +320,7 @@ export function createChatGenui() {
         if (abort.signal.aborted || hasError) {
           break;
         }
-        const newChunk = openaiCompatibleTransfromChunk(chunk, { model });
+        const newChunk = openaiCompatibleTransfromChunk(chunk, { model, framework });
         if (newChunk) {
           // 在第一次真正写入前再设置为 SSE，避免出错时无法返回普通 JSON
           if (!res.headersSent) {

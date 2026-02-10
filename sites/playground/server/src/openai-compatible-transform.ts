@@ -2,6 +2,7 @@ import type { ToolSet, LanguageModel, ToolCallPart, ToolResultPart } from 'ai';
 
 export interface ITransformOptions {
   model?: LanguageModel;
+  framework?: string;
 }
 
 export interface IOpenaiCompatibleDelta {
@@ -38,6 +39,7 @@ export const transformMap = {
       id: chunk.id,
       object: ChunkObject.CHAT_COMPLETION_CHUNK,
       model: getModelName(transformOptions?.model),
+      framework: transformOptions?.framework,
       created: Date.now(),
       choices: [
         {
@@ -54,6 +56,7 @@ export const transformMap = {
       id: chunk.toolCallId,
       object: ChunkObject.CHAT_COMPLETION_CHUNK,
       model: getModelName(transformOptions?.model),
+      framework: transformOptions?.framework,
       created: Date.now(),
       choices: [
         {
@@ -79,6 +82,7 @@ export const transformMap = {
       id: chunk.toolCallId,
       object: ChunkObject.CHAT_COMPLETION_CHUNK,
       model: getModelName(transformOptions?.model),
+      framework: transformOptions?.framework,
       created: Date.now(),
       choices: [
         {
@@ -108,6 +112,7 @@ export const transformMap = {
       id: chunk.id,
       object: ChunkObject.CHAT_COMPLETION_CHUNK,
       model: getModelName(transformOptions?.model),
+      framework: transformOptions?.framework,
       created: Date.now(),
       choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
       usage: {
@@ -139,6 +144,7 @@ export const openaiCompatibleTransfrom =
             id: chunk.id,
             object: ChunkObject.CHAT_COMPLETION_CHUNK,
             model: getModelName(transformOptions?.model),
+            framework: transformOptions?.framework,
             created: Date.now(),
             choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
           });
