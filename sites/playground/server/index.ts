@@ -4,7 +4,8 @@ import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import minimist from 'minimist';
-import { useProviderModelMapper, useProviderModelMapperSync } from './src/use-provider-mapper.js';
+import { useProviderModelMapper, useProviderModelMapperSync, initProviderModelMapperFromData } from './src/use-provider-mapper.js';
+import { fetchOpenTinyProviderModelsData } from './src/opentiny-models.js';
 import { createChatGenui, checkMcpHandler } from './src/chat-genui.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,21 +19,45 @@ dotenv.config({ path: envPath });
 dotenv.config();
 const { chatGenuiHandler } = createChatGenui();
 
-useProviderModelMapper(path.resolve(__dirname, process.env.providerModelsPath || ''));
-const getModelsHandler = async (req: Request, res: Response) => {
-  const providerModelMapper = useProviderModelMapperSync();
-  const models = providerModelMapper.getAllModelInfos();
-
-  res.send(models);
-};
 const app = express();
 
 app.use(cors());
+
+// 统一从 ProviderModelMapper 读取模型列表
+const getModelsHandler = (req: Request, res: Response) => {
+  try {
+    const providerModelMapper = useProviderModelMapperSync();
+    const models = providerModelMapper.getAllModelInfos();
+    res.send(models);
+  } catch (error) {
+    console.error('Failed to get models:', error);
+    res.status(500).send({ error: 'Failed to get models' });
+  }
+};
 
 app.get('/get-models', getModelsHandler);
 app.post('/chat-genui', chatGenuiHandler);
 app.post('/check-mcp', checkMcpHandler);
 
 const port = process.env.PORT || 3008;
-app.listen(port);
-console.info(`ai-console-server is running on http://localhost:${port}`);
+
+async function start() {
+  try {
+    if (mode === 'alpha') {
+      // alpha：仍然按原来逻辑，从本地 JSON 初始化 mapper
+      await useProviderModelMapper(path.resolve(__dirname, process.env.providerModelsPath || ''));
+    } else {
+      // 非 alpha：从 OpenTiny 接口拉取模型，转为 provider-models 结构并初始化 mapper
+      const providerModelsData = await fetchOpenTinyProviderModelsData();
+      await initProviderModelMapperFromData(providerModelsData);
+    }
+
+    app.listen(port);
+    console.info(`ai-console-server is running on http://localhost:${port}`);
+  } catch (error) {
+    console.error('Failed to initialize provider model mapper:', error);
+    process.exit(1);
+  }
+}
+
+void start();

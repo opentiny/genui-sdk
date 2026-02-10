@@ -108,7 +108,7 @@ export class ProviderModelMapper {
   private buildMap(): Map<string, ModelInfo> {
     const result = new Map<string, ModelInfo>();
 
-    for (const [providerKey, providerData] of Object.entries(this.providerModelsData)) {
+    for (const [, providerData] of Object.entries(this.providerModelsData)) {
       if (providerData && typeof providerData === 'object' && providerData.name) {
         // 构建提供商信息（排除models字段）
         const providerInfo = { ...providerData };
@@ -149,6 +149,16 @@ export class ProviderModelMapper {
 
     return providerInstance(modelId);
   }
+}
+
+/**
+ * 直接从内存中的提供商模型数据创建映射器实例
+ * @param providerModelsData 提供商模型数据对象（结构同 provider-models.json）
+ */
+export function createProviderModelMapperFromData(
+  providerModelsData: Record<string, any>,
+): ProviderModelMapper {
+  return new ProviderModelMapper(providerModelsData);
 }
 
 /**
