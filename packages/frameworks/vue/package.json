@@ -45,6 +45,7 @@
     "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",
+    "tsx": "^4.8.1",
     "escape-string-regexp": "^1.0.5",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"

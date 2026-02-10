@@ -183,6 +183,9 @@ importers:
       rollup-plugin-visualizer:
         specifier: ^6.0.5
         version: 6.0.5(rollup@4.54.0)
+      tsx:
+        specifier: ^4.8.1
+        version: 4.21.0
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -621,6 +624,9 @@ importers:
       '@openrouter/ai-sdk-provider':
         specifier: ^1.1.2
         version: 1.5.4(ai@5.0.10(zod@3.25.76))(zod@3.25.76)
+      '@opentiny/genui-sdk-chat-completions':
+        specifier: workspace:*
+        version: link:../../../packages/chat-completions
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../../packages/core
