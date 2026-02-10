@@ -1,10 +1,11 @@
 <template>
   <Transition name="slide-in-right" appear>
     <div class="edit-input-container">
+      <!-- minRows设置为3暂时规避resizeTextarea延迟执行的bug -->
       <tiny-input
         v-model="localContent"
         type="textarea"
-        :autosize="{ minRows: 1, maxRows: 10 }"
+        :autosize="{ minRows: 3, maxRows: 10 }" 
         placeholder="编辑消息内容..."
         @keydown="handleKeydown"
         autofocus
@@ -72,8 +73,8 @@ const handleKeydown = (event: KeyboardEvent) => {
 <style scoped lang="less">
 .edit-input-container {
   position: relative;
-  background: #ffffff;
-  border: 1px solid #1890ff;
+  background: var(--tr-container-bg-default);
+  border: 1px solid var(--tr-color-primary);
   border-radius: 8px;
   padding: 14px 24px;
   margin-bottom: 8px;
