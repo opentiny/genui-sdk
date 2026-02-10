@@ -69,3 +69,9 @@ const isGenerating = computed(() => {
     :state="parsedState"
   />
 </template>
+<style>
+@import url('@opentiny/vue-theme/index.css');
+</style>
+<style scoped>
+@import url('./custom.css');
+</style>
