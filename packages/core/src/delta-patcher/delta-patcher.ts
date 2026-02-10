@@ -155,11 +155,27 @@ export class DeltaPatcher {
     return { actualKey: result.join('.'), index };
   }
 
+  
+  protected isDeleteKey(key: string | null, delta: Delta) {
+    if (!key) {
+      return false;
+    }
+    const target = get(delta, key);
+    return Array.isArray(target) && target.length === 3;
+  }
+
   protected getPatchDelta(schema: ISchema, delta: Delta) {
+
     const flattenKeys = Object.keys(this.filterDiffFlatten(delta));
     const lastKey = flattenKeys[flattenKeys.length - 1];
 
-    if (!this.isNeedCompleteKeys(schema, this.getActualKey(lastKey, delta))) {
+    const actualKey = this.getActualKey(lastKey, delta);
+
+    if (this.isDeleteKey(actualKey, delta)) {
+      return delta;
+    }
+
+    if (!this.isNeedCompleteKeys(schema, actualKey)) {
       return delta;
     }
 
