@@ -15,9 +15,9 @@ const VENDOR_CHUNKS = new Set([
 ]);
 
 function createManualChunks() {
-  const s = '[\\/]';
-  const pkg = `(@[^\\/]+${s}[^\\/]+|[^\\/]+)`;
-  const pnpmRegex = new RegExp(`.*node_modules${s}${pkg}`);
+  const separator = '[\\/]';
+  const pkg = `(@[^\\/]+${separator}[^\\/]+|[^\\/]+)`;
+  const pnpmRegex = new RegExp(`.*node_modules${separator}${pkg}`);
 
   return (id: string): string | undefined => {
     if (!id.includes('node_modules')) return undefined;
