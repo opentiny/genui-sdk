@@ -6,26 +6,27 @@ import { viteGitCommitHashPlugin } from 'vite-commit-hash-plugin';
 
 /** 单独拆包的依赖（chunk 名），其余 node_modules 进 vendor；@opentiny/vue* 统一为 opentiny-vue */
 const VENDOR_CHUNKS = new Set([
-  'vue',
   'opentiny-vue',
   'opentiny-genui-sdk-core',
   'opentiny-genui-sdk-vue',
   'opentiny-tiny-robot',
   'opentiny-tiny-robot-kit',
-  'opentiny-tiny-robot-svgs',
-  'gridstack',
+  'opentiny-tiny-robot-svgs'
 ]);
 
 function createManualChunks() {
-  const pnpmRe = /[\\/]node_modules[\\/]\.pnpm[\\/][^\\/]+[\\/]node_modules[\\/](@[^\\/]+[\\/][^\\/]+|[^\\/]+)/;
-  const nmRe = /[\\/]node_modules[\\/](@[^\\/]+[\\/][^\\/]+|[^\\/]+)/;
+  const s = '[\\/]';
+  const pkg = `(@[^\\/]+${s}[^\\/]+|[^\\/]+)`;
+  const pnpmRegex = new RegExp(`.*node_modules${s}${pkg}`);
 
   return (id: string): string | undefined => {
     if (!id.includes('node_modules')) return undefined;
-    const pkg = id.match(pnpmRe)?.[1] ?? id.match(nmRe)?.[1];
-    if (!pkg || pkg === '.pnpm') return 'vendor';
-    const name = pkg.startsWith('@') ? pkg.slice(1).replace('/', '-') : pkg;
-    if (name === 'opentiny-vue' || name.startsWith('opentiny-vue-')) return 'opentiny-vue';
+
+    const pkgName = id.match(pnpmRegex)?.[1];
+    if (!pkgName) return 'vendor';
+
+    const name = pkgName.startsWith('@') ? pkgName.slice(1).replace('/', '-') : pkgName;
+    if (/^opentiny-vue(-|$)/.test(name)) return 'opentiny-vue';
     return VENDOR_CHUNKS.has(name) ? name : 'vendor';
   };
 }
