@@ -84,16 +84,16 @@ export const genRulesPrompt = (additionRules: string[], tgCustomConfig?: IGenPro
 Schema生成有以下几点需要**特别注意**：
  - Schema必须是一个根节点componentName为Page的json
 ${//TODO: 耦合action名称
-  tgCustomConfig?.customActions?.find((action) => action.name === 'continueChat') ? `
+  tgCustomConfig?.customActions?.some((action) => action.name === 'continueChat') ? `
  - 如需要确认信息或者涉及继续操作，请使用this.callAction去调用continueChat。
 ` : ''}
-${tgCustomConfig?.customActions?.find((action) => action.name === 'saveState') ? `
+${tgCustomConfig?.customActions?.some((action) => action.name === 'saveState') ? `
  - 如果当前操作列数据（增删查该等），清调用this.callAction去调用saveState，去保存当前状态，方便持久化存储。
 ` : ''}
  - type是JSFunction的value必须是完整的函数
  - 表单必须要有model属性，表单输入项(input/select/radio等)必须设置modelValue的type为JSExpression且model为true, 且必须具有全局state状态，否则将不能交互
  - 如有state字段或者methods字段，请放在children之前，否则会报错，其他的字段顺序也请参考示例或snippets片段，这有助于提升渲染效果。
- - children不能放到props里， children必须是数组或者字符串，children明确不支持JSExpression表达式，使用NodeSchema数组使用Text组件包裹或者使用loop来实现。
+ - children不能放到props里， children必须是数组或者字符串，children明确不支持JSExpression表达式，不能通过表达式计算出children数组，，请使用Text组件包裹或者使用loop来实现，使用condition来控制显示。
  - 请注意对话的连续性，不要重复渲染多余内容
  - 图片和连接地址不可杜撰
  - 根节点请尽可能使用TinyCard组件包裹一下，这样会更美观, 但禁止设置颜色样式

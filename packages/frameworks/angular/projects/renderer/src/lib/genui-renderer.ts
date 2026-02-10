@@ -39,7 +39,7 @@ export class GenuiRenderer implements OnInit {
   @Input() id?: string;
   @Input() state?: Record<string, any>;
   @Input() generating = false;
-  @Input() content: string | object = '{} ';
+  @Input() content: string | object = '{}';
   @Input() customDirectives?: Record<string, Type<any>> = {};
   @Input() customComponents?: Record<string, Type<any>> = {};
   @Input() customComponentsModule?: Record<string, Type<any>> = {};
