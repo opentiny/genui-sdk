@@ -134,7 +134,7 @@ export default defineConfig({
               text: 'Renderer 组件',
               items: [
                 { text: '自定义 Actions', link: '/examples/angular/renderer/custom-actions' },
-                { text: '自定义 Components/Directives', link: '/examples/angular/renderer/custom-components-directives' },
+                // { text: '自定义 Components/Directives', link: '/examples/angular/renderer/custom-components-directives' },
                 {
                   text: '配置缓冲字段',
                   link: '/examples/angular/renderer/required-complete-field-selectors',

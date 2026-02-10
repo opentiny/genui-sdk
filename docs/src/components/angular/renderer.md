@@ -111,8 +111,6 @@ export class GenuiExample {
 - ⚠️ 限制：动态渲染技术目前不支持使用`@ContentChild`、`@ContentChildren`查询的组件
 
 
-查看 [Renderer 自定义 Components](../examples/angular/renderer/custom-components) 了解详细用法
-
 ### customComponentsModule
 
 - **类型**: `Record<string, Type<any>>`
@@ -242,7 +240,7 @@ export class GenuiExample {
 ```
 
 
-查看 [Renderer 自定义 Actions](../examples/angular/renderer/custom-actions) 了解详细用法
+查看 [Renderer 自定义 Actions](../../examples/angular/renderer/custom-actions) 了解详细用法
 
 ### requiredCompleteFieldSelectors
 
@@ -283,7 +281,7 @@ export class GenuiExample {
 }
 ```
 
-查看 [Renderer 配置缓冲字段](../examples/angular/renderer/required-complete-field-selectors) 了解详细用法
+查看 [Renderer 配置缓冲字段](../../examples/angular/renderer/required-complete-field-selectors) 了解详细用法
 
 ### state
 
@@ -333,7 +331,7 @@ export class GenuiExample {
 
 ```
 
-查看 [Renderer 传递合并 State](../examples/angular/renderer/state) 了解详细用法
+查看 [Renderer 传递合并 State](../../examples/angular/renderer/state) 了解详细用法
 
 ## Template
 
@@ -418,6 +416,6 @@ export class GenuiExample {
 }
 ```
 
-查看 [Renderer 插槽](../examples/angular/renderer/template) 了解详细用法
+查看 [Renderer 插槽](../../examples/angular/renderer/template) 了解详细用法
 
 
