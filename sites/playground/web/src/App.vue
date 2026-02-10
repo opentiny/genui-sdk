@@ -253,6 +253,7 @@ const customFetch = createCustomFetch(() => ({
     &.sidebar_header--collapsed {
       flex-direction: column;
       gap: 20px;
+      padding: 12px 8px 0;
     }
     .sidebar_brand {
       display: flex;
