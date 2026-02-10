@@ -1,6 +1,8 @@
 import type { ToolSet, LanguageModel, ToolCallPart, ToolResultPart, TextStreamPart } from 'ai';
 import type { ChatCompletionChunk } from 'openai/resources';
 
+export type IOpenaiCompatibleChunk = ChatCompletionChunk;
+
 export interface ITransformOptions {
   model?: LanguageModel;
 }
@@ -24,13 +26,32 @@ const getModelName = (model?: LanguageModel) => {
   return model.modelId;
 };
 
+const getBaseInfo = (chunk: any, transformOptions: ITransformOptions) => {
+  return {
+    id: chunk.id,
+    object: ChunkObject.CHAT_COMPLETION_CHUNK,
+    model: getModelName(transformOptions?.model),
+    created: Date.now(),
+  };
+};
+
 export const transformMap: Record<string, (chunk: any, transformOptions: ITransformOptions) => any> = {
+  'reasoning-delta': (chunk: any, transformOptions: ITransformOptions) => {
+    const newChunk = {
+      ...getBaseInfo(chunk, transformOptions),
+      choices: [
+        {
+          index: 0,
+          delta: { reasoning_content: chunk.text },
+          finish_reason: null,
+        },
+      ],
+    };
+    return newChunk;
+  },
   'text-delta': (chunk: any, transformOptions: ITransformOptions) => {
     const newChunk = {
-      id: chunk.id,
-      object: ChunkObject.CHAT_COMPLETION_CHUNK,
-      model: getModelName(transformOptions?.model),
-      created: Date.now(),
+      ...getBaseInfo(chunk, transformOptions),
       choices: [
         {
           index: 0,
@@ -43,10 +64,8 @@ export const transformMap: Record<string, (chunk: any, transformOptions: ITransf
   },
   'tool-call': (chunk: ToolCallPart, transformOptions: ITransformOptions) => {
     const newChunk = {
+      ...getBaseInfo(chunk, transformOptions),
       id: chunk.toolCallId,
-      object: ChunkObject.CHAT_COMPLETION_CHUNK,
-      model: getModelName(transformOptions?.model),
-      created: Date.now(),
       choices: [
         {
           index: 0,
@@ -68,10 +87,8 @@ export const transformMap: Record<string, (chunk: any, transformOptions: ITransf
   },
   'tool-result': (chunk: ToolResultPart & { input: ToolCallPart['input'] }, transformOptions: ITransformOptions) => {
     const newChunk = {
+      ...getBaseInfo(chunk, transformOptions),
       id: chunk.toolCallId,
-      object: ChunkObject.CHAT_COMPLETION_CHUNK,
-      model: getModelName(transformOptions?.model),
-      created: Date.now(),
       choices: [
         {
           index: 0,
@@ -97,10 +114,7 @@ export const transformMap: Record<string, (chunk: any, transformOptions: ITransf
   },
   'finish': (chunk: any, transformOptions: ITransformOptions) => {
     const newChunk = {
-      id: chunk.id,
-      object: ChunkObject.CHAT_COMPLETION_CHUNK,
-      model: getModelName(transformOptions?.model),
-      created: Date.now(),
+      ...getBaseInfo(chunk, transformOptions),
       choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
       usage: {
         prompt_tokens: chunk.totalUsage.inputTokens || 0,
@@ -118,30 +132,30 @@ export const transformMap: Record<string, (chunk: any, transformOptions: ITransf
   },
 };
 
-export const openaiCompatibleTransfrom =
+export const openaiCompatibleTransform =
   <TOOLS extends ToolSet>(transformOptions: ITransformOptions) =>
-  (options: { tools: TOOLS; stopStream: () => void }) => {
-    return new TransformStream<any, any>({
-      transform(chunk, controller) {
-        const transformFn = transformMap[chunk.type as keyof typeof transformMap];
-        if (transformFn) {
-          controller.enqueue(transformFn(chunk, transformOptions));
-        } else if (chunk.type === 'finish-step') {
-          controller.enqueue({
-            id: chunk.id,
-            object: ChunkObject.CHAT_COMPLETION_CHUNK,
-            model: getModelName(transformOptions?.model),
-            created: Date.now(),
-            choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
-          });
-          // options.stopStream();
-        } else {
-          // 其他类型暂不处理
-          controller.enqueue(chunk);
-        }
-      },
-    });
-  };
+    (options: { tools: TOOLS; stopStream: () => void }) => {
+      return new TransformStream<any, any>({
+        transform(chunk, controller) {
+          const transformFn = transformMap[chunk.type as keyof typeof transformMap];
+          if (transformFn) {
+            controller.enqueue(transformFn(chunk, transformOptions));
+          } else if (chunk.type === 'finish-step') {
+            controller.enqueue({
+              id: chunk.id,
+              object: ChunkObject.CHAT_COMPLETION_CHUNK,
+              model: getModelName(transformOptions?.model),
+              created: Date.now(),
+              choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+            });
+            // options.stopStream();
+          } else {
+            // 其他类型暂不处理
+            controller.enqueue(chunk);
+          }
+        },
+      });
+    };
 
 export const openaiCompatibleTransformChunk = (chunk: TextStreamPart<any>, transformOptions: ITransformOptions): ChatCompletionChunk => {
   const transformFn = transformMap[chunk.type as keyof typeof transformMap];

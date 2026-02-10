@@ -14,6 +14,7 @@ import UserFooter from './components/UserFooter.vue';
 import ModelConfig from './components/tab-components/model-config.vue';
 import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
+import { useInputMessage } from './use-input-message';
 
 let framework = 'Vue'; // Angular
 
@@ -80,6 +81,7 @@ const themeData = ref([
   { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
   { text: '清新', value: 'lite' },
+  { text: '自动', value: 'auto' },
 ]);
 
 const messages = ref([]);
@@ -97,7 +99,10 @@ const handleKeydown = (event) => {
   }
 };
 
+const { initInputMessage } = useInputMessage(chat);
+
 onMounted(() => {
+  initInputMessage();
   getModelOptions()
     .then(async (data) => {
       if (!data.find((item) => item.value === llmConfig.model)) {

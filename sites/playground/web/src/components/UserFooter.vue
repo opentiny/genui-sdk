@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
+import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
 import { IconEdit, iconCopy } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';
@@ -8,6 +9,7 @@ import type { IBubbleSlotsProps } from './common.types';
 import EditInputRenderer from './EditInputRenderer.vue';
 
 const props = defineProps<IBubbleSlotsProps>();
+const generating = computed(() => GeneratingStatus.includes(props.messageManager?.messageState.status));
 
 const vAutoTip = AutoTip;
 
@@ -80,9 +82,10 @@ const handleCancelEdit = () => {
     <div v-if="!isEditing" class="user-actions">
       <!-- 编辑按钮 -->
       <tiny-button
+        v-if="!generating"
         type="text"
         :icon="EditIcon"
-        v-auto-tip="{ always: true, content: '编辑', effect: 'light' }"
+        v-auto-tip="{ always: true, content: '编辑' }"
         @click="handleStartEditByIndex"
       >
       </tiny-button>
@@ -90,7 +93,7 @@ const handleCancelEdit = () => {
       <tiny-button
         type="text"
         :icon="CopyIcon"
-        v-auto-tip="{ always: true, content: '复制', effect: 'light' }"
+        v-auto-tip="{ always: true, content: '复制' }"
         @click="handleCopyMessageByIndex"
       >
       </tiny-button>
@@ -117,7 +120,7 @@ const handleCancelEdit = () => {
   gap: 4px;
   opacity: 0;
   transition: all 0.2s ease;
-  background: #ffffff;
+  background: var(--tr-container-bg-default);
   border-radius: 12px;
   padding: 4px;
 }

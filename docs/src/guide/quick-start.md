@@ -111,7 +111,14 @@ const temperature = ref(0.7); // [!code ++]
 
 ## 通过 GenuiConfigProvider 配置主题
 
-你可以使用 `GenuiConfigProvider` 组件为 `GenuiChat` 配置主题。目前内置了三种主题：`'dark'`（深色）、`'lite'`（浅色）和 `'light'`（灵动），默认为`'light'`。
+你可以使用 `GenuiConfigProvider` 组件为 `GenuiChat` 配置主题。目前内置了三个主题。
+三个主题共四个选项：
+- `'dark'`：深色主题
+- `'lite'`：清新主题
+- `'light'`：浅色主题
+- `'auto'`：自动跟随浏览器
+
+默认值为 `'light'`。
 
 ### 基础用法
 
@@ -137,6 +144,39 @@ const temperature = ref(0.7);
 </template>
 ```
 
+## 配置空插槽
+
+为了让界面在没有对话的时候更加美观和友好，可以通过`empty`插槽配置欢迎语或推荐场景。
+
+```vue
+<template>
+  <GenuiConfigProvider theme="dark">
+    <!-- [!code --]-->
+    <GenuiChat :url="url" :model="model" :temperature="temperature" />
+    <!-- [!code ++]-->
+    <GenuiChat :url="url" :model="model" :temperature="temperature">    
+      <!-- [!code ++]-->
+      <template #empty>
+        <!-- [!code ++]-->
+        <div class="empty-text">欢迎使用生成式UI</div>
+      <!-- [!code ++]-->
+      </template>
+    <!-- [!code ++]-->
+    </GenuiChat>
+  </GenuiConfigProvider>
+</template>
+```
+添加样式
+```css
+.empty-text { /* [!code ++] */
+  height: 100%; /* [!code ++] */
+  display: flex; /* [!code ++] */
+  justify-content: center; /* [!code ++] */
+  align-items: center; /* [!code ++] */
+  font-size: 30px; /* [!code ++] */
+} /* [!code ++] */
+```
+
 ### 完整示例
 
 结合配置和主题的完整示例：
@@ -149,12 +189,16 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
 const temperature = ref(0.7);
-const theme = ref<'dark' | 'lite' | 'light'>('dark');
+const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
 </script>
 
 <template>
   <GenuiConfigProvider :theme="theme">
-    <GenuiChat :url="url" :model="model" :temperature="temperature" />
+    <GenuiChat :url="url" :model="model" :temperature="temperature">    
+      <template #empty>
+        <div class="empty-text">欢迎使用生成式UI</div>
+      </template>
+    </GenuiChat>
   </GenuiConfigProvider>
 </template>
 
@@ -171,6 +215,13 @@ html {
 }
 .tiny-config-provider {
   height: 100%;
+}
+.empty-text {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 30px;
 }
 </style>
 ```

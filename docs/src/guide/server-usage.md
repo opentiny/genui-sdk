@@ -160,7 +160,7 @@ data: [DONE]
   - `prepend`: 前置到现有 system message
   - `override`: 覆盖现有 system message
 - `customComponents`: 自定义组件 schema 数组，用于扩展可用的组件列表
-- `customExamples`: 自定义组件使用示例，用于指导 AI 生成正确的组件用法
+- `customExamples`: 自定义组件使用示例，用于指导 LLM 生成正确的组件用法
 - `customSnippets`: 自定义组件片段 schema 数组，用于提供常用的组件组合模式
 - `customActions`: 自定义动作定义数组，用于定义可在组件中调用的动作（如提交表单、打开新页面等）
 

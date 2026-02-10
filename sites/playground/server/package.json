@@ -13,10 +13,11 @@
   "main": "dist/index.js",
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.5",
-    "@ai-sdk/deepseek": "^1.0.5",
+    "@ai-sdk/deepseek": "1.0.7",
     "@ai-sdk/openai": "^2.0.10",
     "@modelcontextprotocol/sdk": "^1.13.0",
     "@openrouter/ai-sdk-provider": "^1.1.2",
+    "@opentiny/genui-sdk-chat-completions": "workspace:*",
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",

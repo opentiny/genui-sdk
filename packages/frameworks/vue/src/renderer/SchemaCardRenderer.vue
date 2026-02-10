@@ -34,8 +34,6 @@ const deltaPatcher = new DeltaPatcher({
   ],
 });
 
-const textToJson = async (text: string) => parsePartialJson(text);
-
 const { t } = useI18n();
 
 const errorSchema = {
@@ -77,14 +75,18 @@ watch(
   async (newVal) => {
     let json: any = newVal;
     let isCompleted = true
-    if (typeof newVal === 'string' && newVal) {
-      const { value, state } = await textToJson(newVal);
-      if (!value) {
-        isError.value = true;
-        return;
+    if (typeof newVal === 'string') {
+      if (newVal.trim()) {
+        const { value, state } = await parsePartialJson(newVal);
+        if (!value) {
+          isError.value = true;
+          return;
+        }
+        json = value;
+        isCompleted = state === 'successful-parse'
+      } else {
+        json = {};
       }
-      json = value;
-      isCompleted = state === 'successful-parse'
     }
     deltaPatcher.patchWithDelta(schema.value, json, isCompleted); // TODO： 速率限制
     if (!updateActionTimer) {
