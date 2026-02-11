@@ -6,7 +6,9 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "vite",
+    "dev:alpha": "vite --mode alpha",
     "build": "vue-tsc --noEmit && vite build",
+    "build:alpha": "vue-tsc --noEmit && vite build --mode alpha",
     "preview": "vite preview"
   },
   "dependencies": {
