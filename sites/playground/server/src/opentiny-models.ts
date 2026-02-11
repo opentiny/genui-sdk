@@ -1,4 +1,4 @@
-const OPENTINY_MODELS_URL = 'https://chat.opentiny.design/api/v1/llm/models';
+const DEFAULT_OPENTINY_MODELS_URL = 'https://chat.opentiny.design/api/v1/llm/models';
 
 interface OpenTinyModel {
   id: string;
@@ -62,11 +62,17 @@ export function convertOpenTinyToProviderModelsData(
  * 从 OpenTiny 接口拉取模型并转换为 provider-models.json 一致的数据结构
  */
 export async function fetchOpenTinyProviderModelsData(): Promise<Record<string, any>> {
-  const res = await fetch(OPENTINY_MODELS_URL);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch OpenTiny models: ${res.status} ${res.statusText}`);
+  const url = process.env.OPENTINY_MODELS_URL || DEFAULT_OPENTINY_MODELS_URL;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch OpenTiny models: ${res.status} ${res.statusText}`);
+    }
+    const data = (await res.json()) as OpenTinyModelsResponse;
+    return convertOpenTinyToProviderModelsData(data);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(`OpenTiny models fetch failed (${url}): ${message}`);
   }
-  const data = (await res.json()) as OpenTinyModelsResponse;
-  return convertOpenTinyToProviderModelsData(data);
 }
 

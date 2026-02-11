@@ -4,7 +4,11 @@ import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import minimist from 'minimist';
-import { useProviderModelMapper, useProviderModelMapperSync, initProviderModelMapperFromData } from './src/use-provider-mapper.js';
+import {
+  useProviderModelMapper,
+  useProviderModelMapperSync,
+  initProviderModelMapperFromData,
+} from './src/use-provider-mapper.js';
 import { fetchOpenTinyProviderModelsData } from './src/opentiny-models.js';
 import { createChatGenui, checkMcpHandler } from './src/chat-genui.js';
 
@@ -41,23 +45,27 @@ app.post('/check-mcp', checkMcpHandler);
 
 const port = process.env.PORT || 3008;
 
-async function start() {
-  try {
-    if (mode === 'alpha') {
-      // alpha：仍然按原来逻辑，从本地 JSON 初始化 mapper
-      await useProviderModelMapper(path.resolve(__dirname, process.env.providerModelsPath || ''));
-    } else {
+const providerModelsPath = path.resolve(__dirname, process.env.providerModelsPath || 'alpha-models.json');
+
+try {
+  if (mode === 'alpha') {
+    // alpha：从本地 JSON 初始化 mapper
+    await useProviderModelMapper(providerModelsPath);
+  } else {
+    try {
       // 非 alpha：从 OpenTiny 接口拉取模型，转为 provider-models 结构并初始化 mapper
       const providerModelsData = await fetchOpenTinyProviderModelsData();
       await initProviderModelMapperFromData(providerModelsData);
+    } catch (fetchError) {
+      // 拉取失败时降级为从 process.env.providerModelsPath 指定路径加载
+      console.warn('OpenTiny models fetch failed, fallback to process.env.providerModelsPath:', fetchError);
+      await useProviderModelMapper(providerModelsPath);
     }
-
-    app.listen(port);
-    console.info(`ai-console-server is running on http://localhost:${port}`);
-  } catch (error) {
-    console.error('Failed to initialize provider model mapper:', error);
-    process.exit(1);
   }
-}
 
-void start();
+  app.listen(port);
+  console.info(`genui-sdk-playground-server is running on http://localhost:${port}`);
+} catch (error) {
+  console.error('Failed to initialize provider model mapper:', error);
+  process.exit(1);
+}
