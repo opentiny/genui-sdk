@@ -2,7 +2,7 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { visualizer } from 'rollup-plugin-visualizer';
-// import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
+import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 
 export default defineConfig({
   root: path.resolve(__dirname, './'),
@@ -15,7 +15,7 @@ export default defineConfig({
         },
       },
     }),
-    // cssInjectedByJsPlugin(),
+    cssInjectedByJsPlugin(),
   ],
   build: {
     lib: {
@@ -32,7 +32,6 @@ export default defineConfig({
         format: 'es',
       },
     },
-    // 增加 chunk 大小限制，因为需要打包所有依赖
     chunkSizeWarningLimit: 2000,
   },
 });

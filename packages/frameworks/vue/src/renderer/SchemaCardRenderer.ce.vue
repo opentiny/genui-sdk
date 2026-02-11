@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, defineOptions } from 'vue';
 import SchemaCardRenderer from './SchemaCardRenderer.vue';
 
-// Web Component 属性定义
+defineOptions({
+  shadowRoot: false,
+});
+
 const props = defineProps<{
   content?: string | { [prop: string]: any };
   generating?: boolean | string;
@@ -69,9 +72,3 @@ const isGenerating = computed(() => {
     :state="parsedState"
   />
 </template>
-<style>
-@import url('@opentiny/vue-theme/index.css');
-</style>
-<style scoped>
-@import url('./custom.css');
-</style>
