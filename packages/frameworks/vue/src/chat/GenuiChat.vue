@@ -4,7 +4,6 @@ import {
   TrBubbleList,
   TrSender,
   TrBubbleProvider,
-  useTheme,
   BubbleMarkdownContentRenderer,
 } from '@opentiny/tiny-robot';
 import { AIClient, GeneratingStatus, STATUS, type ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -44,7 +43,6 @@ const props = defineProps<IChatProps>();
 const genuiConfig: any = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
 
-const { setColorMode } = useTheme();
 const isAllowFiles = computed(() => {
   const supportImage = props.features?.supportImage;
 
@@ -63,20 +61,6 @@ const buttonGroup = computed(() => {
     },
   };
 });
-
-watch(
-  () => genuiConfig?.value?.theme,
-  (theme) => {
-    if (theme === 'dark') {
-      setColorMode(theme);
-    } else {
-      setColorMode('light');
-    }
-  },
-  {
-    immediate: true,
-  },
-);
 
 // 定义角色图标以及样式
 const defaultRoles: { user: BubbleRoleConfig; assistant: BubbleRoleConfig } = {

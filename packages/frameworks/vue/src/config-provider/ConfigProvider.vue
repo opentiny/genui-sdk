@@ -3,17 +3,19 @@ import { TinyConfigProvider } from '@opentiny/vue';
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
-import { I18nMessages, useI18n } from './i18n';
-import { GENUI_I18N, GENUI_CONFIG } from './injection-tokens';
+import { I18nMessages, useI18n } from '../chat/i18n';
+import { GENUI_I18N, GENUI_CONFIG } from '../chat/injection-tokens';
+import { useMediaTheme } from './use-media-theme';
 
 export interface ConfigProviderProps {
-  theme: string;
+  theme: 'light' | 'dark' | 'lite' | 'auto';
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
 }
 
 interface IRobotProviderProps {
+  theme: 'dark' | 'light';
   targetElement?: string;
 }
 
@@ -39,9 +41,18 @@ const themeMap: Record<string, any> = {
 
 const themeTool = new ThemeTool();
 
+const { theme: mediaTheme } = useMediaTheme();
+
+const actualTheme = computed(() => {
+  if (props.theme === 'auto') {
+    return mediaTheme.value;
+  }
+  return props.theme;
+});
+
 const genuiConfig = computed(() => {
   return {
-    theme: props.theme,
+    theme: actualTheme.value,
     id: props.id,
   };
 });
@@ -52,13 +63,13 @@ watch(
   () => [props.locale, props.i18n] as const,
   () => {
     i18n.setLocale(props.locale);
-    i18n.mergeMessages(props.i18n);
+    props.i18n && i18n.mergeMessages(props.i18n);
   },
   { immediate: true },
 );
 
 watch(
-  () => props.theme,
+  () => actualTheme.value,
   (newVal) => {
     const themeConfig = themeMap[newVal] || themeMap.light;
     themeTool.changeTheme(themeConfig);
@@ -74,7 +85,9 @@ onMounted(() => {
 });
 
 const robotProviderProps = computed(() => {
-  const providerProps: IRobotProviderProps = {};
+  const providerProps: IRobotProviderProps = {
+    theme: actualTheme.value === 'dark' ? 'dark' : 'light',
+  };
   if (genuiConfig?.value?.id) {
     providerProps.targetElement = '#' + genuiConfig.value.id;
   }

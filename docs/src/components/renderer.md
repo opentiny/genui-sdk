@@ -106,7 +106,8 @@ const customActions = {
 
 ```vue
 <template>
-  <GenuiRenderer :content="content" :requiredCompleteFieldSelectors="['props.items', 'children[0].props']" />
+  <!-- 所有的componentName必须完成，componentName为TinyTabItem的属性中的name字段必须完整 -->
+  <GenuiRenderer :content="content" :requiredCompleteFieldSelectors="['componentName', '[componentName=TinyTabItem] > props > name']" />
 </template>
 ```
 

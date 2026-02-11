@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue';
-import { TinySelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
+import { TinyBaseSelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
 
 const props = defineProps({
@@ -81,12 +81,13 @@ const editPrompt = (index) => {
 </script>
 <template>
   <div class="config-title">模型选择</div>
-  <tiny-select
+  <tiny-base-select
     :model-value="llmConfig.model"
     @update:model-value="updateModel"
     :options="modelData"
+    :tooltip-config="{ always: false }"
     class="config-content"
-  ></tiny-select>
+  ></tiny-base-select>
   <div class="config-title">模型温度</div>
   <tiny-slider
     :model-value="llmConfig.temperature"
