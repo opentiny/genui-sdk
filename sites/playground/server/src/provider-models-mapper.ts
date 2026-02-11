@@ -155,10 +155,41 @@ export class ProviderModelMapper {
  * 直接从内存中的提供商模型数据创建映射器实例
  * @param providerModelsData 提供商模型数据对象（结构同 provider-models.json）
  */
-export function createProviderModelMapperFromData(
-  providerModelsData: Record<string, any>,
-): ProviderModelMapper {
+export function createProviderModelMapperFromData(providerModelsData: Record<string, any>): ProviderModelMapper {
   return new ProviderModelMapper(providerModelsData);
+}
+
+/**
+ * 从 JSON 文件仅读取提供商模型数据
+ * @param filePath 配置文件绝对路径或相对路径
+ * @returns 解析后的数据，文件不存在或解析失败时返回 null
+ */
+export async function loadProviderModelsDataFromFile(filePath: string): Promise<Record<string, any> | null> {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const providerPath = path.isAbsolute(filePath) ? filePath : path.resolve(__dirname, filePath);
+    const fileContent = await fs.readFile(providerPath, 'utf-8');
+    const data = JSON.parse(fileContent);
+    return data && typeof data === 'object' ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 合并两套 provider-models 数据
+ * @param dynamicData 动态列表（接口拉取并转换后的数据）
+ * @param staticData 静态列表（本地 JSON）
+ */
+export function mergeProviderModelsData(
+  dynamicData: Record<string, any>,
+  staticData: Record<string, any>,
+): Record<string, any> {
+  return {
+    ...(dynamicData || {}),
+    ...(staticData || {}),
+  };
 }
 
 /**
@@ -166,15 +197,9 @@ export function createProviderModelMapperFromData(
  * @param filePath JSON文件路径
  */
 export async function createProviderModelMapperFromFile(filePath: string): Promise<ProviderModelMapper> {
-  try {
-    // 在 ES 模块中获取当前文件的目录
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const providerPath = path.resolve(__dirname, filePath);
-    const fileContent = await fs.readFile(providerPath, 'utf-8');
-    const providerModelsData = JSON.parse(fileContent);
-    return new ProviderModelMapper(providerModelsData);
-  } catch (error) {
-    throw new Error(`Failed to load provider models from ${filePath}: ${error}`);
+  const providerModelsData = await loadProviderModelsDataFromFile(filePath);
+  if (!providerModelsData) {
+    throw new Error(`Failed to load provider models from ${filePath}`);
   }
+  return new ProviderModelMapper(providerModelsData);
 }
