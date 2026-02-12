@@ -2,8 +2,6 @@ name: Deploy GenUI SDK Playground to Huawei OBS
 
 on:
   push:
-    tags:
-      - 'v*'
     paths:
       - 'sites/playground/web/**'
   workflow_dispatch:
