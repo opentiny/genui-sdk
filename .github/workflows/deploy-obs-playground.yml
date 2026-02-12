@@ -11,7 +11,6 @@ on:
     branches: ['lhs/deploy-playground']
     paths:
       - '.github/workflows/**'
-      - 'sites/playground/**'
   workflow_dispatch:
     inputs:
       version:
