@@ -10,10 +10,12 @@ on:
         description: 输入您将要发布的版本号（默认使用sites/playground/web/package.json中的版本号），例如：0.1.0
         required: false
         type: string
+        default: alpha
       backend_url:
         description: 输入您将要发布的后端地址
         required: false
         type: string
+        default: https://agent-alpha.opentiny.design/playground/genui-sdk/api
 
 env:
   # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
