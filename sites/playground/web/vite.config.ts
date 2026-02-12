@@ -4,8 +4,35 @@ import tsconfigPaths from 'vite-jsconfig-paths';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteGitCommitHashPlugin } from 'vite-commit-hash-plugin';
 
+/** 单独拆包的依赖（chunk 名），其余 node_modules 进 vendor；@opentiny/vue* 统一为 opentiny-vue */
+const VENDOR_CHUNKS = new Set([
+  'opentiny-vue',
+  'opentiny-genui-sdk-core',
+  'opentiny-genui-sdk-vue',
+  'opentiny-tiny-robot',
+  'opentiny-tiny-robot-kit',
+  'opentiny-tiny-robot-svgs'
+]);
+
+function createManualChunks() {
+  const separator = '[\\/]';
+  const pkg = `(@[^\\/]+${separator}[^\\/]+|[^\\/]+)`;
+  const pnpmRegex = new RegExp(`.*node_modules${separator}${pkg}`);
+
+  return (id: string): string | undefined => {
+    if (!id.includes('node_modules')) return undefined;
+
+    const pkgName = id.match(pnpmRegex)?.[1];
+    if (!pkgName) return 'vendor';
+
+    const name = pkgName.startsWith('@') ? pkgName.slice(1).replace('/', '-') : pkgName;
+    if (/^opentiny-vue(-|$)/.test(name)) return 'opentiny-vue';
+    return VENDOR_CHUNKS.has(name) ? name : 'vendor';
+  };
+}
+
 // https://vite.dev/config/
-export default defineConfig(({ command, mode }) => {
+export default defineConfig(({ command }) => {
   const plugins = [
     vue({
       template: {
@@ -19,7 +46,6 @@ export default defineConfig(({ command, mode }) => {
     }),
   ];
 
-
   if (command === 'serve') {
     plugins.push(
       tsconfigPaths({
@@ -28,8 +54,18 @@ export default defineConfig(({ command, mode }) => {
       nodePolyfills(), // tiny-schema-renderer 依赖 babel 间接依赖 process.env等内容
     );
   }
+
   return {
     envDir: './env',
     plugins,
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: createManualChunks(),
+          chunkFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash][extname]',
+        },
+      },
+    },
   };
 });
