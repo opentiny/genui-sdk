@@ -33,6 +33,10 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
+    env:
+      # 手动触发时用 inputs.env / inputs.backend_url，否则（如 push）使用默认 alpha / alpha 环境后端
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.env || 'alpha' }}
+      BACKEND_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.backend_url || 'https://agent-alpha.opentiny.design/playground/genui-sdk/api' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -51,10 +55,10 @@ jobs:
         run: pnpm build:playground-web
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.env }}/
-          VITE_CHAT_URL: ${{ inputs.backend_url }}/chat-genui
-          VITE_GET_MODELS_URL: ${{ inputs.backend_url }}/get-models
-          VITE_CHECK_MCP_URL: ${{ inputs.backend_url }}/check-mcp
+          PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ env.DEPLOY_ENV }}/
+          VITE_CHAT_URL: ${{ env.BACKEND_URL }}/chat-genui
+          VITE_GET_MODELS_URL: ${{ env.BACKEND_URL }}/get-models
+          VITE_CHECK_MCP_URL: ${{ env.BACKEND_URL }}/check-mcp
       - name: Copy files
         run: |
           cp sites/playground/web/dist/index.html sites/playground/web/dist/404.html
@@ -67,6 +71,8 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.env || 'alpha' }}
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
@@ -75,7 +81,7 @@ jobs:
           path: sites/playground/web/dist/
       - name: Show environment
         run: |
-          echo "Deploying environment: ${{ inputs.env }}"
+          echo "Deploying environment: ${{ env.DEPLOY_ENV }}"
       # ===== 下载 obsutil =====
       - name: Install obsutil
         run: |
@@ -93,6 +99,6 @@ jobs:
                          -e=${{ env.HUAWEI_CLOUD_ENDPOINT }}
 
           # 把本地 dist/ 目录整站同步到桶根目录
-          echo "Environment: ${{ inputs.env }}"
-          mv sites/playground/web/dist ${{ inputs.env }}
-          obsutil cp ${{ inputs.env }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.env }} -r -f
+          echo "Environment: ${{ env.DEPLOY_ENV }}"
+          mv sites/playground/web/dist ${{ env.DEPLOY_ENV }}
+          obsutil cp ${{ env.DEPLOY_ENV }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ env.DEPLOY_ENV }} -r -f
