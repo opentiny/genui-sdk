@@ -12,7 +12,7 @@ on:
         type: string
         default: alpha
       backend_url:
-        description: 输入您将要发布的后端地址
+        description: 输入后端接口地址
         required: false
         type: string
         default: https://agent-alpha.opentiny.design/playground/genui-sdk/api
@@ -55,7 +55,7 @@ jobs:
         run: pnpm build:playground-web
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ env.DEPLOY_ENV }}/
+          PLAYGROUND_BASE: /genui-sdk-playground/${{ env.DEPLOY_ENV }}/
           VITE_CHAT_URL: ${{ env.BACKEND_URL }}/chat-genui
           VITE_GET_MODELS_URL: ${{ env.BACKEND_URL }}/get-models
           VITE_CHECK_MCP_URL: ${{ env.BACKEND_URL }}/check-mcp
@@ -101,4 +101,4 @@ jobs:
           # 把本地 dist/ 目录整站同步到桶根目录
           echo "Environment: ${{ env.DEPLOY_ENV }}"
           mv sites/playground/web/dist ${{ env.DEPLOY_ENV }}
-          obsutil cp ${{ env.DEPLOY_ENV }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ env.DEPLOY_ENV }} -r -f
+          obsutil cp ${{ env.DEPLOY_ENV }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground -r -f
