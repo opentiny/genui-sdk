@@ -1,13 +1,10 @@
 name: Deploy GenUI SDK Playground to Huawei OBS
 
 on:
-  push:
-    paths:
-      - 'sites/playground/web/**'
   workflow_dispatch:
     inputs:
-      version:
-        description: 输入您将要发布的版本号（默认使用sites/playground/web/package.json中的版本号），例如：0.1.0
+      env:
+        description: 输入您将要发布的环境，例如：alpha
         required: false
         type: string
         default: alpha
@@ -33,8 +30,6 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.ver.outputs.value }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -49,21 +44,11 @@ jobs:
           submodules: recursive
       - name: Install deps
         run: pnpm install
-      - name: Get docs version
-        id: ver
-        run: |
-          # 优先用手动输入的版本号
-          if [ -n "${{ inputs.version }}" ]; then
-            VERSION="${{ inputs.version }}"
-          else
-            VERSION="$(node -p "require('./sites/playground/web/package.json').version")"
-          fi
-          echo "Docs version: $VERSION"
-          echo "value=$VERSION" >> $GITHUB_OUTPUT
       - name: Build genui-sdk-playground-web
         run: pnpm build:playground-web
         env:
-          PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.version }}/
+          NODE_OPTIONS: --max_old_space_size=4096
+          PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.env }}/
           VITE_CHAT_URL: ${{ inputs.backend_url }}/chat-genui
           VITE_GET_MODELS_URL: ${{ inputs.backend_url }}/get-models
           VITE_CHECK_MCP_URL: ${{ inputs.backend_url }}/check-mcp
@@ -85,9 +70,9 @@ jobs:
         with:
           name: dist-artifact
           path: sites/playground/web/dist/
-      - name: Show version
+      - name: Show environment
         run: |
-          echo "Deploying version: ${{ needs.build.outputs.version }}"
+          echo "Deploying environment: ${{ inputs.env }}"
       # ===== 下载 obsutil =====
       - name: Install obsutil
         run: |
@@ -105,6 +90,6 @@ jobs:
                          -e=${{ env.HUAWEI_CLOUD_ENDPOINT }}
 
           # 把本地 dist/ 目录整站同步到桶根目录
-          echo "needs.build.outputs.version: ${{ needs.build.outputs.version }}"
-          mv sites/playground/web/dist ${{ needs.build.outputs.version }}
-          obsutil cp ${{ needs.build.outputs.version }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/ -r -f
+          echo "Environment: ${{ inputs.env }}"
+          mv sites/playground/web/dist ${{ inputs.env }}
+          obsutil cp ${{ inputs.env }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.env }} -r -f
