@@ -7,7 +7,10 @@ on:
     paths:
       - 'sites/playground/web/**'
       - '.github/workflows/**'
-    branches: ['lhs/deploy-playground', 'main']
+  push:
+    branches: ['lhs/deploy-playground']
+    paths:
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       version:
