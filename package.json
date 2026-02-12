@@ -15,7 +15,7 @@
     "build:server": "pnpm --filter @opentiny/genui-sdk-server build",
     "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build && pnpm --filter @opentiny/genui-sdk-chat-completions build",
     "build:playground": "pnpm --filter genui-sdk-playground build",
-    "build:playground-web": "pnpm --filter genui-sdk-playground-web build",
+    "build:playground-web": "pnpm prebuild:playground && pnpm --filter genui-sdk-playground-web build",
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
     "build": "pnpm build:playground"
   },
