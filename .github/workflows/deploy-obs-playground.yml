@@ -6,8 +6,8 @@ on:
       - 'v*'
     paths:
       - 'sites/playground/web/**'
-      - '.github/workflows/**' 
-    branches: ['lhs/deploy-playground']
+      - '.github/workflows/**'
+    branches: ['lhs/deploy-playground', 'main']
   workflow_dispatch:
     inputs:
       version:
