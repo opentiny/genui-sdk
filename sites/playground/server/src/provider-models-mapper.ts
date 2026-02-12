@@ -165,6 +165,10 @@ export function createProviderModelMapperFromData(providerModelsData: Record<str
  * @returns 解析后的数据，文件不存在或解析失败时返回 null
  */
 export async function loadProviderModelsDataFromFile(filePath: string): Promise<Record<string, any> | null> {
+  if (!filePath) {
+    return null;
+  }
+
   try {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);

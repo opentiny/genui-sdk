@@ -59,18 +59,20 @@ export async function fetchOpenTinyProviderModelsData(): Promise<Record<string, 
   const url = process.env.DYNAMIC_MODELS_URL;
 
   if (!url) {
-    throw new Error('DYNAMIC_MODELS_URL is not set');
+    return null;
   }
 
   try {
     const res = await fetch(url);
     if (!res.ok) {
-      throw new Error(`Failed to fetch OpenTiny models: ${res.status} ${res.statusText}`);
+      return null;
     }
     const data = (await res.json()) as OpenTinyModelsResponse;
+
     return convertOpenTinyToProviderModelsData(data);
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    throw new Error(`OpenTiny models fetch failed (${url}): ${message}`);
+    console.error('Failed to fetch dynamic models:', err);
+
+    return null;
   }
 }

@@ -40,42 +40,23 @@ app.get('/get-models', getModelsHandler);
 app.post('/chat-genui', chatGenuiHandler);
 app.post('/check-mcp', checkMcpHandler);
 
+const initProviderModelMapper = async () => {
+  try {
+    const dynamicData = await fetchOpenTinyProviderModelsData();
+    const staticData = await loadProviderModelsDataFromFile(process.env.providerModelsPath);
+    const merged = mergeProviderModelsData(dynamicData, staticData);
+
+    if (Object.keys(merged).length) {
+      await initProviderModelMapperFromData(merged);
+    }
+  } catch (error) {
+    console.error('Failed to initialize provider model mapper:', error);
+  }
+};
+
+initProviderModelMapper();
+
 const port = process.env.PORT || 3008;
 
-const hasProviderModelsPath = Boolean(process.env.providerModelsPath);
-
-try {
-  let dynamicData: Record<string, any> | null = null;
-  let staticData: Record<string, any> | null = null;
-
-  try {
-    dynamicData = await fetchOpenTinyProviderModelsData();
-  } catch (fetchError) {
-    console.warn('Dynamic models fetch failed:', fetchError);
-  }
-
-  if (hasProviderModelsPath) {
-    const providerModelsPath = path.resolve(__dirname, process.env.providerModelsPath);
-    staticData = await loadProviderModelsDataFromFile(providerModelsPath);
-
-    if (!staticData) {
-      console.warn('Static provider models file invalid or empty:', providerModelsPath);
-    }
-  }
-
-  const merged = mergeProviderModelsData(dynamicData, staticData);
-
-  if (Object.keys(merged).length === 0) {
-    throw new Error(
-      'No provider models available. Configure DYNAMIC_MODELS_URL and/or providerModelsPath, and ensure at least one source is valid.',
-    );
-  }
-
-  await initProviderModelMapperFromData(merged);
-
-  app.listen(port);
-  console.info(`genui-sdk-playground-server is running on http://localhost:${port}`);
-} catch (error) {
-  console.error('Failed to initialize provider model mapper:', error);
-  process.exit(1);
-}
+app.listen(port);
+console.info(`genui-sdk-playground-server is running on http://localhost:${port}`);
