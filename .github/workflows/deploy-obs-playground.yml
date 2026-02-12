@@ -58,8 +58,8 @@ jobs:
           fi
           echo "Docs version: $VERSION"
           echo "value=$VERSION" >> $GITHUB_OUTPUT
-      - name: Build genui-sdk-playground
-        run: pnpm build:playground
+      - name: Build genui-sdk-playground-web
+        run: pnpm build:playground-web
         env:
           PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.version }}/
           VITE_CHAT_URL: ${{ inputs.backend_url }}/chat-genui
