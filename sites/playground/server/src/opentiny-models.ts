@@ -54,10 +54,14 @@ export function convertOpenTinyToProviderModelsData(resp: OpenTinyModelsResponse
 
 /**
  * 从动态模型地址拉取模型并转换为 provider-models.json 一致的数据结构
- * 地址从环境变量 DYNAMIC_MODELS_URL 读取，未配置时使用默认地址
  */
 export async function fetchOpenTinyProviderModelsData(): Promise<Record<string, any>> {
   const url = process.env.DYNAMIC_MODELS_URL;
+
+  if (!url) {
+    throw new Error('DYNAMIC_MODELS_URL is not set');
+  }
+
   try {
     const res = await fetch(url);
     if (!res.ok) {

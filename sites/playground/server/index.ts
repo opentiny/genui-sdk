@@ -42,19 +42,16 @@ app.post('/check-mcp', checkMcpHandler);
 
 const port = process.env.PORT || 3008;
 
-const hasDynamicModelsUrl = Boolean(process.env.DYNAMIC_MODELS_URL);
 const hasProviderModelsPath = Boolean(process.env.providerModelsPath);
 
 try {
   let dynamicData: Record<string, any> | null = null;
   let staticData: Record<string, any> | null = null;
 
-  if (hasDynamicModelsUrl) {
-    try {
-      dynamicData = await fetchOpenTinyProviderModelsData();
-    } catch (fetchError) {
-      console.warn('Dynamic models fetch failed:', fetchError);
-    }
+  try {
+    dynamicData = await fetchOpenTinyProviderModelsData();
+  } catch (fetchError) {
+    console.warn('Dynamic models fetch failed:', fetchError);
   }
 
   if (hasProviderModelsPath) {
