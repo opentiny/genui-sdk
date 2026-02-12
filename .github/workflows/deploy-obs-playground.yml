@@ -7,13 +7,14 @@ on:
     paths:
       - 'sites/playground/web/**'
       - '.github/workflows/**' 
-
+    branches: ['lhs/deploy-playground']
   workflow_dispatch:
     inputs:
       version:
         description: 输入您将要发布的版本号（默认使用 sites/playground/web/package.json 中的版本号），例如：`0.1.0`。
         required: false
         type: string
+    
 
 env:
   # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
