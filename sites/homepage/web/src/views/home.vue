@@ -4,10 +4,10 @@ import { Button as TinyButton, Tag as TinyTag } from "@opentiny/vue";
 import genuiAbility1 from "@/assets/genui_ability_1.svg";
 import genuiAbility2 from "@/assets/genui_ability_2.png";
 import genuiAbility3 from "@/assets/genui_ability_3.svg";
+import genuiActionVedioCover from '@/assets/genui_action_vedio_cover.webp';
+import genuiFlowVedioCover from '@/assets/genui_flow_vedio_cover.svg';
 import { LinkKey, openLink } from "@/utils/link";
 import HomeAbility from "@/components/HomeAbility.vue";
-import HomeActionVideo from "@/components/HomeActionVideo.vue";
-import HomeFlowVideo from "@/components/HomeFlowVideo.vue";
 import HomeGuide from "@/components/HomeGuide.vue";
 import HomeFeature from "@/components/HomeFeature.vue";
 import HomeLink from "@/components/HomeLink.vue";
@@ -44,6 +44,8 @@ const abilityThreePartContent = ref({
     },
   ],
 });
+const actionVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/videos/genui/genui_action_vedio.mov';
+const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/videos/genui/genui_flow_vedio.mov';
 </script>
 
 <template>
@@ -72,7 +74,6 @@ const abilityThreePartContent = ref({
 
     <!-- 第二屏 -->
     <home-ability
-      class="home-ability-1"
       title="超越文字的表达能力"
       subtitle="以界面重构文字，打破文字表达壁垒，用可视化界面释放信息价值"
     >
@@ -80,10 +81,22 @@ const abilityThreePartContent = ref({
     </home-ability>
 
     <!-- 第三屏 -->
-    <home-action-video></home-action-video>
+    <home-ability
+      title="更加流畅的交互方式"
+      subtitle="打破两步交互，实现界面到对话的一站式流转"
+    >
+      <video
+        class="cover-image ability-image"
+        id="genui-action-vedio"
+        controls
+        preload="none"
+        :poster="genuiActionVedioCover"
+      >
+        <source :src="actionVideoSource" type="video/mp4" />
+      </video>
+    </home-ability>
 
     <home-ability
-      class="home-ability-3"
       title="结合MCP工具，让AI更懂业务场景"
       subtitle="接入MCP工具后，模型在调用工具缺少参数时能自动生成交互式UI来收集所需信息"
       background="morandi"
@@ -129,7 +142,22 @@ const abilityThreePartContent = ref({
       </div>
     </home-ability>
 
-    <home-flow-video></home-flow-video>
+    <home-ability
+      class="home-ability-4"
+      title="界面混排与流式渲染"
+      subtitle="生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
+    >
+      <video
+        ref="videoRef"
+        class="cover-image ability-image"
+        id="genui-flow-vedio"
+        controls
+        preload="none"
+        :poster="genuiFlowVedioCover"
+      >
+        <source :src="flowVideoSource" type="video/mp4" />
+      </video>
+    </home-ability>
 
     <home-extend></home-extend>
 

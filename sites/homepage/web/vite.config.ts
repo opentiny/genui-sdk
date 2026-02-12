@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import importPlugin from '@opentiny/vue-vite-import'
 import viteImagemin from 'vite-plugin-imagemin'
-import { vitePluginVideoCompress } from './vite-plugin-video-compress'
 import path from 'path'
 
 function _resolve(dir: string) {
@@ -47,10 +46,6 @@ export default defineConfig({
       webp: {
         quality: 80,
       },
-    }),
-    vitePluginVideoCompress({
-      quality: 28,
-      codec: 'libx264',
     }),
   ],
   resolve: {
@@ -103,7 +98,7 @@ export default defineConfig({
           return 'assets/[ext]/[name]-[hash].[ext]';
         },
         banner: (chunk) => {
-          if (chunk.name === 'index') {
+          if (chunk.isEntry || chunk.name === 'GenuiSdkHome' || chunk.name === 'index') {
             return 'import "./index.css";'
           }
           return ''

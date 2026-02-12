@@ -125,8 +125,11 @@ const features = [
     padding: 48px;
     border: 3px solid #fff;
     border-radius: 12px;
-    box-shadow: 0px 4px 30px 0px rgba(234, 233, 237, 0.9);
     cursor: pointer;
+
+    &:hover {
+      box-shadow: 0px 4px 30px 0px rgba(234, 233, 237, 0.9);
+    }
 
     &-icon {
       width: 64px;
