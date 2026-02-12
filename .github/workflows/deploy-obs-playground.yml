@@ -6,7 +6,12 @@ on:
       - 'v*'
     paths:
       - 'sites/playground/web/**'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 输入您将要发布的版本号（默认使用sites/playground/web/package.json中的版本号），例如：0.1.0
+        required: false
+        type: string
 
 env:
   # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
@@ -96,4 +101,3 @@ jobs:
           echo "needs.build.outputs.version: ${{ needs.build.outputs.version }}"
           mv sites/playground/web/dist ${{ needs.build.outputs.version }}
           obsutil cp ${{ needs.build.outputs.version }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/ -r -f
- 
