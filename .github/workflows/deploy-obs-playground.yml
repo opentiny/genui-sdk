@@ -7,8 +7,6 @@ on:
     paths:
       - 'sites/playground/web/**'
       - '.github/workflows/**' 
-    branches: [ "lhs/deploy_playground" ]
-
 
   workflow_dispatch:
     inputs:
@@ -42,6 +40,11 @@ jobs:
         uses: pnpm/action-setup@v3
         with:
           version: 9
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
       - name: Install deps
         run: pnpm install
       - name: Get docs version
