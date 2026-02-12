@@ -19,7 +19,6 @@ export default defineConfig(({ command, mode }) => {
     }),
   ];
 
-
   if (command === 'serve') {
     plugins.push(
       tsconfigPaths({
@@ -28,8 +27,12 @@ export default defineConfig(({ command, mode }) => {
       nodePolyfills(), // tiny-schema-renderer 依赖 babel 间接依赖 process.env等内容
     );
   }
+
+  const base = process.env.PLAYGROUND_BASE || '/';
+
   return {
     envDir: './env',
     plugins,
+    base,
   };
 });

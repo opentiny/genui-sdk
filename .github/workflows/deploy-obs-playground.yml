@@ -12,6 +12,10 @@ on:
         description: 输入您将要发布的版本号（默认使用sites/playground/web/package.json中的版本号），例如：0.1.0
         required: false
         type: string
+      backend_url:
+        description: 输入您将要发布的后端地址
+        required: false
+        type: string
 
 env:
   # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
@@ -59,7 +63,10 @@ jobs:
       - name: Build genui-sdk-playground
         run: pnpm build:playground
         env:
-          PLAYGROUND_BASE: /genui-sdk-playground/
+          PLAYGROUND_BASE: ${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground/${{ inputs.version }}/
+          VITE_CHAT_URL: ${{ inputs.backend_url }}/chat-genui
+          VITE_GET_MODELS_URL: ${{ inputs.backend_url }}/get-models
+          VITE_CHECK_MCP_URL: ${{ inputs.backend_url }}/check-mcp
       - name: Copy files
         run: |
           cp sites/playground/web/dist/index.html sites/playground/web/dist/404.html
