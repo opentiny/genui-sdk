@@ -6,9 +6,7 @@ on:
       - 'v*'
     paths:
       - 'sites/playground/web/**'
-
   workflow_dispatch: {}
-    
 
 env:
   # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
