@@ -13,6 +13,7 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { useProviderModelMapperSync } from './use-provider-mapper.js';
 import { openaiCompatibleTransformChunk, type IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
+import { type A2AAgentCard, agentsToAISdkTools } from './agents-to-tools.js';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
@@ -42,6 +43,8 @@ export type LLMConfigParams = {
   temperature?: number;
   prompt?: string;
   mcpServers?: McpServersConfig;
+  /** A2A 规范的 agent card 列表，将作为工具暴露给主模型 */
+  agents?: A2AAgentCard[];
 };
 
 export type LLMConfig = {
@@ -52,6 +55,7 @@ export type LLMConfig = {
   supportJsonFormat?: boolean;
   specificPrompt?: string;
   mcpServers?: McpServersConfig;
+  agents?: A2AAgentCard[];
 };
 
 const initClients = async (
@@ -195,11 +199,29 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
   };
 }
 
-const getPlaygroundConfig = (playgroundStr: string) => {
-  let playgroundConfig = {}
+type PlaygroundConfigRaw = {
+  mcpServers?: McpServersConfig;
+  framework?: string;
+  promptList?: string[];
+  model?: string;
+  temperature?: number;
+  agents?: A2AAgentCard[];
+};
+
+const getPlaygroundConfig = (playgroundStr: string): {
+  mcpServers: McpServersConfig;
+  framework: string;
+  userAppendPrompt: string;
+  model: string;
+  temperature: number;
+  agents: A2AAgentCard[];
+} => {
+  let playgroundConfig: PlaygroundConfigRaw = {};
 
   try {
-    playgroundConfig = JSON.parse(playgroundStr);
+    if (playgroundStr) {
+      playgroundConfig = JSON.parse(playgroundStr) as PlaygroundConfigRaw;
+    }
   } catch (error) {
     console.error('Failed to parse playground from metadata:', error);
   }
@@ -209,10 +231,10 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     framework: playgroundConfig.framework || 'Vue',
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
-    temperature: playgroundConfig.temperature || 0.3,
+    temperature: playgroundConfig.temperature ?? 0.3,
+    agents: (playgroundConfig.agents || []) as A2AAgentCard[],
   };
-
-}
+};
 
 export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
@@ -244,21 +266,24 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents: agentsConfig } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
       temperature: playgroundConfig.temperature,
       mcpServers,
+      agents: agentsConfig,
     };
 
-
     const llmConfig = await generateLlmConfig(llmConfigParams);
-    const { model, temperature, specificPrompt } = llmConfig;
+    const { model, temperature, specificPrompt, agents } = llmConfig;
     const { tools, clientsMap } = await generateAiSdkTools(
       mcpServers.filter((s) => s.enabled),
       abort.signal,
     );
+
+    const agentTools = agentsToAISdkTools(agents ?? [], abort.signal);
+    const toolsMerged = { ...tools, ...agentTools };
 
     const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
@@ -269,7 +294,7 @@ export function createChatGenui() {
       system: genPrompt(renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt,
       messages: body.messages,
       abortSignal: abort.signal,
-      tools,
+      tools: toolsMerged,
       toolChoice: 'auto',
       stopWhen: stepCountIs(maxSteps),
       onError: (error: any) => {
