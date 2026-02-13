@@ -2,7 +2,7 @@
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
-import { Button as TinyButton } from '@opentiny/vue';
+import { TinyButton } from '@opentiny/vue';
 import genuiChatIcon from '@/assets/genui_chat_icon.svg';
 import genuiInusecon from '@/assets/genui_inuse_icon.svg';
 import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg';
@@ -85,7 +85,6 @@ const handleGuideCardClick = (index: number) => {
         <tiny-button
           class="home-guide-content-left-button"
           round
-          size="small"
           @click="openLink(LinkKey.ChatDoc)"
           >开发文档</tiny-button
         >

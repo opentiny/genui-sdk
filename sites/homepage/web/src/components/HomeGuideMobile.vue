@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { ButtonGroup as TinyButtonGroup, Button as TinyButton } from '@opentiny/vue';
+import { TinyButtonGroup, TinyButton } from '@opentiny/vue';
 
 const emit = defineEmits(['change']);
 

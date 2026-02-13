@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+import { onMounted, onUnmounted, ref, nextTick, computed } from 'vue';
 import { TinyButton, TinyButtonGroup, TinyTooltip } from '@opentiny/vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import { IconArrowRight, IconRefresh } from '@opentiny/vue-icon';
 import genuiGuideDefault from '@/assets/genui_guide_default.svg';
-import { LinkKey, openLink } from '@/utils/link';
+import { LinkKey, linkMap } from '@/utils/link';
 import { splitJsonIntoChunks } from '@/utils/jsonUtil';
 import caculatorJson from '@/static/caculator.json';
 import todoJson from '@/static/todo.json';
@@ -31,6 +31,14 @@ const generating = ref(false);
 const schemaRendererRef = ref<HTMLElement | null>(null);
 const hasStartedStreaming = ref(false);
 let shouldStopStreaming = false;
+
+const messageContentMap = {
+  element: '生成一个计算器。要好看的。使用马卡龙配色，不要使用button,请使用div代替',
+  page: '创建一个待办应用，界面要丰富，把想到的功能尽量加进去',
+};
+const inputMessage = computed(
+  () => `?input-message=${messageContentMap[extendSelect.value as keyof typeof messageContentMap]}`,
+);
 
 const getJsonData = (type: string) => {
   return type === 'element' ? caculatorJson : todoJson;
@@ -208,13 +216,14 @@ onUnmounted(() => {
           <div class="home-extend-schema-header-action-full"></div>
           <div class="home-extend-schema-header-action-exit"></div>
         </div>
-        <div
-          class="home-extend-schema-header-subtitle"
-          @click="openLink(LinkKey.Playground)"
+        <a
+          class="home-extend-schema-header-subtitle is-link"
+          :href="linkMap[LinkKey.Playground] + inputMessage"
+          target="_blank"
         >
           <span>进入 Playground</span>
           <tiny-icon-arrow-right />
-        </div>
+        </a>
       </div>
       <div class="home-extend-schema-content">
         <div class="home-extend-schema-renderer-container">
@@ -305,6 +314,9 @@ onUnmounted(() => {
         gap: 8px;
         color: rgba(20, 118, 255, 1);
         cursor: pointer;
+        &.is-link {
+          text-decoration: none;
+        }
 
         svg {
           fill: rgba(20, 118, 255, 1);

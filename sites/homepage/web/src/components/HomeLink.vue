@@ -1,6 +1,6 @@
 <script setup lang="ts">
   import { LinkKey, openLink } from '@/utils/link';
-  import { Button as TinyButton } from '@opentiny/vue';
+  import { TinyButton } from '@opentiny/vue';
   </script>
   
   <template>
@@ -11,8 +11,8 @@
           增强大模型对话显示与交互，打造极致顺滑的智能体验
         </div>
         <div class="home-link-button-group">
-          <tiny-button type="primary" round @click="openLink(LinkKey.Playground)">立即体验</tiny-button>
-          <tiny-button round @click="openLink(LinkKey.DevDoc)">产品文档</tiny-button>
+          <tiny-button type="primary" size="medium" round @click="openLink(LinkKey.Playground)">立即体验</tiny-button>
+          <tiny-button size="medium" round @click="openLink(LinkKey.DevDoc)">产品文档</tiny-button>
         </div>
       </div>
     </section>

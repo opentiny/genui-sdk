@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button as TinyButton, Tag as TinyTag } from "@opentiny/vue";
+import { TinyButton, TinyTag } from "@opentiny/vue";
 import genuiAbility1 from "@/assets/genui_ability_1.svg";
 import genuiAbility2 from "@/assets/genui_ability_2.png";
 import genuiAbility3 from "@/assets/genui_ability_3.svg";
@@ -59,10 +59,10 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
           为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性
         </div>
         <div class="operation-button-group">
-          <tiny-button round type="primary" @click="openLink(LinkKey.DevDoc)"
+          <tiny-button round type="primary" size="medium" @click="openLink(LinkKey.DevDoc)"
             >开发文档</tiny-button
           >
-          <tiny-button round @click="openLink(LinkKey.Playground)"
+          <tiny-button round size="medium" @click="openLink(LinkKey.Playground)"
             >演练场</tiny-button
           >
         </div>

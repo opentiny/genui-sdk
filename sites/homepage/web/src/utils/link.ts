@@ -1,7 +1,7 @@
 const DOC_DOMAIN = import.meta.env.VITE_GENUI_DOC_DOMAIN || 'https://docs.opentiny.design';
 const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://playground.opentiny.design/genui-sdk';
 
-const linkMap = {
+export const linkMap = {
   devDoc: `${DOC_DOMAIN}/genui-sdk`,
   playground: PLAYGROUND_HREF,
   chatDoc: `${DOC_DOMAIN}/genui-sdk/components/chat`,
