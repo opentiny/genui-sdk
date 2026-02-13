@@ -53,6 +53,9 @@ export async function fetchSchemaStream(
   const isSchemaJsonEnd = (str: string): boolean => {
     const index = str.lastIndexOf('\n');
     if (index === -1) return false;
+    if (str.includes(`\n${endFlag}`)) {
+      return true;
+    }
     const newStr = str.slice(index).trim().substring(0, endFlag.length);
     return endFlag.startsWith(newStr);
   };

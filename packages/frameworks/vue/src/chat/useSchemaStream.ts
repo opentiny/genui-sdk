@@ -38,6 +38,9 @@ export default function useSchemaStream() {
     if (index === -1) {
       return false
     }
+    if (str.includes(`\n${endFlag}`)) {
+      return true;
+    }
     const newStr = str.slice(index).trim().substring(0, endFlag.length)
     return endFlag.startsWith(newStr)
   }
