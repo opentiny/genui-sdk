@@ -54,10 +54,9 @@ jobs:
           echo "GENUI_ASSETS_URL: ${{ env.GENUI_ASSETS_URL }}"
           echo "GENUI_BACKEND_URL: ${{ vars.GENUI_BACKEND_URL }}"
       - name: Build genui-sdk-playground-web
-        run: pnpm build:playground-web
+        run: pnpm build:playground-web --base=${{ env.GENUI_ASSETS_URL }}/${{ env.DEPLOY_ENV }}/
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          PLAYGROUND_BASE: ${{ env.GENUI_ASSETS_URL }}/${{ env.DEPLOY_ENV }}/
           VITE_CHAT_URL: ${{ vars.GENUI_BACKEND_URL }}/chat-genui
           VITE_GET_MODELS_URL: ${{ vars.GENUI_BACKEND_URL }}/get-models
           VITE_CHECK_MCP_URL: ${{ vars.GENUI_BACKEND_URL }}/check-mcp

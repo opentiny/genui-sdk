@@ -56,7 +56,6 @@ export default defineConfig(({ command }) => {
   }
 
   return {
-    base: process.env.PLAYGROUND_BASE || '/',
     envDir: './env',
     plugins,
     build: {
