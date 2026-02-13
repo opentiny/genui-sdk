@@ -3,8 +3,12 @@ import TinyTabs from '@opentiny/vue-tabs';
 import { useAttrs, useSlots, computed, onUpdated, ref } from 'vue';
 const attrs = useAttrs();
 const slots = useSlots();
-const tabItemLength = ref(0);
+const tabItemLength = ref(slots.default?.({}).length || 0);
+const userClick = ref(false);
 onUpdated(() => {
+  if (userClick.value) {
+    return;
+  }
   const defaultSlot = slots.default?.({});
   if (defaultSlot?.length === tabItemLength.value) {
     return;
@@ -27,6 +31,11 @@ const tabsAttrs = computed(() => {
     modelValue: activeName.value,
     'onUpdate:modelValue': (value: string) => {
       activeName.value = value;
+      (attrs['onUpdate:modelValue'] as Function)?.(value);
+    },
+    onClick: (...args) => {
+      userClick.value = true;
+      (attrs['onClick'] as Function)?.(...args);
     },
   };
 });
