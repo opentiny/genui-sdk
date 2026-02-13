@@ -608,8 +608,10 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-`BubbleProps` 和 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
+`BubbleProps` 、`UseConversationReturn`、 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
 
 查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
+
+查看 [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
 
 查看 [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
