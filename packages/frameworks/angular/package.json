@@ -16,6 +16,7 @@
     "prebuild:lib": "pnpm -F @opentiny/tiny-schema-renderer-ng build:lib",
     "build:lib": "ng build --project genui-renderer",
     "postbuild:lib": "vite build --config ./build-from-dist/vite.config.lib.ts",
+    "prebuild:element": "pnpm build:lib",
     "build:element": "ng build --project renderer-element",
     "postbuild:element": "tsx ./projects/renderer-element/scripts/postbuild.ts",
     "watch": "ng build --watch --configuration development",

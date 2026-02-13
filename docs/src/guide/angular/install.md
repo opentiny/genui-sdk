@@ -8,7 +8,7 @@
 ::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-angular
+npm install @opentiny/genui-sdk-angular --force # 同步安装peerDependencies
 ```
 == pnpm
 ```bash
@@ -38,6 +38,7 @@ yarn add @opentiny/genui-sdk-angular
 ### 安装 zone.js
 
 进入项目目录并安装 zone.js：
+
 ::: tabs
 == npm
 ```bash
@@ -49,9 +50,10 @@ pnpm add zone.js
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-angular
+yarn add zone.js
 ```
 :::
+如果工程已经安装Zone.js， 可以跳过这一步。
 
 ### 修改 `angular.json`
 
@@ -81,6 +83,7 @@ yarn add @opentiny/genui-sdk-angular
 }
 
 ```
+如果工程已经项目已经配置Zone.js， 可以跳过这一步。
 
 ### 修改 `app.config.ts`
 
