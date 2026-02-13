@@ -22,7 +22,6 @@ env:
   HUAWEI_CLOUD_ENDPOINT: ${{ secrets.HUAWEI_CLOUD_ENDPOINT }}
   HUAWEI_CLOUD_BUCKET: ${{ secrets.HUAWEI_CLOUD_BUCKET }}
   GENUI_ASSETS_URL: ${{ secrets.GENUI_ASSETS_URL }}
-  ENVIRONMENT: ${{ github.event.inputs.env }}
 
 permissions:
   contents: read
@@ -33,7 +32,7 @@ jobs:
   # Build job
   build:
     runs-on: ubuntu-latest
-    environment: ${{ env.ENVIRONMENT }}
+    environment: ${{ github.event.inputs.env }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -50,14 +49,14 @@ jobs:
         run: pnpm install
       - name: Show environment
         run: |
-          echo "Building environment: ${{ env.ENVIRONMENT }}"
+          echo "Building environment: ${{ github.event.inputs.env }}"
           echo "GENUI_ASSETS_URL: ${{ env.GENUI_ASSETS_URL }}"
           echo "GENUI_BACKEND_URL: ${{ vars.GENUI_BACKEND_URL }}"
       - name: Build genui-sdk-playground-web
         run: pnpm build:playground-web
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          PLAYGROUND_BASE: ${{ env.GENUI_ASSETS_URL }}/${{ env.ENVIRONMENT }}/
+          PLAYGROUND_BASE: ${{ env.GENUI_ASSETS_URL }}/${{ github.event.inputs.env }}/
           VITE_CHAT_URL: ${{ vars.GENUI_BACKEND_URL }}/chat-genui
           VITE_GET_MODELS_URL: ${{ vars.GENUI_BACKEND_URL }}/get-models
           VITE_CHECK_MCP_URL: ${{ vars.GENUI_BACKEND_URL }}/check-mcp
@@ -73,7 +72,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment: ${{ env.ENVIRONMENT }}
+    environment: ${{ github.event.inputs.env }}
     steps:
       - name: Download build artifact
         uses: actions/download-artifact@v4
@@ -82,7 +81,7 @@ jobs:
           path: sites/playground/web/dist/
       - name: Show environment
         run: |
-          echo "Deploying environment: ${{ env.ENVIRONMENT }}"
+          echo "Deploying environment: ${{ github.event.inputs.env }}"
       # ===== 下载 obsutil =====
       - name: Install obsutil
         run: |
@@ -100,6 +99,6 @@ jobs:
                          -e=${{ env.HUAWEI_CLOUD_ENDPOINT }}
 
           # 把本地 dist/ 目录整站同步到桶根目录
-          echo "Environment: ${{ env.ENVIRONMENT }}"
-          mv sites/playground/web/dist ${{ env.ENVIRONMENT }}
-          obsutil cp ${{ env.ENVIRONMENT }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground -r -f
+          echo "Environment: ${{ github.event.inputs.env }}"
+          mv sites/playground/web/dist ${{ github.event.inputs.env }}
+          obsutil cp ${{ github.event.inputs.env }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground -r -f
