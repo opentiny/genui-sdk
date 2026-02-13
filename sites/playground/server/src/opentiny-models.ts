@@ -59,6 +59,7 @@ export async function fetchOpenTinyProviderModelsData(): Promise<Record<string, 
   const url = process.env.DYNAMIC_MODELS_URL;
 
   if (!url) {
+    console.warn('Dynamic models URL is not set');
     return null;
   }
 
