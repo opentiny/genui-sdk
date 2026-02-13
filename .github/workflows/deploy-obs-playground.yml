@@ -11,11 +11,6 @@ on:
         required: false
         type: string
         default: alpha
-      backend_url:
-        description: 输入后端接口地址
-        required: false
-        type: string
-        default: https://agent-alpha.opentiny.design/playground/genui-sdk/api
 
 env:
   # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
@@ -23,6 +18,8 @@ env:
   HUAWEI_CLOUD_SK: ${{ secrets.HUAWEI_CLOUD_SK }}
   HUAWEI_CLOUD_ENDPOINT: ${{ secrets.HUAWEI_CLOUD_ENDPOINT }}
   HUAWEI_CLOUD_BUCKET: ${{ secrets.HUAWEI_CLOUD_BUCKET }}
+  GENUI_BACKEND_URL: ${{ secrets.GENUI_BACKEND_URL }}
+  GENUI_ASSETS_URL: ${{ secrets.GENUI_ASSETS_URL }}
 
 permissions:
   contents: read
@@ -34,9 +31,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      # 手动触发时用 inputs.env / inputs.backend_url，否则（如 push）使用默认 alpha / alpha 环境后端
+      # 手动触发时用 inputs.env 否则（如 push）使用默认 alpha 环境
       DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.env || 'alpha' }}
-      BACKEND_URL: ${{ github.event_name == 'workflow_dispatch' && inputs.backend_url || 'https://agent-alpha.opentiny.design/playground/genui-sdk/api' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -55,10 +51,10 @@ jobs:
         run: pnpm build:playground-web
         env:
           NODE_OPTIONS: --max_old_space_size=4096
-          PLAYGROUND_BASE: https://res-static.opentiny.design/genui-sdk-playground/${{ env.DEPLOY_ENV }}/
-          VITE_CHAT_URL: ${{ env.BACKEND_URL }}/chat-genui
-          VITE_GET_MODELS_URL: ${{ env.BACKEND_URL }}/get-models
-          VITE_CHECK_MCP_URL: ${{ env.BACKEND_URL }}/check-mcp
+          PLAYGROUND_BASE: ${{ env.GENUI_ASSETS_URL }}/${{ env.DEPLOY_ENV }}/
+          VITE_CHAT_URL: ${{ env.GENUI_BACKEND_URL }}/chat-genui
+          VITE_GET_MODELS_URL: ${{ env.GENUI_BACKEND_URL }}/get-models
+          VITE_CHECK_MCP_URL: ${{ env.GENUI_BACKEND_URL }}/check-mcp
       - name: Copy files
         run: |
           cp sites/playground/web/dist/index.html sites/playground/web/dist/404.html
