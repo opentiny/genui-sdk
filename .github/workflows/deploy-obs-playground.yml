@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       env:
-        description: 输入您将要发布的环境，例如：alpha
+        description: 选择您将要发布的环境
         required: false
         type: choice
         default: alpha
