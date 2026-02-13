@@ -249,6 +249,11 @@ const handleGuideCardClick = (index: number) => {
   line-height: 1.6;
   color: #e5e7eb;
 
+  // TODO: 临时解决部署后代码阴影问题，后续更换更优雅方案
+  code[class*=language-] {
+    text-shadow: none;
+  }
+
   code.hljs {
     background: transparent;
     color: inherit;
