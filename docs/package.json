@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
+    "build:angular-element": "pnpm -F @opentiny/genui-sdk-angular build:element",
+    "predev": "pnpm build:angular-element",
     "dev": "vitepress dev",
+    "prebuild": "pnpm build:angular-element",
     "build": "vitepress build",
     "preview": "vitepress preview"
   },

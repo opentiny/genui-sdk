@@ -75,6 +75,6 @@ export class GenuiExample {
   };
 
   startStream() {
-    splitContentAndAssignToStream(content)
+    this.splitContentAndAssignToStream(content)
   }
 }
