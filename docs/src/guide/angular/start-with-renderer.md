@@ -6,7 +6,7 @@
 
 创建一个文件 `fetch-schema-stream.ts`, 文件中的处理逻辑都是基于 OpenAI 兼容格式处理：
 
-````typescript{15-19}
+````ts {14-18}
 // fetch-schema-stream.ts
 export async function fetchSchemaStream(
   url: string,
@@ -20,12 +20,12 @@ export async function fetchSchemaStream(
       messages: [{ role: 'user', content: userInput }],
       model: 'deepseek-v3.2',
       stream: true,
+      metadata: {
+        tinygenui: JSON.stringify({
+          framework: 'Angular'
+        }),
+      },
     }),
-    metadata: {
-      tinygenui: JSON.stringify({
-        framework: 'Angular'
-      }),
-    },
   });
 
   if (!response.ok) {
@@ -37,8 +37,8 @@ export async function fetchSchemaStream(
   let buffer = '';
 
   let inSchemaStream = false;
-  let bufferText = ''; 
-  let schemaFinished = false; 
+  let bufferText = '';
+  let schemaFinished = false;
   const startFlag = '```schemaJson';
   const endFlag = '```';
 
@@ -140,7 +140,7 @@ export async function fetchSchemaStream(
 
 创建一个简单的组件，包含输入框、发送按钮和渲染区域，配置一下能够生成 schemaJson 的 LLM 服务：
 
-```ts {15,61-63}
+```ts {8, 15,61-63}
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
@@ -199,7 +199,7 @@ export class GenuiExample {
     this.schema = '';
     const userInput = this.inputText;
     this.inputText = '';
-  
+
     try {
       await fetchSchemaStream('https://<your-backend-api>/chat/completions', userInput, (schemaChunk: string) => {
         this.schema += schemaChunk;
