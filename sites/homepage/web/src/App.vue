@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ConfigProvider } from '@opentiny/vue'
-import designSmbConfig from '@opentiny/vue-design-smb'
 import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
 import css from 'highlight.js/lib/languages/css'
@@ -15,9 +13,7 @@ hljs.registerLanguage('json', json)
 </script>
 
 <template>
-  <config-provider :config="designSmbConfig">
-    <Home />
-  </config-provider>
+  <Home />
 </template>
 
 <style>

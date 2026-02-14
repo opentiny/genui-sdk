@@ -10,15 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@opentiny/vue": "~3.25.0",
-    "@opentiny/vue-icon": "~3.25.0",
-    "@opentiny/vue-design-smb": "~3.25.0",
-    "@opentiny/vue-config-provider": "~3.25.0",
-    "@opentiny/vue-tag": "~3.25.0",
-    "@opentiny/vue-button-group": "~3.25.0",
-    "@opentiny/vue-button": "~3.25.0",
-    "@opentiny/vue-tooltip": "~3.25.0",
-    "@opentiny/genui-sdk-vue": "1.0.0-beta.1",
+    "@opentiny/vue": "~3.28.0",
+    "@opentiny/vue-icon": "~3.28.0",
+    "@opentiny/vue-tag": "~3.28.0",
+    "@opentiny/vue-button-group": "~3.28.0",
+    "@opentiny/vue-button": "~3.28.0",
+    "@opentiny/vue-tooltip": "~3.28.0",
+    "@opentiny/genui-sdk-vue": "1.0.0",
     "highlight.js": "^11.5.1",
     "vue": "~3.4.32"
   },

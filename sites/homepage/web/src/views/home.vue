@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Button as TinyButton, Tag as TinyTag } from "@opentiny/vue";
+import { TinyButton, TinyTag } from "@opentiny/vue";
 import genuiAbility1 from "@/assets/genui_ability_1.svg";
 import genuiAbility2 from "@/assets/genui_ability_2.png";
 import genuiAbility3 from "@/assets/genui_ability_3.svg";
@@ -59,10 +59,10 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
           为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性
         </div>
         <div class="operation-button-group">
-          <tiny-button round type="primary" @click="openLink(LinkKey.DevDoc)"
+          <tiny-button round type="primary" size="medium" @click="openLink(LinkKey.DevDoc)"
             >开发文档</tiny-button
           >
-          <tiny-button round @click="openLink(LinkKey.Playground)"
+          <tiny-button round size="medium" @click="openLink(LinkKey.Playground)"
             >演练场</tiny-button
           >
         </div>
@@ -198,8 +198,15 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
       margin-right: 6%;
     }
 
+    .operation-button-group {
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.62s forwards;
+      opacity: 0;
+    }
+
     &-right {
       width: 60%;
+      animation: slideUpFromBottom 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+      opacity: 0;
 
       img {
         width: 100%;
@@ -215,6 +222,8 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
       text-align: left;
       margin-bottom: 6px;
       white-space: nowrap;
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+      opacity: 0;
     }
 
     &-subtitle {
@@ -233,6 +242,8 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
       background-clip: text;
       margin-bottom: 26px;
       white-space: nowrap;
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
+      opacity: 0;
     }
 
     &-decsription {
@@ -242,6 +253,8 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
       text-align: left;
       color: var(--text-secondary);
       margin-bottom: 76px;
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+      opacity: 0;
 
       @media (max-width: 1280px) {
         margin-bottom: 42px;
@@ -280,7 +293,7 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
       }
 
       &-right {
-        width: 40%;
+        width: 70%;
       }
     }
   }
@@ -429,5 +442,16 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
 .cover-image {
   border-radius: 32px;
   cursor: pointer;
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>
