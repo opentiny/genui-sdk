@@ -15,7 +15,7 @@ export interface ConfigProviderProps {
 }
 
 interface IRobotProviderProps {
-  theme: 'dark' | 'light';
+  colorMode: 'dark' | 'light';
   targetElement?: string;
 }
 
@@ -86,7 +86,7 @@ onMounted(() => {
 
 const robotProviderProps = computed(() => {
   const providerProps: IRobotProviderProps = {
-    theme: actualTheme.value === 'dark' ? 'dark' : 'light',
+    colorMode: actualTheme.value === 'dark' ? 'dark' : 'light',
   };
   if (genuiConfig?.value?.id) {
     providerProps.targetElement = '#' + genuiConfig.value.id;
