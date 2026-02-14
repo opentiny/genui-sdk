@@ -33,7 +33,7 @@ const hasStartedStreaming = ref(false);
 let shouldStopStreaming = false;
 
 const messageContentMap = {
-  element: '生成一个计算器。要好看的。使用马卡龙配色，不要使用button,请使用div代替',
+  element: '生成一个计算器，不要用button，使用div，马卡龙配色，不要使用TinyLayout，要好看的',
   page: '创建一个待办应用，界面要丰富，把想到的功能尽量加进去',
 };
 const inputMessage = computed(
