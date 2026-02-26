@@ -4,10 +4,10 @@ import { reactive, toRaw } from 'vue';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
-import useSchemaStream from './useSchemaStream';
 import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
 import { v4 as uuidv4 } from 'uuid';
 import { useI18n } from './i18n';
+import { PatternExtractor } from '@opentiny/genui-sdk-core';
 
 export interface ICustomModelProviderOptions {
   url: string;
@@ -92,7 +92,6 @@ export class CustomModelProvider extends BaseModelProvider {
     let buffer = '';
     const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
     let inProcessToolCallId;
-    const { handleSchemaStream, clearSchemaState } = useSchemaStream();
     const chatMessage = reactive<IChatMessage>({
       role: 'assistant',
       content: '',
@@ -113,22 +112,29 @@ export class CustomModelProvider extends BaseModelProvider {
         });
       }
     };
-
-    /**
-     * 处理 schema 和 markdown 流式内容
-     */
-    const onSchemaCard = (content: string, delta: IStreamDelta) => {
-      handleSchemaStream(content, chatMessage);
-
-      // 如果是新创建的 schema-card，需要生成 id
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-        lastMessage.id = uuidv4();
+    const onMarkdown = (content: string, delta: IStreamDelta) => {
+      if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'markdown') {
+        chatMessage.messages[chatMessage.messages.length - 1].content += content;
+      } else {
+        chatMessage.messages.push({
+          type: 'markdown',
+          content: content
+        });
       }
-
-      // 发送通知
       emitNotification(delta);
     };
+    const onSchemaJSON = (content: string, delta: IStreamDelta) => {
+      if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'schema-card') {
+        chatMessage.messages[chatMessage.messages.length - 1].content += content;
+      } else {
+        chatMessage.messages.push({
+          type: 'schema-card',
+          content: content,
+          id: uuidv4(),
+        });
+      }
+      emitNotification(delta);
+    }
 
     const onToolCall = (toolCalls: any[], delta: IStreamDelta) => {
       toolCalls.forEach((toolCall) => {
@@ -198,6 +204,11 @@ export class CustomModelProvider extends BaseModelProvider {
         }
       }
     };
+    let currentDelta: IStreamDelta = {};
+    const patternExtractor = new PatternExtractor({
+      onNormalWrite: (value) => onMarkdown(value, currentDelta),
+      onHandledWrite: (value) => onSchemaJSON(value, currentDelta),
+    });
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -218,11 +229,12 @@ export class CustomModelProvider extends BaseModelProvider {
             const { tool_calls, tool_calls_result, content } = delta;
             if (tool_calls) {
               onToolCall(tool_calls, delta);
-              clearSchemaState();
+              patternExtractor.reset();
             } else if (tool_calls_result) {
               onToolResult(tool_calls_result, delta);
             } else if (content) {
-              onSchemaCard(content, delta);
+              currentDelta = delta;
+              patternExtractor.handleContent(content);
             }
           } catch (e) {
             console.error(e);
