@@ -1,7 +1,23 @@
 {
   "name": "@opentiny/genui-sdk-server",
   "version": "0.0.1",
-  "description": "",
+  "description": "A server for the OpenTiny GenUI SDK, to enhance LLM return structure stream content",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://docs.opentiny.design/genui-sdk/guide/server-usage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "server",
+    "genui-sdk",
+    "generate-ui",
+    "stream-ui"
+  ],
   "main": "output/dist/index.js",
   "types": "output/dist/index.d.ts",
   "type": "module",
@@ -15,7 +31,8 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",

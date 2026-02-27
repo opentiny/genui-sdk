@@ -1,11 +1,31 @@
 {
   "name": "@opentiny/genui-sdk-vue",
   "version": "1.0.0",
+  "description": "A Vue3 component library for enhanced LLM display and interaction",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "vue",
+    "component",
+    "library",
+    "llm",
+    "generate-ui",
+    "stream-ui"
+  ],
   "main": "output/dist/index.js",
   "types": "output/dist/index.d.ts",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "vite build",

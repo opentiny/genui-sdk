@@ -1,6 +1,22 @@
 {
   "name": "@opentiny/genui-sdk-angular",
   "version": "0.0.1",
+  "description": "A Angular component library for enhanced LLM display and interaction",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "keywords": [
+    "angular",
+    "component",
+    "library",
+    "llm",
+    "generate-ui",
+    "stream-ui"
+  ],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "peerDependencies": {
     "@angular/common": "^20.3.0",
     "@angular/core": "^20.3.0",

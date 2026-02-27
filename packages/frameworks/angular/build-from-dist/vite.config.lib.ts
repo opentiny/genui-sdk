@@ -74,6 +74,10 @@ export default defineConfig(({ mode }) => {
               return JSON.stringify(newPackageJson, null, 2);
             },
           },
+          {
+            src: '../README.md',
+            dest: '../',
+          }
         ],
       }),
     ],
