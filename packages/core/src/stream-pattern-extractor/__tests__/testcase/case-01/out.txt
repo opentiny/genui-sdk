@@ -2,122 +2,21 @@
 schemaJson: --------------------------------
 
 {
-  "state": {
-    "formData": {
-      "name": "",
-      "email": "",
-      "message": ""
-    }
-  },
-  "methods": {
-    "submitForm": {
-      "type": "JSFunction",
-      "value": "function() { this.callAction('saveState', null); this.callAction('continueChat', { message: '表单已提交，信息已保存' }); }"
-    }
-  },
   "componentName": "Page",
   "children": [
     {
       "componentName": "TinyCard",
       "children": [
         {
-          "componentName": "h3",
-          "children": "联系我们"
-        },
-        {
-          "componentName": "TinyForm",
+          "componentName": "TinyButton",
           "props": {
-            "model": {
-              "type": "JSExpression",
-              "value": "this.state.formData"
-            },
-            "label-position": "top"
-          },
-          "children": [
-            {
-              "componentName": "TinyFormItem",
-              "props": {
-                "label": "姓名",
-                "prop": "name",
-                "required": true
-              },
-              "children": [
-                {
-                  "componentName": "TinyInput",
-                  "props": {
-                    "placeholder": "请输入您的姓名",
-                    "modelValue": {
-                      "type": "JSExpression",
-                      "model": true,
-                      "value": "this.state.formData.name"
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "componentName": "TinyFormItem",
-              "props": {
-                "label": "邮箱",
-                "prop": "email",
-                "required": true
-              },
-              "children": [
-                {
-                  "componentName": "TinyInput",
-                  "props": {
-                    "placeholder": "请输入您的邮箱",
-                    "modelValue": {
-                      "type": "JSExpression",
-                      "model": true,
-                      "value": "this.state.formData.email"
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "componentName": "TinyFormItem",
-              "props": {
-                "label": "留言",
-                "prop": "message"
-              },
-              "children": [
-                {
-                  "componentName": "TinyInput",
-                  "props": {
-                    "type": "textarea",
-                    "rows": 4,
-                    "placeholder": "请输入您的留言",
-                    "modelValue": {
-                      "type": "JSExpression",
-                      "model": true,
-                      "value": "this.state.formData.message"
-                    }
-                  }
-                }
-              ]
-            },
-            {
-              "componentName": "TinyFormItem",
-              "props": {
-                "label": ""
-              },
-              "children": [
-                {
-                  "componentName": "TinyButton",
-                  "props": {
-                    "text": "提交",
-                    "type": "primary",
-                    "onClick": {
-                      "type": "JSExpression",
-                      "value": "this.submitForm"
-                    }
-                  }
-                }
-              ]
+            "text": "点击我",
+            "type": "primary",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "function() { this.callAction('continueChat', { message: '按钮已点击' }); }"
             }
-          ]
+          }
         }
       ]
     }
@@ -136,103 +35,10 @@ schemaJson: --------------------------------
       "componentName": "TinyCard",
       "children": [
         {
-          "componentName": "h3",
-          "children": "项目数据概览"
-        },
-        {
-          "componentName": "TinyLayout",
+          "componentName": "Text",
           "props": {
-            "cols": 24
-          },
-          "children": [
-            {
-              "componentName": "TinyRow",
-              "props": {
-                "style": "margin-bottom: 20px;"
-              },
-              "children": [
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 12
-                  },
-                  "children": [
-                    {
-                      "componentName": "TinyChartPie",
-                      "props": {
-                        "data": {
-                          "columns": ["状态", "数量"],
-                          "rows": [
-                            { "状态": "进行中", "数量": 35 },
-                            { "状态": "已完成", "数量": 42 },
-                            { "状态": "待开始", "数量": 23 }
-                          ]
-                        },
-                        "width": "100%",
-                        "height": "200px"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 12
-                  },
-                  "children": [
-                    {
-                      "componentName": "TinyChartLine",
-                      "props": {
-                        "data": {
-                          "columns": ["月份", "新增项目", "完成项目"],
-                          "rows": [
-                            { "月份": "1月", "新增项目": 5, "完成项目": 3 },
-                            { "月份": "2月", "新增项目": 8, "完成项目": 6 },
-                            { "月份": "3月", "新增项目": 12, "完成项目": 9 },
-                            { "月份": "4月", "新增项目": 10, "完成项目": 11 },
-                            { "月份": "5月", "新增项目": 15, "完成项目": 13 }
-                          ]
-                        },
-                        "width": "100%",
-                        "height": "200px"
-                      }
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "componentName": "TinyRow",
-              "children": [
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 24
-                  },
-                  "children": [
-                    {
-                      "componentName": "TinyGrid",
-                      "props": {
-                        "columns": [
-                          { "field": "name", "title": "项目名称" },
-                          { "field": "manager", "title": "负责人" },
-                          { "field": "status", "title": "状态" },
-                          { "field": "progress", "title": "进度" },
-                          { "field": "deadline", "title": "截止日期" }
-                        ],
-                        "data": [
-                          { "name": "官网重构", "manager": "张三", "status": "进行中", "progress": "65%", "deadline": "2023-10-15" },
-                          { "name": "移动端App开发", "manager": "李四", "status": "进行中", "progress": "30%", "deadline": "2023-11-30" },
-                          { "name": "数据中台建设", "manager": "王五", "status": "已完成", "progress": "100%", "deadline": "2023-09-20" },
-                          { "name": "营销活动策划", "manager": "赵六", "status": "待开始", "progress": "0%", "deadline": "2023-12-10" }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+            "text": "这是一个简单的文本卡片"
+          }
         }
       ]
     }
@@ -245,217 +51,16 @@ markdown: --------------------------------
 schemaJson: --------------------------------
 
 {
-  "state": {
-    "activeTab": "products"
-  },
-  "methods": {
-    "handleTabChange": {
-      "type": "JSFunction",
-      "value": "function(tab) { this.state.activeTab = tab; this.callAction('saveState', null); }"
-    }
-  },
   "componentName": "Page",
   "children": [
     {
       "componentName": "TinyCard",
       "children": [
         {
-          "componentName": "h3",
-          "children": "产品与服务"
-        },
-        {
-          "componentName": "TinyTabs",
+          "componentName": "Img",
           "props": {
-            "modelValue": {
-              "type": "JSExpression",
-              "value": "this.state.activeTab"
-            },
-            "onChange": {
-              "type": "JSExpression",
-              "value": "this.handleTabChange"
-            }
-          },
-          "children": [
-            {
-              "componentName": "TinyTabItem",
-              "props": {
-                "title": "云产品",
-                "name": "products"
-              },
-              "children": [
-                {
-                  "componentName": "TinyLayout",
-                  "props": {
-                    "cols": 24
-                  },
-                  "children": [
-                    {
-                      "componentName": "TinyRow",
-                      "props": {
-                        "style": "margin-bottom: 16px;"
-                      },
-                      "children": [
-                        {
-                          "componentName": "TinyCol",
-                          "props": {
-                            "span": 8
-                          },
-                          "children": [
-                            {
-                              "componentName": "div",
-                              "props": {
-                                "style": "padding: 16px; border: 1px solid #eee; border-radius: 8px; text-align: center;"
-                              },
-                              "children": [
-                                {
-                                  "componentName": "Icon",
-                                  "props": {
-                                    "name": "IconCloud"
-                                  }
-                                },
-                                {
-                                  "componentName": "h4",
-                                  "children": "云服务器 ECS"
-                                },
-                                {
-                                  "componentName": "p",
-                                  "children": "弹性可扩展的计算服务，助您快速构建稳定高效的应用。"
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "componentName": "TinyCol",
-                          "props": {
-                            "span": 8
-                          },
-                          "children": [
-                            {
-                              "componentName": "div",
-                              "props": {
-                                "style": "padding: 16px; border: 1px solid #eee; border-radius: 8px; text-align: center;"
-                              },
-                              "children": [
-                                {
-                                  "componentName": "Icon",
-                                  "props": {
-                                    "name": "IconDatabase"
-                                  }
-                                },
-                                {
-                                  "componentName": "h4",
-                                  "children": "云数据库 RDS"
-                                },
-                                {
-                                  "componentName": "p",
-                                  "children": "稳定可靠、可弹性伸缩的在线数据库服务。"
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "componentName": "TinyCol",
-                          "props": {
-                            "span": 8
-                          },
-                          "children": [
-                            {
-                              "componentName": "div",
-                              "props": {
-                                "style": "padding: 16px; border: 1px solid #eee; border-radius: 8px; text-align: center;"
-                              },
-                              "children": [
-                                {
-                                  "componentName": "Icon",
-                                  "props": {
-                                    "name": "IconStorage"
-                                  }
-                                },
-                                {
-                                  "componentName": "h4",
-                                  "children": "对象存储 OBS"
-                                },
-                                {
-                                  "componentName": "p",
-                                  "children": "海量、安全、高可靠、低成本的云存储服务。"
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "componentName": "TinyTabItem",
-              "props": {
-                "title": "解决方案",
-                "name": "solutions"
-              },
-              "children": [
-                {
-                  "componentName": "ul",
-                  "children": [
-                    {
-                      "componentName": "li",
-                      "children": "企业数字化转型解决方案"
-                    },
-                    {
-                      "componentName": "li",
-                      "children": "大数据分析与可视化"
-                    },
-                    {
-                      "componentName": "li",
-                      "children": "人工智能应用开发"
-                    },
-                    {
-                      "componentName": "li",
-                      "children": "物联网平台建设"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "componentName": "TinyTabItem",
-              "props": {
-                "title": "技术支持",
-                "name": "support"
-              },
-              "children": [
-                {
-                  "componentName": "p",
-                  "children": "我们提供7x24小时技术支持服务，包括："
-                },
-                {
-                  "componentName": "ol",
-                  "children": [
-                    {
-                      "componentName": "li",
-                      "children": "在线文档与教程"
-                    },
-                    {
-                      "componentName": "li",
-                      "children": "技术专家一对一咨询"
-                    },
-                    {
-                      "componentName": "li",
-                      "children": "故障排查与恢复"
-                    },
-                    {
-                      "componentName": "li",
-                      "children": "性能优化建议"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
+            "src": "https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/designer-default-icon.jpg"
+          }
         }
       ]
     }
@@ -463,34 +68,9 @@ schemaJson: --------------------------------
 }
 markdown: --------------------------------
 
+
+---
 
 ## 总结
 
-本次生成了三个功能各异的卡片 Schema，展示了生成式 UI 在不同场景下的应用：
-
-### 1. **表单交互卡片**
-- **组件**：使用 `TinyForm`、`TinyFormItem`、`TinyInput`、`TinyButton` 构建
-- **特性**：实现了完整的表单双向绑定功能，通过 `modelValue` 的 `model: true` 属性确保数据同步
-- **交互**：集成 `saveState` 和 `continueChat` Action，实现数据持久化和对话连续性
-- **适用场景**：用户信息收集、反馈提交、数据录入等
-
-### 2. **数据展示卡片**
-- **组件**：结合 `TinyChartPie`、`TinyChartLine`、`TinyGrid` 和布局组件
-- **特性**：使用栅格系统 (`TinyLayout`/`TinyRow`/`TinyCol`) 实现响应式布局
-- **数据可视化**：饼图展示分类占比，折线图展示趋势变化，表格展示明细数据
-- **适用场景**：数据仪表盘、项目报告、统计概览等
-
-### 3. **内容导航卡片**
-- **组件**：以 `TinyTabs` 为核心，配合 `Icon`、`div`、列表组件
-- **特性**：标签页切换与状态管理，通过 `onChange` 事件保存当前状态
-- **内容组织**：分层展示产品、解决方案、技术支持等信息
-- **适用场景**：产品介绍、服务说明、知识库导航等
-
-### 设计要点总结：
-1. **遵循 Schema 规范**：所有卡片均以 `Page` 为根节点，`TinyCard` 包裹内容
-2. **状态管理**：合理使用 `state` 和 `methods`，确保交互功能完整
-3. **组件组合**：充分利用提供的组件库，构建丰富多样的 UI 界面
-4. **交互集成**：通过 `callAction` 与系统 Action 集成，实现业务逻辑
-5. **布局美观**：使用栅格系统和适当的间距，确保视觉层次清晰
-
-这些卡片 Schema 可以直接在支持生成式 UI 的平台上渲染使用，展示了从简单表单到复杂数据展示的完整能力。
+三个极简卡片：按钮、文本、图片。均用TinyCard包裹，结构清晰，功能明确。
