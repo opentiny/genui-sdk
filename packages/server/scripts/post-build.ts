@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
@@ -12,6 +12,11 @@ const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
 const outputPackageJson: any = {
   name: packageJson.name,
   version: packageJson.version,
+  description: packageJson.description,
+  author: packageJson.author,
+  license: packageJson.license,
+  homepage: packageJson.homepage,
+  keywords: packageJson.keywords,
   main: packageJson.main.replace('output/', ''),
   types: packageJson.types.replace('output/', ''),
   type: packageJson.type,
@@ -45,3 +50,8 @@ const outputDir = join(__dirname, '../output');
 
 const outputPackageJsonPath = join(outputDir, 'package.json');
 writeFileSync(outputPackageJsonPath, JSON.stringify(outputPackageJson, null, 2) + '\n', 'utf-8');
+
+// 复制 README.md 到 output 文件夹
+const readmePath = join(__dirname, '../README.md');
+const outputReadmePath = join(outputDir, 'README.md');
+copyFileSync(readmePath, outputReadmePath);
