@@ -4,6 +4,10 @@
     "generatingCard": "Generating cards...",
     "thinking": "Thinking..."
   },
+  "reasoning": {
+    "thinking": "Thinking",
+    "thinkingEnd": "Thinking End"
+  },
   "toolStatus": {
     "running": "Running",
     "success": "Succeeded",
