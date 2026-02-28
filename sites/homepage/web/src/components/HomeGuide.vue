@@ -7,7 +7,7 @@ import genuiChatIcon from '@/assets/genui_chat_icon.svg';
 import genuiInusecon from '@/assets/genui_inuse_icon.svg';
 import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg';
 import { guideCodeMap } from '@/config';
-import { LinkKey, openLink } from '@/utils/link';
+import { LinkKey, linkMap } from '@/utils/link';
 import HomeGuideCard from './HomeGuideCard.vue';
 import HomeGuideMobile from './HomeGuideMobile.vue';
 
@@ -82,12 +82,12 @@ const handleGuideCardClick = (index: number) => {
           :active="activeCard === 2"
           @click="handleGuideCardClick(2)"
         />
-        <tiny-button
-          class="home-guide-content-left-button"
-          round
-          @click="openLink(LinkKey.ChatDoc)"
-          >开发文档</tiny-button
-        >
+        <a :href="linkMap[LinkKey.ChatDoc]" target="_blank" class="btn-link">
+          <tiny-button
+            class="home-guide-content-left-button"
+            round
+            >开发文档</tiny-button>
+        </a>
       </div>
       <div class="home-guide-content-right">
         <div class="home-guide-content-right-framework">

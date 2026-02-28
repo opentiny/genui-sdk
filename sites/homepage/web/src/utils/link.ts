@@ -9,7 +9,7 @@ export const linkMap = {
   defineTheme: `${DOC_DOMAIN}/genui-sdk/examples/config-provider/theme`,
   defineComponent: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-components`,
   defineAction: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-actions`,
-  multiTechnology: `${DOC_DOMAIN}/genui-sdk/components/angular-renderer`,
+  multiTechnology: `${DOC_DOMAIN}/genui-sdk/components/angular/renderer`,
   moreFeatures: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-examples`,
 };
 

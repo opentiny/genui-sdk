@@ -6,7 +6,7 @@ import genuiAbility2 from "@/assets/genui_ability_2.png";
 import genuiAbility3 from "@/assets/genui_ability_3.svg";
 import genuiActionVedioCover from '@/assets/genui_action_vedio_cover.webp';
 import genuiFlowVedioCover from '@/assets/genui_flow_vedio_cover.svg';
-import { LinkKey, openLink } from "@/utils/link";
+import { LinkKey, linkMap } from "@/utils/link";
 import HomeAbility from "@/components/HomeAbility.vue";
 import HomeGuide from "@/components/HomeGuide.vue";
 import HomeFeature from "@/components/HomeFeature.vue";
@@ -59,12 +59,12 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
           为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性
         </div>
         <div class="operation-button-group">
-          <tiny-button round type="primary" size="medium" @click="openLink(LinkKey.DevDoc)"
-            >开发文档</tiny-button
-          >
-          <tiny-button round size="medium" @click="openLink(LinkKey.Playground)"
-            >演练场</tiny-button
-          >
+          <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
+            <tiny-button round type="primary" size="medium">开发文档</tiny-button>
+          </a>
+          <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+            <tiny-button round size="medium">演练场</tiny-button>
+          </a>
         </div>
       </div>
       <div class="home-core-right">
@@ -180,6 +180,12 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
   background-color: var(--bg-color);
   overflow-x: hidden;
 
+  .btn-link {
+    + .btn-link {
+      margin-left: 16px;
+    }
+  }
+
   .home-core {
     display: flex;
     align-items: center;
@@ -190,6 +196,12 @@ const flowVideoSource = 'https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.
     background-position: center;
     background-repeat: no-repeat;
     padding: 10% 12.5%;
+
+    // 开启gpu加速，优化首屏滚动卡顿
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
 
     &-left {
       display: flex;

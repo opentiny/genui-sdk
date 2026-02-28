@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { LinkKey, openLink } from '@/utils/link';
+  import { LinkKey, linkMap } from '@/utils/link';
   import { TinyButton } from '@opentiny/vue';
   </script>
   
@@ -11,14 +11,25 @@
           增强大模型对话显示与交互，打造极致顺滑的智能体验
         </div>
         <div class="home-link-button-group">
-          <tiny-button type="primary" size="medium" round @click="openLink(LinkKey.Playground)">立即体验</tiny-button>
-          <tiny-button size="medium" round @click="openLink(LinkKey.DevDoc)">产品文档</tiny-button>
+          <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+            <tiny-button type="primary" size="medium" round>立即体验</tiny-button>
+          </a>
+          <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
+            <tiny-button size="medium" round>产品文档</tiny-button>
+          </a>
         </div>
       </div>
     </section>
   </template>
   
   <style lang="less" scoped>
+  
+  .btn-link {
+    + .btn-link {
+      margin-left: 16px;
+    }
+  }
+
   .home-link {
     width: 100%;
     display: flex;
