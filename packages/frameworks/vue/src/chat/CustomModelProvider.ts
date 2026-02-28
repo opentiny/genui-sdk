@@ -235,6 +235,7 @@ export class CustomModelProvider extends BaseModelProvider {
             } else if (content) {
               currentDelta = delta;
               patternExtractor.handleContent(content);
+              chatMessage.content += content;
             }
           } catch (e) {
             console.error(e);
