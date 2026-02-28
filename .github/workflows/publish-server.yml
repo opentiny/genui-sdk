@@ -1,0 +1,85 @@
+name: Publish GenUI SDK Server
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号（将写入 packages/server/package.json，例如 1.0.0-beta.3）'
+        required: true
+        type: string
+      npm_tag:
+        description: '发布标签（latest=正式版，beta/alpha=预发版，安装时如 npm install pkg@beta）'
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Check allowed publishers
+        run: |
+          ALLOWED="${{ vars.ALLOWED_PUBLISHERS }}"
+          if [ -z "$ALLOWED" ]; then
+            echo "::error::请在仓库 Settings → Secrets and variables → Actions → Variables 中配置 ALLOWED_PUBLISHERS（逗号分隔的 GitHub 用户名）"
+            exit 1
+          fi
+          ACTOR="${{ github.actor }}"
+          if echo ",${ALLOWED}," | grep -q ",${ACTOR},"; then
+            echo "✓ 允许发布: $ACTOR"
+          else
+            echo "::error::无权限发布: $ACTOR 不在 ALLOWED_PUBLISHERS 列表中"
+            exit 1
+          fi
+
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Update server package version
+        run: |
+          node -e "
+            const path = 'packages/server/package.json';
+            const pkg = require('./' + path);
+            pkg.version = '${{ github.event.inputs.version }}';
+            require('fs').writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
+          "
+      - name: Build server
+        run: pnpm --filter @opentiny/genui-sdk-server build
+
+      - name: Setup .npmrc for publish
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Publish to npm (from server output)
+        working-directory: packages/server/output
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "@opentiny/genui-sdk-server@${{ github.event.inputs.version }}"
+          git push origin "@opentiny/genui-sdk-server@${{ github.event.inputs.version }}"
