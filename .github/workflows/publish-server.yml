@@ -39,6 +39,15 @@ jobs:
             exit 1
           fi
 
+      - name: Validate version (semver)
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "::error::版本号需符合语义化版本（如 1.0.0、1.0.0-beta.2），当前值: $VERSION"
+            exit 1
+          fi
+          echo "✓ 版本号格式正确: $VERSION"
+
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
         with:
