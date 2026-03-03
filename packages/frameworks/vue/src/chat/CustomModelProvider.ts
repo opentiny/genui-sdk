@@ -84,6 +84,7 @@ export class CustomModelProvider extends BaseModelProvider {
       signal?.addEventListener('abort',
         () => {
           reader.cancel();
+          onReasoningEnd();
         },
         { once: true }
       )
@@ -255,7 +256,6 @@ export class CustomModelProvider extends BaseModelProvider {
         }
       }
     }
-    onReasoningEnd();
     onDone();
     emitter.emit('notification', {
       type: 'done',
