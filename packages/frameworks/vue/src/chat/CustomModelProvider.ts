@@ -81,13 +81,14 @@ export class CustomModelProvider extends BaseModelProvider {
     }
     const reader = response.body!.getReader();
     const signal = request.options?.signal;
-      signal?.addEventListener('abort',
-        () => {
-          reader.cancel();
-        },
-        { once: true }
-      )
-    
+    signal?.addEventListener('abort',
+      () => {
+        reader.cancel();
+        onReasoningEnd();
+      },
+      { once: true }
+    )
+
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
@@ -135,6 +136,25 @@ export class CustomModelProvider extends BaseModelProvider {
       }
       emitNotification(delta);
     }
+
+    const onReasoningContent = (reasoningContent: string, delta: IStreamDelta) => {
+      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
+      if (lastMessage?.type === 'reasoning') {
+        lastMessage.content += reasoningContent;
+      } else {
+        chatMessage.messages.push({
+          type: 'reasoning',
+          content: reasoningContent,
+          thinking: true,
+        });
+      }
+      emitNotification(delta);
+    };
+
+    const onReasoningEnd = () => {
+      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
+      if (lastMessage?.type === 'reasoning') lastMessage.thinking = false;
+    };
 
     const onToolCall = (toolCalls: any[], delta: IStreamDelta) => {
       toolCalls.forEach((toolCall) => {
@@ -220,26 +240,31 @@ export class CustomModelProvider extends BaseModelProvider {
         if (lineEnd === -1) break;
         const line = buffer.slice(0, lineEnd).trim();
         buffer = buffer.slice(lineEnd + 1);
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta || {};
-            const { tool_calls, tool_calls_result, content } = delta;
-            if (tool_calls) {
-              onToolCall(tool_calls, delta);
-              patternExtractor.reset();
-            } else if (tool_calls_result) {
-              onToolResult(tool_calls_result, delta);
-            } else if (content) {
-              currentDelta = delta;
-              patternExtractor.handleContent(content);
-              chatMessage.content += content;
-            }
-          } catch (e) {
-            console.error(e);
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') break;
+        try {
+          const chunk = JSON.parse(data);
+          const delta = chunk.choices?.[0]?.delta || {};
+          const { tool_calls, tool_calls_result, content, reasoning_content } = delta;
+          if (reasoning_content) {
+            onReasoningContent(reasoning_content, delta);
+            continue;
           }
+          onReasoningEnd();
+
+          if (tool_calls) {
+            onToolCall(tool_calls, delta);
+            patternExtractor.reset();
+          } else if (tool_calls_result) {
+            onToolResult(tool_calls_result, delta);
+          } else if (content) {
+            currentDelta = delta;
+            patternExtractor.handleContent(content);
+            chatMessage.content += content;
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
     }

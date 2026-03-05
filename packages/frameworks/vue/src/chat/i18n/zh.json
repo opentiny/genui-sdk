@@ -4,6 +4,10 @@
     "generatingCard": "正在生成卡片...",
     "thinking": "正在思考中..."
   },
+  "reasoning": {
+    "thinking": "正在思考",
+    "thinkingEnd": "已思考"
+  },
   "toolStatus": {
     "running": "正在调用",
     "success": "已调用",

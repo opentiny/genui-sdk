@@ -22,6 +22,7 @@ import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
 import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue';
+import ReasoningRenderer from './renderer/ReasoningRenderer.vue';
 import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
@@ -229,6 +230,7 @@ const messageRenderers = {
     );
   },
   tool: ToolRenderer,
+  reasoning: ReasoningRenderer,
   markdown: markdownRenderer,
   templateData: TemplateDataRenderer,
   'loading-text': props.thinkComponent || GeneratingComponent,
