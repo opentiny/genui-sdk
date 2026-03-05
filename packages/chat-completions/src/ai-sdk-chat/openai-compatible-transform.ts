@@ -115,7 +115,7 @@ export const transformMap: Record<string, (chunk: any, transformOptions: ITransf
   'finish': (chunk: any, transformOptions: ITransformOptions) => {
     const newChunk = {
       ...getBaseInfo(chunk, transformOptions),
-      choices: [{ index: 0, delta: {}, finish_reason: 'stop' }],
+      choices: [{ index: 0, delta: {}, finish_reason: chunk.finishReason }],
       usage: {
         prompt_tokens: chunk.totalUsage.inputTokens || 0,
         completion_tokens: chunk.totalUsage.outputTokens || 0,

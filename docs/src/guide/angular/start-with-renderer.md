@@ -185,7 +185,7 @@ button {
   border-radius: 4px;
   cursor: pointer;
 }
-  `]，
+  `],
 })
 export class GenuiExample {
   inputText = '';

@@ -12,11 +12,11 @@ npm install @opentiny/genui-sdk-angular --force # 同步安装peerDependencies
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-angular
+pnpm add @opentiny/genui-sdk-angular @opentiny/ng-themes
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-angular
+yarn add @opentiny/genui-sdk-angular @opentiny/ng-themes
 ```
 :::
 
@@ -89,7 +89,7 @@ yarn add zone.js
 
 ```ts
 // ...
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideAnimations } from '@angular/platform-browser/animations'; // [!code ++]
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
 
 export const appConfig: ApplicationConfig = {
