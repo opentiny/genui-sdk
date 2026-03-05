@@ -78,10 +78,7 @@ jobs:
           "
 
       - name: Build Vue
-        run: |
-          pnpm --filter @opentiny/genui-sdk-core build && \
-          pnpm --filter @opentiny/genui-sdk-materials-vue-opentiny-vue build && \
-          pnpm --filter @opentiny/tiny-schema-renderer build
+        run: pnpm --filter @opentiny/genui-sdk-vue build:lib:npm
 
       - name: Setup .npmrc for publish
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc

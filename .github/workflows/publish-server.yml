@@ -77,7 +77,7 @@ jobs:
             require('fs').writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
           "
       - name: Build server
-        run: pnpm --filter @opentiny/genui-sdk-server build
+        run: pnpm --filter @opentiny/genui-sdk-server build:lib:npm
 
       - name: Setup .npmrc for publish
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc

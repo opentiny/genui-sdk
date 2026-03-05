@@ -37,6 +37,8 @@
   "scripts": {
     "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
     "build": "vite build",
+    "prebuild:lib:npm": "pnpm prebuild",
+    "build:lib:npm": "pnpm build",
     "postbuild": "tsx scripts/post-build.ts",
     "build:no-obfuscator": "pnpm build --mode no-obfuscator",
     "dev": "tsx watch --tsconfig ./tsconfig.dev.json test/start.ts"

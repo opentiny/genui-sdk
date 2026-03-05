@@ -77,10 +77,8 @@ jobs:
             require('fs').writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
           "
 
-      - name: Build Angular (core + build:lib)
-        run: |
-          pnpm --filter @opentiny/genui-sdk-core build && \
-          pnpm --filter @opentiny/genui-sdk-angular build:lib
+      - name: Build Angular
+        run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
 
       - name: Setup .npmrc for publish
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
