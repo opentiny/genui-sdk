@@ -227,7 +227,7 @@ export class CustomModelProvider extends BaseModelProvider {
             const chunk = JSON.parse(data);
             const delta = chunk.choices?.[0]?.delta || {};
             const { tool_calls, tool_calls_result, content } = delta;
-            if (tool_calls) {
+            if (tool_calls?.length) {
               onToolCall(tool_calls, delta);
               patternExtractor.reset();
             } else if (tool_calls_result) {
