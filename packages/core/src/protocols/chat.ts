@@ -42,6 +42,11 @@ export interface IMarkdownMessageItem {
   content: string;
 }
 
+export interface IReasoningMessageItem {
+  type: 'reasoning';
+  content: string;
+  thinking?: boolean;
+}
 export interface IToolMessageItem {
   type: 'tool';
   name: string;
@@ -56,7 +61,8 @@ export interface IToolMessageItem {
 export type IMessageItem =
   | IMarkdownMessageItem
   | ISchemaCardMessageItem
-  | IToolMessageItem;
+  | IToolMessageItem
+  | IReasoningMessageItem;
 
 /**
  * 单轮对话中的消息对象

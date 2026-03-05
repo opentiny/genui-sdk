@@ -1,0 +1,76 @@
+
+schemaJson: --------------------------------
+
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "TinyButton",
+          "props": {
+            "text": "点击我",
+            "type": "primary",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "function() { this.callAction('continueChat', { message: '按钮已点击' }); }"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
+markdown: --------------------------------
+
+
+
+schemaJson: --------------------------------
+
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "这是一个简单的文本卡片"
+          }
+        }
+      ]
+    }
+  ]
+}
+markdown: --------------------------------
+
+
+
+schemaJson: --------------------------------
+
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "Img",
+          "props": {
+            "src": "https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/designer-default-icon.jpg"
+          }
+        }
+      ]
+    }
+  ]
+}
+markdown: --------------------------------
+
+
+---
+
+## 总结
+
+三个极简卡片：按钮、文本、图片。均用TinyCard包裹，结构清晰，功能明确。

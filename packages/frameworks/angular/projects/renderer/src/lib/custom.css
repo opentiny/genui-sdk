@@ -1,0 +1,36 @@
+:host ::ng-deep ol[data-tag='ol'] {
+  list-style: revert;
+  margin: revert;
+  padding: revert;
+}
+
+:host ::ng-deep ul[data-tag='ul'] {
+  list-style: revert;
+  margin: revert;
+  padding: revert;
+}
+
+:host ::ng-deep li[data-tag='li'] {
+  margin: revert;
+  padding: revert;
+}
+
+:host ::ng-deep *,
+:host ::ng-deep *::before,
+:host ::ng-deep *::after {
+  box-sizing: border-box;
+}
+
+:host ::ng-deep h1[data-tag='h1'],
+:host ::ng-deep h2[data-tag='h2'],
+:host ::ng-deep h3[data-tag='h3'],
+:host ::ng-deep h4[data-tag='h4'],
+:host ::ng-deep h5[data-tag='h5'],
+:host ::ng-deep h6[data-tag='h6'],
+:host ::ng-deep p[data-tag='p'] {
+  font-size: revert;
+  font-weight: revert;
+  color: revert;
+  margin: revert;
+  padding: revert;
+}

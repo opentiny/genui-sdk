@@ -1,4 +1,8 @@
-import { createProviderModelMapperFromFile, type ProviderModelMapper } from './provider-models-mapper.js';
+import {
+  createProviderModelMapperFromFile,
+  createProviderModelMapperFromData,
+  type ProviderModelMapper,
+} from './provider-models-mapper.js';
 
 /**
  * 共享的提供商模型映射器实例
@@ -22,6 +26,17 @@ export async function useProviderModelMapper(filePath?: string): Promise<Provide
   return providerModelMapper;
 }
 
+/**
+ * 使用内存中的提供商模型数据初始化映射器（主要用于远程拉取 OpenTiny 模型）
+ * @param providerModelsData 提供商模型数据对象
+ */
+export async function initProviderModelMapperFromData(
+  providerModelsData: Record<string, any>,
+): Promise<ProviderModelMapper> {
+  providerModelMapper = createProviderModelMapperFromData(providerModelsData);
+  return providerModelMapper;
+}
+
 export function useProviderModelMapperSync(): ProviderModelMapper {
   if (!providerModelMapper) {
     throw new Error('Provider model mapper has not been initialized. Call useProviderModelMapper() first.');
@@ -36,3 +51,4 @@ export function useProviderModelMapperSync(): ProviderModelMapper {
 export function useResetProviderModelMapper(): void {
   providerModelMapper = null;
 }
+

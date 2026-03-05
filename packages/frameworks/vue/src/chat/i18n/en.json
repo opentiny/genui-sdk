@@ -4,6 +4,10 @@
     "generatingCard": "Generating cards...",
     "thinking": "Thinking..."
   },
+  "reasoning": {
+    "thinking": "Thinking",
+    "thinkingEnd": "Thinking End"
+  },
   "toolStatus": {
     "running": "Running",
     "success": "Succeeded",
@@ -27,9 +31,6 @@
     "description": "Continue conversation, used for form submit buttons, etc.",
     "messageParam": "Related parameters: ",
     "paramDescription": "Conversation message, can be button text or other content"
-  },
-  "actionButton": {
-    "clickMessage": "Clicked {text} button, related data: {state}, if the task is not completed, please continue to complete the task."
   },
   "toolCall": {
     "context": "Tool name: {toolName}, Tool parameters: {toolParams}, Tool result: {toolResult}"

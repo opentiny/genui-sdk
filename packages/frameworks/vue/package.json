@@ -1,39 +1,70 @@
 {
   "name": "@opentiny/genui-sdk-vue",
-  "version": "0.0.1-alpha.7",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "version": "1.0.0",
+  "description": "A Vue3 component library for enhanced LLM display and interaction",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "vue",
+    "component",
+    "library",
+    "llm",
+    "generate-ui",
+    "stream-ui"
+  ],
+  "main": "output/dist/index.js",
+  "types": "output/dist/index.d.ts",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "vite build",
+    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
+    "postbuild": "tsx scripts/postbuild.ts",
     "test": "vitest"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
-    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
-    "@opentiny/tiny-schema-renderer": "workspace:*",
-    "@opentiny/tiny-robot": "0.3.1-alpha.3",
-    "@opentiny/tiny-robot-kit": "0.3.1-alpha.3",
-    "@opentiny/tiny-robot-svgs": "0.3.1-alpha.3",
-    "@opentiny/vue-config-provider": "^3.25.0",
-    "@opentiny/vue": "^3.25.0",
-    "@opentiny/vue-icon": "^3.25.0",
-    "@opentiny/vue-tabs": "^3.25.0",
-    "@opentiny/vue-theme": "^3.25.0",
-    "ai": "^5.0.10",
+    "@opentiny/tiny-robot": "0.3.3",
+    "@opentiny/tiny-robot-kit": "0.3.3",
+    "@opentiny/tiny-robot-svgs": "0.3.3",
+    "@opentiny/vue": "^3.28.0",
+    "@opentiny/vue-icon": "^3.28.0",
+    "@opentiny/vue-theme": "^3.28.0",
     "uuid": "^11.1.0",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "@opentiny/vue-button": "^3.28.0",
+    "@opentiny/vue-chart-bar": "~3.14.0",
+    "@opentiny/vue-chart-histogram": "~3.14.0",
+    "@opentiny/vue-chart-line": "~3.14.0",
+    "@opentiny/vue-chart-pie": "~3.14.0",
+    "@opentiny/vue-chart-radar": "~3.14.0",
+    "@opentiny/vue-chart-ring": "3.14.0",
+    "@opentiny/vue-select": "^3.28.0",
+    "@opentiny/vue-tabs": "^3.28.0",
+    "@opentiny/tiny-engine-builtin-component": "^2.6.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
     "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/tiny-schema-renderer": "workspace:*",
+    "ai": "^5.0.10",
+    "rollup-plugin-visualizer": "^6.0.5",
     "vite-plugin-bundle-obfuscator": "^1.8.0",
     "vite-plugin-css-injected-by-js": "^3.5.2",
-    "@vitejs/plugin-vue": "^5.0.0",
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",
+    "tsx": "^4.8.1",
     "escape-string-regexp": "^1.0.5",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"

@@ -1,0 +1,24 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "paths": {
+      "@opentiny/genui-sdk-core": [
+        "../../core/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-angular": [
+        "./projects/renderer/src/public-api.ts"
+      ],
+      "@opentiny/tiny-schema-renderer-ng": [
+        "../../../projects/tiny-schema-renderer-ng/src/public_api.ts"
+      ]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "projects/renderer/src/**/*.ts",
+    "../../core/src/**/*.ts",
+    "../../../projects/tiny-schema-renderer-ng/src/**/*.ts",
+  ]
+}

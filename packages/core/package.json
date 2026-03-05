@@ -8,6 +8,9 @@
     "build": "vite build",
     "test": "vitest"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "flat": "^6.0.1",
     "jsondiffpatch": "^0.7.3",

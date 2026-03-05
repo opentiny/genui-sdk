@@ -3,7 +3,6 @@ import type { CardSchema } from '@opentiny/genui-sdk-core';
 
 export interface IRendererProps {
   content: string | { [prop: string]: any };
-  onAction: (message: { llmFriendlyMessage: string; humanFriendlyMessage: string }) => void;
   generating: boolean;
   customComponents?: Record<string, Component>;
   customActions?: any;
