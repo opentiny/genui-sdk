@@ -43,7 +43,7 @@ if (location.search.includes('framework=angular')) {
   framework = 'Angular';
 }
 
-const activeName = ref(ENABLE_TEMPLATE ? 'template' : 'model');
+const activeName = ref('model');
 const TinyIconPlus = iconPlus();
 
 const STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_CONFIG';
