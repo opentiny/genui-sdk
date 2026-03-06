@@ -210,15 +210,12 @@ const customFetch = createCustomFetch(() => ({
     <!-- 模版 -->
     <template v-if="ENABLE_TEMPLATE && isTemplateInit">
       <div v-show="activeName === 'template'" class="chat-template">
-        <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :theme="theme" :config="chatConfig"
-          :custom-config="{ customComponentsSchema, customComponents, customExamples }" />
+        <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
+          :theme="theme" :chat-config="chatConfig" :custom-components="customComponents" :custom-snippets="customSnippets"
+          :custom-examples="customExamples" />
       </div>
     </template>
     <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
-      <!-- <GenuiConfigProvider :theme="theme" style="height: 100%">
-          <GenuiChat :url="url" ref="chat" :messages="messages" :llm-config="chatLlmConfig" :config="chatConfig"
-            :think-component="ThinkComponent" :roles="roles" :features="modelFeatures" />
-        </GenuiConfigProvider> -->
       <GenuiConfigProvider :theme="theme" style="height: 100%">
         <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
           :features="modelFeatures" :custom-fetch="customFetch">

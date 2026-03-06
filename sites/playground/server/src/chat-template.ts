@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { genPrompt } from '@opentiny/genui-sdk-core';
+import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
 import { streamText, stepCountIs, type StreamTextOptions } from 'ai';
 import getRawBody from 'raw-body';
@@ -11,14 +11,62 @@ import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completion
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 
+export type McpServerConfig = {
+  name: string;
+  url: string;
+  description?: string;
+  enabled?: boolean;
+  headers?: Record<string, string>;
+  timeout?: number;
+};
+interface IPlaygroundConfig {
+  mcpServers: McpServerConfig[];
+  framework: string;
+  promptList: string[];
+  model: string;
+  temperature: number;
+}
+
+export type LLMConfigParams = {
+  model?: string;
+  temperature?: number;
+  prompt?: string;
+  mcpServers?: McpServerConfig[];
+};
+
+const getPlaygroundConfig = (playgroundStr: string) => {
+  let playgroundConfig: IPlaygroundConfig = {
+    mcpServers: [],
+    framework: 'Vue',
+    promptList: [],
+    model: '',
+    temperature: 0.3,
+  };
+
+  try {
+    playgroundConfig = JSON.parse(playgroundStr);
+  } catch (error) {
+    console.error('Failed to parse playground from metadata:', error);
+  }
+
+  return {
+    mcpServers: playgroundConfig.mcpServers || [],
+    framework: playgroundConfig.framework || 'Vue',
+    userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
+    model: playgroundConfig.model || '',
+    temperature: playgroundConfig.temperature || 0.3,
+  };
+};
+
 export const createChatTemplate = () => {
   return {
     chatTemplateHandler: async (req: Request, res: Response) => {
       const abort = new AbortController();
+      const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
       if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
         const text = await fs.readFile(
           path.join(fileURLToPath(import.meta.url), '../../chat-template-replay/replay.txt'),
-          'utf-8'
+          'utf-8',
         );
         const data = text.split(/\r?\n\r?\n/);
         for await (const item of data) {
@@ -28,25 +76,42 @@ export const createChatTemplate = () => {
             return;
           }
           res.write(item.trim() + '\n\n');
-          // await new Promise((resolve) => setTimeout(resolve, 200));
+          await new Promise((resolve) => setTimeout(resolve, 200));
         }
         res.end();
         return;
       }
 
-      const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
-      res.setHeader('Content-Type', 'text/event-stream');
+      const { tinygenui: tinygenuiStr, playground: playgroundStr } = body.metadata || {};
 
-      const { tinygenui: tgCustomConfig } = body.metadata || {};
-      const llmConfig = await generateLlmConfig(body?.llmConfig);
-      const { model, temperature, prompt: customSystemPrompt, mcpServers = [], specificPrompt } = llmConfig;
+      let tgCustomConfig: IGenPromptCustomConfig = {};
+
+      if (tinygenuiStr) {
+        try {
+          tgCustomConfig = typeof tinygenuiStr === 'string' ? JSON.parse(tinygenuiStr) : {};
+        } catch (error) {
+          console.error('Failed to parse tinygenui from metadata:', error);
+        }
+      }
+
+      const playgroundConfig = getPlaygroundConfig(playgroundStr);
+      const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+
+      const llmConfigParams: LLMConfigParams = {
+        model: playgroundConfig.model,
+        temperature: playgroundConfig.temperature,
+        mcpServers,
+      };
+
+      const llmConfig = await generateLlmConfig(llmConfigParams);
+      const { model, temperature, prompt: customSystemPrompt, specificPrompt } = llmConfig;
       const { tools, clientsMap } = await generateAiSdkTools(
         mcpServers.filter((s) => s.enabled),
-        abort.signal
+        abort.signal,
       );
       const maxSteps = 30;
       const systemPrompt = `${genPrompt(rendererConfig, tgCustomConfig)}
-      ${body.schema ? generateJsonPatchPrompt(body.schema) : ''}
+      ${body.templateSchema ? generateJsonPatchPrompt(body.templateSchema) : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;
       const options: StreamTextOptions = {
