@@ -1,8 +1,9 @@
 import { reactive, toRaw } from 'vue';
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
-import type { LLMConfig, IStreamDelta, IChatMessage, IMessageItem } from './chat.types';
-import { emitter } from './event-emitter';
+import type { IStreamDelta } from '@opentiny/genui-sdk-core';
+import type { LLMConfig, IChatMessage, IMessageItem } from './chat.types';
+import { emitter } from '@opentiny/genui-sdk-vue';
 import useSchemaStream from './useSchemaStream';
 
 export interface ICustomModelProviderOptions {

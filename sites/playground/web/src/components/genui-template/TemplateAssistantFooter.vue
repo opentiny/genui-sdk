@@ -4,7 +4,7 @@
   import { TinyButton } from '@opentiny/vue';
   import { AutoTip } from '@opentiny/vue-directive';
 import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
-import type { IBubbleSlotsProps } from './chat.types';
+import type { IBubbleSlotsProps } from '@opentiny/genui-sdk-vue';
 
 const emit = defineEmits(['refresh']);
 

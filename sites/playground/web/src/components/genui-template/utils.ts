@@ -1,102 +1,4 @@
-import { nextTick, onMounted, onUnmounted, ref } from 'vue';
-import type { Ref } from 'vue';
 import { parsePartialJson } from 'ai';
-
-export function throttle<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
-  let timer: ReturnType<typeof setTimeout> | null = null;
-  let lastTime = 0;
-  return function (this: any, ...args: Parameters<T>) {
-    const now = Date.now();
-    const elapsed = now - lastTime;
-
-    // 如果距离上次执行时间超过 delay，立即执行
-    if (elapsed >= delay) {
-      if (timer) {
-        clearTimeout(timer);
-        timer = null;
-      }
-      lastTime = now;
-      fn.apply(this, args);
-    } else {
-      // 否则，清除之前的定时器，设置新的定时器，确保最后一次调用也会执行
-      if (timer) {
-        clearTimeout(timer);
-      }
-      const remaining = delay - elapsed;
-      timer = setTimeout(() => {
-        lastTime = Date.now();
-        timer = null;
-        fn.apply(this, args);
-      }, remaining);
-    }
-  };
-}
-
-export const scrollEnd = (container: Ref<HTMLElement | undefined>) => {
-  const isLastMessageInBottom = ref(false);
-  const isScrollByUser = ref(false);
-  let scrollByUserTimer: ReturnType<typeof setTimeout> | null = null;
-
-  const updateIsLastMessageInBottom = () => {
-    if (container.value) {
-      isLastMessageInBottom.value =
-        container.value.scrollTop + container.value.clientHeight + 130 >= container.value.scrollHeight;
-    }
-  };
-  const scrollToBottom = () => {
-    if (container.value) {
-      nextTick(() => {
-        container.value?.scrollTo({
-          top: container.value.scrollHeight,
-          behavior: 'smooth',
-        });
-      });
-    }
-  };
-  const autoScrollToBottom = () => {
-    // 当内容不在底部时，或者用户手动滚动时，不会触发自动滚动
-
-    if (!isLastMessageInBottom.value || isScrollByUser.value) {
-      return;
-    }
-    scrollToBottom();
-  };
-  const handleUserScroll = () => {
-    isScrollByUser.value = true;
-    if (scrollByUserTimer) {
-      clearTimeout(scrollByUserTimer);
-    }
-    scrollByUserTimer = setTimeout(() => {
-      isScrollByUser.value = false;
-      scrollByUserTimer = null;
-    }, 100);
-  };
-
-  onMounted(() => {
-    updateIsLastMessageInBottom();
-    if (container.value) {
-      container.value.addEventListener('scroll', updateIsLastMessageInBottom);
-      container.value.addEventListener('wheel', handleUserScroll);
-      container.value.addEventListener('touchmove', handleUserScroll);
-    }
-  });
-  onUnmounted(() => {
-    if (container.value) {
-      container.value.removeEventListener('scroll', updateIsLastMessageInBottom);
-      container.value.removeEventListener('wheel', handleUserScroll);
-      container.value.removeEventListener('touchmove', handleUserScroll);
-    }
-  });
-
-  return { scrollToBottom, autoScrollToBottom, isLastMessageInBottom };
-};
-
-export const toolStatusTextMap = new Map<string, { text: string }>([
-  ['running', { text: '正在调用' }],
-  ['success', { text: '已调用' }],
-  ['failed', { text: '调用失败' }],
-  ['cancelled', { text: '已取消' }],
-]);
 
 /**
  * JSON Patch 操作类型定义
@@ -587,7 +489,10 @@ export const generateId = (length: number = 8): string => {
     return crypto.randomUUID().replace(/-/g, '').substring(0, length);
   }
   // 后备方案：使用 Math.random() 生成 length 位十六进制字符串
-  return Math.random().toString(36).substring(2, 2 + length).padEnd(length, '0');
+  return Math.random()
+    .toString(36)
+    .substring(2, 2 + length)
+    .padEnd(length, '0');
 };
 
 /**

@@ -4,12 +4,12 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { genPrompt } from '@opentiny/genui-sdk-core';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { streamText, type StreamTextOptions, stepCountIs } from 'ai';
+import { streamText, stepCountIs, type StreamTextOptions } from 'ai';
 import getRawBody from 'raw-body';
-import { openaiCompatibleTransfromChunk } from './openai-compatible-transform';
-import type { IOpenaiCompatibleChunk } from './openai-compatible-transform';
-import { generateLlmConfig, generateAiSdkTools } from './chat-genui';
-import { generateJsonPatchPrompt } from './json-patch-prompt';
+import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-completions';
+import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
+import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
+import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 
 export const createChatTemplate = () => {
   return {
@@ -78,7 +78,7 @@ export const createChatTemplate = () => {
           if (abort.signal.aborted) {
             break;
           }
-          const newChunk = openaiCompatibleTransfromChunk(chunk, { model });
+          const newChunk = openaiCompatibleTransformChunk(chunk, { model });
 
           if (newChunk) {
             res.write('data: ' + JSON.stringify(newChunk) + '\n\n');

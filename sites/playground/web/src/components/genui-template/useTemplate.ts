@@ -2,7 +2,8 @@ import { ref, shallowRef, computed } from 'vue';
 import { useConversation, IndexedDBStrategy } from '@opentiny/genui-sdk-vue';
 import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
 import { CustomModelProvider } from './template-provider';
-import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem, IMessage } from './chat.types';
+import type { IMessage } from '@opentiny/genui-sdk-vue';
+import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 
 let conversation: ReturnType<typeof useConversation> | null = null;
 let templateProvider: CustomModelProvider | null = null;
