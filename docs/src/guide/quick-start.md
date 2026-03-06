@@ -233,4 +233,4 @@ html {
 
 - 查看 [组件文档](../components/chat) 了解 `GenuiChat` 的详细 API
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
-- 查看 [特性示例](../examples/chat) 学习高级用法
+- 查看 [特性示例](../examples/chat/custom-actions) 学习高级用法

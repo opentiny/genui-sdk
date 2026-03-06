@@ -416,6 +416,4 @@ export class GenuiExample {
 }
 ```
 
-查看 [Renderer 插槽](../../examples/angular/renderer/template) 了解详细用法
-
 
