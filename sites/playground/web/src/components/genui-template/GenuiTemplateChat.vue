@@ -149,7 +149,7 @@ const jsonPatchRenderer = async (props: any) => {
 
     if (!value || !Array.isArray(value)) return;
 
-    const formattedValue = formatJsonPatch(currentSchema.value, value);
+    const formattedValue = formatJsonPatch(JSON.parse(prevSchema.value), value);
     // 如果没有 cardId，使用默认的 key 来记录（避免重复执行）
     const operationKey = cardId || '__default__';
     // 过滤掉已执行的操作
@@ -166,7 +166,7 @@ const jsonPatchRenderer = async (props: any) => {
 
     const targetSchema = JSON.parse(JSON.stringify(currentSchema.value));
     jsonPatchFormatter.patch(targetSchema, standardOperations);
-    setCurrentSchema(targetSchema);
+    setCurrentSchema(generateIdForComponents(targetSchema));
     // 标记所有操作（包括已过滤的）为已执行，避免重复执行
     jsonPatchDeduplicator.markAllOperationsExecuted(operationKey, formattedValue);
   } catch (error) {

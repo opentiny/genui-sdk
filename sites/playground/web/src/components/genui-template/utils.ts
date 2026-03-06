@@ -1,6 +1,7 @@
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import type { Ref } from 'vue';
 import { parsePartialJson } from 'ai';
+import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
 
 export function throttle<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -530,9 +531,10 @@ export const findComponentPath = (currentSchema: any, id: string): string | null
  * @returns 格式化后的 jsonPatch
  */
 export const formatJsonPatch = (currentSchema: any, value: any) => {
+  let templeSchema = structuredClone(currentSchema);
   return value.map((item: any) => {
     // 通过 id 从 currentSchema 中找到对应的组件路径
-    const componentPath = findComponentPath(currentSchema, item.id);
+    const componentPath = findComponentPath(templeSchema, item.id);
     item.idToPath = componentPath;
 
     if (!componentPath) {
@@ -544,17 +546,17 @@ export const formatJsonPatch = (currentSchema: any, value: any) => {
     if (item.path) {
       // 如果 path 不为空，则把组件路径拼接到 path 前面
       item.relativePath = item.path;
-      // 如果 item.path 以 / 开头，去掉开头的 / 再拼接
-      const relativePath = item.path.startsWith('/') ? item.path.slice(1) : item.path;
-      // 如果 componentPath 是根路径 "/"，直接使用 relativePath（去掉开头的 /）
-      if (componentPath === '/') {
-        item.path = `/${relativePath}`;
-      } else {
-        item.path = `${componentPath}/${relativePath}`;
-      }
+      item.path = componentPath === '/' ? item.path : `${componentPath}${item.path}`;
     } else {
       item.path = componentPath;
     }
+
+    if(item.op === 'move' && item.from) {
+      item.fromRelativePath = item.from;
+      item.from = componentPath === '/' ? item.from : `${componentPath}${item.from}`;
+    }
+
+    jsonPatchFormatter.patch(templeSchema, [item]);
 
     return item;
   });
@@ -596,16 +598,19 @@ export const generateId = (length: number = 8): string => {
  */
 export const generateIdForComponents = (schema: any) => {
   // 递归遍历 schema 对象，给每个组件添加 id
-  const traverse = (node: any) => {
-    if (node.id) {
-      return;
-    }
-
+  const traverse = (node: any, index: number = null) => {
     if (Array.isArray(node.children) && node.children.length > 0) {
       for (let i = 0; i < node.children.length; i++) {
         const child = node.children[i];
-        traverse(child);
+        traverse(child, i);
       }
+    }
+    if (index !== null) {
+      node.index = index;
+    }
+
+    if (node.id) {
+      return;
     }
     node.id = generateId();
   };
