@@ -42,7 +42,7 @@ export class CustomModelProvider extends BaseModelProvider {
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await templateChat({
+    return templateChat({
       url: this.url,
       messages: request.messages,
       signal: request.options?.signal,
