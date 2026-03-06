@@ -69,13 +69,8 @@ jobs:
         run: pnpm install
 
       - name: Update server package version
-        run: |
-          node -e "
-            const path = 'packages/server/package.json';
-            const pkg = require('./' + path);
-            pkg.version = '${{ github.event.inputs.version }}';
-            require('fs').writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
-          "
+        run: node ./scripts/update-package-version.js packages/server/package.json "${{ github.event.inputs.version }}"
+        
       - name: Build server
         run: pnpm --filter @opentiny/genui-sdk-server build:lib:npm
 

@@ -69,13 +69,7 @@ jobs:
         run: pnpm install
 
       - name: Update Angular package version
-        run: |
-          node -e "
-            const path = 'packages/frameworks/angular/package.json';
-            const pkg = require('./' + path);
-            pkg.version = '${{ github.event.inputs.version }}';
-            require('fs').writeFileSync(path, JSON.stringify(pkg, null, 2) + '\n');
-          "
+        run: node ./scripts/update-package-version.js packages/frameworks/angular/package.json "${{ github.event.inputs.version }}"
 
       - name: Build Angular
         run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
