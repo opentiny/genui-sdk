@@ -1,22 +1,22 @@
 <script setup lang="ts">
 import { parsePartialJson } from 'ai';
-import { ref, watch, computed, provide, inject, nextTick } from 'vue';
+import { ref, watch, computed, inject, nextTick } from 'vue';
 // @ts-ignore
-import defualtSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
+import defaultSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '@opentiny/genui-sdk-core';
-import { exentdMapper } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer'; //TODO: 耦合
+import { extendMapper } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer'; //TODO: 耦合
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
-import { SCHEMA_RENDERER_INJECTION_TOKEN } from '../chat/injection-tokens';
+import { GENUI_RENDERER } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
 
 const props = defineProps<IRendererProps>();
 
-exentdMapper(Mapper, props.customComponents || {});
+extendMapper(Mapper, props.customComponents || {});
 
 const schema = ref<any>({});
-const rendererInstance = ref<defualtSchemaRenderer>(null);
+const rendererInstance = ref<defaultSchemaRenderer>(null);
 
 const callAction = (actionName: string, params: any) => {
   if (!props.customActions[actionName]) {
@@ -25,15 +25,7 @@ const callAction = (actionName: string, params: any) => {
   props.customActions[actionName]?.execute(params, rendererInstance.value.getContext());
 };
 
-const customContext: any = computed(() => {
-  return {
-    onAction: props.onAction,
-    generating: props.generating,
-  };
-});
-
-provide('customContext', customContext);
-const SchemaRenderer = inject(SCHEMA_RENDERER_INJECTION_TOKEN, defualtSchemaRenderer);
+const SchemaRenderer = inject(GENUI_RENDERER, defaultSchemaRenderer);
 
 const deltaPatcher = new DeltaPatcher({
   requiredCompleteFieldSelectors: [
@@ -41,8 +33,6 @@ const deltaPatcher = new DeltaPatcher({
     ...(props.requiredCompleteFieldSelectors || []),
   ],
 });
-
-const textToJson = async (text: string) => parsePartialJson(text);
 
 const { t } = useI18n();
 
@@ -85,14 +75,18 @@ watch(
   async (newVal) => {
     let json: any = newVal;
     let isCompleted = true
-    if (typeof newVal === 'string' && newVal) {
-      const { value, state } = await textToJson(newVal);
-      if (!value) {
-        isError.value = true;
-        return;
+    if (typeof newVal === 'string') {
+      if (newVal.trim()) {
+        const { value, state } = await parsePartialJson(newVal);
+        if (!value) {
+          isError.value = true;
+          return;
+        }
+        json = value;
+        isCompleted = state === 'successful-parse'
+      } else {
+        json = {};
       }
-      json = value;
-      isCompleted = state === 'successful-parse'
     }
     deltaPatcher.patchWithDelta(schema.value, json, isCompleted); // TODO： 速率限制
     if (!updateActionTimer) {
@@ -132,7 +126,6 @@ watch(() => rendererInstance.value, (newVal) => {
 .schema-render-container {
   position: relative;
   color: var(--tv-color-text, #191919);
-  min-width: min(calc(var(--messages-container-width, 200px) - 250px), 400px);
 }
 
 .schema-render-container:has(.loading-warp):after {

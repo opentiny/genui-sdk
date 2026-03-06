@@ -22,8 +22,18 @@
         "supportJsonFormat": false
       },
       {
+        "name": "DeepSeek-R1",
+        "id": "DeepSeek-R1",
+        "supportJsonFormat": false
+      },
+      {
         "name": "LongCat-Flash-Chat",
         "id": "longcat-flash-chat",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "GLM5",
+        "id": "glm-5",
         "supportJsonFormat": false
       },
       {

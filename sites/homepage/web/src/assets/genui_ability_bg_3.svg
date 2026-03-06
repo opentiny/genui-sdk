@@ -1,0 +1,93 @@
+<svg viewBox="0 0 1920 400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920.000000" height="400.000000" fill="none">
+	<defs>
+		<g id="pixso_custom_effect_0">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="500" />
+		</g>
+		<filter id="filter_0" width="1384.000000" height="1386.000000" x="-533.000000" y="-349.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_0)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="166.666672" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_1">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="500" />
+		</g>
+		<filter id="filter_1" width="1230.000000" height="1232.000000" x="-545.000000" y="-547.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_1)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="166.666672" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_2">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="400" />
+		</g>
+		<filter id="filter_2" width="1030.000000" height="1032.000000" x="-28.000000" y="-481.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_2)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="133.333328" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_3">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="400" />
+		</g>
+		<filter id="filter_3" width="1231.000000" height="1033.000000" x="-95.000000" y="-197.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_3)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="133.333328" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_4">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="400" />
+		</g>
+		<filter id="filter_4" width="1231.000000" height="1116.000000" x="844.000000" y="-220.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_4)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="133.333328" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_5">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="400" />
+		</g>
+		<filter id="filter_5" width="988.000000" height="990.000000" x="1059.000000" y="-360.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_5)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="133.333328" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_6">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="400" />
+		</g>
+		<filter id="filter_6" width="1132.000000" height="1055.000000" x="1260.000000" y="-220.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_6)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="133.333328" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_7">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="400" />
+		</g>
+		<filter id="filter_7" width="1046.000000" height="1085.000000" x="1346.000000" y="-455.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_7)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="133.333328" result="effect_layerBlur_1" />
+		</filter>
+	</defs>
+	<rect id="bg_b" width="1920.000000" height="400.000000" x="0.000000" y="0.000000" fill="rgb(251,251,255)" />
+	<g filter="url(#filter_0)">
+		<ellipse id="椭圆 140" rx="192.000000" ry="193.000000" cx="159" cy="344" fill="rgb(192,241,216)" />
+	</g>
+	<g filter="url(#filter_1)">
+		<ellipse id="椭圆 141" rx="115.000000" ry="116.000000" cx="70" cy="69" fill="rgb(205,238,154)" fill-opacity="0.400000006" />
+	</g>
+	<g filter="url(#filter_2)">
+		<ellipse id="椭圆 147" rx="115.000000" ry="116.000000" cx="487" cy="35" fill="rgb(247,240,255)" />
+	</g>
+	<g filter="url(#filter_3)">
+		<ellipse id="椭圆 142" rx="215.500000" ry="116.500000" cx="520.5" cy="319.5" fill="rgb(218,239,208)" fill-opacity="0.800000012" />
+	</g>
+	<g filter="url(#filter_4)">
+		<ellipse id="椭圆 143" rx="215.500000" ry="158.000000" cx="1459.5" cy="338" fill="rgb(198,206,255)" fill-opacity="0.779999971" />
+	</g>
+	<g filter="url(#filter_5)">
+		<ellipse id="椭圆 144" rx="94.000000" ry="95.000000" cx="1553" cy="135" fill="rgb(226,244,218)" />
+	</g>
+	<g filter="url(#filter_6)">
+		<ellipse id="椭圆 145" rx="166.000000" ry="127.500000" cx="1826" cy="307.5" fill="rgb(246,203,177)" fill-opacity="0.600000024" />
+	</g>
+	<g filter="url(#filter_7)">
+		<ellipse id="椭圆 146" rx="123.000000" ry="142.500000" cx="1869" cy="87.5" fill="rgb(198,206,255)" fill-opacity="0.699999988" />
+	</g>
+</svg>

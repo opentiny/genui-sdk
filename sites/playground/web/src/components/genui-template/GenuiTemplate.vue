@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import { computed, ref, provide, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { CodeEditor } from 'monaco-editor-vue3';
-import SchemaRenderer from '@opentiny/tiny-schema-renderer';
-import { ConfigProvider } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import { IconEditorCode } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
-import type { IMessage, ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
+import type { IMessage } from '@opentiny/genui-sdk-vue';
+import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import useTemplate from './useTemplate';
+import SchemaRenderer from '@opentiny/tiny-schema-renderer';
 
 const { currentSchema, setCurrentSchema, templateConversationState } = useTemplate();
 
@@ -87,21 +88,14 @@ const resetToLatestVersion = () => {
 };
 
 resetToLatestVersion();
-
-const onAction = () => {};
-
-provide('customContext', {
-  onAction,
-  generating: false,
-});
 </script>
 
 <template>
   <div class="genui-schema-template">
     <div class="genui-schema-template-left">
-      <config-provider v-show="!schemaEditorVisible" :theme="theme" style="width: 100%; height: 100%">
+      <GenuiConfigProvider v-show="!schemaEditorVisible" :theme="theme" style="width: 100%; height: 100%">
         <genui-template-chat class="genui-template-chat" @schema-version-toggle="toggleSchemaVersion" />
-      </config-provider>
+      </GenuiConfigProvider>
       <div class="schema-version-container" v-if="schemaEditorVisible">
         <div class="schema-version-toggle-button-group" v-if="schemaDiffVisible">
           <tiny-button @click="updateSchemaVersion">还原此版本</tiny-button>
@@ -111,11 +105,8 @@ provide('customContext', {
       </div>
     </div>
     <div class="genui-schema-template-right" v-if="currentSchema">
-      <tiny-button
-        class="schema-editor-toggle-button"
-        :icon="TinyIconEditorCode"
-        @click="toggleSchemaEditor"
-      ></tiny-button>
+      <tiny-button class="schema-editor-toggle-button" :icon="TinyIconEditorCode"
+        @click="toggleSchemaEditor"></tiny-button>
       <schema-renderer class="schema-renderer" :schema="currentSchema" :generating="false" :onAction="onAction" />
     </div>
   </div>

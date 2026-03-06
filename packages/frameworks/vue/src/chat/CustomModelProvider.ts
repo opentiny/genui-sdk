@@ -1,39 +1,69 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import { reactive, toRaw } from 'vue';
-import type { LLMConfig, IGenuiConfig, ICustomConfig } from './chat.types';
+import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
+import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
 import { emitter } from './event-emitter';
-import useSchemaStream from './useSchemaStream';
 import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
 import { v4 as uuidv4 } from 'uuid';
 import { useI18n } from './i18n';
+import { PatternExtractor } from '@opentiny/genui-sdk-core';
 
 export interface ICustomModelProviderOptions {
   url: string;
-  llmConfig: LLMConfig;
-  config: IGenuiConfig;
-  customConfig: ICustomConfig;
+  model: string;
+  temperature: number;
+  chatConfig: IChatConfig;
+  customComponents: ICustomComponentItem[];
+  customSnippets: IGenPromptSnippet[];
+  customExamples: IGenPromptExample[];
+  customActions: ICustomActionItem[];
+  customFetch?: CustomFetch;
 }
 export class CustomModelProvider extends BaseModelProvider {
   private url: string;
-  private llmConfig: LLMConfig;
-  private customConfig: ICustomConfig;
-  private newConfig: IGenuiConfig;
-  constructor({ url, llmConfig, config, customConfig }: ICustomModelProviderOptions) {
+  private model: string;
+  private temperature: number;
+  private customComponents: ICustomComponentItem[];
+  private customSnippets: IGenPromptSnippet[];
+  private customExamples: IGenPromptExample[];
+  private customActions: ICustomActionItem[];
+  private chatConfig: IChatConfig;
+  private customFetch?: CustomFetch;
+  constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
-    this.llmConfig = llmConfig;
-    this.customConfig = customConfig;
-    this.newConfig = config;
+    this.model = model;
+    this.temperature = temperature;
+    this.customComponents = customComponents;
+    this.customSnippets = customSnippets;
+    this.customExamples = customExamples;
+    this.customActions = customActions;
+    this.chatConfig = chatConfig;
+    this.customFetch = customFetch;
   }
-  validateRequest(_: ChatCompletionRequest) {}
+  validateRequest(_: ChatCompletionRequest) { }
 
-  changeLlmConfig(llmConfig: LLMConfig) {
-    this.llmConfig = llmConfig;
+  changeLlmConfig(model: string, temperature: number) {
+    this.model = model;
+    this.temperature = temperature;
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await chat(this.url, request.messages, this.llmConfig, request.options?.signal, this.customConfig);
+    return await chat(
+      {
+        url: this.url,
+        messages: request.messages,
+        model: this.model,
+        temperature: this.temperature,
+        signal: request.options?.signal,
+        customComponents: this.customComponents,
+        customSnippets: this.customSnippets,
+        customExamples: this.customExamples,
+        customActions: this.customActions,
+        customFetch: this.customFetch,
+      }
+    );
   }
 
   async chat(_: ChatCompletionRequest) {
@@ -50,10 +80,19 @@ export class CustomModelProvider extends BaseModelProvider {
       return;
     }
     const reader = response.body!.getReader();
+    const signal = request.options?.signal;
+    signal?.addEventListener('abort',
+      () => {
+        reader.cancel();
+        onReasoningEnd();
+      },
+      { once: true }
+    )
+
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
     const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
-    const { handleSchemaStream, clearSchemaState } = useSchemaStream();
+    let inProcessToolCallId;
     const chatMessage = reactive<IChatMessage>({
       role: 'assistant',
       content: '',
@@ -74,39 +113,79 @@ export class CustomModelProvider extends BaseModelProvider {
         });
       }
     };
-
-    /**
-     * 处理 schema 和 markdown 流式内容
-     */
-    const onSchemaCard = (content: string, delta: IStreamDelta) => {
-      handleSchemaStream(content, chatMessage);
-      
-      // 如果是新创建的 schema-card，需要生成 id
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-        lastMessage.id = uuidv4();
+    const onMarkdown = (content: string, delta: IStreamDelta) => {
+      if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'markdown') {
+        chatMessage.messages[chatMessage.messages.length - 1].content += content;
+      } else {
+        chatMessage.messages.push({
+          type: 'markdown',
+          content: content
+        });
       }
-
-      // 发送通知
       emitNotification(delta);
+    };
+    const onSchemaJSON = (content: string, delta: IStreamDelta) => {
+      if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'schema-card') {
+        chatMessage.messages[chatMessage.messages.length - 1].content += content;
+      } else {
+        chatMessage.messages.push({
+          type: 'schema-card',
+          content: content,
+          id: uuidv4(),
+        });
+      }
+      emitNotification(delta);
+    }
+
+    const onReasoningContent = (reasoningContent: string, delta: IStreamDelta) => {
+      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
+      if (lastMessage?.type === 'reasoning') {
+        lastMessage.content += reasoningContent;
+      } else {
+        chatMessage.messages.push({
+          type: 'reasoning',
+          content: reasoningContent,
+          thinking: true,
+        });
+      }
+      emitNotification(delta);
+    };
+
+    const onReasoningEnd = () => {
+      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
+      if (lastMessage?.type === 'reasoning') lastMessage.thinking = false;
     };
 
     const onToolCall = (toolCalls: any[], delta: IStreamDelta) => {
       toolCalls.forEach((toolCall) => {
         const {
           id,
-          function: { name, arguments: args },
+          function: { name, arguments: argsDelta },
         } = toolCall;
-        const toolCallItem: IMessageItem & { type: 'tool' } = reactive({
-          type: 'tool',
-          name: name,
-          formatPretty: true,
-          status: 'running',
-          content: args ? JSON.stringify({ arguments: args }, null, 2) : '',
-          id,
-        });
-        toolCallIdMap[id] = toolCallItem;
-        chatMessage.messages.push(toolCallItem);
+
+        let toolCallItem: IMessageItem & { type: 'tool' };
+        // 有id的就是首次工具调用返回
+        if (id) {
+          inProcessToolCallId = id;
+          toolCallItem = reactive({
+            type: 'tool',
+            name: name,
+            formatPretty: true,
+            status: 'running',
+            content: JSON.stringify({ arguments: argsDelta || '' }, null, 2),
+            id,
+          });
+          toolCallIdMap[id] = toolCallItem;
+          chatMessage.messages.push(toolCallItem);
+        } else {
+          toolCallItem = toolCallIdMap[inProcessToolCallId];
+          const prevArgs = JSON.parse(toolCallItem.content).arguments;
+          const nextArgs = prevArgs + (argsDelta || '');
+  
+          toolCallItem.content = JSON.stringify({ arguments: nextArgs }, null, 2);
+        }
+
+
 
         emitter.emit('notification', {
           type: 'tool',
@@ -134,7 +213,7 @@ export class CustomModelProvider extends BaseModelProvider {
           chatMessage: structuredClone(toRaw(chatMessage)),
         });
 
-        if (this.newConfig.addToolCallContext) {
+        if (this.chatConfig.addToolCallContext) {
           const { t } = useI18n();
           chatMessage.content +=
             t('toolCall.context', {
@@ -145,6 +224,11 @@ export class CustomModelProvider extends BaseModelProvider {
         }
       }
     };
+    let currentDelta: IStreamDelta = {};
+    const patternExtractor = new PatternExtractor({
+      onNormalWrite: (value) => onMarkdown(value, currentDelta),
+      onHandledWrite: (value) => onSchemaJSON(value, currentDelta),
+    });
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -156,24 +240,31 @@ export class CustomModelProvider extends BaseModelProvider {
         if (lineEnd === -1) break;
         const line = buffer.slice(0, lineEnd).trim();
         buffer = buffer.slice(lineEnd + 1);
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
-            const { tool_calls, tool_calls_result, content } = delta;
-            if (tool_calls) {
-              onToolCall(tool_calls, delta);
-              clearSchemaState();
-            } else if (tool_calls_result) {
-              onToolResult(tool_calls_result, delta);
-            } else if (content) {
-              onSchemaCard(content, delta);
-            }
-          } catch (e) {
-            console.error(e);
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') break;
+        try {
+          const chunk = JSON.parse(data);
+          const delta = chunk.choices?.[0]?.delta || {};
+          const { tool_calls, tool_calls_result, content, reasoning_content } = delta;
+          if (reasoning_content) {
+            onReasoningContent(reasoning_content, delta);
+            continue;
           }
+          onReasoningEnd();
+
+          if (tool_calls) {
+            onToolCall(tool_calls, delta);
+            patternExtractor.reset();
+          } else if (tool_calls_result) {
+            onToolResult(tool_calls_result, delta);
+          } else if (content) {
+            currentDelta = delta;
+            patternExtractor.handleContent(content);
+            chatMessage.content += content;
+          }
+        } catch (e) {
+          console.error(e);
         }
       }
     }

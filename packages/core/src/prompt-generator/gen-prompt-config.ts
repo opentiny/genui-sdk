@@ -1,5 +1,6 @@
 import type { IFunctionInfo } from '../protocols/materials';
 import type { CardSchema, NodeSchema } from '../protocols/schema';
+import type { JsonSchema7Type } from 'zod-to-json-schema';
 
 export interface IGenPromptComponentProperty {
   property: string;
@@ -36,13 +37,29 @@ export interface IGenPromptExample {
   schema: CardSchema;
 }
 
+export interface IGenPromptActionParam {
+  name: string;
+  description?: string;
+  type?: string;
+  required?: boolean;
+}
+
+export interface IGenPromptAction {
+  name: string;
+  description?: string;
+  parameters?: JsonSchema7Type;
+}
+
 export type IGenPromptSnippet = NodeSchema;
 
-export interface IGenPromptConfig {
-  framework?: 'Vue' | 'Angular';
-  strategy?: 'append' | 'override' | 'prepend';
+export interface IGenPromptCustomConfig {
   customComponents?: IGenPromptComponent[];
   customSnippets?: IGenPromptSnippet[];
   customExamples?: IGenPromptExample[];
-  customActions?: any[];
+  customActions?: IGenPromptAction[];
+}
+
+export interface IGenPromptConfig extends IGenPromptCustomConfig {
+  framework?: 'Vue' | 'Angular';
+  strategy?: 'append' | 'override' | 'prepend';
 }

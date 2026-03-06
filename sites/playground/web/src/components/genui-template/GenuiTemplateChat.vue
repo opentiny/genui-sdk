@@ -16,25 +16,22 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import { requiredCompleteFieldSelectors } from '@opentiny/genui-sdk-vue';
-import type { IMessage } from './chat.types';
+import { requiredCompleteFieldSelectors, emitter, scrollEnd, throttle } from '@opentiny/genui-sdk-vue';
+import type { IMessage } from '@opentiny/genui-sdk-vue';
+import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 import {
-  scrollEnd,
-  throttle,
   textToJson,
   validateJsonPatch,
   PARSE_PARTIAL_JSON_STATE,
   formatJsonPatch,
   formatDateTime,
   generateIdForComponents,
-  generateId,
+  generateId
 } from './utils';
 import { jsonPatchDeduplicator } from './json-patch-deduplicator';
 import SchemaVersionCard from './SchemaVersionCard.vue';
-import { emitter } from './event-emitter';
 import useTemplate from './useTemplate';
 import AssistantFooter from './TemplateAssistantFooter.vue';
-import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 
 const props = defineProps<{
   messages?: IMessage[];

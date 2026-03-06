@@ -5,16 +5,24 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --filter genui-sdk-playground dev",
-    "build:projects": "pnpm --filter tiny-schema-renderer build && pnpm --filter tiny-schema-renderer-ng build",
+    "docs:dev": "pnpm --filter genui-sdk-docs dev",
+    "homepage:dev": "pnpm --filter genui-sdk-homepage-web dev",
+    "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build",
     "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
     "prebuild:lib": "pnpm build:materials",
     "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build",
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
-    "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build",
+    "build:server": "pnpm --filter @opentiny/genui-sdk-server build",
+    "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build && pnpm --filter @opentiny/genui-sdk-chat-completions build",
     "build:playground": "pnpm --filter genui-sdk-playground build",
+    "build:playground-web": "pnpm prebuild:playground && pnpm --filter genui-sdk-playground-web build",
+    "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
     "build": "pnpm build:playground"
   },
   "keywords": [],
   "author": "OpenTiny",
-  "packageManager": "pnpm@10.12.1"
+  "packageManager": "pnpm@10.12.1",
+  "devDependencies": {
+    "@babel/parser": "^7.28.3"
+  }
 }

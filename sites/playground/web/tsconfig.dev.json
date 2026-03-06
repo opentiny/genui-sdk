@@ -18,8 +18,14 @@
       "@opentiny/genui-sdk-materials-vue-opentiny-vue": [
         "../../../packages/materials/vue-opentiny-vue/src/index.ts"
       ],
+      "@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer": [
+        "../../../packages/materials/vue-opentiny-vue/src/extend-renderer.ts"
+      ],
       "@opentiny/genui-sdk-materials-angular-opentiny-ng": [
         "../../../packages/materials/angular-opentiny-ng/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config": [
+        "../../../packages/materials/angular-opentiny-ng/src/render-config.ts"
       ]
     }
   },
@@ -27,6 +33,6 @@
     "src/**/*",
     "../**/*",
     "../../../packages/**/*",
-    "../../../projects/tiny-schema-renderer/**"
+    "../../../projects/**/*"
   ]
 }

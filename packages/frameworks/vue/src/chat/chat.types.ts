@@ -1,73 +1,36 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { Component } from 'vue';
 import type { IRendererSlots } from '../renderer';
-import type { EventEmitter } from './event-emitter';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
-import type { INotificationPayload } from '@opentiny/genui-sdk-core';
+import type {
+  INotificationPayload,
+  IGenPromptComponent,
+  IGenPromptSnippet,
+  IGenPromptExample,
+  IGenPromptAction,
+} from '@opentiny/genui-sdk-core';
+
+export interface ICustomActionItem extends IGenPromptAction {
+  execute: (params: any, context: Record<string, any>) => void;
+}
 
 export interface IRolesConfig {
   user: Partial<BubbleRoleConfig>;
   assistant: Partial<BubbleRoleConfig>;
 }
 
-export interface ILlmConfig {
-  url: string;
-  model: string;
-  temperature: number;
-  prompt?: string;
-  mcpServers?: any[];
+
+// 自定义组件项，扩展 IGenPromptComponent 添加 ref（组件引用）
+export interface ICustomComponentItem extends IGenPromptComponent {
+  ref: Component; // 组件引用，用于传给 SchemaRenderer
 }
 
-export interface IProviderProps {
-  targetElement?: string;
-}
-
-export type ICustomConfig = any;
-
-export interface ICommonComponent {
-  name?: string;
-  displayName?: string;
-}
-
-export interface IAbilityAugmentConfig {
-  customComponents?: any;
-  customSnippets?: any;
-  customExamples?: any;
-  customActions?: any;
-}
-
-export interface withMeataData<T> {
-  metadata: Record<string, any>;
-  component: T;
-}
-
-export interface ICustomizeSetting {
-  customComponents?: Record<string, Component | withMeataData<Component>>;
-  thinkComponent?: Component<BubbleProps>;
-  footerComponent?: {
-    user: Component<BubbleProps>;
-    assistant: Component<BubbleProps>;
-  };
-  customActions?: any;
-}
-
-export interface IPreferencesSetting {
-  requiredCompleteFieldSelectors?: string[];
-  addToolCallContext: boolean; // 是否添加工具调用上下文
-  showThinkingResult: boolean; // 是否显示思考结果
-}
-
-export interface LLMConfig {
-  model: string;
-  temperature: number;
-}
-
-export interface IGenuiConfig {
+export interface IChatConfig {
   addToolCallContext?: boolean;
   showThinkingResult?: boolean;
 }
 
-interface IMessageItem {
+export interface IMessageItem {
   type: string;
   content: string;
   [customKey: string]: any;
@@ -96,22 +59,44 @@ export interface INotificationEventEmitter {
   once(eventName: 'notification', callback: (payload: INotificationPayload) => void): void;
 }
 
-export interface IGeneratingComponentProps {
+export interface IThinkComponentProps {
   emitter: INotificationEventEmitter;
   message: IMessage;
   showThinkingResult: boolean;
 }
 
+/**
+ * 自定义请求函数类型
+ * @param url 请求地址
+ * @param options 请求选项（包含 method, headers, body, signal 等）
+ * @returns 返回 Response 对象或 Promise<Response>
+ */
+export type CustomFetch = (
+  url: string,
+  options: {
+    method: string;
+    headers: Record<string, string>;
+    body: string;
+    signal?: AbortSignal;
+  },
+) => Promise<Response> | Response;
+
 export interface IChatProps {
-  url: string;
+  url?: string;
+  model?: string;
+  temperature?: number;
   messages?: IMessage[];
-  llmConfig?: LLMConfig;
-  config?: IGenuiConfig;
-  customConfig?: ICustomConfig;
+  chatConfig?: IChatConfig;
+  requiredCompleteFieldSelectors?: string[];
+  customComponents?: ICustomComponentItem[];
+  customSnippets?: IGenPromptSnippet[];
+  customExamples?: IGenPromptExample[];
+  customActions?: ICustomActionItem[];
   rendererSlots?: IRendererSlots;
   thinkComponent?: Component<BubbleProps>;
   roles?: IRolesConfig;
   features?: ModelCapability;
+  customFetch?: CustomFetch;
 }
 
 export interface ImageFeatures {

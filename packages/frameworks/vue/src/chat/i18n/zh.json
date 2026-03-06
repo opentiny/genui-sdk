@@ -4,6 +4,10 @@
     "generatingCard": "正在生成卡片...",
     "thinking": "正在思考中..."
   },
+  "reasoning": {
+    "thinking": "正在思考",
+    "thinkingEnd": "已思考"
+  },
   "toolStatus": {
     "running": "正在调用",
     "success": "已调用",
@@ -27,9 +31,6 @@
     "description": "继续对话， 框用于表单的提交按钮等",
     "messageParam": "相关参数为：",
     "paramDescription": "对话消息,可以是按钮文本等，也可以是其他内容"
-  },
-  "actionButton": {
-    "clickMessage": "点击了{text}按钮，相关数据为：{state}, 若任务未完成，请继续完成任务。"
   },
   "toolCall": {
     "context": "工具名称：{toolName}，工具参数：{toolParams}，工具结果：{toolResult}"

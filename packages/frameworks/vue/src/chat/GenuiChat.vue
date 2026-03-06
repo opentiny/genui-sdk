@@ -4,7 +4,6 @@ import {
   TrBubbleList,
   TrSender,
   TrBubbleProvider,
-  useTheme,
   BubbleMarkdownContentRenderer,
 } from '@opentiny/tiny-robot';
 import { AIClient, GeneratingStatus, STATUS, type ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -16,38 +15,39 @@ import type {
   UserItem,
   UserTextItem,
 } from '@opentiny/tiny-robot';
-import { ref, watch, computed, h, inject, nextTick } from 'vue';
-import type { Ref } from 'vue';
+import { ref, watch, computed, h, inject, provide } from 'vue';
+import type { Ref, Component } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
 import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue';
+import ReasoningRenderer from './renderer/ReasoningRenderer.vue';
 import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
 import { emitter } from './event-emitter';
-import type { IChatProps, IRolesConfig } from './chat.types';
+import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
-import { useContinueChatAction } from './continue-chat-action';
+import { useChatAction } from './continue-chat-action';
 import type { IMessageItem } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
-import { SchemaRenderer } from '../renderer';
+import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
 import { useResize } from './composable/use-resize';
 import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
+import { GENUI_CONFIG, CUSTOM_CONTEXT } from './injection-tokens';
 
 const props = defineProps<IChatProps>();
 
-const TinyGenuiConfig: any = inject('TinyGenuiConfig');
+const genuiConfig: any = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
 
-const { setColorMode } = useTheme();
 const isAllowFiles = computed(() => {
   const supportImage = props.features?.supportImage;
 
-  if(supportImage && supportImage?.enabled !== false) {
+  if (supportImage && supportImage?.enabled !== false) {
     return true;
   }
   return false;
@@ -62,20 +62,6 @@ const buttonGroup = computed(() => {
     },
   };
 });
-
-watch(
-  () => TinyGenuiConfig?.value?.theme,
-  (theme) => {
-    if (theme === 'dark') {
-      setColorMode(theme);
-    } else {
-      setColorMode('light');
-    }
-  },
-  {
-    immediate: true,
-  },
-);
 
 // 定义角色图标以及样式
 const defaultRoles: { user: BubbleRoleConfig; assistant: BubbleRoleConfig } = {
@@ -130,9 +116,9 @@ const roles = computed(() => {
   return mergedRoles;
 });
 
-const flatAllMessages = (messages: ChatMessage[]) => 
-   messages
-    .filter(item => item.role === 'assistant')
+const flatAllMessages = (messages: ChatMessage[]) =>
+  messages
+    .filter((item) => item.role === 'assistant')
     .reduce((acc: IMessageItem[], chatItem) => {
       const itemMessages = (chatItem as { messages?: IMessageItem[] }).messages;
       if (Array.isArray(itemMessages)) {
@@ -141,11 +127,10 @@ const flatAllMessages = (messages: ChatMessage[]) =>
       return acc;
     }, []);
 
-
 const getCardMessage = (cardId: string) => {
-  const flatMessages = flatAllMessages(messages.value)
+  const flatMessages = flatAllMessages(messages.value);
   return flatMessages.find((message: IMessageItem) => 'id' in message && message.id === cardId);
-}
+};
 
 const saveState = (context: Record<string | symbol, any>) => {
   const cardId = context[cardIdSymbol];
@@ -154,8 +139,9 @@ const saveState = (context: Record<string | symbol, any>) => {
     (cardMessage as any).state = Object.assign({}, context.state || {});
   }
   saveConversations();
-}
-const onAction = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) => {
+};
+
+const chat = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) => {
   saveState(context);
   messageManager.value.addMessage({
     role: 'user',
@@ -165,15 +151,17 @@ const onAction = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) =>
   messageManager.value.send();
 };
 
-const { continueChatAction } = useContinueChatAction(onAction); //TODO: Refactor
-const saveStateAction = {
-  name: 'saveState',
-  description: '保存状态， 用于保存组件状态',
-  execute: (params: any, context: Record<string | symbol, any>) => {
-    saveState(context);
-  },
-  params: {}
-}
+const customContext = computed(() => {
+  return {
+    chat,
+    generating: generating.value,
+  };
+});
+
+provide(CUSTOM_CONTEXT, customContext);
+
+const { continueChatAction, saveStateAction } = useChatAction({chat, saveState}); //TODO: Refactor
+
 
 const generating = computed(() => GeneratingStatus.includes(messageManager.value.messageState.status));
 
@@ -182,7 +170,7 @@ const markdownRenderer = new BubbleMarkdownContentRenderer({
   mdConfig: { html: true },
 });
 
-const lastScemaCardId = computed(() => {
+const lastSchemaCardId = computed(() => {
   const lastChatMessage = messages.value[messages.value.length - 1];
   if (lastChatMessage?.role !== 'assistant') {
     return null;
@@ -198,48 +186,68 @@ const messageRenderers = {
   'custom-text': (props: BubbleCommonProps & { content: string }) =>
     h('span', { class: 'tr-bubble__body-text' }, props.content),
   'schema-card': (schemaCardProps: IRendererProps) => {
-    return h('div', {}, 
-    h(
-      SchemaRenderer,
-      {
-        
-        ...schemaCardProps,
-        requiredCompleteFieldSelectors: [],
-        onAction,
-        generating: lastScemaCardId.value === schemaCardProps.id ? generating.value : false,
-        customComponents: props.customConfig?.customComponents,
-        customActions: {
-          ...props.customConfig?.customActions,
-          continueChat: continueChatAction,
-          saveState: saveStateAction,
+    const customComponentsMap: Record<string, Component> = {};
+    if (props.customComponents) {
+      props.customComponents.forEach((item) => {
+        if (item.ref && item.component) {
+          customComponentsMap[item.component] = item.ref;
+        }
+      });
+    }
+
+    // 将 customActions 数组转换为对象格式
+    const customActionsMap: Record<string, ICustomActionItem> = {};
+    if (props.customActions) {
+      props.customActions.forEach((action) => {
+        if (action.name) {
+          customActionsMap[action.name] = action;
+        }
+      });
+    }
+
+    return h(
+      'div',
+      {},
+      h(
+        GenuiRenderer,
+        {
+          ...schemaCardProps,
+          requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
+          generating: lastSchemaCardId.value === schemaCardProps.id ? generating.value : false,
+          customComponents: customComponentsMap,
+          customActions: {
+            ...customActionsMap,
+            continueChat: continueChatAction,
+            saveState: saveStateAction,
+          },
+          key: schemaCardProps.id,
         },
-        key: schemaCardProps.id,
-      },
-      {
-        header: toSlotFunction(props.rendererSlots?.header),
-        footer: toSlotFunction(props.rendererSlots?.footer),
-      },
-    ))
+        {
+          header: toSlotFunction(props.rendererSlots?.header),
+          footer: toSlotFunction(props.rendererSlots?.footer),
+        },
+      ),
+    );
   },
   tool: ToolRenderer,
+  reasoning: ReasoningRenderer,
   markdown: markdownRenderer,
   templateData: TemplateDataRenderer,
   'loading-text': props.thinkComponent || GeneratingComponent,
   'error-text': ErrorText,
 };
-const appendCustomConfig = (customConfig: any) => {
-  return {
-    ...customConfig,
-    customActions: [...(customConfig.customActions || []), continueChatAction],
-  };
-};
 
-// 配置AI对话提供商
+
 const customModelProvider = new CustomModelProvider({
   url: props.url,
-  llmConfig: props.llmConfig || { model: '', temperature: 0.3 },
-  config: props.config || { addToolCallContext: false, showThinkingResult: false },
-  customConfig: appendCustomConfig(props.customConfig || {}),
+  model: props.model || '',
+  temperature: props.temperature ?? 0.3,
+  chatConfig: props.chatConfig || { addToolCallContext: false, showThinkingResult: false },
+  customComponents: props.customComponents || [],
+  customSnippets: props.customSnippets || [],
+  customExamples: props.customExamples || [],
+  customActions: [...(props.customActions || []), continueChatAction, saveStateAction],
+  customFetch: props.customFetch,
 });
 
 const client = new AIClient({
@@ -256,10 +264,15 @@ let conversation = useConversation({
       preventDefault();
     },
     onLoaded(conversations) {
-      // 如果历史会话为空，则创建一个默认会话
       if (!conversations.length) {
         createConversation();
         saveConversations();
+      }
+
+      // 如果通过 props.messages 传入了初始消息，则在会话加载完成后覆盖当前会话的消息
+      if (props.messages?.length) {
+        const currentMessages = messageManager.value.messages.value;
+        currentMessages.splice(0, currentMessages.length, ...(props.messages as any));
       }
     },
     onFinish(data: any, context) {
@@ -276,16 +289,18 @@ let conversation = useConversation({
 });
 const { messageManager, createConversation, updateTitle, state: conversationState, saveConversations } = conversation;
 
-// 当前会话的 messages 代理
 const messages = computed(() => messageManager.value.messages.value);
 
-// 当前会话的 inputMessage 代理，给 v-model 使用
 const inputMessage = computed({
   get: () => messageManager.value.inputMessage.value,
   set: (v: string) => {
     messageManager.value.inputMessage.value = v;
   },
 });
+
+const setInputMessage = (message: string) => {
+  inputMessage.value = message;
+}
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -333,7 +348,7 @@ const showMessages = computed(() => {
               type: 'loading-text',
               emitter: emitter,
               message: lastMessage,
-              showThinkingResult: props.config?.showThinkingResult,
+              showThinkingResult: props.chatConfig?.showThinkingResult,
             },
           ],
         },
@@ -364,7 +379,6 @@ const handleRemoveAttachment = (item: FileMeta | undefined) => {
   templateData.value = templateData.value.filter((data) => data.type !== 'template' || data.content !== item.name);
 };
 
-// 发送消息
 const handleSendMessage = async (ipt: string) => {
   const messageContent = ipt;
   const userMessageContent: BubbleContentItem[] = [];
@@ -377,7 +391,7 @@ const handleSendMessage = async (ipt: string) => {
     content: messageContent,
   };
   messages.value.push(userMessage);
-  // 附件处理
+
   if (attachmentsValue.length > 0) {
     const result = await processAttachments(attachmentsValue, props.features || {});
     if (!result) {
@@ -428,7 +442,8 @@ const abortRequest = () => {
 
 const messagesContainer: Ref<HTMLElement | undefined> = ref();
 const { width: messagesContainerWidth } = useResize(messagesContainer);
-const { scrollToBottom, scrollToBottomWithRetry, autoScrollToBottom, isLastMessageInBottom } = scrollEnd(messagesContainer);
+const { scrollToBottom, scrollToBottomWithRetry, autoScrollToBottom, isLastMessageInBottom } =
+  scrollEnd(messagesContainer);
 // 使用节流包装 scrollToBottom，延迟 400ms
 const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
@@ -443,13 +458,14 @@ watch(
 );
 
 watch(
-  () => props.llmConfig,
-  (llmConfig) => {
-    customModelProvider.changeLlmConfig(llmConfig || { model: '', temperature: 0.3 });
+  () => [props.model, props.temperature],
+  () => {
+    customModelProvider.changeLlmConfig(props.model || '', props.temperature ?? 0.3);
   },
 );
 
 defineExpose({
+  setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
 });
@@ -458,20 +474,21 @@ defineExpose({
 <template>
   <div
     class="tg-chat-container"
-    :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }"
-    :style="props.config?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
+    :class="{ 'dark': genuiConfig?.theme === 'dark' }"
+    :style="props.chatConfig?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
   >
-    <div class="messages-container" ref="messagesContainer" :style="{ '--messages-container-width': messagesContainerWidth + 'px' }">
+    <div
+      class="messages-container"
+      ref="messagesContainer"
+      :style="{ '--messages-container-width': messagesContainerWidth + 'px' }"
+    >
       <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
-      <div v-else class="empty-messages">
-        <!-- TODO 图表和文本支持传入 -->
-        <IconAi />
-        <span>GenUI Playground</span>
-      </div>
+      <slot v-else name="empty"></slot>
     </div>
     <div class="sender-container">
+      <!-- TODO: 抽离到组件 -->
       <div
         :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
         v-show="!isLastMessageInBottom"
@@ -481,7 +498,11 @@ defineExpose({
       </div>
       <tr-sender
         v-model="inputMessage"
-        :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? t('placeholder.thinking') : t('placeholder.input')"
+        :placeholder="
+          GeneratingStatus.includes(messageManager.messageState.status)
+            ? t('placeholder.thinking')
+            : t('placeholder.input')
+        "
         :clearable="true"
         :allow-files="isAllowFiles"
         :buttonGroup="buttonGroup"
@@ -510,6 +531,10 @@ defineExpose({
 .tg-chat-container {
   --ti-gen-chat-container-bg-color: #f0f0f0;
   --thinking-display: initial;
+  --sender-bg: url('./assets/sender-light.svg') no-repeat center;
+  --sender-border-color: #e5e5e5;
+  --generating-bg-before: linear-gradient(90deg, #fff, #a2c7f4);
+  --generating-bg-after: #fff;
   box-sizing: border-box;
   height: 100%;
   color: var(--tr-text-primary);
@@ -520,6 +545,10 @@ defineExpose({
   overflow: auto;
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
+    --sender-bg: url('./assets/sender-dark.svg') no-repeat center;
+    --sender-border-color: #333;
+    --generating-bg-before: linear-gradient(90deg, #262626, #808080);
+    --generating-bg-after: #191919;
   }
 }
 
@@ -530,25 +559,6 @@ defineExpose({
   flex: 1;
   overflow: auto;
   word-break: break-word;
-  &::-webkit-scrollbar {
-    width: 10px;
-  }
-  .empty-messages {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    height: 80%;
-    font-size: 32px;
-    font-weight: 600;
-    & > svg {
-      width: 56px;
-      height: 56px;
-    }
-  }
-}
-:deep(.tr-bubble__content.border-corner) {
-  max-width: 80%;
 }
 
 :deep(.tr-bubble__loading) {
@@ -565,7 +575,7 @@ defineExpose({
 }
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
   // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
-  > [type]:not([type=""]):not([type='schema-card']):not([type='loading-text']) {
+  > [type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);
   }
 }
@@ -574,17 +584,26 @@ defineExpose({
     margin-top: 16px;
   }
 }
-:deep(.tr-bubble__content-wrapper) {
-  width: 100%;
-}
+
 :deep(.tr-bubble.placement-end) {
   width: 100%;
+}
+:deep(.tr-bubble__content-wrapper) {
+  @avatar-and-gap-width: 56px;
+  max-width: calc(100% - @avatar-and-gap-width * 2);
+
+  .tr-bubble__content {
+    max-width: 100%;
+  }
+  .tr-bubble__content-items {
+    overflow-x: auto;
+  }
 }
 .sender-container {
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
-  background: url('./assets/sender-bg.svg') no-repeat center;
+  background: var(--sender-bg);
   .attachments-container {
     padding: 0 20px;
   }
@@ -596,13 +615,13 @@ defineExpose({
   top: -35px;
   width: 40px;
   height: 40px;
-  background-color: #fff;
+  background-color: var(--generating-bg-after);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--sender-border-color);
   z-index: 1000;
   & > svg {
     width: 20px;
@@ -610,9 +629,7 @@ defineExpose({
   }
 
   &:hover {
-    box-shadow:
-      0px 10px 20px 0px #0000001a,
-      0px 0px 1px 0px #00000026;
+    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {
@@ -629,7 +646,7 @@ defineExpose({
       width: calc(100% + 4px);
       height: calc(100% + 4px);
       border-radius: 50%;
-      background: conic-gradient(from 0deg, #f5f7ff, #d9e0f5, #bfc8e0, #d9e0f5, #f5f7ff);
+      background: var(--generating-bg-before);
       z-index: 0;
       animation: rotate-border 2s linear infinite;
     }
@@ -642,7 +659,7 @@ defineExpose({
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background-color: #fff;
+      background-color: var(--generating-bg-after);
       z-index: 1;
     }
 
@@ -657,6 +674,14 @@ defineExpose({
   text-align: center;
   margin-top: 16px;
 }
+
+:deep(.schema-render-container) {
+  @large-screen-min-width: 400px;
+  @min-width-safe-padding: 250px;
+  @small-screen-min-width: calc(var(--messages-container-width) - @min-width-safe-padding);
+  min-width: min(@small-screen-min-width, @large-screen-min-width);
+}
+
 @keyframes rotate-border {
   from {
     transform: rotate(0deg);
@@ -666,14 +691,6 @@ defineExpose({
   }
 }
 
-@keyframes text-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
 .tiny-sender {
   width: 80%;
   margin: 0 auto;

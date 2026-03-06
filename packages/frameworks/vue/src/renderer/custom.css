@@ -36,3 +36,17 @@
 :deep(*::after) {
   box-sizing: border-box;
 }
+
+:deep(h1[data-tag='h1']),
+:deep(h2[data-tag='h2']),
+:deep(h3[data-tag='h3']),
+:deep(h4[data-tag='h4']),
+:deep(h5[data-tag='h5']),
+:deep(h6[data-tag='h6']),
+:deep(p[data-tag='p']) {
+  font-size: revert;
+  font-weight: revert;
+  color: revert;
+  margin: revert;
+  padding: revert;
+}
