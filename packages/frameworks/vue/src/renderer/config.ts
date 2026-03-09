@@ -2,6 +2,7 @@ export const requiredCompleteFieldSelectors = [
   '[componentName=Img] > props > src',
   'componentName',
   'style',
+  'css',
   '[type=JSFunction]',
   '[type=JSExpression]',
   '[type=JSSlot][value=]',
