@@ -226,7 +226,6 @@ const markdownRenderer = new BubbleMarkdownContentRenderer({
 const messageRenderers = {
   markdown: markdownRenderer,
   'json-patch': (props) => {
-    console.log('json-patch props ===>', props);
     jsonPatchRenderer(props);
     return h(SchemaVersionCard, {
       key: props.cardId,
@@ -238,7 +237,6 @@ const messageRenderers = {
     });
   },
   'schema-card': (props) => {
-    console.log('schema-card props ===>', props);
     schemaCardRenderer(props);
     return h(SchemaVersionCard, {
       key: props.cardId,

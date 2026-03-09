@@ -1,10 +1,10 @@
 import { reactive, toRaw } from 'vue';
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
+import { PatternExtractor } from '@opentiny/genui-sdk-core';
 import type { IStreamDelta } from '@opentiny/genui-sdk-core';
 import { emitter } from '@opentiny/genui-sdk-vue';
-import useSchemaStream from './useSchemaStream';
 import { templateChat } from './template-chat-api';
-import type { LLMConfig, IChatMessage, IMessageItem } from './chat.types';
+import type { LLMConfig, IChatMessage, IMessageItem, IMarkdownMessageItem } from './chat.types';
 
 export interface ICustomModelProviderOptions {
   url: string;
@@ -35,6 +35,7 @@ export class CustomModelProvider extends BaseModelProvider {
     this.url = url;
     this.llmConfig = llmConfig;
   }
+
   validateRequest(_: ChatCompletionRequest) {}
 
   changeLlmConfig(llmConfig: LLMConfig) {
@@ -57,47 +58,99 @@ export class CustomModelProvider extends BaseModelProvider {
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {
     const { onDone, onData } = handler;
-    // 8位随机 ID
-    const requestId = crypto.randomUUID();
+    // 8 位随机 ID
+    const requestId = Math.random().toString(36).substring(2, 10);
     const response = await this.getData(request);
     let reader = response.body!.getReader();
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
-    let summaryText = '';
     let chatMessage: IChatMessage = reactive({
       role: 'assistant',
       content: '',
       messages: [] as IMessageItem[],
     });
     const { content: input, messageId } = request.messages[request.messages.length - 1];
-    const { handleSchemaStream } = useSchemaStream();
     onData(chatMessage);
 
-    /**
-     * 发送通知事件
-     */
-    const emitNotification = (delta: IStreamDelta) => {
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage) {
-        emitter.emit('notification', {
-          type: lastMessage.type,
-          cardId: messageId,
+    const onMarkdown = (content: string, delta: IStreamDelta) => {
+      if (
+        chatMessage.messages.length > 0 &&
+        chatMessage.messages[chatMessage.messages.length - 1].type === 'markdown'
+      ) {
+        chatMessage.messages[chatMessage.messages.length - 1].content += content;
+      } else {
+        chatMessage.messages.push({
+          type: 'markdown',
+          content,
           input,
-          delta,
-          chatMessage: structuredClone(toRaw(chatMessage)),
+          cardId: messageId,
+        });
+      }
+      emitter.emit('notification', {
+        type: 'markdown',
+        delta,
+        chatMessage: structuredClone(toRaw(chatMessage)),
+      });
+    };
+
+    /**
+     * 处理 schema/jsonPatch 和 markdown 流式内容
+     */
+    const onHandledContent = (
+      content: string,
+      delta: IStreamDelta,
+      currentSchemaType: 'schema-card' | 'json-patch',
+    ) => {
+      if (
+        chatMessage.messages.length > 0 &&
+        chatMessage.messages[chatMessage.messages.length - 1].type === currentSchemaType
+      ) {
+        chatMessage.messages[chatMessage.messages.length - 1].content += content;
+      } else {
+        chatMessage.messages.push({
+          type: currentSchemaType,
+          content,
+          input,
+          cardId: messageId,
+          generatedTime: '',
+          schema: '',
+          prevSchema: '',
         });
       }
     };
 
-    /**
-     * 处理 schema 和 markdown 流式内容
-     */
-    const onSchemaCard = (content: string, delta: IStreamDelta) => {
-      handleSchemaStream(content, chatMessage, input, messageId);
-
-      // 发送通知
-      emitNotification(delta);
+    let currentDelta: IStreamDelta = {};
+    const schemaStart = '```schemaJson';
+    const patchStart = '```jsonPatch';
+    const endFlag = '```';
+    const getPartialStartRegString = (flag: string) => {
+      return flag
+        .split('')
+        .reverse()
+        .reduce((acc, cur) => {
+          return `${cur}(${acc})?`;
+        }, '');
     };
+
+    const jsonPatchExtractor = new PatternExtractor({
+      onNormalWrite: (value) => onMarkdown(value, currentDelta),
+      onHandledWrite: (value) => onHandledContent(value, currentDelta, 'json-patch'),
+      regExpMap: {
+        start: {
+          full: new RegExp(`${patchStart}`),
+          partial: new RegExp(`(${getPartialStartRegString(patchStart)})$`),
+        },
+        end: {
+          full: new RegExp(`\\n\\s*${endFlag}`),
+          partial: new RegExp(`\\n(\\s*${getPartialStartRegString(endFlag)})?$`),
+        },
+      },
+    });
+
+    const schemaJsonExtractor = new PatternExtractor({
+      onNormalWrite: (value) => jsonPatchExtractor.handleContent(value),
+      onHandledWrite: (value) => onHandledContent(value, currentDelta, 'schema-card'),
+    });
 
     while (true) {
       const { done, value } = await reader.read();
@@ -110,26 +163,37 @@ export class CustomModelProvider extends BaseModelProvider {
         if (lineEnd === -1) break;
         const line = buffer.slice(0, lineEnd).trim();
         buffer = buffer.slice(lineEnd + 1);
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
-            const { content } = delta;
-            if (content !== undefined) {
-              summaryText += content;
-              onSchemaCard(content, delta);
-            }
-          } catch (e) {
-            console.error(e);
+        if (!line.startsWith('data: ')) continue;
+        const data = line.slice(6);
+        if (data === '[DONE]') break;
+        try {
+          const chunk = JSON.parse(data);
+          const delta = chunk.choices?.[0]?.delta || {};
+          const { tool_calls, tool_calls_result, content, reasoning_content } = delta;
+          // 模板流仅处理 content（schema/markdown），其余分支预留与 CustomModelProvider 一致
+          if (reasoning_content) {
+            // 模板场景暂不处理 reasoning
+          } else if (tool_calls) {
+            // 模板场景暂不处理 tool_calls
+          } else if (tool_calls_result) {
+            // 模板场景暂不处理 tool_calls_result
+          } else if (content !== undefined) {
+            currentDelta = delta;
+            schemaJsonExtractor.handleContent(content);
           }
+        } catch (e) {
+          console.error(e);
         }
       }
     }
     onDone();
-    chatMessage.content = summaryText;
-    emitter.emit('notification', { type: 'done', content: chatMessage.content, cardId: requestId, input });
+    emitter.emit('notification', {
+      type: 'done',
+      delta: {},
+      chatMessage: structuredClone(toRaw(chatMessage)),
+      cardId: requestId,
+      input,
+    });
   }
 
   setTemplateSchema(schema: any) {
