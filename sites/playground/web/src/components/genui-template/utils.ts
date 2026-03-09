@@ -425,6 +425,79 @@ export const findComponentPath = (currentSchema: any, id: string): string | null
   // 从根节点开始查找
   return findInNode(currentSchema);
 };
+function getComponentItem(schema: any, componentPath: string, indexMode: boolean = false) {
+  const pathSegments = componentPath.split('/');
+  let currentNodeKey = null;
+  let currentNode = schema;
+  let path = [];
+  for (let i = 1; i < pathSegments.length; i++) {
+    if (!currentNode) {
+      return {
+        node: null,
+        path: [...path, ...pathSegments.slice(i)],
+        lostTrackPath: pathSegments.slice(0, i + 1).join('/')
+      };
+    }
+    if (Array.isArray(currentNode)) { 
+      currentNodeKey = parseInt(pathSegments[i]);
+      if (indexMode && currentNodeKey === 'children') {
+        const rIndex = currentNode.findIndex((item: any) => item.index === currentNodeKey);
+        currentNode = currentNode[rIndex];
+        path.push(rIndex);
+      } else {
+        currentNode = currentNode[currentNodeKey];
+        path.push(currentNodeKey);
+      }
+    }else {
+      currentNodeKey = pathSegments[i];
+      currentNode = currentNode[currentNodeKey];
+      path.push(currentNodeKey);
+    }
+  }
+  return {
+    node: currentNode,
+    path: path
+  };
+}
+
+function getPositionRelativePath(position: string, id: string, componentPath: string, fromPath: string) {
+  const idIndexToParentArray = componentPath.split('/');
+  const idIndexToParent = idIndexToParentArray.pop();
+  const prefix = idIndexToParentArray.join('/');
+
+  const fromPrefixArray = fromPath.split('/');
+  const fromIdIndexToParent = fromPrefixArray.pop();
+  const fromPrefix = fromPrefixArray.join('/');
+
+  const isSameParent = prefix === fromPrefix;
+  const moveFromIndexLessThanIdIndex = isSameParent && parseInt(fromIdIndexToParent, 10) < parseInt(idIndexToParent, 10);
+
+  if (position === 'before') {
+    if (moveFromIndexLessThanIdIndex) {
+      return `../${parseInt(idIndexToParent, 10) - 1}`;
+    }
+    return `../${parseInt(idIndexToParent, 10)}`;
+  } else if (position === 'after') {
+    if (moveFromIndexLessThanIdIndex) {
+      return `../${parseInt(idIndexToParent, 10)}`;
+    }
+    return `../${parseInt(idIndexToParent, 10) + 1}`;
+  } else if (position === 'inside') {
+    return `/children/${getComponentItem(componentPath, id).node?.children?.length || 0}`;
+  }
+}
+
+function mergePath(path1: string, path2: string) {
+  const path1Segments = path1.split('/') .filter(segment => segment !== '');
+  const path2Segments = path2.split('/') .filter(segment => segment !== '');
+  const mergedSegments = [...path1Segments, ...path2Segments];
+  mergedSegments.forEach((segment, index) => {
+    if (segment === '..') {
+      mergedSegments.splice(index - 1, 2);
+    }
+  });
+  return '/' + mergedSegments.join('/');
+}
 
 /**
  * 格式化 jsonPatch
@@ -434,7 +507,8 @@ export const findComponentPath = (currentSchema: any, id: string): string | null
  */
 export const formatJsonPatch = (currentSchema: any, value: any) => {
   let templeSchema = structuredClone(currentSchema);
-  return value.map((item: any) => {
+  return value.map((originItem: any) => {
+    const item = structuredClone(originItem);
     // 通过 id 从 currentSchema 中找到对应的组件路径
     const componentPath = findComponentPath(templeSchema, item.id);
     item.idToPath = componentPath;
@@ -445,17 +519,28 @@ export const formatJsonPatch = (currentSchema: any, value: any) => {
       return item;
     }
 
-    if (item.path) {
-      // 如果 path 不为空，则把组件路径拼接到 path 前面
-      item.relativePath = item.path;
-      item.path = componentPath === '/' ? item.path : `${componentPath}${item.path}`;
-    } else {
-      item.path = componentPath;
+    if (item.op !== 'move'){
+      if (item.path) {
+        // 如果 path 不为空，则把组件路径拼接到 path 前面
+        item.relativePath = item.path;
+        item.path = componentPath === '/' ? item.path : `${componentPath}${item.path}`;
+      } else {
+        item.path = componentPath;
+      }
     }
 
-    if(item.op === 'move' && item.from) {
-      item.fromRelativePath = item.from;
-      item.from = componentPath === '/' ? item.from : `${componentPath}${item.from}`;
+    if(item.op === 'move') {
+      const {id, position, positionId} = item;
+      if (id) {
+        item.from = findComponentPath(templeSchema, id);
+      }
+      if (position) {
+        const positionPath = findComponentPath(templeSchema, positionId);
+        const relativePath = getPositionRelativePath(position, positionId, positionPath, item.from);
+        item.relativePath = relativePath;
+  
+        item.path = positionPath === '/' ? relativePath : mergePath(positionPath, relativePath);
+      }
     }
 
     jsonPatchFormatter.patch(templeSchema, [item]);

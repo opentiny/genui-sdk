@@ -63,6 +63,17 @@ ${JSON.stringify(schema, null, 2)}
 **add 操作：使用父组件 id + path 指定位置**
 - ✅ 正确：\`{ "op": "add", "id": "parent123", "path": "/children/0", "value": {...} }\`
 
+**move 操作: id 指定被移动的对象； positionId 指定要移动到的目标位置是基于哪个对象， position 可以为 before, after, inside， 指定相对位置**
+**before 和 after 和 inside 的区别：**
+- before：移动到目标对象的前面
+- inside：移动到目标对象的内部
+- 如果要移动到一个元素的后面，清使用下一个元素的前面，或者父元素的里面
+- after：移动到目标对象的后面
+**示例：**
+- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "", "position": "before" }\`
+- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "sourceId", "position": "inside" }\`
+- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "sourceId", "position": "after" }\`
+
 **属性操作：使用目标组件本身的 id + 组件内相对路径**
 - ✅ 正确：修改 children[0].children[0].props.text → 找到该组件本身的 id，使用 \`{ "id": "deep123", "path": "/props/text" }\`
 - ❌ 错误：\`{ "id": "parent123", "path": "/children/0/children/0/props/text" }\`
