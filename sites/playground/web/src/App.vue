@@ -3,7 +3,7 @@ import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
-import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
+import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, shallowRef } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import NewSvg from './assets/images/new.svg?raw';
