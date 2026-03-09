@@ -16,7 +16,7 @@ const { currentSchema, setCurrentSchema, templateConversationState } = useTempla
 const TinyIconEditorCode = IconEditorCode();
 
 const props = defineProps<{
-  theme: string;
+  theme: 'light' | 'dark' | 'lite' | 'auto';
 }>();
 
 const schemaEditorVisible = ref(false);
@@ -107,7 +107,7 @@ resetToLatestVersion();
     <div class="genui-schema-template-right" v-if="currentSchema">
       <tiny-button class="schema-editor-toggle-button" :icon="TinyIconEditorCode"
         @click="toggleSchemaEditor"></tiny-button>
-      <schema-renderer class="schema-renderer" :schema="currentSchema" :generating="false" :onAction="onAction" />
+      <schema-renderer class="schema-renderer" :schema="currentSchema" :generating="false" />
     </div>
   </div>
 </template>

@@ -1,10 +1,10 @@
 import { reactive, toRaw } from 'vue';
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
-import { chat } from './chat-api';
 import type { IStreamDelta } from '@opentiny/genui-sdk-core';
-import type { LLMConfig, IChatMessage, IMessageItem } from './chat.types';
 import { emitter } from '@opentiny/genui-sdk-vue';
 import useSchemaStream from './useSchemaStream';
+import { templateChat } from './template-chat-api';
+import type { LLMConfig, IChatMessage, IMessageItem } from './chat.types';
 
 export interface ICustomModelProviderOptions {
   url: string;
@@ -42,7 +42,13 @@ export class CustomModelProvider extends BaseModelProvider {
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await chat(this.url, request.messages, this.llmConfig, request.options?.signal, this.templateSchema);
+    return templateChat({
+      url: this.url,
+      messages: request.messages,
+      signal: request.options?.signal,
+      templateSchema: this.templateSchema,
+      llmConfig: this.llmConfig,
+    });
   }
 
   async chat(_: ChatCompletionRequest) {
@@ -63,7 +69,7 @@ export class CustomModelProvider extends BaseModelProvider {
       content: '',
       messages: [] as IMessageItem[],
     });
-    const {content: input, messageId} = request.messages[request.messages.length - 1];
+    const { content: input, messageId } = request.messages[request.messages.length - 1];
     const { handleSchemaStream } = useSchemaStream();
     onData(chatMessage);
 
