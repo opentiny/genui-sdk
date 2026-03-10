@@ -1,24 +1,4 @@
 import type { LLMConfig } from './chat.types';
-import type { ICustomComponentItem, CustomFetch, ICustomActionItem } from '@opentiny/genui-sdk-vue';
-import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-
-const removeCustomActionsExecuteFunction = (customActions: ICustomActionItem[]) => {
-  return customActions.map((action: ICustomActionItem) => {
-    return {
-      name: action.name,
-      description: action.description,
-      parameters: action.parameters,
-    };
-  });
-};
-
-// 从 customComponents 中移除 ref 字段，只保留 schema 信息
-const removeRefFromCustomComponents = (customComponents: ICustomComponentItem[]): IGenPromptComponent[] => {
-  return customComponents.map((item) => {
-    const { ref, ...rest } = item;
-    return rest;
-  });
-};
 
 export const chat = async (url: string, messages: any, llmConfig: LLMConfig, signal: any, schema: any) => {
   const options = {

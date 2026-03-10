@@ -28,7 +28,7 @@ import {
   formatDateTime,
   generateIdForComponents,
   generateId
-} from './utils';
+} from './template-chat-utils';
 import { jsonPatchDeduplicator } from './json-patch-deduplicator';
 import SchemaVersionCard from './SchemaVersionCard.vue';
 import useTemplate from './useTemplate';
@@ -44,7 +44,6 @@ const TinyGenuiConfig: any = inject('TinyGenuiConfig');
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const errorMessagesMap = ref<Map<string, string>>(new Map());
-
 const { conversation, templateConversationState, currentSchema, currentCardId, setCurrentSchema, updateTemplateTitle, setCurrentCardId } = useTemplate();
 
 watch(
@@ -395,7 +394,7 @@ onUnmounted(() => {
       </div>
       <tr-sender v-model="inputMessage" :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
         " :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        :showWordLimit="true" :maxLength="1000" @clear="clearInputMessage" @submit="handleSendMessage"
+        :showWordLimit="true" :maxLength="5000" @clear="clearInputMessage" @submit="handleSendMessage"
         @cancel="messageManager.abortRequest">
       </tr-sender>
     </div>

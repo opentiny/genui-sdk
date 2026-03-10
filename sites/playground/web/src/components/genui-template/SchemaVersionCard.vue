@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import { iconRichTextCodeView } from '@opentiny/vue-icon';
 import JsonPatchDev from './JsonPatchDev.vue';
-import { formatJsonPatch } from './utils';
+import { formatJsonPatch } from './template-chat-utils';
 import useTemplate from './useTemplate';
 
 const TinyIconRichTextCodeView = iconRichTextCodeView();
