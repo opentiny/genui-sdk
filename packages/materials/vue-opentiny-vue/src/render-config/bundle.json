@@ -7622,7 +7622,7 @@
                       "props": {}
                     },
                     "description": {
-                      "zh_CN": "设置打开时的值，可能的类型为：Boolean 、 String 、 Number"
+                      "zh_CN": "设置打开时的值，类型为：Boolean | String | Number"
                     },
                     "labelPosition": "left"
                   },
@@ -7642,7 +7642,7 @@
                       "props": {}
                     },
                     "description": {
-                      "zh_CN": "设置关闭时的值，可能的类型为：Boolean 、 String 、 Number"
+                      "zh_CN": "设置关闭时的值，类型为：Boolean | String | Number"
                     },
                     "labelPosition": "left"
                   },

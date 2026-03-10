@@ -13,6 +13,7 @@ export const requiredCompleteFieldSelectors = [
   '[componentName=TinyNumeric] > props > modelValue',
   '[componentName^=TinyChart] > props > *',
   '[componentName=TinyForm] > props > labelPosition',
+  '[componentName=TinyRadioGroup] > props > options > *',
   // ng element version
   '[componentName=img] > props > src',
   '[componentName] > props > ngModel',
