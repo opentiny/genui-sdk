@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import genuiAbility3 from '@/assets/genui_ability_3.webp';
 import { TinyTag } from '@opentiny/vue';
 
-const wrapperClass = ref('home-mcp-tool-mobile');
+const wrapperClass = 'home-mcp-tool-mobile';
 const abilityThreePartContent = {
   title: 'Create_repository',
   subtitle: 'Create a new GitHub repository in your account',

@@ -1,27 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { computed } from 'vue';
 import { LinkKey, linkMap } from '@/utils/link';
 import { TinyButton } from '@opentiny/vue';
 import { useMobile } from '@/composables/useMobile';
 
-type ButtonSize = 'medium' | 'large';
-
-const buttonSize = ref<ButtonSize>('medium');
 const { isMobile } = useMobile();
 
-const updateButtonSize = () => {
-  if (typeof window === 'undefined') return;
-
-  buttonSize.value = window.innerWidth >= 1920 ? 'large' : 'medium';
-};
-
-onMounted(() => {
-  updateButtonSize();
-  window.addEventListener('resize', updateButtonSize);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateButtonSize);
+const buttonSize = computed(() => {
+  return isMobile.value ? 'medium' : 'large';
 });
 </script>
 

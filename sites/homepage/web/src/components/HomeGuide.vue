@@ -240,7 +240,7 @@ const handleGuideCardClick = (index: number) => {
   }
 }
 
-/deep/.guide-code {
+:deep(.guide-code) {
   background: #0b1020;
   padding: 20px;
   margin: 0;

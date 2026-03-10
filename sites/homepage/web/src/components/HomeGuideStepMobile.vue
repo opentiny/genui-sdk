@@ -3,6 +3,9 @@ import { ref } from 'vue';
 import { TinyButtonGroup, TinyButton } from '@opentiny/vue';
 
 const emit = defineEmits(['change']);
+const GUIDE_STEP_ONE = 0;
+const GUIDE_STEP_TWO = 1;
+const GUIDE_STEP_THREE = 2;
 
 const activeGuide = ref(0);
 const handleGuideChange = (index: number) => {
@@ -13,17 +16,29 @@ const handleGuideChange = (index: number) => {
 
 <template>
   <div class="home-guide-step-mobile">
-    <tiny-button-group
-      class="home-guide-step-mobile-button-group"
-      v-model="activeGuide"
-    >
-      <tiny-button class="home-guide-step-mobile-button" :class="{ 'home-guide-step-mobile-button-active': activeGuide === 0 }" :value="0" @click="handleGuideChange(0)">
+    <tiny-button-group class="home-guide-step-mobile-button-group" v-model="activeGuide">
+      <tiny-button
+        class="home-guide-step-mobile-button"
+        :class="{ 'home-guide-step-mobile-button-active': activeGuide === GUIDE_STEP_ONE }"
+        :value="GUIDE_STEP_ONE"
+        @click="handleGuideChange(GUIDE_STEP_ONE)"
+      >
         引入组件
       </tiny-button>
-      <tiny-button class="home-guide-step-mobile-button" :class="{ 'home-guide-step-mobile-button-active': activeGuide === 1 }" :value="1" @click="handleGuideChange(1)">
+      <tiny-button
+        class="home-guide-step-mobile-button"
+        :class="{ 'home-guide-step-mobile-button-active': activeGuide === GUIDE_STEP_TWO }"
+        :value="GUIDE_STEP_TWO"
+        @click="handleGuideChange(GUIDE_STEP_TWO)"
+      >
         使用chat组件
       </tiny-button>
-      <tiny-button class="home-guide-step-mobile-button" :class="{ 'home-guide-step-mobile-button-active': activeGuide === 2 }" :value="2" @click="handleGuideChange(2)">
+      <tiny-button
+        class="home-guide-step-mobile-button"
+        :class="{ 'home-guide-step-mobile-button-active': activeGuide === GUIDE_STEP_THREE }"
+        :value="GUIDE_STEP_THREE"
+        @click="handleGuideChange(GUIDE_STEP_THREE)"
+      >
         自定义配置
       </tiny-button>
     </tiny-button-group>
@@ -39,10 +54,19 @@ const handleGuideChange = (index: number) => {
     border-radius: 382px;
     width: fit-content;
     height: 28px;
-    background-color: rgba(242, 242, 242, 1);
+    background-color: rgb(242, 242, 242);
     display: flex;
     align-items: center;
     padding: 2px;
+  }
+
+  .home-guide-step-mobile-button-group {
+    .home-guide-step-mobile-button {
+      background-color: rgb(242, 242, 242);
+      &-active {
+        background-color: #fff;
+      }
+    }
   }
 
   &-button {
@@ -51,11 +75,9 @@ const handleGuideChange = (index: number) => {
     margin-left: 0;
     border-radius: 0;
     border: none;
-    background-color: rgba(242, 242, 242, 1) !important;
     border-radius: 382px;
 
     &-active {
-      background-color: #fff !important;
       font-weight: 700;
     }
   }

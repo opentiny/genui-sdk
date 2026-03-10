@@ -299,7 +299,7 @@ const { isMobile } = useMobile();
     @media (min-width: 1920px) {
       padding: 140px 232px;
 
-      /deep/ .operation-button-group .tiny-button {
+      :deep(.operation-button-group .tiny-button) {
         width: 152px;
         height: 48px;
         font-size: var(--font-size-body-sm);
@@ -315,7 +315,7 @@ const { isMobile } = useMobile();
     background: rgba(248, 248, 255, 1);
   }
 
-  /deep/ .ability-image-wrap-2 {
+  :deep(.ability-image-wrap-2) {
     display: flex;
     padding: 16px;
     border-radius: 24px;
@@ -362,17 +362,17 @@ const { isMobile } = useMobile();
     }
   }
 
-  /deep/ .genui-title {
+  :deep(.genui-title) {
     font-size: var(--font-size-title-md);
     margin-bottom: 8px;
   }
 
-  /deep/ .genui-subtitle {
+  :deep(.genui-subtitle) {
     font-size: var(--font-size-body-md);
     margin-bottom: 20px;
   }
 
-  /deep/ .home-ability {
+  :deep(.home-ability) {
     padding: 46px 20px 0px 20px;
     &-title {
       &-text {
@@ -400,7 +400,7 @@ const { isMobile } = useMobile();
     }
   }
 
-  /deep/ .home-extend {
+  :deep(.home-extend) {
     padding: 46px 20px 0px 20px;
 
     &-title {
@@ -444,7 +444,7 @@ const { isMobile } = useMobile();
     }
   }
 
-  /deep/ .home-guide {
+  :deep(.home-guide) {
     padding: 46px 20px 0px 20px;
 
     &-content {
@@ -459,7 +459,7 @@ const { isMobile } = useMobile();
     }
   }
 
-  /deep/ .home-feature {
+  :deep(.home-feature) {
     padding: 46px 20px 0px 20px;
 
     &-content {
@@ -476,7 +476,7 @@ const { isMobile } = useMobile();
     }
   }
 
-  /deep/ .home-link {
+  :deep(.home-link) {
     margin-top: 60px;
     padding: 46px 20px 43px 20px;
     background-image: url('@/assets/genui_ability_mobile_bg_2.svg');
@@ -609,7 +609,7 @@ const { isMobile } = useMobile();
         font-size: 6px;
         line-height: 6px;
 
-        /deep/ .tiny-tag {
+        :deep(.tiny-tag) {
           font-size: 6px;
           line-height: 6px;
         }
