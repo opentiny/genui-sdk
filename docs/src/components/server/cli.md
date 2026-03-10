@@ -144,4 +144,4 @@ genui-sdk-server -h
 ## 相关链接
 
 - [Server API 文档](./api) - 查看组件 API 文档
-- [使用文档](./usage) - 查看详细使用指南
+- [使用文档](../../guide/server-usage) - 查看详细使用指南

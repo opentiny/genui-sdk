@@ -110,4 +110,4 @@ export const appConfig: ApplicationConfig = {
 ## 其他相关文档
 
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
-- 查看 [特性示例](../../examples/angular/Renderer) 学习用法示例
+- 查看 [特性示例](../../examples/angular/renderer/custom-actions) 学习用法示例

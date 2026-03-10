@@ -2,7 +2,7 @@ const DOC_DOMAIN = import.meta.env.VITE_GENUI_DOC_DOMAIN || 'https://docs.openti
 const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://playground.opentiny.design/genui-sdk';
 
 export const linkMap = {
-  devDoc: `${DOC_DOMAIN}/genui-sdk`,
+  devDoc: `${DOC_DOMAIN}/genui-sdk/guide/quick-start`,
   playground: PLAYGROUND_HREF,
   chatDoc: `${DOC_DOMAIN}/genui-sdk/components/chat`,
   dcologicalCompatibility: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-fetch`,
