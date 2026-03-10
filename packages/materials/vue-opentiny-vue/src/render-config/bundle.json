@@ -6673,7 +6673,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "输入框尺寸。该属性的可选值为 medium / small / mini"
+                      "zh_CN": "输入框尺寸。该属性的可选值为： medium 、small 、 mini"
                     },
                     "labelPosition": "left"
                   }
@@ -7622,7 +7622,7 @@
                       "props": {}
                     },
                     "description": {
-                      "zh_CN": "设置打开时的值(Boolean / String / Number)"
+                      "zh_CN": "设置打开时的值，可能的类型为：Boolean 、 String 、 Number"
                     },
                     "labelPosition": "left"
                   },
@@ -7642,7 +7642,7 @@
                       "props": {}
                     },
                     "description": {
-                      "zh_CN": "设置关闭时的值(Boolean / String / Number)"
+                      "zh_CN": "设置关闭时的值，可能的类型为：Boolean 、 String 、 Number"
                     },
                     "labelPosition": "left"
                   },
@@ -10010,7 +10010,7 @@
                               }
                             },
                             "description": {
-                              "zh_CN": "设置内置列的类型，该属性的可选值为 index（序号）/ selection（复选框）/ radio（单选框）/ expand（展开行）"
+                              "zh_CN": "设置内置列的类型，该属性的可选值为 index（序号）、 selection（复选框）、 radio（单选框）、 expand（展开行）"
                             },
                             "labelPosition": "left"
                           },
@@ -10088,7 +10088,7 @@
                               }
                             },
                             "description": {
-                              "zh_CN": "设置内置列的内容超出部分显示省略号配置，该属性的可选值为 ellipsis（只显示省略号）/ title（显示为原生 title）/ tooltip（显示为 tooltip 提示）"
+                              "zh_CN": "设置内置列的内容超出部分显示省略号配置，该属性的可选值为： ellipsis(只显示省略号） 、 title(显示为原生 title) 、 tooltip(显示为 tooltip 提示）"
                             },
                             "labelPosition": "top"
                           }
@@ -12220,7 +12220,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "触发方式，该属性的可选值为 click / focus / hover / manual，该属性的默认值为 click"
+                      "zh_CN": "触发方式，该属性的可选值为： click 、 focus 、 hover 、 manual，该属性的默认值为 click"
                     },
                     "labelPosition": "left"
                   },
@@ -12757,7 +12757,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "日期框尺寸。该属性的可选值为 medium / small / mini"
+                      "zh_CN": "日期框尺寸。该属性的可选值为： medium 、 small 、 mini"
                     },
                     "labelPosition": "left"
                   }
@@ -13110,7 +13110,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "输入框尺寸。该属性的可选值为 medium / small / mini"
+                      "zh_CN": "输入框尺寸。该属性的可选值为： medium 、small 、 mini"
                     },
                     "labelPosition": "left"
                   },

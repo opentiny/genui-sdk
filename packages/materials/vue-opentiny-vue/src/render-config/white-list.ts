@@ -36,6 +36,7 @@ export const whiteList = [
   'TinyButton',
   'TinyInput',
   'TinyRadio',
+  'TinyRadioGroup',
   'TinySelect',
   'TinySwitch',
   'TinySearch',

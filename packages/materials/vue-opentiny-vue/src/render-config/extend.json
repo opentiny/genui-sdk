@@ -519,7 +519,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "单选组的展示形式,可选值为：radio(单选框) / button(按钮、选项式)"
+                      "zh_CN": "单选组的展示形式,可选值为：radio(单选框) 、 button(按钮、选项式)"
                     }
                   },
                   {
@@ -553,7 +553,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "单选组尺寸, 可选值有 medium / small / mini"
+                      "zh_CN": "单选组尺寸, 可选值有 medium 、 small 、 mini"
                     }
                   },
                   {
