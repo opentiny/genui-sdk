@@ -4,7 +4,7 @@ import { PatternExtractor } from '@opentiny/genui-sdk-core';
 import type { IStreamDelta } from '@opentiny/genui-sdk-core';
 import { emitter } from '@opentiny/genui-sdk-vue';
 import { templateChat } from './template-chat-api';
-import type { LLMConfig, IChatMessage, IMessageItem, IMarkdownMessageItem } from './chat.types';
+import type { LLMConfig, IChatMessage, IMessageItem } from './chat.types';
 
 export interface ICustomModelProviderOptions {
   url: string;
