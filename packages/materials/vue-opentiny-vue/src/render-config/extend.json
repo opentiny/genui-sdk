@@ -471,19 +471,12 @@
                         "zh_CN": "选项列表"
                       }
                     },
-                    "defaultValue": [
-                      {
-                        "label": "选项1"
-                      },
-                      {
-                        "label": "选项2"
-                      }
-                    ],
+                    "defaultValue": [],
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
                     "description": {
-                      "zh_CN": "单选按钮选项列表，支持 IRadioGroupOptions[]"
+                      "zh_CN": "单选按钮选项列表，配置单选组的值、文本和点击事件。示例：[{label: '1', text: '选项1', events: {click: () => {console.log('点击选项1')}}}]"
                     }
                   },
                   {
@@ -526,9 +519,8 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "单选组的展示形式（单选框 / 按钮）, 对应的可选值分别是 radio / button"
-                    },
-                    "labelPosition": "left"
+                      "zh_CN": "单选组的展示形式,可选值为：radio(单选框) / button(按钮、选项式)"
+                    }
                   },
                   {
                     "property": "size",
@@ -736,7 +728,7 @@
           "children": [
             {
               "name": {
-                "zh_CN": "有序列表"
+                "zh_CN": "无序列表"
               },
               "snippetName": "ul",
               "schema": {
@@ -770,6 +762,67 @@
                     "children": "有序列表项2"
                   }
                 ]
+              }
+            }
+          ]
+        },
+        {
+          "group": "RadioGroup",
+          "label": {
+            "zh_CN": "单选按钮组"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "基础单选组"
+              },
+              "snippetName": "TinyRadioGroup",
+              "schema": {
+                "componentName": "TinyRadioGroup",
+                "props": {
+                  "modelValue": "1",
+                  "options": [
+                    {
+                      "label": "1",
+                      "text": "选项1"
+                    },
+                    {
+                      "label": "2",
+                      "text": "选项2"
+                    },
+                    {
+                      "label": "3",
+                      "text": "选项3"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "选项式单选组"
+              },
+              "snippetName": "TinyRadioGroup",
+              "schema": {
+                "componentName": "TinyRadioGroup",
+                "props": {
+                  "modelValue": "2",
+                  "type": "button",
+                  "options": [
+                    {
+                      "label": "1",
+                      "text": "选项1"
+                    },
+                    {
+                      "label": "2",
+                      "text": "选项2"
+                    },
+                    {
+                      "label": "3",
+                      "text": "选项3"
+                    }
+                  ]
+                }
               }
             }
           ]
