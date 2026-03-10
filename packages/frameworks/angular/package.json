@@ -37,6 +37,7 @@
       }
     ]
   },
+  "private": true,
   "dependencies": {
     "@angular/common": "^20.3.0",
     "@angular/compiler": "^20.3.0",
