@@ -30,6 +30,8 @@
   "scripts": {
     "build": "vite build",
     "build:no-obfuscator": "pnpm build --mode no-obfuscator",
+    "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build && pnpm -F @opentiny/tiny-schema-renderer build",
+    "build:lib:npm": "pnpm build",
     "postbuild": "tsx scripts/postbuild.ts",
     "test": "vitest"
   },
