@@ -1,12 +1,11 @@
 <script lang="ts" setup>
   import { ref, computed } from 'vue';
-  import copy from 'clipboard-copy';
   import { TinyButton } from '@opentiny/vue';
   import { AutoTip } from '@opentiny/vue-directive';
 import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
 import type { IBubbleSlotsProps } from '@opentiny/genui-sdk-vue';
 
-const emit = defineEmits(['refresh']);
+const emit = defineEmits(['refresh', 'copy']);
 
 const props = defineProps<IBubbleSlotsProps>();
 
@@ -22,18 +21,7 @@ const isLastBubble = computed(() => {
 });
 
 const copyContent = async () => {
-  const content = props.bubbleProps.content;
-  let copyContent: string;
-  if (typeof content === 'string') {
-    copyContent = content;
-  } else {
-    copyContent = JSON.stringify(content);
-  }
-  try {
-    await copy(copyContent);
-  } catch (error) {
-    console.error('复制失败', error);
-  }
+  emit('copy', props);
 };
 
 const refresh = () => {

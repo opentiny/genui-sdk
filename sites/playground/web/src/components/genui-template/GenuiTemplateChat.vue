@@ -18,6 +18,7 @@ import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
 import { requiredCompleteFieldSelectors, emitter, scrollEnd, throttle } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
+import copy from 'clipboard-copy';
 import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 import {
   textToJson,
@@ -78,6 +79,7 @@ const roles: Record<string, BubbleRoleConfig> = {
           isFinished,
           messageManager: messageManager.value,
           onRefresh: handleRefresh,
+          onCopy: handleCopy,
         });
       },
     },
@@ -204,18 +206,32 @@ const handleSchemaVersionCardClick = (cardId: string) => {
   } catch (error) { }
 };
 
-const handleRefresh = ({ index }: { index: number }) => {
-  const { messages, send } = messageManager.value;
-  const cardMessage = (messages.value[index].messages as IMessageItem[])?.find(
+const getCardMessageByIndex = (index: number) => {
+  return (messages.value[index].messages as IMessageItem[])?.find(
     (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
       message.type === 'schema-card' || message.type === 'json-patch',
   );
+};
+
+const handleRefresh = ({ index }: { index: number }) => {
+  const { messages, send } = messageManager.value;
+  const cardMessage = getCardMessageByIndex(index);
 
   prevSchema.value = cardMessage?.prevSchema;
   setCurrentSchema(JSON.parse(prevSchema.value));
   messages.value = messages.value.slice(0, index);
   setCurrentCardId(messages.value[messages.value.length - 1].messageId as string);
   send();
+};
+
+const handleCopy = async ({ index }: { index: number }) => {
+  const cardMessage = getCardMessageByIndex(index);
+
+  try {
+    await copy(cardMessage?.content);
+  } catch (error) {
+    console.error('复制失败', error);
+  }
 };
 
 const markdownRenderer = new BubbleMarkdownContentRenderer({
