@@ -253,7 +253,7 @@ export class CustomModelProvider extends BaseModelProvider {
           }
           onReasoningEnd();
 
-          if (tool_calls) {
+          if (tool_calls?.length) {
             onToolCall(tool_calls, delta);
             patternExtractor.reset();
           } else if (tool_calls_result) {
