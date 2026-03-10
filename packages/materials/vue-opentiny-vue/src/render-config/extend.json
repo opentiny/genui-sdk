@@ -526,7 +526,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "单选组的展示形式（单选框 / 按钮）"
+                      "zh_CN": "单选组的展示形式（单选框 / 按钮）, 对应的可选值分别是 radio / button"
                     },
                     "labelPosition": "left"
                   },
@@ -561,9 +561,8 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "单选组尺寸"
-                    },
-                    "labelPosition": "left"
+                      "zh_CN": "单选组尺寸, 可选值有 medium / small / mini"
+                    }
                   },
                   {
                     "property": "vertical",
