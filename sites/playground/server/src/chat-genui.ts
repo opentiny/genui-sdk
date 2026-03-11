@@ -130,7 +130,7 @@ const initMcpServers = async (
   return clientsMap;
 };
 
-const generateAiSdkTools = async (
+export const generateAiSdkTools = async (
   mcpServers: McpServersConfig,
   abortSignal?: AbortSignal,
 ): Promise<{ tools: Record<string, any>; clientsMap: Map<string, Client> }> => {

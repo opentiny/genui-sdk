@@ -8,6 +8,7 @@ import { useProviderModelMapperSync, initProviderModelMapperFromData } from './s
 import { loadProviderModelsDataFromFile, mergeProviderModelsData } from './src/provider-models-mapper.js';
 import { fetchOpenTinyProviderModelsData } from './src/opentiny-models.js';
 import { createChatGenui, checkMcpHandler } from './src/chat-genui.js';
+import { createChatTemplate } from './src/chat-template.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,6 +20,7 @@ const envPath = path.resolve(__dirname, envFileName);
 dotenv.config({ path: envPath });
 dotenv.config();
 const { chatGenuiHandler } = createChatGenui();
+const { chatTemplateHandler } = createChatTemplate();
 
 const app = express();
 
@@ -98,6 +100,7 @@ const getModelsHandler = async (req: Request, res: Response) => {
 app.get('/get-models', getModelsHandler);
 app.post('/chat-genui', chatGenuiHandler);
 app.post('/check-mcp', checkMcpHandler);
+app.post('/chat-template', chatTemplateHandler);
 
 const port = process.env.PORT || 3008;
 

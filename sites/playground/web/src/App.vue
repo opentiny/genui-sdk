@@ -3,7 +3,7 @@ import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
-import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent } from 'vue';
+import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, shallowRef } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import NewSvg from './assets/images/new.svg?raw';
@@ -15,8 +15,21 @@ import ModelConfig from './components/tab-components/model-config.vue';
 import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
 import { useInputMessage } from './use-input-message';
+import useTemplate from './components/genui-template/useTemplate';
 
 let framework = 'Vue'; // Angular
+
+// 通过环境变量控制是否启用模板功能，默认不启用
+const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
+
+// 条件异步加载 genui-template 组件，不启用时完全不导入，构建时不会被打包
+const GenuiTemplateList = ENABLE_TEMPLATE
+  ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplateList.vue'))
+  : shallowRef(null);
+
+const GenuiTemplate = ENABLE_TEMPLATE
+  ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplate.vue'))
+  : shallowRef(null);
 
 /**
  * tiny-schema-renderer-ng
@@ -99,6 +112,8 @@ const handleKeydown = (event) => {
   }
 };
 
+const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
+const { isTemplateInit } = useTemplate({ url: templateUrl, llmConfig });
 const { initInputMessage } = useInputMessage(chat);
 
 onMounted(() => {
@@ -155,13 +170,8 @@ const customFetch = createCustomFetch(() => ({
             <span v-if="isOpen" class="svg-icon" :innerHTML="CloseSvg" title="收起" @click="isOpen = false"></span>
             <span v-else class="svg-icon" :innerHTML="OpenSvg" title="展开" @click="isOpen = true"></span>
           </div>
-          <span
-            v-if="!isOpen"
-            class="svg-icon"
-            :innerHTML="NewSvg"
-            title="新建会话"
-            @click="chat.handleNewConversation()"
-          ></span>
+          <span v-if="!isOpen" class="svg-icon" :innerHTML="NewSvg" title="新建会话"
+            @click="chat.handleNewConversation()"></span>
         </div>
       </header>
       <!-- 新建会话按钮 -->
@@ -177,19 +187,13 @@ const customFetch = createCustomFetch(() => ({
       </div>
       <tiny-tabs class="sidebar-tabs" v-model="activeName" v-show="isOpen">
         <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig
-            :llm-config="llmConfig"
-            :model-data="modelData"
-            @update:llm-config="Object.assign(llmConfig, $event)"
-          />
+          <ModelConfig :llm-config="llmConfig" :model-data="modelData"
+            @update:llm-config="Object.assign(llmConfig, $event)" />
         </tiny-tab-item>
         <tiny-tab-item title="工具" name="tools">
-          <McpTools
-            :llm-config="llmConfig"
-            :chat-config="chatConfig"
+          <McpTools :llm-config="llmConfig" :chat-config="chatConfig"
             @update:llm-config="Object.assign(llmConfig, $event)"
-            @update:chat-config="Object.assign(chatConfig, $event)"
-          />
+            @update:chat-config="Object.assign(chatConfig, $event)" />
         </tiny-tab-item>
         <tiny-tab-item title="主题" name="theme">
           <div class="config-title">切换主题</div>
@@ -198,19 +202,23 @@ const customFetch = createCustomFetch(() => ({
         <tiny-tab-item title="历史会话" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
         </tiny-tab-item>
+        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板" name="template" class="template-tab">
+          <component v-if="GenuiTemplateList && isTemplateInit" :is="GenuiTemplateList" />
+        </tiny-tab-item>
       </tiny-tabs>
     </div>
-    <div class="chat-container">
+    <!-- 模版 -->
+    <template v-if="ENABLE_TEMPLATE && isTemplateInit">
+      <div v-show="activeName === 'template'" class="chat-template">
+        <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
+          :theme="theme" :chat-config="chatConfig" :custom-components="customComponents" :custom-snippets="customSnippets"
+          :custom-examples="customExamples" />
+      </div>
+    </template>
+    <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
       <GenuiConfigProvider :theme="theme" style="height: 100%">
-        <GenuiChat
-          :url="url"
-          ref="chat"
-          :messages="messages"
-          :chat-config="chatConfig"
-          :roles="roles"
-          :features="modelFeatures"
-          :custom-fetch="customFetch"
-        >
+        <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
+          :features="modelFeatures" :custom-fetch="customFetch">
           <template #empty>
             <div class="empty">
               <IconAi />
@@ -228,12 +236,20 @@ const customFetch = createCustomFetch(() => ({
   --ti-common-scrollbar-height: 8px;
   display: flex;
   height: 100%;
+
   :deep(.tiny-tabs__content) {
     height: 100%;
     overflow: auto;
     padding: 0 24px 90px;
   }
+
+  .chat-template {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
 }
+
 .config-tabs {
   --config-tas-width: 370px;
   --config-tas-width-collapsed: 48px;
@@ -243,30 +259,37 @@ const customFetch = createCustomFetch(() => ({
   height: 100%;
   box-sizing: border-box;
   transition: all 0.3s ease;
-  display: flex; /* 新增：纵向布局 */
-  flex-direction: column; /* 新增 */
+  display: flex;
+  /* 新增：纵向布局 */
+  flex-direction: column;
+
+  /* 新增 */
   .sidebar_header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 24px 24px 0;
+
     &.sidebar_header--collapsed {
       flex-direction: column;
       gap: 20px;
       padding: 12px 8px 0;
     }
+
     .sidebar_brand {
       display: flex;
       align-items: center;
       gap: 8px;
       font-weight: 600;
     }
+
     .sidebar_actions {
       display: flex;
       flex-direction: column;
       gap: 20px;
     }
   }
+
   .sidebar_new_task {
     padding: 20px 24px 10px;
 
@@ -317,6 +340,7 @@ const customFetch = createCustomFetch(() => ({
       }
     }
   }
+
   .sidebar-tabs {
     .config-title {
       font-size: 14px;
@@ -324,25 +348,31 @@ const customFetch = createCustomFetch(() => ({
       margin-bottom: 12px;
       line-height: 32px;
     }
+
     flex: 1;
     min-height: 0;
     overflow: hidden;
+
     :deep(.tiny-tabs__header.is-top) {
       padding: 0 24px;
     }
   }
+
   &.config-tabs--collapsed {
     width: var(--config-tas-width-collapsed);
   }
+
   .svg-icon {
     cursor: pointer;
   }
 }
+
 .chat-container {
   flex: 1;
   height: 100%;
   min-width: 0;
 }
+
 .empty {
   display: flex;
   align-items: center;
@@ -351,7 +381,8 @@ const customFetch = createCustomFetch(() => ({
   height: 80%;
   font-size: 32px;
   font-weight: 600;
-  & > svg {
+
+  &>svg {
     width: 56px;
     height: 56px;
   }
