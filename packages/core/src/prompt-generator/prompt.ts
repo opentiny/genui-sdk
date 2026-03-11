@@ -1,7 +1,12 @@
 import { type JsonSchema7Type, zodToJsonSchema } from 'zod-to-json-schema';
 import type { IMaterials, CardSchema, IRendererConfig, IExample } from '../protocols';
 import { genRootSchema } from '../protocols'; // TODO: protocal cannnot contains methods
-import type { IGenPromptComponent, IGenPromptSnippet, IGenPromptExample, IGenPromptCustomConfig } from './gen-prompt-config';
+import type {
+  IGenPromptComponent,
+  IGenPromptSnippet,
+  IGenPromptExample,
+  IGenPromptCustomConfig,
+} from './gen-prompt-config';
 import { getComponentsName, getComponentsInfo } from './handle-component';
 import { getSnippetsInfo } from './handle-snippets';
 import { genCustomActionsPrompt } from './action';
@@ -99,7 +104,9 @@ export const genRulesPrompt = (additionRules: string[], tgCustomConfig?: IGenPro
     actionRules.push('- 如需要确认信息或者涉及继续操作，请使用 `this.callAction` 去调用 continueChat');
   }
   if (hasSaveState) {
-    actionRules.push('- 如果当前操作列数据（增删查改等），请调用 `this.callAction` 去调用 saveState，保存当前状态，方便持久化存储');
+    actionRules.push(
+      '- 如果当前操作列数据（增删查改等），请调用 `this.callAction` 去调用 saveState，保存当前状态，方便持久化存储',
+    );
   }
 
   const rules = [
@@ -107,7 +114,7 @@ export const genRulesPrompt = (additionRules: string[], tgCustomConfig?: IGenPro
     ...actionRules,
     '- `type` 为 `JSFunction` 的 `value` 必须是完整的函数',
     '- 表单必须要有 `model` 属性，表单输入项（input/select/radio 等）必须设置 `modelValue` 的 `type` 为 `JSExpression` 且 `model` 为 `true`，且必须具有全局 `state` 状态，否则将不能交互',
-    '- 如有 `state` 字段或 `methods` 字段，请放在 `children` 之前，否则会报错；其他字段顺序请参考示例或 snippets 片段',
+    '- `state` 和 `methods` 字段必须紧跟 `"componentName": "Page",` 之后，请务必先生成 `state` 和 `methods` 字段，再使用。',
     '- `children` 不能放到 `props` 里，必须是数组或字符串，不支持 `JSExpression` 表达式；请使用 `Text` 组件包裹或使用 `loop` 来实现，使用 `condition` 来控制显示',
     '- 请注意对话的连续性，不要重复渲染多余内容',
     '- 图片和链接地址不可杜撰',
@@ -132,7 +139,7 @@ ${rules}
 **输出示例：**
 
 \`\`\`schemaJson
-{ "componentName": "Page", "children": [{ "componentName": "p", "children": "示例输出" }] }
+{ "componentName": "Page", "state": { "name": "张三" }, "methods": {}, "children": [{ "componentName": "p", "children": "示例输出" }] }
 \`\`\`
 
 ### 最高优先级规则
