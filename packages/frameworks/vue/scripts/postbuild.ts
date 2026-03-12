@@ -16,6 +16,8 @@ const outputPackageJson: any = {
   author: packageJson.author,
   license: packageJson.license,
   homepage: packageJson.homepage,
+  repository: packageJson.repository,
+  bugs: packageJson.bugs,
   keywords: packageJson.keywords,
   main: packageJson.main.replace('output/', ''),
   types: packageJson.types.replace('output/', ''),
@@ -30,7 +32,6 @@ if (outputPackageJson.dependencies && outputPackageJson.dependencies['@opentiny/
   const corePackageJson = JSON.parse(readFileSync(corePackageJsonPath, 'utf-8'));
   outputPackageJson.dependencies['@opentiny/genui-sdk-core'] = corePackageJson.version;
 }
-
 
 const outputDir = join(__dirname, '../output');
 

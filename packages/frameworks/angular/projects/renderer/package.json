@@ -10,9 +10,16 @@
     "component",
     "library",
     "llm",
-    "generate-ui",
+    "generative-ui",
     "stream-ui"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
   "files": [
     "dist",
     "README.md"

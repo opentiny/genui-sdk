@@ -17,7 +17,7 @@
     "component",
     "library",
     "llm",
-    "generate-ui",
+    "generative-ui",
     "stream-ui"
   ],
   "main": "output/dist/index.js",
@@ -29,10 +29,10 @@
   ],
   "scripts": {
     "build": "vite build",
-    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
+    "postbuild": "tsx scripts/postbuild.ts",
+    "analyze": "vite build --mode analyze",
     "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build && pnpm -F @opentiny/tiny-schema-renderer build",
     "build:lib:npm": "pnpm build",
-    "postbuild": "tsx scripts/postbuild.ts",
     "test": "vitest"
   },
   "dependencies": {
@@ -62,7 +62,6 @@
     "@opentiny/tiny-schema-renderer": "workspace:*",
     "ai": "^5.0.10",
     "rollup-plugin-visualizer": "^6.0.5",
-    "vite-plugin-bundle-obfuscator": "^1.8.0",
     "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",
