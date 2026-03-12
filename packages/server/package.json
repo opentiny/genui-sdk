@@ -15,7 +15,7 @@
   "keywords": [
     "server",
     "genui-sdk",
-    "generate-ui",
+    "generative-ui",
     "stream-ui"
   ],
   "main": "output/dist/index.js",
@@ -37,10 +37,10 @@
   "scripts": {
     "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
     "build": "vite build",
+    "analyze": "vite build --mode analyze",
     "prebuild:lib:npm": "pnpm prebuild",
     "build:lib:npm": "pnpm build",
     "postbuild": "tsx scripts/post-build.ts",
-    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
     "dev": "tsx watch --tsconfig ./tsconfig.dev.json test/start.ts"
   },
   "dependencies": {
@@ -62,7 +62,6 @@
     "tsx": "^4.8.1",
     "vite": "^7.0.0",
     "vite-jsconfig-paths": "^2.0.1",
-    "vite-plugin-bundle-obfuscator": "^1.8.0",
     "vite-plugin-dts": "^4.0.0"
   }
 }

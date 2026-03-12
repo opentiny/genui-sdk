@@ -1,7 +1,5 @@
 import path from 'path';
 import { defineConfig, PluginOption } from 'vite';
-// import { visualizer } from 'rollup-plugin-visualizer';
-// import obfuscator from 'vite-plugin-bundle-obfuscator';
 import escapeStringRegexp from 'escape-string-regexp';
 import tsconfigPaths from 'vite-jsconfig-paths';
 import dts from 'vite-plugin-dts';
@@ -24,23 +22,6 @@ export default defineConfig(({ mode }) => {
           }
         },
       },
-      // mode === 'no-obfuscator'
-      //   ? visualizer({
-      //     open: true
-      //   })
-      //   : obfuscator({
-      //     apply: 'build',
-      //     threadPool: true,
-      //     options: {
-      //       compact: true,
-      //       debugProtection: false,
-      //       deadCodeInjection: true,
-      //       deadCodeInjectionThreshold: 0.4,
-      //       identifierNamesGenerator: 'hexadecimal',
-      //       stringArray: true,
-      //       transformObjectKeys: true,
-      //     },
-      //   }) as PluginOption, // TODO: pluginOption types are not equal
       tsconfigPaths({
         projects: ['./tsconfig.json'],
       }) as PluginOption,
