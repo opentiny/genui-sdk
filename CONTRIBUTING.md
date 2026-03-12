@@ -1,6 +1,6 @@
 # Contributing Guide
 
-> Language: English | [简体中文](README.zh-CN.md)
+> Language: English | [简体中文](CONTRIBUTING.zh-CN.md)
 
 Thank you for your interest in contributing to the GenUI SDK open source project! There are many ways to contribute—you can choose one or more based on your strengths and interests:
 
