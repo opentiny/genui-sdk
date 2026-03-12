@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue';
 import { TinyBaseSelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
+import SelectTemplateDialog from './select-template-dialog.vue';
+import useTemplate from '../genui-template/useTemplate';
 
 const props = defineProps({
   llmConfig: {
@@ -12,20 +14,26 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  customExamples: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-const emit = defineEmits(['update:llmConfig']);
+const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update:custom-examples']);
 
 const IconPlus = iconPlus();
 const IconEllipsis = iconEllipsis();
 const IconEdit = iconEdit();
 const IconDel = iconDel();
 
+const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 const llmConfig = computed(() => props.llmConfig);
 const showAddPromptBox = ref(false);
 const activeIndex = ref(null);
 const appendPrompt = ref('');
 const isEditPrompt = ref(false);
+const showSelectExampleBox = ref(false);
 
 const updateConfig = (updates) => {
   emit('update:llmConfig', { ...llmConfig.value, ...updates });
@@ -77,6 +85,14 @@ const editPrompt = (index) => {
   activeIndex.value = index;
   appendPrompt.value = llmConfig.value.promptList[index];
   showAddPromptBox.value = true;
+};
+
+const confirmSelectExampleList = (list) => {
+  emit('update:custom-examples', list);
+};
+
+const createNewTemplate = () => {
+  emit('createNewTemplate');
 };
 </script>
 <template>
@@ -136,19 +152,21 @@ const editPrompt = (index) => {
   </tiny-dialog-box>
 
   <!-- 选择示例模板 -->
-  <div class="config-title prompt-title">
-    <span>示例模板</span>
-    <span>
-      <tiny-button type="text" :icon="IconPlus" @click="showSelectExampleBox = true"> </tiny-button>
-    </span>
-  </div>
+  <template v-if="ENABLE_TEMPLATE">
+    <div class="config-title prompt-title">
+      <span>示例模板</span>
+      <span>
+        <tiny-button type="text" :icon="IconPlus" @click="showSelectExampleBox = true"> </tiny-button>
+      </span>
+    </div>
 
-  <tiny-dialog-box v-model:visible="showSelectExampleBox" title="选择示例模板" width="30%">
-    <template #footer>
-      <tiny-button @click="resetState" round>取 消</tiny-button>
-      <tiny-button type="primary" @click="confirmSelectExample" round>确 定</tiny-button>
-    </template>
-  </tiny-dialog-box>
+    <div class="prompt-item" v-for="item in customExamples" :key="item.id">
+      <div class="ellipsis">{{ item.name }}</div>
+    </div>
+
+    <select-template-dialog v-model:visible="showSelectExampleBox" :custom-examples="customExamples"
+      @confirmSelectExample="confirmSelectExampleList" @createNewTemplate="createNewTemplate" />
+  </template>
 </template>
 
 <style scoped lang="less">

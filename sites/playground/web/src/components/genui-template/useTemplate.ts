@@ -2,7 +2,6 @@ import { ref, shallowRef, computed } from 'vue';
 import { useConversation, IndexedDBStrategy } from '@opentiny/genui-sdk-vue';
 import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
 import { CustomModelProvider } from './template-provider';
-import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 
 let conversation: ReturnType<typeof useConversation> | null = null;
@@ -205,12 +204,18 @@ export default function useTemplate(options?: UseTemplateOptions) {
   };
 
   // 从对话中提取示例 schema 列表
-  const exampleTemplates = computed(() =>
-    conversation.state.conversations
-      .map((conversation) =>
-        conversation.messages.find((message) => message.type === 'schema-card' || message.type === 'json-patch'),
-      )
-      .filter((message) => message !== undefined),
+  const templateSchemaList = computed(() =>
+    conversation.state.conversations.map((conversation) => {
+      const lastMessage = conversation.messages[conversation.messages.length - 1];
+      const schemaMessage = (lastMessage?.messages as IMessageItem[])?.find(
+        (message) => message.type === 'schema-card' || message.type === 'json-patch',
+      );
+      return {
+        id: conversation.id,
+        name: conversation.title,
+        schema: schemaMessage?.schema ?? '',
+      };
+    }),
   );
 
   return {
@@ -221,6 +226,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     currentCardId,
     templateProvider,
     messages,
+    templateSchemaList,
     createTemplate,
     changeLlmConfig,
     setCurrentSchema,
