@@ -2,7 +2,7 @@ import { reactive, toRaw } from 'vue';
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { PatternExtractor } from '@opentiny/genui-sdk-core';
 import type { IStreamDelta } from '@opentiny/genui-sdk-core';
-import { emitter } from '@opentiny/genui-sdk-vue';
+import { emitter } from './template-chat-event-emitter';
 import { templateChat } from './template-chat-api';
 import type { LLMConfig, IChatMessage, IMessageItem } from './chat.types';
 
