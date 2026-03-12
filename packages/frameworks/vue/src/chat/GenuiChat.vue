@@ -478,7 +478,7 @@ defineExpose({
     customModelProvider.setResponseHandlers(handlers);
   },
   getMessageRenderers: () => messageRenderers,
-  setMessageRenderers: (key: string, renderer: Component<IRendererProps>) => {
+  setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {
     messageRenderers[key] = renderer;
   },
 });
