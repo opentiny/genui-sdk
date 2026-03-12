@@ -30,7 +30,7 @@ import { emitter } from './event-emitter';
 import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
-import type { IMessageItem } from '@opentiny/genui-sdk-core';
+import type { IMessageItem, IStreamDelta } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
@@ -38,6 +38,7 @@ import { useResize } from './composable/use-resize';
 import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
 import { GENUI_CONFIG, CUSTOM_CONTEXT } from './injection-tokens';
+import { IResponseHandler, defaultResponseHandlers } from './response-handler';
 
 const props = defineProps<IChatProps>();
 
@@ -237,6 +238,8 @@ const messageRenderers = {
   'error-text': ErrorText,
 };
 
+const responseHandlers: Ref<IResponseHandler<IStreamDelta>[]> = ref(defaultResponseHandlers);
+
 
 const customModelProvider = new CustomModelProvider({
   url: props.url,
@@ -249,6 +252,7 @@ const customModelProvider = new CustomModelProvider({
   customActions: [...(props.customActions || []), continueChatAction, saveStateAction],
   customFetch: props.customFetch,
 });
+customModelProvider.setResponseHandlers(responseHandlers.value);
 
 const client = new AIClient({
   provider: 'custom',
@@ -468,6 +472,15 @@ defineExpose({
   setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
+  getResponseHandlers: () => responseHandlers.value,
+  setResponseHandlers: (handlers: IResponseHandler<IStreamDelta>[]) => {
+    responseHandlers.value = handlers;
+    customModelProvider.setResponseHandlers(handlers);
+  },
+  getMessageRenderers: () => messageRenderers,
+  setMessageRenderers: (key: string, renderer: Component<IRendererProps>) => {
+    messageRenderers[key] = renderer;
+  },
 });
 </script>
 
