@@ -422,6 +422,208 @@
               }
             }
           }
+        },
+        {
+          "name": {
+            "zh_CN": "单选按钮组"
+          },
+          "component": "TinyRadioGroup",
+          "icon": "radio-group",
+          "description": "用于在一组选项中进行单选。",
+          "doc_url": "https://www.opentiny.design/tiny-vue/components/radio",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "dev_mode": "proCode",
+          "npm": {
+          },
+          "group": "component",
+          "configure": {
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "description": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "modelValue",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "单选框组的绑定值"
+                    }
+                  },
+                  {
+                    "property": "options",
+                    "label": {
+                      "text": {
+                        "zh_CN": "选项列表"
+                      }
+                    },
+                    "defaultValue": [],
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "单选按钮选项列表，配置单选组的值、文本和点击事件。示例：[{label: '1', text: '选项1', events: {click: () => {console.log('点击选项1')}}}]"
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "是否禁用整个单选组"
+                    }
+                  },
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "展示形式"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "widget": {
+                      "component": "ButtonGroupConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "radio",
+                            "value": "radio"
+                          },
+                          {
+                            "label": "button",
+                            "value": "button"
+                          }
+                        ]
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选组的展示形式,可选值为：radio(单选框) 、 button(按钮、选项式)"
+                    }
+                  },
+                  {
+                    "property": "size",
+                    "label": {
+                      "text": {
+                        "zh_CN": "尺寸"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "medium",
+                            "value": "medium"
+                          },
+                          {
+                            "label": "small",
+                            "value": "small"
+                          },
+                          {
+                            "label": "mini",
+                            "value": "mini"
+                          }
+                        ]
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选组尺寸, 可选值有 medium 、 small 、 mini"
+                    }
+                  },
+                  {
+                    "property": "vertical",
+                    "label": {
+                      "text": {
+                        "zh_CN": "垂直排列"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "description": {
+                      "zh_CN": "是否垂直展示单选按钮"
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "label": {
+                  "zh_CN": "选中值变化时触发"
+                },
+                "description": {
+                  "zh_CN": "选中值变化时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "string",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前选中的值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                },
+                "defaultValue": ""
+              },
+              "onUpdate:modelValue": {
+                "label": {
+                  "zh_CN": "绑定值更新时触发"
+                },
+                "description": {
+                  "zh_CN": "v-model 对应的值更新时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "string",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "更新后的绑定值"
+                      }
+                    }
+                  ],
+                  "returns": {
+                  }
+                },
+                "defaultValue": ""
+              }
+            }
+          }
         }
       ],
       "snippets": [
@@ -526,7 +728,7 @@
           "children": [
             {
               "name": {
-                "zh_CN": "有序列表"
+                "zh_CN": "无序列表"
               },
               "snippetName": "ul",
               "schema": {
@@ -560,6 +762,67 @@
                     "children": "有序列表项2"
                   }
                 ]
+              }
+            }
+          ]
+        },
+        {
+          "group": "RadioGroup",
+          "label": {
+            "zh_CN": "单选按钮组"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "基础单选组"
+              },
+              "snippetName": "TinyRadioGroup",
+              "schema": {
+                "componentName": "TinyRadioGroup",
+                "props": {
+                  "modelValue": "1",
+                  "options": [
+                    {
+                      "label": "1",
+                      "text": "选项1"
+                    },
+                    {
+                      "label": "2",
+                      "text": "选项2"
+                    },
+                    {
+                      "label": "3",
+                      "text": "选项3"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "选项式单选组"
+              },
+              "snippetName": "TinyRadioGroup",
+              "schema": {
+                "componentName": "TinyRadioGroup",
+                "props": {
+                  "modelValue": "2",
+                  "type": "button",
+                  "options": [
+                    {
+                      "label": "1",
+                      "text": "选项1"
+                    },
+                    {
+                      "label": "2",
+                      "text": "选项2"
+                    },
+                    {
+                      "label": "3",
+                      "text": "选项3"
+                    }
+                  ]
+                }
               }
             }
           ]

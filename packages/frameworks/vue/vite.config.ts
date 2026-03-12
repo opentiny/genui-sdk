@@ -1,7 +1,6 @@
 import path from 'path';
 import { defineConfig, PluginOption } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
-import obfuscator from 'vite-plugin-bundle-obfuscator';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import escapeStringRegexp from 'escape-string-regexp';
 import dts from 'vite-plugin-dts';
@@ -13,24 +12,12 @@ export default defineConfig(({ mode }) => {
     root: path.resolve(__dirname, './'),
     plugins: [
       vue(),
-      mode === 'no-obfuscator'
-        ? visualizer({
-          open: true
-        })
-        : obfuscator({
-          apply: 'build',
-          threadPool: true,
-          options: {
-            compact: true,
-            debugProtection: false,
-            deadCodeInjection: true,
-            deadCodeInjectionThreshold: 0.4,
-            identifierNamesGenerator: 'hexadecimal',
-            stringArray: true,
-            transformObjectKeys: true,
-          },
-        }) as PluginOption, // TODO: pluginOption types are not equal
       cssInjectedByJsPlugin(),
+      mode === 'analyze'
+        ? visualizer({
+            open: true,
+          })
+        : null,
       dts({
         rollupTypes: true,
         bundledPackages: [
@@ -46,7 +33,7 @@ export default defineConfig(({ mode }) => {
             '@opentiny/tiny-schema-renderer': ['../src/types/tiny-schema-renderer.d.ts'],
           },
           include: ['../src/types/tiny-schema-renderer.d.ts'],
-        }
+        },
       }),
     ],
     build: {
@@ -66,7 +53,9 @@ export default defineConfig(({ mode }) => {
         },
       },
       rollupOptions: {
-        external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
+        external: [
+          ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
+        ],
       },
     },
   };
