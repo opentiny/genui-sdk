@@ -114,7 +114,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
     if (!currentConversation?.messages.length) {
       setCurrentSchema(null);
-      return
+      return;
     }
 
     const lastMessage = currentConversation?.messages[currentConversation.messages.length - 1];
@@ -177,7 +177,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
       const card = messages.find(
         (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
-          (message.type === 'schema-card' || message.type === 'json-patch') && message.cardId === cardId
+          (message.type === 'schema-card' || message.type === 'json-patch') && message.cardId === cardId,
       );
 
       if (card) {
@@ -203,6 +203,15 @@ export default function useTemplate(options?: UseTemplateOptions) {
   const getCurrentCardId = () => {
     return currentCardId.value;
   };
+
+  // 从对话中提取示例 schema 列表
+  const exampleTemplates = computed(() =>
+    conversation.state.conversations
+      .map((conversation) =>
+        conversation.messages.find((message) => message.type === 'schema-card' || message.type === 'json-patch'),
+      )
+      .filter((message) => message !== undefined),
+  );
 
   return {
     isTemplateInit,

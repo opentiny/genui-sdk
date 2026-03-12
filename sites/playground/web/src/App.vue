@@ -202,7 +202,7 @@ const customFetch = createCustomFetch(() => ({
         <tiny-tab-item title="历史会话" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
         </tiny-tab-item>
-        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板" name="template" class="template-tab">
+        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板（实验特性）" name="template" class="template-tab">
           <component v-if="GenuiTemplateList && isTemplateInit" :is="GenuiTemplateList" />
         </tiny-tab-item>
       </tiny-tabs>
