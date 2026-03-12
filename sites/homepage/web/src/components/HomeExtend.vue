@@ -257,7 +257,7 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 30px 8% 0px 8%;
+  padding: 0px 8%;
 
   &-title {
     margin-bottom: 40px;
@@ -275,36 +275,38 @@ onUnmounted(() => {
       rgba(232, 238, 254, 0.3) 100%
     );
     border-radius: 24px;
-    padding: 3%;
+    padding: 28px;
 
     &-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 26px;
+      margin-bottom: 16px;
 
       &-action {
         display: flex;
-        gap: 16px;
+        gap: 12px;
 
-        &-close {
+        div {
           width: 16px;
           height: 16px;
-          background-color: rgba(254, 3, 4, 1);
           border-radius: 50%;
+
+          @media (min-width: 1920px) {
+            width: 20px;
+            height: 20px;
+          }
+        }
+
+        &-close {
+          background-color: rgba(254, 3, 4, 1);
         }
 
         &-full {
-          width: 16px;
-          height: 16px;
           background-color: rgba(254, 199, 3, 1);
-          border-radius: 50%;
         }
 
         &-exit {
-          width: 16px;
-          height: 16px;
           background-color: rgba(0, 207, 106, 1);
-          border-radius: 50%;
         }
       }
 
@@ -375,6 +377,14 @@ onUnmounted(() => {
       padding: 5%;
     }
   }
+
+  @media (min-width: 1920px) {
+    padding: 0px 240px;
+
+    &-title {
+      margin-bottom: 60px;
+    }
+  }
 }
 
 .refresh-button {
@@ -388,11 +398,11 @@ onUnmounted(() => {
   border-radius: 382px;
   width: fit-content;
   height: 56px;
-  background-color: rgba(243, 243, 244, 1);
+  background-color: rgba(232, 238, 254, 1);
   display: flex;
   align-items: center;
   padding: 4px;
-  margin-bottom: 60px;
+  margin-bottom: 48px;
 
   .extend-button {
     height: 100%;
@@ -400,7 +410,7 @@ onUnmounted(() => {
     margin-left: 0;
     border-radius: 0;
     border: none;
-    background-color: rgba(243, 243, 244, 1);
+    background-color: rgba(232, 238, 254, 1);
 
     &-element-1 {
       border-radius: 382px;
@@ -412,12 +422,14 @@ onUnmounted(() => {
 
     &-element-active {
       background-color: #fff;
+      font-weight: 700;
     }
   }
 
   @media (max-width: 768px) {
     .extend-button {
-      width: 80px;
+      width: 98px;
+      font-size: 18px;
     }
   }
 }
