@@ -103,6 +103,36 @@ const url = import.meta.env.VITE_CHAT_URL;
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+watch(chat, (instance) => {
+  if (instance) {
+    const defaultResponseHandlers = instance.getResponseHandlers();
+    const newResponseHandlers = [
+      ...defaultResponseHandlers,
+      {
+        name: 'continueGenerating',
+        match: (data, context) => {
+          // TODO: 拦截前面部分字符，消除重新生成重复的部分
+          return false;
+        },
+        handler: (data, context) => {
+          // TODO: 拦截前面部分字符，消除重新生成重复的部分
+          return false;
+        },
+        start: (context, handlers) => {
+          const messages = conversation.value.messageManager.value.messages;
+          if (messages.value.length > 3 && messages.value[messages.value.length - 2].messageType === 'user-action') {
+            messages.value = messages.value.slice(0, messages.value.length - 2);
+            context.chatMessage = messages.value[messages.value.length - 1];
+            context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
+            const lastMessage = context.chatMessage.messages[context.chatMessage.messages.length - 1];
+            context.patternExtractor.setState(lastMessage?.type === 'markdown' ? 'normal' : 'handling');
+          }
+        }
+      },
+    ];
+    instance.setResponseHandlers(newResponseHandlers);
+  }
+})
 
 const handleKeydown = (event) => {
   // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
