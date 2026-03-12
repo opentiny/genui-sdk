@@ -71,13 +71,15 @@ function onToolCall(toolCalls: any[], delta: IStreamDelta, toolCallIdMap: Record
       toolCallItem.content = JSON.stringify({ arguments: nextArgs }, null, 2);
     }
 
+    emitter.emit('notification', {
+      type: 'tool',
+      delta,
+      toolCallData: toolCallItem,
+      chatMessage: structuredClone(toRaw(chatMessage)),
+    });
+
   });
-  emitter.emit('notification', {
-    type: 'tool',
-    delta,
-    toolCallData: structuredClone(toRaw(toolCalls)),
-    chatMessage: structuredClone(toRaw(chatMessage)),
-  });
+
 };
 
 function onReasoningContent(reasoningContent: string, chatMessage: IChatMessage) {
@@ -109,7 +111,7 @@ function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
   }
 };
 
-function onMarkdown(content: string, chatMessage: IChatMessage) {
+function onMarkdown(content: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'markdown') {
     chatMessage.messages[chatMessage.messages.length - 1].content += content;
   } else {
@@ -118,9 +120,10 @@ function onMarkdown(content: string, chatMessage: IChatMessage) {
       content: content
     });
   }
+  emitNotification(delta, chatMessage);
 };
 
-function onSchemaJSON(content: string, chatMessage: IChatMessage) {
+function onSchemaJSON(content: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'schema-card') {
     chatMessage.messages[chatMessage.messages.length - 1].content += content;
   } else {
@@ -130,6 +133,7 @@ function onSchemaJSON(content: string, chatMessage: IChatMessage) {
       id: uuidv4(),
     });
   }
+  emitNotification(delta, chatMessage);
 }
 
 export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
@@ -202,15 +206,15 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
       return data.content !== undefined;
     },
     handler: (data: IStreamDelta, context: any) => {
-      context.patternExtractor.handleContent(data.content);
+      context.delta = data;
+      context.patternExtractor.handleContent(data.content)
       context.chatMessage.content += data.content;
-      emitNotification(data, context.chatMessage);
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
       context.patternExtractor = new PatternExtractor({
-        onNormalWrite: (value) => onMarkdown(value, context.chatMessage),
-        onHandledWrite: (value) => onSchemaJSON(value, context.chatMessage),
+        onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
+        onHandledWrite: (value) => onSchemaJSON(value, context.delta, context.chatMessage),
       });
     },
   }
