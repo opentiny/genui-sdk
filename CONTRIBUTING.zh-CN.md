@@ -1,6 +1,6 @@
 # 贡献指南
 
-> 语言： [English](CONTRIBUTING.md) | 简体中文
+语言： [English](CONTRIBUTING.md) | 简体中文
 
 感谢你有意愿参与 GenUI SDK 开源项目的贡献！参与贡献的形式有很多种，你可以根据自己的特长和兴趣选择其中的一个或多个：
 

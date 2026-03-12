@@ -7,29 +7,32 @@ body:
     attributes:
       value: |
         Please fill out the following carefully in order to better fix the problem.
-  - type: input
-    id: tiny-vue-version
+  - type: dropdown
+    id: genui-sdk-packages
     attributes:
-      label: Version
+      label: GenUI SDK Packages
       description: |
-        ### **Check if the issue is reproducible with the latest stable version.**
-        You can use the command `npm ls @opentiny/vue` to view it
-      placeholder: latest
+        ### **Please select the packages that are affected by the issue, you can select multiple packages.**
+      multiple: true
+      options:
+        - '@opentiny/genui-sdk-server'
+        - '@opentiny/genui-sdk-vue'
+        - '@opentiny/genui-sdk-angular'
     validations:
       required: true
   - type: input
-    id: vue-version
+    id: package-version
     attributes:
-      label: Vue Version
+      label: Package Version
       placeholder: latest
     validations:
       required: true
   - type: textarea
     id: minimal-repo
     attributes:
-      label: Link to minimal reproduction
+      label: Minimal reproduction
       description: |
-        **Provide a streamlined CodePen / CodeSandbox or GitHub repository link as much as possible. Please don't fill in a link randomly, it will only close your issue directly.**
+        **The code or a link to reproduce the issue.**
       placeholder: Please Input
     validations:
       required: true
