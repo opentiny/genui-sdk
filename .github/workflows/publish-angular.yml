@@ -78,7 +78,7 @@ jobs:
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
       - name: Publish to npm (from angular package root)
-        working-directory: packages/frameworks/angular
+        working-directory: packages/frameworks/angular/output
         run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
       - name: Create and push tag

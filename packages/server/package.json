@@ -35,7 +35,7 @@
     "README.md"
   ],
   "scripts": {
-    "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
+    "prebuild": "pnpm --filter @opentiny/genui-sdk-materials-* build && pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
     "build": "vite build",
     "prebuild:lib:npm": "pnpm prebuild",
     "build:lib:npm": "pnpm build",
