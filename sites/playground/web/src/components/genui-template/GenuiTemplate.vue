@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { CodeEditor } from 'monaco-editor-vue3';
-import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import { IconEditorCode } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
@@ -9,7 +9,6 @@ import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import useTemplate from './useTemplate';
-import SchemaRenderer from '@opentiny/tiny-schema-renderer';
 
 const { currentSchema, setCurrentSchema, templateConversationState } = useTemplate();
 
@@ -107,7 +106,7 @@ resetToLatestVersion();
     <div class="genui-schema-template-right" v-if="currentSchema">
       <tiny-button class="schema-editor-toggle-button" :icon="TinyIconEditorCode"
         @click="toggleSchemaEditor"></tiny-button>
-      <schema-renderer class="schema-renderer" :schema="currentSchema" :generating="false" />
+      <schema-renderer class="schema-renderer" :content="currentSchema" :generating="false" />
     </div>
   </div>
 </template>
@@ -128,6 +127,7 @@ resetToLatestVersion();
 
 .genui-schema-template-right {
   width: 50%;
+  overflow: auto;
 }
 
 .genui-template-chat {
@@ -140,7 +140,6 @@ resetToLatestVersion();
 }
 
 .schema-renderer {
-  width: 100%;
   padding: 0px 20px;
 }
 
