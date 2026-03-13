@@ -81,11 +81,13 @@ const features = [
           :src="feature.icon"
           alt="home-feature-card-icon"
         />
-        <div class="home-feature-card-title">
-          {{ feature.title }}
-        </div>
-        <div class="home-feature-card-description">
-          {{ feature.description }}
+        <div class="home-feature-card-content">
+          <div class="home-feature-card-title">
+            {{ feature.title }}
+          </div>
+          <div class="home-feature-card-description">
+            {{ feature.description }}
+          </div>
         </div>
       </div>
     </div>
@@ -98,7 +100,7 @@ const features = [
   flex-direction: column;
   justify-content: center;
   align-content: center;
-  padding: 110px 12.5% 110px 12.5%;
+  padding: 110px 12.5%;
 
   &-header {
     display: flex;
@@ -112,12 +114,6 @@ const features = [
     gap: 45px;
   }
 
-  @media (max-width: 768px) {
-    &-content {
-      grid-template-columns: repeat(1, 1fr);
-    }
-  }
-
   &-card {
     display: flex;
     flex-direction: column;
@@ -126,6 +122,7 @@ const features = [
     border: 3px solid #fff;
     border-radius: 12px;
     cursor: pointer;
+    box-shadow: 0px 4px 30px 0px rgba(234, 233, 237, 0.3);
 
     &:hover {
       box-shadow: 0px 4px 30px 0px rgba(234, 233, 237, 0.9);
@@ -161,10 +158,20 @@ const features = [
     }
   }
 
+  @media (max-width: 768px) {
+    &-content {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
   @media (max-width: 1280px) {
     &-card {
       padding: 24px;
     }
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px 150px 240px;
   }
 }
 </style>

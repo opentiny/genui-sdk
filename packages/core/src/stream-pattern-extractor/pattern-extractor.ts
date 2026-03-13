@@ -19,6 +19,10 @@ export class PatternExtractor {
     this.keepFlag = config.keepFlag ?? this.keepFlag;
     this.regExpMap = config.regExpMap ?? new SchemaJsonPattern().regExpMap;
   }
+  
+  public setState(state: 'handling' | 'normal') {
+    this.state = state;
+  }
 
   public reset() {
     this.streamCache = '';

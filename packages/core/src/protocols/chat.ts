@@ -13,6 +13,7 @@ export interface IOpenaiCompatibleChunk {
  * 流式响应的增量数据
  */
 export interface IStreamDelta {
+  reasoning_content?: string;
   content?: string;
   tool_calls?: Array<{
     id: string;
