@@ -8,7 +8,6 @@ export class OverlapEliminator {
       };
     }
     const { overlap, overlapPending, overlapLength, overlapString } = OverlapEliminator.overlapTest(origin, inherited, compareLength);
-    console.log('【test】: overlap', overlap, 'overlapPending', overlapPending, 'overlapLength', overlapLength, 'overlapString', overlapString);
     return {
       pending: overlapPending ? overlapString : null,
       eliminated: overlap ? inherited.slice(overlapLength) : null,

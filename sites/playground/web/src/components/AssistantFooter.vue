@@ -58,11 +58,8 @@ const generateMore = () => {
   const { messages, send } = props.messageManager;
   const messageIndex = props.index;
   messages.value = messages.value.slice(0, messageIndex + 1);
-  messages.value.push({
-    role: 'user',
-    content: `上一轮内容未完成，请从上次中断的地方继续往下输出，不要生成已经输出过的内容, 否则拼接会失败，不要增加任何新的包裹，直接继续写，上一轮最后的字符为：\`${messages.value[messageIndex].content.slice(-50)}\`（不包含反引号）`,
-    messageType: 'user-action'
-  });
+  const lastMessage = messages.value[messageIndex];
+  lastMessage.requireMore = true;
   send();
 }
 
@@ -104,7 +101,7 @@ const revertGenerateMore = () => {
       v-if="notFinished"
       type="text"
       :icon="ArrowRightIcon"
-      v-auto-tip="{ always: true, content: '继续生成（Beta）', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '继续生成（实验）', effect: 'light' }"
       @click="generateMore"
     >
     </tiny-button>
@@ -112,7 +109,7 @@ const revertGenerateMore = () => {
       v-if="revertAvailable"
       type="text"
       :icon="ArrowLeftIcon"
-      v-auto-tip="{ always: true, content: '撤回上次继续生成（Beta）', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验）', effect: 'light' }"
       @click="revertGenerateMore"
     >
     </tiny-button>

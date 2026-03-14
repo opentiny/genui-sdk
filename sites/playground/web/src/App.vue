@@ -16,7 +16,7 @@ import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
 import { useInputMessage } from './use-input-message';
 import useTemplate from './components/genui-template/useTemplate';
-import { OverlapEliminator } from './components/overlap-eliminator';
+import { getOverlapEliminatorHandler, getContinueGeneratingHandler } from './generating-more-handlers';
 
 let framework = 'Vue'; // Angular
 
@@ -107,53 +107,11 @@ const conversation = computed(() => chat.value?.getConversation());
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
+    const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
     const newResponseHandlers = [
-      {
-        name: 'overlapEliminator',
-        match: (data, context) => {
-  
-          return data.content && !context.overlapEliminated;
-        },
-        handler: (data, context) => {
-          const { pending, eliminated, overlapString } = OverlapEliminator.eliminateOverlap(context.chatMessage.content, context.overlapPending + data.content);
-          console.log('overlapEliminator: pending', pending, 'eliminated', eliminated, 'overlapString', overlapString);
-          if (pending != null) {
-            context.overlapPending = pending;
-            return true;
-          }
-          if (eliminated != null) {
-            context.overlapPending = '';
-            context.overlapEliminated = true;
-            data.content = eliminated;
-
-            return false; // 返回 false 由后面的 content handler 继续处理 data.content
-          }
-
-          context.overlapEliminated = true;
-          data.content = context.overlapPending + data.content;
-          context.overlapPending = '';
-          return false;
-        },
-        start: (context, handlers) => {
-          context.overlapPending = '';
-          context.overlapEliminated = false;
-        },
-      },
+      getOverlapEliminatorHandler(contentHandler),
       ...defaultResponseHandlers,
-      {
-        name: 'continueGenerating',
-
-        start: (context, handlers) => {
-          const messages = conversation.value.messageManager.value.messages;
-          if (messages.value.length > 3 && messages.value[messages.value.length - 2].messageType === 'user-action') {
-            messages.value = messages.value.slice(0, messages.value.length - 2);
-            context.chatMessage = messages.value[messages.value.length - 1];
-            context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
-            const lastMessage = context.chatMessage.messages[context.chatMessage.messages.length - 1];
-            context.patternExtractor.setState(lastMessage?.type === 'markdown' ? 'normal' : 'handling');
-          }
-        }
-      },
+      getContinueGeneratingHandler(conversation.value.messageManager),
     ];
     instance.setResponseHandlers(newResponseHandlers);
   }
