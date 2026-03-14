@@ -54,8 +54,9 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
     start: (context, handlers) => {
       const messages = messageManager.value.messages;
       const latestMessage = messages.value[messages.value.length - 2];
-      messages.value = messages.value.slice(0, messages.value.length - 1);
+
       if (latestMessage.requireMore) {
+        messages.value = messages.value.slice(0, messages.value.length - 1);
         context.chatMessage = latestMessage;
         delete context.chatMessage.requireMore;
         context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
