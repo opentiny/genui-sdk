@@ -25,7 +25,7 @@ const cancel = () => {
 };
 
 const confirmSelectExample = () => {
-  const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.name));
+  const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.id));
 
   emit('confirmSelectExample', selectedTemplateSchemas);
   cancel()
@@ -41,7 +41,7 @@ watch(() => props.visible, (newVal) => {
   showSelectExampleBox.value = newVal;
 
   if (newVal) {
-    selectedExamples.value = props.customExamples.map((item) => item.name);
+    selectedExamples.value = props.customExamples.map((item) => item.id);
   }
 });
 </script>
@@ -55,8 +55,8 @@ watch(() => props.visible, (newVal) => {
     </template>
     <template #default>
       <tiny-checkbox-group v-model="selectedExamples" class="template-checkbox-group">
-        <div v-for="item in templateSchemaList" :key="item.name" class="template-checkbox-item">
-          <tiny-checkbox :label="item.name" :value="item.name">
+        <div v-for="item in templateSchemaList" :key="item.id" class="template-checkbox-item">
+          <tiny-checkbox :label="item.id" :value="item.id">
             <div class="template-checkbox-item__content">
               <span class="template-checkbox-item__title">
                 {{ item.name }}

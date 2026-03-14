@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import { TinyBaseSelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
 import SelectTemplateDialog from './select-template-dialog.vue';
-import useTemplate from '../genui-template/useTemplate';
 
 const props = defineProps({
   llmConfig: {

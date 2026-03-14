@@ -3,7 +3,7 @@ import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
-import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, shallowRef } from 'vue';
+import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, shallowRef, nextTick } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import NewSvg from './assets/images/new.svg?raw';
@@ -62,7 +62,6 @@ const llmConfig = reactive(
     promptList: [],
   },
 );
-const customExamples = ref(cacheCustomExamples || []);
 
 const chatConfig = reactive(
   cacheChatConfig || {
@@ -75,23 +74,6 @@ const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
 
-
-watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
-  async () => {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        theme: theme.value,
-        llmConfig,
-        chatConfig,
-        customExamples: customExamples.value,
-      }),
-    );
-    modelFeatures.value = await getModelFeatures(llmConfig.model);
-  },
-  { deep: true },
-);
 const themeData = ref([
   { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
@@ -115,32 +97,18 @@ const handleKeydown = (event) => {
 };
 
 const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
-const { isTemplateInit } = useTemplate({ url: templateUrl, llmConfig });
+const { isTemplateInit, templateSchemaList } = useTemplate({ url: templateUrl, llmConfig });
 const { initInputMessage } = useInputMessage(chat);
+
+const customExamples = ref([]);
 
 const createNewTemplate = () => {
   activeName.value = 'template';
 };
 
-onMounted(() => {
-  initInputMessage();
-  getModelOptions()
-    .then(async (data) => {
-      if (!data.find((item) => item.value === llmConfig.model)) {
-        llmConfig.model = data[0]?.value;
-      }
-      modelData.value = data;
-      modelFeatures.value = await getModelFeatures(llmConfig.model);
-    })
-    .catch((error) => {
-      console.error('获取模型列表失败:', error);
-    });
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
+const initExampleList = () => {
+  customExamples.value = cacheCustomExamples || [];
+};
 
 const roles = {
   assistant: {
@@ -161,9 +129,50 @@ const customFetch = createCustomFetch(() => ({
 }));
 
 const updateCustomExamples = (list) => {
-  customExamples.value = list.map((item) => ({ name: item.name, schema: item.schema }));
+  customExamples.value = list.map((item) => ({ id: item.id, name: item.name, schema: item.schema }));
 };
 
+watch(
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
+  async () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        theme: theme.value,
+        llmConfig,
+        chatConfig,
+        customExamples: customExamples.value,
+      }),
+    );
+    modelFeatures.value = await getModelFeatures(llmConfig.model);
+  },
+  { deep: true },
+);
+
+watch(() => templateSchemaList.value, (newVal) => {
+  customExamples.value = newVal.filter(item => customExamples.value.some(example => example.id === item.id));
+}, { deep: true });
+
+onMounted(() => {
+  initInputMessage();
+  initExampleList();
+  getModelOptions()
+    .then(async (data) => {
+      if (!data.find((item) => item.value === llmConfig.model)) {
+        llmConfig.model = data[0]?.value;
+      }
+      modelData.value = data;
+      modelFeatures.value = await getModelFeatures(llmConfig.model);
+    })
+    .catch((error) => {
+      console.error('获取模型列表失败:', error);
+    });
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
