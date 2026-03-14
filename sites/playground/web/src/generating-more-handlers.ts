@@ -45,7 +45,12 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
 export const getContinueGeneratingHandler = (messageManager: any) => {
   return {
     name: 'continueGenerating',
-
+    match: (data, context) => {
+      return false;
+    },
+    handler: (data, context) => {
+      return false;
+    },
     start: (context, handlers) => {
       const messages = messageManager.value.messages;
       const latestMessage = messages.value[messages.value.length - 2];
