@@ -113,6 +113,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
     if (!currentConversation?.messages.length) {
       setCurrentSchema(null);
+
       return;
     }
 
@@ -121,8 +122,11 @@ export default function useTemplate(options?: UseTemplateOptions) {
     (lastMessage?.messages as IMessageItem[])?.some((message: IMessageItem) => {
       if (message.type === 'schema-card' || message.type === 'json-patch') {
         latestSchema = message.schema;
+        setCurrentCardId(message.cardId ?? '');
+
         return true;
       }
+
       return false;
     });
 
@@ -224,6 +228,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     conversation,
     currentSchema,
     currentCardId,
+    currentConversationId: computed(() => conversation.state.currentId),
     templateProvider,
     messages,
     templateSchemaList,

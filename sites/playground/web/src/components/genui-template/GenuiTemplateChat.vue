@@ -202,7 +202,7 @@ const handleSchemaVersionCardClick = (cardId: string) => {
     // 当切换 schema 版本时，清理该卡片已执行的 patch 操作记录
     // 因为新的 schema 版本可能需要重新执行操作
     jsonPatchDeduplicator.clearCardOperations(cardId);
-    emit('schema-version-toggle', targetSchema);
+    emit('schema-version-toggle', targetSchema, cardId);
   } catch (error) { }
 };
 
