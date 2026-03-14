@@ -148,7 +148,6 @@ onUnmounted(() => {
   width: 50%;
   overflow: auto;
   padding: 20px;
-  background-color: #f5f5f5;
 
   &-wrapper {
     background-color: #ffffff;
@@ -161,13 +160,13 @@ onUnmounted(() => {
       display: flex;
       align-items: center;
       justify-content: center;
-      height: 80px;
+      height: 60px;
     }
 
     .schema-editor-toggle-button {
       position: absolute;
-      left: 20px;
-      top: 20px;
+      left: 0;
+      top: 0;
     }
   }
 }
