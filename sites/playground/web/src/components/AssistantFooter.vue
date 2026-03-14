@@ -60,7 +60,7 @@ const generateMore = () => {
   messages.value = messages.value.slice(0, messageIndex + 1);
   messages.value.push({
     role: 'user',
-    content: `上一轮内容未完成，请从上次中断的地方的最后一个\`{\`继续往下输出，内容会自动拼接上一次的内容后面。不要生成已经输出过的内容, 否则拼接会失败，不要增加任何新的包裹，直接继续写`,
+    content: `上一轮内容未完成，请从上次中断的地方继续往下输出，不要生成已经输出过的内容, 否则拼接会失败，不要增加任何新的包裹，直接继续写，上一轮最后的字符为：\`${messages.value[messageIndex].content.slice(-50)}\`（不包含反引号）`,
     messageType: 'user-action'
   });
   send();
