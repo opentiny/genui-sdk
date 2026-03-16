@@ -153,6 +153,9 @@ watch(
 );
 
 watch(() => templateSchemaList.value, (newVal) => {
+  if (!newVal) {
+    return;
+  }
   const templateMap = new Map(newVal.map((item) => [item.id, item]));
   customExamples.value = customExamples.value
     .map((example) => (example.id && templateMap.has(example.id) ? templateMap.get(example.id) : example))
