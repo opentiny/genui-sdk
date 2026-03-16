@@ -132,6 +132,10 @@ const updateCustomExamples = (list) => {
   customExamples.value = list.map((item) => ({ id: item.id, name: item.name, schema: item.schema }));
 };
 
+watch(() => llmConfig.model, async (newVal) => {
+  modelFeatures.value = await getModelFeatures(newVal);
+});
+
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
   async () => {
@@ -144,7 +148,6 @@ watch(
         customExamples: customExamples.value,
       }),
     );
-    modelFeatures.value = await getModelFeatures(llmConfig.model);
   },
   { deep: true },
 );
