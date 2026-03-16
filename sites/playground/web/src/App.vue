@@ -153,7 +153,10 @@ watch(
 );
 
 watch(() => templateSchemaList.value, (newVal) => {
-  customExamples.value = newVal.filter(item => customExamples.value.some(example => example.id === item.id));
+  const templateMap = new Map(newVal.map((item) => [item.id, item]));
+  customExamples.value = customExamples.value
+    .map((example) => (example.id && templateMap.has(example.id) ? templateMap.get(example.id) : example))
+    .filter((example) => !example.id || templateMap.has(example.id));
 }, { deep: true });
 
 onMounted(() => {
@@ -161,6 +164,11 @@ onMounted(() => {
   initExampleList();
   getModelOptions()
     .then(async (data) => {
+      if (!Array.isArray(data) || data.length === 0) {
+        modelData.value = [];
+        modelFeatures.value = {};
+        return;
+      }
       if (!data.find((item) => item.value === llmConfig.model)) {
         llmConfig.model = data[0]?.value;
       }
