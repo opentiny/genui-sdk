@@ -82,7 +82,7 @@ function onToolCall(toolCalls: any[], delta: IStreamDelta, toolCallIdMap: Record
 
 };
 
-function onReasoningContent(reasoningContent: string, chatMessage: IChatMessage) {
+function onReasoningContent(reasoningContent: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
   if (lastMessage?.type === 'reasoning') {
     lastMessage.content += reasoningContent;
@@ -93,6 +93,7 @@ function onReasoningContent(reasoningContent: string, chatMessage: IChatMessage)
       thinking: true,
     });
   }
+  emitNotification(delta, chatMessage);
 };
 
 function onReasoningEnd(reasoningMessage: IMessageItem) {
@@ -166,8 +167,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
       return data.reasoning_content !== undefined;
     },
     handler: (data: IStreamDelta, context: any) => {
-      onReasoningContent(data.reasoning_content, context.chatMessage);
-      emitNotification(data, context.chatMessage);
+      onReasoningContent(data.reasoning_content, data, context.chatMessage);
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
@@ -233,7 +233,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
       const thinkTagWrapPattern = new ThinkTagWrapPattern();
       const thinkPatternExtractor = new PatternExtractor({
         onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
-        onHandledWrite: (value) => onReasoningContent(value, context.chatMessage),
+        onHandledWrite: (value) => onReasoningContent(value, context.delta, context.chatMessage),
         regExpMap: thinkTagWrapPattern.regExpMap,
       });
       context.patternExtractor = new PatternExtractor({
