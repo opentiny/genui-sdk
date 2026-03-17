@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
+import { TinyInput, TinyForm, TinyFormItem } from '@opentiny/vue';
 import { IconDel, IconEdit, IconPlus } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
 
@@ -16,29 +17,36 @@ const props = defineProps<{
 
 // 列表项状态
 const renameId = ref<string | null>(null); // 当前正在重命名的 id
-const editText = ref(''); // 重命名输入框的值
-const renameInputRef = ref(null); // 重命名输入框的ref
+const renameInputRef = ref<any | null>(null); // v-for 下是数组
+const renameFormRef = ref<any | null>(null); // v-for 下是数组
+const renameForm = ref<{ name: string }>({ name: '' });
 
 // 处理重命名
 const handleRename = (item: Conversation) => {
   renameId.value = item.id;
-  editText.value = item.title;
+  renameForm.value.name = item.title;
   // 延迟让输入框获取焦点
   nextTick(() => {
-    renameInputRef.value?.focus();
+    const inputRef = Array.isArray(renameInputRef.value) ? renameInputRef.value[0] : renameInputRef.value;
+    inputRef?.focus();
   });
 };
 
-// 确认重命名
+// 确认重命名（带重名校验）
 const confirmRename = () => {
   if (!renameId.value) return;
 
-  const title = editText.value.trim();
+  // 先整体校验表单；只有通过时才提交修改
+  const formRef = Array.isArray(renameFormRef.value) ? renameFormRef.value[0] : renameFormRef.value;
+  formRef?.validate((valid: boolean) => {
+    if (!valid) return;
 
-  if (title) {
-    emit('item-title-change', renameId.value, title);
+    const name = renameForm.value.name.trim();
+    if (!name) return;
+
+    emit('item-title-change', renameId.value as string, name);
     renameId.value = null;
-  }
+  });
 };
 
 // 处理删除
@@ -77,13 +85,42 @@ const handleAdd = () => {
         <!-- 列表项文本/重命名输入框 -->
         <div class="item-content">
           <template v-if="renameId === item.id">
-            <input
-              v-model="editText"
-              class="rename-input"
-              @blur="confirmRename"
-              @keyup.enter="confirmRename"
-              ref="renameInputRef"
-            />
+            <tiny-form
+              ref="renameFormRef"
+              :model="renameForm"
+              label-width="0"
+              :show-message="true"
+              class="rename-form"
+            >
+              <tiny-form-item
+                prop="name"
+                :rules="[
+                  { required: true, message: '名称不能为空', trigger: 'blur' },
+                  {
+                    validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
+                      const hasDuplicate = props.listData.some(
+                        (item) => item.id !== renameId && item.title === value.trim(),
+                      );
+                      if (hasDuplicate) {
+                        callback(new Error('已存在同名模板'));
+                      } else {
+                        callback();
+                      }
+                    },
+                    trigger: 'blur',
+                  },
+                ]"
+              >
+                <tiny-input
+                  v-model="renameForm.name"
+                  class="rename-input"
+                  :maxlength="50"
+                  @blur="confirmRename"
+                  @keyup.enter="confirmRename"
+                  ref="renameInputRef"
+                />
+              </tiny-form-item>
+            </tiny-form>
           </template>
           <template v-else>
             {{ item.title }}
