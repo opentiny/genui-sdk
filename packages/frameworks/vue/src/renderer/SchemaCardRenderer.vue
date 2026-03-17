@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { parsePartialJson } from 'ai';
 import { ref, watch, computed, inject, nextTick } from 'vue';
 // @ts-ignore
 import defaultSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
+import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { extendMapper } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer'; //TODO: 耦合
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { GENUI_RENDERER } from '../chat/injection-tokens';
@@ -72,20 +71,20 @@ function updateContextAndState() {
 
 watch(
   () => props.content,
-  async (newVal) => {
+  (newVal) => {
     let json: any = newVal;
     let isCompleted = true
     if (typeof newVal === 'string') {
       if (newVal.trim()) {
-        const { value, state } = await parsePartialJson(newVal);
+        const { value, state } = repairJson(newVal);
         if (!value) {
           isError.value = true;
           return;
         }
         json = value;
-        isCompleted = state === 'successful-parse'
+        isCompleted = state === RepairJsonState.SUCCESS
       } else {
-        json = {};
+        json = {};  
       }
     }
     deltaPatcher.patchWithDelta(schema.value, json, isCompleted); // TODO： 速率限制

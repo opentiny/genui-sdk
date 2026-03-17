@@ -14,6 +14,7 @@
   "dependencies": {
     "flat": "^6.0.1",
     "jsondiffpatch": "^0.7.3",
+    "jsonrepair": "^3.13.3",
     "radash": "^12.1.1",
     "zod": "^3.24.2",
     "zod-to-json-schema": "^3.24.6"
