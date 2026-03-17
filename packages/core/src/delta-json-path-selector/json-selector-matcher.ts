@@ -41,6 +41,9 @@ const attrWithoutOpRegex = /\[([^\]=~^$*]+)\]/g;
 const pseudoRegex = /:([^:\s]+)/g;
 
 export function matchSelector(objectKey: string, objectValue: any, selectorToken: string) {
+  if (objectValue === undefined) {
+    return false;
+  }
   if (selectorToken === '*') {
     return true;
   }
@@ -158,6 +161,6 @@ export function jsonSelectorMatcher(json: any, selector: string, lastDeltaKeys: 
   
   return {
     isMatch: sIndex === selectorSection.length,
-    matchPath: sIndex === selectorSection.length ? jsonPath.slice(1, jIndex + 1).join('.') : '',
+    matchPath: sIndex === selectorSection.length ? jsonPath.slice(1, jIndex).join('.') : '',
   };
 }
