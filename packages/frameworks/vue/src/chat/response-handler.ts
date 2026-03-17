@@ -1,5 +1,5 @@
-import { IChatMessage, IMessageItem, IStreamDelta, PatternExtractor } from "@opentiny/genui-sdk-core";
-import { reactive, toRaw } from "vue";
+import { IChatMessage, IMessageItem, IStreamDelta, PatternExtractor, ThinkTagWrapPattern } from "@opentiny/genui-sdk-core";
+import { reactive, toRaw, watch } from "vue";
 import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';
 import { useI18n } from './i18n';
@@ -95,9 +95,8 @@ function onReasoningContent(reasoningContent: string, chatMessage: IChatMessage)
   }
 };
 
-function onReasoningEnd(chatMessage: IChatMessage) {
-  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'reasoning') lastMessage.thinking = false;
+function onReasoningEnd(reasoningMessage: IMessageItem) {
+  if (reasoningMessage?.type === 'reasoning') reasoningMessage.thinking = false;
 };
 
 function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
@@ -171,9 +170,28 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
       emitNotification(data, context.chatMessage);
       return true;
     },
-    notMatchHandler: (data: IStreamDelta, context: any) => {
-      onReasoningEnd(context.chatMessage);
-      return false;
+    start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
+      context.handleReasoning = false;
+      context.unWatchReasoning = watch(context.chatMessage.messages, (newVal) => {
+        if (newVal.length === 0) {
+          return;
+        }
+        if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
+          context.handleReasoning = false;
+          const reasoningMessage = context.chatMessage.messages[context.chatMessage.messages.length - 2];
+          onReasoningEnd(reasoningMessage);
+        } else if (!context.handleReasoning && newVal[newVal.length - 1]?.type === 'reasoning') {
+          context.handleReasoning = true;
+        }
+      });
+    },
+    end: (context: any) => {
+      context.unWatchReasoning?.();
+      if (context.handleReasoning) {
+        context.handleReasoning = false;
+        const reasoningMessage = context.chatMessage.messages[context.chatMessage.messages.length - 1];
+        onReasoningEnd(reasoningMessage);
+      }
     },
   },
   {
@@ -212,8 +230,14 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
-      context.patternExtractor = new PatternExtractor({
+      const thinkTagWrapPattern = new ThinkTagWrapPattern();
+      const thinkPatternExtractor = new PatternExtractor({
         onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
+        onHandledWrite: (value) => onReasoningContent(value, context.chatMessage),
+        regExpMap: thinkTagWrapPattern.regExpMap,
+      });
+      context.patternExtractor = new PatternExtractor({
+        onNormalWrite: (value) => thinkPatternExtractor.handleContent(value),
         onHandledWrite: (value) => onSchemaJSON(value, context.delta, context.chatMessage),
       });
     },
