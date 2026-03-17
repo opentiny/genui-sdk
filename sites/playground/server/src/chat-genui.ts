@@ -195,8 +195,24 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
   };
 }
 
+type PlaygroundAgentConfig = {
+  name: string;
+  description?: string;
+  version?: string;
+  api?: {
+    type?: string;
+    url?: string;
+    version?: string;
+  };
+  auth?: {
+    type?: string;
+    instructions?: string;
+  };
+  capabilities?: string[];
+};
+
 const getPlaygroundConfig = (playgroundStr: string) => {
-  let playgroundConfig = {}
+  let playgroundConfig: any = {};
 
   try {
     playgroundConfig = JSON.parse(playgroundStr);
@@ -210,9 +226,125 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    agents: (playgroundConfig.agents || []) as PlaygroundAgentConfig[],
   };
+};
 
-}
+const buildAgentTools = (agents: PlaygroundAgentConfig[] | undefined): Record<string, any> => {
+  const agentTools: Record<string, any> = {};
+
+  if (!Array.isArray(agents) || !agents.length) {
+    return agentTools;
+  }
+
+  for (const agent of agents) {
+    if (!agent?.name) continue;
+
+    const toolName = `agent_${agent.name}`;
+
+    agentTools[toolName] = tool({
+      description:
+        agent.description ||
+        `调用 A2A Agent "${agent.name}"。该 Agent 通过 A2A 接口提供能力，具体由前端或上游系统处理。`,
+      // 这里使用一个统一的入参结构，由模型选择要交给 Agent 执行的任务内容
+      inputSchema: z.object({
+        input: z
+          .string()
+          .describe('要转交给该 Agent 处理的自然语言请求或任务描述'),
+        metadata: z
+          .record(z.any())
+          .optional()
+          .describe('可选的附加元数据，将一并发送给 Agent'),
+      }),
+      execute: async (args: any) => {
+        const baseUrl = agent.api?.url;
+
+        if (!baseUrl) {
+          return {
+            type: 'a2a-agent-error',
+            message: `Agent "${agent.name}" 未配置 api.url，无法调用`,
+          };
+        }
+
+        // 对齐 demo Agent 和 A2A 习惯用法：使用 /tasks 作为任务创建端点
+        const taskUrl = `${baseUrl.replace(/\/$/, '')}/tasks`;
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+
+        // 简单支持 bearer / api_key 这两种常见认证方式
+        const authType = agent.auth?.type;
+        const apiKeyFromMetadata = (args?.metadata && (args.metadata.apiKey || args.metadata.token)) as
+          | string
+          | undefined;
+
+        if (authType && apiKeyFromMetadata) {
+          if (authType.toLowerCase() === 'bearer') {
+            headers.Authorization = `Bearer ${apiKeyFromMetadata}`;
+          } else if (authType.toLowerCase() === 'api_key' || authType.toLowerCase() === 'api-key') {
+            headers['x-api-key'] = apiKeyFromMetadata;
+          }
+        }
+
+        try {
+          const res = await fetch(taskUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+              input: args?.input ?? '',
+              metadata: args?.metadata ?? {},
+            }),
+          });
+
+          const text = await res.text();
+
+          let json: any = null;
+          try {
+            json = text ? JSON.parse(text) : null;
+          } catch {
+            // ignore JSON parse error, 返回原始文本
+          }
+
+          return {
+            type: 'a2a-agent-call',
+            agent: {
+              name: agent.name,
+              description: agent.description,
+              version: agent.version,
+              api: agent.api,
+              auth: agent.auth,
+              capabilities: agent.capabilities,
+            },
+            request: {
+              url: taskUrl,
+              headers,
+              body: {
+                input: args?.input ?? '',
+                metadata: args?.metadata ?? {},
+              },
+            },
+            response: {
+              status: res.status,
+              ok: res.ok,
+              body: json ?? text,
+            },
+          };
+        } catch (error: any) {
+          return {
+            type: 'a2a-agent-error',
+            agent: {
+              name: agent.name,
+            },
+            message: error?.message || String(error),
+          };
+        }
+      },
+    });
+  }
+
+  return agentTools;
+};
 
 export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
@@ -244,7 +376,7 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -255,10 +387,12 @@ export function createChatGenui() {
 
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt } = llmConfig;
-    const { tools, clientsMap } = await generateAiSdkTools(
+    const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
       mcpServers.filter((s) => s.enabled),
       abort.signal,
     );
+    const agentTools = buildAgentTools(agents);
+    const tools = { ...mcpTools, ...agentTools };
 
     const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
