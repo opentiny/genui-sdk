@@ -409,7 +409,7 @@ onUnmounted(() => {
         v-show="!isLastMessageInBottom"
         @click="scrollToBottom"
       >
-        <SvgIdPrefixer :icon="IconArrowDown" class="icon-arrow-down" />
+        <IconArrowDown class="icon-arrow-down" />
       </div>
       <tr-sender v-model="inputMessage" :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
         " :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)"
