@@ -109,6 +109,7 @@ export class GenuiRenderer implements OnInit {
           this.isError = true;
           return;
         }
+        this.isError = false;
         json = value;
         isCompleted = state === RepairJsonState.SUCCESS;
       } else {

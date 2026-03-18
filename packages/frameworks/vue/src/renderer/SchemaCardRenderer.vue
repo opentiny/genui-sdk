@@ -81,6 +81,7 @@ watch(
           isError.value = true;
           return;
         }
+        isError.value = false;
         json = value;
         isCompleted = state === RepairJsonState.SUCCESS
       } else {
