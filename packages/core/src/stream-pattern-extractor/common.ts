@@ -3,3 +3,4 @@ export function getPartialStartRegString(flag: string) {
       return `${cur}(${acc})?`;
     }, '');
   }
+  
