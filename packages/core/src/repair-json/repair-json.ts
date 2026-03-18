@@ -1,5 +1,5 @@
 import { jsonrepair } from 'jsonrepair';
-import { fixJson } from './fix-json';
+import { fixJson } from 'ai';
 
 export enum RepairJsonState {
   INVALID_INPUT = 'invalid-input',
