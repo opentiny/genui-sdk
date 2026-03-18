@@ -6,7 +6,7 @@ import NewSvg from '../assets/images/new.svg?raw';
 import OpenSvg from '../assets/images/open.svg?raw';
 import CloseSvg from '../assets/images/close.svg?raw';
 import MenuSvg from '../assets/images/menu.svg?raw';
-import ModelConfig from './tab-components/model-config.vue';
+import ModelConfig from './tab-components/ModelConfig.vue';
 import McpTools from './tab-components/mcpTools.vue';
 import GenuiHistory from './tab-components/GenuiHistory.vue';
 import { useIsMobile } from '../hooks';
