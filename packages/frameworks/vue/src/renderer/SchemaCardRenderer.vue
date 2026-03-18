@@ -84,7 +84,7 @@ watch(
         json = value;
         isCompleted = state === RepairJsonState.SUCCESS
       } else {
-        json = {};  
+        json = {};
       }
     }
     deltaPatcher.patchWithDelta(schema.value, json, isCompleted); // TODO： 速率限制
