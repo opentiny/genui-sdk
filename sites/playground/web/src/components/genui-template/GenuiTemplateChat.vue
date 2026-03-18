@@ -15,6 +15,7 @@ import {
 import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
+import SvgIdPrefixer from './SvgIdPrefixer.vue';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
 import { requiredCompleteFieldSelectors, scrollEnd, throttle } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
@@ -71,7 +72,10 @@ const generating = computed(() => GeneratingStatus.includes(conversation.message
 const roles: Record<string, BubbleRoleConfig> = {
   assistant: {
     placement: 'start',
-    avatar: h(IconAi, { style: { fontSize: '32px' } }),
+    avatar: h(SvgIdPrefixer, {
+      icon: IconAi,
+      style: { fontSize: '32px' },
+    }),
     maxWidth: '100%',
     customContentField: 'messages',
     slots: {
@@ -94,7 +98,10 @@ const roles: Record<string, BubbleRoleConfig> = {
   user: {
     placement: 'end',
     maxWidth: '90%',
-    avatar: h(IconUser, { style: { fontSize: '32px' } }),
+    avatar: h(SvgIdPrefixer, {
+      icon: IconUser,
+      style: { fontSize: '32px' },
+    }),
     customContentField: 'messages',
   },
 };
@@ -397,9 +404,12 @@ onUnmounted(() => {
       </tr-bubble-provider>
     </div>
     <div class="sender-container">
-      <div :class="['scroll-to-bottom-button', { 'is-generating': generating }]" v-show="!isLastMessageInBottom"
-        @click="scrollToBottom">
-        <IconArrowDown class="icon-arrow-down" />
+      <div
+        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
+        v-show="!isLastMessageInBottom"
+        @click="scrollToBottom"
+      >
+        <SvgIdPrefixer :icon="IconArrowDown" class="icon-arrow-down" />
       </div>
       <tr-sender v-model="inputMessage" :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
         " :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)"
