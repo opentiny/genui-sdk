@@ -1,7 +1,7 @@
 <script setup>
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
-import { ref, watch, computed, inject } from 'vue';
+import { ref, watch, computed, inject, defineAsyncComponent } from 'vue';
 import NewSvg from '../assets/images/new.svg?raw';
 import OpenSvg from '../assets/images/open.svg?raw';
 import CloseSvg from '../assets/images/close.svg?raw';
@@ -10,6 +10,7 @@ import ModelConfig from './tab-components/model-config.vue';
 import McpTools from './tab-components/mcpTools.vue';
 import GenuiHistory from './tab-components/GenuiHistory.vue';
 import { useIsMobile } from '../hooks';
+import useTemplate from './genui-template/useTemplate';
 
 const props = defineProps({
   expanded: { type: Boolean, default: true },
@@ -18,6 +19,13 @@ const props = defineProps({
 
 const emit = defineEmits(['update:expanded', 'new-task', 'update:theme']);
 
+const { isTemplateInit } = useTemplate();
+
+const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
+// 条件异步加载 genui-template 组件，不启用时完全不导入，构建时不会被打包
+const GenuiTemplateList = ENABLE_TEMPLATE
+  ? defineAsyncComponent(() => import('./genui-template/GenuiTemplateList.vue'))
+  : shallowRef(null);
 // 从上层注入共享的 playground 上下文（这里只需要主题&会话相关）
 const playgroundContext = inject('playgroundContext');
 const { themeData, conversation } = playgroundContext;
@@ -146,6 +154,9 @@ const handleCreateNewTemplate = () => {
         </tiny-tab-item>
         <tiny-tab-item title="历史会话" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
+        </tiny-tab-item>
+        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板（实验特性）" name="template">
+          <component v-if="GenuiTemplateList && isTemplateInit" :is="GenuiTemplateList"/>
         </tiny-tab-item>
       </tiny-tabs>
     </div>

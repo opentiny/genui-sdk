@@ -9,16 +9,12 @@ import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
 import { useInputMessage } from './hooks/use-input-message';
 import { useIsMobile } from './hooks';
+import useTemplate from './components/genui-template/useTemplate';
 
 let framework = 'Vue'; // Angular
 
 // 通过环境变量控制是否启用模板功能，默认不启用
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
-
-// 条件异步加载 genui-template 组件，不启用时完全不导入，构建时不会被打包
-const GenuiTemplateList = ENABLE_TEMPLATE
-  ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplateList.vue'))
-  : shallowRef(null);
 
 const GenuiTemplate = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplate.vue'))
@@ -181,7 +177,7 @@ const updateCustomExamples = (list) => {
     <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
       @updateCustomExamples="updateCustomExamples" v-slot="{ activeName }">
       <template v-if="ENABLE_TEMPLATE && isTemplateInit">
-        <div v-show="activeName === 'template'" class="chat-template">
+        <div v-show="activeName === 'template'" class="chat-container">
           <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
             :theme="theme" :chat-config="chatConfig" />
         </div>
