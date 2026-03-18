@@ -177,7 +177,7 @@ const updateCustomExamples = (list) => {
     <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
       @updateCustomExamples="updateCustomExamples" v-slot="{ activeName }">
       <template v-if="ENABLE_TEMPLATE && isTemplateInit">
-        <div v-show="activeName === 'template'" class="chat-container">
+        <div v-if="activeName === 'template'" class="chat-container">
           <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
             :theme="theme" :chat-config="chatConfig" />
         </div>
