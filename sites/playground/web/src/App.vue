@@ -1,21 +1,14 @@
 <script setup>
-import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
-import { iconPlus } from '@opentiny/vue-icon';
-import { IconAi } from '@opentiny/tiny-robot-svgs';
+import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
-import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, shallowRef } from 'vue';
+import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, h, shallowRef } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
-import NewSvg from './assets/images/new.svg?raw';
-import OpenSvg from './assets/images/open.svg?raw';
-import CloseSvg from './assets/images/close.svg?raw';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
-import ModelConfig from './components/tab-components/model-config.vue';
-import McpTools from './components/tab-components/mcpTools.vue';
-import GenuiHistory from './components/tab-components/GenuiHistory.vue';
-import { useInputMessage } from './use-input-message';
-import useTemplate from './components/genui-template/useTemplate';
+import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
+import { useInputMessage } from './hooks/use-input-message';
+import { useIsMobile } from './hooks';
 
 let framework = 'Vue'; // Angular
 
@@ -43,9 +36,6 @@ if (location.search.includes('framework=angular')) {
   framework = 'Angular';
 }
 
-const activeName = ref('model');
-const TinyIconPlus = iconPlus();
-
 const STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_CONFIG';
 const {
   llmConfig: cacheLLmConfig,
@@ -53,7 +43,7 @@ const {
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-const isOpen = ref(true);
+
 const llmConfig = reactive(
   cacheLLmConfig || {
     temperature: 0.5,
@@ -75,7 +65,6 @@ const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
 
-
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
   async () => {
@@ -88,10 +77,17 @@ watch(
         customExamples: customExamples.value,
       }),
     );
-    modelFeatures.value = await getModelFeatures(llmConfig.model);
   },
   { deep: true },
 );
+
+watch(
+  () => llmConfig.model,
+  async () => {
+    modelFeatures.value = await getModelFeatures(llmConfig.model);
+  },
+);
+
 const themeData = ref([
   { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
@@ -106,6 +102,18 @@ const url = import.meta.env.VITE_CHAT_URL;
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
 
+// 提供给侧边栏及其子组件使用的共享上下文
+const playgroundContext = {
+  llmConfig,
+  chatConfig,
+  modelData,
+  themeData,
+  conversation,
+  customExamples,
+};
+
+provide('playgroundContext', playgroundContext);
+
 const handleKeydown = (event) => {
   // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -117,10 +125,8 @@ const handleKeydown = (event) => {
 const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
 const { isTemplateInit } = useTemplate({ url: templateUrl, llmConfig });
 const { initInputMessage } = useInputMessage(chat);
-
-const createNewTemplate = () => {
-  activeName.value = 'template';
-};
+const { isMobile } = useIsMobile();
+const isSidebarOpen = ref(!isMobile.value);
 
 onMounted(() => {
   initInputMessage();
@@ -142,18 +148,22 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
 });
 
-const roles = {
-  assistant: {
-    slots: {
-      trailer: AssistantFooter,
+const roles = computed(() => {
+  return {
+    assistant: {
+      avatar: isMobile.value ? null : h(IconAi, { style: { fontSize: '32px' } }),
+      slots: {
+        trailer: AssistantFooter,
+      },
     },
-  },
-  user: {
-    slots: {
-      trailer: UserFooter,
+    user: {
+      avatar: isMobile.value ? null : h(IconUser, { style: { fontSize: '32px' } }),
+      slots: {
+        trailer: UserFooter,
+      },
     },
-  },
-};
+  };
+});
 
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
@@ -168,77 +178,29 @@ const updateCustomExamples = (list) => {
 
 <template>
   <div class="genui-playground">
-    <div class="config-tabs" :class="{ 'config-tabs--collapsed': !isOpen }">
-      <!-- 头部区域 -->
-      <header class="sidebar_header" :class="{ 'sidebar_header--collapsed': !isOpen }">
-        <div class="sidebar_brand">
-          <img src="/logo.svg" alt="logo" />
-          <span v-if="isOpen">GenUI</span>
+    <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
+      @updateCustomExamples="updateCustomExamples" v-slot="{ activeName }">
+      <template v-if="ENABLE_TEMPLATE && isTemplateInit">
+        <div v-show="activeName === 'template'" class="chat-template">
+          <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
+            :theme="theme" :chat-config="chatConfig" />
         </div>
-
-        <div class="sidebar_actions">
-          <div class="sidebar_header_right">
-            <span v-if="isOpen" class="svg-icon" :innerHTML="CloseSvg" title="收起" @click="isOpen = false"></span>
-            <span v-else class="svg-icon" :innerHTML="OpenSvg" title="展开" @click="isOpen = true"></span>
-          </div>
-          <span v-if="!isOpen" class="svg-icon" :innerHTML="NewSvg" title="新建会话"
-            @click="chat.handleNewConversation()"></span>
-        </div>
-      </header>
-      <!-- 新建会话按钮 -->
-      <div class="sidebar_new_task">
-        <div v-if="isOpen" class="new-task-btn" type="button" @click="chat.handleNewConversation()">
-          <TinyIconPlus :size="16" />
-          <span class="new-task-btn__text">新建会话</span>
-          <div class="new-task-btn__shortcut">
-            <span>Ctrl</span>
-            <span>K</span>
-          </div>
-        </div>
+      </template>
+      <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
+        <GenuiConfigProvider :theme="theme" style="height: 100%">
+          <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
+            :model="llmConfig.model" :temperature="llmConfig.temperature" :features="modelFeatures"
+            :custom-fetch="customFetch" :custom-examples="customExamples">
+            <template #empty>
+              <div class="empty">
+                <IconAi />
+                <span>GenUI Playground</span>
+              </div>
+            </template>
+          </GenuiChat>
+        </GenuiConfigProvider>
       </div>
-      <tiny-tabs class="sidebar-tabs" v-model="activeName" v-show="isOpen">
-        <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig :llm-config="llmConfig" :model-data="modelData" :custom-examples="customExamples"
-            @update:llm-config="Object.assign(llmConfig, $event)" @update:custom-examples="updateCustomExamples"
-            @create-new-template="createNewTemplate" />
-        </tiny-tab-item>
-        <tiny-tab-item title="工具" name="tools">
-          <McpTools :llm-config="llmConfig" :chat-config="chatConfig"
-            @update:llm-config="Object.assign(llmConfig, $event)"
-            @update:chat-config="Object.assign(chatConfig, $event)" />
-        </tiny-tab-item>
-        <tiny-tab-item title="主题" name="theme">
-          <div class="config-title">切换主题</div>
-          <tiny-button-group size="small" :data="themeData" v-model="theme"></tiny-button-group>
-        </tiny-tab-item>
-        <tiny-tab-item title="历史会话" name="history" class="history-tab">
-          <GenuiHistory v-if="conversation" :conversation="conversation" />
-        </tiny-tab-item>
-        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板（实验特性）" name="template" class="template-tab">
-          <component v-if="GenuiTemplateList && isTemplateInit" :is="GenuiTemplateList" />
-        </tiny-tab-item>
-      </tiny-tabs>
-    </div>
-    <!-- 模版 -->
-    <template v-if="ENABLE_TEMPLATE && isTemplateInit">
-      <div v-show="activeName === 'template'" class="chat-template">
-        <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
-          :theme="theme" :chat-config="chatConfig" />
-      </div>
-    </template>
-    <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
-      <GenuiConfigProvider :theme="theme" style="height: 100%">
-        <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
-          :features="modelFeatures" :custom-fetch="customFetch" :custom-examples="customExamples">
-          <template #empty>
-            <div class="empty">
-              <IconAi />
-              <span>GenUI Playground</span>
-            </div>
-          </template>
-        </GenuiChat>
-      </GenuiConfigProvider>
-    </div>
+    </PlaygroundSidebar>
   </div>
 </template>
 <style scoped lang="less">
@@ -247,135 +209,6 @@ const updateCustomExamples = (list) => {
   --ti-common-scrollbar-height: 8px;
   display: flex;
   height: 100%;
-
-  :deep(.tiny-tabs__content) {
-    height: 100%;
-    overflow: auto;
-    padding: 0 24px 90px;
-  }
-
-  .chat-template {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-  }
-}
-
-.config-tabs {
-  --config-tas-width: 370px;
-  --config-tas-width-collapsed: 48px;
-  position: relative;
-  width: var(--config-tas-width);
-  flex-shrink: 0;
-  height: 100%;
-  box-sizing: border-box;
-  transition: all 0.3s ease;
-  display: flex;
-  /* 新增：纵向布局 */
-  flex-direction: column;
-
-  /* 新增 */
-  .sidebar_header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 24px 24px 0;
-
-    &.sidebar_header--collapsed {
-      flex-direction: column;
-      gap: 20px;
-      padding: 12px 8px 0;
-    }
-
-    .sidebar_brand {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-    }
-
-    .sidebar_actions {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-  }
-
-  .sidebar_new_task {
-    padding: 20px 24px 10px;
-
-    /* 新建任务按钮 */
-    .new-task-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.25rem;
-      height: 36px;
-      border: 1px solid #c2c2c2;
-      border-radius: 10px;
-      cursor: pointer;
-      white-space: nowrap;
-
-      &__text {
-        font-size: 14px;
-        font-weight: 400;
-        line-height: 20px;
-        text-align: justify;
-      }
-
-      &__shortcut {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.25rem;
-
-        span {
-          font-size: 10px;
-          line-height: 14px;
-          border: 1px solid #f0f0f0;
-          border-radius: 4px;
-          padding: 0 6px;
-          background: #fafafa;
-        }
-      }
-
-      &:hover {
-        background: #0000000a;
-      }
-
-      &.collapsed {
-        width: 40px;
-        height: 40px;
-        padding: 0;
-        border-radius: 50%;
-      }
-    }
-  }
-
-  .sidebar-tabs {
-    .config-title {
-      font-size: 14px;
-      color: #595959;
-      margin-bottom: 12px;
-      line-height: 32px;
-    }
-
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-
-    :deep(.tiny-tabs__header.is-top) {
-      padding: 0 24px;
-    }
-  }
-
-  &.config-tabs--collapsed {
-    width: var(--config-tas-width-collapsed);
-  }
-
-  .svg-icon {
-    cursor: pointer;
-  }
 }
 
 .chat-container {
@@ -396,6 +229,17 @@ const updateCustomExamples = (list) => {
   &>svg {
     width: 56px;
     height: 56px;
+  }
+}
+
+@media (max-width: 768px) {
+  .empty {
+    font-size: 24px;
+
+    &>svg {
+      width: 48px;
+      height: 48px;
+    }
   }
 }
 </style>

@@ -6,16 +6,20 @@ export const useInputMessage = (chatInstance: Ref<ComponentPublicInstance<typeof
     const inputMessage = new URLSearchParams(window.location.search).get('input-message');
     if (!inputMessage || !chatInstance.value) {
       return;
-    };
+    }
 
     const conversation = chatInstance.value?.getConversation();
 
-    const unwatch = watch(() => conversation.state.loading, (newValue) => {
-      if (!newValue) {
-        chatInstance.value?.setInputMessage(inputMessage);
-        unwatch();
-      }
-    }, { immediate: true });
+    const unwatch = watch(
+      () => conversation.state.loading,
+      (newValue) => {
+        if (!newValue) {
+          chatInstance.value?.setInputMessage(inputMessage);
+          unwatch();
+        }
+      },
+      { immediate: true },
+    );
   };
   return {
     initInputMessage,
