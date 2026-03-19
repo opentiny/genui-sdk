@@ -14,6 +14,7 @@ import {
   TinyCollapseItem,
 } from '@opentiny/vue';
 import { iconDel, iconEdit, iconPlus, iconEllipsis } from '@opentiny/vue-icon';
+import AgentDialog from './AgentDialog.vue';
 
 const props = defineProps({
   llmConfig: {
@@ -83,6 +84,8 @@ const mcpServerData = ref({
 const agentData = ref({
   name: '',
   agentCardUrl: '',
+  description: '',
+  enabled: true,
   index: -1,
 });
 
@@ -117,6 +120,8 @@ const closeAgentDialog = () => {
   agentData.value = {
     name: '',
     agentCardUrl: '',
+    description: '',
+    enabled: true,
     index: -1,
   };
   agentCard.value = null;
@@ -151,6 +156,8 @@ const addAgent = () => {
   agentData.value = {
     name: '',
     agentCardUrl: '',
+    description: '',
+    enabled: true,
     index: -1,
   };
   agentCard.value = null;
@@ -164,6 +171,8 @@ const editAgent = (agent, index) => {
   agentData.value = {
     name: agent.name || '',
     agentCardUrl: agent.agentCardUrl || '',
+    description: agent.description || '',
+    enabled: agent.enabled ?? true,
     index,
   };
   agentCard.value = agent;
@@ -267,6 +276,11 @@ const queryAgentCard = async () => {
     }
     const card = await res.json();
     agentCard.value = card;
+    agentData.value = {
+      ...agentData.value,
+      name: card?.name || '',
+      description: card?.description || '',
+    };
     agentCardStatus.value = 'success';
   } catch (error) {
     agentCardStatus.value = 'error';
@@ -277,7 +291,7 @@ const queryAgentCard = async () => {
 };
 
 const confirmAgent = () => {
-  const { name, agentCardUrl, index } = agentData.value;
+  const { name, agentCardUrl, description, enabled, index } = agentData.value;
 
   if (!name || !agentCardUrl) {
     TinyNotify({
@@ -300,9 +314,14 @@ const confirmAgent = () => {
   const agents = llmConfig.value.agents || [];
   const card = agentCard.value;
   const nextAgent = {
+    // 先保留 Agent Card 上的所有字段（version/api/auth/capabilities 等）
     ...card,
-    name: name || card.name,
+    // 再用前端表单中的值覆盖名称和描述
+    name: name || card?.name,
+    description: description || card?.description || '',
+    // 前端专属字段
     agentCardUrl,
+    enabled: enabled ?? true,
   };
 
   if (index > -1) {
@@ -319,6 +338,12 @@ const updateServerEnabled = (server, enabled) => {
   const mcpServers = llmConfig.value.mcpServers || [];
   const updatedServers = mcpServers.map((s) => (s.name === server.name ? { ...s, enabled } : s));
   updateConfig({ mcpServers: updatedServers });
+};
+
+const updateAgentEnabled = (agent, enabled) => {
+  const agents = llmConfig.value.agents || [];
+  const updatedAgents = agents.map((a) => (a.name === agent.name ? { ...a, enabled } : a));
+  updateConfig({ agents: updatedAgents });
 };
 
 const updateAddToolCallContext = (value) => {
@@ -386,6 +411,8 @@ const updateShowThinkingResult = (value) => {
             <div class="mcp-server-item-header">
               <div class="mcp-server-item-name">{{ agent.name }}</div>
               <div>
+                <tiny-switch :model-value="agent.enabled" @update:model-value="updateAgentEnabled(agent, $event)"
+                  class="mcp-server-item-enabled"></tiny-switch>
                 <tiny-popover trigger="hover" popper-class="mcp-server-item-actions-popover" :visible-arrow="false"
                   :append-to-body="false">
                   <template #default>
@@ -435,86 +462,19 @@ const updateShowThinkingResult = (value) => {
         <tiny-button type="primary" :loading="addToolLoading" @click="confirmMCPServer">确认</tiny-button>
       </template>
     </tiny-dialog-box>
-    <tiny-dialog-box v-model:visible="showAgentFormDialog" :title="agentData.index > -1 ? '编辑 Agent' : '添加 Agent'"
-      width="500px" @close="closeAgentDialog">
-      <tiny-form :model="agentData" label-width="120px" label-position="left">
-        <tiny-form-item label="名称" prop="name" required>
-          <tiny-input v-model="agentData.name" placeholder="Agent 名称（用于在界面展示）"></tiny-input>
-        </tiny-form-item>
-        <tiny-form-item label="Agent Card URL" prop="agentCardUrl" required>
-          <tiny-input v-model="agentData.agentCardUrl"
-            placeholder="完整的 Agent Card 地址，例如 http://localhost:3100/a2a/agent"></tiny-input>
-        </tiny-form-item>
-      </tiny-form>
-      <template #footer>
-        <tiny-button type="primary" :loading="agentQueryLoading" @click="queryAgentCard"
-          v-if="agentCardStatus === 'idle' || agentCardStatus === 'error'">
-          {{ agentCardStatus === 'error' ? '重试' : '查询' }}
-        </tiny-button>
-        <tiny-button type="primary" :loading="addAgentLoading" @click="confirmAgent"
-          v-if="agentCardStatus === 'success'">
-          确认
-        </tiny-button>
-      </template>
-      <div v-if="agentCardStatus === 'loading'" class="agent-card-hint agent-card-hint--info">
-        正在查询 Agent Card...
-      </div>
-      <div v-if="agentCardStatus === 'error'" class="agent-card-hint agent-card-hint--error">
-        {{ agentCardError }}
-      </div>
-      <div v-if="agentCardStatus === 'success' && agentCard" class="agent-card-detail">
-        <div class="agent-card-detail__header">
-          <div class="agent-card-detail__title">
-            {{ agentCard.name || '未命名 Agent' }}
-          </div>
-          <div class="agent-card-detail__subtitle">
-            {{ agentCard.description || '无描述' }}
-          </div>
-        </div>
-        <div class="agent-card-detail__section">
-          <div class="agent-card-detail__section-title">基础信息</div>
-          <div class="agent-card-detail__row">
-            <span class="agent-card-detail__label">版本</span>
-            <span class="agent-card-detail__value">{{ agentCard.version || '-' }}</span>
-          </div>
-        </div>
-        <div class="agent-card-detail__section">
-          <div class="agent-card-detail__section-title">API</div>
-          <div class="agent-card-detail__row">
-            <span class="agent-card-detail__label">类型</span>
-            <span class="agent-card-detail__value">{{ (agentCard.api && agentCard.api.type) || '-' }}</span>
-          </div>
-          <div class="agent-card-detail__row">
-            <span class="agent-card-detail__label">URL</span>
-            <span class="agent-card-detail__value">{{ (agentCard.api && agentCard.api.url) || '-' }}</span>
-          </div>
-          <div class="agent-card-detail__row">
-            <span class="agent-card-detail__label">版本</span>
-            <span class="agent-card-detail__value">{{ (agentCard.api && agentCard.api.version) || '-' }}</span>
-          </div>
-        </div>
-        <div class="agent-card-detail__section">
-          <div class="agent-card-detail__section-title">认证</div>
-          <div class="agent-card-detail__row">
-            <span class="agent-card-detail__label">类型</span>
-            <span class="agent-card-detail__value">{{ (agentCard.auth && agentCard.auth.type) || 'none' }}</span>
-          </div>
-        </div>
-        <div class="agent-card-detail__section">
-          <div class="agent-card-detail__section-title">能力</div>
-          <div class="agent-card-detail__row">
-            <span class="agent-card-detail__label">capabilities</span>
-            <span class="agent-card-detail__value">
-              {{
-                Array.isArray(agentCard.capabilities)
-                  ? agentCard.capabilities.join(', ')
-                  : agentCard.capabilities || '-'
-              }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </tiny-dialog-box>
+    <AgentDialog
+      :visible="showAgentFormDialog"
+      :agent-data="agentData"
+      :agent-card="agentCard"
+      :agent-card-status="agentCardStatus"
+      :agent-card-error="agentCardError"
+      :agent-query-loading="agentQueryLoading"
+      :add-agent-loading="addAgentLoading"
+      @update:visible="(val) => { if (!val) closeAgentDialog(); else showAgentFormDialog = val; }"
+      @update:agentData="(val) => (agentData = val)"
+      @queryAgentCard="queryAgentCard"
+      @confirmAgent="confirmAgent"
+    />
   </div>
 </template>
 <style scoped lang="less">
@@ -648,6 +608,16 @@ const updateShowThinkingResult = (value) => {
     background-color: #fff1f0;
     color: #cf1322;
     border: 1px solid #ffa39e;
+  }
+}
+
+.agent-url-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  :deep(.tiny-input) {
+    flex: 1;
   }
 }
 

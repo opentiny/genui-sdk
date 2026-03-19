@@ -196,8 +196,13 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
 }
 
 type PlaygroundAgentConfig = {
+  // 前端 IAgentConfig 字段（从 playground.metadata 直接透传）
   name: string;
+  agentCardUrl: string;
   description?: string;
+  enabled?: boolean;
+
+  // Agent Card 解析后在服务端扩展的字段（可选）
   version?: string;
   api?: {
     type?: string;
@@ -299,40 +304,13 @@ const buildAgentTools = (agents: PlaygroundAgentConfig[] | undefined): Record<st
 
           const text = await res.text();
 
-          let json: any = null;
-          try {
-            json = text ? JSON.parse(text) : null;
-          } catch {
-            // ignore JSON parse error, 返回原始文本
-          }
-
           return {
-            type: 'a2a-agent-call',
-            agent: {
-              name: agent.name,
-              description: agent.description,
-              version: agent.version,
-              api: agent.api,
-              auth: agent.auth,
-              capabilities: agent.capabilities,
-            },
-            request: {
-              url: taskUrl,
-              headers,
-              body: {
-                input: args?.input ?? '',
-                metadata: args?.metadata ?? {},
-              },
-            },
-            response: {
-              status: res.status,
-              ok: res.ok,
-              body: json ?? text,
-            },
+            type: 'text',
+            text: text
           };
         } catch (error: any) {
           return {
-            type: 'a2a-agent-error',
+            type: 'agent-function-call-error',
             agent: {
               name: agent.name,
             },
