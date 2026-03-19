@@ -1,7 +1,7 @@
 <script setup>
 import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
-import { ref, watch, computed, inject, defineAsyncComponent } from 'vue';
+import { ref, watch, computed, inject, defineAsyncComponent, shallowRef } from 'vue';
 import NewSvg from '../assets/images/new.svg?raw';
 import OpenSvg from '../assets/images/open.svg?raw';
 import CloseSvg from '../assets/images/close.svg?raw';
