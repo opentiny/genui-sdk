@@ -1,5 +1,38 @@
 import { OverlapEliminator } from "./components/overlap-eliminator";
 
+function removeSensitiveContent(chatMessage: Record<string, any>) {
+  const sensitiveContent = `\n\nThe current content involves sensitive information. Please try a new topic.`;
+  if (chatMessage.content.indexOf(sensitiveContent) !== -1) {
+    chatMessage.content = chatMessage.content.slice(0, chatMessage.content.indexOf(sensitiveContent));
+    const messages = chatMessage.messages;
+    if (messages?.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.content.indexOf(sensitiveContent) !== -1) {
+        lastMessage.content = lastMessage.content.slice(0, lastMessage.content.indexOf(sensitiveContent));
+      }
+    }
+  }
+}
+
+export const movePartialSchemaJsonToLastMessage = () => {
+  return {
+    name: 'movePartialSchemaJsonToLastMessage',
+    match: (data, context) => {
+      const currentIndex = context.chatMessage?.messages?.length - 1;
+      const partialSchemaJsonIndex = context.partialSchemaJsonIndex;
+      return data.content && partialSchemaJsonIndex !== -1 && partialSchemaJsonIndex < currentIndex;
+    },
+    handler: (data, context) => {
+      const chatMessage = context.chatMessage;
+      const partialSchemaJsonIndex = context.partialSchemaJsonIndex;
+      const partialSchemaJson = chatMessage.messages.splice(partialSchemaJsonIndex, 1)[0];
+      chatMessage.messages.push(partialSchemaJson);
+      context.partialSchemaJsonIndex = -1;
+      return false;
+    }
+  }
+}
+
 export const getOverlapEliminatorHandler = (contentHandler: any) => {
   return {
     name: 'overlapEliminator',
@@ -30,7 +63,7 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
     },
     start: (context, handlers) => {
       context.overlapPending = '';
-      context.overlapEliminated = false;
+      context.overlapEliminated = true;
     },
     end: (context) => {
       if (context.overlapPending) {
@@ -53,17 +86,24 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
     },
     start: (context, handlers) => {
       const messages = messageManager.value.messages;
-      const latestMessage = messages.value[messages.value.length - 2];
+      const chatMessage = messages.value[messages.value.length - 2];
 
-      if (latestMessage.requireMore) {
+      if (chatMessage.requireMore || (chatMessage.prefix)) {
+        context.overlapEliminated = false;
         messages.value = messages.value.slice(0, messages.value.length - 1);
-        context.chatMessage = latestMessage;
+        context.chatMessage = chatMessage;
         delete context.chatMessage.requireMore;
         context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
-        context.patternExtractor.setState(latestMessage?.type === 'markdown' ? 'normal' : 'handling');
-        return true;
+
+        removeSensitiveContent(chatMessage);
+
+        const lastMessageMessages = chatMessage.messages;
+        const lastMessageMessageIndex = lastMessageMessages.findLastIndex(message => message.type !== 'reasoning');
+        const lastMessageMessage = lastMessageMessages[lastMessageMessageIndex];
+        context.patternExtractor.setState(lastMessageMessage.type === 'schema-card' ? 'handling' : 'normal');
+        context.partialSchemaJsonIndex = lastMessageMessage.type === 'schema-card' ? lastMessageMessageIndex : -1;
+      
       }
-      return false;
     }
   };
 }

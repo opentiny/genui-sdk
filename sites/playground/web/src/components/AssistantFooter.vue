@@ -59,6 +59,8 @@ const generateMore = () => {
   const messageIndex = props.index;
   messages.value = messages.value.slice(0, messageIndex + 1);
   const lastMessage = messages.value[messageIndex];
+  // Note: some platform feature support message.prefix = true/ message.partial = true, to finish the previous message,
+  // but poor result, so we don't use it for now.
   lastMessage.requireMore = true;
   send();
 }
