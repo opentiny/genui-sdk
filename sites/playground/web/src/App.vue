@@ -16,7 +16,7 @@ import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
 import { useInputMessage } from './use-input-message';
 import useTemplate from './components/genui-template/useTemplate';
-import { getOverlapEliminatorHandler, getContinueGeneratingHandler } from './generating-more-handlers';
+import { getOverlapEliminatorHandler, getContinueGeneratingHandler, locationPartialSchemaJson, movePartialSchemaJsonToLastMessage } from './continue-writing';
 
 let framework = 'Vue'; // Angular
 
@@ -109,9 +109,11 @@ watch(chat, (instance) => {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
     const newResponseHandlers = [
+      movePartialSchemaJsonToLastMessage(),
       getOverlapEliminatorHandler(contentHandler),
       ...defaultResponseHandlers,
       getContinueGeneratingHandler(conversation.value.messageManager),
+      locationPartialSchemaJson(),
     ];
     instance.setResponseHandlers(newResponseHandlers);
   }

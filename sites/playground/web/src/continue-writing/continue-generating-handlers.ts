@@ -1,18 +1,6 @@
-import { OverlapEliminator } from "./components/overlap-eliminator";
-
-function removeSensitiveContent(chatMessage: Record<string, any>) {
-  const sensitiveContent = `\n\nThe current content involves sensitive information. Please try a new topic.`;
-  if (chatMessage.content.indexOf(sensitiveContent) !== -1) {
-    chatMessage.content = chatMessage.content.slice(0, chatMessage.content.indexOf(sensitiveContent));
-    const messages = chatMessage.messages;
-    if (messages?.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.content.indexOf(sensitiveContent) !== -1) {
-        lastMessage.content = lastMessage.content.slice(0, lastMessage.content.indexOf(sensitiveContent));
-      }
-    }
-  }
-}
+import { OverlapEliminator } from "../components/overlap-eliminator";
+import { findLastContinueWritingMessage } from "./message-utils";
+import { removeSensitiveInfoWarning } from "./remove-sensitive-info-warning";
 
 export const movePartialSchemaJsonToLastMessage = () => {
   return {
@@ -30,6 +18,16 @@ export const movePartialSchemaJsonToLastMessage = () => {
       context.partialSchemaJsonIndex = -1;
       return false;
     }
+  }
+}
+
+export const locationPartialSchemaJson = () => {
+  return {
+    name: 'locationPartialSchemaJson',
+    start: (context, handlers) => {
+      const { message, index } = findLastContinueWritingMessage(context.chatMessage);
+      context.partialSchemaJsonIndex = message.type === 'schema-card' ? index : -1;
+    },
   }
 }
 
@@ -88,21 +86,16 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
       const messages = messageManager.value.messages;
       const chatMessage = messages.value[messages.value.length - 2];
 
-      if (chatMessage.requireMore || (chatMessage.prefix)) {
+      if (chatMessage.requireMore) {
         context.overlapEliminated = false;
         messages.value = messages.value.slice(0, messages.value.length - 1);
         context.chatMessage = chatMessage;
         delete context.chatMessage.requireMore;
         context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
 
-        removeSensitiveContent(chatMessage);
-
-        const lastMessageMessages = chatMessage.messages;
-        const lastMessageMessageIndex = lastMessageMessages.findLastIndex(message => message.type !== 'reasoning');
-        const lastMessageMessage = lastMessageMessages[lastMessageMessageIndex];
-        context.patternExtractor.setState(lastMessageMessage.type === 'schema-card' ? 'handling' : 'normal');
-        context.partialSchemaJsonIndex = lastMessageMessage.type === 'schema-card' ? lastMessageMessageIndex : -1;
-      
+        removeSensitiveInfoWarning(chatMessage);
+        const { message } = findLastContinueWritingMessage(context.chatMessage);
+        context.patternExtractor.setState(message.type === 'schema-card' ? 'handling' : 'normal');
       }
     }
   };
