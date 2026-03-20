@@ -65,7 +65,7 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
     },
     end: (context) => {
       if (context.overlapPending) {
-        contentHandler.handler(context.overlapPending, context);
+        contentHandler.handler({ content: context.overlapPending }, context);
         context.overlapPending = '';
         context.overlapEliminated = true;
       }
