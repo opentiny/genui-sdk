@@ -68,7 +68,7 @@ export class DeltaPatcher {
     return filterObj;
   }
 
-  protected getActualMatchPath(key: string, matchPath: string) {
+  protected getActualMatchPath(key: string, matchPath: string, deltaIndex: number) {
     const keys = key.split('.');
     const matchKeys = matchPath.split('.');
     let index = 0;
@@ -77,7 +77,7 @@ export class DeltaPatcher {
       if (matchIndex >= matchKeys.length) {
         break;
       }
-      if (key === matchKeys[matchIndex]) {
+      if (key === matchKeys[matchIndex] && index !== deltaIndex) {
         matchIndex++;
       }
       index++;
@@ -95,7 +95,7 @@ export class DeltaPatcher {
 
     if (isMatch) {
       const cloneDelta = structuredClone(delta);
-      const deltaPath = this.getActualMatchPath(lastKey, matchPath);
+      const deltaPath = this.getActualMatchPath(lastKey, matchPath, deltaIndex ?? -1);
       const { parent, selfKey } = deltaPath.match(/((?<parent>.*)\.)?(?<selfKey>.*?)$/)?.groups || {};
 
       const target = get(cloneDelta, parent || '') as any;
@@ -112,12 +112,12 @@ export class DeltaPatcher {
             }
           } else {
             if (process.env.NODE_ENV !== 'production') {
-              console.warn('Impossible branch(for debugging): delta path: ', deltaPath, 'operatorIndex: ', deltaIndex, 'matchPath: ', matchPath, '.  Please check the schema and delta.');
+              console.warn('[DeltaPatcher]: Impossible branch(for debugging): delta path: ', deltaPath, 'operatorIndex: ', deltaIndex, 'matchPath: ', matchPath, '.  Please check the schema and delta.');
             }
           }
         } else {
           if (process.env.NODE_ENV !== 'production') {
-            console.warn('The existing object does not satisfy the rule, here only remove the additional part: delta path: ', deltaPath, 'operatorIndex: ', deltaIndex, 'matchPath: ', matchPath, '.');
+            console.warn('[DeltaPatcher]: The existing object does not satisfy the rule, here only remove the additional part: delta path: ', deltaPath, 'operatorIndex: ', deltaIndex, 'matchPath: ', matchPath, '.');
           }
           this.removeSingleChildParent(cloneDelta, deltaPath.split('.'), true);
         }
@@ -198,6 +198,12 @@ export class DeltaPatcher {
   protected getPatchDelta(schema: ISchema, delta: Delta) {
 
     const flattenKeys = Object.keys(this.filterDiffFlatten(delta));
+    if (delta && !flattenKeys.length) {
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('[DeltaPatcher]: unexpected root level changes, delta: ', JSON.stringify(delta));
+      }
+      return delta;
+    }
     const lastKey = flattenKeys[flattenKeys.length - 1];
 
     const actualKey = this.getActualKey(lastKey, delta);
