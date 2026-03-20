@@ -175,6 +175,9 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
       onReasoningEnd(context.chatMessage);
       return false;
     },
+    end: (context: any) => {
+      onReasoningEnd(context.chatMessage);
+    },
   },
   {
     name: 'toolCall',
