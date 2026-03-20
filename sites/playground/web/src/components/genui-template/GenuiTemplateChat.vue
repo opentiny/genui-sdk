@@ -34,6 +34,10 @@ import SchemaVersionCard from './SchemaVersionCard.vue';
 import useTemplate from './useTemplate';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import { emitter } from './template-chat-event-emitter';
+import useIcon from '../../use-icon';
+
+const { addIcons } = useIcon();
+addIcons(IconAi, IconUser);
 
 const props = defineProps<{
   messages?: IMessage[];
