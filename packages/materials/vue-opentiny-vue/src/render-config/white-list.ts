@@ -77,6 +77,19 @@ export const whiteList = [
   'TinyChartBar',
   'TinyChartRadar',
   'TinyChartRing',
+  'TinyHuichartsLine',
+  'TinyHuichartsHistogram',
+  'TinyHuichartsBar',
+  'TinyHuichartsRadar',
+  'TinyHuichartsRing',
+  'TinyHuichartsPie',
+  'TinyHuichartsFunnel',
+  'TinyHuichartsScatter',
+  'TinyHuichartsWaterfall',
+  'TinyHuichartsGauge',
+  'TinyHuichartsGraph',
+  'TinyHuichartsProcess',
+
   // 'GridStack',
   // 'GridStackItem'
 ];
