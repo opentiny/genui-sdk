@@ -33,7 +33,8 @@ const finishReason = computed(() => props.data?.choices?.[0]?.finish_reason ?? u
 const createdLabel = computed(() => {
   const t = props.data?.created;
   if (t == null) return '';
-  const d = new Date(t);
+  const ms = t < 1e12 ? t * 1000 : t;
+  const d = new Date(ms);
   return Number.isNaN(d.getTime()) ? String(t) : d.toLocaleString();
 });
 

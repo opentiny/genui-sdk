@@ -85,7 +85,7 @@ const roles: Record<string, BubbleRoleConfig> = {
           index: slotProps.index,
           isFinished,
           messageManager: messageManager.value,
-          chatMessage: messageManager.value.messages.value[slotProps.index] as IChatMessage,
+          chatMessage: (messageManager.value.messages.value[slotProps.index] || {}) as IChatMessage,
           onRefresh: handleRefresh,
           onCopy: handleCopy,
         });
