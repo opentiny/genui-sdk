@@ -5272,7 +5272,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": []
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -5442,7 +5442,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-width",
+                    "property": "labelWidth",
                     "label": {
                       "text": {
                         "zh_CN": "标签宽度"
@@ -5482,7 +5482,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-align",
+                    "property": "labelAlign",
                     "label": {
                       "text": {
                         "zh_CN": "必填标识占位"
@@ -5502,7 +5502,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-suffix",
+                    "property": "labelSuffix",
                     "label": {
                       "text": {
                         "zh_CN": "标签后缀"
@@ -5735,7 +5735,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": ["labelWidth", "disabled"]
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -9641,7 +9641,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": []
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -9750,7 +9750,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": ["labelWidth", "disabled"]
             },
             "contextMenu": {
               "actions": ["create symbol"],

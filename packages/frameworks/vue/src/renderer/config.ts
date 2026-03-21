@@ -15,7 +15,6 @@ export const requiredCompleteFieldSelectors = [
   '[componentName^=TinyChart] > props > :string',
   '[componentName=TinyChartPie] > props > data > rows > *',
   '[componentName=TinyForm] > props > labelPosition',
-  '[componentName=TinyForm] > props > label-position',
   '[componentName=TinyRadioGroup] > props > options > * > label',
   // ng element version
   '[componentName=img] > props > src',

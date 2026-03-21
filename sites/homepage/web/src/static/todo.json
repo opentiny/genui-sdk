@@ -453,7 +453,7 @@
               "type": "JSExpression",
               "value": "this.state.newTodo"
             },
-            "label-position": "top"
+            "labelPosition": "top"
           },
           "children": [
             {

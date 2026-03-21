@@ -31,7 +31,7 @@ export const formSchema = {
           'type': 'JSExpression',
           'value': 'this.state.formData',
         },
-        'label-position': 'top',
+        'labelPosition': 'top',
       },
       'children': [
         {
