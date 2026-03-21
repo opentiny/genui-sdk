@@ -108,10 +108,12 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
+    const reasoningHandler = defaultResponseHandlers.find(handler => handler.name === 'reasoning');
     const newResponseHandlers = [
+      reasoningHandler,
       movePartialSchemaJsonToLastMessage(),
       getOverlapEliminatorHandler(contentHandler),
-      ...defaultResponseHandlers,
+      ...defaultResponseHandlers.filter(handler => handler.name !== 'reasoning'),
       getContinueGeneratingHandler(conversation.value.messageManager),
       locationPartialSchemaJson(),
     ];

@@ -1,4 +1,4 @@
-import { modifyChatBody as continueGeneratingBodyModifier } from "../continue-writing/chat-body-modifier";
+import { modifyChatBody as continueGeneratingBodyModifier } from "../continue-writing";
 
 export interface IMcpServerConfig {
   name: string;

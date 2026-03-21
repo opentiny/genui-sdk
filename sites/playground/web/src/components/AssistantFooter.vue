@@ -5,6 +5,7 @@ import { AutoTip } from '@opentiny/vue-directive';
 import { ref, computed, reactive } from 'vue';
 import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
+import { useGenerateMore } from '../continue-writing';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
@@ -53,30 +54,8 @@ const refresh = () => {
   messages.value = messages.value.slice(0, messageIndex);
   send();
 };
+const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageManager, props.index);
 
-const generateMore = () => {
-  const { messages, send } = props.messageManager;
-  const messageIndex = props.index;
-  messages.value = messages.value.slice(0, messageIndex + 1);
-  const lastMessage = messages.value[messageIndex];
-  // Note: some platform feature support message.prefix = true/ message.partial = true, to finish the previous message,
-  // but poor result, so we don't use it for now.
-  lastMessage.requireMore = true;
-  send();
-}
-
-const revertGenerateMore = () => {
-  const { messages, send } = props.messageManager;
-  const messageIndex = props.index;
-  if (messages.value[messageIndex].originChatMessage) {
-    messages.value[messageIndex] = reactive(JSON.parse(messages.value[messageIndex].originChatMessage));
-    messages.value[messageIndex].id = messages.value[messageIndex].id + '1';
-    console.log('revertGenerateMore: messages', messages.value);
-  } else {
-    console.warn('revertGenerateMore: originChatMessage not found');
-  }
-
-}
 </script>
 
 <template>
@@ -103,15 +82,15 @@ const revertGenerateMore = () => {
       v-if="notFinished"
       type="text"
       :icon="ArrowRightIcon"
-      v-auto-tip="{ always: true, content: '继续生成（实验）', effect: 'light' }"
-      @click="generateMore"
+      v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: 'light' }"
+      @click="markGenerateMore"
     >
     </tiny-button>
     <tiny-button
       v-if="revertAvailable"
       type="text"
       :icon="ArrowLeftIcon"
-      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验）', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: 'light' }"
       @click="revertGenerateMore"
     >
     </tiny-button>

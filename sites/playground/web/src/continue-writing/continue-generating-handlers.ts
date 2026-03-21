@@ -2,19 +2,35 @@ import { OverlapEliminator } from "../components/overlap-eliminator";
 import { findLastContinueWritingMessage } from "./message-utils";
 import { removeSensitiveInfoWarning } from "./remove-sensitive-info-warning";
 
+const removeUnexpectedSchemaJsonWrapper = (content: any) => {
+  const schemaJsonRegex = /^```schemaJson\n([\s\S]*)/;
+  const JsonRegex = /^```json\n([\s\S]*)/;
+  const codeRegex = /^```([\s\S]*)/;
+  const newLineRegex = /^\n\n([\s\S]*)/;
+  let result = content;
+  [schemaJsonRegex, JsonRegex, codeRegex, newLineRegex].forEach(regex => {
+    const match = content.match(regex);
+    if (match) {
+      result = match[1];
+    }
+  });
+  return result;
+}
+
 export const movePartialSchemaJsonToLastMessage = () => {
   return {
     name: 'movePartialSchemaJsonToLastMessage',
     match: (data, context) => {
-      const currentIndex = context.chatMessage?.messages?.length - 1;
-      const partialSchemaJsonIndex = context.partialSchemaJsonIndex;
-      return data.content && partialSchemaJsonIndex !== -1 && partialSchemaJsonIndex < currentIndex;
+      return data.content && !context.overlapEliminated && context.partialSchemaJsonIndex !== -1;
     },
     handler: (data, context) => {
       const chatMessage = context.chatMessage;
       const partialSchemaJsonIndex = context.partialSchemaJsonIndex;
-      const partialSchemaJson = chatMessage.messages.splice(partialSchemaJsonIndex, 1)[0];
-      chatMessage.messages.push(partialSchemaJson);
+      const currentIndex = context.chatMessage?.messages?.length - 1; 
+      if (partialSchemaJsonIndex < currentIndex) {
+        const partialSchemaJson = chatMessage.messages.splice(partialSchemaJsonIndex, 1)[0];
+        chatMessage.messages.push(partialSchemaJson);
+      }
       context.partialSchemaJsonIndex = -1;
       return false;
     }
@@ -24,9 +40,13 @@ export const movePartialSchemaJsonToLastMessage = () => {
 export const locationPartialSchemaJson = () => {
   return {
     name: 'locationPartialSchemaJson',
+    match: (data, context) => false,
+    handler: (data, context) => false,
     start: (context, handlers) => {
-      const { message, index } = findLastContinueWritingMessage(context.chatMessage);
-      context.partialSchemaJsonIndex = message.type === 'schema-card' ? index : -1;
+      if (!context.overlapEliminated) {
+        const { message, index } = findLastContinueWritingMessage(context.chatMessage);
+        context.partialSchemaJsonIndex = message?.type === 'schema-card' ? index : -1;
+      }
     },
   }
 }
@@ -38,7 +58,9 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
       return data.content && !context.overlapEliminated;
     },
     handler: (data, context) => {
-      const { pending, eliminated, overlapString } = OverlapEliminator.eliminateOverlap(context.chatMessage.content, context.overlapPending + data.content);
+      const newContent = removeUnexpectedSchemaJsonWrapper(context.overlapPending + data.content);
+      
+      const { pending, eliminated, overlapString } = OverlapEliminator.eliminateOverlap(context.chatMessage.content, newContent);
       if (import.meta.env.MODE === 'development') {
         console.info('overlapEliminator: content:', context.overlapPending + data.content, 'pending', pending, 'eliminated', eliminated, 'overlapString', overlapString);
       }
