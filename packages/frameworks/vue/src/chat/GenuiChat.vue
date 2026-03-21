@@ -137,7 +137,7 @@ const saveState = (context: Record<string | symbol, any>) => {
   const cardId = context[cardIdSymbol];
   const cardMessage = getCardMessage(cardId);
   if (cardMessage) {
-    (cardMessage as any).state = Object.assign({}, context.state || {});
+    (cardMessage as any).state = JSON.parse(JSON.stringify(context.state || {}));
   }
   saveConversations();
 };
