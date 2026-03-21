@@ -472,7 +472,9 @@ defineExpose({
   setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
+  // experimental, not stable
   getResponseHandlers: () => responseHandlers.value,
+  // experimental, not stable
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     responseHandlers.value = handlers;
     customModelProvider.setResponseHandlers(handlers);
