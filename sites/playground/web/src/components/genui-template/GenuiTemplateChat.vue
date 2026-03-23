@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 import '@opentiny/tiny-robot/dist/style.css';
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
 import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
+import { DeltaPatcher, type IChatMessage } from '@opentiny/genui-sdk-core';
 import {
   TrBubbleList,
   TrSender,
@@ -61,6 +61,13 @@ watch(
   },
 );
 
+const { messageManager } = conversation;
+
+// 当前会话的 messages 代理
+const messages = computed(() => messageManager.value.messages.value);
+
+const generating = computed(() => GeneratingStatus.includes(conversation.messageManager.value.messageState.status));
+
 const roles: Record<string, BubbleRoleConfig> = {
   assistant: {
     placement: 'start',
@@ -78,6 +85,7 @@ const roles: Record<string, BubbleRoleConfig> = {
           index: slotProps.index,
           isFinished,
           messageManager: messageManager.value,
+          chatMessage: (messageManager.value.messages.value[slotProps.index] || {}) as IChatMessage,
           onRefresh: handleRefresh,
           onCopy: handleCopy,
         });
@@ -91,13 +99,6 @@ const roles: Record<string, BubbleRoleConfig> = {
     customContentField: 'messages',
   },
 };
-
-const { messageManager } = conversation;
-
-// 当前会话的 messages 代理
-const messages = computed(() => messageManager.value.messages.value);
-
-const generating = computed(() => GeneratingStatus.includes(conversation.messageManager.value.messageState.status));
 
 const deltaPatcher = new DeltaPatcher({
   requiredCompleteFieldSelectors,
@@ -210,7 +211,7 @@ const getCardMessageByIndex = (index: number) => {
   return (messages.value[index].messages as IMessageItem[])?.find(
     (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
       message.type === 'schema-card' || message.type === 'json-patch',
-  );
+  ) || {} as IJsonPatchMessageItem | ISchemaCardMessageItem;
 };
 
 const handleRefresh = ({ index }: { index: number }) => {
@@ -218,7 +219,15 @@ const handleRefresh = ({ index }: { index: number }) => {
   const cardMessage = getCardMessageByIndex(index);
 
   prevSchema.value = cardMessage?.prevSchema;
-  setCurrentSchema(JSON.parse(prevSchema.value));
+  let currentSchema = null;
+  try {
+    currentSchema = JSON.parse(prevSchema.value);
+  } catch (error) {
+    currentSchema = null;
+  }
+  if (currentSchema) {
+    setCurrentSchema(currentSchema);
+  }
   messages.value = messages.value.slice(0, index);
   setCurrentCardId(messages.value[messages.value.length - 1].messageId as string);
   send();

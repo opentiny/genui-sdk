@@ -12,7 +12,7 @@
       },
       {
         "name": "DeepSeek-V3.1",
-        "id": "deepseek-v3.1",
+        "id": "deepseek-v3.1-terminus",
         "supportJsonFormat": false,
         "specificPrompt": "schemaJson必须使用```schemaJson```包裹。"
       },
@@ -23,7 +23,7 @@
       },
       {
         "name": "DeepSeek-R1",
-        "id": "DeepSeek-R1",
+        "id": "deepseek-r1-250528",
         "supportJsonFormat": false
       },
       {
@@ -42,12 +42,12 @@
         "supportJsonFormat": false
       },
       {
-        "name": "qwen3-30b-a3b",
+        "name": "Qwen3-30B-A3B",
         "id": "qwen3-30b-a3b",
         "supportJsonFormat": false
       },
       {
-        "name": "qwen3-235b-a22b",
+        "name": "Qwen3-235B-A22B",
         "id": "qwen3-235b-a22b",
         "supportJsonFormat": false
       },

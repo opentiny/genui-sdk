@@ -6,6 +6,7 @@ import { ref, computed, reactive } from 'vue';
 import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
 import { useGenerateMore } from '../continue-writing';
+import FinishInfo from './FinishInfo.vue';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
@@ -23,13 +24,11 @@ const isLastBubble = computed(() => {
 });
 
 const revertAvailable = computed(() => {
-  const { messages } = props.messageManager;
-  return messages.value.length > 0 && !! messages.value[props.index].originChatMessage;
+  return props.chatMessage['originChatMessage'] !== undefined;
 });
 
 const notFinished = computed(() => {
-  const { messages } = props.messageManager;
-  return messages.value.length > 0 && messages.value[props.index].finishReason !== 'stop'; // TODO: add finish reason to message
+  return props.chatMessage.finishInfo?.choices?.[0]?.finish_reason !== 'stop';
 });
 
 const copyContent = async () => {
@@ -78,6 +77,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       @click="copyContent"
     >
     </tiny-button>
+    <FinishInfo style="margin-left: 8px;" :data="props.chatMessage.finishInfo" />
     <tiny-button
       v-if="notFinished"
       type="text"
@@ -94,6 +94,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       @click="revertGenerateMore"
     >
     </tiny-button>
+   
   </div>
 </template>
 <style lang="scss" scoped>

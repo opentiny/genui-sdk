@@ -2,7 +2,7 @@ import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionRespo
 import { chat } from './chat-api';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-import type { IStreamDelta, IChatMessage } from '@opentiny/genui-sdk-core';
+import type { IChatMessage, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IResponseHandler } from './response-handler';
 
 async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handler: (data: string) => void) {
@@ -46,7 +46,7 @@ export class CustomModelProvider extends BaseModelProvider {
   private customActions: ICustomActionItem[];
   private chatConfig: IChatConfig;
   private customFetch?: CustomFetch;
-  protected responseHandlers: IResponseHandler<IStreamDelta>[] = [];
+  protected responseHandlers: IResponseHandler<IStreamData>[] = [];
   constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
     this.url = url;
@@ -57,7 +57,7 @@ export class CustomModelProvider extends BaseModelProvider {
     this.customExamples = customExamples;
     this.customActions = customActions;
     this.chatConfig = chatConfig;
-    this.customFetch = customFetch;
+    this.customFetch = customFetch; 
   }
   validateRequest(_: ChatCompletionRequest) { }
 
@@ -65,7 +65,7 @@ export class CustomModelProvider extends BaseModelProvider {
     this.model = model;
     this.temperature = temperature;
   }
-  setResponseHandlers(handlers: IResponseHandler<IStreamDelta>[]) {
+  setResponseHandlers(handlers: IResponseHandler<IStreamData>[]) {
     this.responseHandlers = handlers;
   }
 
@@ -124,17 +124,16 @@ export class CustomModelProvider extends BaseModelProvider {
     
   }
 
-  handlerChunk(data: string, context: any) {
+  handlerChunk(rawData: string, context: any) {
     try {
-      const chunk = JSON.parse(data);
-      const delta = chunk.choices?.[0]?.delta || {};
-    
+      const streamData = JSON.parse(rawData) as IStreamData;
+
       for (const handler of this.responseHandlers) {
-        if (handler.match(delta, context)) {
-          const handled = handler.handler(delta,  context);
+        if (handler.match(streamData, context)) {
+          const handled = handler.handler(streamData, context);
           if (handled) break;
         } else if (handler.notMatchHandler) {
-          const handled = handler.notMatchHandler(delta, context);
+          const handled = handler.notMatchHandler(streamData, context);
           if (handled) break;
         }
       }

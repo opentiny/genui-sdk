@@ -52,6 +52,7 @@ const {
   llmConfig: cacheLLmConfig,
   theme: cacheTheme,
   chatConfig: cacheChatConfig,
+  customExamples: cacheCustomExamples,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 const isOpen = ref(true);
 const llmConfig = reactive(
@@ -62,6 +63,7 @@ const llmConfig = reactive(
     promptList: [],
   },
 );
+const customExamples = ref(cacheCustomExamples || []);
 
 const chatConfig = reactive(
   cacheChatConfig || {
@@ -75,9 +77,8 @@ const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
 
 
-
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -85,6 +86,7 @@ watch(
         theme: theme.value,
         llmConfig,
         chatConfig,
+        customExamples: customExamples.value,
       }),
     );
     modelFeatures.value = await getModelFeatures(llmConfig.model);
@@ -133,6 +135,10 @@ const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
 const { isTemplateInit } = useTemplate({ url: templateUrl, llmConfig });
 const { initInputMessage } = useInputMessage(chat);
 
+const createNewTemplate = () => {
+  activeName.value = 'template';
+};
+
 onMounted(() => {
   initInputMessage();
   getModelOptions()
@@ -170,6 +176,11 @@ const customFetch = createCustomFetch(() => ({
   ...llmConfig,
   framework,
 }));
+
+const updateCustomExamples = (list) => {
+  customExamples.value = list.map((item) => ({ name: item.name, schema: item.schema }));
+};
+
 </script>
 
 <template>
@@ -204,8 +215,9 @@ const customFetch = createCustomFetch(() => ({
       </div>
       <tiny-tabs class="sidebar-tabs" v-model="activeName" v-show="isOpen">
         <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig :llm-config="llmConfig" :model-data="modelData"
-            @update:llm-config="Object.assign(llmConfig, $event)" />
+          <ModelConfig :llm-config="llmConfig" :model-data="modelData" :custom-examples="customExamples"
+            @update:llm-config="Object.assign(llmConfig, $event)" @update:custom-examples="updateCustomExamples"
+            @create-new-template="createNewTemplate" />
         </tiny-tab-item>
         <tiny-tab-item title="工具" name="tools">
           <McpTools :llm-config="llmConfig" :chat-config="chatConfig"
@@ -219,7 +231,7 @@ const customFetch = createCustomFetch(() => ({
         <tiny-tab-item title="历史会话" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
         </tiny-tab-item>
-        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板" name="template" class="template-tab">
+        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板（实验特性）" name="template" class="template-tab">
           <component v-if="GenuiTemplateList && isTemplateInit" :is="GenuiTemplateList" />
         </tiny-tab-item>
       </tiny-tabs>
@@ -228,14 +240,13 @@ const customFetch = createCustomFetch(() => ({
     <template v-if="ENABLE_TEMPLATE && isTemplateInit">
       <div v-show="activeName === 'template'" class="chat-template">
         <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
-          :theme="theme" :chat-config="chatConfig" :custom-components="customComponents" :custom-snippets="customSnippets"
-          :custom-examples="customExamples" />
+          :theme="theme" :chat-config="chatConfig" />
       </div>
     </template>
     <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
       <GenuiConfigProvider :theme="theme" style="height: 100%">
         <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
-          :features="modelFeatures" :custom-fetch="customFetch">
+          :features="modelFeatures" :custom-fetch="customFetch" :custom-examples="customExamples">
           <template #empty>
             <div class="empty">
               <IconAi />

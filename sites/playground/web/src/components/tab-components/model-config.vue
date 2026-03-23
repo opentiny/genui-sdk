@@ -2,6 +2,8 @@
 import { ref, computed } from 'vue';
 import { TinyBaseSelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
+import SelectTemplateDialog from './select-template-dialog.vue';
+import useTemplate from '../genui-template/useTemplate';
 
 const props = defineProps({
   llmConfig: {
@@ -12,20 +14,26 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  customExamples: {
+    type: Array,
+    default: () => [],
+  },
 });
 
-const emit = defineEmits(['update:llmConfig']);
+const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update:custom-examples']);
 
 const IconPlus = iconPlus();
 const IconEllipsis = iconEllipsis();
 const IconEdit = iconEdit();
 const IconDel = iconDel();
 
+const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 const llmConfig = computed(() => props.llmConfig);
 const showAddPromptBox = ref(false);
 const activeIndex = ref(null);
 const appendPrompt = ref('');
 const isEditPrompt = ref(false);
+const showSelectExampleBox = ref(false);
 
 const updateConfig = (updates) => {
   emit('update:llmConfig', { ...llmConfig.value, ...updates });
@@ -78,26 +86,22 @@ const editPrompt = (index) => {
   appendPrompt.value = llmConfig.value.promptList[index];
   showAddPromptBox.value = true;
 };
+
+const confirmSelectExampleList = (list) => {
+  emit('update:custom-examples', list);
+};
+
+const createNewTemplate = () => {
+  emit('createNewTemplate');
+};
 </script>
 <template>
   <div class="config-title">模型选择</div>
-  <tiny-base-select
-    :model-value="llmConfig.model"
-    @update:model-value="updateModel"
-    :options="modelData"
-    :tooltip-config="{ always: false }"
-    class="config-content"
-  ></tiny-base-select>
+  <tiny-base-select :model-value="llmConfig.model" @update:model-value="updateModel" :options="modelData"
+    :tooltip-config="{ always: false }" class="config-content"></tiny-base-select>
   <div class="config-title">模型温度</div>
-  <tiny-slider
-    :model-value="llmConfig.temperature"
-    @update:model-value="updateTemperature"
-    :step="0.1"
-    :min="0"
-    :max="1"
-    show-input
-    style="margin-bottom: 12px;"
-  >
+  <tiny-slider :model-value="llmConfig.temperature" @update:model-value="updateTemperature" :step="0.1" :min="0"
+    :max="1" show-input style="margin-bottom: 12px;">
     <template #default="slotScope">
       <b>{{ slotScope.slotScope }}</b>
     </template>
@@ -110,11 +114,13 @@ const editPrompt = (index) => {
   </div>
 
   <div class="prompt-box">
-    <div class="prompt-item" v-for="(prompt, index) in llmConfig.promptList" :key="index" :class="{ 'is-edit': isEditPrompt && activeIndex === index }">
+    <div class="prompt-item" v-for="(prompt, index) in llmConfig.promptList" :key="index"
+      :class="{ 'is-edit': isEditPrompt && activeIndex === index }">
       <tiny-tooltip visible="auto" :content="prompt" effect="light">
-          <div class="ellipsis">{{ prompt }}</div>
-        </tiny-tooltip>
-      <tiny-popover trigger="hover" popper-class="prompt-item-actions-popover" :visible-arrow="false" :append-to-body="false">
+        <div class="ellipsis">{{ prompt }}</div>
+      </tiny-tooltip>
+      <tiny-popover trigger="hover" popper-class="prompt-item-actions-popover" :visible-arrow="false"
+        :append-to-body="false">
         <template #default>
           <div class="prompt-item-actions">
             <div @click="editPrompt(index)">
@@ -134,25 +140,33 @@ const editPrompt = (index) => {
     </div>
   </div>
   <tiny-dialog-box v-model:visible="showAddPromptBox" :title="isEditPrompt ? '编辑提示词' : '添加提示词'" width="30%">
-    <tiny-input
-      type="textarea"
-      class="prompt-item-input"
-      :model-value="appendPrompt"
-      :autosize="{ minRows: 6, maxRows: 10 }"
-      @update:model-value="appendPrompt = $event"
-      autofocus
-    ></tiny-input>
+    <tiny-input type="textarea" class="prompt-item-input" :model-value="appendPrompt"
+      :autosize="{ minRows: 6, maxRows: 10 }" @update:model-value="appendPrompt = $event" autofocus></tiny-input>
     <template #footer>
       <tiny-button @click="resetState" round>取 消</tiny-button>
-      <tiny-button
-        type="primary"
-        @click="isEditPrompt ? updatePrompt(appendPrompt, activeIndex) : addPrompt(activeIndex)"
-        round
-      >
+      <tiny-button type="primary"
+        @click="isEditPrompt ? updatePrompt(appendPrompt, activeIndex) : addPrompt(activeIndex)" round>
         确 定
       </tiny-button>
     </template>
   </tiny-dialog-box>
+
+  <!-- 选择示例模板 -->
+  <template v-if="ENABLE_TEMPLATE">
+    <div class="config-title prompt-title">
+      <span>示例模板</span>
+      <span>
+        <tiny-button type="text" :icon="IconPlus" @click="showSelectExampleBox = true"> </tiny-button>
+      </span>
+    </div>
+
+    <div class="prompt-item" v-for="item in customExamples" :key="item.id">
+      <div class="ellipsis">{{ item.name }}</div>
+    </div>
+
+    <select-template-dialog v-model:visible="showSelectExampleBox" :custom-examples="customExamples"
+      @confirmSelectExample="confirmSelectExampleList" @createNewTemplate="createNewTemplate" />
+  </template>
 </template>
 
 <style scoped lang="less">
@@ -162,9 +176,11 @@ const editPrompt = (index) => {
   color: #595959;
   line-height: 32px;
 }
+
 .config-content {
   margin-bottom: 20px;
 }
+
 .prompt-title {
   display: flex;
   justify-content: space-between;
@@ -175,19 +191,23 @@ const editPrompt = (index) => {
   display: flex;
   flex-direction: column-reverse;
 }
+
 .prompt-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-radius: 8px;
   padding: 8px 12px;
+
   &:hover,
   &.is-edit {
     background-color: #f5f5f5;
+
     button.tiny-button.prompt-item-close-icon {
       display: flex;
     }
   }
+
   .ellipsis {
     width: 100%;
     overflow: hidden;
@@ -195,19 +215,22 @@ const editPrompt = (index) => {
     white-space: nowrap;
   }
 }
+
 :deep(.prompt-item-actions-popover) {
   padding: 0;
   border: none;
 }
+
 .prompt-item-actions {
-  & > div {
+  &>div {
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
     padding: 8px 16px;
+
     &:hover {
-     background-color: #f5f5f5;
+      background-color: #f5f5f5;
     }
   }
 }

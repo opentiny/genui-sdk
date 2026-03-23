@@ -9,7 +9,7 @@ import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg';
 import { guideCodeMap } from '@/config';
 import { LinkKey, linkMap } from '@/utils/link';
 import HomeGuideCard from './HomeGuideCard.vue';
-import HomeGuideMobile from './HomeGuideMobile.vue';
+import HomeGuideStepMobile from './HomeGuideStepMobile.vue';
 
 const activeCard = ref(0);
 const codeRef = ref<HTMLElement | null>(null);
@@ -56,10 +56,10 @@ const handleGuideCardClick = (index: number) => {
       </div>
     </div>
     <div :class="isMobile ? 'home-guide-content-mobile' : 'home-guide-content'">
-      <home-guide-mobile
+      <home-guide-step-mobile
         v-if="isMobile"
         @change="handleGuideCardClick"
-      ></home-guide-mobile>
+      ></home-guide-step-mobile>
       <div v-else class="home-guide-content-left">
         <home-guide-card
           title="步骤1：引入并使用chat组件"
@@ -109,6 +109,7 @@ const handleGuideCardClick = (index: number) => {
 
 <style lang="less" scoped>
 .home-guide {
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -152,13 +153,13 @@ const handleGuideCardClick = (index: number) => {
     }
 
     &-left {
+      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 12px;
 
       &-button {
         max-width: 110px;
-        margin-left: 32px;
       }
 
       @media (max-width: 1280px) {
@@ -176,13 +177,13 @@ const handleGuideCardClick = (index: number) => {
 
     &-right {
       flex: 1;
+      width: 1px;
       max-height: 400px;
       background: rgba(242, 242, 242, 1);
       border-radius: 24px;
-      padding: 30px;
+      padding: 24px;
       margin-left: 10%;
       height: -webkit-fill-available;
-      width: 600px;
 
       &-framework {
         height: 100%;
@@ -202,42 +203,44 @@ const handleGuideCardClick = (index: number) => {
         &-header {
           background: rgba(61, 61, 61, 1);
           border-radius: 12px 12px 0 0;
-          height: 40px;
-          padding: 15px 28px;
+          height: 52px;
+          padding-left: 28px;
 
           &-action {
             display: flex;
+            align-items: center;
             height: 100%;
-            gap: 12px;
+            gap: 10px;
+
+            div {
+              width: 16px;
+              height: 16px;
+              border-radius: 50%;
+            }
 
             .header-action-close {
-              width: 10px;
-              height: 10px;
               background-color: rgba(254, 3, 4, 1);
-              border-radius: 50%;
             }
 
             .header-action-full {
-              width: 10px;
-              height: 10px;
               background-color: rgba(254, 199, 3, 1);
-              border-radius: 50%;
             }
 
             .header-action-exit {
-              width: 10px;
-              height: 10px;
               background-color: rgba(0, 207, 106, 1);
-              border-radius: 50%;
             }
           }
         }
       }
     }
   }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px 0px 240px;
+  }
 }
 
-/deep/.guide-code {
+:deep(.guide-code) {
   background: #0b1020;
   padding: 20px;
   margin: 0;

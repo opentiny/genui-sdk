@@ -2,7 +2,6 @@ import { ref, shallowRef, computed } from 'vue';
 import { useConversation, IndexedDBStrategy } from '@opentiny/genui-sdk-vue';
 import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
 import { CustomModelProvider } from './template-provider';
-import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 
 let conversation: ReturnType<typeof useConversation> | null = null;
@@ -114,7 +113,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
     if (!currentConversation?.messages.length) {
       setCurrentSchema(null);
-      return
+      return;
     }
 
     const lastMessage = currentConversation?.messages[currentConversation.messages.length - 1];
@@ -177,7 +176,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
       const card = messages.find(
         (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
-          (message.type === 'schema-card' || message.type === 'json-patch') && message.cardId === cardId
+          (message.type === 'schema-card' || message.type === 'json-patch') && message.cardId === cardId,
       );
 
       if (card) {
@@ -204,6 +203,21 @@ export default function useTemplate(options?: UseTemplateOptions) {
     return currentCardId.value;
   };
 
+  // 从对话中提取示例 schema 列表
+  const templateSchemaList = computed(() =>
+    conversation.state.conversations.map((conversation) => {
+      const lastMessage = conversation.messages[conversation.messages.length - 1];
+      const schemaMessage = (lastMessage?.messages as IMessageItem[])?.find(
+        (message) => message.type === 'schema-card' || message.type === 'json-patch',
+      );
+      return {
+        id: conversation.id,
+        name: conversation.title,
+        schema: schemaMessage?.schema ?? '',
+      };
+    }),
+  );
+
   return {
     isTemplateInit,
     templateConversationState: conversation.state,
@@ -212,6 +226,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     currentCardId,
     templateProvider,
     messages,
+    templateSchemaList,
     createTemplate,
     changeLlmConfig,
     setCurrentSchema,
