@@ -8,6 +8,7 @@ import type {
   IGenPromptSnippet,
   IGenPromptExample,
   IGenPromptAction,
+  IChatMessage,
 } from '@opentiny/genui-sdk-core';
 
 export interface ICustomActionItem extends IGenPromptAction {
@@ -47,6 +48,7 @@ export interface IBubbleSlotsProps {
   bubbleProps: BubbleProps;
   isFinished: boolean;
   messageManager: UseMessageReturn;
+  chatMessage: IChatMessage;
 }
 
 /**

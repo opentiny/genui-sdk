@@ -30,7 +30,7 @@ import { emitter } from './event-emitter';
 import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
-import type { IMessageItem, IStreamDelta } from '@opentiny/genui-sdk-core';
+import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
@@ -95,7 +95,7 @@ const wrapSlots = (slots: any) => {
       });
       const slotFn = toSlotFunction(slots[key]);
       if (slotFn) {
-        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value });
+        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value, chatMessage: messageManager.value.messages.value[props.index] });
       }
       return null;
     };
@@ -238,7 +238,7 @@ const messageRenderers = {
   'error-text': ErrorText,
 };
 
-const responseHandlers: Ref<IResponseHandler<IStreamDelta>[]> = ref(defaultResponseHandlers);
+const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
 
 
 const customModelProvider = new CustomModelProvider({
@@ -472,8 +472,10 @@ defineExpose({
   setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
+  // experimental, not stable
   getResponseHandlers: () => responseHandlers.value,
-  setResponseHandlers: (handlers: IResponseHandler<IStreamDelta>[]) => {
+  // experimental, not stable
+  setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     responseHandlers.value = handlers;
     customModelProvider.setResponseHandlers(handlers);
   },
