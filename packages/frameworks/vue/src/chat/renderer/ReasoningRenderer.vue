@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { IconArrowDown } from '@opentiny/tiny-robot-svgs'
-import { ref } from 'vue'
-import { useI18n } from '../i18n'
+import { IconArrowDown } from '@opentiny/tiny-robot-svgs';
+import { BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
+import { ref } from 'vue';
+import { useI18n } from '../i18n';
 
 const props = defineProps<{
-     content: string
-     thinking?: boolean
-  }>()
+  content: string;
+  thinking?: boolean;
+}>();
 
-const open = ref(false)
-const { t } = useI18n()
+const open = ref(false);
+const { t } = useI18n();
 
 const handleClick = () => {
-  open.value = !open.value
-}
+  open.value = !open.value;
+};
+
+const markdownRenderer = new BubbleMarkdownContentRenderer({
+  defaultAttrs: { class: 'markdown-content' },
+  mdConfig: { html: true },
+});
+
+const MarkdownContent = (markdownProps: { content: string }) =>
+  markdownRenderer.render({ content: markdownProps.content });
 </script>
 
 <template>
@@ -51,7 +60,7 @@ const handleClick = () => {
         </div>
         <div class="border-line"></div>
       </div>
-      <p class="detail-content" ref="detailRef">{{ props.content }}</p>
+      <MarkdownContent :content="props.content" class="detail-content" />
     </div>
   </div>
 </template>
@@ -105,22 +114,17 @@ const handleClick = () => {
 .detail {
   color: #595959;
   margin-block: 8px;
-  white-space: pre-line;
   display: flex;
   gap: 8px;
   align-items: center;
+  font-size: 14px;
 
-  p.detail-content {
-    font-size: 14px;
-    line-height: 16px;
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    max-height: var(--tr-bubble-reasoning-max-height, 300px);
-    overflow-y: auto;
-
-    & + p.detail-content {
-      margin-top: 1em;
+  .detail-content {
+    *:first-child {
+      margin-top: 0;
+    }
+    *:last-child {
+      margin-bottom: 0;
     }
   }
 

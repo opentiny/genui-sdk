@@ -195,7 +195,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
         }
         if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
           context.handleReasoning = false;
-          const reasoningMessage = context.chatMessage.messages[context.chatMessage.messages.length - 2];
+          const reasoningMessage = newVal[newVal.length - 2];
           onReasoningEnd(reasoningMessage);
         } else if (!context.handleReasoning && newVal[newVal.length - 1]?.type === 'reasoning') {
           context.handleReasoning = true;
@@ -253,11 +253,10 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
-      const thinkTagWrapPattern = new ThinkTagWrapPattern();
       const thinkPatternExtractor = new PatternExtractor({
         onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
         onHandledWrite: (value) => onReasoningContent(value, context.delta, context.chatMessage),
-        regExpMap: thinkTagWrapPattern.regExpMap,
+        regExpMap: new ThinkTagWrapPattern().regExpMap,
       });
       context.patternExtractor = new PatternExtractor({
         onNormalWrite: (value) => thinkPatternExtractor.handleContent(value),
