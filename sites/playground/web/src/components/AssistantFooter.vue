@@ -5,6 +5,7 @@ import { AutoTip } from '@opentiny/vue-directive';
 import { ref, computed } from 'vue';
 import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
+import FinishInfo from './FinishInfo.vue';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
@@ -63,6 +64,7 @@ const refresh = () => {
       @click="copyContent"
     >
     </tiny-button>
+    <FinishInfo style="margin-left: 8px;" :data="props.chatMessage.finishInfo" />
   </div>
 </template>
 <style lang="scss" scoped>

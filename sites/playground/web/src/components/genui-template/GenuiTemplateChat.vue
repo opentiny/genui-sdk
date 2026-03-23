@@ -4,7 +4,7 @@ import type { Ref } from 'vue';
 import '@opentiny/tiny-robot/dist/style.css';
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
 import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
+import { DeltaPatcher, type IChatMessage } from '@opentiny/genui-sdk-core';
 import {
   TrBubbleList,
   TrSender,
@@ -85,6 +85,7 @@ const roles: Record<string, BubbleRoleConfig> = {
           index: slotProps.index,
           isFinished,
           messageManager: messageManager.value,
+          chatMessage: (messageManager.value.messages.value[slotProps.index] || {}) as IChatMessage,
           onRefresh: handleRefresh,
           onCopy: handleCopy,
         });

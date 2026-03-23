@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { parsePartialJson } from 'ai';
-import { ref, watch, computed, inject, nextTick } from 'vue';
+import { ref, watch, computed, inject, nextTick, onErrorCaptured } from 'vue';
 // @ts-ignore
 import defaultSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '@opentiny/genui-sdk-core';
@@ -10,6 +10,11 @@ import { GENUI_RENDERER } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
+
+onErrorCaptured((error) => {
+  console.error('GenuiRenderer error:', error);
+  return true;
+});
 
 const props = defineProps<IRendererProps>();
 

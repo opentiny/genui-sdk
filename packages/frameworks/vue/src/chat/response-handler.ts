@@ -1,4 +1,4 @@
-import { IChatMessage, IMessageItem, IStreamDelta, PatternExtractor, ThinkTagWrapPattern } from "@opentiny/genui-sdk-core";
+import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor, ThinkTagWrapPattern } from "@opentiny/genui-sdk-core";
 import { reactive, toRaw, watch } from "vue";
 import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';
@@ -9,9 +9,13 @@ export interface IResponseHandler<T> {
   match: (data: T, context: any) => boolean;
   handler: (data: T, context: any) => boolean;
   notMatchHandler?: (data: T, context: any) => boolean;
-  start?: (mcontext: any, handlers: { onData: (data: T) => void, onDone: () => void, onError: (error: Error) => void }) => void;
+  start?: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => void;
   end?: (context: any) => void;
 }
+
+const getStreamDelta = (data: IStreamData): IStreamDelta => {
+  return data.choices?.[0]?.delta ?? {};
+};
 
 function onToolResult(toolCallsResult: any[], delta: IStreamDelta, toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }>, chatMessage: IChatMessage, addToolCallContext: boolean) {
   const {
@@ -136,11 +140,11 @@ function onSchemaJSON(content: string, delta: IStreamDelta, chatMessage: IChatMe
   emitNotification(delta, chatMessage);
 }
 
-export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
+export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
   {
     name: 'init',
-    match: (data: IStreamDelta, context: any) => false,
-    handler: (data: IStreamDelta, context: any) => false,
+    match: (data: IStreamData, context: any) => false,
+    handler: (data: IStreamData, context: any) => false,
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
       const chatMessage = reactive<IChatMessage>({
         role: 'assistant',
@@ -162,12 +166,25 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
     },
   },
   {
-    name: 'reasoning',
-    match: (data: IStreamDelta, context: any) => {
-      return data.reasoning_content !== undefined;
+    name: 'finish-info',
+    match: (data: IStreamData, context: any) => {
+      const { choices, usage } = data;
+      return choices?.[0]?.finish_reason && Boolean(usage);
     },
-    handler: (data: IStreamDelta, context: any) => {
-      onReasoningContent(data.reasoning_content, data, context.chatMessage);
+    handler: (data: IStreamData, context: any) => {
+      context.chatMessage.finishInfo = data;
+      return true;
+    },
+  },
+  {
+    name: 'reasoning',
+    match: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      return delta.reasoning_content !== undefined;
+    },
+    handler: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
@@ -192,15 +209,17 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
         const reasoningMessage = context.chatMessage.messages[context.chatMessage.messages.length - 1];
         onReasoningEnd(reasoningMessage);
       }
-    },
+    }
   },
   {
     name: 'toolCall',
-    match: (data: IStreamDelta, context: any) => {
-      return data.tool_calls?.length > 0;
+    match: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      return delta.tool_calls?.length > 0;
     },
-    handler: (data: IStreamDelta, context: any) => {
-      onToolCall(data.tool_calls, data, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
+    handler: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      onToolCall(delta.tool_calls, delta, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
@@ -210,23 +229,27 @@ export const defaultResponseHandlers: IResponseHandler<IStreamDelta>[] = [
   },
   {
     name: 'toolResult',
-    match: (data: IStreamDelta, context: any) => {
-      return data.tool_calls_result?.length > 0;
+    match: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      return delta.tool_calls_result?.length > 0;
     },
-    handler: (data: IStreamDelta, context: any) => {
-      onToolResult(data.tool_calls_result, data, context.toolCallIdMap, context.chatMessage, context.chatConfig.addToolCallContext);
+    handler: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      onToolResult(delta.tool_calls_result, delta, context.toolCallIdMap, context.chatMessage, context.chatConfig.addToolCallContext);
       return true;
     },
   },
   {
     name: 'content',
-    match: (data: IStreamDelta, context: any) => {
-      return data.content !== undefined;
+    match: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      return delta.content !== undefined;
     },
-    handler: (data: IStreamDelta, context: any) => {
-      context.delta = data;
-      context.patternExtractor.handleContent(data.content)
-      context.chatMessage.content += data.content;
+    handler: (data: IStreamData, context: any) => {
+      const delta = getStreamDelta(data);
+      context.delta = delta;
+      context.patternExtractor.handleContent(delta.content)
+      context.chatMessage.content += delta.content;
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {

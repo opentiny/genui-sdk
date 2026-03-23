@@ -1,8 +1,11 @@
+import type { IChatMessage } from "@opentiny/genui-sdk-core";
+
 export interface IBubbleSlotsProps {
   index: number;
   bubbleProps: { [key: string]: any };
   isFinished: boolean;
   messageManager: { [key: string]: any };
+  chatMessage: IChatMessage;
 }
 
 export interface IRendererSlotsProps {
