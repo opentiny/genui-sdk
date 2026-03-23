@@ -9750,7 +9750,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["labelWidth", "disabled"]
+              "properties": ["name", "title"]
             },
             "contextMenu": {
               "actions": ["create symbol"],
