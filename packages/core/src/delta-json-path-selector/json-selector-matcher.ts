@@ -28,6 +28,10 @@ export function matchGroup(objectKey: string, objectValue: any, groupPath: strin
     return matchSelector(objectKey, objectValue, groupSelector[0]);
   }
 
+  if (objectValue == null) { // not null or undefined except for matchSelector = :null
+    return false;
+  }
+
   if (!matchSelector(objectKey, objectValue, groupSelector[0])) {
     return false;
   }
