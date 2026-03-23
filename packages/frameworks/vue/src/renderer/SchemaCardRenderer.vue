@@ -1,44 +1,37 @@
 <script setup lang="ts">
 import { parsePartialJson } from 'ai';
-import { ref, watch, computed, inject, nextTick, provide } from 'vue';
+import { ref, watch, computed, inject, nextTick } from 'vue';
 // @ts-ignore
-import defaultSchemaRenderer, { Mapper, RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
+import defaultSchemaRenderer from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher } from '@opentiny/genui-sdk-core';
-import { extendMapper } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer'; //TODO: 耦合
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { GENUI_RENDERER } from '../chat/injection-tokens';
-import type { IRendererProps } from './renderer.types';
+import type { IRendererProps, MaterialRegistry } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
-import * as TinyVue from '@opentiny/vue';
-import TinyChartPie from '@opentiny/vue-chart-pie'
-import TinyChartRadar from '@opentiny/vue-chart-radar'
-import TinyChartBar from '@opentiny/vue-chart-bar'
-import TinyChartHistogram from '@opentiny/vue-chart-histogram'
-import TinyChartLine from '@opentiny/vue-chart-line'
-import TinyChartRing from '@opentiny/vue-chart-ring'
-import { TinyTabsWrap, TinySelectWrap } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 
 const props = defineProps<IRendererProps>();
 
-const chartComponents = {
-  TinyChartPie,
-  TinyChartRadar,
-  TinyChartBar,
-  TinyChartHistogram,
-  TinyChartLine,
-  TinyChartRing,
-}
-
-const customComponents = {
-  TinyTabs: TinyTabsWrap,
-  TinySelect: TinySelectWrap,
-}
-
-provide(RENDERER_SETTINGS_KEY, {
-  customComponentGetter: (name: string) => {
-    return props.customComponents?.[name] || customComponents[name] || TinyVue[name] || chartComponents[name];
+const mergedMaterialRegistry = computed<MaterialRegistry | null>(() => {
+  const base = props.materialRegistry;
+  const custom = props.customComponents;
+  if (!custom || !Object.keys(custom).length) {
+    return base ?? null;
   }
+  if (!base) {
+    return {
+      resolveComponent(name: string) {
+        return custom[name] ?? null;
+      },
+    };
+  }
+  return {
+    resolveComponent(name: string) {
+      const c = custom[name];
+      if (c) return c;
+      return base.resolveComponent(name);
+    },
+  };
 });
 
 const schema = ref<any>({});
@@ -141,7 +134,7 @@ watch(() => rendererInstance.value, (newVal) => {
 <template>
   <div class="schema-render-container">
     <slot name="header" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
-    <SchemaRenderer :schema="displaySchema" ref="rendererInstance" />
+    <SchemaRenderer :schema="displaySchema" :material-registry="mergedMaterialRegistry || undefined" ref="rendererInstance" />
     <slot name="footer" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
   </div>
 </template>
