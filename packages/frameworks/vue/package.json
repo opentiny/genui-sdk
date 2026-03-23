@@ -45,12 +45,7 @@
     "uuid": "^11.1.0",
     "vue": "^3.5.13",
     "@opentiny/vue-button": "^3.28.0",
-    "@opentiny/vue-chart-bar": "~3.14.0",
-    "@opentiny/vue-chart-histogram": "~3.14.0",
-    "@opentiny/vue-chart-line": "~3.14.0",
-    "@opentiny/vue-chart-pie": "~3.14.0",
-    "@opentiny/vue-chart-radar": "~3.14.0",
-    "@opentiny/vue-chart-ring": "3.14.0",
+    "@opentiny/vue-huicharts": "^3.28.0",
     "@opentiny/vue-select": "^3.28.0",
     "@opentiny/vue-tabs": "^3.28.0",
     "@opentiny/tiny-engine-builtin-component": "^2.6.0"
