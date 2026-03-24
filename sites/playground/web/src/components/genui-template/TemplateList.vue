@@ -51,7 +51,7 @@ const confirmRename = () => {
 
 const handleDelete = async (item: Conversation) => {
   try {
-    await Modal.confirm('Are you sure you want to delete this template?');
+    await Modal.confirm('确定删除该模板吗？');
     emit('item-action', { id: 'delete' }, item);
   } catch {
     // Do nothing if the user cancels
