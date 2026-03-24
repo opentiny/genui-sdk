@@ -34,7 +34,7 @@ export function useGenerateMore(messageManager: any, index: number) {
   if (messages.value[messageIndex].originChatMessage) {
     messages.value[messageIndex] = reactive(JSON.parse(messages.value[messageIndex].originChatMessage));
     messages.value[messageIndex].id = messages.value[messageIndex].id + '1';
-    // saveConversations(); // TODO: unable to save conversations
+        // saveConversations(); // TODO: unable to save conversations
   } else {
     console.warn('revertGenerateMore: originChatMessage not found');
   }                 

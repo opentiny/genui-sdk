@@ -1,7 +1,11 @@
 import { OverlapEliminator } from "../components/overlap-eliminator";
 import { findLastContinueWritingMessage } from "./message-utils";
 import { removeSensitiveInfoWarning } from "./remove-sensitive-info-warning";
+import type { IStreamData } from "@opentiny/genui-sdk-core";
 
+const getStreamDelta = (data: IStreamData): IStreamDelta => {
+  return data.choices?.[0]?.delta ?? {};
+};
 const removeUnexpectedSchemaJsonWrapper = (content: any) => {
   const schemaJsonRegex = /^```schemaJson\n([\s\S]*)/;
   const JsonRegex = /^```json\n([\s\S]*)/;
@@ -20,10 +24,11 @@ const removeUnexpectedSchemaJsonWrapper = (content: any) => {
 export const movePartialSchemaJsonToLastMessage = () => {
   return {
     name: 'movePartialSchemaJsonToLastMessage',
-    match: (data, context) => {
+    match: (chunkData, context) => {
+      const data = getStreamDelta(chunkData);
       return data.content && !context.overlapEliminated && context.partialSchemaJsonIndex !== -1;
     },
-    handler: (data, context) => {
+    handler: (chunkData, context) => {
       const chatMessage = context.chatMessage;
       const partialSchemaJsonIndex = context.partialSchemaJsonIndex;
       const currentIndex = context.chatMessage?.messages?.length - 1; 
@@ -40,8 +45,8 @@ export const movePartialSchemaJsonToLastMessage = () => {
 export const locationPartialSchemaJson = () => {
   return {
     name: 'locationPartialSchemaJson',
-    match: (data, context) => false,
-    handler: (data, context) => false,
+    match: (chunkData, context) => false,
+    handler: (chunkData, context) => false,
     start: (context, handlers) => {
       if (!context.overlapEliminated) {
         const { message, index } = findLastContinueWritingMessage(context.chatMessage);
@@ -54,10 +59,12 @@ export const locationPartialSchemaJson = () => {
 export const getOverlapEliminatorHandler = (contentHandler: any) => {
   return {
     name: 'overlapEliminator',
-    match: (data, context) => {
+    match: (chunkData, context) => {
+      const data = getStreamDelta(chunkData);
       return data.content && !context.overlapEliminated;
     },
-    handler: (data, context) => {
+    handler: (chunkData, context) => {
+      const data = getStreamDelta(chunkData);
       const newContent = removeUnexpectedSchemaJsonWrapper(context.overlapPending + data.content);
       
       const { pending, eliminated, overlapString } = OverlapEliminator.eliminateOverlap(context.chatMessage.content, newContent);
@@ -98,10 +105,10 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
 export const getContinueGeneratingHandler = (messageManager: any) => {
   return {
     name: 'continueGenerating',
-    match: (data, context) => {
+    match: (chunkData, context) => {
       return false;
     },
-    handler: (data, context) => {
+    handler: (chunkData, context) => {
       return false;
     },
     start: (context, handlers) => {
