@@ -1,7 +1,7 @@
 import { OverlapEliminator } from "../components/overlap-eliminator";
 import { findLastContinueWritingMessage } from "./message-utils";
 import { removeSensitiveInfoWarning } from "./remove-sensitive-info-warning";
-import type { IStreamData } from "@opentiny/genui-sdk-core";
+import type { IStreamData, IStreamDelta } from "@opentiny/genui-sdk-core";
 
 const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
