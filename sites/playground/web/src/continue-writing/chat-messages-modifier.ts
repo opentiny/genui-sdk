@@ -32,7 +32,12 @@ export function useGenerateMore(messageManager: any, index: number) {
     const { messages } = messageManager;
     const messageIndex = index;
     if (messages.value[messageIndex].originChatMessage) {
-      messages.value[messageIndex] = reactive(JSON.parse(messages.value[messageIndex].originChatMessage));
+      try {
+        messages.value[messageIndex] = reactive(JSON.parse(messages.value[messageIndex].originChatMessage));
+      } catch (e) {
+        console.error('revertGenerateMore: failed to parse originChatMessage', e);
+        return;
+      }
       messages.value[messageIndex].id = messages.value[messageIndex].id + '1'; // TODO: schema renderer with isError=true can not be reverted if id is not changed.
       // saveConversations(); // TODO: unable to save conversations
     } else {
