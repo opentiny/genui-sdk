@@ -106,6 +106,9 @@ importers:
       escape-string-regexp:
         specifier: ^1.0.5
         version: 1.0.5
+      rollup-plugin-visualizer:
+        specifier: ^6.0.5
+        version: 6.0.5(rollup@4.54.0)
       typescript:
         specifier: ^5.9.3
         version: 5.9.3

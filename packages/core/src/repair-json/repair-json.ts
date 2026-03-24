@@ -1,5 +1,5 @@
 import { jsonrepair } from 'jsonrepair';
-import { fixJson } from 'ai';
+import * as fixJsonModule from 'ai/src/util/fix-json';
 
 export enum RepairJsonState {
   INVALID_INPUT = 'invalid-input',
@@ -26,7 +26,7 @@ export const repairJson = (jsonString: string | undefined) => {
   }
   try {
 
-    const fixedString = fixJson(jsonString);
+    const fixedString = fixJsonModule.fixJson(jsonString);
     result = jsonrepair(fixedString);
     return { state: RepairJsonState.REPAIRED, value: JSON.parse(result) };
   } catch (error) {

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "analyze": "vite build --mode analyze",
     "test": "vitest"
   },
   "files": [
@@ -24,6 +25,7 @@
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",
     "escape-string-regexp": "^1.0.5",
+    "rollup-plugin-visualizer": "^6.0.5",
     "vite": "^6.0.0",
     "vitest": "^3.0.0"
   }
