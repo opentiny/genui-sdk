@@ -54,6 +54,12 @@ const {
   customExamples: cacheCustomExamples,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
+/**
+ * Normalizes cached custom examples for the id-based contract.
+ * Drops invalid/legacy entries and de-duplicates by id.
+ * @param {unknown} examples Raw cached examples from localStorage.
+ * @returns {Array<{id: string, name: unknown, schema: unknown}>}
+ */
 const normalizeCustomExamples = (examples) => {
   if (!Array.isArray(examples)) {
     return [];
@@ -187,10 +193,17 @@ const customFetch = createCustomFetch(() => ({
   framework,
 }));
 
+/**
+ * Rehydrates custom examples from cache using normalized data.
+ */
 const initExampleList = () => {
   customExamples.value = normalizeCustomExamples(cacheCustomExamples);
 };
 
+/**
+ * Updates custom examples and enforces the normalized shape.
+ * @param {unknown[]} list Latest examples from UI events.
+ */
 const updateCustomExamples = (list) => {
   customExamples.value = normalizeCustomExamples(list);
 };
@@ -200,6 +213,8 @@ watch(() => templateSchemaList.value, (newVal) => {
     return;
   }
   const templateMap = new Map(newVal.map((item) => [item.id, item]));
+  // Only keep examples that still exist in templateSchemaList,
+  // and always refresh them from the latest template source.
   customExamples.value = customExamples.value
     .map((example) => templateMap.get(example.id))
     .filter(Boolean);

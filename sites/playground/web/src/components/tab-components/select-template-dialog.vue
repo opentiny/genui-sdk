@@ -20,6 +20,13 @@ const { templateSchemaList } = useTemplate();
 const showSelectExampleBox = ref(false);
 const selectedExamples = ref([]);
 
+/**
+ * Normalizes selected template values to valid schema ids only.
+ * This keeps legacy cached entries (object rows or removed ids)
+ * from breaking select/deselect behavior in the dialog.
+ * @param {(string|{id?: string})[]} [examples=[]] Raw selected values.
+ * @returns {string[]}
+ */
 const normalizeSelectedExamples = (examples = []) => {
   const validIds = new Set((templateSchemaList.value || []).map((item) => item.id));
   return Array.from(

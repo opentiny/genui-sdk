@@ -141,6 +141,11 @@ const schemaCardRenderer = async (props: any) => {
   }
 };
 
+/**
+ * Applies streamed JSON Patch operations to the current schema.
+ * Path resolution is formatted against the immutable pre-request
+ * snapshot to avoid drift when payloads replay prior operations.
+ */
 const jsonPatchRenderer = async (props: any) => {
   try {
     const { content, cardId } = props;
@@ -157,6 +162,7 @@ const jsonPatchRenderer = async (props: any) => {
 
     if (!value || !Array.isArray(value)) return;
 
+    // Prefer pre-request schema for stable id-to-path resolution.
     let prePatchSchema = currentSchema.value;
     if (prevSchema.value) {
       try {
