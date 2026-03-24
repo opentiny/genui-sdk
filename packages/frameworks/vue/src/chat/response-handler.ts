@@ -1,5 +1,5 @@
-import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor } from "@opentiny/genui-sdk-core";
-import { reactive, toRaw } from "vue";
+import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor, ThinkTagWrapPattern } from "@opentiny/genui-sdk-core";
+import { reactive, toRaw, watch } from "vue";
 import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';
 import { useI18n } from './i18n';
@@ -86,22 +86,25 @@ function onToolCall(toolCalls: any[], delta: IStreamDelta, toolCallIdMap: Record
 
 };
 
-function onReasoningContent(reasoningContent: string, chatMessage: IChatMessage) {
+function onReasoningContent(reasoningContent: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'reasoning') {
-    lastMessage.content += reasoningContent;
+  let reasoningMessage = lastMessage
+  if (reasoningMessage?.type === 'reasoning') {
+    reasoningMessage.content += reasoningContent;
   } else {
-    chatMessage.messages.push({
+    reasoningMessage = {
       type: 'reasoning',
       content: reasoningContent,
       thinking: true,
-    });
+    };
+    chatMessage.messages.push(reasoningMessage);
   }
+  emitNotification(delta, chatMessage);
+  return reasoningMessage;
 };
 
-function onReasoningEnd(chatMessage: IChatMessage) {
-  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'reasoning') lastMessage.thinking = false;
+function onReasoningEnd(reasoningMessage: IMessageItem) {
+  if (reasoningMessage?.type === 'reasoning') reasoningMessage.thinking = false;
 };
 
 function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
@@ -184,14 +187,31 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     },
     handler: (data: IStreamData, context: any) => {
       const delta = getStreamDelta(data);
-      onReasoningContent(delta.reasoning_content, context.chatMessage);
-      emitNotification(delta, context.chatMessage);
+      context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
       return true;
     },
-    notMatchHandler: (data: IStreamData, context: any) => {
-      onReasoningEnd(context.chatMessage);
-      return false;
+    start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
+      context.handleReasoning = false;
+      context.unWatchReasoning = watch(context.chatMessage.messages, (newVal) => {
+        if (newVal.length === 0) {
+          return;
+        }
+        if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
+          context.handleReasoning = false;
+          onReasoningEnd(context.reasoningMessage);
+          context.unWatchReasoning?.();
+        } else if (!context.handleReasoning && newVal[newVal.length - 1]?.type === 'reasoning') {
+          context.handleReasoning = true;
+        }
+      }, { flush: 'sync' });
     },
+    end: (context: any) => {
+      context.unWatchReasoning?.();
+      if (context.handleReasoning) {
+        context.handleReasoning = false;
+        onReasoningEnd(context.reasoningMessage);
+      }
+    }
   },
   {
     name: 'toolCall',
@@ -235,8 +255,13 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
-      context.patternExtractor = new PatternExtractor({
+      const thinkPatternExtractor = new PatternExtractor({
         onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
+        onHandledWrite: (value) => context.reasoningMessage = onReasoningContent(value, context.delta, context.chatMessage),
+        regExpMap: new ThinkTagWrapPattern().regExpMap,
+      });
+      context.patternExtractor = new PatternExtractor({
+        onNormalWrite: (value) => thinkPatternExtractor.handleContent(value),
         onHandledWrite: (value) => onSchemaJSON(value, context.delta, context.chatMessage),
       });
     },
