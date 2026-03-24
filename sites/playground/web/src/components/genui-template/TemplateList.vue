@@ -100,19 +100,6 @@ const handleAdd = () => {
                 prop="name"
                 :rules="[
                   { required: true, message: '名称不能为空', trigger: 'blur' },
-                  {
-                    validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
-                      const hasDuplicate = props.listData.some(
-                        (item) => item.id !== renameId && item.title === value.trim(),
-                      );
-                      if (hasDuplicate) {
-                        callback(new Error('已存在同名模板'));
-                      } else {
-                        callback();
-                      }
-                    },
-                    trigger: 'blur',
-                  },
                 ]"
               >
                 <tiny-input

@@ -39,6 +39,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     conversation = useConversation({
       client: clientInstance,
       autoSave: false,
+      allowEmpty: true,
       storage: new IndexedDBStrategy('genui-ai-template', 'conversations', 'conversations-list'),
       events: {
         onReceiveData(data, messages, preventDefault) {
