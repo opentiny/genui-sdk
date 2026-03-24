@@ -203,7 +203,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
         } else if (!context.handleReasoning && newVal[newVal.length - 1]?.type === 'reasoning') {
           context.handleReasoning = true;
         }
-      });
+      }, { flush: 'sync' });
     },
     end: (context: any) => {
       context.unWatchReasoning?.();
