@@ -225,8 +225,12 @@ export default function useTemplate(options?: UseTemplateOptions) {
   };
 
   // 从对话中提取示例 schema 列表
-  const templateSchemaList = computed(() =>
-    conversation?.state.conversations.map((conversation) => {
+  const templateSchemaList = computed(() => {
+    if (!conversation) {
+      return [];
+    }
+
+    return conversation.state.conversations.map((conversation) => {
       const lastMessage = conversation.messages[conversation.messages.length - 1];
       const schemaMessage = (lastMessage?.messages as IMessageItem[])?.find(
         (message) => message.type === 'schema-card' || message.type === 'json-patch',
@@ -236,8 +240,8 @@ export default function useTemplate(options?: UseTemplateOptions) {
         name: conversation.title,
         schema: schemaMessage?.schema ?? '',
       };
-    }),
-  );
+    });
+  });
 
   return {
     isTemplateInit,

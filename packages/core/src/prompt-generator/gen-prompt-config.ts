@@ -32,7 +32,7 @@ export interface IGenPromptComponent {
 }
 
 export interface IGenPromptExample {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   schema: CardSchema;

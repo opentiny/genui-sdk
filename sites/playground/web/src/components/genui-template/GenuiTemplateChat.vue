@@ -226,7 +226,9 @@ const handleSchemaVersionCardClick = (cardId: string) => {
     // 因为新的 schema 版本可能需要重新执行操作
     jsonPatchDeduplicator.clearCardOperations(cardId);
     emit('schema-version-toggle', targetSchema, cardId);
-  } catch (error) {}
+  } catch (error) {
+    console.error('Failed to parse schema for version toggle:', error);
+  }
 };
 
 const getCardMessageByIndex = (index: number) => {
