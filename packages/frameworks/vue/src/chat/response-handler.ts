@@ -145,7 +145,6 @@ function onSchemaJSON(content: string, delta: IStreamDelta, chatMessage: IChatMe
 
 function watchReasoningEnd (context: any) {
   context.unWatchReasoning = watch(() => [...context.chatMessage.messages], (newVal) => {
-    console.log('watch reasoning', newVal);
     if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
       context.handleReasoning = false;
       onReasoningEnd(context.reasoningMessage);
