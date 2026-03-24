@@ -225,7 +225,7 @@ const handleSchemaVersionCardClick = (cardId: string) => {
 
 const getCardMessageByIndex = (index: number) => {
   return (
-    (messages.value[index].messages as IMessageItem[])?.find(
+    (messages.value[index]?.messages as IMessageItem[] | undefined)?.find(
       (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
         message.type === 'schema-card' || message.type === 'json-patch',
     ) || ({} as IJsonPatchMessageItem | ISchemaCardMessageItem)
