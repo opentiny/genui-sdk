@@ -22,13 +22,15 @@ const removeUnexpectedSchemaJsonWrapper = (content: any) => {
   const JsonRegex = /^```json\n([\s\S]*)/;
   const codeRegex = /^```([\s\S]*)/;
   const newLineRegex = /^\n\n([\s\S]*)/;
+  const regexes = [schemaJsonRegex, JsonRegex, codeRegex, newLineRegex];
   let result = content;
-  [schemaJsonRegex, JsonRegex, codeRegex, newLineRegex].forEach(regex => {
+  for (const regex of regexes) {
     const match = content.match(regex);
     if (match) {
       result = match[1];
+      break;
     }
-  });
+  }
   return result;
 }
 
