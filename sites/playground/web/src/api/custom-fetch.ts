@@ -1,3 +1,5 @@
+import { modifyChatBody as continueGeneratingBodyModifier } from "../continue-writing";
+
 export interface IMcpServerConfig {
   name: string;
   url: string;
@@ -13,6 +15,12 @@ export interface IPlaygroundConfig {
   promptList: string[];
   model: string;
   temperature: number;
+}
+
+export const modifyBody = (body: any) => {
+  continueGeneratingBodyModifier(body);
+  
+  return body;
 }
 
 // 创建 customFetch，将 mcpServers、framework、promptList、model 和 temperature 传递到 metadata
@@ -33,7 +41,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
 
     return fetch(url, {
       ...options,
-      body: JSON.stringify({ ...body, metadata: { ...(body.metadata || {}), playground: JSON.stringify(playgroundConfig) } }),
+      body: JSON.stringify({ ...modifyBody(body), metadata: { ...(body.metadata || {}), playground: JSON.stringify(playgroundConfig) } }),
     });
   };
 };

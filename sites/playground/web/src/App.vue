@@ -16,6 +16,7 @@ import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
 import { useInputMessage } from './use-input-message';
 import useTemplate from './components/genui-template/useTemplate';
+import { getOverlapEliminatorHandler, getContinueGeneratingHandler, locationPartialSchemaJson, movePartialSchemaJsonToLastMessage } from './continue-writing';
 import useIcon from './use-icon';
 
 const { topRenderer, addIcons } = useIcon();
@@ -111,6 +112,22 @@ const url = import.meta.env.VITE_CHAT_URL;
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+watch(chat, (instance) => {
+  if (instance) {
+    const defaultResponseHandlers = instance.getResponseHandlers();
+    const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
+    const reasoningHandler = defaultResponseHandlers.find(handler => handler.name === 'reasoning');
+    const newResponseHandlers = [
+      reasoningHandler,
+      movePartialSchemaJsonToLastMessage(),
+      getOverlapEliminatorHandler(contentHandler),
+      ...defaultResponseHandlers.filter(handler => handler.name !== 'reasoning'),
+      getContinueGeneratingHandler(conversation.value.messageManager),
+      locationPartialSchemaJson(),
+    ];
+    instance.setResponseHandlers(newResponseHandlers);
+  }
+})
 
 const handleKeydown = (event) => {
   // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
