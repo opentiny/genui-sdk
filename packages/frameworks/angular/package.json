@@ -62,7 +62,6 @@
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/tiny-schema-renderer-ng": "workspace:*",
     "@types/jasmine": "~5.1.0",
-    "ai": "^5.0.10",
     "concurrently": "^9.1.2",
     "escape-string-regexp": "^1.0.5",
     "flat": "^6.0.1",
