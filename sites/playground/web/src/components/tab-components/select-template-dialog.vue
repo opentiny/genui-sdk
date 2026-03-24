@@ -20,6 +20,17 @@ const { templateSchemaList } = useTemplate();
 const showSelectExampleBox = ref(false);
 const selectedExamples = ref([]);
 
+const normalizeSelectedExamples = (examples = []) => {
+  const validIds = new Set((templateSchemaList.value || []).map((item) => item.id));
+  return Array.from(
+    new Set(
+      (examples || [])
+        .map((item) => (typeof item?.id === 'string' ? item.id : item))
+        .filter((id) => typeof id === 'string' && validIds.has(id)),
+    ),
+  );
+};
+
 const cancel = () => {
   emit('update:visible', false);
 };
@@ -41,9 +52,19 @@ watch(() => props.visible, (newVal) => {
   showSelectExampleBox.value = newVal;
 
   if (newVal) {
-    selectedExamples.value = props.customExamples.map((item) => item.id);
+    selectedExamples.value = normalizeSelectedExamples(props.customExamples);
   }
 });
+
+watch(
+  () => templateSchemaList.value,
+  () => {
+    if (showSelectExampleBox.value) {
+      selectedExamples.value = normalizeSelectedExamples(selectedExamples.value);
+    }
+  },
+  { deep: true },
+);
 </script>
 
 <template>
