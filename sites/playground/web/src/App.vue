@@ -16,6 +16,12 @@ import McpTools from './components/tab-components/mcpTools.vue';
 import GenuiHistory from './components/tab-components/GenuiHistory.vue';
 import { useInputMessage } from './use-input-message';
 import useTemplate from './components/genui-template/useTemplate';
+import useIcon from './use-icon';
+
+const { topRenderer, addIcons } = useIcon();
+const TopIconsRenderer = topRenderer();
+
+addIcons(IconAi);
 
 let framework = 'Vue'; // Angular
 
@@ -167,6 +173,7 @@ const updateCustomExamples = (list) => {
 </script>
 
 <template>
+  <TopIconsRenderer style="height: 0" />
   <div class="genui-playground">
     <div class="config-tabs" :class="{ 'config-tabs--collapsed': !isOpen }">
       <!-- 头部区域 -->
