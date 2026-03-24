@@ -29,15 +29,15 @@ export function useGenerateMore(messageManager: any, index: number) {
   }
 
   const revertGenerateMore = () => {
-    const { messages, send } = messageManager;
-  const messageIndex = index;
-  if (messages.value[messageIndex].originChatMessage) {
-    messages.value[messageIndex] = reactive(JSON.parse(messages.value[messageIndex].originChatMessage));
-    messages.value[messageIndex].id = messages.value[messageIndex].id + '1';
-        // saveConversations(); // TODO: unable to save conversations
-  } else {
-    console.warn('revertGenerateMore: originChatMessage not found');
-  }                 
+    const { messages } = messageManager;
+    const messageIndex = index;
+    if (messages.value[messageIndex].originChatMessage) {
+      messages.value[messageIndex] = reactive(JSON.parse(messages.value[messageIndex].originChatMessage));
+      messages.value[messageIndex].id = messages.value[messageIndex].id + '1'; // TODO: schema renderer with isError=true can not be reverted if id is not changed.
+      // saveConversations(); // TODO: unable to save conversations
+    } else {
+      console.warn('revertGenerateMore: originChatMessage not found');
+    }
   }
 
   return {
