@@ -21,11 +21,10 @@ export const repairJson = (jsonString: string | undefined) => {
     return { state: RepairJsonState.INVALID_INPUT, value: undefined };
   }
   let result = safeJsonParse(jsonString);
-  if (result) {
+  if (result !== undefined) {
     return { state: RepairJsonState.SUCCESS, value: result };
   }
   try {
-
     const fixedString = fixJsonModule.fixJson(jsonString);
     result = jsonrepair(fixedString);
     return { state: RepairJsonState.REPAIRED, value: JSON.parse(result) };
