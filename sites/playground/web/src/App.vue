@@ -75,9 +75,23 @@ const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
 
-watch(() => llmConfig.model, async (newVal) => {
-  modelFeatures.value = await getModelFeatures(newVal);
-});
+let latestModelFeaturesRequest = 0;
+
+const syncModelFeatures = async (model) => {
+  const requestId = ++latestModelFeaturesRequest;
+  try {
+    const features = await getModelFeatures(model);
+    if (requestId === latestModelFeaturesRequest && llmConfig.model === model) {
+      modelFeatures.value = features;
+    }
+  } catch (error) {
+    if (requestId === latestModelFeaturesRequest) {
+      console.error('Failed to get model features:', error);
+    }
+  }
+};
+
+watch(() => llmConfig.model, syncModelFeatures);
 
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
@@ -173,10 +187,10 @@ onMounted(() => {
         llmConfig.model = data[0]?.value;
       }
       modelData.value = data;
-      modelFeatures.value = await getModelFeatures(llmConfig.model);
+      syncModelFeatures(llmConfig.model);
     })
     .catch((error) => {
-      console.error('获取模型列表失败:', error);
+      console.error('Failed to get model options:', error);
     });
   window.addEventListener('keydown', handleKeydown);
 });
