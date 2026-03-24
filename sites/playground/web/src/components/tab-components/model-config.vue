@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 import { TinyBaseSelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
 import SelectTemplateDialog from './select-template-dialog.vue';
-import useTemplate from '../genui-template/useTemplate';
 
 const props = defineProps({
   llmConfig: {
@@ -91,6 +90,15 @@ const confirmSelectExampleList = (list) => {
   emit('update:custom-examples', list);
 };
 
+const delCustomExample = (index) => {
+  const customExamples = props.customExamples || [];
+  emit('update:custom-examples', customExamples.filter((_, i) => i !== index));
+};
+
+const editCustomExample = (id) => {
+  emit('createNewTemplate', id);
+};
+
 const createNewTemplate = () => {
   emit('createNewTemplate');
 };
@@ -160,8 +168,28 @@ const createNewTemplate = () => {
       </span>
     </div>
 
-    <div class="prompt-item" v-for="item in customExamples" :key="item.id">
-      <div class="ellipsis">{{ item.name }}</div>
+    <div class="prompt-item" v-for="(item, index) in customExamples" :key="item.id">
+      <tiny-tooltip visible="auto" :content="item.name" effect="light">
+        <div class="ellipsis">{{ item.name }}</div>
+      </tiny-tooltip>
+      <tiny-popover trigger="hover" popper-class="prompt-item-actions-popover" :visible-arrow="false"
+        :append-to-body="false">
+        <template #default>
+          <div class="prompt-item-actions">
+            <div @click="editCustomExample(item.id)">
+              <IconEdit />
+              <span>编辑</span>
+            </div>
+            <div @click="delCustomExample(index)">
+              <IconDel />
+              <span>删除</span>
+            </div>
+          </div>
+        </template>
+        <template #reference>
+          <tiny-button type="text" :icon="IconEllipsis"> </tiny-button>
+        </template>
+      </tiny-popover>
     </div>
 
     <select-template-dialog v-model:visible="showSelectExampleBox" :custom-examples="customExamples"

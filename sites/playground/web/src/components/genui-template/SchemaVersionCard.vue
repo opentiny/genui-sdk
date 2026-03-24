@@ -66,8 +66,12 @@ const handleDev = () => {
       <div v-if="errorMessage" class="error-message">解析失败</div>
     </div>
   </div>
-  <JsonPatchDev v-model:visible="visible" :currentSchema="currentSchema" :jsonPatch="jsonPatch"
-    :prevSchema="prevSchema" />
+  <JsonPatchDev
+    v-model:visible="visible"
+    :currentSchema="currentSchema"
+    :jsonPatch="jsonPatch"
+    :prevSchema="prevSchema"
+  />
 </template>
 
 <style scoped lang="less">

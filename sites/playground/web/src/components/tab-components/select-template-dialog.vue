@@ -25,7 +25,7 @@ const cancel = () => {
 };
 
 const confirmSelectExample = () => {
-  const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.name));
+  const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.id));
 
   emit('confirmSelectExample', selectedTemplateSchemas);
   cancel()
@@ -41,13 +41,13 @@ watch(() => props.visible, (newVal) => {
   showSelectExampleBox.value = newVal;
 
   if (newVal) {
-    selectedExamples.value = props.customExamples.map((item) => item.name);
+    selectedExamples.value = props.customExamples.map((item) => item.id);
   }
 });
 </script>
 
 <template>
-  <tiny-dialog-box v-model:visible="showSelectExampleBox" title="选择示例模板" width="40%">
+  <tiny-dialog-box v-model:visible="showSelectExampleBox" @close="cancel" title="选择示例模板" width="40%">
     <template #footer>
       <tiny-button @click="cancel">取 消</tiny-button>
       <tiny-button type="primary" @click="createNewTemplate">创建新模板</tiny-button>
@@ -55,8 +55,8 @@ watch(() => props.visible, (newVal) => {
     </template>
     <template #default>
       <tiny-checkbox-group v-model="selectedExamples" class="template-checkbox-group">
-        <div v-for="item in templateSchemaList" :key="item.name" class="template-checkbox-item">
-          <tiny-checkbox :label="item.name" :value="item.name">
+        <div v-for="item in templateSchemaList" :key="item.id" class="template-checkbox-item">
+          <tiny-checkbox :label="item.id" :value="item.id">
             <div class="template-checkbox-item__content">
               <span class="template-checkbox-item__title">
                 {{ item.name }}

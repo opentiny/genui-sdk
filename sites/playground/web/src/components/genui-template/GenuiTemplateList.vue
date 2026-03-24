@@ -1,12 +1,17 @@
 <script setup lang="ts">
-  import type { Conversation } from '@opentiny/tiny-robot-kit';
-  import useTemplate from './useTemplate';
-  import TemplateList from './TemplateList.vue';
+import type { Conversation } from '@opentiny/tiny-robot-kit';
+import useTemplate from './useTemplate';
+import TemplateList from './TemplateList.vue';
 
-const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate } = useTemplate();
+const emit = defineEmits(['switch-template']);
+
+const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate } =
+  useTemplate();
 
 const handleItemClick = (item: Conversation) => {
   switchTemplate(item.id);
+
+  emit('switch-template', item);
 };
 
 const handleItemAction = (action: { id: string }, item: Conversation) => {

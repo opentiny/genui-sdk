@@ -20,11 +20,7 @@ export interface UseTemplateOptions {
 }
 
 export default function useTemplate(options?: UseTemplateOptions) {
-  if (!isTemplateInit.value && !options?.url) {
-    return;
-  }
-
-  if (!conversation) {
+  if (!conversation && options?.url) {
     const { url, llmConfig } = options;
 
     // 创建 provider 实例
@@ -72,7 +68,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     isTemplateInit.value = true;
   }
 
-  const messages = computed(() => conversation.getCurrentConversation()?.messages ?? []);
+  const messages = computed(() => conversation?.getCurrentConversation()?.messages ?? []);
 
   /**
    * 修改 LLM 配置
@@ -95,6 +91,10 @@ export default function useTemplate(options?: UseTemplateOptions) {
    * 创建模板
    */
   const createTemplate = () => {
+    if (!conversation) {
+      return;
+    }
+
     const { createConversation, saveConversations } = conversation;
     createConversation(DEFAULT_TEMPLATE_TITLE);
     saveConversations();
@@ -106,6 +106,10 @@ export default function useTemplate(options?: UseTemplateOptions) {
    * @param id 模板 id
    */
   const switchTemplate = (id: string) => {
+    if (!conversation) {
+      return;
+    }
+
     conversation.switchConversation(id);
     const currentConversation = conversation.getCurrentConversation();
     // 更新 schema 卡片
@@ -113,6 +117,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
     if (!currentConversation?.messages.length) {
       setCurrentSchema(null);
+
       return;
     }
 
@@ -121,8 +126,11 @@ export default function useTemplate(options?: UseTemplateOptions) {
     (lastMessage?.messages as IMessageItem[])?.some((message: IMessageItem) => {
       if (message.type === 'schema-card' || message.type === 'json-patch') {
         latestSchema = message.schema;
+        setCurrentCardId(message.cardId ?? '');
+
         return true;
       }
+
       return false;
     });
 
@@ -136,6 +144,10 @@ export default function useTemplate(options?: UseTemplateOptions) {
    * @param id 模板 id
    */
   const deleteTemplate = (id: string) => {
+    if (!conversation) {
+      return;
+    }
+
     const { state, deleteConversation, saveConversations } = conversation;
 
     deleteConversation(id);
@@ -153,6 +165,10 @@ export default function useTemplate(options?: UseTemplateOptions) {
    * @param title 模板标题
    */
   const updateTemplateTitle = (id: string, title: string) => {
+    if (!conversation) {
+      return;
+    }
+
     const { updateTitle, saveConversations } = conversation;
     updateTitle(id, title);
     saveConversations();
@@ -164,6 +180,10 @@ export default function useTemplate(options?: UseTemplateOptions) {
    * @returns 卡片消息
    */
   const getMessageByCardId = (cardId: string) => {
+    if (!conversation) {
+      return;
+    }
+
     // 从 messages 中找到对应的卡片。
     let targetMessage = null;
 
@@ -205,7 +225,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
   // 从对话中提取示例 schema 列表
   const templateSchemaList = computed(() =>
-    conversation.state.conversations.map((conversation) => {
+    conversation?.state.conversations.map((conversation) => {
       const lastMessage = conversation.messages[conversation.messages.length - 1];
       const schemaMessage = (lastMessage?.messages as IMessageItem[])?.find(
         (message) => message.type === 'schema-card' || message.type === 'json-patch',
@@ -220,10 +240,11 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
   return {
     isTemplateInit,
-    templateConversationState: conversation.state,
+    templateConversationState: conversation?.state,
     conversation,
     currentSchema,
     currentCardId,
+    currentConversationId: computed(() => conversation?.state.currentId),
     templateProvider,
     messages,
     templateSchemaList,

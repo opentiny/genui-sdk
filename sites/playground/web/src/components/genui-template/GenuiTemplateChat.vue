@@ -27,7 +27,7 @@ import {
   formatJsonPatch,
   formatDateTime,
   generateIdForComponents,
-  generateId
+  generateId,
 } from './template-chat-utils';
 import { jsonPatchDeduplicator } from './json-patch-deduplicator';
 import SchemaVersionCard from './SchemaVersionCard.vue';
@@ -45,7 +45,15 @@ const TinyGenuiConfig: any = inject('TinyGenuiConfig');
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const errorMessagesMap = ref<Map<string, string>>(new Map());
-const { conversation, templateConversationState, currentSchema, currentCardId, setCurrentSchema, updateTemplateTitle, setCurrentCardId } = useTemplate();
+const {
+  conversation,
+  templateConversationState,
+  currentSchema,
+  currentCardId,
+  setCurrentSchema,
+  updateTemplateTitle,
+  setCurrentCardId,
+} = useTemplate();
 
 watch(
   () => TinyGenuiConfig?.value?.theme,
@@ -149,7 +157,7 @@ const jsonPatchRenderer = async (props: any) => {
 
     if (!value || !Array.isArray(value)) return;
 
-    const formattedValue = formatJsonPatch(JSON.parse(prevSchema.value), value);
+    const formattedValue = formatJsonPatch(currentSchema.value, value);
     // 如果没有 cardId，使用默认的 key 来记录（避免重复执行）
     const operationKey = cardId || '__default__';
     // 过滤掉已执行的操作
@@ -203,15 +211,17 @@ const handleSchemaVersionCardClick = (cardId: string) => {
     // 当切换 schema 版本时，清理该卡片已执行的 patch 操作记录
     // 因为新的 schema 版本可能需要重新执行操作
     jsonPatchDeduplicator.clearCardOperations(cardId);
-    emit('schema-version-toggle', targetSchema);
-  } catch (error) { }
+    emit('schema-version-toggle', targetSchema, cardId);
+  } catch (error) {}
 };
 
 const getCardMessageByIndex = (index: number) => {
-  return (messages.value[index].messages as IMessageItem[])?.find(
-    (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
-      message.type === 'schema-card' || message.type === 'json-patch',
-  ) || {} as IJsonPatchMessageItem | ISchemaCardMessageItem;
+  return (
+    (messages.value[index].messages as IMessageItem[])?.find(
+      (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
+        message.type === 'schema-card' || message.type === 'json-patch',
+    ) || ({} as IJsonPatchMessageItem | ISchemaCardMessageItem)
+  );
 };
 
 const handleRefresh = ({ index }: { index: number }) => {
@@ -398,14 +408,24 @@ onUnmounted(() => {
       </tr-bubble-provider>
     </div>
     <div class="sender-container">
-      <div :class="['scroll-to-bottom-button', { 'is-generating': generating }]" v-show="!isLastMessageInBottom"
-        @click="scrollToBottom">
+      <div
+        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
+        v-show="!isLastMessageInBottom"
+        @click="scrollToBottom"
+      >
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <tr-sender v-model="inputMessage" :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
-        " :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        :showWordLimit="true" :maxLength="5000" @clear="clearInputMessage" @submit="handleSendMessage"
-        @cancel="messageManager.abortRequest">
+      <tr-sender
+        v-model="inputMessage"
+        :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'"
+        :clearable="true"
+        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
+        :showWordLimit="true"
+        :maxLength="5000"
+        @clear="clearInputMessage"
+        @submit="handleSendMessage"
+        @cancel="messageManager.abortRequest"
+      >
       </tr-sender>
     </div>
   </div>
@@ -460,7 +480,7 @@ onUnmounted(() => {
 }
 
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-  >div {
+  > div {
     display: var(--thinking-display, initial);
 
     &.schema-render-container[type='schema-card'],
@@ -481,7 +501,7 @@ onUnmounted(() => {
 }
 
 :deep(.tr-bubble__step-tool) {
-  &+.tr-bubble__step-tool {
+  & + .tr-bubble__step-tool {
     margin-top: 16px;
   }
 
@@ -522,7 +542,7 @@ onUnmounted(() => {
   border: 1px solid #e5e5e5;
   z-index: 1000;
 
-  &>svg {
+  & > svg {
     width: 20px;
     height: 20px;
   }
@@ -564,7 +584,7 @@ onUnmounted(() => {
       z-index: 1;
     }
 
-    &>svg {
+    & > svg {
       z-index: 2;
     }
   }

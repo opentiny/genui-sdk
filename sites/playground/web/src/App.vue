@@ -75,6 +75,9 @@ const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
 
+watch(() => llmConfig.model, async (newVal) => {
+  modelFeatures.value = await getModelFeatures(newVal);
+});
 
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
@@ -88,10 +91,10 @@ watch(
         customExamples: customExamples.value,
       }),
     );
-    modelFeatures.value = await getModelFeatures(llmConfig.model);
   },
   { deep: true },
 );
+
 const themeData = ref([
   { text: '默认', value: 'light' },
   { text: '暗黑', value: 'dark' },
@@ -115,32 +118,15 @@ const handleKeydown = (event) => {
 };
 
 const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
-const { isTemplateInit } = useTemplate({ url: templateUrl, llmConfig });
+const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate({ url: templateUrl, llmConfig });
 const { initInputMessage } = useInputMessage(chat);
 
-const createNewTemplate = () => {
+const createNewTemplate = (id) => {
   activeName.value = 'template';
+  if (id) {
+    switchTemplate(id);
+  }
 };
-
-onMounted(() => {
-  initInputMessage();
-  getModelOptions()
-    .then(async (data) => {
-      if (!data.find((item) => item.value === llmConfig.model)) {
-        llmConfig.model = data[0]?.value;
-      }
-      modelData.value = data;
-      modelFeatures.value = await getModelFeatures(llmConfig.model);
-    })
-    .catch((error) => {
-      console.error('获取模型列表失败:', error);
-    });
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
 
 const roles = {
   assistant: {
@@ -160,10 +146,44 @@ const customFetch = createCustomFetch(() => ({
   framework,
 }));
 
-const updateCustomExamples = (list) => {
-  customExamples.value = list.map((item) => ({ name: item.name, schema: item.schema }));
+const initExampleList = () => {
+  customExamples.value = cacheCustomExamples || [];
 };
 
+const updateCustomExamples = (list) => {
+  customExamples.value = list.map((item) => ({ id: item.id, name: item.name, schema: item.schema }));
+};
+
+watch(() => templateSchemaList.value, (newVal) => {
+  if (!newVal) {
+    return;
+  }
+  const templateMap = new Map(newVal.map((item) => [item.id, item]));
+  customExamples.value = customExamples.value
+    .map((example) => (example.id && templateMap.has(example.id) ? templateMap.get(example.id) : example))
+    .filter((example) => !example.id || templateMap.has(example.id));
+}, { deep: true });
+
+onMounted(() => {
+  initInputMessage();
+  initExampleList();
+  getModelOptions()
+    .then(async (data) => {
+      if (!data.find((item) => item.value === llmConfig.model)) {
+        llmConfig.model = data[0]?.value;
+      }
+      modelData.value = data;
+      modelFeatures.value = await getModelFeatures(llmConfig.model);
+    })
+    .catch((error) => {
+      console.error('获取模型列表失败:', error);
+    });
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>

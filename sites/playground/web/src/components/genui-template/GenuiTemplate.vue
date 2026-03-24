@@ -1,26 +1,28 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { CodeEditor } from 'monaco-editor-vue3';
 import { GenuiConfigProvider, GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
-import { IconEditorCode } from '@opentiny/vue-icon';
+import { IconRichTextCodeBlock } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import useTemplate from './useTemplate';
 
-const { currentSchema, setCurrentSchema, templateConversationState } = useTemplate();
+const { currentSchema, setCurrentSchema, templateConversationState, getCurrentCardId, conversation } = useTemplate();
 
-const TinyIconEditorCode = IconEditorCode();
+const TinyIconRichTextCodeBlock = IconRichTextCodeBlock();
 
 const props = defineProps<{
   theme: 'light' | 'dark' | 'lite' | 'auto';
 }>();
 
+// schema 编辑器是否可见
 const schemaEditorVisible = ref(false);
-const schemaDiffVisible = ref(false);
-const newSchema = ref<string>('');
+const currentCardId = ref<string>('');
+// 是否最新版本卡片
+const showReturnLatestButton = computed(() => getCurrentCardId() !== currentCardId.value && currentCardId.value)
 // 编辑器中显示的代码
 const schemaEditor = computed({
   get() {
@@ -58,15 +60,9 @@ const toggleSchemaEditor = () => {
   schemaEditorVisible.value = !schemaEditorVisible.value;
 };
 
-const toggleSchemaVersion = (schema: Record<string, unknown>) => {
-  schemaDiffVisible.value = true;
-  newSchema.value = JSON.stringify(schema, null, 2);
-  schemaEditorVisible.value = true;
-};
-
-const updateSchemaVersion = () => {
-  schemaEditor.value = newSchema.value;
-  schemaDiffVisible.value = false;
+const toggleSchemaVersion = (schema: Record<string, unknown>, cardId: string) => {
+  currentCardId.value = cardId;
+  schemaEditor.value = JSON.stringify(schema, null, 2);
 };
 
 const resetToLatestVersion = () => {
@@ -80,13 +76,36 @@ const resetToLatestVersion = () => {
       message.type === 'schema-card' || message.type === 'json-patch',
   );
   const latestSchema = schemaMessage?.schema;
+  currentCardId.value = schemaMessage?.cardId ?? '';
   if (latestSchema) {
     schemaEditor.value = JSON.stringify(JSON.parse(latestSchema), null, 2);
   }
-  schemaDiffVisible.value = false;
 };
 
-resetToLatestVersion();
+// 按 Esc 关闭 schema 编辑/对比视图
+const handleKeydown = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    if (schemaEditorVisible.value) {
+      schemaEditorVisible.value = false;
+    }
+  }
+};
+
+const currentConversationId = computed(() => conversation?.state.currentId);
+
+watch(() => currentConversationId.value, () => {
+  schemaEditorVisible.value = false;
+  currentCardId.value = '';
+});
+
+onMounted(() => {
+  resetToLatestVersion();
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
@@ -95,23 +114,31 @@ resetToLatestVersion();
       <GenuiConfigProvider v-show="!schemaEditorVisible" :theme="theme" style="width: 100%; height: 100%">
         <genui-template-chat class="genui-template-chat" @schema-version-toggle="toggleSchemaVersion" />
       </GenuiConfigProvider>
-      <div class="schema-version-container" v-if="schemaEditorVisible">
-        <div class="schema-version-toggle-button-group" v-if="schemaDiffVisible">
-          <tiny-button @click="updateSchemaVersion">还原此版本</tiny-button>
-          <tiny-button type="info" @click="resetToLatestVersion">返回最新版本</tiny-button>
-        </div>
+      <div class="schema-version-container" v-show="schemaEditorVisible">
         <code-editor v-model:value="schemaEditor" language="json" theme="vs" :options="editorOptions" />
       </div>
     </div>
     <div class="genui-schema-template-right" v-if="currentSchema">
-      <tiny-button class="schema-editor-toggle-button" :icon="TinyIconEditorCode"
-        @click="toggleSchemaEditor"></tiny-button>
-      <schema-renderer class="schema-renderer" :content="currentSchema" :generating="false" />
+      <div class="genui-schema-template-right-wrapper">
+        <tiny-button
+          class="schema-editor-toggle-button"
+          :icon="TinyIconRichTextCodeBlock"
+          round
+          @click="toggleSchemaEditor"></tiny-button>
+        <div class="top-button-group">
+          <tiny-button
+            v-if="showReturnLatestButton"
+            type="info"
+            round
+            @click="resetToLatestVersion">返回最新版本</tiny-button>
+        </div>
+        <schema-renderer class="schema-renderer" :content="currentSchema" :generating="false" />
+      </div>
     </div>
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="less">
 .genui-schema-template {
   display: flex;
   margin-bottom: 20px;
@@ -128,19 +155,32 @@ resetToLatestVersion();
 .genui-schema-template-right {
   width: 50%;
   overflow: auto;
+  padding: 20px;
+
+  &-wrapper {
+    background-color: #ffffff;
+    border-radius: 16px;
+    height: 100%;
+    text-align: center;
+    position: relative;
+
+    .top-button-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 60px;
+    }
+
+    .schema-editor-toggle-button {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+  }
 }
 
 .genui-template-chat {
   width: 100%;
-}
-
-.schema-editor-toggle-button {
-  margin: 8px 0px 0px 8px;
-  border: none;
-}
-
-.schema-renderer {
-  padding: 0px 20px;
 }
 
 .schema-version-container {
