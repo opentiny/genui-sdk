@@ -157,7 +157,15 @@ const jsonPatchRenderer = async (props: any) => {
 
     if (!value || !Array.isArray(value)) return;
 
-    const formattedValue = formatJsonPatch(currentSchema.value, value);
+    let prePatchSchema = currentSchema.value;
+    if (prevSchema.value) {
+      try {
+        prePatchSchema = JSON.parse(prevSchema.value);
+      } catch (error) {
+        prePatchSchema = currentSchema.value;
+      }
+    }
+    const formattedValue = formatJsonPatch(prePatchSchema, value);
     // 如果没有 cardId，使用默认的 key 来记录（避免重复执行）
     const operationKey = cardId || '__default__';
     // 过滤掉已执行的操作

@@ -53,6 +53,33 @@ const {
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+const normalizeCustomExamples = (examples) => {
+  if (!Array.isArray(examples)) {
+    return [];
+  }
+
+  const dedupedExamples = new Map();
+  examples.forEach((item) => {
+    if (!item || typeof item !== 'object') {
+      return;
+    }
+
+    const id = typeof item.id === 'string' ? item.id.trim() : '';
+    if (!id) {
+      return;
+    }
+
+    dedupedExamples.set(id, {
+      id,
+      name: item.name,
+      schema: item.schema,
+    });
+  });
+
+  return Array.from(dedupedExamples.values());
+};
+
 const isOpen = ref(true);
 const llmConfig = reactive(
   cacheLLmConfig || {
@@ -62,7 +89,7 @@ const llmConfig = reactive(
     promptList: [],
   },
 );
-const customExamples = ref(cacheCustomExamples || []);
+const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 
 const chatConfig = reactive(
   cacheChatConfig || {
@@ -161,11 +188,11 @@ const customFetch = createCustomFetch(() => ({
 }));
 
 const initExampleList = () => {
-  customExamples.value = cacheCustomExamples || [];
+  customExamples.value = normalizeCustomExamples(cacheCustomExamples);
 };
 
 const updateCustomExamples = (list) => {
-  customExamples.value = list.map((item) => ({ id: item.id, name: item.name, schema: item.schema }));
+  customExamples.value = normalizeCustomExamples(list);
 };
 
 watch(() => templateSchemaList.value, (newVal) => {
@@ -174,8 +201,8 @@ watch(() => templateSchemaList.value, (newVal) => {
   }
   const templateMap = new Map(newVal.map((item) => [item.id, item]));
   customExamples.value = customExamples.value
-    .map((example) => (example.id && templateMap.has(example.id) ? templateMap.get(example.id) : example))
-    .filter((example) => !example.id || templateMap.has(example.id));
+    .map((example) => templateMap.get(example.id))
+    .filter(Boolean);
 }, { deep: true });
 
 onMounted(() => {

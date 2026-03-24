@@ -93,7 +93,7 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 const currentConversationId = computed(() => conversation?.state.currentId);
 
-watch(() => currentConversationId.value, () => {
+watch(currentConversationId, () => {
   schemaEditorVisible.value = false;
   currentCardId.value = '';
 });
@@ -120,16 +120,10 @@ onUnmounted(() => {
     </div>
     <div class="genui-schema-template-right" v-if="currentSchema">
       <div class="genui-schema-template-right-wrapper">
-        <tiny-button
-          class="schema-editor-toggle-button"
-          :icon="TinyIconRichTextCodeBlock"
-          round
+        <tiny-button class="schema-editor-toggle-button" :icon="TinyIconRichTextCodeBlock" round
           @click="toggleSchemaEditor"></tiny-button>
         <div class="top-button-group">
-          <tiny-button
-            v-if="showReturnLatestButton"
-            type="info"
-            round
+          <tiny-button v-if="showReturnLatestButton" type="info" round
             @click="resetToLatestVersion">返回最新版本</tiny-button>
         </div>
         <schema-renderer class="schema-renderer" :content="currentSchema" :generating="false" />
@@ -190,23 +184,5 @@ onUnmounted(() => {
   justify-content: center;
   position: relative;
   box-sizing: border-box;
-}
-
-.schema-version-toggle-button-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 0px;
-  border-bottom: 1px solid #808080;
-  margin-bottom: 20px;
-}
-
-.json-patch-dev-icon {
-  cursor: pointer;
-  position: absolute;
-  top: 0;
-  right: 20px;
-  padding: 12px;
-  text-align: right;
 }
 </style>
