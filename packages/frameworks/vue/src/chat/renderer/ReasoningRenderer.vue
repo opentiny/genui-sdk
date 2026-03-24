@@ -120,10 +120,10 @@ const MarkdownContent = (markdownProps: { content: string }) =>
   font-size: 14px;
 
   .detail-content {
-    *:first-child {
+    > *:first-child {
       margin-top: 0;
     }
-    *:last-child {
+    > *:last-child {
       margin-bottom: 0;
     }
   }
