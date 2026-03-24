@@ -49,11 +49,13 @@ const confirmRename = () => {
   });
 };
 
-// 处理删除
-const handleDelete = (item: Conversation) => {
-  Modal.confirm('您确定要删除该模板吗？').then(() => {
+const handleDelete = async (item: Conversation) => {
+  try {
+    await Modal.confirm('Are you sure you want to delete this template?');
     emit('item-action', { id: 'delete' }, item);
-  });
+  } catch {
+    // Do nothing if the user cancels
+  }
 };
 
 const handleItemClick = (item: Conversation) => {
