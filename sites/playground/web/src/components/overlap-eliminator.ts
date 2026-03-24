@@ -18,7 +18,7 @@ export class OverlapEliminator {
     const originString = origin.slice(-compareLength);
 
     let i = inherited.length;
-    let findIndex = 0;
+    let findIndex = -1;
     
     while (i > 0) {
       const index = originString.lastIndexOf(inherited.slice(0, i));
@@ -28,19 +28,19 @@ export class OverlapEliminator {
       }
       i--;
     }
-    if (findIndex > 0) {
+    if (findIndex > -1) {
       if ( findIndex + i === originString.length) {
         return {
           overlap: true,
           overlapPending: false,
-          overlapLength: i,
+          overlapLength: i + 1,
           overlapString: originString.slice(findIndex, findIndex + i),
         }
       }
       return {
         overlap: false,
         overlapPending: true,
-        overlapLength: i,
+        overlapLength: i + 1,
         overlapString: originString.slice(findIndex, findIndex + i),
       }
      }
