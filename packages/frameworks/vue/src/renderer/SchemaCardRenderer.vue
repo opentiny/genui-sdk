@@ -77,6 +77,7 @@ function updateContextAndState() {
 watch(
   () => props.content,
   (newVal) => {
+    isError.value = false;
     let json: any = newVal;
     let isCompleted = true
     if (typeof newVal === 'string') {
@@ -86,7 +87,6 @@ watch(
           isError.value = true;
           return;
         }
-        isError.value = false;
         json = value;
         isCompleted = state === RepairJsonState.SUCCESS
       } else {
