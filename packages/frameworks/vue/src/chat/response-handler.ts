@@ -143,6 +143,17 @@ function onSchemaJSON(content: string, delta: IStreamDelta, chatMessage: IChatMe
   emitNotification(delta, chatMessage);
 }
 
+function watchReasoningEnd (context: any) {
+  context.unWatchReasoning = watch(() => [...context.chatMessage.messages], (newVal) => {
+    console.log('watch reasoning', newVal);
+    if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
+      context.handleReasoning = false;
+      onReasoningEnd(context.reasoningMessage);
+      context.unWatchReasoning?.();
+    }
+  }, { flush: 'sync' });
+}
+
 export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
   {
     name: 'init',
@@ -188,22 +199,14 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     handler: (data: IStreamData, context: any) => {
       const delta = getStreamDelta(data);
       context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
+      if (!context.handleReasoning) {
+        watchReasoningEnd(context);
+        context.handleReasoning = true;
+      }
       return true;
     },
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
       context.handleReasoning = false;
-      context.unWatchReasoning = watch(context.chatMessage.messages, (newVal) => {
-        if (newVal.length === 0) {
-          return;
-        }
-        if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
-          context.handleReasoning = false;
-          onReasoningEnd(context.reasoningMessage);
-          context.unWatchReasoning?.();
-        } else if (!context.handleReasoning && newVal[newVal.length - 1]?.type === 'reasoning') {
-          context.handleReasoning = true;
-        }
-      }, { flush: 'sync' });
     },
     end: (context: any) => {
       context.unWatchReasoning?.();
@@ -257,7 +260,13 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
       const thinkPatternExtractor = new PatternExtractor({
         onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
-        onHandledWrite: (value) => context.reasoningMessage = onReasoningContent(value, context.delta, context.chatMessage),
+        onHandledWrite: (value) => { 
+          context.reasoningMessage = onReasoningContent(value, context.delta, context.chatMessage)
+          if (!context.handleReasoning) {
+            watchReasoningEnd(context);
+            context.handleReasoning = true;
+          }
+        },
         regExpMap: new ThinkTagWrapPattern().regExpMap,
       });
       context.patternExtractor = new PatternExtractor({
