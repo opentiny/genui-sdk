@@ -6,6 +6,17 @@ import type { IStreamData } from "@opentiny/genui-sdk-core";
 const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
 };
+const constructData = (content: any) => {
+  return {
+    choices: [
+      {
+        delta: {
+          content: content,
+        },
+      },
+    ],
+  };
+}
 const removeUnexpectedSchemaJsonWrapper = (content: any) => {
   const schemaJsonRegex = /^```schemaJson\n([\s\S]*)/;
   const JsonRegex = /^```json\n([\s\S]*)/;
@@ -94,7 +105,7 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
     },
     end: (context) => {
       if (context.overlapPending) {
-        contentHandler.handler({ content: context.overlapPending }, context);
+        contentHandler.handler(constructData(context.overlapPending), context);
         context.overlapPending = '';
         context.overlapEliminated = true;
       }
