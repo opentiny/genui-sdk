@@ -83,7 +83,7 @@ watch(
     if (typeof newVal === 'string') {
       if (newVal.trim()) {
         const { value, state } = repairJson(newVal);
-        if (!value) {
+        if (!value || typeof value !== 'object') {
           isError.value = true;
           return;
         }
