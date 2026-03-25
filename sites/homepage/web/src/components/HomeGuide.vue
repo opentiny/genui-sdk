@@ -141,13 +141,13 @@ const handleGuideCardClick = (index: number) => {
     &-mobile {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 30px;
 
       .home-guide-content-right {
         width: 100%;
 
         &-framework {
-          height: 300px;
+          height: 376px;
         }
       }
     }

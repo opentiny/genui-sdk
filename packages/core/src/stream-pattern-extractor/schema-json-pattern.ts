@@ -1,9 +1,4 @@
-export function getPartialStartRegString(flag: string) {
-  return flag.split('').reverse().reduce((acc, cur) => {
-    return `${cur}(${acc})?`;
-  }, '');
-}
-
+import { getPartialStartRegString } from "./common";
 export class SchemaJsonPattern {
   protected startFlag: string = '```schemaJson';
   protected startRegex: RegExp = new RegExp(`${this.startFlag}`);

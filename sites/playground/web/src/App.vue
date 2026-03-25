@@ -10,6 +10,13 @@ import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
 import { useInputMessage } from './hooks/use-input-message';
 import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
+import { getOverlapEliminatorHandler, getContinueGeneratingHandler, locationPartialSchemaJson, movePartialSchemaJsonToLastMessage } from './continue-writing';
+import useIcon from './use-icon';
+
+const { topRenderer, addIcons } = useIcon();
+const TopIconsRenderer = topRenderer();
+
+addIcons(IconAi);
 
 let framework = 'Vue'; // Angular
 
@@ -95,8 +102,34 @@ const messages = ref([]);
 
 const url = import.meta.env.VITE_CHAT_URL;
 
+// TODO: 后续优化后，在GenUI SDK导出此API
+const insertHandlersAfterName = (handlers, insertHandlers, name) => {
+  const index = handlers.findIndex(handler => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index + 1, 0, ...insertHandlers);
+  }
+  return handlers;
+}
+
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+watch(chat, (instance) => {
+  if (instance) {
+    const defaultResponseHandlers = instance.getResponseHandlers();
+    const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
+    const newResponseHandlers = [
+      ...defaultResponseHandlers,
+      getContinueGeneratingHandler(conversation.value.messageManager),
+      locationPartialSchemaJson(),
+    ];
+    
+    insertHandlersAfterName(newResponseHandlers, [
+      movePartialSchemaJsonToLastMessage(),
+      getOverlapEliminatorHandler(contentHandler),
+    ], 'init');
+    instance.setResponseHandlers(newResponseHandlers);
+  }
+})
 
 // 提供给侧边栏及其子组件使用的共享上下文
 const playgroundContext = {
@@ -173,6 +206,7 @@ const updateCustomExamples = (list) => {
 </script>
 
 <template>
+  <TopIconsRenderer style="height: 0" />
   <div class="genui-playground">
     <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
       @updateCustomExamples="updateCustomExamples" v-slot="{ activeName }">

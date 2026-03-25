@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, ContentChild, Input, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
-import { parsePartialJson } from 'ai';
+import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { RendererMain as Renderer, Mapper, directiveMap, ModuleRef } from '@opentiny/tiny-schema-renderer-ng';
 import { requiredCompleteFieldSelectors } from './config';
 
@@ -100,18 +99,19 @@ export class GenuiRenderer implements OnInit {
     }
   }
 
-  protected async processNewContent(newVal: string | object) {
+  protected processNewContent(newVal: string | object) {
     let json: any = newVal;
     let isCompleted = true
     if (typeof newVal === 'string') {
       if (newVal.trim()) {
-        const { value, state } = await parsePartialJson(newVal);
+        const { value, state } = repairJson(newVal);
         if (!value) {
           this.isError = true;
           return;
         }
+        this.isError = false;
         json = value;
-        isCompleted = state === 'successful-parse';
+        isCompleted = state === RepairJsonState.SUCCESS;
       } else {
         json = {};
       }

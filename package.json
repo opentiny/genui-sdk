@@ -20,6 +20,11 @@
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
     "build": "pnpm build:playground"
   },
+  "pnpm": {
+    "patchedDependencies": {
+      "ai@6.0.116": "patches/ai@6.0.116.patch"
+    }
+  },
   "keywords": [],
   "author": "OpenTiny",
   "packageManager": "pnpm@10.12.1",
