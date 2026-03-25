@@ -147,7 +147,7 @@ const handleGuideCardClick = (index: number) => {
         width: 100%;
 
         &-framework {
-          height: 404px;
+          height: 376px;
         }
       }
     }
