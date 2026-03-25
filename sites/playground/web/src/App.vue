@@ -263,6 +263,12 @@ const updateCustomExamples = (list) => {
 }
 
 @media (max-width: 768px) {
+  .genui-playground {
+    --ti-gen-chat-avatar-and-gap-width: 0px;
+  }
+  :deep(.action-buttons__button) {
+    padding-right: 10px;
+  }
   .empty {
     font-size: 24px;
 
