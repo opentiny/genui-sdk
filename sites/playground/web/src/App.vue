@@ -110,21 +110,31 @@ const messages = ref([]);
 
 const url = import.meta.env.VITE_CHAT_URL;
 
+// TODO: 后续优化后，在GenUI SDK导出此API
+const insertHandlersAfterName = (handlers, insertHandlers, name) => {
+  const index = handlers.findIndex(handler => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index + 1, 0, ...insertHandlers);
+  }
+  return handlers;
+}
+
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
-    const reasoningHandler = defaultResponseHandlers.find(handler => handler.name === 'reasoning');
     const newResponseHandlers = [
-      reasoningHandler,
-      movePartialSchemaJsonToLastMessage(),
-      getOverlapEliminatorHandler(contentHandler),
-      ...defaultResponseHandlers.filter(handler => handler.name !== 'reasoning'),
+      ...defaultResponseHandlers,
       getContinueGeneratingHandler(conversation.value.messageManager),
       locationPartialSchemaJson(),
     ];
+    
+    insertHandlersAfterName(newResponseHandlers, [
+      movePartialSchemaJsonToLastMessage(),
+      getOverlapEliminatorHandler(contentHandler),
+    ], 'init');
     instance.setResponseHandlers(newResponseHandlers);
   }
 })
