@@ -167,6 +167,7 @@ const features = [
   @media (max-width: 1280px) {
     &-card {
       padding: 24px;
+      justify-content: normal;
     }
   }
 
