@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { TinyPopover, TinyButton } from '@opentiny/vue';
 import { iconInfoCircle } from '@opentiny/vue-icon';
+import { vFocusHoverSync } from './v-focus-hover-sync';
 
 const InfoIcon = iconInfoCircle();
 
@@ -90,6 +91,7 @@ function formatInt(n: number) {
         aria-label="本轮对话统计信息"
         type="text"
         :icon="InfoIcon"
+        v-focus-hover-sync
       >
       </tiny-button>
     </template>

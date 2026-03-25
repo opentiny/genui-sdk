@@ -7,6 +7,7 @@ import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
 import { useGenerateMore } from '../continue-writing';
 import FinishInfo from './FinishInfo.vue';
+import { vFocusHoverSync } from './v-focus-hover-sync';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
@@ -67,6 +68,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       type="text"
       :icon="RefreshIcon"
       v-auto-tip="{ always: true, content: '刷新', effect: 'light' }"
+      v-focus-hover-sync
       @click="refresh"
     >
     </tiny-button>
@@ -74,6 +76,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       type="text"
       :icon="CopyIcon"
       v-auto-tip="{ always: true, content: copyTooltip, effect: 'light' }"
+      v-focus-hover-sync
       @click="copyContent"
     >
     </tiny-button>
@@ -83,6 +86,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       type="text"
       :icon="ArrowRightIcon"
       v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: 'light' }"
+      v-focus-hover-sync
       @click="markGenerateMore"
     >
     </tiny-button>
@@ -91,6 +95,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       type="text"
       :icon="ArrowLeftIcon"
       v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: 'light' }"
+      v-focus-hover-sync
       @click="revertGenerateMore"
     >
     </tiny-button>
