@@ -67,7 +67,7 @@ const handleCreateNewTemplate = () => {
 </script>
 
 <template>
-  <div class="playground-sidebar-root">
+  <div class="playground-sidebar-root" :data-theme="theme">
     <!-- 顶部栏（仅移动端） -->
     <div v-if="isMobile" class="playground-topbar">
       <button
@@ -366,11 +366,37 @@ const handleCreateNewTemplate = () => {
   background: transparent;
   padding: 0;
   cursor: pointer;
+  color: #595959;
 
   .svg-icon {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+}
+
+/* 暗黑主题下的移动端顶部栏 */
+.playground-sidebar-root[data-theme='dark'] {
+  .playground-topbar {
+    background: #191919;
+  }
+
+  .playground-topbar:after {
+    background: linear-gradient(to bottom, #191919, transparent);
+  }
+
+  .playground-topbar__title {
+    color: #e6e6e6;
+  }
+
+  .playground-topbar__icon-btn {
+    color: #d9d9d9;
+  }
+}
+
+.playground-topbar {
+  :deep(svg) {
+    fill: currentColor;
   }
 }
 

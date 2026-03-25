@@ -47,6 +47,7 @@ function formatInt(n: number) {
 <template>
   <tiny-popover
     v-if="data"
+    :append-to-body="false"
     trigger="hover"
     placement="bottom-start"
     width="auto"
@@ -131,7 +132,7 @@ function formatInt(n: number) {
 .panel-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--tr-text-primary);
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #eee;
@@ -161,7 +162,7 @@ function formatInt(n: number) {
 
 .stat-row dd {
   margin: 0;
-  color: #333;
+  color: var(--tr-text-primary);
   text-align: right;
   word-break: break-all;
 }
