@@ -4,7 +4,7 @@ import { genPrompt } from '@opentiny/genui-sdk-core';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
-import { coreLlmBenchmarkSampleCases } from './samples/index';
+import { coreLlmBenchmarkSampleCases } from './samples';
 import { formatBeijingRunDirName, getSampleFilePath, resolveSamplesDir } from './utils/fs-paths';
 import { resolveModelsForBench, slugifyModelForFilename } from './utils/resolve-models';
 import { streamText } from 'ai';
@@ -157,7 +157,8 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   type Job = {
     order: number; // 从 1 开始的总任务序号
     modelId: string;
-    modelSlug: string;
+    /** 仅用于文件名的安全模型名（由 modelId slugify 得到） */
+    modelNameForFile: string;
     sampleCase: LlmBenchmarkSampleCase;
     runIndex: number;
   };
@@ -177,7 +178,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
         jobs.push({
           order: jobs.length + 1,
           modelId,
-          modelSlug,
+          modelNameForFile: modelSlug,
           sampleCase,
           runIndex,
         });
@@ -207,7 +208,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
       }
 
       const sample = await generateSingleSample(modelInstance, job.modelId, job.sampleCase, job.runIndex, system);
-      const sampleFile = getSampleFilePath(runDir, job.sampleCase.id, job.modelSlug, job.runIndex);
+      const sampleFile = getSampleFilePath(runDir, job.sampleCase.id, job.modelNameForFile, job.runIndex);
 
       // 防御式：即使父目录没创建成功或 sampleFile 被拼成多级目录，也能避免 ENOENT。
       fs.mkdirSync(path.dirname(sampleFile), { recursive: true });

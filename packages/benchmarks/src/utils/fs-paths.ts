@@ -9,12 +9,13 @@ function toBeijingDate(date: Date) {
 }
 
 /**
- * 返回样本目录绝对路径，默认使用包内 samples 目录。
+ * 返回输出（报告/本次生成样本）根目录绝对路径。
+ * 默认使用包内 `reports/` 目录（该目录应加入 .gitignore）。
  */
 export function resolveSamplesDir(samplesDir?: string) {
   return samplesDir
     ? path.resolve(samplesDir)
-    : path.resolve(currentDir, '../../samples');
+    : path.resolve(currentDir, '../../reports');
 }
 
 /**

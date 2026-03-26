@@ -81,11 +81,19 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
 
   const modelSet = options.models?.length ? new Set(options.models) : null;
 
-  const results: LlmBenchmarkResultItem[] = sampleFiles
+  const parsedSamples = sampleFiles
     .map((filePath) => JSON.parse(fs.readFileSync(filePath, 'utf-8')) as LlmBenchmarkSample)
     .filter((sample) => !selectedIds || selectedIds.has(sample.scenario))
     .filter((sample) => !modelSet || (sample.model != null && modelSet.has(sample.model)))
-    .map(toReportItem);
+    .sort((a, b) => {
+      const s = a.scenario.localeCompare(b.scenario);
+      if (s !== 0) return s;
+      const m = (a.model ?? '').localeCompare(b.model ?? '');
+      if (m !== 0) return m;
+      return (a.runIndex ?? 1) - (b.runIndex ?? 1);
+    });
+
+  const results: LlmBenchmarkResultItem[] = parsedSamples.map(toReportItem);
 
   if (results.length === 0) {
     throw new Error('No samples matched the current filter');

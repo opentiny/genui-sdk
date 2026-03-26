@@ -54,7 +54,7 @@ src/
 pnpm --filter @opentiny/genui-benchmarks benchmark
 ```
 
-报告输出到同一目录下（每次运行的 `yyyy-MM-dd_hh-mm-ss` 目录）：
+报告输出到同一目录下（默认在 `reports/yyyy-MM-dd_hh-mm-ss/`）：
 
 - `report.json`（含 `models`、`comparisonByScenario`、逐条 `results`）
 - `report.html`（含「按场景 · 模型对比」分组柱状图 + 单次运行明细图）

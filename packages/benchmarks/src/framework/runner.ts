@@ -307,7 +307,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
 }
 
 /**
- * 将 JSON/HTML 报告写入磁盘，并更新 `benchmark-latest.*`。
+ * 将 JSON/HTML 报告写入磁盘到当前 run 输出目录。
  */
 function writeBenchmarkArtifacts(results: LlmBenchmarkResultItem[], options: LlmBenchmarkRunOptions) {
   const outputDir = getReportOutputDir(options);
