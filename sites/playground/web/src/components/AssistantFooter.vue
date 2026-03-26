@@ -2,7 +2,8 @@
 import { iconRefresh, iconCopy, IconArrowRight, IconArrowLeft } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';
-import { ref, computed, reactive } from 'vue';
+import { GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import { ref, computed, inject } from 'vue';
 import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
 import { useGenerateMore } from '../continue-writing';
@@ -11,6 +12,11 @@ import { vFocusHoverSync } from './v-focus-hover-sync';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
+const genuiConfig: any = inject(GENUI_CONFIG, null);
+
+const tooltipEffect = computed(() => {
+  return genuiConfig.theme === 'dark' ? 'light' : 'dark';
+});
 
 const RefreshIcon = iconRefresh();
 const CopyIcon = iconCopy();
@@ -67,7 +73,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
     <tiny-button
       type="text"
       :icon="RefreshIcon"
-      v-auto-tip="{ always: true, content: '刷新', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '刷新', effect: tooltipEffect }"
       v-focus-hover-sync
       @click="refresh"
     >
@@ -75,7 +81,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
     <tiny-button
       type="text"
       :icon="CopyIcon"
-      v-auto-tip="{ always: true, content: copyTooltip, effect: 'light' }"
+      v-auto-tip="{ always: true, content: copyTooltip, effect: tooltipEffect }"
       v-focus-hover-sync
       @click="copyContent"
     >
@@ -85,7 +91,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       v-if="notFinished"
       type="text"
       :icon="ArrowRightIcon"
-      v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: tooltipEffect }"
       v-focus-hover-sync
       @click="markGenerateMore"
     >
@@ -94,7 +100,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       v-if="revertAvailable"
       type="text"
       :icon="ArrowLeftIcon"
-      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: tooltipEffect }"
       v-focus-hover-sync
       @click="revertGenerateMore"
     >

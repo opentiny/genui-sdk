@@ -47,12 +47,11 @@ function formatInt(n: number) {
 <template>
   <tiny-popover
     v-if="data"
-    :append-to-body="false"
     trigger="hover"
     placement="bottom-start"
     width="auto"
     :visible-arrow="false"
-    popper-class="finish-statistic-popover"
+    popper-class="finish-statistic-popover tiny-genui-playground-popover"
   >
     <template #default>
       <div class="finish-statistic-panel">
@@ -132,7 +131,7 @@ function formatInt(n: number) {
 .panel-title {
   font-size: 13px;
   font-weight: 600;
-  color: var(--tr-text-primary);
+  color: var(--tv-color-text);
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #eee;
@@ -162,7 +161,7 @@ function formatInt(n: number) {
 
 .stat-row dd {
   margin: 0;
-  color: var(--tr-text-primary);
+  color: var(--tv-color-text);
   text-align: right;
   word-break: break-all;
 }

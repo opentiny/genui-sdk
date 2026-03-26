@@ -862,6 +862,9 @@ importers:
       '@opentiny/vue-icon':
         specifier: ^3.28.0
         version: 3.28.3
+      '@opentiny/vue-theme':
+        specifier: ^3.28.0
+        version: 3.28.0
       ai:
         specifier: 6.0.116
         version: 6.0.116(patch_hash=391ef8a5ea058148f60a34f00c8049ce6f4bcd4c0d14d4952bef7e5d9f0136d5)(zod@4.1.13)

@@ -1,5 +1,6 @@
 <script setup>
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
+import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, h, shallowRef } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
@@ -67,6 +68,25 @@ const chatConfig = reactive(
 const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
+
+const transformTheme = (themeConfig) => {
+  const newThemeConfig = structuredClone(themeConfig);
+  newThemeConfig.css = newThemeConfig.css.replaceAll(':host', `[class*="tiny-genui-playground"]`).replaceAll(':root', `[class*="tiny-genui-playground"]`);
+  return newThemeConfig;
+};
+
+const themeMap = {
+  dark: transformTheme(tinyDarkTheme),
+  lite: transformTheme(tinyOldTheme),
+  light: { css: ' ' },
+};
+
+const themeTool = new ThemeTool();
+
+watch(theme, (newVal) => {
+  const themeConfig = themeMap[newVal] || themeMap.light;
+  themeTool.changeTheme(themeConfig);
+}, { immediate: true });
 
 watch(
   [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
@@ -243,6 +263,10 @@ const updateCustomExamples = (list) => {
   --ti-common-scrollbar-height: 8px;
   display: flex;
   height: 100%;
+
+  :deep(.tiny-sender__footer-slot.tiny-sender__bottom-row) {
+    background: transparent;
+  }
 }
 
 .chat-container {
