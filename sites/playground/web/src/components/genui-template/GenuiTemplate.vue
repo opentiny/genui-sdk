@@ -9,6 +9,9 @@ import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import useTemplate from './useTemplate';
+import { useIsMobile } from '../../use-mobile';
+
+const { isMobile } = useIsMobile();
 
 const { currentSchema, setCurrentSchema, templateConversationState, getCurrentCardId, conversation } = useTemplate();
 
@@ -109,8 +112,8 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="genui-schema-template">
-    <div class="genui-schema-template-left">
+  <div :class="['genui-schema-template', { 'is-mobile': isMobile }]">
+    <div class="genui-schema-template-item chat-container">
       <GenuiConfigProvider v-show="!schemaEditorVisible" :theme="theme" style="width: 100%; height: 100%">
         <genui-template-chat class="genui-template-chat" @schema-version-toggle="toggleSchemaVersion" />
       </GenuiConfigProvider>
@@ -118,8 +121,8 @@ onUnmounted(() => {
         <code-editor v-model:value="schemaEditor" language="json" theme="vs" :options="editorOptions" />
       </div>
     </div>
-    <div class="genui-schema-template-right" v-if="currentSchema">
-      <div class="genui-schema-template-right-wrapper">
+    <div class="genui-schema-template-item renderer-container" v-if="currentSchema">
+      <div class="renderer-container-wrapper">
         <tiny-button class="schema-editor-toggle-button" :icon="TinyIconRichTextCodeBlock" round
           @click="toggleSchemaEditor"></tiny-button>
         <div class="top-button-group">
@@ -138,40 +141,47 @@ onUnmounted(() => {
   margin-bottom: 20px;
   width: 100%;
   min-height: 100%;
-}
 
-.genui-schema-template-left {
-  flex: 1;
-  display: flex;
-  height: 100%;
-}
+  &-item {
+    flex: 1;
+  }
 
-.genui-schema-template-right {
-  width: 50%;
-  overflow: auto;
-  padding: 20px;
-
-  &-wrapper {
-    background-color: #ffffff;
-    border-radius: 16px;
+  & .chat-container {
+    display: flex;
     height: 100%;
-    text-align: center;
-    position: relative;
+  }
 
-    .top-button-group {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 60px;
-    }
+  & .renderer-container {
+    overflow: auto;
+    padding: 20px;
 
-    .schema-editor-toggle-button {
-      position: absolute;
-      left: 0;
-      top: 0;
+    &-wrapper {
+      background-color: #ffffff;
+      border-radius: 16px;
+      height: 100%;
+      text-align: center;
+      position: relative;
+
+      .top-button-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 60px;
+      }
+
+      .schema-editor-toggle-button {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
     }
   }
+
+  &.is-mobile {
+    flex-direction: column-reverse;
+  }
 }
+
 
 .genui-template-chat {
   width: 100%;

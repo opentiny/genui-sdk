@@ -77,11 +77,11 @@ const handleDev = () => {
 <style scoped lang="less">
 .schema-version-card {
   background-color: #fff;
-  align-items: center;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   gap: 8px;
   max-width: 344px;
   min-width: 280px;

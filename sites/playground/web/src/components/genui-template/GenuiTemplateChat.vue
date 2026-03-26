@@ -424,24 +424,14 @@ onUnmounted(() => {
       </tr-bubble-provider>
     </div>
     <div class="sender-container">
-      <div
-        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
-        v-show="!isLastMessageInBottom"
-        @click="scrollToBottom"
-      >
+      <div :class="['scroll-to-bottom-button', { 'is-generating': generating }]" v-show="!isLastMessageInBottom"
+        @click="scrollToBottom">
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <tr-sender
-        v-model="inputMessage"
+      <tr-sender v-model="inputMessage"
         :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'"
-        :clearable="true"
-        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        :showWordLimit="true"
-        :maxLength="5000"
-        @clear="clearInputMessage"
-        @submit="handleSendMessage"
-        @cancel="messageManager.abortRequest"
-      >
+        :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)" :showWordLimit="true"
+        :maxLength="5000" @clear="clearInputMessage" @submit="handleSendMessage" @cancel="messageManager.abortRequest">
       </tr-sender>
     </div>
   </div>
@@ -478,10 +468,6 @@ onUnmounted(() => {
   }
 }
 
-:deep(.tr-bubble__content.border-corner) {
-  max-width: 80%;
-}
-
 :deep(.tr-bubble__loading) {
   margin-top: 8px;
 }
@@ -496,47 +482,41 @@ onUnmounted(() => {
 }
 
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-  > div {
+
+  // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
+  >[type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);
-
-    &.schema-render-container[type='schema-card'],
-    &.loading-container[type='loading-text'] {
-      display: initial;
-    }
-
-    &.loading-container[type='loading-text'] {
-      margin: 10px 0;
-      background: linear-gradient(90deg, #666 0%, #666 45%, #999 50%, #999 55%, #666 60%, #666 100%);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: text-shimmer 6s linear infinite;
-    }
   }
 }
 
 :deep(.tr-bubble__step-tool) {
-  & + .tr-bubble__step-tool {
+  &+.tr-bubble__step-tool {
     margin-top: 16px;
   }
-
-  min-width: 500px;
-}
-
-:deep(.tr-bubble__content-wrapper) {
-  width: 100%;
 }
 
 :deep(.tr-bubble.placement-end) {
   width: 100%;
 }
 
+:deep(.tr-bubble__content-wrapper) {
+  @avatar-and-gap-width: 56px;
+  max-width: calc(100% - @avatar-and-gap-width * 2);
+
+  .tr-bubble__content {
+    max-width: 100%;
+  }
+
+  .tr-bubble__content-items {
+    overflow-x: auto;
+  }
+}
+
 .sender-container {
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
-
+  background: var(--sender-bg);
   .attachments-container {
     padding: 0 20px;
   }
@@ -549,24 +529,21 @@ onUnmounted(() => {
   top: -35px;
   width: 40px;
   height: 40px;
-  background-color: #fff;
+  background-color: var(--generating-bg-after);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--sender-border-color);
   z-index: 1000;
-
   & > svg {
     width: 20px;
     height: 20px;
   }
 
   &:hover {
-    box-shadow:
-      0px 10px 20px 0px #0000001a,
-      0px 0px 1px 0px #00000026;
+    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {
@@ -583,7 +560,7 @@ onUnmounted(() => {
       width: calc(100% + 4px);
       height: calc(100% + 4px);
       border-radius: 50%;
-      background: conic-gradient(from 0deg, #f5f7ff, #d9e0f5, #bfc8e0, #d9e0f5, #f5f7ff);
+      background: var(--generating-bg-before);
       z-index: 0;
       animation: rotate-border 2s linear infinite;
     }
@@ -596,7 +573,7 @@ onUnmounted(() => {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background-color: #fff;
+      background-color: var(--generating-bg-after);
       z-index: 1;
     }
 
