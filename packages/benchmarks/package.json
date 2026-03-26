@@ -1,0 +1,22 @@
+{
+  "name": "@opentiny/genui-benchmarks",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "benchmark": "tsx ./main.ts"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^1.0.7",
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "ai": "^6.0.137"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "dotenv": "^17.2.3",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

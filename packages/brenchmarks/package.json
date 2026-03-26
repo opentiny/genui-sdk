@@ -1,0 +1,24 @@
+{
+  "name": "@opentiny/genui-brenchmarks",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "tsx ./src/index.ts --mode generate",
+    "report": "tsx ./src/index.ts --mode report",
+    "report:json": "tsx ./src/index.ts --mode report --json",
+    "bench": "tsx ./src/index.ts --mode all",
+    "bench:form": "tsx ./src/index.ts --mode all --scenario simple-form",
+    "bench:model-mini": "tsx ./src/index.ts --mode all --model gpt-4o-mini"
+  },
+  "dependencies": {
+    "@ai-sdk/deepseek": "^1.0.7",
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "ai": "^6.0.137"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}
