@@ -1,10 +1,10 @@
-name: Publish GenUI SDK Vue
+name: Publish GenUI SDK packages
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: '发布版本号（将写入 packages/frameworks/vue/package.json，例如 1.0.0-beta.3）'
+        description: '发布版本号（将写入 server / vue / angular 的 package.json，例如 1.0.0-beta.2）'
         required: true
         type: string
       npm_tag:
@@ -66,22 +66,41 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Update Vue package version
-        run: node ./scripts/update-package-version.js packages/frameworks/vue/package.json "${{ github.event.inputs.version }}"
+      - name: Update package versions
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          node ./scripts/update-package-version.js packages/server/package.json "$VERSION"
+          node ./scripts/update-package-version.js packages/frameworks/vue/package.json "$VERSION"
+          node ./scripts/update-package-version.js packages/frameworks/angular/package.json "$VERSION"
+
+      - name: Build Server
+        run: pnpm --filter @opentiny/genui-sdk-server build:lib:npm
 
       - name: Build Vue
         run: pnpm --filter @opentiny/genui-sdk-vue build:lib:npm
 
+      - name: Build Angular
+        run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
+
       - name: Setup .npmrc for publish
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
-      - name: Publish to npm (from vue output)
+      - name: Publish server to npm
+        working-directory: packages/server/output
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Publish Vue to npm
         working-directory: packages/frameworks/vue/output
         run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
-      - name: Create and push tag
+      - name: Publish Angular to npm
+        working-directory: packages/frameworks/angular/output
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Create and push tags
         run: |
+          VERSION="${{ github.event.inputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "@opentiny/genui-sdk-vue@${{ github.event.inputs.version }}"
-          git push origin "@opentiny/genui-sdk-vue@${{ github.event.inputs.version }}"
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
