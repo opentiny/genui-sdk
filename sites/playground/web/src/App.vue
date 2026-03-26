@@ -272,6 +272,9 @@ const updateCustomExamples = (list) => {
   }
   :deep(.action-buttons__button) {
     padding-right: 10px;
+    svg[alt="录音"] {
+      display: none;
+    }
   }
   .empty {
     font-size: 24px;
