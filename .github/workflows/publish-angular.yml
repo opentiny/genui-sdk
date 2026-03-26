@@ -1,0 +1,89 @@
+name: Publish GenUI SDK Angular
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '发布版本号（将写入 packages/frameworks/angular/package.json，例如 1.0.0-beta.2）'
+        required: true
+        type: string
+      npm_tag:
+        description: '发布标签（latest=正式版，beta/alpha=预发版，安装时如 npm install pkg@beta）'
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Check allowed publishers
+        run: |
+          ALLOWED="${{ vars.ALLOWED_PUBLISHERS }}"
+          if [ -z "$ALLOWED" ]; then
+            echo "::error::请在仓库 Settings → Secrets and variables → Actions → Variables 中配置 ALLOWED_PUBLISHERS（逗号分隔的 GitHub 用户名）"
+            exit 1
+          fi
+          ACTOR="${{ github.actor }}"
+          if echo ",${ALLOWED}," | grep -q ",${ACTOR},"; then
+            echo "✓ 允许发布: $ACTOR"
+          else
+            echo "::error::无权限发布: $ACTOR 不在 ALLOWED_PUBLISHERS 列表中"
+            exit 1
+          fi
+
+      - name: Validate version (semver)
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "::error::版本号需符合语义化版本（如 1.0.0、1.0.0-beta.2），当前值: $VERSION"
+            exit 1
+          fi
+          echo "✓ 版本号格式正确: $VERSION"
+
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Update Angular package version
+        run: node ./scripts/update-package-version.js packages/frameworks/angular/package.json "${{ github.event.inputs.version }}"
+
+      - name: Build Angular
+        run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
+
+      - name: Setup .npmrc for publish
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Publish to npm (from angular package root)
+        working-directory: packages/frameworks/angular/output
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "@opentiny/genui-sdk-angular@${{ github.event.inputs.version }}"
+          git push origin "@opentiny/genui-sdk-angular@${{ github.event.inputs.version }}"
