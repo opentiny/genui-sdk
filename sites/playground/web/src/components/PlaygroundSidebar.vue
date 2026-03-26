@@ -17,7 +17,7 @@ const props = defineProps({
   theme: { type: String, default: 'light' },
 });
 
-const emit = defineEmits(['update:expanded', 'new-task', 'update:theme']);
+const emit = defineEmits(['update:expanded', 'new-task', 'update:theme', 'update-custom-examples']);
 
 const { isTemplateInit } = useTemplate();
 
@@ -62,7 +62,10 @@ const handleNewTask = () => {
 
 const handleCreateNewTemplate = () => {
   activeName.value = 'template';
-  if (isMobile.value) emit('update:expanded', false);
+};
+
+const updateCustomExamples = (list) => {
+  emit('update-custom-examples', list);
 };
 </script>
 
@@ -93,7 +96,7 @@ const handleCreateNewTemplate = () => {
         'playground-sidebar--mobile': isMobile,
         'playground-sidebar--mobile-open': isMobile && expanded,
       }"
-      :style="{ width: isMobile ? 'var(--config-tas-width)' : sidebarWidth }"
+      :style="{ width: isMobile ? 'min(100vw, var(--config-tas-width))' : sidebarWidth }"
     >
       <header
         class="playground-sidebar__header"
@@ -138,7 +141,7 @@ const handleCreateNewTemplate = () => {
 
       <tiny-tabs class="playground-sidebar__tabs" v-model="activeName" v-show="expanded">
         <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig @createNewTemplate="handleCreateNewTemplate" />
+          <ModelConfig @createNewTemplate="handleCreateNewTemplate" @updateCustomExamples="updateCustomExamples"/>
         </tiny-tab-item>
         <tiny-tab-item title="工具" name="tools">
           <McpTools />
@@ -196,6 +199,7 @@ const handleCreateNewTemplate = () => {
     position: fixed;
     left: 0;
     top: 0;
+    max-width: 100vw;
     height: 100%;
     height: 100dvh;
     transform: translateX(-100%);

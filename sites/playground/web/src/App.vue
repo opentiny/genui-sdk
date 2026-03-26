@@ -161,11 +161,17 @@ onMounted(() => {
   initInputMessage();
   getModelOptions()
     .then(async (data) => {
+      let modelChanged = false;
       if (!data.find((item) => item.value === llmConfig.model)) {
         llmConfig.model = data[0]?.value;
+        modelChanged = true;
       }
       modelData.value = data;
-      modelFeatures.value = await getModelFeatures(llmConfig.model);
+      if (!modelChanged) {
+        modelFeatures.value = await getModelFeatures(llmConfig.model);
+      } else {
+        modelFeatures.value = await getModelFeatures(llmConfig.model);
+      }
     })
     .catch((error) => {
       console.error('获取模型列表失败:', error);
@@ -209,7 +215,7 @@ const updateCustomExamples = (list) => {
   <TopIconsRenderer style="height: 0" />
   <div class="genui-playground">
     <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
-      @updateCustomExamples="updateCustomExamples" v-slot="{ activeName }">
+      @update-custom-examples="updateCustomExamples" v-slot="{ activeName }">
       <template v-if="ENABLE_TEMPLATE && isTemplateInit">
         <div v-if="activeName === 'template'" class="chat-container">
           <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"

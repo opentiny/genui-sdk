@@ -12,7 +12,7 @@ import {
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
 import SelectTemplateDialog from './SelectTemplateDialog.vue';
 
-const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update:custom-examples']);
+const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update-custom-examples']);
 const playgroundContext = inject('playgroundContext');
 const { llmConfig, modelData, customExamples } = playgroundContext;
 
@@ -81,7 +81,7 @@ const editPrompt = (index) => {
 };
 
 const confirmSelectExampleList = (list) => {
-  customExamples.value = list;
+  emit('update-custom-examples', list);
 };
 
 const createNewTemplate = () => {
