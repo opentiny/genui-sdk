@@ -109,34 +109,49 @@ const updateCustomExamples = (list) => {
 
         <div class="playground-sidebar__actions">
           <div class="playground-sidebar__actions-inner">
-            <span
+            <button
               v-if="expanded"
-              class="svg-icon"
-              :innerHTML="CloseSvg"
+              type="button"
+              class="playground-sidebar__icon-btn"
+              :aria-label="isMobile ? '关闭侧边栏' : '收起侧边栏'"
               :title="isMobile ? '关闭' : '收起'"
               @click="emit('update:expanded', false)"
-            ></span>
-            <span v-else class="svg-icon" :innerHTML="OpenSvg" title="展开" @click="toggleExpanded"></span>
+            >
+              <span class="svg-icon" :innerHTML="CloseSvg" />
+            </button>
+            <button
+              v-else
+              type="button"
+              class="playground-sidebar__icon-btn"
+              aria-label="展开侧边栏"
+              title="展开"
+              @click="toggleExpanded"
+            >
+              <span class="svg-icon" :innerHTML="OpenSvg" />
+            </button>
           </div>
-          <span
+          <button
             v-if="!expanded && !isMobile"
-            class="svg-icon"
-            :innerHTML="NewSvg"
+            type="button"
+            class="playground-sidebar__icon-btn"
+            aria-label="新建会话"
             title="新建会话"
             @click="handleNewTask"
-          ></span>
+          >
+            <span class="svg-icon" :innerHTML="NewSvg" />
+          </button>
         </div>
       </header>
 
       <div class="playground-sidebar__new-task">
-        <div v-if="expanded" class="new-task-btn" type="button" @click="handleNewTask">
+        <button v-if="expanded" class="new-task-btn" type="button" @click="handleNewTask">
           <TinyIconPlus :size="16" />
           <span class="new-task-btn__text">新建会话</span>
           <div class="new-task-btn__shortcut">
             <span>Ctrl</span>
             <span>K</span>
           </div>
-        </div>
+        </button>
       </div>
 
       <tiny-tabs class="playground-sidebar__tabs" v-model="activeName" v-show="expanded">
@@ -276,6 +291,7 @@ const updateCustomExamples = (list) => {
 }
 
 .new-task-btn {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,6 +301,14 @@ const updateCustomExamples = (list) => {
   border-radius: 10px;
   cursor: pointer;
   white-space: nowrap;
+  background: transparent;
+  appearance: none;
+  font: inherit;
+
+  &:focus-visible {
+    outline: 2px solid #1677ff;
+    outline-offset: 2px;
+  }
 
   &__text {
     font-size: 14px;
@@ -346,6 +370,25 @@ const updateCustomExamples = (list) => {
   height: 16px;
   background: linear-gradient(to bottom, #f0f0f0, transparent);
   pointer-events: none;
+}
+
+.playground-sidebar__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+
+  &:focus-visible {
+    outline: 2px solid #1677ff;
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }
 
 .playground-topbar__title {
