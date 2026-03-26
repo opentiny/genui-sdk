@@ -102,10 +102,5 @@ jobs:
           VERSION="${{ github.event.inputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag "@opentiny/genui-sdk-server@${VERSION}"
-          git tag "@opentiny/genui-sdk-vue@${VERSION}"
-          git tag "@opentiny/genui-sdk-angular@${VERSION}"
-          git push origin \
-            "@opentiny/genui-sdk-server@${VERSION}" \
-            "@opentiny/genui-sdk-vue@${VERSION}" \
-            "@opentiny/genui-sdk-angular@${VERSION}"
+          git tag "v${VERSION}"
+          git push origin "v${VERSION}"
