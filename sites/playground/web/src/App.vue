@@ -169,8 +169,6 @@ onMounted(() => {
       modelData.value = data;
       if (!modelChanged) {
         modelFeatures.value = await getModelFeatures(llmConfig.model);
-      } else {
-        modelFeatures.value = await getModelFeatures(llmConfig.model);
       }
     })
     .catch((error) => {
