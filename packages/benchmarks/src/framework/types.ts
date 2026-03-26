@@ -1,8 +1,19 @@
+import type { IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
+
 /** 内置基准任务定义（id + user prompt），与落盘后的 {@link LlmBenchmarkSample} 区分 */
 export interface LlmBenchmarkSampleCase {
   id: string;
   prompt: string;
 }
+
+/**
+ * 生成样本时 system prompt 的配置（与 chat-genui 对齐：genPrompt + specificPrompt + userAppendPrompt）。
+ */
+export type LlmBenchmarkPromptConfig = {
+  tgCustomConfig: IGenPromptCustomConfig;
+  specificPrompt: string;
+  userAppendPrompt: string;
+};
 
 export interface LlmBenchmarkRunOptions {
   model: string;
@@ -16,6 +27,10 @@ export interface LlmBenchmarkRunOptions {
   scenarios?: string[];
   /** 每个场景重复执行次数，最小为 1 */
   repeat?: number;
+  /** 样本生成并发度（最小为 1） */
+  concurrency?: number;
+  /** 生成样本用的 system prompt 配置 */
+  promptConfig: LlmBenchmarkPromptConfig;
   json?: boolean;
   samplesDir?: string;
   outputDir?: string;

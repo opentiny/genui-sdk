@@ -7,6 +7,8 @@ import { resolveSamplesDir } from './utils/fs-paths';
 
 /**
  * 校验 schemaJson 内容，判断是否存在代码块、JSON 合法、协议合法。
+ * @param schemaJsonText 从输出中提取的 `schemaJson` 字符串（可能为 null）
+ * @returns 协议/JSON 校验结果三元组
  */
 function validateSchemaJson(schemaJsonText: string | null) {
   if (!schemaJsonText) {
@@ -35,6 +37,8 @@ function validateSchemaJson(schemaJsonText: string | null) {
 
 /**
  * 将单个样本转为报告结果项。
+ * @param sample 由生成阶段写入的样本对象
+ * @returns 用于汇总/展示的指标结果
  */
 function toReportItem(sample: LlmBenchmarkSample): LlmBenchmarkResultItem {
   const schemaJsonText = extractSchemaJsonBlock(sample.output);
@@ -56,6 +60,8 @@ function toReportItem(sample: LlmBenchmarkSample): LlmBenchmarkResultItem {
 
 /**
  * 读取样本目录并输出统计报告。
+ * @param options 运行配置（用于过滤 scenario/scenarios 与 models）
+ * @returns 输出打印与写盘后的结果集
  */
 export async function runReport(options: LlmBenchmarkRunOptions) {
   const baseDir = resolveSamplesDir(options.samplesDir);
@@ -64,7 +70,7 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   }
   const sampleFiles = fs
     .readdirSync(baseDir)
-    .filter((name) => name.endsWith('.json'))
+    .filter((name) => name.endsWith('.json') && name !== 'report.json')
     .map((name) => `${baseDir}/${name}`);
 
   const selectedIds = options.scenarios?.length

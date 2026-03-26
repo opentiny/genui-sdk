@@ -18,6 +18,9 @@ export interface BenchmarkComparisonRow {
   >;
 }
 
+/**
+ * 从结果集中提取出现过的模型列表（去重后排序）。
+ */
 function distinctModels(results: LlmBenchmarkResultItem[]): string[] {
   return [...new Set(results.map((r) => r.model).filter(Boolean))].sort() as string[];
 }
@@ -45,19 +48,30 @@ export function buildComparisonByScenario(results: LlmBenchmarkResultItem[]): Be
   });
 }
 
+/**
+ * 计算本次报告输出目录。
+ */
 function getReportOutputDir(options: LlmBenchmarkRunOptions) {
   if (options.outputDir) {
     return path.resolve(options.outputDir);
   }
   const samplesDir = resolveSamplesDir(options.samplesDir);
-  return path.resolve(samplesDir, 'reports');
+  // 按需求：report 输出到本次 runDir 根目录下
+  return path.resolve(samplesDir);
 }
 
+/**
+ * 将 Date 转为北京时间（UTC+8）用于文件名稳定性。
+ */
 function toBeijingDate(date: Date) {
   // China mainland is UTC+8 without DST; keep it deterministic for filenames.
   return new Date(date.getTime() + 8 * 60 * 60 * 1000);
 }
 
+/**
+ * 格式化北京时间时间戳（用于报告文件名）。
+ * @example 2026-03-25_15-59-10-787
+ */
 function formatBeijingTimestamp(date: Date) {
   const d = toBeijingDate(date);
   const yyyy = d.getUTCFullYear();
@@ -71,6 +85,9 @@ function formatBeijingTimestamp(date: Date) {
   return `${yyyy}-${MM}-${DD}_${hh}-${mm}-${ss}-${ms}`;
 }
 
+/**
+ * 生成 HTML 报告字符串（包含对比图表与明细表）。
+ */
 function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchmarkRunOptions) {
   const comparison = buildComparisonByScenario(results);
   const modelList = distinctModels(results);
@@ -136,6 +153,16 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
     const scenarioLabels = comparison.map(function (c) { return c.scenario; });
     const barOpts = { responsive: true, plugins: { legend: { position: 'bottom' } } };
 
+    function withTitle(baseOpts, titleText) {
+      return {
+        ...baseOpts,
+        plugins: {
+          ...baseOpts.plugins,
+          title: { display: true, text: titleText },
+        },
+      };
+    }
+
     function pickScenarioCell(scenario, model) {
       var row = comparison.find(function (c) { return c.scenario === scenario; });
       return row && row.byModel[model];
@@ -155,7 +182,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           };
         }),
       },
-      options: barOpts,
+      options: withTitle(barOpts, 'TTFT 平均对比（ms）'),
     });
     new Chart(document.getElementById('compareTotalChart'), {
       type: 'bar',
@@ -171,7 +198,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           };
         }),
       },
-      options: barOpts,
+      options: withTitle(barOpts, 'Total 延迟平均对比（ms）'),
     });
     new Chart(document.getElementById('compareSchemaChart'), {
       type: 'bar',
@@ -187,11 +214,14 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           };
         }),
       },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'bottom' } },
-        scales: { y: { min: 0, max: 1, ticks: { stepSize: 0.25 } } },
-      },
+      options: withTitle(
+        {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: { y: { min: 0, max: 1, ticks: { stepSize: 0.25 } } },
+        },
+        'Schema 通过率（0~1）',
+      ),
     });
     new Chart(document.getElementById('compareTokensChart'), {
       type: 'bar',
@@ -207,7 +237,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           };
         }),
       },
-      options: barOpts,
+      options: withTitle(barOpts, 'Total Tokens 平均对比'),
     });
 
     const labels = results.map(function (r) {
@@ -224,7 +254,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           { label: 'Total(ms)', data: results.map(function (r) { return r.totalMs; }) },
         ],
       },
-      options: barOpts,
+      options: withTitle(barOpts, '单次运行：TTFT & Total'),
     });
     new Chart(document.getElementById('tokenChart'), {
       type: 'bar',
@@ -236,7 +266,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           { label: 'Total Tokens', data: results.map(function (r) { return r.totalTokens; }) },
         ],
       },
-      options: barOpts,
+      options: withTitle(barOpts, '单次运行：Token 消耗'),
     });
     new Chart(document.getElementById('validChart'), {
       type: 'bar',
@@ -248,7 +278,10 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           { label: 'Schema', data: results.map(function (r) { return r.isSchemaJsonValidAgainstProtocol ? 1 : 0; }) },
         ],
       },
-      options: { scales: { y: { min: 0, max: 1, ticks: { stepSize: 1 } } }, plugins: { legend: { position: 'bottom' } } },
+      options: withTitle(
+        { scales: { y: { min: 0, max: 1, ticks: { stepSize: 1 } } }, plugins: { legend: { position: 'bottom' } }, responsive: true },
+        '单次运行：schemaJson 校验',
+      ),
     });
     const headers = ['model', 'scenario', 'runIndex', 'ttftMs', 'totalMs', 'schema', 'tokens', 'error'];
     const rows = results.map(function (r) {
@@ -273,18 +306,19 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
 </html>`;
 }
 
+/**
+ * 将 JSON/HTML 报告写入磁盘，并更新 `benchmark-latest.*`。
+ */
 function writeBenchmarkArtifacts(results: LlmBenchmarkResultItem[], options: LlmBenchmarkRunOptions) {
   const outputDir = getReportOutputDir(options);
   fs.mkdirSync(outputDir, { recursive: true });
-  const timestamp = formatBeijingTimestamp(new Date());
-  const jsonPath = path.resolve(outputDir, `benchmark-${timestamp}.json`);
-  const htmlPath = path.resolve(outputDir, `benchmark-${timestamp}.html`);
-  const latestJsonPath = path.resolve(outputDir, 'benchmark-latest.json');
-  const latestHtmlPath = path.resolve(outputDir, 'benchmark-latest.html');
 
   const modelList = distinctModels(results);
   const comparisonByScenario = buildComparisonByScenario(results);
   const modelsInArtifact = modelList.length > 0 ? modelList : [options.model];
+
+  const jsonPath = path.resolve(outputDir, 'report.json');
+  const htmlPath = path.resolve(outputDir, 'report.html');
 
   const json = JSON.stringify(
     {
@@ -301,16 +335,17 @@ function writeBenchmarkArtifacts(results: LlmBenchmarkResultItem[], options: Llm
 
   fs.writeFileSync(jsonPath, json, 'utf-8');
   fs.writeFileSync(htmlPath, html, 'utf-8');
-  fs.writeFileSync(latestJsonPath, json, 'utf-8');
-  fs.writeFileSync(latestHtmlPath, html, 'utf-8');
 
   console.log('\nReport Files');
-  console.log(`- JSON: ${latestJsonPath}`);
-  console.log(`- HTML: ${latestHtmlPath}`);
+  console.log(`- JSON: ${jsonPath}`);
+  console.log(`- HTML: ${htmlPath}`);
 }
 
 /**
  * 统一输出 benchmark 结果，支持表格与 JSON 两种格式。
+ * @param results 结果集（由 samples 解析并聚合得到）
+ * @param options 当前运行配置（用于展示/输出目录/过滤等）
+ * @returns 输出的结果集
  */
 export function printLlmBenchmarkResults(results: LlmBenchmarkResultItem[], options: LlmBenchmarkRunOptions) {
   const modelList = distinctModels(results);

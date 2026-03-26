@@ -43,7 +43,8 @@ src/
 - `BENCH_MODELS`（逗号分隔）与配置项 `models`：多模型时逐模型生成样本；报告 HTML/JSON 中按场景聚合对比（多次 run 取均值），明细表含 `model` 列
 - 仅配置 `BENCH_MODEL` / `model` 时：只跑一个模型；报告若未设置 `BENCH_MODELS`，会读入样本目录下**全部** `.json`（便于对比历史多模型文件）
 - 设置 `BENCH_MODELS` / `models` 后，报告阶段**只统计**这些模型的样本文件
-- 样本文件：`${scenario}__${modelSlug}__run-${n}.json`，避免多模型与多轮覆盖
+- 每次运行样本目录：`yyyy-MM-dd_hh-mm-ss`（北京时间）
+- 样本文件：`${scenario}_${modelName}_第${n}次运行.json`（放在该目录下），避免多模型与多轮覆盖
 
 ## 运行
 
@@ -53,10 +54,10 @@ src/
 pnpm --filter @opentiny/genui-benchmarks benchmark
 ```
 
-报告默认输出到 `samples/reports/`：
+报告输出到同一目录下（每次运行的 `yyyy-MM-dd_hh-mm-ss` 目录）：
 
-- `benchmark-latest.json`（含 `models`、`comparisonByScenario`、逐条 `results`）
-- `benchmark-latest.html`（含「按场景 · 模型对比」分组柱状图 + 单次运行明细图）
+- `report.json`（含 `models`、`comparisonByScenario`、逐条 `results`）
+- `report.html`（含「按场景 · 模型对比」分组柱状图 + 单次运行明细图）
 
 ## 输出说明
 

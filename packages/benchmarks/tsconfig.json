@@ -10,6 +10,7 @@
     "strict": false
   },
   "include": [
-    "src/**/*"
-, "main.ts"  ]
+    "src/**/*",
+    "main.ts"
+  ]
 }

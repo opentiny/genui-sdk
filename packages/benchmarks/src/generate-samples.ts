@@ -5,8 +5,7 @@ import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/r
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
 import { coreLlmBenchmarkSampleCases } from './samples/index';
-import { generateSamplesPromptConfig } from './llm.config';
-import { getSampleFilePath, resolveSamplesDir } from './utils/fs-paths';
+import { formatBeijingRunDirName, getSampleFilePath, resolveSamplesDir } from './utils/fs-paths';
 import { resolveModelsForBench, slugifyModelForFilename } from './utils/resolve-models';
 import { streamText } from 'ai';
 import { createDeepSeek } from '@ai-sdk/deepseek';
@@ -14,8 +13,8 @@ import { createDeepSeek } from '@ai-sdk/deepseek';
 /**
  * 与 chat-genui 一致的 system 拼接；framework 来自运行配置（env / benchmark.config），其余来自 llm.config。
  */
-function buildSystemPromptLikeChatGenui(framework: 'Vue' | 'Angular') {
-  const { tgCustomConfig, specificPrompt, userAppendPrompt } = generateSamplesPromptConfig;
+function buildSystemPromptLikeChatGenui(framework: 'Vue' | 'Angular', promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
+  const { tgCustomConfig, specificPrompt, userAppendPrompt } = promptConfig;
   const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
   return genPrompt(renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
 }
@@ -116,18 +115,22 @@ async function generateSingleSample(
 
 /**
  * 批量生成样本并落盘。
+ * @param options 运行配置（模型/框架/场景/重复次数等）
+ * @returns 本次生成的样本目录与写入的文件路径列表
  */
 export async function generateSamples(options: LlmBenchmarkRunOptions) {
   const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
   if (!apiKey) {
     throw new Error('DEEPSEEK_API_KEY (or OPENAI_API_KEY as fallback) is required');
   }
+  // 生成阶段通常需要你持续观察进度；避免 SDK warning 淹没关键输出。
+  (globalThis as any).AI_SDK_LOG_WARNINGS = false;
   const deepseek = createDeepSeek({
     apiKey,
     baseURL: process.env.DEEPSEEK_BASE_URL,
   });
   const framework = options.framework ?? 'Vue';
-  const system = buildSystemPromptLikeChatGenui(framework);
+  const system = buildSystemPromptLikeChatGenui(framework, options.promptConfig);
   const selected = selectSampleCases(coreLlmBenchmarkSampleCases, options);
   const repeat = Math.max(1, options.repeat ?? 1);
   const modelIds = resolveModelsForBench(options);
@@ -135,26 +138,101 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
     throw new Error('No scenario matched. Use one of ids from src/samples/index.ts');
   }
 
-  const baseDir = resolveSamplesDir(options.samplesDir);
-  fs.mkdirSync(baseDir, { recursive: true });
+  const totalJobs = selected.length * repeat * modelIds.length;
+  let doneJobs = 0;
+  const startedAt = Date.now();
+  console.log(
+    `[bench] Start generate samples: framework=${framework}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat} (total jobs=${totalJobs})`,
+  );
 
-  const files: string[] = [];
+  const samplesRootDir = resolveSamplesDir(options.samplesDir);
+  const runDirName = formatBeijingRunDirName(new Date());
+  const runDir = path.resolve(samplesRootDir, runDirName);
+  fs.mkdirSync(runDir, { recursive: true });
+  console.log(`[bench] output runDir=${runDir}`);
+
+  const concurrency = Math.max(1, options.concurrency ?? 2);
+  console.log(`[bench] concurrency=${concurrency}`);
+
+  type Job = {
+    order: number; // 从 1 开始的总任务序号
+    modelId: string;
+    modelSlug: string;
+    sampleCase: LlmBenchmarkSampleCase;
+    runIndex: number;
+  };
+
+  const modelInstanceByModelId = new Map<string, ReturnType<ReturnType<typeof createDeepSeek>>>();
+  const modelSlugByModelId = new Map<string, string>();
   for (const modelId of modelIds) {
-    const modelInstance = deepseek(modelId);
-    const modelSlug = slugifyModelForFilename(modelId);
+    modelInstanceByModelId.set(modelId, deepseek(modelId));
+    modelSlugByModelId.set(modelId, slugifyModelForFilename(modelId));
+  }
+
+  const jobs: Job[] = [];
+  for (const modelId of modelIds) {
+    const modelSlug = modelSlugByModelId.get(modelId)!;
     for (const sampleCase of selected) {
       for (let runIndex = 1; runIndex <= repeat; runIndex++) {
-        const sample = await generateSingleSample(modelInstance, modelId, sampleCase, runIndex, system);
-        const sampleFile = getSampleFilePath(baseDir, sampleCase.id, runIndex, modelSlug);
-        // 防御式：即使父目录没创建成功或 sampleFile 被拼成多级目录，也能避免 ENOENT。
-        fs.mkdirSync(path.dirname(sampleFile), { recursive: true });
-        fs.writeFileSync(sampleFile, JSON.stringify(sample, null, 2), 'utf-8');
-        files.push(sampleFile);
+        jobs.push({
+          order: jobs.length + 1,
+          modelId,
+          modelSlug,
+          sampleCase,
+          runIndex,
+        });
       }
     }
   }
+
+  const files: string[] = [];
+  let nextJobIdx = 0;
+
+  async function worker(workerNo: number) {
+    while (true) {
+      const jobIdx = nextJobIdx;
+      nextJobIdx++;
+      if (jobIdx >= jobs.length) {
+        return;
+      }
+      const job = jobs[jobIdx];
+
+      console.log(
+        `[bench][w${workerNo}] (${job.order}/${totalJobs}) generating model=${job.modelId}, scenario=${job.sampleCase.id}, run=${job.runIndex} ...`,
+      );
+
+      const modelInstance = modelInstanceByModelId.get(job.modelId);
+      if (!modelInstance) {
+        throw new Error(`Missing model instance for modelId: ${job.modelId}`);
+      }
+
+      const sample = await generateSingleSample(modelInstance, job.modelId, job.sampleCase, job.runIndex, system);
+      const sampleFile = getSampleFilePath(runDir, job.sampleCase.id, job.modelSlug, job.runIndex);
+
+      // 防御式：即使父目录没创建成功或 sampleFile 被拼成多级目录，也能避免 ENOENT。
+      fs.mkdirSync(path.dirname(sampleFile), { recursive: true });
+      fs.writeFileSync(sampleFile, JSON.stringify(sample, null, 2), 'utf-8');
+
+      files.push(sampleFile);
+      doneJobs++;
+
+      const elapsedMs = Date.now() - startedAt;
+      const avgPerJobMs = elapsedMs / Math.max(1, doneJobs);
+      const remainJobs = totalJobs - doneJobs;
+      const remainMs = Math.round(avgPerJobMs * remainJobs);
+
+      console.log(
+        `[bench][w${workerNo}] done (${doneJobs}/${totalJobs}) -> ${sampleFile} | ttftMs=${sample.metrics.ttftMs}, totalMs=${sample.metrics.totalMs} | est remain=${remainMs}ms`,
+      );
+    }
+  }
+
+  const poolSize = Math.min(concurrency, jobs.length);
+  const workers = Array.from({ length: poolSize }, (_, i) => worker(i + 1));
+  await Promise.all(workers);
+
   return {
-    samplesDir: baseDir,
+    samplesDir: runDir,
     files,
   };
 }
