@@ -10,7 +10,7 @@
     "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build",
     "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
     "prebuild:lib": "pnpm build:materials",
-    "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build && pnpm --filter packages/frameworks/angular build:lib",
+    "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build && pnpm --filter @opentiny/genui-sdk-angular build:lib",
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
     "dev:server": "pnpm --filter @opentiny/genui-sdk-server dev",
     "build:server": "pnpm --filter @opentiny/genui-sdk-server build",
