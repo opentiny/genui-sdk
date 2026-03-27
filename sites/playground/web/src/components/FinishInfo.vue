@@ -88,6 +88,7 @@ function formatInt(n: number) {
     </template>
     <template #reference>
       <tiny-button
+        :reset-time="0"
         aria-label="本轮对话统计信息"
         type="text"
         :icon="InfoIcon"

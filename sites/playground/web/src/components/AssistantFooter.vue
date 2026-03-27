@@ -72,6 +72,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
   >
     <tiny-button
       type="text"
+      :reset-time="0"
       :icon="RefreshIcon"
       v-auto-tip="{ always: true, content: '刷新', effect: tooltipEffect }"
       v-focus-hover-sync
@@ -80,6 +81,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
     </tiny-button>
     <tiny-button
       type="text"
+      :reset-time="0"
       :icon="CopyIcon"
       v-auto-tip="{ always: true, content: copyTooltip, effect: tooltipEffect }"
       v-focus-hover-sync
@@ -89,6 +91,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
     <FinishInfo style="margin-left: 8px;" :data="props.chatMessage.finishInfo" />
     <tiny-button
       v-if="notFinished"
+      :reset-time="0"
       type="text"
       :icon="ArrowRightIcon"
       v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: tooltipEffect }"
@@ -98,6 +101,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
     </tiny-button>
     <tiny-button
       v-if="revertAvailable"
+      :reset-time="0"
       type="text"
       :icon="ArrowLeftIcon"
       v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: tooltipEffect }"

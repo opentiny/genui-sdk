@@ -90,6 +90,7 @@ const handleCancelEdit = () => {
       <!-- 编辑按钮 -->
       <tiny-button
         v-if="!generating"
+        :reset-time="0"
         type="text"
         :icon="EditIcon"
         v-auto-tip="{ always: true, content: '编辑', effect: tooltipEffect }"
@@ -99,6 +100,7 @@ const handleCancelEdit = () => {
       <!-- 复制按钮 -->
       <tiny-button
         type="text"
+        :reset-time="0"
         :icon="CopyIcon"
         v-auto-tip="{ always: true, content: '复制', effect: tooltipEffect }"
         @click="handleCopyMessageByIndex"
