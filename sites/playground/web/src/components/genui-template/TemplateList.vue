@@ -207,7 +207,6 @@ const handleAdd = () => {
 /* 列表项文本容器 */
 .item-content {
   flex: 1;
-  /* 占满剩余空间 */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -248,17 +247,6 @@ const handleAdd = () => {
   background-color: #e5e7eb;
   color: #111827;
 }
-
-/* 重命名输入框样式 */
-/* .rename-input {
-  width: 100%;
-  padding: 4px 6px;
-  border: 1px solid #d1d5db;
-  border-radius: 3px;
-  outline: none;
-  font-size: 14px;
-  box-sizing: border-box;
-} */
 
 .action-icon-icon {
   font-size: 16px;
