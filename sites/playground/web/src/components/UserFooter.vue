@@ -14,7 +14,7 @@ const generating = computed(() => GeneratingStatus.includes(props.messageManager
 const genuiConfig: any = inject(GENUI_CONFIG, {});
 
 const tooltipEffect = computed(() => {
-  return genuiConfig.value.theme === 'dark' ? 'dark' : 'light';
+  return genuiConfig.value?.theme === 'dark' ? 'dark' : 'light';
 });
 
 
