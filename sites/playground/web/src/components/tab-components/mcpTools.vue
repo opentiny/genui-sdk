@@ -478,15 +478,20 @@ const updateShowThinkingResult = (value) => {
 }
 
 .mcp-server-list {
-  margin-top: 16px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 
   .mcp-server-item {
-    border: 1px solid #e4e7ed;
-    border-radius: 8px;
+    border: none;
+    border-radius: 6px;
     padding: 8px 16px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba(246, 246, 246, 1);
+    }
 
     &-header {
       display: flex;
@@ -518,11 +523,26 @@ const updateShowThinkingResult = (value) => {
 }
 
 .mcp-server-tool-call-context {
+  margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
   color: #595959;
+
+  &:last-child {
+    margin-bottom: 16px;
+  }
+}
+
+:deep(.tiny-collapse-item__header) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-bottom: none !important;
+}
+
+:deep(.tiny-collapse-item__content) {
+  padding: 0 !important;
 }
 
 .agent-card-detail {
