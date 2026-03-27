@@ -168,7 +168,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   type Job = {
     order: number; // 从 1 开始的总任务序号
     modelId: string;
-    /** 仅用于文件名的安全模型名（由 modelId slugify 得到） */
+    // 仅用于文件名的安全模型名（由 modelId slugify 得到）
     modelNameForFile: string;
     sampleCase: LlmBenchmarkSampleCase;
     runIndex: number;
