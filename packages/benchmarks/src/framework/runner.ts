@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { printBenchmarkJson, printBenchmarkSummary, printBenchmarkTable } from './reporter';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions } from './types';
-import { resolveSamplesDir } from '../utils/fs-paths';
+import { formatBeijingRunDirName, resolveSamplesDir } from '../utils';
 
 export interface BenchmarkComparisonRow {
   scenario: string;
@@ -20,12 +20,18 @@ export interface BenchmarkComparisonRow {
 
 /**
  * 从结果集中提取出现过的模型列表（去重后排序）。
+ * @param results 报告结果列表
+ * @returns 去重并排序后的模型列表
  */
 function distinctModels(results: LlmBenchmarkResultItem[]): string[] {
   return [...new Set(results.map((r) => r.model).filter(Boolean))].sort() as string[];
 }
 
-/** 按场景 + 模型聚合多次 repeat，便于多模型对比 */
+/**
+ * 按场景 + 模型聚合多次 repeat，便于多模型对比。
+ * @param results 报告结果列表
+ * @returns 按场景分组后的对比行数据
+ */
 export function buildComparisonByScenario(results: LlmBenchmarkResultItem[]): BenchmarkComparisonRow[] {
   const scenarios = [...new Set(results.map((r) => r.scenario))].sort();
   return scenarios.map((scenario) => {
@@ -50,6 +56,8 @@ export function buildComparisonByScenario(results: LlmBenchmarkResultItem[]): Be
 
 /**
  * 计算本次报告输出目录。
+ * @param options 运行配置
+ * @returns 报告输出目录
  */
 function getReportOutputDir(options: LlmBenchmarkRunOptions) {
   if (options.outputDir) {
@@ -61,32 +69,10 @@ function getReportOutputDir(options: LlmBenchmarkRunOptions) {
 }
 
 /**
- * 将 Date 转为北京时间（UTC+8）用于文件名稳定性。
- */
-function toBeijingDate(date: Date) {
-  // China mainland is UTC+8 without DST; keep it deterministic for filenames.
-  return new Date(date.getTime() + 8 * 60 * 60 * 1000);
-}
-
-/**
- * 格式化北京时间时间戳（用于报告文件名）。
- * @example 2026-03-25_15-59-10-787
- */
-function formatBeijingTimestamp(date: Date) {
-  const d = toBeijingDate(date);
-  const yyyy = d.getUTCFullYear();
-  const MM = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const DD = String(d.getUTCDate()).padStart(2, '0');
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const mm = String(d.getUTCMinutes()).padStart(2, '0');
-  const ss = String(d.getUTCSeconds()).padStart(2, '0');
-  const ms = String(d.getUTCMilliseconds()).padStart(3, '0');
-  // e.g. 2026-03-25_15-59-10-787
-  return `${yyyy}-${MM}-${DD}_${hh}-${mm}-${ss}-${ms}`;
-}
-
-/**
  * 生成 HTML 报告字符串（包含对比图表与明细表）。
+ * @param results 报告结果列表
+ * @param options 运行配置
+ * @returns HTML 字符串
  */
 function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchmarkRunOptions) {
   const comparison = buildComparisonByScenario(results);
@@ -96,7 +82,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
   const comparisonPayload = JSON.stringify(comparison);
   const modelListPayload = JSON.stringify(modelListForChart);
   const modelsDisplay = modelList.length ? modelList.join(', ') : options.model;
-  const beijingNow = formatBeijingTimestamp(new Date());
+  const beijingNow = formatBeijingRunDirName(new Date());
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -283,7 +269,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
         '单次运行：schemaJson 校验',
       ),
     });
-    const headers = ['model', 'scenario', 'runIndex', 'ttftMs', 'totalMs', 'schema', 'tokens', 'error'];
+    const headers = ['model', 'scenario', 'runIndex', 'ttftMs', 'totalMs', 'schema', 'schemaError', 'judgeScore', 'judgeReason', 'tokens', 'error'];
     const rows = results.map(function (r) {
       return [
         r.model || '',
@@ -292,6 +278,9 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
         r.ttftMs.toFixed(2),
         r.totalMs.toFixed(2),
         r.isSchemaJsonValidAgainstProtocol ? '<span class="ok">pass</span>' : '<span class="bad">fail</span>',
+        r.schemaValidationError || '',
+        typeof r.llmJudgeScore === 'number' ? r.llmJudgeScore.toFixed(3) : '',
+        r.llmJudgeReason || r.llmJudgeError || '',
         r.totalTokens,
         r.errorMessage || '',
       ];
@@ -324,6 +313,7 @@ function writeBenchmarkArtifacts(results: LlmBenchmarkResultItem[], options: Llm
     {
       model: options.model,
       models: modelsInArtifact,
+      llmJudge: options.llmJudge,
       comparisonByScenario,
       generatedAt: new Date().toISOString(),
       results,

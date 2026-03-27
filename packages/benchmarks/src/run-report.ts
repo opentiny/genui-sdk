@@ -1,9 +1,10 @@
 import fs from 'fs';
 import { genRootSchema } from '@opentiny/genui-sdk-core';
+import { streamText } from 'ai';
+import { createDeepSeek } from '@ai-sdk/deepseek';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions, LlmBenchmarkSample } from './framework/index';
 import { printLlmBenchmarkResults } from './framework/index';
-import { extractSchemaJsonBlock } from './utils/extract-schema-json';
-import { resolveSamplesDir } from './utils/fs-paths';
+import { extractSchemaJsonBlock, parseJudgeJson, resolveSamplesDir } from './utils';
 
 /**
  * 校验 schemaJson 内容，判断是否存在代码块、JSON 合法、协议合法。
@@ -16,31 +17,104 @@ function validateSchemaJson(schemaJsonText: string | null) {
       isSchemaJsonBlockFound: false,
       isSchemaJsonValidJson: false,
       isSchemaJsonValidAgainstProtocol: false,
+      schemaValidationError: 'schemaJson code block not found',
     };
   }
   try {
     const parsed = JSON.parse(schemaJsonText);
     const validation = genRootSchema().safeParse(parsed);
+    if (validation.success) {
+      return {
+        isSchemaJsonBlockFound: true,
+        isSchemaJsonValidJson: true,
+        isSchemaJsonValidAgainstProtocol: true,
+      };
+    }
+    const firstIssue = validation.error.issues[0];
+    const path = firstIssue?.path?.length ? firstIssue.path.join('.') : '(root)';
+    const message = firstIssue?.message ?? 'schema validation failed';
     return {
       isSchemaJsonBlockFound: true,
       isSchemaJsonValidJson: true,
-      isSchemaJsonValidAgainstProtocol: validation.success,
+      isSchemaJsonValidAgainstProtocol: false,
+      schemaValidationError: `${path}: ${message}`,
     };
   } catch {
     return {
       isSchemaJsonBlockFound: true,
       isSchemaJsonValidJson: false,
       isSchemaJsonValidAgainstProtocol: false,
+      schemaValidationError: 'schemaJson is not valid JSON',
     };
+  }
+}
+
+type LlmJudgeResult = {
+  score?: number;
+  reason?: string;
+  error?: string;
+};
+
+/**
+ * 使用 LLM-as-a-Judge 对单条样本做质量评估。
+ * @param sample 样本数据
+ * @param options 运行配置（读取 Judge 模型）
+ * @param apiKey DeepSeek API Key
+ * @returns Judge 结果（分数与原因）
+ */
+async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkRunOptions, apiKey: string): Promise<LlmJudgeResult> {
+  const judgeCfg = options.llmJudge;
+  const modelId = judgeCfg?.model || options.model;
+  const system =
+    judgeCfg?.systemPrompt ??
+    '你是严格的前端代码评测员。请基于用户需求与模型输出评估“可用性、完整性、准确性”。只返回 JSON：{"score":0-1之间数字,"reason":"一句话原因"}。不要输出其它内容。';
+  try {
+    const deepseek = createDeepSeek({
+      apiKey,
+      baseURL: process.env.DEEPSEEK_BASE_URL,
+    });
+    const stream = streamText({
+      model: deepseek(modelId),
+      temperature: 0,
+      system,
+      messages: [
+        {
+          role: 'user',
+          content:
+            `请评估以下样本。\n` +
+            `【场景】${sample.scenario}\n` +
+            `【用户需求】\n${sample.prompt}\n\n` +
+            `【模型输出】\n${sample.output}\n`,
+        },
+      ],
+    });
+    let output = '';
+    for await (const chunk of stream.fullStream) {
+      if (chunk.type === 'text-delta' && chunk.text) {
+        output += chunk.text;
+      }
+    }
+    const parsed = parseJudgeJson(output);
+    if (!parsed || typeof parsed.score !== 'number') {
+      return { error: 'Judge output JSON parse failed' };
+    }
+    const score = Math.min(1, Math.max(0, parsed.score));
+    return {
+      score,
+      reason: parsed.reason,
+    };
+  } catch (error) {
+    return { error: error instanceof Error ? error.message : String(error) };
   }
 }
 
 /**
  * 将单个样本转为报告结果项。
  * @param sample 由生成阶段写入的样本对象
+ * @param judge Judge 结果（可选）
  * @returns 用于汇总/展示的指标结果
  */
-function toReportItem(sample: LlmBenchmarkSample): LlmBenchmarkResultItem {
+function toReportItem(sample: LlmBenchmarkSample, judge?: LlmJudgeResult): LlmBenchmarkResultItem {
   const schemaJsonText = extractSchemaJsonBlock(sample.output);
   const validation = validateSchemaJson(schemaJsonText);
   return {
@@ -54,6 +128,9 @@ function toReportItem(sample: LlmBenchmarkSample): LlmBenchmarkResultItem {
     completionTokens: sample.metrics.completionTokens,
     totalTokens: sample.metrics.totalTokens,
     rawOutputChars: sample.metrics.rawOutputChars,
+    llmJudgeScore: judge?.score,
+    llmJudgeReason: judge?.reason,
+    llmJudgeError: judge?.error,
     errorMessage: sample.metrics.errorMessage,
   };
 }
@@ -93,10 +170,46 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
       return (a.runIndex ?? 1) - (b.runIndex ?? 1);
     });
 
-  const results: LlmBenchmarkResultItem[] = parsedSamples.map(toReportItem);
+  const judgeEnabled = options.llmJudge?.enabled === true;
+  const apiKey = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY;
+  const judgeResults: LlmJudgeResult[] = [];
+  if (judgeEnabled) {
+    if (!apiKey) {
+      throw new Error('LLM-as-a-Judge enabled, but DEEPSEEK_API_KEY (or OPENAI_API_KEY fallback) is missing');
+    }
+    console.log(`[bench][judge] enabled, samples=${parsedSamples.length}`);
+    const concurrency = Math.max(1, options.concurrency ?? 2);
+    let cursor = 0;
+    async function worker() {
+      while (true) {
+        const index = cursor++;
+        if (index >= parsedSamples.length) return;
+        const sample = parsedSamples[index];
+        const judged = await judgeOneSample(sample, options, apiKey);
+        judgeResults[index] = judged;
+        const score = judged.score == null ? '-' : judged.score.toFixed(3);
+        console.log(`[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} score=${score}${judged.error ? ' error' : ''}`);
+      }
+    }
+    await Promise.all(Array.from({ length: Math.min(concurrency, parsedSamples.length) }, () => worker()));
+  }
+
+  const results: LlmBenchmarkResultItem[] = parsedSamples.map((sample, index) => toReportItem(sample, judgeResults[index]));
 
   if (results.length === 0) {
     throw new Error('No samples matched the current filter');
+  }
+  const invalidSchemaRows = results.filter((item) => !item.isSchemaJsonValidAgainstProtocol);
+  if (invalidSchemaRows.length > 0) {
+    console.log('\nSchema Validation Errors (top 5)');
+    console.table(
+      invalidSchemaRows.slice(0, 5).map((item) => ({
+        scenario: item.scenario,
+        model: item.model ?? '',
+        runIndex: item.runIndex ?? 1,
+        schemaError: item.schemaValidationError ?? '',
+      })),
+    );
   }
   return printLlmBenchmarkResults(results, options);
 }

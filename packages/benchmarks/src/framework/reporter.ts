@@ -1,17 +1,9 @@
 import type { LlmBenchmarkResultItem } from './types';
-
-/**
- * 统一处理数值显示精度，避免输出过长小数。
- * @param value 原始数值
- * @param fractionDigits 保留小数位数（默认 2）
- * @returns 四舍五入后的数值
- */
-function formatNumber(value: number, fractionDigits = 2) {
-  return Number(value.toFixed(fractionDigits));
-}
+import { formatNumber } from '../utils';
 
 /**
  * 输出每个场景的详细指标表格。
+ * @param results 单次运行结果明细
  */
 export function printBenchmarkTable(results: LlmBenchmarkResultItem[]) {
   console.table(
@@ -24,10 +16,14 @@ export function printBenchmarkTable(results: LlmBenchmarkResultItem[]) {
       schemaBlock: item.isSchemaJsonBlockFound,
       validJson: item.isSchemaJsonValidJson,
       validSchema: item.isSchemaJsonValidAgainstProtocol,
+      schemaError: item.schemaValidationError ?? '',
       promptTokens: item.promptTokens,
       completionTokens: item.completionTokens,
       totalTokens: item.totalTokens,
       outputChars: item.rawOutputChars,
+      judgeScore: item.llmJudgeScore == null ? '' : formatNumber(item.llmJudgeScore, 3),
+      judgeReason: item.llmJudgeReason ?? '',
+      judgeError: item.llmJudgeError ?? '',
       error: item.errorMessage || '',
     })),
   );
@@ -35,6 +31,7 @@ export function printBenchmarkTable(results: LlmBenchmarkResultItem[]) {
 
 /**
  * 输出聚合汇总指标（成功率、平均延迟、总 token）。
+ * @param results 单次运行结果明细
  */
 export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
   const successCount = results.filter((item) => item.isSchemaJsonValidAgainstProtocol).length;
@@ -43,12 +40,15 @@ export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
   const totalTokens = results.reduce((sum, item) => sum + item.totalTokens, 0);
   const uniqueScenarioCount = new Set(results.map((item) => item.scenario)).size;
   const uniqueModelCount = new Set(results.map((item) => item.model).filter(Boolean)).size;
+  const judgeScores = results.map((item) => item.llmJudgeScore).filter((score): score is number => typeof score === 'number');
+  const avgJudgeScore = judgeScores.length > 0 ? judgeScores.reduce((sum, score) => sum + score, 0) / judgeScores.length : null;
   const summary = [
     {
       scenarios: uniqueScenarioCount,
       models: uniqueModelCount,
       runs: results.length,
       validSchema: `${successCount}/${results.length}`,
+      avgJudgeScore: avgJudgeScore == null ? 'N/A' : formatNumber(avgJudgeScore, 3),
       avgTtftMs: formatNumber(avgTtft, 2),
       avgTotalMs: formatNumber(avgTotal, 2),
       totalTokens,
@@ -61,6 +61,7 @@ export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
 
 /**
  * 以 JSON 结构输出全部结果，便于后续自动化处理。
+ * @param results 单次运行结果明细
  */
 export function printBenchmarkJson(results: LlmBenchmarkResultItem[]) {
   console.log(JSON.stringify(results, null, 2));

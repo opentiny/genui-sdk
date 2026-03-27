@@ -27,6 +27,15 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
     /** 用户自定义追加提示词（通常用于临时调优） */
     userAppendPrompt: '',
   },
+  /** LLM-as-a-Judge 配置（默认关闭，避免报告阶段额外模型调用） */
+  llmJudge: {
+    /** 是否启用 Judge 评估 */
+    enabled: false,
+    /** Judge 模型 id；为空则复用 model */
+    model: undefined,
+    /** 可选 system prompt；为空时使用内置默认规则 */
+    systemPrompt: undefined,
+  },
   /** 是否在控制台输出 JSON 结果（true: JSON；false: 表格 + 汇总） */
   json: false,
   /** 输出根目录（默认 reports/）；每次运行会在其下创建时间戳子目录 */

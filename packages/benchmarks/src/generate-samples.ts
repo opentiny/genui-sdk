@@ -5,21 +5,26 @@ import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/r
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
 import { coreLlmBenchmarkSampleCases } from './samples';
-import { formatBeijingRunDirName, getSampleFilePath, resolveSamplesDir } from './utils/fs-paths';
-import { resolveModelsForBench, slugifyModelForFilename } from './utils/resolve-models';
+import { formatBeijingRunDirName, getSampleFilePath, resolveModelsForBench, resolveSamplesDir, slugifyModelForFilename } from './utils';
 import { streamText } from 'ai';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 
 /**
  * 与 chat-genui 一致的 system 拼接；framework 来自运行配置（env / benchmark.config），其余来自 llm.config。
+ * @param framework 前端框架类型（影响 render-config）
+ * @param promptConfig prompt 拼接配置
+ * @returns 最终 system prompt
  */
-function buildSystemPromptLikeChatGenui(framework: 'Vue' | 'Angular', promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
+function buildSystemPrompt(framework: 'Vue' | 'Angular', promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
   const { tgCustomConfig, specificPrompt, userAppendPrompt } = promptConfig;
   const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
   return genPrompt(renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
 }
 /**
  * 根据 `scenarios` / `scenario` 过滤要生成样本的场景。
+ * @param cases 内置样本场景列表
+ * @param options 运行配置
+ * @returns 过滤后的场景列表
  */
 function selectSampleCases(cases: LlmBenchmarkSampleCase[], options: LlmBenchmarkRunOptions) {
   const selectedIds = options.scenarios?.length
@@ -35,6 +40,12 @@ function selectSampleCases(cases: LlmBenchmarkSampleCase[], options: LlmBenchmar
 
 /**
  * 为单个场景调用模型并写入样本文件。
+ * @param modelInstance 已初始化的模型实例
+ * @param model 模型 id
+ * @param sampleCase 单个基准场景
+ * @param runIndex 当前重复序号（从 1 开始）
+ * @param system system prompt
+ * @returns 样本对象（包含指标与输出）
  */
 async function generateSingleSample(
   modelInstance: ReturnType<ReturnType<typeof createDeepSeek>>,
@@ -130,7 +141,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
     baseURL: process.env.DEEPSEEK_BASE_URL,
   });
   const framework = options.framework ?? 'Vue';
-  const system = buildSystemPromptLikeChatGenui(framework, options.promptConfig);
+  const system = buildSystemPrompt(framework, options.promptConfig);
   const selected = selectSampleCases(coreLlmBenchmarkSampleCases, options);
   const repeat = Math.max(1, options.repeat ?? 1);
   const modelIds = resolveModelsForBench(options);
