@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, inject } from 'vue';
 import {
   TinyButton,
   TinySwitch,
@@ -13,18 +13,8 @@ import {
 } from '@opentiny/vue';
 import { iconDel, iconEdit, iconPlus, iconEllipsis } from '@opentiny/vue-icon';
 
-const props = defineProps({
-  llmConfig: {
-    type: Object,
-    required: true,
-  },
-  chatConfig: {
-    type: Object,
-    required: true,
-  },
-});
-
-const emit = defineEmits(['update:llmConfig', 'update:chatConfig']);
+const playgroundContext = inject('playgroundContext');
+const { llmConfig, chatConfig } = playgroundContext;
 
 const IconPlus = iconPlus();
 const IconDel = iconDel();
@@ -52,9 +42,6 @@ function parseHeadersTextToObject(text) {
   return headers;
 }
 
-const llmConfig = computed(() => props.llmConfig);
-const chatConfig = computed(() => props.chatConfig);
-
 const showToolFormDialog = ref(false);
 const addToolLoading = ref(false);
 const checkMcpController = ref(null);
@@ -72,11 +59,11 @@ const mcpServerData = ref({
 });
 
 const updateConfig = (updates) => {
-  emit('update:llmConfig', { ...llmConfig.value, ...updates });
+  Object.assign(llmConfig, updates);
 };
 
 const updateChatConfig = (updates) => {
-  emit('update:chatConfig', { ...chatConfig.value, ...updates });
+  Object.assign(chatConfig, updates);
 };
 
 const openMCPServerDialog = () => {
@@ -94,7 +81,7 @@ const closeToolFormDialog = () => {
 };
 
 const deleteMCPServer = (server) => {
-  const mcpServers = llmConfig.value.mcpServers || [];
+  const mcpServers = llmConfig.mcpServers || [];
   updateConfig({
     mcpServers: mcpServers.filter((s) => s.name !== server.name),
   });
@@ -140,7 +127,7 @@ const confirmMCPServer = async () => {
     const data = await res.json();
 
     if (data.code === 200) {
-      const mcpServers = llmConfig.value.mcpServers || [];
+      const mcpServers = llmConfig.mcpServers || [];
       if (mcpServerData.value.index > -1) {
         mcpServers[mcpServerData.value.index] = {
           name,
@@ -180,7 +167,7 @@ const confirmMCPServer = async () => {
 };
 
 const updateServerEnabled = (server, enabled) => {
-  const mcpServers = llmConfig.value.mcpServers || [];
+  const mcpServers = llmConfig.mcpServers || [];
   const updatedServers = mcpServers.map((s) => (s.name === server.name ? { ...s, enabled } : s));
   updateConfig({ mcpServers: updatedServers });
 };
@@ -253,6 +240,7 @@ const updateShowThinkingResult = (value) => {
       :title="mcpServerData.index > -1 ? '编辑 MCP 服务' : '添加 MCP 服务'"
       width="500px"
       @close="closeToolFormDialog"
+      :append-to-body="true"
     >
       <tiny-form ref="mcpServerFormRef" :model="mcpServerData" label-width="120px" label-position="left">
         <tiny-form-item label="名称" prop="name" required>

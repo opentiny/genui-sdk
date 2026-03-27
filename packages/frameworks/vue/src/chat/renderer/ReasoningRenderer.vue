@@ -73,15 +73,15 @@ const MarkdownContent = (markdownProps: { content: string }) =>
 .header {
   font-size: 16px;
   line-height: 1.5;
-  color: #595959;
+  color: var(--tr-text-secondary);
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
 
   &:hover {
-    color: #191919;
-    fill: #191919;
+    color: var(--tr-text-primary);
+    fill: var(--tr-text-primary);
   }
 
   .icon-and-text {
@@ -112,7 +112,7 @@ const MarkdownContent = (markdownProps: { content: string }) =>
 }
 
 .detail {
-  color: #595959;
+  color: var(--tr-text-secondary);
   margin-block: 8px;
   display: flex;
   gap: 8px;
@@ -148,7 +148,7 @@ const MarkdownContent = (markdownProps: { content: string }) =>
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background-color: #191919;
+      background-color: var(--tr-text-primary);
     }
 
     .border-line {

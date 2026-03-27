@@ -51,7 +51,7 @@ function formatInt(n: number) {
     placement="bottom-start"
     width="auto"
     :visible-arrow="false"
-    popper-class="finish-statistic-popover"
+    popper-class="finish-statistic-popover tiny-genui-playground-popover"
   >
     <template #default>
       <div class="finish-statistic-panel">
@@ -88,6 +88,7 @@ function formatInt(n: number) {
     </template>
     <template #reference>
       <tiny-button
+        :reset-time="0"
         aria-label="本轮对话统计信息"
         type="text"
         :icon="InfoIcon"
@@ -131,7 +132,7 @@ function formatInt(n: number) {
 .panel-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1a1a1a;
+  color: var(--tv-color-text);
   margin-bottom: 10px;
   padding-bottom: 8px;
   border-bottom: 1px solid #eee;
@@ -161,7 +162,7 @@ function formatInt(n: number) {
 
 .stat-row dd {
   margin: 0;
-  color: #333;
+  color: var(--tv-color-text);
   text-align: right;
   word-break: break-all;
 }

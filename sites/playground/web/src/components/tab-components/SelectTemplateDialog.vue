@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import useTemplate from '../genui-template/useTemplate';
 import { TinyDialogBox, TinyButton, TinyCheckboxGroup, TinyCheckbox } from '@opentiny/vue';
 
@@ -17,18 +17,22 @@ const props = defineProps({
 const emit = defineEmits(['update:visible', 'confirmSelectExample', 'createNewTemplate']);
 
 const { templateSchemaList } = useTemplate();
-const showSelectExampleBox = ref(false);
 const selectedExamples = ref([]);
 
+const visibleModel = computed({
+  get: () => props.visible,
+  set: (val) => emit('update:visible', val),
+});
+
 const cancel = () => {
-  emit('update:visible', false);
+  visibleModel.value = false;
 };
 
 const confirmSelectExample = () => {
   const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.name));
 
   emit('confirmSelectExample', selectedTemplateSchemas);
-  cancel()
+  cancel();
 };
 
 // 创建新模板
@@ -37,17 +41,18 @@ const createNewTemplate = () => {
   cancel();
 };
 
-watch(() => props.visible, (newVal) => {
-  showSelectExampleBox.value = newVal;
-
-  if (newVal) {
-    selectedExamples.value = props.customExamples.map((item) => item.name);
-  }
-});
+watch(
+  () => props.visible,
+  (newVal) => {
+    if (newVal) {
+      selectedExamples.value = props.customExamples.map((item) => item.name);
+    }
+  },
+);
 </script>
 
 <template>
-  <tiny-dialog-box v-model:visible="showSelectExampleBox" title="选择示例模板" width="40%">
+  <tiny-dialog-box v-model:visible="visibleModel" title="选择示例模板" width="40%" :append-to-body="true">
     <template #footer>
       <tiny-button @click="cancel">取 消</tiny-button>
       <tiny-button type="primary" @click="createNewTemplate">创建新模板</tiny-button>
