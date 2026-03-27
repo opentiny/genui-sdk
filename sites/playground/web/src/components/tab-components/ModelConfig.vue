@@ -85,8 +85,7 @@ const confirmSelectExampleList = (list) => {
 };
 
 const delCustomExample = (index) => {
-  const customExamples = props.customExamples || [];
-  emit('update:custom-examples', customExamples.filter((_, i) => i !== index));
+  emit('update-custom-examples', customExamples.value.filter((_, i) => i !== index));
 };
 
 const editCustomExample = (id) => {

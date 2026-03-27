@@ -60,8 +60,6 @@ const createNewTemplate = () => {
 };
 
 watch(() => props.visible, (newVal) => {
-  showSelectExampleBox.value = newVal;
-
   if (newVal) {
     selectedExamples.value = normalizeSelectedExamples(props.customExamples);
   }
@@ -70,7 +68,7 @@ watch(() => props.visible, (newVal) => {
 watch(
   () => templateSchemaList.value,
   () => {
-    if (showSelectExampleBox.value) {
+    if (visibleModel.value) {
       selectedExamples.value = normalizeSelectedExamples(selectedExamples.value);
     }
   },
@@ -79,7 +77,7 @@ watch(
 </script>
 
 <template>
-  <tiny-dialog-box v-model:visible="showSelectExampleBox" @close="cancel" title="选择示例模板" width="40%"
+  <tiny-dialog-box v-model:visible="visibleModel" @close="cancel" title="选择示例模板" width="40%"
     :append-to-body="true">
     <template #footer>
       <tiny-button @click="cancel">取 消</tiny-button>

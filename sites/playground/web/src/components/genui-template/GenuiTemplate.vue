@@ -13,7 +13,7 @@ import { useIsMobile } from '../../use-mobile';
 
 const { isMobile } = useIsMobile();
 
-const { currentSchema, setCurrentSchema, templateConversationState, getCurrentCardId, conversation } = useTemplate();
+const { currentSchema, setCurrentSchema, templateConversationState, conversation } = useTemplate();
 
 const TinyIconRichTextCodeBlock = IconRichTextCodeBlock();
 
@@ -24,8 +24,20 @@ const props = defineProps<{
 // schema 编辑器是否可见
 const schemaEditorVisible = ref(false);
 const currentCardId = ref<string>('');
-// 是否最新版本卡片
-const showReturnLatestButton = computed(() => getCurrentCardId() !== currentCardId.value && currentCardId.value)
+const latestSchemaCardId = computed(() => {
+  const currentConversation = templateConversationState?.conversations?.find(
+    (item: Conversation) => item.id === templateConversationState.currentId,
+  );
+  const lastMessage = currentConversation?.messages?.[currentConversation.messages.length - 1] as IMessage | undefined;
+  const schemaMessage = lastMessage?.messages?.find(
+    (message): message is ISchemaCardMessageItem | IJsonPatchMessageItem =>
+      message.type === 'schema-card' || message.type === 'json-patch',
+  );
+
+  return schemaMessage?.cardId ?? '';
+});
+// 仅当正在查看历史版本时显示“返回最新版本”
+const showReturnLatestButton = computed(() => Boolean(currentCardId.value && latestSchemaCardId.value && currentCardId.value !== latestSchemaCardId.value));
 // 编辑器中显示的代码
 const schemaEditor = computed({
   get() {
