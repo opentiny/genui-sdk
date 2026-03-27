@@ -299,6 +299,9 @@ importers:
       '@opentiny/vue-icon':
         specifier: ^3.28.0
         version: 3.28.3
+      '@opentiny/vue-renderless':
+        specifier: ^3.28.2
+        version: 3.28.2
       '@opentiny/vue-select':
         specifier: ^3.28.0
         version: 3.28.0
@@ -531,6 +534,9 @@ importers:
       '@opentiny/vue-icon':
         specifier: ^3.28.0
         version: 3.28.3
+      '@opentiny/vue-renderless':
+        specifier: ^3.28.2
+        version: 3.28.2
       '@opentiny/vue-theme':
         specifier: ^3.28.0
         version: 3.28.0
@@ -4194,9 +4200,6 @@ packages:
 
   '@opentiny/vue-renderless@3.14.1':
     resolution: {integrity: sha512-4kEJK+s7Ya8qbi6L9wGTQKfOYkEwQos49kCAC7Sv+ieG8xDMV6Y7SL4lOGAk/wktOxrnQGBmzaXRQaHuKzFvWw==}
-
-  '@opentiny/vue-renderless@3.28.0':
-    resolution: {integrity: sha512-ZGB9RHCmA+SlgdjhUMLMZeUV33g6YM8oaDroIzKRjeCZedVeNNpWscBiJecV1wZRL3fbwTz8PX7ybBCaoDKa/Q==}
 
   '@opentiny/vue-renderless@3.28.2':
     resolution: {integrity: sha512-fCTQ5lWTbaTCjBM2x+dddEbMCG0w70HPNfs0fT+vw0OPigKbQPQld9+nLvXyiRM56miBBfLeWkKJJgchFtkzEA==}
@@ -12589,14 +12592,14 @@ snapshots:
       '@opentiny/vue-directive': 3.28.0
       '@opentiny/vue-icon': 3.28.3
       '@opentiny/vue-popover': 3.28.0
-      '@opentiny/vue-renderless': 3.28.0
+      '@opentiny/vue-renderless': 3.28.2
       '@opentiny/vue-theme': 3.28.0
 
   '@opentiny/vue-button@3.28.0':
     dependencies:
       '@opentiny/vue-common': 3.28.0
       '@opentiny/vue-icon': 3.28.3
-      '@opentiny/vue-renderless': 3.28.0
+      '@opentiny/vue-renderless': 3.28.2
       '@opentiny/vue-theme': 3.28.0
 
   '@opentiny/vue-calendar-bar@3.28.0':
@@ -13740,12 +13743,6 @@ snapshots:
       color: 4.2.3
       xss: 1.0.11
 
-  '@opentiny/vue-renderless@3.28.0':
-    dependencies:
-      '@opentiny/utils': 3.28.0
-      '@opentiny/vue-hooks': 3.28.0
-      color: 4.2.3
-
   '@opentiny/vue-renderless@3.28.2':
     dependencies:
       '@opentiny/utils': 3.28.0
@@ -13857,7 +13854,7 @@ snapshots:
       '@opentiny/vue-locale': 3.28.0
       '@opentiny/vue-option': 3.28.0
       '@opentiny/vue-recycle-scroller': 3.28.0
-      '@opentiny/vue-renderless': 3.28.0
+      '@opentiny/vue-renderless': 3.28.2
       '@opentiny/vue-scrollbar': 3.28.0
       '@opentiny/vue-select-dropdown': 3.28.0
       '@opentiny/vue-tag': 3.28.0
@@ -14003,7 +14000,7 @@ snapshots:
       '@opentiny/vue-dropdown-menu': 3.28.0
       '@opentiny/vue-icon': 3.28.3
       '@opentiny/vue-locale': 3.28.0
-      '@opentiny/vue-renderless': 3.28.0
+      '@opentiny/vue-renderless': 3.28.2
       '@opentiny/vue-theme': 3.28.0
       '@opentiny/vue-tooltip': 3.28.0
 
@@ -14020,7 +14017,7 @@ snapshots:
     dependencies:
       '@opentiny/vue-common': 3.28.0
       '@opentiny/vue-icon': 3.28.3
-      '@opentiny/vue-renderless': 3.28.0
+      '@opentiny/vue-renderless': 3.28.2
       '@opentiny/vue-theme': 3.28.0
 
   '@opentiny/vue-text-popup@3.28.0':
@@ -14114,7 +14111,7 @@ snapshots:
   '@opentiny/vue-tooltip@3.28.0':
     dependencies:
       '@opentiny/vue-common': 3.28.0
-      '@opentiny/vue-renderless': 3.28.0
+      '@opentiny/vue-renderless': 3.28.2
       '@opentiny/vue-theme': 3.28.0
 
   '@opentiny/vue-top-box@3.28.0':
