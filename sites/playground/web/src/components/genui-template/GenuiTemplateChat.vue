@@ -516,6 +516,16 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 768px) {
+  :deep(.tr-bubble__content-wrapper) {
+    max-width: calc(100% - 12px);
+  }
+
+  :deep(.tr-bubble__content-wrapper .tr-bubble__content-items) {
+    overflow-x: hidden;
+  }
+}
+
 .sender-container {
   position: relative;
   flex-shrink: 0;

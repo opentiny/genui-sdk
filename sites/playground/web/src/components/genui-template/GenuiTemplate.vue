@@ -13,7 +13,7 @@ import { useIsMobile } from '../../use-mobile';
 
 const { isMobile } = useIsMobile();
 
-const { currentSchema, setCurrentSchema, templateConversationState, conversation } = useTemplate();
+const { currentSchema, setCurrentSchema, templateConversationState, conversation, currentCardId } = useTemplate();
 
 const TinyIconRichTextCodeBlock = IconRichTextCodeBlock();
 
@@ -23,7 +23,6 @@ const props = defineProps<{
 
 // schema 编辑器是否可见
 const schemaEditorVisible = ref(false);
-const currentCardId = ref<string>('');
 const latestSchemaCardId = computed(() => {
   const currentConversation = templateConversationState?.conversations?.find(
     (item: Conversation) => item.id === templateConversationState.currentId,
@@ -152,25 +151,35 @@ onUnmounted(() => {
   display: flex;
   margin-bottom: 20px;
   width: 100%;
-  min-height: 100%;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 
   &-item {
     flex: 1;
+    min-height: 0;
   }
 
   & .chat-container {
     display: flex;
     height: 100%;
+    min-height: 0;
+    overflow: auto;
   }
 
   & .renderer-container {
     overflow: auto;
     padding: 20px;
+    min-height: 0;
+    box-sizing: border-box;
 
     &-wrapper {
       background-color: #ffffff;
       border-radius: 16px;
       height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
       text-align: center;
       position: relative;
 
@@ -191,13 +200,19 @@ onUnmounted(() => {
 
   &.is-mobile {
     flex-direction: column-reverse;
+    margin-bottom: 0;
+
+    .genui-schema-template-item {
+      flex: 1 1 50%;
+      min-height: 0;
+    }
   }
-  height: 100%;
 }
 
 
 .genui-template-chat {
   width: 100%;
+  min-height: 0;
 }
 
 .schema-version-container {
@@ -207,5 +222,6 @@ onUnmounted(() => {
   justify-content: center;
   position: relative;
   box-sizing: border-box;
+  min-height: 0;
 }
 </style>
