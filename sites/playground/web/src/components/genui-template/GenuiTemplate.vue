@@ -180,6 +180,7 @@ onUnmounted(() => {
   &.is-mobile {
     flex-direction: column-reverse;
   }
+  height: 100%;
 }
 
 

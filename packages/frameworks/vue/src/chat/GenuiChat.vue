@@ -490,7 +490,7 @@ defineExpose({
   <div
     class="tg-chat-container"
     :class="{ 'dark': genuiConfig?.theme === 'dark' }"
-    :style="props.chatConfig?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
+    :style="!props.chatConfig?.showThinkingResult ? { '--thinking-display': 'none' } : {}"
   >
     <div
       class="messages-container"
@@ -605,7 +605,8 @@ defineExpose({
 }
 :deep(.tr-bubble__content-wrapper) {
   @avatar-and-gap-width: 56px;
-  max-width: calc(100% - @avatar-and-gap-width * 2);
+  // TODO: 后续规范变量名，在对外暴露
+  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width ,@avatar-and-gap-width) * 2);
 
   .tr-bubble__content {
     max-width: 100%;

@@ -19,12 +19,13 @@
     "@opentiny/vue": "^3.28.0",
     "@opentiny/vue-directive": "^3.28.0",
     "@opentiny/vue-icon": "^3.28.0",
+    "@opentiny/vue-theme": "^3.28.0",
     "clipboard-copy": "^4.0.1",
     "monaco-editor-vue3": "^1.0.4",
     "schema-renderer-ng-adpater": "workspace:*",
     "vite-commit-hash-plugin": "workspace:*",
     "vue": "^3.5.18",
-    "ai": "^5.0.10"
+    "ai": "6.0.116"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",
