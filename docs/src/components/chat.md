@@ -591,6 +591,7 @@ interface IBubbleSlotsProps {
   bubbleProps: BubbleProps;
   isFinished: boolean;
   messageManager: UseMessageReturn;
+  chatMessage: IMessage
 }
 ```
 
