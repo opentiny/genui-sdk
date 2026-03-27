@@ -120,6 +120,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
     if (!currentConversation?.messages.length) {
       setCurrentSchema(null);
+      setCurrentCardId('');
 
       return;
     }
@@ -139,7 +140,11 @@ export default function useTemplate(options?: UseTemplateOptions) {
 
     if (latestSchema) {
       setCurrentSchema(JSON.parse(latestSchema));
+      return;
     }
+
+    setCurrentSchema(null);
+    setCurrentCardId('');
   };
 
   /**
