@@ -12,7 +12,7 @@
     "start:server": "pnpm -F @opentiny/genui-sdk-server dev",
     "start": "concurrently \"pnpm start:server\" \"ng serve renderer-use\"",
     "prebuild": "ng build --project genui-renderer",
-    "build": "ng build",
+    "build": "ng build --project renderer-use",
     "prebuild:lib": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-ng build:lib",
     "build:lib": "ng build --project genui-renderer",
     "postbuild:lib": "vite build --config ./build-from-dist/vite.config.lib.ts",
@@ -62,7 +62,6 @@
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/tiny-schema-renderer-ng": "workspace:*",
     "@types/jasmine": "~5.1.0",
-    "ai": "^5.0.10",
     "concurrently": "^9.1.2",
     "escape-string-regexp": "^1.0.5",
     "flat": "^6.0.1",
@@ -83,6 +82,8 @@
     "vite-plugin-dts": "^4.0.0",
     "vite-plugin-static-copy": "^3.1.2",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.24.6"
+    "zod-to-json-schema": "^3.24.6",
+    "jsonrepair": "^3.13.3",
+    "ai": "6.0.116"
   }
 }

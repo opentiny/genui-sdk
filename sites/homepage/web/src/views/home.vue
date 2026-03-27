@@ -337,7 +337,7 @@ const { isMobile } = useMobile();
     justify-content: center;
     text-align: center;
     padding: 50px 20px !important;
-    background: url('@/assets/genui_ability_mobile_bg_1.svg');
+    background: url('@/assets/genui_ability_mobile_bg_1.svg')  center/cover no-repeat;
 
     &-left {
       font-size: var(--font-size-title-md);
@@ -434,6 +434,7 @@ const { isMobile } = useMobile();
     .extend-button-group {
       height: 32px;
       margin-bottom: 30px;
+      padding: 2px;
 
       button {
         font-size: 14px;

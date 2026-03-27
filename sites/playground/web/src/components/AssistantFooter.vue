@@ -1,22 +1,41 @@
 <script lang="ts" setup>
-import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
+import { iconRefresh, iconCopy, IconArrowRight, IconArrowLeft } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';
-import { ref, computed } from 'vue';
+import { GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import { ref, computed, inject } from 'vue';
 import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
+import { useGenerateMore } from '../continue-writing';
+import FinishInfo from './FinishInfo.vue';
+import { vFocusHoverSync } from './v-focus-hover-sync';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
+const genuiConfig: any = inject(GENUI_CONFIG, null);
+
+const tooltipEffect = computed(() => {
+  return genuiConfig.theme === 'dark' ? 'light' : 'dark';
+});
 
 const RefreshIcon = iconRefresh();
 const CopyIcon = iconCopy();
+const ArrowRightIcon = IconArrowRight();
+const ArrowLeftIcon = IconArrowLeft();
 
 const copyTooltip = ref('复制');
 
 const isLastBubble = computed(() => {
   const { messages } = props.messageManager;
   return props.index === messages.value.length - 1;
+});
+
+const revertAvailable = computed(() => {
+  return props.chatMessage['originChatMessage'] !== undefined;
+});
+
+const notFinished = computed(() => {
+  return props.chatMessage.finishInfo?.choices?.[0]?.finish_reason !== 'stop';
 });
 
 const copyContent = async () => {
@@ -41,6 +60,8 @@ const refresh = () => {
   messages.value = messages.value.slice(0, messageIndex);
   send();
 };
+const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageManager, props.index);
+
 </script>
 
 <template>
@@ -51,18 +72,44 @@ const refresh = () => {
   >
     <tiny-button
       type="text"
+      :reset-time="0"
       :icon="RefreshIcon"
-      v-auto-tip="{ always: true, content: '刷新', effect: 'light' }"
+      v-auto-tip="{ always: true, content: '刷新', effect: tooltipEffect }"
+      v-focus-hover-sync
       @click="refresh"
     >
     </tiny-button>
     <tiny-button
       type="text"
+      :reset-time="0"
       :icon="CopyIcon"
-      v-auto-tip="{ always: true, content: copyTooltip, effect: 'light' }"
+      v-auto-tip="{ always: true, content: copyTooltip, effect: tooltipEffect }"
+      v-focus-hover-sync
       @click="copyContent"
     >
     </tiny-button>
+    <FinishInfo style="margin-left: 8px;" :data="props.chatMessage.finishInfo" />
+    <tiny-button
+      v-if="notFinished"
+      :reset-time="0"
+      type="text"
+      :icon="ArrowRightIcon"
+      v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: tooltipEffect }"
+      v-focus-hover-sync
+      @click="markGenerateMore"
+    >
+    </tiny-button>
+    <tiny-button
+      v-if="revertAvailable"
+      :reset-time="0"
+      type="text"
+      :icon="ArrowLeftIcon"
+      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: tooltipEffect }"
+      v-focus-hover-sync
+      @click="revertGenerateMore"
+    >
+    </tiny-button>
+   
   </div>
 </template>
 <style lang="scss" scoped>

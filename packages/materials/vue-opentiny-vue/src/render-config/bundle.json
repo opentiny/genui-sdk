@@ -5272,7 +5272,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": []
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -5442,7 +5442,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-width",
+                    "property": "labelWidth",
                     "label": {
                       "text": {
                         "zh_CN": "标签宽度"
@@ -5482,7 +5482,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-align",
+                    "property": "labelAlign",
                     "label": {
                       "text": {
                         "zh_CN": "必填标识占位"
@@ -5502,7 +5502,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-suffix",
+                    "property": "labelSuffix",
                     "label": {
                       "text": {
                         "zh_CN": "标签后缀"
@@ -5735,7 +5735,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": ["labelWidth", "disabled"]
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -5750,7 +5750,7 @@
             "zh_CN": "表单项"
           },
           "component": "TinyFormItem",
-          "description": "由按钮、输入框、选择器、单选框、多选框等控件组成，用以收集、校验、提交数据",
+          "description": "由按钮、输入框、选择器、单选框、多选框等控件组成，用以收集、校验、提交数据, 必须放在 TinyForm 中使用， 可以是直接子元素或者间接子元素",
           "docUrl": "",
           "screenshot": "",
           "tags": "",
@@ -9641,7 +9641,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": []
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -9750,7 +9750,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": ["name", "title"]
             },
             "contextMenu": {
               "actions": ["create symbol"],

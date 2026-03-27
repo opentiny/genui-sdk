@@ -2,8 +2,9 @@ name: Deploy GenUI SDK Playground to Huawei OBS
 
 on:
   push:
-    paths:
-      - 'sites/playground/web/**'
+    branches:
+      - dev
+      - master
   workflow_dispatch:
     inputs:
       env:
@@ -36,11 +37,9 @@ jobs:
     environment: ${{  github.event.inputs.env || 'alpha' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 9
+        uses: pnpm/action-setup@v4
       - name: Checkout repository (with submodules)
         uses: actions/checkout@v4
         with:

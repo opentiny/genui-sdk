@@ -24,6 +24,7 @@ export function mergeStreams(streams: ReadableStream<string>[]): ReadableStream<
 
             controller.enqueue({ value, type: i });
             reads[i] = null;
+            return;
           })
         )
       ),

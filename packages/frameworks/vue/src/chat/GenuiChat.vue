@@ -30,7 +30,7 @@ import { emitter } from './event-emitter';
 import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
-import type { IMessageItem, IStreamDelta } from '@opentiny/genui-sdk-core';
+import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
@@ -95,7 +95,7 @@ const wrapSlots = (slots: any) => {
       });
       const slotFn = toSlotFunction(slots[key]);
       if (slotFn) {
-        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value });
+        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value, chatMessage: messageManager.value.messages.value[props.index] });
       }
       return null;
     };
@@ -137,7 +137,7 @@ const saveState = (context: Record<string | symbol, any>) => {
   const cardId = context[cardIdSymbol];
   const cardMessage = getCardMessage(cardId);
   if (cardMessage) {
-    (cardMessage as any).state = Object.assign({}, context.state || {});
+    (cardMessage as any).state = JSON.parse(JSON.stringify(context.state || {}));
   }
   saveConversations();
 };
@@ -238,7 +238,7 @@ const messageRenderers = {
   'error-text': ErrorText,
 };
 
-const responseHandlers: Ref<IResponseHandler<IStreamDelta>[]> = ref(defaultResponseHandlers);
+const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
 
 
 const customModelProvider = new CustomModelProvider({
@@ -472,8 +472,10 @@ defineExpose({
   setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
+  // experimental, not stable
   getResponseHandlers: () => responseHandlers.value,
-  setResponseHandlers: (handlers: IResponseHandler<IStreamDelta>[]) => {
+  // experimental, not stable
+  setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     responseHandlers.value = handlers;
     customModelProvider.setResponseHandlers(handlers);
   },
@@ -488,7 +490,7 @@ defineExpose({
   <div
     class="tg-chat-container"
     :class="{ 'dark': genuiConfig?.theme === 'dark' }"
-    :style="props.chatConfig?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
+    :style="!props.chatConfig?.showThinkingResult ? { '--thinking-display': 'none' } : {}"
   >
     <div
       class="messages-container"
@@ -603,7 +605,8 @@ defineExpose({
 }
 :deep(.tr-bubble__content-wrapper) {
   @avatar-and-gap-width: 56px;
-  max-width: calc(100% - @avatar-and-gap-width * 2);
+  // TODO: 后续规范变量名，在对外暴露
+  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width ,@avatar-and-gap-width) * 2);
 
   .tr-bubble__content {
     max-width: 100%;

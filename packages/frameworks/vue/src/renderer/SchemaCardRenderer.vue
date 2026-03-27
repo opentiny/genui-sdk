@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { parsePartialJson } from 'ai';
-import { ref, watch, computed, inject, nextTick } from 'vue';
+import { ref, watch, computed, inject, nextTick, onErrorCaptured } from 'vue';
 // @ts-ignore
 import defaultSchemaRenderer, { Mapper } from '@opentiny/tiny-schema-renderer';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
+import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { extendMapper } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/extend-renderer'; //TODO: 耦合
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { GENUI_RENDERER } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
+
+onErrorCaptured((error) => {
+  console.error('GenuiRenderer error:', error);
+  return true;
+});
 
 const props = defineProps<IRendererProps>();
 
@@ -72,18 +76,19 @@ function updateContextAndState() {
 
 watch(
   () => props.content,
-  async (newVal) => {
+  (newVal) => {
+    isError.value = false;
     let json: any = newVal;
     let isCompleted = true
     if (typeof newVal === 'string') {
       if (newVal.trim()) {
-        const { value, state } = await parsePartialJson(newVal);
-        if (!value) {
+        const { value, state } = repairJson(newVal);
+        if (!value || typeof value !== 'object') {
           isError.value = true;
           return;
         }
         json = value;
-        isCompleted = state === 'successful-parse'
+        isCompleted = state === RepairJsonState.SUCCESS
       } else {
         json = {};
       }
