@@ -15,7 +15,7 @@ const vAutoTip = AutoTip;
 const genuiConfig: any = inject(GENUI_CONFIG, null);
 
 const tooltipEffect = computed(() => {
-  return genuiConfig.theme === 'dark' ? 'light' : 'dark';
+  return genuiConfig.value.theme === 'dark' ? 'dark' : 'light';
 });
 
 const RefreshIcon = iconRefresh();
