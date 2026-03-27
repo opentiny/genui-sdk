@@ -13,6 +13,36 @@ function toBeijingDate(date: Date) {
   return new Date(date.getTime() + 8 * 60 * 60 * 1000);
 }
 
+type BeijingDateTimeFormatOptions = {
+  dateTimeSeparator?: string;
+  timeSeparator?: string;
+};
+
+/**
+ * 格式化北京时间，默认格式：`yyyy-MM-dd_hh-mm-ss`。
+ * 可通过参数控制日期和时间连接符，以复用同一套格式化逻辑。
+ * @param date 可选时间（默认当前时间）
+ * @param options 可选格式配置
+ * @returns 格式化后的北京时间字符串
+ */
+export function formatBeijingDateTime(
+  date = new Date(),
+  options: BeijingDateTimeFormatOptions = {},
+) {
+  const d = toBeijingDate(date);
+  const {
+    dateTimeSeparator = '_',
+    timeSeparator = '-',
+  } = options;
+  const yyyy = d.getUTCFullYear();
+  const MM = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const DD = String(d.getUTCDate()).padStart(2, '0');
+  const hh = String(d.getUTCHours()).padStart(2, '0');
+  const mm = String(d.getUTCMinutes()).padStart(2, '0');
+  const ss = String(d.getUTCSeconds()).padStart(2, '0');
+  return `${yyyy}-${MM}-${DD}${dateTimeSeparator}${hh}${timeSeparator}${mm}${timeSeparator}${ss}`;
+}
+
 /**
  * 返回输出（报告/本次生成样本）根目录绝对路径。
  * 默认使用包内 `reports/` 目录（该目录应加入 .gitignore）。
@@ -31,14 +61,10 @@ export function resolveSamplesDir(samplesDir?: string) {
  * @returns run 目录名
  */
 export function formatBeijingRunDirName(date = new Date()) {
-  const d = toBeijingDate(date);
-  const yyyy = d.getUTCFullYear();
-  const MM = String(d.getUTCMonth() + 1).padStart(2, '0');
-  const DD = String(d.getUTCDate()).padStart(2, '0');
-  const hh = String(d.getUTCHours()).padStart(2, '0');
-  const mm = String(d.getUTCMinutes()).padStart(2, '0');
-  const ss = String(d.getUTCSeconds()).padStart(2, '0');
-  return `${yyyy}-${MM}-${DD}_${hh}-${mm}-${ss}`;
+  return formatBeijingDateTime(date, {
+    dateTimeSeparator: '_',
+    timeSeparator: '-',
+  });
 }
 
 /**
@@ -48,8 +74,8 @@ export function formatBeijingRunDirName(date = new Date()) {
  * @param modelName 文件安全模型名
  * @param runIndex 运行次数（从 1 开始）
  * @returns 样本文件绝对路径
- * @example `${scenario}_${modelName}_${runIndex}.json`
+ * @example `${modelName}_${scenario}_${runIndex}.json`
  */
 export function getSampleFilePath(runDir: string, scenario: string, modelName: string, runIndex: number) {
-  return path.resolve(runDir, `${scenario}_${modelName}_${runIndex}.json`);
+  return path.resolve(runDir, `${modelName}_${scenario}_${runIndex}.json`);
 }

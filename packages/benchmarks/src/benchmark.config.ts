@@ -30,7 +30,7 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   /** LLM-as-a-Judge 配置（默认关闭，避免报告阶段额外模型调用） */
   llmJudge: {
     /** 是否启用 Judge 评估 */
-    enabled: false,
+    enabled: true,
     /** Judge 模型 id；为空则复用 model */
     model: undefined,
     /** 可选 system prompt；为空时使用内置默认规则 */

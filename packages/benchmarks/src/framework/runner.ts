@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { printBenchmarkJson, printBenchmarkSummary, printBenchmarkTable } from './reporter';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions } from './types';
-import { formatBeijingRunDirName, resolveSamplesDir } from '../utils';
+import { formatBeijingDateTime, resolveSamplesDir } from '../utils';
 
 export interface BenchmarkComparisonRow {
   scenario: string;
@@ -82,7 +82,10 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
   const comparisonPayload = JSON.stringify(comparison);
   const modelListPayload = JSON.stringify(modelListForChart);
   const modelsDisplay = modelList.length ? modelList.join(', ') : options.model;
-  const beijingNow = formatBeijingRunDirName(new Date());
+  const beijingNow = formatBeijingDateTime(new Date(), {
+    dateTimeSeparator: ' ',
+    timeSeparator: ':',
+  });
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -112,7 +115,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
   </div>
   <div class="card">
     <h3>按场景 · 模型对比（多次 run 取均值）</h3>
-    <p class="hint">下图每个分组对应一个场景；同色柱为同一模型在该场景下的平均 TTFT / Total / Schema 校验通过率。</p>
+    <p class="hint">下图每个分组对应一个场景；同色柱为同一模型在该场景下的平均 TTFT（Time To First Token，首 Token 延迟）/ Total（端到端总耗时）/ Schema 校验通过率。</p>
   </div>
   <div class="grid">
     <div class="card"><canvas id="compareTtftChart"></canvas></div>
@@ -168,7 +171,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           };
         }),
       },
-      options: withTitle(barOpts, 'TTFT 平均对比（ms）'),
+      options: withTitle(barOpts, 'TTFT（Time To First Token，首 Token 延迟）平均对比（ms）'),
     });
     new Chart(document.getElementById('compareTotalChart'), {
       type: 'bar',
@@ -184,7 +187,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           };
         }),
       },
-      options: withTitle(barOpts, 'Total 延迟平均对比（ms）'),
+      options: withTitle(barOpts, 'Total（端到端总耗时）平均对比（ms）'),
     });
     new Chart(document.getElementById('compareSchemaChart'), {
       type: 'bar',
@@ -240,7 +243,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
           { label: 'Total(ms)', data: results.map(function (r) { return r.totalMs; }) },
         ],
       },
-      options: withTitle(barOpts, '单次运行：TTFT & Total'),
+      options: withTitle(barOpts, '单次运行：TTFT（首 Token 延迟） & Total（端到端总耗时）'),
     });
     new Chart(document.getElementById('tokenChart'), {
       type: 'bar',
