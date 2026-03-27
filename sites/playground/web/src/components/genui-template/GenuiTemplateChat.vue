@@ -379,7 +379,10 @@ const handleSendMessage = async () => {
 
   // 如果是第一条 user 消息，更新当前 title
   if (messages.value.length === 1 && messages.value[0].role === 'user') {
-    updateTemplateTitle(templateConversationState.currentId, messageContent.substring(0, 20));
+    const currentConversationId = templateConversationState.value?.currentId;
+    if (currentConversationId) {
+      updateTemplateTitle(currentConversationId, messageContent.substring(0, 20));
+    }
   }
 
   prevSchema.value = JSON.stringify(currentSchema.value);

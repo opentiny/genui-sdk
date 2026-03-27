@@ -24,8 +24,9 @@ const props = defineProps<{
 // schema 编辑器是否可见
 const schemaEditorVisible = ref(false);
 const latestSchemaCardId = computed(() => {
-  const currentConversation = templateConversationState?.conversations?.find(
-    (item: Conversation) => item.id === templateConversationState.currentId,
+  const conversationState = templateConversationState.value;
+  const currentConversation = conversationState?.conversations?.find(
+    (item: Conversation) => item.id === conversationState.currentId,
   );
   const lastMessage = currentConversation?.messages?.[currentConversation.messages.length - 1] as IMessage | undefined;
   const schemaMessage = lastMessage?.messages?.find(
@@ -81,8 +82,12 @@ const toggleSchemaVersion = (schema: Record<string, unknown>, cardId: string) =>
 
 const resetToLatestVersion = () => {
   // 获取最新版本的 schema
-  const currentConversation = templateConversationState.conversations.find(
-    (conversation: Conversation) => conversation.id === templateConversationState.currentId,
+  const conversationState = templateConversationState.value;
+  if (!conversationState) {
+    return;
+  }
+  const currentConversation = conversationState.conversations.find(
+    (conversation: Conversation) => conversation.id === conversationState.currentId,
   );
   const lastMessage = currentConversation?.messages?.[currentConversation?.messages.length - 1] as IMessage | undefined;
   const schemaMessage = lastMessage?.messages?.find(
