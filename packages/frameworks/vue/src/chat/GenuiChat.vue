@@ -490,7 +490,7 @@ defineExpose({
   <div
     class="tg-chat-container"
     :class="{ 'dark': genuiConfig?.theme === 'dark' }"
-    :style="props.chatConfig?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
+    :style="!props.chatConfig?.showThinkingResult ? { '--thinking-display': 'none' } : {}"
   >
     <div
       class="messages-container"
