@@ -8,7 +8,7 @@ import { GENUI_I18N, GENUI_CONFIG } from '../chat/injection-tokens';
 import { useMediaTheme } from './use-media-theme';
 
 export interface ConfigProviderProps {
-  theme: 'light' | 'dark' | 'lite' | 'auto';
+  theme?: 'light' | 'dark' | 'lite' | 'auto';
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
