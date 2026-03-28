@@ -19,7 +19,7 @@ const props = defineProps({
 
 const emit = defineEmits(['update:expanded', 'new-task', 'update:theme', 'update-custom-examples']);
 
-const { isTemplateInit } = useTemplate();
+const { isTemplateInit, switchTemplate, createTemplate } = useTemplate();
 
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 // 条件异步加载 genui-template 组件，不启用时完全不导入，构建时不会被打包
@@ -60,8 +60,14 @@ const handleNewTask = () => {
   if (isMobile.value) emit('update:expanded', false);
 };
 
-const handleCreateNewTemplate = () => {
+const handleCreateNewTemplate = (id) => {
   activeName.value = 'template';
+  if (id) {
+    switchTemplate(id);
+    return;
+  }
+
+  createTemplate();
 };
 
 const updateCustomExamples = (list) => {
@@ -156,7 +162,7 @@ const updateCustomExamples = (list) => {
 
       <tiny-tabs class="playground-sidebar__tabs" v-model="activeName" v-show="expanded">
         <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig @createNewTemplate="handleCreateNewTemplate" @updateCustomExamples="updateCustomExamples"/>
+          <ModelConfig @createNewTemplate="handleCreateNewTemplate" @update-custom-examples="updateCustomExamples"/>
         </tiny-tab-item>
         <tiny-tab-item title="工具" name="tools">
           <McpTools />

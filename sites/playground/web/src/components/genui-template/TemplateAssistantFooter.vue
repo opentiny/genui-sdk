@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-  import { ref, computed } from 'vue';
-  import { TinyButton } from '@opentiny/vue';
-  import { AutoTip } from '@opentiny/vue-directive';
+import { ref, computed } from 'vue';
+import { TinyButton } from '@opentiny/vue';
+import { AutoTip } from '@opentiny/vue-directive';
 import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
 import type { IBubbleSlotsProps } from '@opentiny/genui-sdk-vue';
 

@@ -4,6 +4,7 @@ import { iconRichTextCodeView } from '@opentiny/vue-icon';
 import JsonPatchDev from './JsonPatchDev.vue';
 import { formatJsonPatch } from './template-chat-utils';
 import useTemplate from './useTemplate';
+import { useIsMobile } from '../../use-mobile';
 
 const TinyIconRichTextCodeView = iconRichTextCodeView();
 
@@ -28,6 +29,7 @@ const generating = computed(() => !generatedTime.value);
 
 // 判断当前为开发环境
 const isDev = import.meta.env.MODE === 'development';
+const { isMobile } = useIsMobile();
 
 const visible = ref(false);
 const currentSchema = ref<string>('');
@@ -58,7 +60,7 @@ const handleDev = () => {
     <div v-if="generating" class="schema-version-card-loading">生成中...</div>
     <div v-else class="schema-version-card-time">创建时间：{{ generatedTime }}</div>
     <div class="schema-version-card-footer">
-      <div v-if="isDev && type === 'json-patch' && !generating" class="icons-wrap">
+      <div v-if="isDev && type === 'json-patch' && !generating && !isMobile" class="icons-wrap">
         <div class="icon-item" title="调试 jsonPatch" @click.stop="handleDev">
           <TinyIconRichTextCodeView />
         </div>
@@ -66,21 +68,27 @@ const handleDev = () => {
       <div v-if="errorMessage" class="error-message">解析失败</div>
     </div>
   </div>
-  <JsonPatchDev v-model:visible="visible" :currentSchema="currentSchema" :jsonPatch="jsonPatch"
-    :prevSchema="prevSchema" />
+  <JsonPatchDev
+    v-model:visible="visible"
+    :currentSchema="currentSchema"
+    :jsonPatch="jsonPatch"
+    :prevSchema="prevSchema"
+  />
 </template>
 
 <style scoped lang="less">
 .schema-version-card {
+  box-sizing: border-box;
   background-color: #fff;
-  align-items: center;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   gap: 8px;
+  width: 100%;
   max-width: 344px;
-  min-width: 280px;
+  min-width: 0;
   overflow: hidden;
   padding: 14px;
   position: relative;
@@ -114,4 +122,5 @@ const handleDev = () => {
     }
   }
 }
+
 </style>
