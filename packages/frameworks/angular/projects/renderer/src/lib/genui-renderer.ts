@@ -76,7 +76,7 @@ export class GenuiRenderer implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['content']) {
       this.processNewContent(changes['content'].currentValue);
-      // keepUpdateContextAndState需要异步执行，否则setContext未成功会导致callAction报错
+      // 异步等待渲染器初始化context后再设置
       Promise.resolve().then(() => {
         this.keepUpdateContextAndState();
       })
