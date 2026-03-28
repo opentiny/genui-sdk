@@ -76,7 +76,10 @@ export class GenuiRenderer implements OnInit {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['content']) {
       this.processNewContent(changes['content'].currentValue);
-      this.keepUpdateContextAndState();
+      // keepUpdateContextAndState需要异步执行，否则setContext未成功会导致callAction报错
+      Promise.resolve().then(() => {
+        this.keepUpdateContextAndState();
+      })
     }
     if (changes['customDirectives']) {
       this.customDirectives = changes['customDirectives'].currentValue;
