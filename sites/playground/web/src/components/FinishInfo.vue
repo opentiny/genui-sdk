@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { computed } from 'vue';
 import { TinyPopover, TinyButton } from '@opentiny/vue';
 import { iconInfoCircle } from '@opentiny/vue-icon';
 import { vFocusHoverSync } from './v-focus-hover-sync';
 
 const InfoIcon = iconInfoCircle();
-
 
 export interface ChatCompletionFinishChunk {
   object?: string;
@@ -24,15 +24,19 @@ export interface ChatCompletionFinishChunk {
 }
 
 const props = defineProps<{
-  data: ChatCompletionFinishChunk | null | undefined;
+  chatMessage: IChatMessage;
 }>();
 
-const usage = computed(() => props.data?.usage);
+const finishChunk = computed(
+  () => props.chatMessage.finishInfo as ChatCompletionFinishChunk | null | undefined,
+);
 
-const finishReason = computed(() => props.data?.choices?.[0]?.finish_reason ?? undefined);
+const usage = computed(() => finishChunk.value?.usage);
+
+const finishReason = computed(() => finishChunk.value?.choices?.[0]?.finish_reason ?? undefined);
 
 const createdLabel = computed(() => {
-  const t = props.data?.created;
+  const t = finishChunk.value?.created;
   if (t == null) return '';
   const ms = t < 1e12 ? t * 1000 : t;
   const d = new Date(ms);
@@ -42,11 +46,19 @@ const createdLabel = computed(() => {
 function formatInt(n: number) {
   return n.toLocaleString();
 }
+
+const titleContent = computed(() => {
+  const base = '对话信息';
+  if (props.chatMessage['originChatMessage'] !== undefined) {
+    return `${base}（含多次生成，仅统计最后一次生成）`;
+  }
+  return base;
+});
 </script>
 
 <template>
   <tiny-popover
-    v-if="data"
+    v-if="finishChunk"
     trigger="hover"
     placement="bottom-start"
     width="auto"
@@ -55,17 +67,17 @@ function formatInt(n: number) {
   >
     <template #default>
       <div class="finish-statistic-panel">
-        <div class="panel-title">对话信息</div>
+        <div class="panel-title">{{ titleContent }}</div>
         <dl class="stat-list">
-          <div v-if="data.model" class="stat-row">
+          <div v-if="finishChunk.model" class="stat-row">
             <dt>模型</dt>
-            <dd>{{ data.model }}</dd>
+            <dd>{{ finishChunk.model }}</dd>
           </div>
           <div v-if="finishReason != null && finishReason !== ''" class="stat-row">
             <dt>结束原因</dt>
             <dd>{{ finishReason }}</dd>
           </div>
-          <div v-if="data.created != null" class="stat-row">
+          <div v-if="finishChunk.created != null" class="stat-row">
             <dt>时间</dt>
             <dd>{{ createdLabel }}</dd>
           </div>

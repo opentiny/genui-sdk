@@ -88,7 +88,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       @click="copyContent"
     >
     </tiny-button>
-    <FinishInfo style="margin-left: 8px;" :data="props.chatMessage.finishInfo" />
+    <FinishInfo style="margin-left: 8px;" :chat-message="props.chatMessage" />
     <tiny-button
       v-if="notFinished"
       :reset-time="0"
