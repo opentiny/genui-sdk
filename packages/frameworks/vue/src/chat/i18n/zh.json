@@ -28,12 +28,12 @@
     "newConversation": "新会话"
   },
   "continueChat": {
-    "description": "继续对话， 用于表单的提交按钮等",
+    "description": "继续对话，用于表单的提交按钮等",
     "messageParam": "相关参数为：",
-    "paramDescription": "对话消息,可以是按钮文本等，也可以是其他内容"
+    "paramDescription": "对话消息，可以是按钮文本等，也可以是其他内容"
   },
   "saveState": {
-    "description": "保存状态， 用于保存组件状态"
+    "description": "保存状态，用于保存组件状态"
   },
   "toolCall": {
     "context": "工具名称：{toolName}，工具参数：{toolParams}，工具结果：{toolResult}"
