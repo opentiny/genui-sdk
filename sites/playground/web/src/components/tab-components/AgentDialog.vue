@@ -153,7 +153,7 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
       {{ agentCardError }}
     </div>
     <div v-if="agentCardStatus === 'success' && agentCard" class="agent-card-detail">
-      <div class="agent-card-detail__badge">Card 已解析</div>
+      <div class="agent-card-detail__badge">AgentCard 已解析</div>
       <div class="agent-card-detail__main">
         <h4 class="agent-card-detail__title">{{ agentCard.name || '未命名 Agent' }}</h4>
         <p v-if="agentCard.description" class="agent-card-detail__desc">{{ agentCard.description }}</p>
