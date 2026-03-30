@@ -19,6 +19,24 @@ const emit = defineEmits(['update:visible', 'confirmSelectExample', 'createNewTe
 const { templateSchemaList } = useTemplate();
 const selectedExamples = ref([]);
 
+/**
+ * Normalizes selected template values to valid schema ids only.
+ * This keeps legacy cached entries (object rows or removed ids)
+ * from breaking select/deselect behavior in the dialog.
+ * @param {(string|{id?: string})[]} [examples=[]] Raw selected values.
+ * @returns {string[]}
+ */
+const normalizeSelectedExamples = (examples = []) => {
+  const validIds = new Set((templateSchemaList.value || []).map((item) => item.id));
+  return Array.from(
+    new Set(
+      (examples || [])
+        .map((item) => (typeof item?.id === 'string' ? item.id : item))
+        .filter((id) => typeof id === 'string' && validIds.has(id)),
+    ),
+  );
+};
+
 const visibleModel = computed({
   get: () => props.visible,
   set: (val) => emit('update:visible', val),
@@ -29,7 +47,7 @@ const cancel = () => {
 };
 
 const confirmSelectExample = () => {
-  const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.name));
+  const selectedTemplateSchemas = templateSchemaList.value.filter((item) => selectedExamples.value.includes(item.id));
 
   emit('confirmSelectExample', selectedTemplateSchemas);
   cancel();
@@ -41,18 +59,26 @@ const createNewTemplate = () => {
   cancel();
 };
 
+watch(() => props.visible, (newVal) => {
+  if (newVal) {
+    selectedExamples.value = normalizeSelectedExamples(props.customExamples);
+  }
+});
+
 watch(
-  () => props.visible,
-  (newVal) => {
-    if (newVal) {
-      selectedExamples.value = props.customExamples.map((item) => item.name);
+  () => templateSchemaList.value,
+  () => {
+    if (visibleModel.value) {
+      selectedExamples.value = normalizeSelectedExamples(selectedExamples.value);
     }
   },
+  { deep: true },
 );
 </script>
 
 <template>
-  <tiny-dialog-box v-model:visible="visibleModel" title="选择示例模板" width="40%" :append-to-body="true">
+  <tiny-dialog-box v-model:visible="visibleModel" @close="cancel" title="选择示例模板" width="40%"
+    :append-to-body="true">
     <template #footer>
       <tiny-button @click="cancel">取 消</tiny-button>
       <tiny-button type="primary" @click="createNewTemplate">创建新模板</tiny-button>
@@ -60,8 +86,8 @@ watch(
     </template>
     <template #default>
       <tiny-checkbox-group v-model="selectedExamples" class="template-checkbox-group">
-        <div v-for="item in templateSchemaList" :key="item.name" class="template-checkbox-item">
-          <tiny-checkbox :label="item.name" :value="item.name">
+        <div v-for="item in templateSchemaList" :key="item.id" class="template-checkbox-item">
+          <tiny-checkbox :label="item.id" :value="item.id">
             <div class="template-checkbox-item__content">
               <span class="template-checkbox-item__title">
                 {{ item.name }}

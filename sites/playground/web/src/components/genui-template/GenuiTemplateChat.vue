@@ -27,7 +27,7 @@ import {
   formatJsonPatch,
   formatDateTime,
   generateIdForComponents,
-  generateId
+  generateId,
 } from './template-chat-utils';
 import { jsonPatchDeduplicator } from './json-patch-deduplicator';
 import SchemaVersionCard from './SchemaVersionCard.vue';
@@ -49,7 +49,15 @@ const TinyGenuiConfig: any = inject('TinyGenuiConfig');
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const errorMessagesMap = ref<Map<string, string>>(new Map());
-const { conversation, templateConversationState, currentSchema, currentCardId, setCurrentSchema, updateTemplateTitle, setCurrentCardId } = useTemplate();
+const {
+  conversation,
+  templateConversationState,
+  currentSchema,
+  currentCardId,
+  setCurrentSchema,
+  updateTemplateTitle,
+  setCurrentCardId,
+} = useTemplate();
 
 watch(
   () => TinyGenuiConfig?.value?.theme,
@@ -137,6 +145,11 @@ const schemaCardRenderer = async (props: any) => {
   }
 };
 
+/**
+ * Applies streamed JSON Patch operations to the current schema.
+ * Path resolution is formatted against the immutable pre-request
+ * snapshot to avoid drift when payloads replay prior operations.
+ */
 const jsonPatchRenderer = async (props: any) => {
   try {
     const { content, cardId } = props;
@@ -153,7 +166,16 @@ const jsonPatchRenderer = async (props: any) => {
 
     if (!value || !Array.isArray(value)) return;
 
-    const formattedValue = formatJsonPatch(JSON.parse(prevSchema.value), value);
+    // Prefer pre-request schema for stable id-to-path resolution.
+    let prePatchSchema = currentSchema.value;
+    if (prevSchema.value) {
+      try {
+        prePatchSchema = JSON.parse(prevSchema.value);
+      } catch (error) {
+        prePatchSchema = currentSchema.value;
+      }
+    }
+    const formattedValue = formatJsonPatch(prePatchSchema, value);
     // 如果没有 cardId，使用默认的 key 来记录（避免重复执行）
     const operationKey = cardId || '__default__';
     // 过滤掉已执行的操作
@@ -207,15 +229,19 @@ const handleSchemaVersionCardClick = (cardId: string) => {
     // 当切换 schema 版本时，清理该卡片已执行的 patch 操作记录
     // 因为新的 schema 版本可能需要重新执行操作
     jsonPatchDeduplicator.clearCardOperations(cardId);
-    emit('schema-version-toggle', targetSchema);
-  } catch (error) { }
+    emit('schema-version-toggle', targetSchema, cardId);
+  } catch (error) {
+    console.error('Failed to parse schema for version toggle:', error);
+  }
 };
 
 const getCardMessageByIndex = (index: number) => {
-  return (messages.value[index].messages as IMessageItem[])?.find(
-    (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
-      message.type === 'schema-card' || message.type === 'json-patch',
-  ) || {} as IJsonPatchMessageItem | ISchemaCardMessageItem;
+  return (
+    (messages.value[index]?.messages as IMessageItem[] | undefined)?.find(
+      (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
+        message.type === 'schema-card' || message.type === 'json-patch',
+    ) || ({} as IJsonPatchMessageItem | ISchemaCardMessageItem)
+  );
 };
 
 const handleRefresh = ({ index }: { index: number }) => {
@@ -353,7 +379,10 @@ const handleSendMessage = async () => {
 
   // 如果是第一条 user 消息，更新当前 title
   if (messages.value.length === 1 && messages.value[0].role === 'user') {
-    updateTemplateTitle(templateConversationState.currentId, messageContent.substring(0, 20));
+    const currentConversationId = templateConversationState.value?.currentId;
+    if (currentConversationId) {
+      updateTemplateTitle(currentConversationId, messageContent.substring(0, 20));
+    }
   }
 
   prevSchema.value = JSON.stringify(currentSchema.value);
@@ -406,10 +435,10 @@ onUnmounted(() => {
         @click="scrollToBottom">
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <tr-sender v-model="inputMessage" :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
-        " :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        :showWordLimit="true" :maxLength="5000" @clear="clearInputMessage" @submit="handleSendMessage"
-        @cancel="messageManager.abortRequest">
+      <tr-sender v-model="inputMessage"
+        :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'"
+        :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)" :showWordLimit="true"
+        :maxLength="5000" @clear="clearInputMessage" @submit="handleSendMessage" @cancel="messageManager.abortRequest">
       </tr-sender>
     </div>
   </div>
@@ -446,10 +475,6 @@ onUnmounted(() => {
   }
 }
 
-:deep(.tr-bubble__content.border-corner) {
-  max-width: 80%;
-}
-
 :deep(.tr-bubble__loading) {
   margin-top: 8px;
 }
@@ -464,23 +489,10 @@ onUnmounted(() => {
 }
 
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-  >div {
+
+  // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
+  >[type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);
-
-    &.schema-render-container[type='schema-card'],
-    &.loading-container[type='loading-text'] {
-      display: initial;
-    }
-
-    &.loading-container[type='loading-text'] {
-      margin: 10px 0;
-      background: linear-gradient(90deg, #666 0%, #666 45%, #999 50%, #999 55%, #666 60%, #666 100%);
-      background-size: 200% 100%;
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: text-shimmer 6s linear infinite;
-    }
   }
 }
 
@@ -488,23 +500,40 @@ onUnmounted(() => {
   &+.tr-bubble__step-tool {
     margin-top: 16px;
   }
-
-  min-width: 500px;
-}
-
-:deep(.tr-bubble__content-wrapper) {
-  width: 100%;
 }
 
 :deep(.tr-bubble.placement-end) {
   width: 100%;
 }
 
+:deep(.tr-bubble__content-wrapper) {
+  @avatar-and-gap-width: 56px;
+  max-width: calc(100% - @avatar-and-gap-width * 2);
+
+  .tr-bubble__content {
+    max-width: 100%;
+  }
+
+  .tr-bubble__content-items {
+    overflow-x: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  :deep(.tr-bubble__content-wrapper) {
+    max-width: calc(100% - 12px);
+  }
+
+  :deep(.tr-bubble__content-wrapper .tr-bubble__content-items) {
+    overflow-x: hidden;
+  }
+}
+
 .sender-container {
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
-
+  background: var(--sender-bg);
   .attachments-container {
     padding: 0 20px;
   }
@@ -517,24 +546,21 @@ onUnmounted(() => {
   top: -35px;
   width: 40px;
   height: 40px;
-  background-color: #fff;
+  background-color: var(--generating-bg-after);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid #e5e5e5;
+  border: 1px solid var(--sender-border-color);
   z-index: 1000;
-
-  &>svg {
+  & > svg {
     width: 20px;
     height: 20px;
   }
 
   &:hover {
-    box-shadow:
-      0px 10px 20px 0px #0000001a,
-      0px 0px 1px 0px #00000026;
+    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {
@@ -551,7 +577,7 @@ onUnmounted(() => {
       width: calc(100% + 4px);
       height: calc(100% + 4px);
       border-radius: 50%;
-      background: conic-gradient(from 0deg, #f5f7ff, #d9e0f5, #bfc8e0, #d9e0f5, #f5f7ff);
+      background: var(--generating-bg-before);
       z-index: 0;
       animation: rotate-border 2s linear infinite;
     }
@@ -564,11 +590,11 @@ onUnmounted(() => {
       width: 100%;
       height: 100%;
       border-radius: 50%;
-      background-color: #fff;
+      background-color: var(--generating-bg-after);
       z-index: 1;
     }
 
-    &>svg {
+    & > svg {
       z-index: 2;
     }
   }

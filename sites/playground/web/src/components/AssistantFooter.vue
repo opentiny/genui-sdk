@@ -12,10 +12,10 @@ import { vFocusHoverSync } from './v-focus-hover-sync';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
-const genuiConfig: any = inject(GENUI_CONFIG, null);
+const genuiConfig: any = inject(GENUI_CONFIG, {});
 
 const tooltipEffect = computed(() => {
-  return genuiConfig.theme === 'dark' ? 'light' : 'dark';
+  return genuiConfig.value?.theme === 'dark' ? 'dark' : 'light';
 });
 
 const RefreshIcon = iconRefresh();
@@ -88,7 +88,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       @click="copyContent"
     >
     </tiny-button>
-    <FinishInfo style="margin-left: 8px;" :data="props.chatMessage.finishInfo" />
+    <FinishInfo style="margin-left: 8px;" :chat-message="props.chatMessage" />
     <tiny-button
       v-if="notFinished"
       :reset-time="0"

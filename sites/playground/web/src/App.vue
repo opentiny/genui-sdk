@@ -48,6 +48,39 @@ const {
   customExamples: cacheCustomExamples,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
+/**
+ * Normalizes cached custom examples for the id-based contract.
+ * Drops invalid/legacy entries and de-duplicates by id.
+ * @param {unknown} examples Raw cached examples from localStorage.
+ * @returns {Array<{id: string, name: unknown, schema: unknown}>}
+ */
+const normalizeCustomExamples = (examples) => {
+  if (!Array.isArray(examples)) {
+    return [];
+  }
+
+  const dedupedExamples = new Map();
+  examples.forEach((item) => {
+    if (!item || typeof item !== 'object') {
+      return;
+    }
+
+    const id = typeof item.id === 'string' ? item.id.trim() : '';
+    if (!id) {
+      return;
+    }
+
+    dedupedExamples.set(id, {
+      id,
+      name: item.name,
+      schema: item.schema,
+    });
+  });
+
+  return Array.from(dedupedExamples.values());
+};
+
+const isOpen = ref(true);
 const llmConfig = reactive(
   cacheLLmConfig || {
     temperature: 0.5,
@@ -56,7 +89,7 @@ const llmConfig = reactive(
     promptList: [],
   },
 );
-const customExamples = ref(cacheCustomExamples || []);
+const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 
 const chatConfig = reactive(
   cacheChatConfig || {
@@ -69,6 +102,23 @@ const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
 
+let latestModelFeaturesRequest = 0;
+
+const syncModelFeatures = async (model) => {
+  const requestId = ++latestModelFeaturesRequest;
+  try {
+    const features = await getModelFeatures(model);
+    if (requestId === latestModelFeaturesRequest && llmConfig.model === model) {
+      modelFeatures.value = features;
+    }
+  } catch (error) {
+    if (requestId === latestModelFeaturesRequest) {
+      console.error('Failed to get model features:', error);
+    }
+  }
+};
+
+watch(() => llmConfig.model, syncModelFeatures);
 const transformTheme = (themeConfig) => {
   const newThemeConfig = structuredClone(themeConfig);
   newThemeConfig.css = newThemeConfig.css.replaceAll(':host', `[class*="tiny-genui-playground"]`).replaceAll(':root', `[class*="tiny-genui-playground"]`);
@@ -102,13 +152,6 @@ watch(
     );
   },
   { deep: true },
-);
-
-watch(
-  () => llmConfig.model,
-  async () => {
-    modelFeatures.value = await getModelFeatures(llmConfig.model);
-  },
 );
 
 const themeData = ref([
@@ -172,7 +215,7 @@ const handleKeydown = (event) => {
 };
 
 const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
-const { isTemplateInit } = useTemplate({ url: templateUrl, llmConfig });
+const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate({ url: templateUrl, llmConfig });
 const { initInputMessage } = useInputMessage(chat);
 const { isMobile } = useIsMobile();
 const isSidebarOpen = ref(!isMobile.value);
@@ -223,10 +266,53 @@ const customFetch = createCustomFetch(() => ({
   framework,
 }));
 
-const updateCustomExamples = (list) => {
-  customExamples.value = list.map((item) => ({ name: item.name, schema: item.schema }));
+/**
+ * Rehydrates custom examples from cache using normalized data.
+ */
+const initExampleList = () => {
+  customExamples.value = normalizeCustomExamples(cacheCustomExamples);
 };
 
+/**
+ * Updates custom examples and enforces the normalized shape.
+ * @param {unknown[]} list Latest examples from UI events.
+ */
+const updateCustomExamples = (list) => {
+  customExamples.value = normalizeCustomExamples(list);
+};
+
+watch(() => templateSchemaList.value, (newVal) => {
+  if (!newVal) {
+    return;
+  }
+  const templateMap = new Map(newVal.map((item) => [item.id, item]));
+  // Only keep examples that still exist in templateSchemaList,
+  // and always refresh them from the latest template source.
+  customExamples.value = customExamples.value
+    .map((example) => templateMap.get(example.id))
+    .filter(Boolean);
+}, { deep: true });
+
+onMounted(() => {
+  initInputMessage();
+  initExampleList();
+  getModelOptions()
+    .then(async (data) => {
+      if (!data.find((item) => item.value === llmConfig.model)) {
+        llmConfig.model = data[0]?.value;
+      }
+      modelData.value = data;
+      syncModelFeatures(llmConfig.model);
+    })
+    .catch((error) => {
+      console.error('Failed to get model options:', error);
+    });
+  window.addEventListener('keydown', handleKeydown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown);
+});
 </script>
 
 <template>
