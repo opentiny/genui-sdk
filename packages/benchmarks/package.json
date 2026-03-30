@@ -1,10 +1,10 @@
 {
-  "name": "@opentiny/genui-benchmarks",
+  "name": "@opentiny/genui-sdk-benchmarks",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "scripts": {
-    "benchmark": "tsx ./main.ts"
+    "benchmarks": "tsx ./main.ts"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.7",

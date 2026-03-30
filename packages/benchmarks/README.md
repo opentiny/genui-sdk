@@ -1,6 +1,8 @@
 # @opentiny/genui-benchmarks
 
-`@opentiny/genui-sdk-core` 的大模型生成基准测试框架，聚焦四个指标：
+`@opentiny/genui-sdk-core` 的大模型生成基准测试框架，聚焦以下指标：
+
+## 关注指标
 
 - `schemaJson` 合法性（代码块存在 / JSON 可解析 / 协议校验）
 - 首字节生成速度（TTFT）
@@ -36,7 +38,7 @@ src/
 2. **覆盖**：在包根目录复制 `.env.example` 为 `.env`，设置 `BENCH_*` 变量（见 `.env.example`）。
 3. **API**：样本生成使用 DeepSeek，需配置 `DEEPSEEK_API_KEY`（见 `.env.example`）。
 
-场景过滤、重复与多模型：
+### 场景过滤、重复与多模型
 
 - `BENCH_SCENARIOS`（逗号分隔）优先级高于 `BENCH_SCENARIO`
 - `BENCH_REPEAT` 控制**每个模型 × 每个场景**的执行次数（默认 `1`）
@@ -59,7 +61,7 @@ pnpm --filter @opentiny/genui-benchmarks benchmark
 - `report.json`（含 `models`、`comparisonByScenario`、逐条 `results`）
 - `report.html`（含「按场景 · 模型对比」分组柱状图 + 单次运行明细图）
 
-## 输出说明
+## 输出字段说明
 
 - `isSchemaJsonBlockFound`: 是否检测到 ```schemaJson ...``` 代码块
 - `isSchemaJsonValidJson`: 代码块内容是否为合法 JSON
