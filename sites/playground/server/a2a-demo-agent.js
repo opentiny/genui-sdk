@@ -27,8 +27,15 @@ const agentCard = {
     type: 'none',
     instructions: '无需认证，直接调用即可。',
   },
-  // 简化为仅声明一个 time-format 能力，真实 A2A 可以在此处包含更详细的技能描述
-  capabilities: ['time-format'],
+  // 对象数组：id/name 作标题，description 在 Playground「添加 Agent」详情里单独展示（与 string[] 仅有标识不同）
+  capabilities: [
+    {
+      id: 'time-format',
+      name: '时间格式化',
+      description:
+        '根据服务端当前时间返回格式化字符串，格式为 yyyy-MM-dd HH:mm:ss；对应本 Demo 的 POST /a2a/tasks 行为。',
+    }
+  ],
   contact: {
     name: 'Demo Agent',
     url: 'http://localhost',

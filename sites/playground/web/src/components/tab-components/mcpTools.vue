@@ -45,6 +45,31 @@ function parseHeadersTextToObject(text) {
   return headers;
 }
 
+/** 错误提示中展示响应正文，过长时截断 */
+function truncateRaw(text, maxLen = 2000) {
+  const t = String(text ?? '');
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen)}…`;
+}
+
+/** JSON 仅有常见 error 字段时只展示错误信息，不展示 "error" 键名 */
+function formatAgentCardErrorBody(rawText) {
+  const trimmed = String(rawText ?? '').trim();
+  if (!trimmed) return '';
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && 'error' in parsed) {
+      const errVal = parsed.error;
+      if (errVal != null && errVal !== '') {
+        return truncateRaw(typeof errVal === 'object' ? JSON.stringify(errVal) : String(errVal));
+      }
+    }
+  } catch {
+    /* 非 JSON，走下方原文 */
+  }
+  return truncateRaw(trimmed);
+}
+
 const showToolFormDialog = ref(false);
 const addToolLoading = ref(false);
 const showAgentFormDialog = ref(false);
@@ -71,7 +96,6 @@ const agentData = ref({
   name: '',
   agentCardUrl: '',
   description: '',
-  enabled: true,
   index: -1,
 });
 
@@ -107,7 +131,6 @@ const closeAgentDialog = () => {
     name: '',
     agentCardUrl: '',
     description: '',
-    enabled: true,
     index: -1,
   };
   agentCard.value = null;
@@ -143,7 +166,6 @@ const addAgent = () => {
     name: '',
     agentCardUrl: '',
     description: '',
-    enabled: true,
     index: -1,
   };
   agentCard.value = null;
@@ -158,7 +180,6 @@ const editAgent = (agent, index) => {
     name: agent.name || '',
     agentCardUrl: agent.agentCardUrl || '',
     description: agent.description || '',
-    enabled: agent.enabled ?? true,
     index,
   };
   agentCard.value = agent;
@@ -169,7 +190,7 @@ const editAgent = (agent, index) => {
 };
 
 const deleteAgent = (agent) => {
-  const agents = llmConfig.value.agents || [];
+  const agents = llmConfig.agents || [];
   updateConfig({
     agents: agents.filter((a) => a.name !== agent.name),
   });
@@ -257,10 +278,21 @@ const queryAgentCard = async () => {
 
   try {
     const res = await fetch(agentCardUrl);
+    const rawText = await res.text();
     if (!res.ok) {
-      throw new Error(`获取 Agent Card 失败，状态码：${res.status}`);
+      const body = rawText.trim();
+      const statusLine = `${res.status}${res.statusText ? ` ${res.statusText}` : ''}`.trim();
+      throw new Error(formatAgentCardErrorBody(body) || truncateRaw(statusLine));
     }
-    const card = await res.json();
+    let card;
+    try {
+      card = rawText.trim() ? JSON.parse(rawText) : null;
+    } catch {
+      throw new Error(formatAgentCardErrorBody(rawText) || truncateRaw(rawText));
+    }
+    if (!card || typeof card !== 'object') {
+      throw new Error(formatAgentCardErrorBody(rawText) || truncateRaw(rawText));
+    }
     agentCard.value = card;
     agentData.value = {
       ...agentData.value,
@@ -270,14 +302,14 @@ const queryAgentCard = async () => {
     agentCardStatus.value = 'success';
   } catch (error) {
     agentCardStatus.value = 'error';
-    agentCardError.value = error?.message || '获取 Agent Card 失败';
+    agentCardError.value = error?.message ? `获取 Agent Card 失败：${error.message}` : '获取 Agent Card 失败';
   } finally {
     agentQueryLoading.value = false;
   }
 };
 
 const confirmAgent = () => {
-  const { name, agentCardUrl, description, enabled, index } = agentData.value;
+  const { name, agentCardUrl, description, index } = agentData.value;
 
   if (!name || !agentCardUrl) {
     TinyNotify({
@@ -297,8 +329,10 @@ const confirmAgent = () => {
     return;
   }
 
-  const agents = llmConfig.value.agents || [];
+  const agents = llmConfig.agents || [];
   const card = agentCard.value;
+  // 启用状态仅在列表里切换，与 MCP 服务一致；新建默认开启，编辑保留当前列表项状态
+  const enabledValue = index > -1 ? (agents[index]?.enabled ?? true) : true;
   const nextAgent = {
     // 先保留 Agent Card 上的所有字段（version/api/auth/capabilities 等）
     ...card,
@@ -307,7 +341,7 @@ const confirmAgent = () => {
     description: description || card?.description || '',
     // 前端专属字段
     agentCardUrl,
-    enabled: enabled ?? true,
+    enabled: enabledValue,
   };
 
   if (index > -1) {
@@ -327,7 +361,7 @@ const updateServerEnabled = (server, enabled) => {
 };
 
 const updateAgentEnabled = (agent, enabled) => {
-  const agents = llmConfig.value.agents || [];
+  const agents = llmConfig.agents || [];
   const updatedAgents = agents.map((a) => (a.name === agent.name ? { ...a, enabled } : a));
   updateConfig({ agents: updatedAgents });
 };
@@ -486,7 +520,7 @@ const updateShowThinkingResult = (value) => {
   .mcp-server-item {
     border: none;
     border-radius: 6px;
-    padding: 8px 16px;
+    padding: 6px 10px;
     transition: background-color 0.2s ease;
 
     &:hover {
