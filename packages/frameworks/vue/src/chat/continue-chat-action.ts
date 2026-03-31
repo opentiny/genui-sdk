@@ -32,7 +32,7 @@ export function useChatAction({
     },
     saveStateAction: {
       name: 'saveState',
-      description: '保存状态， 用于保存组件状态',
+      description: t('saveState.description'),
       execute: (params: any, context: Record<string | symbol, any>) => {
         saveState(context);
       },

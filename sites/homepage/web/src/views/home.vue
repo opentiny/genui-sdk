@@ -237,15 +237,15 @@ const { isMobile } = useMobile();
       line-height: var(--line-height-title-lg);
       font-weight: 700;
       text-align: left;
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
-      background-clip: text;
+      color: rgba(14, 112, 255, 1);
       margin-bottom: 26px;
       white-space: nowrap;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
       opacity: 0;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      background-image: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
     }
 
     &-decsription {
@@ -337,7 +337,7 @@ const { isMobile } = useMobile();
     justify-content: center;
     text-align: center;
     padding: 50px 20px !important;
-    background: url('@/assets/genui_ability_mobile_bg_1.svg');
+    background: url('@/assets/genui_ability_mobile_bg_1.svg')  center/cover no-repeat;
 
     &-left {
       font-size: var(--font-size-title-md);
@@ -434,6 +434,7 @@ const { isMobile } = useMobile();
     .extend-button-group {
       height: 32px;
       margin-bottom: 30px;
+      padding: 2px;
 
       button {
         font-size: 14px;

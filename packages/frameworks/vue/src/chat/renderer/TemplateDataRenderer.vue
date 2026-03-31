@@ -39,7 +39,7 @@ import { IMAGE_MIME_TYPES } from '../file-upload/file-utils';
 import { ref } from 'vue';
 import { TinyPopover } from '@opentiny/vue';
 
-interface Props {
+export interface Props {
   templateData?: UserItem[];
   attachments?: FileMeta[];
 }

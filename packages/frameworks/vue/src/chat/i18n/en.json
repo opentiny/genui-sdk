@@ -32,6 +32,9 @@
     "messageParam": "Related parameters: ",
     "paramDescription": "Conversation message, can be button text or other content"
   },
+  "saveState": {
+    "description": "Save state, used for saving component state"
+  },
   "toolCall": {
     "context": "Tool name: {toolName}, Tool parameters: {toolParams}, Tool result: {toolResult}"
   },

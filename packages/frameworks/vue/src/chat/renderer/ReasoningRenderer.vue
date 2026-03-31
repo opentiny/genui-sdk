@@ -1,19 +1,28 @@
 <script setup lang="ts">
-import { IconArrowDown } from '@opentiny/tiny-robot-svgs'
-import { ref } from 'vue'
-import { useI18n } from '../i18n'
+import { IconArrowDown } from '@opentiny/tiny-robot-svgs';
+import { BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
+import { ref } from 'vue';
+import { useI18n } from '../i18n';
 
 const props = defineProps<{
-     content: string
-     thinking?: boolean
-  }>()
+  content: string;
+  thinking?: boolean;
+}>();
 
-const open = ref(false)
-const { t } = useI18n()
+const open = ref(false);
+const { t } = useI18n();
 
 const handleClick = () => {
-  open.value = !open.value
-}
+  open.value = !open.value;
+};
+
+const markdownRenderer = new BubbleMarkdownContentRenderer({
+  defaultAttrs: { class: 'markdown-content' },
+  mdConfig: { html: true },
+});
+
+const MarkdownContent = (markdownProps: { content: string }) =>
+  markdownRenderer.render({ content: markdownProps.content });
 </script>
 
 <template>
@@ -51,7 +60,7 @@ const handleClick = () => {
         </div>
         <div class="border-line"></div>
       </div>
-      <p class="detail-content" ref="detailRef">{{ props.content }}</p>
+      <MarkdownContent :content="props.content" class="detail-content" />
     </div>
   </div>
 </template>
@@ -64,15 +73,15 @@ const handleClick = () => {
 .header {
   font-size: 16px;
   line-height: 1.5;
-  color: #595959;
+  color: var(--tr-text-secondary);
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
 
   &:hover {
-    color: #191919;
-    fill: #191919;
+    color: var(--tr-text-primary);
+    fill: var(--tr-text-primary);
   }
 
   .icon-and-text {
@@ -103,24 +112,21 @@ const handleClick = () => {
 }
 
 .detail {
-  color: #595959;
+  color: var(--tr-text-secondary);
   margin-block: 8px;
-  white-space: pre-line;
   display: flex;
   gap: 8px;
   align-items: center;
+  font-size: 14px;
 
-  p.detail-content {
-    font-size: 14px;
-    line-height: 16px;
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-word;
-    max-height: var(--tr-bubble-reasoning-max-height, 300px);
+  .detail-content {
+    max-height: 300px;
     overflow-y: auto;
-
-    & + p.detail-content {
-      margin-top: 1em;
+    > *:first-child {
+      margin-top: 0;
+    }
+    > *:last-child {
+      margin-bottom: 0;
     }
   }
 
@@ -144,7 +150,7 @@ const handleClick = () => {
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background-color: #191919;
+      background-color: var(--tr-text-primary);
     }
 
     .border-line {

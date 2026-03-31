@@ -53,7 +53,7 @@ const handleGuideChange = (index: number) => {
   &-button-group {
     border-radius: 382px;
     width: fit-content;
-    height: 28px;
+    height: 32px;
     background-color: rgb(242, 242, 242);
     display: flex;
     align-items: center;

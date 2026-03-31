@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, nextTick } from 'vue';
-import { TinyInput, TinyForm, TinyFormItem } from '@opentiny/vue';
+import { TinyInput, TinyForm, TinyFormItem, Modal } from '@opentiny/vue';
 import { IconDel, IconEdit, IconPlus } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
 
@@ -49,9 +49,13 @@ const confirmRename = () => {
   });
 };
 
-// 处理删除
-const handleDelete = (item: Conversation) => {
-  emit('item-action', { id: 'delete' }, item);
+const handleDelete = async (item: Conversation) => {
+  try {
+    await Modal.confirm('确定删除该模板吗？');
+    emit('item-action', { id: 'delete' }, item);
+  } catch {
+    // Do nothing if the user cancels
+  }
 };
 
 const handleItemClick = (item: Conversation) => {
@@ -96,19 +100,6 @@ const handleAdd = () => {
                 prop="name"
                 :rules="[
                   { required: true, message: '名称不能为空', trigger: 'blur' },
-                  {
-                    validator: (_rule: any, value: string, callback: (error?: Error) => void) => {
-                      const hasDuplicate = props.listData.some(
-                        (item) => item.id !== renameId && item.title === value.trim(),
-                      );
-                      if (hasDuplicate) {
-                        callback(new Error('已存在同名模板'));
-                      } else {
-                        callback();
-                      }
-                    },
-                    trigger: 'blur',
-                  },
                 ]"
               >
                 <tiny-input
@@ -199,25 +190,23 @@ const handleAdd = () => {
 }
 
 .list-item {
-  padding: 8px 12px;
   cursor: pointer;
-  border: 1px solid #e8e8e8;
-  border-radius: 4px;
-  transition: all 0.2s;
+  padding: 10px 12px;
+  border-radius: 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #ffffff;
-}
 
-.list-item:hover,
-.list-item.active {
-  background-color: #fafafa;
+  &:hover,
+  &.active {
+    background-color: #f5f5f5;
+  }
 }
 
 /* 列表项文本容器 */
 .item-content {
-  flex: 1; /* 占满剩余空间 */
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -239,8 +228,8 @@ const handleAdd = () => {
 
 /* 操作图标按钮 */
 .action-icon {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 26px;
   padding: 0;
   background-color: transparent;
   border: none;
@@ -251,31 +240,12 @@ const handleAdd = () => {
   justify-content: center;
   color: #6b7280;
   transition: all 0.2s;
+  margin-left: 4px;
 }
 
 .action-icon:hover {
   background-color: #e5e7eb;
   color: #111827;
-}
-
-.action-icon.delete-icon:hover {
-  background-color: #fee2e2;
-  color: #dc2626;
-}
-
-/* 重命名输入框样式 */
-.rename-input {
-  width: 100%;
-  padding: 4px 6px;
-  border: 1px solid #d1d5db;
-  border-radius: 3px;
-  outline: none;
-  font-size: 14px;
-  box-sizing: border-box;
-}
-
-.rename-input:focus {
-  border-color: #2563eb;
 }
 
 .action-icon-icon {

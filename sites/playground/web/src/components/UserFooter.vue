@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue';
+import { ref, computed, inject } from 'vue';
 import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
+import { GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import { IconEdit, iconCopy } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';
@@ -10,6 +11,12 @@ import EditInputRenderer from './EditInputRenderer.vue';
 
 const props = defineProps<IBubbleSlotsProps>();
 const generating = computed(() => GeneratingStatus.includes(props.messageManager?.messageState.status));
+const genuiConfig: any = inject(GENUI_CONFIG, {});
+
+const tooltipEffect = computed(() => {
+  return genuiConfig.value?.theme === 'dark' ? 'dark' : 'light';
+});
+
 
 const vAutoTip = AutoTip;
 
@@ -83,17 +90,19 @@ const handleCancelEdit = () => {
       <!-- 编辑按钮 -->
       <tiny-button
         v-if="!generating"
+        :reset-time="0"
         type="text"
         :icon="EditIcon"
-        v-auto-tip="{ always: true, content: '编辑' }"
+        v-auto-tip="{ always: true, content: '编辑', effect: tooltipEffect }"
         @click="handleStartEditByIndex"
       >
       </tiny-button>
       <!-- 复制按钮 -->
       <tiny-button
         type="text"
+        :reset-time="0"
         :icon="CopyIcon"
-        v-auto-tip="{ always: true, content: '复制' }"
+        v-auto-tip="{ always: true, content: '复制', effect: tooltipEffect }"
         @click="handleCopyMessageByIndex"
       >
       </tiny-button>

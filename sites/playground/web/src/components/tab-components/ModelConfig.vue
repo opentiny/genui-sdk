@@ -1,26 +1,20 @@
 <script setup>
-import { ref, computed } from 'vue';
-import { TinyBaseSelect, TinySlider, TinyInput, TinyButton, TinyDialogBox, TinyPopover, TinyTooltip } from '@opentiny/vue';
+import { ref, inject } from 'vue';
+import {
+  TinyBaseSelect,
+  TinySlider,
+  TinyInput,
+  TinyButton,
+  TinyDialogBox,
+  TinyPopover,
+  TinyTooltip,
+} from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
-import SelectTemplateDialog from './select-template-dialog.vue';
-import useTemplate from '../genui-template/useTemplate';
+import SelectTemplateDialog from './SelectTemplateDialog.vue';
 
-const props = defineProps({
-  llmConfig: {
-    type: Object,
-    required: true,
-  },
-  modelData: {
-    type: Array,
-    default: () => [],
-  },
-  customExamples: {
-    type: Array,
-    default: () => [],
-  },
-});
-
-const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update:custom-examples']);
+const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update-custom-examples']);
+const playgroundContext = inject('playgroundContext');
+const { llmConfig, modelData, customExamples } = playgroundContext;
 
 const IconPlus = iconPlus();
 const IconEllipsis = iconEllipsis();
@@ -28,7 +22,6 @@ const IconEdit = iconEdit();
 const IconDel = iconDel();
 
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
-const llmConfig = computed(() => props.llmConfig);
 const showAddPromptBox = ref(false);
 const activeIndex = ref(null);
 const appendPrompt = ref('');
@@ -36,7 +29,7 @@ const isEditPrompt = ref(false);
 const showSelectExampleBox = ref(false);
 
 const updateConfig = (updates) => {
-  emit('update:llmConfig', { ...llmConfig.value, ...updates });
+  Object.assign(llmConfig, updates);
 };
 
 const updateModel = (model) => updateConfig({ model });
@@ -50,7 +43,7 @@ const addPrompt = () => {
     return;
   }
 
-  const promptList = llmConfig.value.promptList || [];
+  const promptList = llmConfig.promptList || [];
   promptList.push(appendPrompt.value);
 
   updatePromptList(promptList);
@@ -59,7 +52,7 @@ const addPrompt = () => {
 };
 
 const delPrompt = (index) => {
-  const promptList = llmConfig.value.promptList || [];
+  const promptList = llmConfig.promptList || [];
   updatePromptList(promptList.filter((_, i) => i !== index));
 };
 
@@ -68,7 +61,7 @@ const updatePrompt = (value, index) => {
     return;
   }
 
-  const promptList = llmConfig.value.promptList || [];
+  const promptList = llmConfig.promptList || [];
   updatePromptList(promptList.map((item, i) => (i === index ? value : item)));
   resetState();
 };
@@ -83,12 +76,20 @@ const resetState = () => {
 const editPrompt = (index) => {
   isEditPrompt.value = true;
   activeIndex.value = index;
-  appendPrompt.value = llmConfig.value.promptList[index];
+  appendPrompt.value = llmConfig.promptList[index];
   showAddPromptBox.value = true;
 };
 
 const confirmSelectExampleList = (list) => {
-  emit('update:custom-examples', list);
+  emit('update-custom-examples', list);
+};
+
+const delCustomExample = (index) => {
+  emit('update-custom-examples', customExamples.value.filter((_, i) => i !== index));
+};
+
+const editCustomExample = (id) => {
+  emit('createNewTemplate', id);
 };
 
 const createNewTemplate = () => {
@@ -100,8 +101,15 @@ const createNewTemplate = () => {
   <tiny-base-select :model-value="llmConfig.model" @update:model-value="updateModel" :options="modelData"
     :tooltip-config="{ always: false }" class="config-content"></tiny-base-select>
   <div class="config-title">模型温度</div>
-  <tiny-slider :model-value="llmConfig.temperature" @update:model-value="updateTemperature" :step="0.1" :min="0"
-    :max="1" show-input style="margin-bottom: 12px;">
+  <tiny-slider
+    :model-value="llmConfig.temperature"
+    @update:model-value="updateTemperature"
+    :step="0.1"
+    :min="0"
+    :max="1"
+    show-input
+    style="margin-bottom: 12px"
+  >
     <template #default="slotScope">
       <b>{{ slotScope.slotScope }}</b>
     </template>
@@ -114,13 +122,21 @@ const createNewTemplate = () => {
   </div>
 
   <div class="prompt-box">
-    <div class="prompt-item" v-for="(prompt, index) in llmConfig.promptList" :key="index"
-      :class="{ 'is-edit': isEditPrompt && activeIndex === index }">
+    <div
+      class="prompt-item"
+      v-for="(prompt, index) in llmConfig.promptList"
+      :key="index"
+      :class="{ 'is-edit': isEditPrompt && activeIndex === index }"
+    >
       <tiny-tooltip visible="auto" :content="prompt" effect="light">
         <div class="ellipsis">{{ prompt }}</div>
       </tiny-tooltip>
-      <tiny-popover trigger="hover" popper-class="prompt-item-actions-popover" :visible-arrow="false"
-        :append-to-body="false">
+      <tiny-popover
+        trigger="hover"
+        popper-class="prompt-item-actions-popover"
+        :visible-arrow="false"
+        :append-to-body="false"
+      >
         <template #default>
           <div class="prompt-item-actions">
             <div @click="editPrompt(index)">
@@ -139,9 +155,20 @@ const createNewTemplate = () => {
       </tiny-popover>
     </div>
   </div>
-  <tiny-dialog-box v-model:visible="showAddPromptBox" :title="isEditPrompt ? '编辑提示词' : '添加提示词'" width="30%">
-    <tiny-input type="textarea" class="prompt-item-input" :model-value="appendPrompt"
-      :autosize="{ minRows: 6, maxRows: 10 }" @update:model-value="appendPrompt = $event" autofocus></tiny-input>
+  <tiny-dialog-box
+    v-model:visible="showAddPromptBox"
+    :title="isEditPrompt ? '编辑提示词' : '添加提示词'"
+    width="30%"
+    :append-to-body="true"
+  >
+    <tiny-input
+      type="textarea"
+      class="prompt-item-input"
+      :model-value="appendPrompt"
+      :autosize="{ minRows: 6, maxRows: 10 }"
+      @update:model-value="appendPrompt = $event"
+      autofocus
+    ></tiny-input>
     <template #footer>
       <tiny-button @click="resetState" round>取 消</tiny-button>
       <tiny-button type="primary"
@@ -160,8 +187,28 @@ const createNewTemplate = () => {
       </span>
     </div>
 
-    <div class="prompt-item" v-for="item in customExamples" :key="item.id">
-      <div class="ellipsis">{{ item.name }}</div>
+    <div class="prompt-item" v-for="(item, index) in customExamples" :key="item.id">
+      <tiny-tooltip visible="auto" :content="item.name" effect="light">
+        <div class="ellipsis">{{ item.name }}</div>
+      </tiny-tooltip>
+      <tiny-popover trigger="hover" popper-class="prompt-item-actions-popover" :visible-arrow="false"
+        :append-to-body="false">
+        <template #default>
+          <div class="prompt-item-actions">
+            <div @click="editCustomExample(item.id)">
+              <IconEdit />
+              <span>编辑</span>
+            </div>
+            <div @click="delCustomExample(index)">
+              <IconDel />
+              <span>删除</span>
+            </div>
+          </div>
+        </template>
+        <template #reference>
+          <tiny-button type="text" :icon="IconEllipsis"> </tiny-button>
+        </template>
+      </tiny-popover>
     </div>
 
     <select-template-dialog v-model:visible="showSelectExampleBox" :custom-examples="customExamples"
