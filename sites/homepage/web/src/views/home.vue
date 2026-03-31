@@ -242,15 +242,10 @@ const { isMobile } = useMobile();
       white-space: nowrap;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
       opacity: 0;
-    }
-
-    @supports ((background-clip: text)) {
-      .home-core-subtitle {
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
-        background-clip: text;
-      }
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      background-image: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
     }
 
     &-decsription {
