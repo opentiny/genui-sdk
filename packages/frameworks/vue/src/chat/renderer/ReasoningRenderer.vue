@@ -120,6 +120,8 @@ const MarkdownContent = (markdownProps: { content: string }) =>
   font-size: 14px;
 
   .detail-content {
+    max-height: 300px;
+    overflow-y: auto;
     > *:first-child {
       margin-top: 0;
     }
