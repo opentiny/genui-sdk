@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - dev
-      - master
+      - main
   workflow_dispatch:
     inputs:
       env:
@@ -15,15 +15,6 @@ on:
         options:
           - alpha
           - prod
-
-env:
-  # 在 GitHub 项目源码仓库 → 项目的 Settings → Secrets(Actions 里的 Repository secrets) 里提前建好以下变量
-  HUAWEI_CLOUD_AK: ${{ secrets.HUAWEI_CLOUD_AK }}
-  HUAWEI_CLOUD_SK: ${{ secrets.HUAWEI_CLOUD_SK }}
-  HUAWEI_CLOUD_ENDPOINT: ${{ secrets.HUAWEI_CLOUD_ENDPOINT }}
-  HUAWEI_CLOUD_BUCKET: ${{ secrets.HUAWEI_CLOUD_BUCKET }}
-  GENUI_ASSETS_URL: ${{ secrets.GENUI_ASSETS_URL }}
-  DEPLOY_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.env || 'alpha' }}
 
 permissions:
   contents: read
@@ -49,11 +40,11 @@ jobs:
         run: pnpm install
       - name: Show environment
         run: |
-          echo "Building environment: ${{ env.DEPLOY_ENV }}"
-          echo "GENUI_ASSETS_URL: ${{ env.GENUI_ASSETS_URL }}"
+          echo "Building environment: ${{ github.event.inputs.env || 'alpha' }}"
+          echo "GENUI_ASSETS_URL: ${{ secrets.GENUI_ASSETS_URL }}"
           echo "GENUI_BACKEND_URL: ${{ vars.GENUI_BACKEND_URL }}"
       - name: Build genui-sdk-playground-web
-        run: pnpm build:playground-web --base=${{ env.GENUI_ASSETS_URL }}/${{ env.DEPLOY_ENV }}/
+        run: pnpm build:playground-web --base=${{ secrets.GENUI_ASSETS_URL }}/${{ github.event.inputs.env || 'alpha' }}/
         env:
           NODE_OPTIONS: --max_old_space_size=4096
           VITE_CHAT_URL: ${{ vars.GENUI_BACKEND_URL }}/chat-genui
@@ -80,7 +71,7 @@ jobs:
           path: sites/playground/web/dist/
       - name: Show environment
         run: |
-          echo "Deploying environment: ${{ env.DEPLOY_ENV }}"
+          echo "Deploying environment: ${{ github.event.inputs.env || 'alpha' }}"
       # ===== 下载 obsutil =====
       - name: Install obsutil
         run: |
@@ -93,11 +84,11 @@ jobs:
       - name: Upload to OBS
         run: |
           # 一次性配置 AK/SK/endpoint
-          obsutil config -i=${{ env.HUAWEI_CLOUD_AK }} \
-                         -k=${{ env.HUAWEI_CLOUD_SK }} \
-                         -e=${{ env.HUAWEI_CLOUD_ENDPOINT }}
+          obsutil config -i=${{ secrets.HUAWEI_CLOUD_AK }} \
+                         -k=${{ secrets.HUAWEI_CLOUD_SK }} \
+                         -e=${{ secrets.HUAWEI_CLOUD_ENDPOINT }}
 
           # 把本地 dist/ 目录整站同步到桶根目录
-          echo "Environment: ${{ env.DEPLOY_ENV }}"
-          mv sites/playground/web/dist ${{ env.DEPLOY_ENV }}
-          obsutil cp ${{ env.DEPLOY_ENV }} obs://${{ env.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground -r -f
+          echo "Environment: ${{ github.event.inputs.env || 'alpha' }}"
+          mv sites/playground/web/dist ${{ github.event.inputs.env || 'alpha' }}
+          obsutil cp ${{ github.event.inputs.env || 'alpha' }} obs://${{ secrets.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground -r -f
