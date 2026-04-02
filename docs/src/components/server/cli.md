@@ -20,7 +20,7 @@ yarn global add @opentiny/genui-sdk-server
 
 ```env
 BASE_URL=https://api.openai.com/v1
-API_KEY=your-api-key-here
+API_KEY=
 PORT=3100
 ```
 
@@ -120,7 +120,7 @@ genui-sdk-server -e /path/to/.env -p 3000
 ```bash
 # 设置系统环境变量
 export BASE_URL=https://api.openai.com/v1
-export API_KEY=your-api-key
+export API_KEY=
 export PORT=3000
 
 # 启动服务
