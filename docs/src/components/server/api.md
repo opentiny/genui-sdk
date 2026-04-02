@@ -35,7 +35,7 @@ import { startServer } from '@opentiny/genui-sdk-server';
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
-  apiKey: 'your-api-key',
+  apiKey: '',
   maxAttempts: 10,
 });
 ```
@@ -76,7 +76,7 @@ const app = express();
 
 equipChatCompletions(app, {
   route: '/chat/completions',
-  apiKey: 'your-api-key',
+  apiKey: '',
   baseURL: 'https://api.openai.com/v1',
 });
 
@@ -120,7 +120,7 @@ import { FetchChatCompletions } from '@opentiny/genui-sdk-chat-completions';
 import http from 'http';
 
 const chatCompletion = new FetchChatCompletions({
-  apiKey: 'your-api-key',
+  apiKey: '',
   baseURL: 'https://api.openai.com/v1',
 });
 
