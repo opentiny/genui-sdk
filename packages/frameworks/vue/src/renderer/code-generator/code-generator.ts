@@ -81,7 +81,8 @@ const generateVueCode = ({ schema, name, componentsMap }) => {
       } else if (['Array', 'Object'].includes(propType)) {
         propValue = `() => (${JSON.stringify(defaultValue)})`;
       } else if (propType === 'Function') {
-        propValue = defaultValue.value;
+        // schema 可能缺失 defaultValue，此时避免 defaultValue.value 直接抛 TypeError
+        propValue = defaultValue?.value ?? 'undefined';
       }
 
       propsArr.push(`${property}: { type: ${propType}, default: ${propValue} }`);

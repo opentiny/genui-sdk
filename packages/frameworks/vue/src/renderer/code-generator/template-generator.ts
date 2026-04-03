@@ -48,8 +48,11 @@ export const handleBinding = (props, attrsArr, description, state) => {
     // 事件名，协议约定以 on 开头的 camelCase 形式，template 中使用 kebab-case 形式
     if (isOn(key)) {
       const eventBinding = handleEventBinding(key, item);
-
-      return attrsArr.push(eventBinding);
+      // 非 JSExpression 或无法生成绑定时返回空串，此时不应向 attrsArr 追加
+      if (eventBinding) {
+        attrsArr.push(eventBinding);
+      }
+      return attrsArr;
     }
 
     if (propType === 'literal') {
@@ -131,20 +134,28 @@ const handleLiteralBinding = ({ key, item, attrsArr, description, state }) => {
 
   // 复杂类型（not null），解析协议（如：i18n）后，使用 v-bind 绑定，注意：双引号与单引号的处理
   if (typeof item === 'object') {
-    traverseState(item, description);
+    // 为当前属性创建一份独立的 internalTypes 快照，避免影响其它属性的判定
+    const prevInternalTypes = description.internalTypes;
+    const localInternalTypes = new Set(prevInternalTypes);
+    description.internalTypes = localInternalTypes;
+
+    // traverseState 过程中遇到 JS_SLOT 时，需要把根 state 传下去，避免生成的 state.xxx 引用丢失。
+    traverseState(item, description, state);
     const canotBind =
-      description.internalTypes.has(JS_FUNCTION) ||
-      description.internalTypes.has(JS_RESOURCE) ||
-      description.internalTypes.has(JS_SLOT);
+      localInternalTypes.has(JS_FUNCTION) ||
+      localInternalTypes.has(JS_RESOURCE) ||
+      localInternalTypes.has(JS_SLOT);
 
     // 不能直接绑定的，新建临时变量，以 state 变量的形式绑定
     if (canotBind) {
-      description.internalTypes = new Set();
+      description.internalTypes = prevInternalTypes;
       const valueKey = avoidDuplicateString(Object.keys(state), key);
       state[valueKey] = item;
 
       return attrsArr.push(`:${key}="state.${valueKey}"`);
     }
+    // 对于可以直接绑定的场景，同样恢复原先的 internalTypes 引用
+    description.internalTypes = prevInternalTypes;
     const parsedValue = unwrapExpression(JSON.stringify(item)).replace(/props\./g, '');
 
     // 对象/数组在 v-bind 中是表达式：外层用单引号包住 attribute，
@@ -223,7 +234,7 @@ export const generateTemplate = (schema, state, description, isRootNode = false)
   return result.join('');
 };
 
-export const generateJSXTemplate = (item, description) => {
+export const generateJSXTemplate = (item, description, state = {}) => {
   const result = [];
   const { componentName, fileName, props = {}, children, condition } = item;
 
@@ -241,7 +252,7 @@ export const generateJSXTemplate = (item, description) => {
 
   result.push(`<${component} `);
 
-  handleBinding(props, attrsArr, description, {});
+  handleBinding(props, attrsArr, description, state);
 
   result.push(attrsArr.join(' '));
 
@@ -253,7 +264,7 @@ export const generateJSXTemplate = (item, description) => {
     result.push('>');
 
     if (Array.isArray(children)) {
-      const subTemplate = children.map((child) => generateJSXTemplate(child, description)).join('');
+      const subTemplate = children.map((child) => generateJSXTemplate(child, description, state)).join('');
       result.push(subTemplate);
     } else if (children?.type === 'JSExpression') {
       result.push(`{ ${children.value.replace(/this\./g, '')} }`);

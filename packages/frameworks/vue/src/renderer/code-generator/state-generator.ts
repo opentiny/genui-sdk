@@ -49,7 +49,15 @@ export const strategy = {
   },
 
   [JS_FUNCTION]: ({ value }) => {
-    const { type, params, body } = getFunctionInfo(value);
+    const info = getFunctionInfo(value);
+    if (!info) {
+      // 函数字符串不符合预期格式时，避免空值解构抛 TypeError。
+      // 尽可能将原始 value 当作表达式包裹，交由上层 unwrapExpression 处理占位符恢复。
+      const raw = typeof value === 'string' ? value.replace(/this\./g, '') : '';
+      return `${start}${raw}${end}`;
+    }
+
+    const { type, params, body } = info;
     const inlineFunc = `${type} (${params.join(',')}) => { ${body.replace(/this\./g, '')} }`;
 
     return `${start}${inlineFunc}${end}`;
@@ -67,10 +75,10 @@ export const strategy = {
     return `${start}${value.replace(/this\./g, '')}${end}`;
   },
 
-  [JS_SLOT]: ({ value = [], params = ['row'] }, description) => {
+  [JS_SLOT]: ({ value = [], params = ['row'] }, description, rootState) => {
     description.hasJSX = true;
 
-    const slotValues = value.map((item) => generateJSXTemplate(item, description)).join('');
+    const slotValues = value.map((item) => generateJSXTemplate(item, description, rootState)).join('');
 
     // 默认解构参数 row，因为jsx slot 必须有第二个参数 h
     return `${start}({ ${params.join(',')} }, h) => ${slotValues}${end}`;
@@ -84,28 +92,29 @@ export const strategy = {
  * @param {*} description 记录使用到的外部资源
  */
 /** 将协议内置类型转换为可执行表达式字符串。 */
-export const transformType = (current, prop, description) => {
+export const transformType = (current, prop, description, rootState) => {
   const builtInTypes = [JS_EXPRESSION, JS_FUNCTION, JS_I18N, JS_RESOURCE, JS_SLOT];
   const { type } = current[prop] || {};
 
   if (builtInTypes.includes(type)) {
     description.internalTypes.add(type);
-    current[prop] = strategy[type](current[prop], description);
+    current[prop] = strategy[type](current[prop], description, rootState);
   }
 };
 
 /** 深度遍历 state，处理内置类型节点。 */
-export const traverseState = (current, description) => {
+export const traverseState = (current, description, rootState = current) => {
   if (typeof current !== 'object') return;
 
   if (Array.isArray(current)) {
-    current.forEach((prop) => traverseState(prop, description));
+    current.forEach((prop) => traverseState(prop, description, rootState));
   } else if (typeof current === 'object') {
     Object.keys(current || {}).forEach((prop) => {
       if (Object.prototype.hasOwnProperty.call(current, prop)) {
         // 解析协议中的类型
-        transformType(current, prop, description);
-        traverseState(current[prop], description);
+        // transformType 会在遇到 JS_SLOT 时触发 generateJSXTemplate；需要保证其能拿到根 state
+        transformType(current, prop, description, rootState);
+        traverseState(current[prop], description, rootState);
       }
     });
   }

@@ -61,17 +61,20 @@ export const validateByCompile = (filename, code) => {
   const { styles, template, slotted } = descriptor;
   const scoped = styles.some((s) => s.scoped);
 
-  const templateResult = compileTemplate({
-    source: template.content,
-    filename,
-    id,
-    scoped,
-    slotted,
-    compilerOptions: { bindingMetadata },
-  });
+  // 支持无 <template> 的 SFC（如纯 render 函数组件），此时跳过模板编译校验。
+  if (template) {
+    const templateResult = compileTemplate({
+      source: template.content,
+      filename,
+      id,
+      scoped,
+      slotted,
+      compilerOptions: { bindingMetadata },
+    });
 
-  if (templateResult.errors.length) {
-    return templateResult.errors.map(unify).map((error) => locateErrorMessage(code, error));
+    if (templateResult.errors.length) {
+      return templateResult.errors.map(unify).map((error) => locateErrorMessage(code, error));
+    }
   }
 
   // validate via compile style
@@ -109,7 +112,13 @@ const locateErrorMessage = (originalSource, error) => {
 
   if (loc?.start) {
     const { line, column } = loc.start;
-    const errorLineCode = originalSource.split(/\r?\n/)[line - 1];
+    const lines = originalSource.split(/\r?\n/);
+    const errorLineCode = lines[line - 1];
+
+    // 行号可能越界（例如上游错误定位不准确），此时跳过追加源码片段，避免再次抛错。
+    if (typeof errorLineCode !== 'string') {
+      return { message };
+    }
 
     // 源码字符串未经格式化，报错所在的行可能有大量字符，截取报错位置附近范围的错误信息，比如：前后 50 字符内
     const SCOPE = 50;
