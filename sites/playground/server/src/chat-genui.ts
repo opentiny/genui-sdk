@@ -4,6 +4,7 @@ import getRawBody from 'raw-body';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
+import net from 'node:net';
 import { fileURLToPath } from 'node:url';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
@@ -18,6 +19,69 @@ import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
+
+/** 为 Agent 生成稳定的 ASCII tool 名称，只包含 [a-zA-Z0-9_-]。 */
+const slugifyAgentName = (name: string, index: number): string => {
+  const base = (name || '')
+    .trim()
+    // 替换非 ASCII 字符为下划线
+    .replace(/[^a-zA-Z0-9_-]+/g, '_')
+    // 去掉头尾的下划线
+    .replace(/^_+|_+$/g, '') || 'agent';
+
+  // 加上索引，避免不同 Agent 之间因为名称相同导致冲突
+  return `agent_${base}_${index}`;
+};
+
+/** 判断 host 是否为本地/内网地址（只做显式阻断，非完整 RFC 覆盖）。 */
+const isPrivateOrLocalHost = (host: string): boolean => {
+  const lower = host.toLowerCase();
+
+  if (lower === 'localhost' || lower === '127.0.0.1' || lower === '::1') {
+    return true;
+  }
+
+  const ipVersion = net.isIP(host);
+  if (!ipVersion) {
+    return false;
+  }
+
+  // 仅处理常见的 IPv4 内网网段
+  if (ipVersion === 4) {
+    const [a, b] = host.split('.').map((v) => Number(v));
+
+    if (a === 10) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true; // 链路本地
+  }
+
+  // 简单拦截常见的 IPv6 私有地址前缀
+  if (ipVersion === 6) {
+    if (lower.startsWith('fc') || lower.startsWith('fd')) return true;
+  }
+
+  return false;
+};
+
+/** 校验 Agent 的 api.url，仅允许公网 http/https 目标。 */
+const isAllowedAgentUrl = (urlStr: string): boolean => {
+  try {
+    const u = new URL(urlStr);
+
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return false;
+    }
+
+    if (isPrivateOrLocalHost(u.hostname)) {
+      return false;
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 export type McpServerConfig = {
   name: string;
@@ -225,13 +289,21 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     console.error('Failed to parse playground from metadata:', error);
   }
 
+  const rawAgents = (playgroundConfig.agents || []) as PlaygroundAgentConfig[];
+  // 解析后立刻过滤掉指向本地/内网等不安全目标的 Agent，降低 SSRF 风险
+  const agents = rawAgents.filter((agent) => {
+    const url = agent.api?.url;
+    if (!url) return true;
+    return isAllowedAgentUrl(url);
+  });
+
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
-    agents: (playgroundConfig.agents || []) as PlaygroundAgentConfig[],
+    agents,
   };
 };
 
@@ -245,10 +317,12 @@ const buildAgentTools = (
     return agentTools;
   }
 
-  for (const agent of agents) {
-    if (!agent?.name) continue;
+  agents.forEach((agent, index) => {
+    if (!agent?.name) {
+      return;
+    }
 
-    const toolName = `agent_${agent.name}`;
+    const toolName = slugifyAgentName(agent.name, index);
 
     agentTools[toolName] = tool({
       description:
@@ -271,6 +345,13 @@ const buildAgentTools = (
           return {
             type: 'a2a-agent-error',
             message: `Agent "${agent.name}" 未配置 api.url，无法调用`,
+          };
+        }
+
+        if (!isAllowedAgentUrl(baseUrl)) {
+          return {
+            type: 'a2a-agent-error',
+            message: `Agent "${agent.name}" 的 api.url "${baseUrl}" 不被允许（仅支持公网 http/https，且禁止访问本地/内网地址）。`,
           };
         }
 
