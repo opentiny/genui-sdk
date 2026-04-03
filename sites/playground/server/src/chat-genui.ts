@@ -417,7 +417,7 @@ const buildAgentTools = (
         }
       },
     });
-  }
+  })
 
   return agentTools;
 };
