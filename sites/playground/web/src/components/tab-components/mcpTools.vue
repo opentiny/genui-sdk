@@ -70,6 +70,7 @@ function formatAgentCardErrorBody(rawText) {
   return truncateRaw(trimmed);
 }
 
+const activePanels = ref(['mcpTools', 'agents']);
 const showToolFormDialog = ref(false);
 const addToolLoading = ref(false);
 const showAgentFormDialog = ref(false);
@@ -332,8 +333,9 @@ const queryAgentCard = async () => {
 const confirmAgent = () => {
   const { name, agentCardUrl, description, index } = agentData.value;
   const urlTrimmed = (agentCardUrl || '').trim();
+  const nameTrimmed = (name || '').trim();
 
-  if (!name || !urlTrimmed) {
+  if (!nameTrimmed || !urlTrimmed) {
     TinyNotify({
       type: 'warning',
       message: '请填写名称和 Agent Card URL',
@@ -355,16 +357,36 @@ const confirmAgent = () => {
     return;
   }
 
-  const agents = llmConfig.agents || [];
   const card = agentCard.value;
+  const apiUrl = (card?.api?.url || '').trim();
+  if (!apiUrl) {
+    TinyNotify({
+      type: 'warning',
+      message: 'Agent Card 中缺少 api.url，服务端无法调用该 Agent',
+      position: 'top-right',
+    });
+    return;
+  }
+
+  const agents = llmConfig.agents || [];
+  const nameCollision = agents.some((a, i) => i !== index && (a.name || '').trim() === nameTrimmed);
+  if (nameCollision) {
+    TinyNotify({
+      type: 'warning',
+      message: `已存在名为「${nameTrimmed}」的 Agent，名称不可重复`,
+      position: 'top-right',
+    });
+    return;
+  }
+
   // 启用状态仅在列表里切换，与 MCP 服务一致；新建默认开启，编辑保留当前列表项状态
   const enabledValue = index > -1 ? (agents[index]?.enabled ?? true) : true;
   const nextAgent = {
     // 先保留 Agent Card 上的所有字段（version/api/auth/capabilities 等）
     ...card,
     // 再用前端表单中的值覆盖名称和描述
-    name: name || card?.name,
-    description: description || card?.description || '',
+    name: nameTrimmed,
+    description: (description || '').trim() || card?.description || '',
     // 前端专属字段
     agentCardUrl: urlTrimmed,
     enabled: enabledValue,
