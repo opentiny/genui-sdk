@@ -78,6 +78,8 @@ const agentQueryLoading = ref(false);
 const agentCard = ref(null);
 const agentCardStatus = ref('idle'); // idle | loading | success | error
 const agentCardError = ref('');
+/** 与当前 agentCard / success 状态对应的 Agent Card URL（trim 后），URL 变更时需失效 */
+const lastQueriedAgentCardUrl = ref('');
 const checkMcpController = ref(null);
 const mcpServerFormRef = ref(null);
 
@@ -125,6 +127,13 @@ const openAgentDialog = () => {
   showAgentFormDialog.value = true;
 };
 
+const invalidateAgentCardForUrlChange = () => {
+  agentCard.value = null;
+  agentCardStatus.value = 'idle';
+  agentCardError.value = '';
+  lastQueriedAgentCardUrl.value = '';
+};
+
 const closeAgentDialog = () => {
   showAgentFormDialog.value = false;
   agentData.value = {
@@ -137,6 +146,7 @@ const closeAgentDialog = () => {
   agentCardStatus.value = 'idle';
   agentCardError.value = '';
   agentQueryLoading.value = false;
+  lastQueriedAgentCardUrl.value = '';
 };
 
 const deleteMCPServer = (server) => {
@@ -172,6 +182,7 @@ const addAgent = () => {
   agentCardStatus.value = 'idle';
   agentCardError.value = '';
   agentQueryLoading.value = false;
+  lastQueriedAgentCardUrl.value = '';
   openAgentDialog();
 };
 
@@ -186,7 +197,16 @@ const editAgent = (agent, index) => {
   agentCardStatus.value = agent ? 'success' : 'idle';
   agentCardError.value = '';
   agentQueryLoading.value = false;
+  lastQueriedAgentCardUrl.value = (agent?.agentCardUrl || '').trim();
   openAgentDialog();
+};
+
+const onUpdateAgentData = (val) => {
+  agentData.value = val;
+  const url = (val.agentCardUrl || '').trim();
+  if (lastQueriedAgentCardUrl.value !== '' && url !== lastQueriedAgentCardUrl.value) {
+    invalidateAgentCardForUrlChange();
+  }
 };
 
 const deleteAgent = (agent) => {
@@ -261,9 +281,9 @@ const confirmMCPServer = async () => {
 };
 
 const queryAgentCard = async () => {
-  const { agentCardUrl } = agentData.value;
+  const requestedUrl = (agentData.value.agentCardUrl || '').trim();
 
-  if (!agentCardUrl) {
+  if (!requestedUrl) {
     TinyNotify({
       type: 'warning',
       message: '请填写 Agent Card URL',
@@ -277,7 +297,7 @@ const queryAgentCard = async () => {
   agentCardError.value = '';
 
   try {
-    const res = await fetch(agentCardUrl);
+    const res = await fetch(requestedUrl);
     const rawText = await res.text();
     if (!res.ok) {
       const body = rawText.trim();
@@ -300,6 +320,7 @@ const queryAgentCard = async () => {
       description: card?.description || '',
     };
     agentCardStatus.value = 'success';
+    lastQueriedAgentCardUrl.value = requestedUrl;
   } catch (error) {
     agentCardStatus.value = 'error';
     agentCardError.value = error?.message ? `获取 Agent Card 失败：${error.message}` : '获取 Agent Card 失败';
@@ -310,8 +331,9 @@ const queryAgentCard = async () => {
 
 const confirmAgent = () => {
   const { name, agentCardUrl, description, index } = agentData.value;
+  const urlTrimmed = (agentCardUrl || '').trim();
 
-  if (!name || !agentCardUrl) {
+  if (!name || !urlTrimmed) {
     TinyNotify({
       type: 'warning',
       message: '请填写名称和 Agent Card URL',
@@ -320,7 +342,11 @@ const confirmAgent = () => {
     return;
   }
 
-  if (!agentCard.value || agentCardStatus.value !== 'success') {
+  if (
+    !agentCard.value ||
+    agentCardStatus.value !== 'success' ||
+    urlTrimmed !== lastQueriedAgentCardUrl.value
+  ) {
     TinyNotify({
       type: 'warning',
       message: '请先查询并确认 Agent Card 信息',
@@ -340,7 +366,7 @@ const confirmAgent = () => {
     name: name || card?.name,
     description: description || card?.description || '',
     // 前端专属字段
-    agentCardUrl,
+    agentCardUrl: urlTrimmed,
     enabled: enabledValue,
   };
 
@@ -496,7 +522,7 @@ const updateShowThinkingResult = (value) => {
       :agent-query-loading="agentQueryLoading"
       :add-agent-loading="addAgentLoading"
       @update:visible="(val) => { if (!val) closeAgentDialog(); else showAgentFormDialog = val; }"
-      @update:agentData="(val) => (agentData = val)"
+      @update:agentData="onUpdateAgentData"
       @queryAgentCard="queryAgentCard"
       @confirmAgent="confirmAgent"
     />
