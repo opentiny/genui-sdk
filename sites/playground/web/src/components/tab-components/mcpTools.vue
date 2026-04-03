@@ -422,7 +422,7 @@ const updateShowThinkingResult = (value) => {
           </tiny-checkbox>
         </div>
       </tiny-collapse-item>
-      <tiny-collapse-item name="agent" title="Agent">
+      <tiny-collapse-item name="agent" title="Agent（a2ademo）">
         <template #title-right>
           <tiny-button type="text" :icon="IconPlus" @click.stop="addAgent"> </tiny-button>
         </template>

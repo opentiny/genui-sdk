@@ -235,7 +235,10 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   };
 };
 
-const buildAgentTools = (agents: PlaygroundAgentConfig[] | undefined): Record<string, any> => {
+const buildAgentTools = (
+  agents: PlaygroundAgentConfig[] | undefined,
+  abortSignal?: AbortSignal,
+): Record<string, any> => {
   const agentTools: Record<string, any> = {};
 
   if (!Array.isArray(agents) || !agents.length) {
@@ -296,6 +299,7 @@ const buildAgentTools = (agents: PlaygroundAgentConfig[] | undefined): Record<st
           const res = await fetch(taskUrl, {
             method: 'POST',
             headers,
+            signal: abortSignal,
             body: JSON.stringify({
               input: args?.input ?? '',
               metadata: args?.metadata ?? {},
@@ -304,17 +308,30 @@ const buildAgentTools = (agents: PlaygroundAgentConfig[] | undefined): Record<st
 
           const text = await res.text();
 
+          if (!res.ok) {
+            return {
+              type: 'agent-function-call-error',
+              agent: {
+                name: agent.name,
+              },
+              status: res.status,
+              statusText: res.statusText,
+              message: text?.trim() || `HTTP ${res.status} ${res.statusText}`.trim(),
+            };
+          }
+
           return {
             type: 'text',
-            text: text
+            text,
           };
         } catch (error: any) {
+          const aborted = error?.name === 'AbortError' || abortSignal?.aborted;
           return {
             type: 'agent-function-call-error',
             agent: {
               name: agent.name,
             },
-            message: error?.message || String(error),
+            message: aborted ? 'Agent request was cancelled' : error?.message || String(error),
           };
         }
       },
@@ -369,7 +386,7 @@ export function createChatGenui() {
       mcpServers.filter((s) => s.enabled),
       abort.signal,
     );
-    const agentTools = buildAgentTools(agents);
+    const agentTools = buildAgentTools(agents, abort.signal);
     const tools = { ...mcpTools, ...agentTools };
 
     const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
