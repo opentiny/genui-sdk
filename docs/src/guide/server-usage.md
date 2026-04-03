@@ -46,7 +46,7 @@ yarn add @opentiny/genui-sdk-server
 
 ```env
 BASE_URL=https://api.openai.com/v1
-API_KEY=your-api-key-here
+API_KEY=
 PORT=3100
 ```
 
@@ -65,7 +65,7 @@ npx genui-sdk-server --envFile .env.production
 npx genui-sdk-server --port 3000
 
 # 通过设置环境变量启动(git bash)
-export API_KEY=********* BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
+export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 ```
 
 #### 方式二：编程方式
@@ -76,7 +76,7 @@ import { startServer } from '@opentiny/genui-sdk-server';
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
-  apiKey: 'your-api-key',
+  apiKey: '',
   maxAttempts: 10, // 端口冲突时最大尝试次数
 });
 ```
@@ -93,7 +93,7 @@ app.use(cors());
 
 equipChatCompletions(app, {
   route: '/chat/completions',
-  apiKey: 'your-api-key',
+  apiKey: '',
   baseURL: 'https://api.openai.com/v1',
 });
 

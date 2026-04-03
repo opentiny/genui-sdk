@@ -345,7 +345,7 @@ export function createOpenAICustomFetch(config: OpenAIConfig): CustomRequest {
  * 默认的 customFetch 实现（使用环境变量配置）
  */
 export const defaultCustomFetch = createOpenAICustomFetch({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY || 'sk-test',
+  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   baseURL: 'https://your-chat-backend/api',
 });
 ```
