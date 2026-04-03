@@ -12,6 +12,8 @@ export interface BenchmarkComparisonRow {
       runs: number;
       avgTtftMs: number;
       avgTotalMs: number;
+      /** 有 TPOT 的 run 上取均值；全无则为 undefined */
+      avgTpotMs?: number;
       avgTotalTokens: number;
       schemaPassRate: number;
     }
@@ -42,10 +44,12 @@ export function buildComparisonByScenario(results: LlmBenchmarkResultItem[]): Be
       const mr = rows.filter((r) => r.model === m);
       const n = mr.length;
       if (n === 0) continue;
+      const tpotValues = mr.map((r) => r.tpotMs).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
       byModel[m] = {
         runs: n,
         avgTtftMs: mr.reduce((s, r) => s + r.ttftMs, 0) / n,
         avgTotalMs: mr.reduce((s, r) => s + r.totalMs, 0) / n,
+        ...(tpotValues.length ? { avgTpotMs: tpotValues.reduce((s, v) => s + v, 0) / tpotValues.length } : {}),
         avgTotalTokens: mr.reduce((s, r) => s + r.totalTokens, 0) / n,
         schemaPassRate: mr.filter((r) => r.isSchemaJsonValidAgainstProtocol).length / n,
       };
@@ -115,13 +119,14 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
   </div>
   <div class="card">
     <h3>按场景 · 模型对比（多次 run 取均值）</h3>
-    <p class="hint">下图每个分组对应一个场景；同色柱为同一模型在该场景下的平均 TTFT（Time To First Token，首 Token 延迟）/ Total（端到端总耗时）/ Schema 校验通过率。</p>
+    <p class="hint">下图每个分组对应一个场景；同色柱为同一模型在该场景下的平均 TTFT（首 Token 延迟）/ Total（端到端总耗时）/ TPOT（首 token 后每 token 耗时）/ Schema 校验通过率。</p>
   </div>
   <div class="grid">
     <div class="card"><canvas id="compareTtftChart"></canvas></div>
     <div class="card"><canvas id="compareTotalChart"></canvas></div>
     <div class="card"><canvas id="compareSchemaChart"></canvas></div>
     <div class="card"><canvas id="compareTokensChart"></canvas></div>
+    <div class="card"><canvas id="compareTpotChart"></canvas></div>
   </div>
   <div class="card">
     <h3>单次运行明细（含 model · scenario · run）</h3>
@@ -228,6 +233,22 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
       },
       options: withTitle(barOpts, 'Total Tokens 平均对比'),
     });
+    new Chart(document.getElementById('compareTpotChart'), {
+      type: 'bar',
+      data: {
+        labels: scenarioLabels,
+        datasets: modelList.map(function (m) {
+          return {
+            label: m,
+            data: scenarioLabels.map(function (sc) {
+              var cell = pickScenarioCell(sc, m);
+              return cell && typeof cell.avgTpotMs === 'number' ? cell.avgTpotMs : null;
+            }),
+          };
+        }),
+      },
+      options: withTitle(barOpts, 'TPOT（Time Per Output Token）平均对比（ms/token）'),
+    });
 
     const labels = results.map(function (r) {
       var m = r.model ? r.model + ' | ' : '';
@@ -241,9 +262,15 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
         datasets: [
           { label: 'TTFT(ms)', data: results.map(function (r) { return r.ttftMs; }) },
           { label: 'Total(ms)', data: results.map(function (r) { return r.totalMs; }) },
+          {
+            label: 'TPOT(ms/token)',
+            data: results.map(function (r) {
+              return typeof r.tpotMs === 'number' ? r.tpotMs : null;
+            }),
+          },
         ],
       },
-      options: withTitle(barOpts, '单次运行：TTFT（首 Token 延迟） & Total（端到端总耗时）'),
+      options: withTitle(barOpts, '单次运行：TTFT / Total / TPOT'),
     });
     new Chart(document.getElementById('tokenChart'), {
       type: 'bar',
@@ -272,7 +299,7 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
         '单次运行：schemaJson 校验',
       ),
     });
-    const headers = ['model', 'scenario', 'runIndex', 'ttftMs', 'totalMs', 'schema', 'schemaError', 'judgeScore', 'judgeReason', 'tokens', 'error'];
+    const headers = ['model', 'scenario', 'runIndex', 'ttftMs', 'totalMs', 'tpotMs', 'schema', 'schemaError', 'judgeScore', 'judgeReason', 'tokens', 'error'];
     const rows = results.map(function (r) {
       return [
         r.model || '',
@@ -280,9 +307,10 @@ function createReportHtml(results: LlmBenchmarkResultItem[], options: LlmBenchma
         r.runIndex || 1,
         r.ttftMs.toFixed(2),
         r.totalMs.toFixed(2),
+        typeof r.tpotMs === 'number' ? r.tpotMs.toFixed(2) : '',
         r.isSchemaJsonValidAgainstProtocol ? '<span class="ok">pass</span>' : '<span class="bad">fail</span>',
         r.schemaValidationError || '',
-        typeof r.llmJudgeScore === 'number' ? r.llmJudgeScore.toFixed(3) : '',
+        typeof r.llmJudgeScore === 'number' ? r.llmJudgeScore.toFixed(2) : '',
         r.llmJudgeReason || r.llmJudgeError || '',
         r.totalTokens,
         r.errorMessage || '',

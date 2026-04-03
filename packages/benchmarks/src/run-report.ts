@@ -4,7 +4,7 @@ import { streamText } from 'ai';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions, LlmBenchmarkSample } from './framework/index';
 import { printLlmBenchmarkResults } from './framework/index';
-import { extractSchemaJsonBlock, parseJudgeJson, resolveSamplesDir } from './utils';
+import { computeTpotMs, extractSchemaJsonBlock, parseJudgeJson, resolveSamplesDir } from './utils';
 
 /**
  * 校验 schemaJson 内容，判断是否存在代码块、JSON 合法、协议合法。
@@ -67,7 +67,7 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
   const modelId = judgeCfg?.model || options.model;
   const system =
     judgeCfg?.systemPrompt ??
-    '你是严格的前端代码评测员。请基于用户需求与模型输出评估“可用性、完整性、准确性”。只返回 JSON：{"score":0-1之间数字,"reason":"一句话原因"}。不要输出其它内容。';
+    '你是严格的前端代码评测员。请基于用户需求与模型输出评估“可用性、完整性、准确性”。只返回 JSON：{"score":1-10之间数字,"reason":"一句话原因"}。不要输出其它内容。';
   try {
     const deepseek = createDeepSeek({
       apiKey,
@@ -98,7 +98,7 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
     if (!parsed || typeof parsed.score !== 'number') {
       return { error: 'Judge output JSON parse failed' };
     }
-    const score = Math.min(1, Math.max(0, parsed.score));
+    const score = Math.min(10, Math.max(1, parsed.score));
     return {
       score,
       reason: parsed.reason,
@@ -117,12 +117,14 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
 function toReportItem(sample: LlmBenchmarkSample, judge?: LlmJudgeResult): LlmBenchmarkResultItem {
   const schemaJsonText = extractSchemaJsonBlock(sample.output);
   const validation = validateSchemaJson(schemaJsonText);
+  const tpotMs = computeTpotMs(sample.metrics.ttftMs, sample.metrics.totalMs, sample.metrics.completionTokens);
   return {
     scenario: sample.scenario,
     runIndex: sample.runIndex,
     model: sample.model,
     ttftMs: sample.metrics.ttftMs,
     totalMs: sample.metrics.totalMs,
+    ...(tpotMs !== undefined ? { tpotMs } : {}),
     ...validation,
     promptTokens: sample.metrics.promptTokens,
     completionTokens: sample.metrics.completionTokens,
@@ -187,7 +189,7 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
         const sample = parsedSamples[index];
         const judged = await judgeOneSample(sample, options, apiKey);
         judgeResults[index] = judged;
-        const score = judged.score == null ? '-' : judged.score.toFixed(3);
+        const score = judged.score == null ? '-' : judged.score.toFixed(2);
         console.log(`[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} score=${score}${judged.error ? ' error' : ''}`);
       }
     }

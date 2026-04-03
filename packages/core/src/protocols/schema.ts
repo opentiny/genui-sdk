@@ -125,7 +125,7 @@ export const genNodeSchema = /* @__PURE__ */ (componentWhiteList?: string[]) => 
     .object({
       id: z.string().optional().describe('节点唯一标识'),
       componentName: componentNameSchema,
-      props: z.record(z.string(), propValueSchema).describe('组件属性集合'),
+      props: z.record(z.string(), propValueSchema).optional().describe('组件属性集合'),
       children: z
         .union([z.array(z.lazy(() => nodeSchema)), z.string()])
         .optional()

@@ -57,6 +57,8 @@ export interface LlmBenchmarkResultItem {
   model?: string;
   ttftMs: number;
   totalMs: number;
+  /** TPOT（Time Per Output Token），ms/token；completionTokens≤1 时无意义，省略 */
+  tpotMs?: number;
   isSchemaJsonBlockFound: boolean;
   isSchemaJsonValidJson: boolean;
   isSchemaJsonValidAgainstProtocol: boolean;
@@ -66,7 +68,7 @@ export interface LlmBenchmarkResultItem {
   completionTokens: number;
   totalTokens: number;
   rawOutputChars: number;
-  // LLM-as-a-Judge 分数（0~1）
+  // LLM-as-a-Judge 分数（1~10）
   llmJudgeScore?: number;
   // LLM-as-a-Judge 给出的简要原因
   llmJudgeReason?: string;
