@@ -10,8 +10,11 @@ import {
   TinyNotify,
   TinyPopover,
   TinyCheckbox,
+  TinyCollapse,
+  TinyCollapseItem,
 } from '@opentiny/vue';
 import { iconDel, iconEdit, iconPlus, iconEllipsis } from '@opentiny/vue-icon';
+import AgentDialog from './AgentDialog.vue';
 
 const playgroundContext = inject('playgroundContext');
 const { llmConfig, chatConfig } = playgroundContext;
@@ -42,8 +45,42 @@ function parseHeadersTextToObject(text) {
   return headers;
 }
 
+/** 错误提示中展示响应正文，过长时截断 */
+function truncateRaw(text, maxLen = 2000) {
+  const t = String(text ?? '');
+  if (t.length <= maxLen) return t;
+  return `${t.slice(0, maxLen)}…`;
+}
+
+/** JSON 仅有常见 error 字段时只展示错误信息，不展示 "error" 键名 */
+function formatAgentCardErrorBody(rawText) {
+  const trimmed = String(rawText ?? '').trim();
+  if (!trimmed) return '';
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && 'error' in parsed) {
+      const errVal = parsed.error;
+      if (errVal != null && errVal !== '') {
+        return truncateRaw(typeof errVal === 'object' ? JSON.stringify(errVal) : String(errVal));
+      }
+    }
+  } catch {
+    /* 非 JSON，走下方原文 */
+  }
+  return truncateRaw(trimmed);
+}
+
+const activePanels = ref(['mcpTools', 'agents']);
 const showToolFormDialog = ref(false);
 const addToolLoading = ref(false);
+const showAgentFormDialog = ref(false);
+const addAgentLoading = ref(false);
+const agentQueryLoading = ref(false);
+const agentCard = ref(null);
+const agentCardStatus = ref('idle'); // idle | loading | success | error
+const agentCardError = ref('');
+/** 与当前 agentCard / success 状态对应的 Agent Card URL（trim 后），URL 变更时需失效 */
+const lastQueriedAgentCardUrl = ref('');
 const checkMcpController = ref(null);
 const mcpServerFormRef = ref(null);
 
@@ -56,6 +93,13 @@ const mcpServerData = ref({
   description: '',
   headers: '',
   timeout: DEFAULT_TIMEOUT_SECONDS,
+});
+
+const agentData = ref({
+  name: '',
+  agentCardUrl: '',
+  description: '',
+  index: -1,
 });
 
 const updateConfig = (updates) => {
@@ -80,6 +124,32 @@ const closeToolFormDialog = () => {
   showToolFormDialog.value = false;
 };
 
+const openAgentDialog = () => {
+  showAgentFormDialog.value = true;
+};
+
+const invalidateAgentCardForUrlChange = () => {
+  agentCard.value = null;
+  agentCardStatus.value = 'idle';
+  agentCardError.value = '';
+  lastQueriedAgentCardUrl.value = '';
+};
+
+const closeAgentDialog = () => {
+  showAgentFormDialog.value = false;
+  agentData.value = {
+    name: '',
+    agentCardUrl: '',
+    description: '',
+    index: -1,
+  };
+  agentCard.value = null;
+  agentCardStatus.value = 'idle';
+  agentCardError.value = '';
+  agentQueryLoading.value = false;
+  lastQueriedAgentCardUrl.value = '';
+};
+
 const deleteMCPServer = (server) => {
   const mcpServers = llmConfig.mcpServers || [];
   updateConfig({
@@ -100,6 +170,51 @@ const editMCPServer = (server, index) => {
 const addMCPServer = () => {
   mcpServerData.value.index = -1;
   openMCPServerDialog();
+};
+
+const addAgent = () => {
+  agentData.value = {
+    name: '',
+    agentCardUrl: '',
+    description: '',
+    index: -1,
+  };
+  agentCard.value = null;
+  agentCardStatus.value = 'idle';
+  agentCardError.value = '';
+  agentQueryLoading.value = false;
+  lastQueriedAgentCardUrl.value = '';
+  openAgentDialog();
+};
+
+const editAgent = (agent, index) => {
+  agentData.value = {
+    name: agent.name || '',
+    agentCardUrl: agent.agentCardUrl || '',
+    description: agent.description || '',
+    index,
+  };
+  agentCard.value = agent;
+  agentCardStatus.value = agent ? 'success' : 'idle';
+  agentCardError.value = '';
+  agentQueryLoading.value = false;
+  lastQueriedAgentCardUrl.value = (agent?.agentCardUrl || '').trim();
+  openAgentDialog();
+};
+
+const onUpdateAgentData = (val) => {
+  agentData.value = val;
+  const url = (val.agentCardUrl || '').trim();
+  if (lastQueriedAgentCardUrl.value !== '' && url !== lastQueriedAgentCardUrl.value) {
+    invalidateAgentCardForUrlChange();
+  }
+};
+
+const deleteAgent = (agent) => {
+  const agents = llmConfig.agents || [];
+  updateConfig({
+    agents: agents.filter((a) => a.name !== agent.name),
+  });
 };
 
 const confirmMCPServer = async () => {
@@ -166,10 +281,137 @@ const confirmMCPServer = async () => {
   }
 };
 
+const queryAgentCard = async () => {
+  const requestedUrl = (agentData.value.agentCardUrl || '').trim();
+
+  if (!requestedUrl) {
+    TinyNotify({
+      type: 'warning',
+      message: '请填写 Agent Card URL',
+      position: 'top-right',
+    });
+    return;
+  }
+
+  agentQueryLoading.value = true;
+  agentCardStatus.value = 'loading';
+  agentCardError.value = '';
+
+  try {
+    const res = await fetch(requestedUrl);
+    const rawText = await res.text();
+    if (!res.ok) {
+      const body = rawText.trim();
+      const statusLine = `${res.status}${res.statusText ? ` ${res.statusText}` : ''}`.trim();
+      throw new Error(formatAgentCardErrorBody(body) || truncateRaw(statusLine));
+    }
+    let card;
+    try {
+      card = rawText.trim() ? JSON.parse(rawText) : null;
+    } catch {
+      throw new Error(formatAgentCardErrorBody(rawText) || truncateRaw(rawText));
+    }
+    if (!card || typeof card !== 'object') {
+      throw new Error(formatAgentCardErrorBody(rawText) || truncateRaw(rawText));
+    }
+    agentCard.value = card;
+    agentData.value = {
+      ...agentData.value,
+      name: card?.name || '',
+      description: card?.description || '',
+    };
+    agentCardStatus.value = 'success';
+    lastQueriedAgentCardUrl.value = requestedUrl;
+  } catch (error) {
+    agentCardStatus.value = 'error';
+    agentCardError.value = error?.message ? `获取 Agent Card 失败：${error.message}` : '获取 Agent Card 失败';
+  } finally {
+    agentQueryLoading.value = false;
+  }
+};
+
+const confirmAgent = () => {
+  const { name, agentCardUrl, description, index } = agentData.value;
+  const urlTrimmed = (agentCardUrl || '').trim();
+  const nameTrimmed = (name || '').trim();
+
+  if (!nameTrimmed || !urlTrimmed) {
+    TinyNotify({
+      type: 'warning',
+      message: '请填写名称和 Agent Card URL',
+      position: 'top-right',
+    });
+    return;
+  }
+
+  if (
+    !agentCard.value ||
+    agentCardStatus.value !== 'success' ||
+    urlTrimmed !== lastQueriedAgentCardUrl.value
+  ) {
+    TinyNotify({
+      type: 'warning',
+      message: '请先查询并确认 Agent Card 信息',
+      position: 'top-right',
+    });
+    return;
+  }
+
+  const card = agentCard.value;
+  const apiUrl = (card?.api?.url || '').trim();
+  if (!apiUrl) {
+    TinyNotify({
+      type: 'warning',
+      message: 'Agent Card 中缺少 api.url，服务端无法调用该 Agent',
+      position: 'top-right',
+    });
+    return;
+  }
+
+  const agents = llmConfig.agents || [];
+  const nameCollision = agents.some((a, i) => i !== index && (a.name || '').trim() === nameTrimmed);
+  if (nameCollision) {
+    TinyNotify({
+      type: 'warning',
+      message: `已存在名为「${nameTrimmed}」的 Agent，名称不可重复`,
+      position: 'top-right',
+    });
+    return;
+  }
+
+  // 启用状态仅在列表里切换，与 MCP 服务一致；新建默认开启，编辑保留当前列表项状态
+  const enabledValue = index > -1 ? (agents[index]?.enabled ?? true) : true;
+  const nextAgent = {
+    // 先保留 Agent Card 上的所有字段（version/api/auth/capabilities 等）
+    ...card,
+    // 再用前端表单中的值覆盖名称和描述
+    name: nameTrimmed,
+    description: (description || '').trim() || card?.description || '',
+    // 前端专属字段
+    agentCardUrl: urlTrimmed,
+    enabled: enabledValue,
+  };
+
+  if (index > -1) {
+    agents[index] = nextAgent;
+  } else {
+    agents.push(nextAgent);
+  }
+
+  updateConfig({ agents });
+  closeAgentDialog();
+};
+
 const updateServerEnabled = (server, enabled) => {
   const mcpServers = llmConfig.mcpServers || [];
   const updatedServers = mcpServers.map((s) => (s.name === server.name ? { ...s, enabled } : s));
   updateConfig({ mcpServers: updatedServers });
+};
+
+const updateAgentEnabled = (agent, enabled) => {
+  const agents = llmConfig.agents || [];
+  const updatedAgents = agents.map((a) => (a.name === agent.name ? { ...a, enabled } : a));
+  updateConfig({ agents: updatedAgents });
 };
 
 const updateAddToolCallContext = (value) => {
@@ -182,59 +424,88 @@ const updateShowThinkingResult = (value) => {
 </script>
 <template>
   <div>
-    <div class="mcp-server-title">
-      <span>MCP 服务</span>
-      <span>
-        <tiny-button type="text" :icon="IconPlus" @click="addMCPServer"> </tiny-button>
-      </span>
-    </div>
-    <div class="mcp-server-list">
-      <div class="mcp-server-item" v-for="(server, index) in llmConfig.mcpServers" :key="server.name">
-        <div class="mcp-server-item-header">
-          <div class="mcp-server-item-name">{{ server.name }}</div>
-          <div>
-            <tiny-switch
-              :model-value="server.enabled"
-              @update:model-value="updateServerEnabled(server, $event)"
-              class="mcp-server-item-enabled"
-            ></tiny-switch>
-            <tiny-popover
-              trigger="hover"
-              popper-class="mcp-server-item-actions-popover"
-              :visible-arrow="false"
-              :append-to-body="false"
-            >
-              <template #default>
-                <div class="mcp-server-item-actions">
-                  <div @click="editMCPServer(server, index)">
-                    <IconEdit />
-                    <span>编辑</span>
-                  </div>
-                  <div @click="deleteMCPServer(server)">
-                    <IconDel />
-                    <span>移除</span>
-                  </div>
-                </div>
-              </template>
-              <template #reference>
-                <tiny-button type="text" :icon="IconEllipsis"> </tiny-button>
-              </template>
-            </tiny-popover>
+    <tiny-collapse v-model="activePanels">
+      <tiny-collapse-item name="mcp" title="MCP 服务">
+        <template #title-right>
+          <tiny-button type="text" :icon="IconPlus" @click.stop="addMCPServer"></tiny-button>
+        </template>
+        <div class="mcp-server-list">
+          <div class="mcp-server-item" v-for="(server, index) in llmConfig.mcpServers" :key="server.name">
+            <div class="mcp-server-item-header">
+              <div class="mcp-server-item-name">{{ server.name }}</div>
+              <div>
+                <tiny-switch :model-value="server.enabled" @update:model-value="updateServerEnabled(server, $event)"
+                  class="mcp-server-item-enabled"></tiny-switch>
+                <tiny-popover trigger="hover" popper-class="mcp-server-item-actions-popover" :visible-arrow="false"
+                  :append-to-body="false">
+                  <template #default>
+                    <div class="mcp-server-item-actions">
+                      <div @click="editMCPServer(server, index)">
+                        <IconEdit />
+                        <span>编辑</span>
+                      </div>
+                      <div @click="deleteMCPServer(server)">
+                        <IconDel />
+                        <span>移除</span>
+                      </div>
+                    </div>
+                  </template>
+                  <template #reference>
+                    <tiny-button type="text" :icon="IconEllipsis"> </tiny-button>
+                  </template>
+                </tiny-popover>
+              </div>
+            </div>
+            <div class="mcp-server-item-description">{{ server.description }}</div>
           </div>
         </div>
-        <div class="mcp-server-item-description">{{ server.description }}</div>
-      </div>
-    </div>
-    <div class="mcp-server-tool-call-context" style="margin-top: 12px">
-      <tiny-checkbox :model-value="chatConfig.addToolCallContext" @update:model-value="updateAddToolCallContext">
-        调用结果添加到上下文
-      </tiny-checkbox>
-    </div>
-    <div class="mcp-server-tool-call-context" style="margin-top: 12px">
-      <tiny-checkbox :model-value="chatConfig.showThinkingResult" @update:model-value="updateShowThinkingResult">
-        调用结果展示在界面中
-      </tiny-checkbox>
-    </div>
+        <div class="mcp-server-tool-call-context">
+          <tiny-checkbox :model-value="chatConfig.addToolCallContext" @update:model-value="updateAddToolCallContext">
+            调用结果添加到上下文
+          </tiny-checkbox>
+        </div>
+        <div class="mcp-server-tool-call-context" style="margin-top: 12px">
+          <tiny-checkbox :model-value="chatConfig.showThinkingResult" @update:model-value="updateShowThinkingResult">
+            调用结果展示在界面中
+          </tiny-checkbox>
+        </div>
+      </tiny-collapse-item>
+      <tiny-collapse-item name="agent" title="Agent（a2ademo）">
+        <template #title-right>
+          <tiny-button type="text" :icon="IconPlus" @click.stop="addAgent"> </tiny-button>
+        </template>
+        <div class="mcp-server-list">
+          <div class="mcp-server-item" v-for="(agent, index) in llmConfig.agents || []" :key="agent.name">
+            <div class="mcp-server-item-header">
+              <div class="mcp-server-item-name">{{ agent.name }}</div>
+              <div>
+                <tiny-switch :model-value="agent.enabled" @update:model-value="updateAgentEnabled(agent, $event)"
+                  class="mcp-server-item-enabled"></tiny-switch>
+                <tiny-popover trigger="hover" popper-class="mcp-server-item-actions-popover" :visible-arrow="false"
+                  :append-to-body="false">
+                  <template #default>
+                    <div class="mcp-server-item-actions">
+                      <div @click="editAgent(agent, index)">
+                        <IconEdit />
+                        <span>编辑</span>
+                      </div>
+                      <div @click="deleteAgent(agent)">
+                        <IconDel />
+                        <span>移除</span>
+                      </div>
+                    </div>
+                  </template>
+                  <template #reference>
+                    <tiny-button type="text" :icon="IconEllipsis"> </tiny-button>
+                  </template>
+                </tiny-popover>
+              </div>
+            </div>
+            <div class="mcp-server-item-description">{{ agent.description }}</div>
+          </div>
+        </div>
+      </tiny-collapse-item>
+    </tiny-collapse>
     <tiny-dialog-box
       v-model:visible="showToolFormDialog"
       :title="mcpServerData.index > -1 ? '编辑 MCP 服务' : '添加 MCP 服务'"
@@ -253,11 +524,8 @@ const updateShowThinkingResult = (value) => {
           <tiny-input v-model="mcpServerData.headers" :placeholder="headersPlaceholder" type="textarea"></tiny-input>
         </tiny-form-item>
         <tiny-form-item label="超时（毫秒）" prop="timeout">
-          <tiny-input
-            v-model="mcpServerData.timeout"
-            :placeholder="String(DEFAULT_TIMEOUT_SECONDS)"
-            type="number"
-          ></tiny-input>
+          <tiny-input v-model="mcpServerData.timeout" :placeholder="String(DEFAULT_TIMEOUT_SECONDS)"
+            type="number"></tiny-input>
         </tiny-form-item>
         <tiny-form-item label="描述" prop="description">
           <tiny-input type="textarea" v-model="mcpServerData.description" placeholder="描述"></tiny-input>
@@ -267,6 +535,19 @@ const updateShowThinkingResult = (value) => {
         <tiny-button type="primary" :loading="addToolLoading" @click="confirmMCPServer">确认</tiny-button>
       </template>
     </tiny-dialog-box>
+    <AgentDialog
+      :visible="showAgentFormDialog"
+      :agent-data="agentData"
+      :agent-card="agentCard"
+      :agent-card-status="agentCardStatus"
+      :agent-card-error="agentCardError"
+      :agent-query-loading="agentQueryLoading"
+      :add-agent-loading="addAgentLoading"
+      @update:visible="(val) => { if (!val) closeAgentDialog(); else showAgentFormDialog = val; }"
+      @update:agentData="onUpdateAgentData"
+      @queryAgentCard="queryAgentCard"
+      @confirmAgent="confirmAgent"
+    />
   </div>
 </template>
 <style scoped lang="less">
@@ -279,15 +560,20 @@ const updateShowThinkingResult = (value) => {
 }
 
 .mcp-server-list {
-  margin-top: 16px;
+  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 
   .mcp-server-item {
-    border: 1px solid #e4e7ed;
-    border-radius: 8px;
-    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: rgba(246, 246, 246, 1);
+    }
 
     &-header {
       display: flex;
@@ -311,6 +597,7 @@ const updateShowThinkingResult = (value) => {
     &-enabled {
       margin-left: 4px;
     }
+
     &-delete {
       margin-right: 4px;
     }
@@ -318,23 +605,128 @@ const updateShowThinkingResult = (value) => {
 }
 
 .mcp-server-tool-call-context {
+  margin-top: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
   color: #595959;
+
+  &:last-child {
+    margin-bottom: 16px;
+  }
 }
+
+:deep(.tiny-collapse-item__header) {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  border-bottom: none !important;
+}
+
+:deep(.tiny-collapse-item__content) {
+  padding: 0 !important;
+}
+
+.agent-card-detail {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background-color: #fafafa;
+  border: 1px solid #f0f0f0;
+  max-height: 260px;
+  overflow: auto;
+  font-size: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+  &__header {
+    margin-bottom: 8px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #262626;
+    margin-bottom: 2px;
+  }
+
+  &__subtitle {
+    font-size: 12px;
+    color: #8c8c8c;
+  }
+
+  &__section {
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid #f5f5f5;
+  }
+
+  &__section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #595959;
+    margin-bottom: 4px;
+  }
+
+  &__row {
+    display: flex;
+    margin-bottom: 2px;
+  }
+
+  &__label {
+    flex: 0 0 70px;
+    color: #8c8c8c;
+  }
+
+  &__value {
+    flex: 1;
+    color: #333;
+    word-break: break-all;
+  }
+}
+
+.agent-card-hint {
+  margin-top: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+
+  &--info {
+    background-color: #e6f4ff;
+    color: #0958d9;
+    border: 1px solid #91caff;
+  }
+
+  &--error {
+    background-color: #fff1f0;
+    color: #cf1322;
+    border: 1px solid #ffa39e;
+  }
+}
+
+.agent-url-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  :deep(.tiny-input) {
+    flex: 1;
+  }
+}
+
 :deep(.mcp-server-item-actions-popover) {
   padding: 0;
   border: none;
 }
+
 .mcp-server-item-actions {
-  & > div {
+  &>div {
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
     padding: 8px 16px;
+
     &:hover {
       background-color: #f5f5f5;
     }
