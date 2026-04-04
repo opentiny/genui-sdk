@@ -18,6 +18,7 @@
     "build:playground": "pnpm --filter genui-sdk-playground build",
     "build:playground-web": "pnpm prebuild:playground && pnpm --filter genui-sdk-playground-web build",
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
+    "build:docs": "pnpm --filter genui-sdk-docs build",
     "build": "pnpm build:playground"
   },
   "pnpm": {
