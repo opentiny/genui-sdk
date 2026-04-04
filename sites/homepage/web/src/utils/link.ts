@@ -1,16 +1,16 @@
-const DOC_DOMAIN = import.meta.env.VITE_GENUI_DOC_DOMAIN || 'https://docs.opentiny.design';
+const DOCS_BASE = import.meta.env.VITE_GENUI_DOCS_BASE || 'https://docs.opentiny.design/genui-sdk';
 const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://playground.opentiny.design/genui-sdk';
 
 export const linkMap = {
-  devDoc: `${DOC_DOMAIN}/genui-sdk/guide/quick-start`,
+  devDoc: `${DOCS_BASE}/guide/quick-start`,
   playground: PLAYGROUND_HREF,
-  chatDoc: `${DOC_DOMAIN}/genui-sdk/components/chat`,
-  dcologicalCompatibility: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-fetch`,
-  defineTheme: `${DOC_DOMAIN}/genui-sdk/examples/config-provider/theme`,
-  defineComponent: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-components`,
-  defineAction: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-actions`,
-  multiTechnology: `${DOC_DOMAIN}/genui-sdk/components/angular/renderer`,
-  moreFeatures: `${DOC_DOMAIN}/genui-sdk/examples/chat/custom-examples`,
+  chatDoc: `${DOCS_BASE}/components/chat`,
+  dcologicalCompatibility: `${DOCS_BASE}/examples/chat/custom-fetch`,
+  defineTheme: `${DOCS_BASE}/examples/config-provider/theme`,
+  defineComponent: `${DOCS_BASE}/examples/chat/custom-components`,
+  defineAction: `${DOCS_BASE}/examples/chat/custom-actions`,
+  multiTechnology: `${DOCS_BASE}/components/angular/renderer`,
+  moreFeatures: `${DOCS_BASE}/examples/chat/custom-examples`,
 };
 
 export enum LinkKey {
