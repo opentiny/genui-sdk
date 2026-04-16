@@ -50,6 +50,7 @@ const { isMobile } = useMobile();
 const buttonSize = computed(() => {
   return isMobile.value ? 'default' : 'medium';
 });
+const isGithubPages = import.meta.env.VITE_BUILD_MODE === 'github-pages';
 </script>
 
 <template>
@@ -64,7 +65,7 @@ const buttonSize = computed(() => {
           <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
             <tiny-button :reset-time="0" round type="primary" :size="buttonSize">开发文档</tiny-button>
           </a>
-          <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+          <a v-if="isGithubPages" :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
             <tiny-button :reset-time="0" round ghost :size="buttonSize">演练场</tiny-button>
           </a>
           <a href="https://github.com/opentiny/genui-sdk" target="_blank" class="btn-link">
