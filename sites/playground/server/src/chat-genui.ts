@@ -16,8 +16,10 @@ import { openaiCompatibleTransformChunk, type IOpenaiCompatibleChunk } from '@op
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
+import { buildAgentTools, isAllowedAgentUrl, type PlaygroundAgentConfig } from './a2a-tools/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
+
 
 export type McpServerConfig = {
   name: string;
@@ -196,7 +198,7 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
 }
 
 const getPlaygroundConfig = (playgroundStr: string) => {
-  let playgroundConfig = {}
+  let playgroundConfig: any = {};
 
   try {
     playgroundConfig = JSON.parse(playgroundStr);
@@ -204,15 +206,23 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     console.error('Failed to parse playground from metadata:', error);
   }
 
+  const rawAgents = (playgroundConfig.agents || []) as PlaygroundAgentConfig[];
+  // 解析后立刻过滤掉指向本地/内网等不安全目标的 Agent，降低 SSRF 风险
+  const agents = rawAgents.filter((agent) => {
+    const url = agent.api?.url;
+    if (!url) return false;
+    return isAllowedAgentUrl(url);
+  });
+
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    agents,
   };
-
-}
+};
 
 export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
@@ -244,7 +254,7 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -255,10 +265,12 @@ export function createChatGenui() {
 
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt } = llmConfig;
-    const { tools, clientsMap } = await generateAiSdkTools(
+    const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
       mcpServers.filter((s) => s.enabled),
       abort.signal,
     );
+    const agentTools = buildAgentTools(agents, abort.signal);
+    const tools = { ...mcpTools, ...agentTools };
 
     const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
