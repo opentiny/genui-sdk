@@ -4,35 +4,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { streamText, stepCountIs, type StreamTextOptions } from 'ai';
+import { streamText, stepCountIs } from 'ai';
 import getRawBody from 'raw-body';
 import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-completions';
 import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
+import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 
-export type McpServerConfig = {
-  name: string;
-  url: string;
-  description?: string;
-  enabled?: boolean;
-  headers?: Record<string, string>;
-  timeout?: number;
-};
-interface IPlaygroundConfig {
-  mcpServers: McpServerConfig[];
-  framework: string;
-  promptList: string[];
-  model: string;
-  temperature: number;
-}
-
-export type LLMConfigParams = {
-  model?: string;
-  temperature?: number;
-  prompt?: string;
-  mcpServers?: McpServerConfig[];
-};
+type StreamTextOptions = Parameters<typeof streamText>[0];
 
 const getPlaygroundConfig = (playgroundStr: string) => {
   let playgroundConfig: IPlaygroundConfig = {
@@ -41,6 +21,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     promptList: [],
     model: '',
     temperature: 0.3,
+    agents: [],
   };
 
   try {
