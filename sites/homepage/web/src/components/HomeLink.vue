@@ -9,6 +9,8 @@ const { isMobile } = useMobile();
 const buttonSize = computed(() => {
   return isMobile.value ? 'medium' : 'large';
 });
+
+const isGithubPages = import.meta.env.VITE_BUILD_MODE === 'github-pages';
 </script>
 
 <template>
@@ -23,7 +25,7 @@ const buttonSize = computed(() => {
         <div>打造极致顺滑的智能体验</div>
       </div>
       <div class="home-link-button-group">
-        <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+        <a v-if="isGithubPages" :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
           <tiny-button type="primary" :size="buttonSize" round>立即体验</tiny-button>
         </a>
         <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
