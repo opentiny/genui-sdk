@@ -47,6 +47,7 @@ jobs:
           VITE_GET_MODELS_URL: ${{ vars.PLAYGROUND_BACKEND_URL }}/get-models
           VITE_CHECK_MCP_URL: ${{ vars.PLAYGROUND_BACKEND_URL }}/check-mcp
           VITE_BUILD_MODE: github-pages
+          VITE_CHAT_TEMPLATE_URL: ${{ vars.PLAYGROUND_BACKEND_URL }}/chat-template
         run: node scripts/build-github-pages.mjs
 
       - name: Upload Pages artifact

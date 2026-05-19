@@ -179,6 +179,7 @@ export class CustomModelProvider extends BaseModelProvider {
             // 模板场景暂不处理 tool_calls_result
           } else if (content !== undefined) {
             currentDelta = delta;
+            chatMessage.content += content;
             schemaJsonExtractor.handleContent(content);
           }
         } catch (e) {

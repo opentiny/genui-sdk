@@ -1,5 +1,4 @@
 export const generateJsonPatchPrompt = (
-  schema: any,
 ) => `根据提供的 JSON schema 和修改指令，生成符合 JSON PATCH (RFC 6902) 规范的增量修改操作，使用 \`\`\`jsonPatch\`\`\` 标记包裹输出。
 
 ## ⚠️ 最重要：ID 来源规则（必须严格遵守）
@@ -10,11 +9,6 @@ export const generateJsonPatchPrompt = (
 2. **只使用当前 schema 中的 ID**：所有组件 ID 必须从下面提供的当前 schema 中查找和验证
 3. **如果历史消息中的 ID 与当前 schema 不匹配**：说明 schema 已经更新，必须使用当前 schema 中的新 ID
 4. **验证 ID 存在性**：在使用任何 ID 前，必须确认该 ID 在当前 schema 中存在
-
-**当前 schema（这是唯一可信的 ID 来源）：**
-\`\`\`json
-${JSON.stringify(schema, null, 2)}
-\`\`\`
 
 **重要提醒：**
 - 历史消息中的 ID 可能指向已删除或已修改的组件

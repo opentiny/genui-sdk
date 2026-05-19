@@ -16,43 +16,10 @@ import { openaiCompatibleTransformChunk, type IOpenaiCompatibleChunk } from '@op
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
+import { buildAgentTools, isAllowedAgentUrl } from './a2a-tools/index.js';
+import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
-
-export type McpServerConfig = {
-  name: string;
-  url: string;
-  description?: string;
-  enabled?: boolean;
-  headers?: Record<string, string>;
-  timeout?: number;
-};
-
-export type McpServer = {
-  url: string;
-  headers?: Record<string, string>;
-  timeout?: number;
-  enabled?: boolean;
-};
-
-export type McpServersConfig = McpServerConfig[];
-
-export type LLMConfigParams = {
-  model?: string;
-  temperature?: number;
-  prompt?: string;
-  mcpServers?: McpServersConfig;
-};
-
-export type LLMConfig = {
-  model?: any; // 支持 AI SDK 模型实例
-  temperature?: number;
-  apiKey?: string;
-  prompt?: string;
-  supportJsonFormat?: boolean;
-  specificPrompt?: string;
-  mcpServers?: McpServersConfig;
-};
 
 const initClients = async (
   serverName: string,
@@ -196,13 +163,24 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
 }
 
 const getPlaygroundConfig = (playgroundStr: string) => {
-  let playgroundConfig = {}
+  let playgroundConfig: Partial<IPlaygroundConfig> = {};
 
   try {
-    playgroundConfig = JSON.parse(playgroundStr);
+    const parsed = JSON.parse(playgroundStr) as IPlaygroundConfig;
+    if (parsed && typeof parsed === 'object') {
+      playgroundConfig = parsed;
+    }
   } catch (error) {
     console.error('Failed to parse playground from metadata:', error);
   }
+
+  const rawAgents = playgroundConfig.agents || [];
+  // 解析后立刻过滤掉指向本地/内网等不安全目标的 Agent，降低 SSRF 风险
+  const agents = rawAgents.filter((agent) => {
+    const url = agent.api?.url;
+    if (!url) return false;
+    return isAllowedAgentUrl(url);
+  });
 
   return {
     mcpServers: playgroundConfig.mcpServers || [],
@@ -210,9 +188,9 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    agents,
   };
-
-}
+};
 
 export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
@@ -244,7 +222,7 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -252,13 +230,14 @@ export function createChatGenui() {
       mcpServers,
     };
 
-
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt } = llmConfig;
-    const { tools, clientsMap } = await generateAiSdkTools(
+    const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
       mcpServers.filter((s) => s.enabled),
       abort.signal,
     );
+    const agentTools = buildAgentTools(agents, abort.signal);
+    const tools = { ...mcpTools, ...agentTools };
 
     const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
@@ -373,7 +352,7 @@ export const checkMcpHandler = async (req: Request, res: Response) => {
   res.on('close', () => {
     try {
       abort.abort(new Error('/check-mcp connection closed'));
-    } catch { }
+    } catch {}
   });
 
   try {

@@ -16,7 +16,7 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import { requiredCompleteFieldSelectors, scrollEnd, throttle } from '@opentiny/genui-sdk-vue';
+import { requiredCompleteFieldSelectors, scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
 import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
@@ -30,14 +30,14 @@ import {
   generateId,
 } from './template-chat-utils';
 import { jsonPatchDeduplicator } from './json-patch-deduplicator';
-import SchemaVersionCard from './SchemaVersionCard.vue';
 import useTemplate from './useTemplate';
 import AssistantFooter from './TemplateAssistantFooter.vue';
+import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
 import { emitter } from './template-chat-event-emitter';
 import useIcon from '../../use-icon';
 
 const { addIcons } = useIcon();
-addIcons(IconAi, IconUser);
+addIcons(IconAi, IconUser, IconArrowDown);
 
 const props = defineProps<{
   messages?: IMessage[];
@@ -45,7 +45,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['schema-version-toggle']);
 
-const TinyGenuiConfig: any = inject('TinyGenuiConfig');
+const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const errorMessagesMap = ref<Map<string, string>>(new Map());
@@ -53,8 +53,10 @@ const {
   conversation,
   templateConversationState,
   currentSchema,
+  currentPreviewSchema,
   currentCardId,
   setCurrentSchema,
+  setCurrentPreviewSchema,
   updateTemplateTitle,
   setCurrentCardId,
 } = useTemplate();
@@ -138,7 +140,7 @@ const schemaCardRenderer = async (props: any) => {
     deltaPatcher.patchWithDelta(target, json, isCompleted);
     // 给每个组件添加 id
     const schemaWithId = generateIdForComponents(target);
-    setCurrentSchema(schemaWithId);
+    setCurrentPreviewSchema(schemaWithId);
   } catch (error) {
     console.error('schemaCardRenderer error ===>', error);
     errorMessagesMap.value.set(props.cardId, error.message);
@@ -190,48 +192,16 @@ const jsonPatchRenderer = async (props: any) => {
       return standardOp as JsonPatchOp;
     });
 
-    const targetSchema = JSON.parse(JSON.stringify(currentSchema.value));
+    // 增量 patch 需要基于“当前预览态”持续叠加，避免每个 chunk 都从已应用态重建导致丢操作。
+    const patchBaseline = currentPreviewSchema.value ?? currentSchema.value;
+    const targetSchema = JSON.parse(JSON.stringify(patchBaseline));
     jsonPatchFormatter.patch(targetSchema, standardOperations);
-    setCurrentSchema(generateIdForComponents(targetSchema));
+    setCurrentPreviewSchema(generateIdForComponents(targetSchema));
     // 标记所有操作（包括已过滤的）为已执行，避免重复执行
     jsonPatchDeduplicator.markAllOperationsExecuted(operationKey, formattedValue);
   } catch (error) {
     errorMessagesMap.value.set(props.cardId, error.message);
     console.error('jsonPatch error ===>', error);
-  }
-};
-
-const handleSchemaVersionCardClick = (cardId: string) => {
-  // 从 messages 中找到对应的卡片。
-  let targetStr = '';
-
-  messages.value.some((msg) => {
-    const card = (msg.messages as IMessageItem[])?.find(
-      (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
-        (message.type === 'schema-card' || message.type === 'json-patch') && message.cardId === cardId,
-    );
-
-    if (card) {
-      targetStr = card.schema;
-
-      return true;
-    }
-
-    return false;
-  });
-
-  if (!targetStr) {
-    return;
-  }
-
-  try {
-    const targetSchema = JSON.parse(targetStr);
-    // 当切换 schema 版本时，清理该卡片已执行的 patch 操作记录
-    // 因为新的 schema 版本可能需要重新执行操作
-    jsonPatchDeduplicator.clearCardOperations(cardId);
-    emit('schema-version-toggle', targetSchema, cardId);
-  } catch (error) {
-    console.error('Failed to parse schema for version toggle:', error);
   }
 };
 
@@ -257,6 +227,7 @@ const handleRefresh = ({ index }: { index: number }) => {
   }
   if (currentSchema) {
     setCurrentSchema(currentSchema);
+    setCurrentPreviewSchema(currentSchema);
   }
   messages.value = messages.value.slice(0, index);
   setCurrentCardId(messages.value[messages.value.length - 1].messageId as string);
@@ -264,10 +235,8 @@ const handleRefresh = ({ index }: { index: number }) => {
 };
 
 const handleCopy = async ({ index }: { index: number }) => {
-  const cardMessage = getCardMessageByIndex(index);
-
   try {
-    await copy(cardMessage?.content);
+    await copy((messages.value[index]?.content as string) || '');
   } catch (error) {
     console.error('复制失败', error);
   }
@@ -282,24 +251,28 @@ const messageRenderers = {
   markdown: markdownRenderer,
   'json-patch': (props) => {
     jsonPatchRenderer(props);
-    return h(SchemaVersionCard, {
-      key: props.cardId,
+
+    return h(TemplateSchemaMessageRenderer, {
+      itemProps: props,
+      type: 'json-patch',
       prevSchema: prevSchema.value,
       errorMessagesMap: errorMessagesMap.value,
-      ...props,
-      type: 'json-patch',
-      onClick: handleSchemaVersionCardClick,
+      messages: messages.value,
+      onSchemaVersionToggle: (schema: Record<string, unknown>, cardId: string) =>
+        emit('schema-version-toggle', schema, cardId),
     });
   },
   'schema-card': (props) => {
     schemaCardRenderer(props);
-    return h(SchemaVersionCard, {
-      key: props.cardId,
+
+    return h(TemplateSchemaMessageRenderer, {
+      itemProps: props,
+      type: 'schema-card',
       prevSchema: prevSchema.value,
       errorMessagesMap: errorMessagesMap.value,
-      ...props,
-      type: 'schema-card',
-      onClick: handleSchemaVersionCardClick,
+      messages: messages.value,
+      onSchemaVersionToggle: (schema: Record<string, unknown>, cardId: string) =>
+        emit('schema-version-toggle', schema, cardId),
     });
   },
 };
@@ -393,6 +366,7 @@ const handleSendMessage = async () => {
 
 const handleNotification = (event: INotificationPayload) => {
   if (event.type === 'done') {
+    setCurrentSchema(currentPreviewSchema.value);
     // 将 schema 缓存到卡片中
     const lastMessage = messages.value[messages.value.length - 1];
     const lastMessageCard = (lastMessage as any).messages.find(
@@ -424,21 +398,45 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }">
-    <div class="messages-container" ref="messagesContainer">
+  <div
+    class="tg-chat-container"
+    :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }"
+  >
+    <div
+      class="messages-container"
+      ref="messagesContainer"
+    >
       <tr-bubble-provider :content-renderers="messageRenderers">
-        <tr-bubble-list v-if="showMessages.length" :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
+        <tr-bubble-list
+          v-if="showMessages.length"
+          :items="showMessages"
+          :roles="roles"
+          auto-scroll
+        >
+        </tr-bubble-list>
       </tr-bubble-provider>
     </div>
     <div class="sender-container">
-      <div :class="['scroll-to-bottom-button', { 'is-generating': generating }]" v-show="!isLastMessageInBottom"
-        @click="scrollToBottom">
+      <div
+        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
+        v-show="!isLastMessageInBottom"
+        @click="scrollToBottom"
+      >
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <tr-sender v-model="inputMessage"
-        :placeholder="GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'"
-        :clearable="true" :loading="GeneratingStatus.includes(messageManager.messageState.status)" :showWordLimit="true"
-        :maxLength="5000" @clear="clearInputMessage" @submit="handleSendMessage" @cancel="messageManager.abortRequest">
+      <tr-sender
+        v-model="inputMessage"
+        :placeholder="
+          GeneratingStatus.includes(messageManager.messageState.status) ? '正在思考中...' : '请输入您的问题～'
+        "
+        :clearable="true"
+        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
+        :showWordLimit="true"
+        :maxLength="5000"
+        @clear="clearInputMessage"
+        @submit="handleSendMessage"
+        @cancel="messageManager.abortRequest"
+      >
       </tr-sender>
     </div>
   </div>
@@ -448,6 +446,10 @@ onUnmounted(() => {
 .tg-chat-container {
   --ti-gen-chat-container-bg-color: #f0f0f0;
   --thinking-display: initial;
+  --sender-bg: url('./assets/sender-light.svg') no-repeat center;
+  --sender-border-color: #e5e5e5;
+  --generating-bg-before: linear-gradient(90deg, #fff, #a2c7f4);
+  --generating-bg-after: #fff;
   box-sizing: border-box;
   height: 100%;
   color: var(--tr-text-primary);
@@ -456,9 +458,12 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: auto;
-
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
+    --sender-bg: url('./assets/sender-dark.svg') no-repeat center;
+    --sender-border-color: #333;
+    --generating-bg-before: linear-gradient(90deg, #262626, #808080);
+    --generating-bg-after: #191919;
   }
 }
 
@@ -489,15 +494,14 @@ onUnmounted(() => {
 }
 
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-
   // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
-  >[type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
+  > [type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);
   }
 }
 
 :deep(.tr-bubble__step-tool) {
-  &+.tr-bubble__step-tool {
+  & + .tr-bubble__step-tool {
     margin-top: 16px;
   }
 }
@@ -534,6 +538,7 @@ onUnmounted(() => {
   flex-shrink: 0;
   padding: 16px 0;
   background: var(--sender-bg);
+
   .attachments-container {
     padding: 0 20px;
   }
@@ -554,13 +559,16 @@ onUnmounted(() => {
   cursor: pointer;
   border: 1px solid var(--sender-border-color);
   z-index: 1000;
+
   & > svg {
     width: 20px;
     height: 20px;
   }
 
   &:hover {
-    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
+    box-shadow:
+      0px 10px 20px 0px #0000001a,
+      0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {

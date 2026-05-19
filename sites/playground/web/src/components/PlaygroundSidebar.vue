@@ -43,6 +43,8 @@ const currentConversationTitle = computed(() => {
 // 侧边栏宽度（使用样式中定义的 CSS 变量，避免重复）
 const sidebarWidth = computed(() => (props.expanded ? 'var(--config-tas-width)' : 'var(--config-tas-width-collapsed)'));
 
+const showNewTaskButton = computed(() => activeName.value !== 'template');
+
 watch(isMobile, (mobile) => {
   if (mobile) emit('update:expanded', false);
 });
@@ -90,7 +92,7 @@ const updateCustomExamples = (list) => {
       <div class="playground-topbar__title">
         {{ currentConversationTitle }}
       </div>
-      <button type="button" class="playground-topbar__icon-btn" aria-label="新建会话" @click="handleNewTask">
+      <button v-if="showNewTaskButton" type="button" class="playground-topbar__icon-btn" aria-label="新建会话" @click="handleNewTask">
         <span class="svg-icon" :innerHTML="NewSvg"></span>
       </button>
     </div>
@@ -137,7 +139,7 @@ const updateCustomExamples = (list) => {
             </button>
           </div>
           <button
-            v-if="!expanded && !isMobile"
+            v-if="!expanded && !isMobile && showNewTaskButton"
             type="button"
             class="playground-sidebar__icon-btn"
             aria-label="新建会话"
@@ -150,7 +152,7 @@ const updateCustomExamples = (list) => {
       </header>
 
       <div class="playground-sidebar__new-task">
-        <button v-if="expanded" class="new-task-btn" type="button" @click="handleNewTask">
+        <button v-if="expanded && showNewTaskButton" class="new-task-btn" type="button" @click="handleNewTask">
           <TinyIconPlus :size="16" />
           <span class="new-task-btn__text">新建会话</span>
           <div class="new-task-btn__shortcut">
