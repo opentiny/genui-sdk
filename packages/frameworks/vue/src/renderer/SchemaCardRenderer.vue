@@ -75,8 +75,8 @@ function updateContextAndState() {
 }
 
 watch(
-  () => props.content,
-  (newVal) => {
+  [() => props.content, () => props.isJsonComplete],
+  ([newVal, isJsonComplete]) => {
     isError.value = false;
     let json: any = newVal;
     let isCompleted = true
@@ -92,6 +92,8 @@ watch(
       } else {
         json = {};
       }
+    } else {
+      isCompleted = isJsonComplete ?? true;
     }
     deltaPatcher.patchWithDelta(schema.value, json, isCompleted); // TODO： 速率限制
     if (!updateActionTimer) {

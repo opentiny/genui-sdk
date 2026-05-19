@@ -1,5 +1,160 @@
-export const generateJsonPatchPrompt = (
-) => `根据提供的 JSON schema 和修改指令，生成符合 JSON PATCH (RFC 6902) 规范的增量修改操作，使用 \`\`\`jsonPatch\`\`\` 标记包裹输出。
+import { z } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+
+/**
+ * RFC 6901 JSON Pointer 校验
+ * 精确匹配：必须为空或以 / 开头，且 ~ 后面必须跟着 0 或 1
+ */
+const jsonPointerBaseSchema = z
+  .string()
+  .regex(
+    /^(?:|(?:\/(?:[^~/]|~[01])*)+)$/,
+    'Invalid JSON Pointer format. Must start with "/" and use ~0, ~1 for escaping.',
+  );
+
+/** 是否存在 "-" 引用 token（JSON Patch add 的数组末尾 sentinel；replace/copy/test 不允许） */
+function jsonPointerHasAppendSentinel(pointer: string): boolean {
+  if (pointer === '') return false;
+  return pointer
+    .slice(1)
+    .split('/')
+    .some((segment) => segment.replace(/~1/g, '/').replace(/~0/g, '~') === '-');
+}
+
+/** add 的 path：允许 `/-` 表示插入数组末尾 */
+const jsonPointerSchemaAdd = jsonPointerBaseSchema.describe(
+  "RFC 6901 Pointer (e.g., '/foo/0', '/a~1b'). Use '/-' as the last segment to append to an array.",
+);
+
+/** replace/copy/test 的 path 与 copy 的 from：必须指向已有位置，禁止 `-` 索引 */
+const jsonPointerSchemaExisting = jsonPointerBaseSchema
+  .refine(
+    (s) => !jsonPointerHasAppendSentinel(s),
+    'Invalid JSON Pointer: "-" (array append) is only valid for op "add". Use a numeric index or property name.',
+  )
+  .describe(
+    "RFC 6901 Pointer to an existing value (e.g., '/foo/0', '/a~1b'). Do not use '/-' — that is only for op 'add'.",
+  );
+
+/**
+ * 递归 JSON 值定义
+ */
+const literalSchema = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+type JsonValue = z.infer<typeof literalSchema> | { [key: string]: JsonValue } | JsonValue[];
+const jsonPatchValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
+  z.union([literalSchema, z.array(jsonPatchValueSchema), z.record(jsonPatchValueSchema)]),
+);
+
+/**
+ * RFC 6902 JSON Patch 操作集
+ * 增加 .describe() 以优化 LLM 的 Function Calling 或 JSON 生成表现
+ */
+const baseOperationSchema = z.object({
+  id: z.string().min(1).describe('Target component id in current schema.'),
+});
+
+const movePositionSchema = z
+  .enum(['before', 'after', 'inside'])
+  .describe('Relative insertion position to positionId.');
+
+// 添加
+const addOperation = z
+  .object({
+    op: z.literal('add'),
+    path: jsonPointerSchemaAdd,
+    value: jsonPatchValueSchema.describe('The value to add at the specified path.'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Adds a value to an object or inserts it into an array.');
+
+// 移除
+const removeOperation = z
+  .object({
+    op: z.literal('remove'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Removes the target component by id.');
+
+// 替换
+const replaceOperation = z
+  .object({
+    op: z.literal('replace'),
+    path: jsonPointerSchemaExisting,
+    value: jsonPatchValueSchema.describe('The new value to replace the current one.'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Replaces the value at the target location with a new value.');
+
+// 移动
+const moveOperation = z
+  .object({
+    op: z.literal('move'),
+    positionId: z.string().min(1).describe('Anchor component id used as move destination reference.'),
+    position: movePositionSchema,
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe("Moves component `id` relative to `positionId` by `position`.");
+
+// 复制
+const copyOperation = z
+  .object({
+    op: z.literal('copy'),
+    from: jsonPointerSchemaExisting.describe('Reference to the location to copy the value from.'),
+    path: jsonPointerSchemaExisting.describe('The destination path.'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe("Copies a value from 'from' to 'path'.");
+
+// 测试
+const testOperation = z
+  .object({
+    op: z.literal('test'),
+    path: jsonPointerSchemaExisting,
+    value: jsonPatchValueSchema.describe('The value to compare against.'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Tests that a value at the target location is equal to a specified value.');
+
+/**
+ * 最终导出的 JSON Patch Schema
+ */
+export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
+  addOperation,
+  removeOperation,
+  replaceOperation,
+  moveOperation,
+  copyOperation,
+  testOperation,
+]);
+
+export const jsonPatchSchema = z
+  .array(jsonPatchOperationSchema)
+  .describe('An array of JSON Patch operations (RFC 6902) to be applied in order.');
+
+export type JsonPatchOperation = z.infer<typeof jsonPatchOperationSchema>;
+export type JsonPatch = z.infer<typeof jsonPatchSchema>;
+
+const jsonPatchSchemaAsJsonSchema = zodToJsonSchema(jsonPatchSchema, {
+  name: 'JsonPatchOperations',
+});
+const jsonPatchSchemaText = JSON.stringify(jsonPatchSchemaAsJsonSchema, null, 2);
+
+export const generateJsonPatchPrompt =
+  () => `根据提供的 JSON schema 和修改指令，生成符合基于 JSON PATCH (RFC 6902) 规范扩展的 JSON PATCH 操作序列，使用 \`\`\`jsonPatch\`\`\` 标记包裹输出。
+
+## JSON PATCH 格式规范（由 jsonPatchSchema 转换）
+
+请严格按以下 JSON Schema 生成操作序列：顶层必须是 JSON 数组（\`[]\`），按顺序包含零条或多条操作对象；不要只输出单条操作对象。
+
+\`\`\`json
+${jsonPatchSchemaText}
+\`\`\`
 
 ## ⚠️ 最重要：ID 来源规则（必须严格遵守）
 
@@ -64,9 +219,9 @@ export const generateJsonPatchPrompt = (
 - 如果要移动到一个元素的后面，清使用下一个元素的前面，或者父元素的里面
 - after：移动到目标对象的后面
 **示例：**
-- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "", "position": "before" }\`
-- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "sourceId", "position": "inside" }\`
-- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "sourceId", "position": "after" }\`
+- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "anchorId", "position": "before" }\`
+- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "anchorId", "position": "inside" }\`
+- ✅ 正确：\`{ "op": "move", "id": "targetId", "positionId": "anchorId", "position": "after" }\`
 
 **属性操作：使用目标组件本身的 id + 组件内相对路径**
 - ✅ 正确：修改 children[0].children[0].props.text → 找到该组件本身的 id，使用 \`{ "id": "deep123", "path": "/props/text" }\`
@@ -116,38 +271,28 @@ export const generateJsonPatchPrompt = (
   {"op": "remove", "id": "comp123", "path": "/children/3"},  // 删除 D
   {"op": "remove", "id": "comp123", "path": "/children/1"}   // 删除 B（索引不变）
 ]
+
+move 示例（相对位置语义）：
+初始状态：children = [A(id:a), B(id:b), C(id:c), D(id:d)]
+目标：把 D 移动到 B 前面，期望结果 [A, D, B, C]
+
+❌ 错误方式（把 positionId 误用成被移动元素自身）：
+[
+  {"op": "move", "id": "d", "positionId": "d", "position": "before"}
+]
+
+✅ 正确方式（positionId 指向目标锚点 B）：
+[
+  {"op": "move", "id": "d", "positionId": "b", "position": "before"}
+]
 \`\`\`
 
-## JSON PATCH 格式规范
+### Schema 使用补充
 
-### 操作对象结构
-
-\`\`\`typescript
-interface JsonPatchOperation {
-  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
-  id: string;        // 组件 id（必需）
-  path?: string;     // 组件内相对路径（属性操作需要）
-  value?: any;       // 值（add/replace/test 需要）
-  from?: string;     // 源路径（move/copy 需要）
-}
-\`\`\`
-
-### 操作类型规则
-
-**组件操作（操作整个组件）：**
-- remove/replace：使用目标组件本身的 id，**不需要 path**
-- add：使用父组件 id + path 指定位置
-
-**属性操作（操作组件属性）：**
-- 使用目标组件本身的 id + 组件内相对路径
-- path 格式：\`/props/text\`、\`/children/0/props/text\`（从组件根开始）
-
-### JSON Pointer 路径格式
-
-- 对象属性：\`/propertyName\`（如 \`/props/text\`）
-- 数组元素：\`/array/0\`（索引从 0 开始）
-- 数组末尾：\`/children/-\`
-- 特殊字符：\`~0\` = \`~\`，\`~1\` = \`/\`
+- 所有 \`path\` / \`from\` 字段都必须遵循 RFC 6901 JSON Pointer
+- \`path\` 支持数组末尾写法 \`/-\`（仅在 add 到数组末尾时使用）
+- \`move\` 操作使用 \`positionId + position(before/after/inside)\`，不使用 \`from/path\`
+- 组件编辑语义（id、positionId、position 等）必须同时满足本提示词上文的业务规则
 
 ## 验证检查清单（VF 两阶段流程）
 

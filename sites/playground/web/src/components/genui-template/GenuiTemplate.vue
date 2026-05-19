@@ -11,6 +11,7 @@ import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import GenuiTemplateMobileSheet from './GenuiTemplateMobileSheet.vue';
 import useTemplate from './useTemplate';
 import { useIsMobile } from '../../use-mobile';
+import { useMonacoPlaygroundTheme } from './use-monaco-playground-theme';
 import viewSchemaIcon from '../../assets/images/view-schema.svg';
 
 const { isMobile } = useIsMobile();
@@ -22,6 +23,7 @@ const {
   setCurrentSchema,
   setCurrentPreviewSchema,
   currentPreviewSchema,
+  currentPreviewSchemaComplete,
   templateConversationState,
   conversation,
   currentCardId,
@@ -29,6 +31,8 @@ const {
 const props = defineProps<{
   theme: 'light' | 'dark' | 'lite' | 'auto';
 }>();
+
+const monacoTheme = useMonacoPlaygroundTheme(() => props.theme);
 
 // 桌面：右侧预览列是否展开（关闭后仅占聊天列；切换会话或点击版本卡片会重新展开）
 const rendererPanelVisible = ref(true);
@@ -275,7 +279,7 @@ onUnmounted(() => {
       </GenuiConfigProvider>
       <div class="schema-version-container" v-show="schemaEditorVisible && !isMobile">
         <div class="schema-version-container__header">
-          <span class="schema-version-container__title">查看 Schema</span>
+          <span class="schema-version-container__title">SchemaJSON</span>
           <tiny-button
             type="text"
             class="genui-schema-toolbar-close-btn"
@@ -285,7 +289,7 @@ onUnmounted(() => {
           />
         </div>
         <div class="schema-version-container__editor">
-          <code-editor v-model:value="schemaEditor" language="json" theme="vs" :options="editorOptions" />
+          <code-editor v-model:value="schemaEditor" language="json" :theme="monacoTheme" :options="editorOptions" />
         </div>
       </div>
     </div>
@@ -296,8 +300,10 @@ onUnmounted(() => {
       :panel-style="mobileSheetPanelStyle"
       :show-return-latest-button="showReturnLatestButton"
       :current-preview-schema="currentPreviewSchema"
+      :current-preview-schema-complete="currentPreviewSchemaComplete"
       :schema-editor="schemaEditor"
       :editor-options="editorOptions"
+      :playground-theme="theme"
       :view-schema-icon="viewSchemaIcon"
       :close-icon="TinyCloseIcon"
       @update:json-editor-open="mobileSchemaJsonEditorOpen = $event"
@@ -330,7 +336,7 @@ onUnmounted(() => {
               />
             </div>
           </div>
-          <schema-renderer class="schema-renderer" :content="currentPreviewSchema" :generating="false" />
+          <schema-renderer class="schema-renderer" :content="currentPreviewSchema" :generating="false" :isJsonComplete="currentPreviewSchemaComplete" />
         </div>
       </div>
     </template>
@@ -367,12 +373,12 @@ onUnmounted(() => {
 
     &-wrapper {
       background-color: #ffffff;
-      border-radius: 16px;
       height: 100%;
       min-height: 0;
       display: flex;
       flex-direction: column;
       position: relative;
+      border-left: 1px solid rgb(232, 232, 232);
 
       .top-button-group {
         flex-shrink: 0;
@@ -381,7 +387,6 @@ onUnmounted(() => {
         min-height: @schema-toolbar-height;
         max-height: @schema-toolbar-height;
         border-bottom: 1px solid rgb(232, 232, 232);
-        border-left: 1px solid rgb(232, 232, 232);
         padding: 0 24px;
         display: flex;
         align-items: center;
@@ -404,11 +409,14 @@ onUnmounted(() => {
           font: inherit;
           text-align: inherit;
           color: #191919;
+          text-decoration: none;
           cursor: pointer;
           user-select: none;
 
           &:hover {
-            color: #1890ff;
+            color: #191919;
+            text-decoration: underline;
+            text-underline-offset: 2px;
           }
 
           &:focus-visible {
@@ -429,7 +437,6 @@ onUnmounted(() => {
         flex: 1;
         padding: 20px;
         overflow: auto;
-        border-left: 1px solid rgb(232, 232, 232);
         box-sizing: border-box;
       }
     }

@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createProvider } from './ai-sdk-providers.js';
+import { pickNextApiKeyFromEnv } from './api-key-pool.js';
 
 /**
  * 模型信息接口
@@ -135,11 +136,13 @@ export class ProviderModelMapper {
    * 根据模型名称获取 ai-sdk 模型实例
    * @param modelInfo 模型信息
    * @returns ai-sdk 模型实例
+   *
+   * API Key 对应的环境变量值支持英文逗号分隔多个 key，每次请求按顺序轮换使用。
    */
   getAiSDKModel(modelInfo: ModelInfo) {
     const { provider, model } = modelInfo;
     const { name: providerName, baseUrl, apiKeyEnvName, baseUrlEnvName } = provider;
-    const apiKey = process.env[apiKeyEnvName];
+    const apiKey = pickNextApiKeyFromEnv(apiKeyEnvName, apiKeyEnvName ? process.env[apiKeyEnvName] : undefined);
     const envUrl = process.env[baseUrlEnvName];
     const { id: modelId } = model;
     const providerInstance = createProvider(providerName, {

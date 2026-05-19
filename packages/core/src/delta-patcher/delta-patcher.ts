@@ -12,6 +12,19 @@ export interface IPatchOptions {
   requiredCompleteFieldSelectors?: string[];
 }
 
+function deepClone(obj: any): any {
+ if (!obj || typeof obj !== 'object') {
+  return obj;
+ }
+ let cloneData
+  try {
+    cloneData = structuredClone(obj);
+  } catch (error) {
+    cloneData = JSON.parse(JSON.stringify(obj));
+  }
+  return cloneData;
+}
+
 export class DeltaPatcher {
   protected diffPatcher: jsonDiffPatch.DiffPatcher;
   protected options: IPatchOptions;
@@ -94,7 +107,7 @@ export class DeltaPatcher {
     };
 
     if (isMatch) {
-      const cloneDelta = structuredClone(delta);
+      const cloneDelta = deepClone(delta);
       const deltaPath = this.getActualMatchPath(lastKey, matchPath, deltaIndex ?? -1);
       const { parent, selfKey } = deltaPath.match(/((?<parent>.*)\.)?(?<selfKey>.*?)$/)?.groups || {};
 

@@ -11,6 +11,50 @@
         "specificPrompt": "schemaJson必须使用```schemaJson```包裹。"
       },
       {
+        "name": "DeepSeek-V4-Flash",
+        "id": "deepseek-v4-flash",
+        "supportJsonFormat": false,
+        "specificPrompt": "",
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "DeepSeek-V4-Flash-thinking",
+        "id": "deepseek-v4-flash",
+        "supportJsonFormat": false,
+        "specificPrompt": "",
+        "extraBody": {
+          "thinking": {
+            "type": "enabled"
+          }
+        }
+      },
+      {
+        "name": "DeepSeek-V4-Pro",
+        "id": "deepseek-v4-pro",
+        "supportJsonFormat": false,
+        "specificPrompt": "",
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "DeepSeek-V4-Pro-thinking",
+        "id": "deepseek-v4-pro",
+        "supportJsonFormat": false,
+        "specificPrompt": "",
+        "extraBody": {
+          "thinking": {
+            "type": "enabled"
+          }
+        }
+      },
+      {
         "name": "DeepSeek-V3.1",
         "id": "deepseek-v3.1-terminus",
         "supportJsonFormat": false,

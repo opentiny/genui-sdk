@@ -2,6 +2,7 @@
 import { ref, nextTick } from 'vue';
 import { TinyInput, TinyForm, TinyFormItem, Modal } from '@opentiny/vue';
 import { IconDel, IconEdit, IconPlus } from '@opentiny/vue-icon';
+import { IconFileOther } from '@opentiny/tiny-robot-svgs';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
 
 const TinyIconDel = IconDel();
@@ -56,6 +57,10 @@ const handleDelete = async (item: Conversation) => {
   } catch {
     // Do nothing if the user cancels
   }
+};
+
+const handleExport = (item: Conversation) => {
+  emit('item-action', { id: 'export' }, item);
 };
 
 const handleItemClick = (item: Conversation) => {
@@ -121,6 +126,9 @@ const handleAdd = () => {
         <!-- 悬浮时显示的操作图标（非重命名状态显示） -->
         <template v-if="renameId !== item.id">
           <div class="action-icons">
+            <button class="action-icon export-icon" @click.stop="handleExport(item)" title="导出">
+              <IconFileOther class="action-icon-icon" />
+            </button>
             <button class="action-icon rename-icon" @click.stop="handleRename(item)" title="重命名">
               <TinyIconEdit class="action-icon-icon"></TinyIconEdit>
             </button>

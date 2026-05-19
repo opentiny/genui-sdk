@@ -1,0 +1,120 @@
+diff --git a/dist/index.js b/dist/index.js
+index d03e3cf341bc7ecaee2d6daaaf8473c8f5e3a571..f8965432998b83e7bf8e9347c40f32f07a8d2995 100644
+--- a/dist/index.js
++++ b/dist/index.js
+@@ -40,7 +40,7 @@ function getOpenAIMetadata(message) {
+   var _a, _b;
+   return (_b = (_a = message == null ? void 0 : message.providerOptions) == null ? void 0 : _a.openaiCompatible) != null ? _b : {};
+ }
+-function convertToOpenAICompatibleChatMessages(prompt) {
++function convertToOpenAICompatibleChatMessages(prompt, keepReasoning = false) {
+   const messages = [];
+   for (const { role, content, ...message } of prompt) {
+     const metadata = getOpenAIMetadata({ ...message });
+@@ -90,6 +90,7 @@ function convertToOpenAICompatibleChatMessages(prompt) {
+       }
+       case "assistant": {
+         let text = "";
++        let reasoning = "";
+         const toolCalls = [];
+         for (const part of content) {
+           const partMetadata = getOpenAIMetadata(part);
+@@ -110,11 +111,19 @@ function convertToOpenAICompatibleChatMessages(prompt) {
+               });
+               break;
+             }
++            case "reasoning": {
++              if (!keepReasoning) {
++                break;
++              }
++              reasoning += part.text;
++              break;
++            }
+           }
+         }
+         messages.push({
+           role: "assistant",
+           content: text,
++          reasoning_content: keepReasoning ? reasoning : void 0,
+           tool_calls: toolCalls.length > 0 ? toolCalls : void 0,
+           ...metadata
+         });
+@@ -290,6 +299,9 @@ var OpenAICompatibleChatLanguageModel = class {
+   get providerOptionsName() {
+     return this.config.provider.split(".")[0].trim();
+   }
++  get keepReasoning() {
++    return this.config.keepReasoning ?? false;
++  }
+   get supportedUrls() {
+     var _a, _b, _c;
+     return (_c = (_b = (_a = this.config).supportedUrls) == null ? void 0 : _b.call(_a)) != null ? _c : {};
+@@ -366,7 +378,7 @@ var OpenAICompatibleChatLanguageModel = class {
+         ...providerOptions == null ? void 0 : providerOptions[this.providerOptionsName],
+         reasoning_effort: compatibleOptions.reasoningEffort,
+         // messages:
+-        messages: convertToOpenAICompatibleChatMessages(prompt),
++        messages: convertToOpenAICompatibleChatMessages(prompt, this.keepReasoning),
+         // tools:
+         tools: openaiTools,
+         tool_choice: openaiToolChoice
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 3c853f2c18ec38bee12340cc3d3303077ea743a7..5842b4aaba6bd3ca22695c54187a9c318cfc132b 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -23,7 +23,7 @@ function getOpenAIMetadata(message) {
+   var _a, _b;
+   return (_b = (_a = message == null ? void 0 : message.providerOptions) == null ? void 0 : _a.openaiCompatible) != null ? _b : {};
+ }
+-function convertToOpenAICompatibleChatMessages(prompt) {
++function convertToOpenAICompatibleChatMessages(prompt, keepReasoning = false) {
+   const messages = [];
+   for (const { role, content, ...message } of prompt) {
+     const metadata = getOpenAIMetadata({ ...message });
+@@ -73,6 +73,7 @@ function convertToOpenAICompatibleChatMessages(prompt) {
+       }
+       case "assistant": {
+         let text = "";
++        let reasoning = "";
+         const toolCalls = [];
+         for (const part of content) {
+           const partMetadata = getOpenAIMetadata(part);
+@@ -93,11 +94,19 @@ function convertToOpenAICompatibleChatMessages(prompt) {
+               });
+               break;
+             }
++            case "reasoning": {
++              if (!keepReasoning) {
++                break;
++              }
++              reasoning += part.text;
++              break;
++            }
+           }
+         }
+         messages.push({
+           role: "assistant",
+           content: text,
++          reasoning_content: keepReasoning ? reasoning : void 0,
+           tool_calls: toolCalls.length > 0 ? toolCalls : void 0,
+           ...metadata
+         });
+@@ -275,6 +284,9 @@ var OpenAICompatibleChatLanguageModel = class {
+   get providerOptionsName() {
+     return this.config.provider.split(".")[0].trim();
+   }
++  get keepReasoning() {
++    return this.config.keepReasoning ?? false;
++  }
+   get supportedUrls() {
+     var _a, _b, _c;
+     return (_c = (_b = (_a = this.config).supportedUrls) == null ? void 0 : _b.call(_a)) != null ? _c : {};
+@@ -351,7 +363,7 @@ var OpenAICompatibleChatLanguageModel = class {
+         ...providerOptions == null ? void 0 : providerOptions[this.providerOptionsName],
+         reasoning_effort: compatibleOptions.reasoningEffort,
+         // messages:
+-        messages: convertToOpenAICompatibleChatMessages(prompt),
++        messages: convertToOpenAICompatibleChatMessages(prompt, this.keepReasoning),
+         // tools:
+         tools: openaiTools,
+         tool_choice: openaiToolChoice

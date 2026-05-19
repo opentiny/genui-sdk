@@ -2,6 +2,8 @@
 
 `GenuiChat` 是一个集成的 TinyRobot 对话组件，内部封装了会话管理、流式返回、生成状态等功能，提供了开箱即用的对话体验。
 
+仅使用 Chat 时可从 `@opentiny/genui-sdk-vue/chat` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
+
 ## Props
 
 ### url

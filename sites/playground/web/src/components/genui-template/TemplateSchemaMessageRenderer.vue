@@ -2,7 +2,6 @@
 import { computed } from 'vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import type { IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
-import { jsonPatchDeduplicator } from './json-patch-deduplicator';
 import SchemaVersionCard from './SchemaVersionCard.vue';
 import { useIsMobile } from '../../use-mobile';
 
@@ -52,7 +51,6 @@ const handleSchemaVersionCardClick = (cardId: string) => {
 
   try {
     const targetSchema = JSON.parse(targetStr);
-    jsonPatchDeduplicator.clearCardOperations(cardId);
     emit('schema-version-toggle', targetSchema, cardId);
   } catch (error) {
     console.error('Failed to parse schema for version toggle:', error);

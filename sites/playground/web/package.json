@@ -17,16 +17,17 @@
     "@opentiny/tiny-robot-kit": "0.3.3",
     "@opentiny/tiny-robot-svgs": "0.3.3",
     "@opentiny/vue": "^3.28.0",
-    "@opentiny/vue-renderless": "^3.28.2",
     "@opentiny/vue-directive": "^3.28.0",
     "@opentiny/vue-icon": "^3.28.0",
+    "@opentiny/vue-renderless": "^3.28.2",
     "@opentiny/vue-theme": "^3.28.0",
+    "ai": "6.0.116",
     "clipboard-copy": "^4.0.1",
     "monaco-editor-vue3": "^1.0.4",
     "schema-renderer-ng-adpater": "workspace:*",
+    "uuid": "11.1.0",
     "vite-commit-hash-plugin": "workspace:*",
-    "vue": "^3.5.18",
-    "ai": "6.0.116"
+    "vue": "^3.5.18"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",

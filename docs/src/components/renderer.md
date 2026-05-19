@@ -2,6 +2,8 @@
 
 `GenuiRenderer` 是 GenUI SDK 的核心渲染组件（Renderer），用于将大模型返回的结构化 JSON Schema 渲染为可交互的 UI 界面。
 
+仅使用 Renderer 时可从 `@opentiny/genui-sdk-vue/renderer` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
+
 ## Props
 
 ### content
@@ -27,6 +29,26 @@ const schemaContent = {
     },
   ],
 };
+</script>
+```
+
+### isJsonComplete
+
+- **类型**: `boolean`
+- **必填**: 否
+- **说明**: 仅当content类型为json对象时生效，标记当前json是否完整，用于辅助缓冲判断是否值完整。
+
+```vue
+<template>
+  <GenuiRenderer :content="content" :isJsonComplete="isJsonComplete" />
+</template>
+
+<script setup>
+const content = ref({
+  componentName: 'Page',
+  css: '.main-content { color:'
+})
+const isJsonComplete = ref(false);
 </script>
 ```
 
@@ -215,6 +237,7 @@ type JSSlot = { type: 'JSSlot'; value: string | Record<string, any> };
 ```typescript
 interface IRendererProps {
   content: string | { [prop: string]: any };
+  isJsonComplete?: boolean;
   generating?: boolean;
   customComponents?: Record<string, Component>;
   customActions?: Record<

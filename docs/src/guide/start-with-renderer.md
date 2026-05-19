@@ -68,9 +68,9 @@ export async function fetchSchemaStream(
         const line = buffer.slice(0, lineEndIndex).trim();
         buffer = buffer.slice(lineEndIndex + 1);
 
-        if (!line.startsWith('data: ')) continue;
+        if (!line.startsWith('data:')) continue;
 
-        const dataStr = line.slice(6);
+        const dataStr = line.slice(5).trim();
 
         if (dataStr === '[DONE]' || schemaFinished) {
           return;
@@ -147,7 +147,7 @@ export async function fetchSchemaStream(
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
 import { fetchSchemaStream } from './fetch-schema-stream';
 
 const inputText = ref('');

@@ -5,12 +5,27 @@ interface OpenTinyModel {
   display_name: string;
   capabilities?: {
     vision?: boolean;
+    reasoning?: {
+      enable_thinking?: boolean;
+      [key: string]: any;
+    };
     fileUpload?: {
       supportDirectImage?: boolean;
       [key: string]: any;
     };
     [key: string]: any;
   };
+}
+
+const EXTRA_BODY_THINKING_DISABLED = { thinking: { type: 'disabled' as const } };
+const EXTRA_BODY_THINKING_ENABLED = { thinking: { type: 'enabled' as const } };
+
+function shouldSplitThinkingModel(capabilities?: OpenTinyModel['capabilities']): boolean {
+  const reasoning = capabilities?.reasoning;
+  if (reasoning == null || typeof reasoning !== 'object' || Array.isArray(reasoning)) {
+    return false;
+  }
+  return reasoning.enable_thinking === true;
 }
 
 interface OpenTinyModelsResponse {
@@ -25,28 +40,33 @@ interface OpenTinyModelsResponse {
 export function convertOpenTinyToProviderModelsData(resp: OpenTinyModelsResponse): Record<string, any> {
   const models = Array.isArray(resp?.models) ? resp.models : [];
 
-  const convertedModels = models.map((m) => {
+  const convertedModels = models.flatMap((model) => {
+    const { display_name, id, type, capabilities, provider } = model;
     const supportImage =
-      m.type === 'vision' || m.capabilities?.vision === true || m.capabilities?.fileUpload?.supportDirectImage === true;
+      type === 'vision' || capabilities?.vision === true || capabilities?.fileUpload?.supportDirectImage === true;
 
-    const model: any = {
-      name: m.display_name || m.id,
-      id: m.id,
-    };
-
+    const modelName = display_name && provider ? `${provider}_${display_name}` : id;
+    const base: any = { id };
     if (supportImage) {
-      model.features = { supportImage: true };
+      base.features = { supportImage: true };
     }
 
-    return model;
+    if (!shouldSplitThinkingModel(capabilities)) {
+      return [{ name: modelName, ...base }];
+    }
+
+    return [
+      { name: modelName, ...base, extraBody: EXTRA_BODY_THINKING_DISABLED },
+      { name: `${modelName}-thinking`, ...base, extraBody: EXTRA_BODY_THINKING_ENABLED },
+    ];
   });
 
   // 为了与现有 opentiny-models.json 保持一致，统一放在 deepseek 提供商下
   return {
     dynamic: {
       name: 'deepseek',
-      apiKeyEnvName: 'API_KEY',
-      baseUrlEnvName: 'BASE_URL',
+      apiKeyEnvName: 'DYNAMIC_API_KEY',
+      baseUrlEnvName: 'DYNAMIC_BASE_URL',
       models: convertedModels,
     },
   };

@@ -97,7 +97,8 @@ const handleDev = () => {
   border-radius: 12px;
   position: relative;
   cursor: pointer;
-  background-color: #fff;
+  /* 与主 chat 助手气泡等内容区一致（由 GenuiConfigProvider / ThemeProvider 注入 --tr-*） */
+  background-color: var(--tr-bubble-content-bg, #fff);
   display: flex;
   flex-direction: column;
   padding: 16px;
@@ -137,7 +138,7 @@ const handleDev = () => {
       font-size: 14px;
       font-weight: 600;
       line-height: 22px;
-      color: rgb(25, 25, 25);
+      color: var(--tr-text-primary, rgb(25, 25, 25));
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -146,7 +147,7 @@ const handleDev = () => {
     &-time {
       font-size: 12px;
       line-height: 18px;
-      color: rgb(128, 128, 128);
+      color: var(--tr-text-secondary, rgb(128, 128, 128));
     }
   }
 
@@ -170,11 +171,22 @@ const handleDev = () => {
     }
 
     .icon-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       padding: 12px;
       text-align: right;
+      cursor: pointer;
+      color: var(--tr-text-secondary, rgb(128, 128, 128));
+
+      :deep(svg),
+      :deep(svg path) {
+        fill: currentColor;
+      }
 
       &:hover {
-        background-color: #f0f0f0;
+        color: var(--tr-text-primary, rgb(25, 25, 25));
+        background-color: var(--tr-container-bg-default-2, #f0f0f0);
       }
     }
   }

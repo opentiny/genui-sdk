@@ -35,6 +35,39 @@ export class GenuiExample {
 }
 ```
 
+### isJsonComplete
+
+- **类型**: `boolean`
+- **必填**: 否
+- **说明**: 仅当content类型为json对象时生效，标记当前json是否完整，用于辅助缓冲判断是否值完整。
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+
+@Component({
+  imports: [GenuiRenderer],
+  template: `
+    <genui-renderer [content]="schemaContent" [isJsonComplete]="isJsonComplete"> </genui-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'Text',
+        props: {
+          text: 'Hello World',
+          style: 'color:'
+        },
+      },
+    ],
+  };
+  isJsonComplete = false;
+}
+```
+
 ### generating
 
 - **类型**: `boolean`

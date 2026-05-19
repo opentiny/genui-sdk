@@ -5,3 +5,4 @@ export * from './i18n/index.js';
 export * from './tiny-robot-patch/index.js';
 export * from './event-emitter.js';
 export * from './chat-utils.js';
+export * from './think-tag-wrap-pattern.js';

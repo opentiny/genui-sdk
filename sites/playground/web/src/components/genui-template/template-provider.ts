@@ -101,6 +101,7 @@ export class CustomModelProvider extends BaseModelProvider {
       delta: IStreamDelta,
       currentSchemaType: 'schema-card' | 'json-patch',
     ) => {
+      let isNewMessage = false;
       if (
         chatMessage.messages.length > 0 &&
         chatMessage.messages[chatMessage.messages.length - 1].type === currentSchemaType
@@ -116,7 +117,15 @@ export class CustomModelProvider extends BaseModelProvider {
           schema: '',
           prevSchema: '',
         });
+        isNewMessage = true;
       }
+      emitter.emit('schema-json-changed', {
+        type: currentSchemaType,
+        newMessage: isNewMessage,
+        delta,
+        cardId: messageId,
+        content: chatMessage.messages[chatMessage.messages.length - 1].content
+      });
     };
 
     let currentDelta: IStreamDelta = {};

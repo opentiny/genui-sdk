@@ -1,4 +1,5 @@
-import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor, ThinkTagWrapPattern } from "@opentiny/genui-sdk-core";
+import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor } from "@opentiny/genui-sdk-core";
+import { ThinkTagWrapPattern } from './think-tag-wrap-pattern';
 import { reactive, toRaw, watch } from "vue";
 import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';

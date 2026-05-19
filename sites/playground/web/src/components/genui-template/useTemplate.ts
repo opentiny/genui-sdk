@@ -12,6 +12,7 @@ const isTemplateInit = ref(false);
 const currentSchema = shallowRef<any>(null);
 // 当前预览 schema。用于编辑器显示。
 const currentPreviewSchema = shallowRef<any>(null);
+const currentPreviewSchemaComplete = ref(true);
 // 当前卡片 id，用于记录卡片 id，避免重复执行 patch 操作
 const currentCardId = ref<string>('');
 const DEFAULT_TEMPLATE_TITLE = '新模板';
@@ -87,8 +88,11 @@ export default function useTemplate(options?: UseTemplateOptions) {
    * 设置当前预览 schema，编辑器使用。
    * @param schema 模板 schema
    */
-  const setCurrentPreviewSchema = (schema: any) => {
+  const setCurrentPreviewSchema = (schema: any, isComplete: boolean = true) => {
     currentPreviewSchema.value = schema;
+    if (isComplete !== currentPreviewSchemaComplete.value) {
+      currentPreviewSchemaComplete.value = isComplete;
+    }
   };
 
   /**
@@ -270,6 +274,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     conversation: conversation.value,
     currentSchema,
     currentPreviewSchema,
+    currentPreviewSchemaComplete,
     currentCardId,
     currentConversationId,
     templateProvider,

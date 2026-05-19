@@ -1,12 +1,15 @@
 import { readFileSync, writeFileSync, copyFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const packageJsonPath = join(__dirname, '../package.json');
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+
+const outputDir = join(__dirname, '../output');
+const packageJsonOutputPrefix = `${basename(outputDir)}/`;
 
 // 创建新的 package.json 对象，只包含需要的字段
 const outputPackageJson: any = {
@@ -19,8 +22,9 @@ const outputPackageJson: any = {
   repository: packageJson.repository,
   bugs: packageJson.bugs,
   keywords: packageJson.keywords,
-  main: packageJson.main.replace('output/', ''),
-  types: packageJson.types.replace('output/', ''),
+  main: packageJson.main.replace(packageJsonOutputPrefix, ''),
+  types: packageJson.types.replace(packageJsonOutputPrefix, ''),
+  exports: normalizeExports(packageJson.exports, packageJsonOutputPrefix),
   type: packageJson.type,
   files: packageJson.files,
   dependencies: { ...packageJson.dependencies },
@@ -33,8 +37,6 @@ if (outputPackageJson.dependencies && outputPackageJson.dependencies['@opentiny/
   outputPackageJson.dependencies['@opentiny/genui-sdk-core'] = corePackageJson.version;
 }
 
-const outputDir = join(__dirname, '../output');
-
 const outputPackageJsonPath = join(outputDir, 'package.json');
 writeFileSync(outputPackageJsonPath, JSON.stringify(outputPackageJson, null, 2) + '\n', 'utf-8');
 
@@ -42,3 +44,22 @@ writeFileSync(outputPackageJsonPath, JSON.stringify(outputPackageJson, null, 2) 
 const serverReadmePath = join(__dirname, '../README.md');
 const outputReadmePath = join(outputDir, 'README.md');
 copyFileSync(serverReadmePath, outputReadmePath);
+
+function normalizeExports(exportsField: Record<string, any> = {}, outputPathPrefix: string) {
+  return Object.fromEntries(
+    Object.entries(exportsField).map(([subpath, condition]) => {
+      if (typeof condition === 'string') {
+        return [subpath, condition.replace(outputPathPrefix, '')];
+      }
+
+      const normalizedCondition = Object.fromEntries(
+        Object.entries(condition || {}).map(([conditionName, target]) => [
+          conditionName,
+          String(target).replace(outputPathPrefix, ''),
+        ]),
+      );
+
+      return [subpath, normalizedCondition];
+    }),
+  );
+}

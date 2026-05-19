@@ -17,15 +17,17 @@ async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handle
       if (lineEnd === -1) break;
       const line = buffer.slice(0, lineEnd).trim();
       buffer = buffer.slice(lineEnd + 1);
-      if (!line.startsWith('data: ')) continue;
-      const data = line.slice(6);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
       if (data === '[DONE]') break;
       handler(data);
     }
   }
   return true;
 }
-export interface ICustomModelProviderOptions {
+
+/** 与 {@link chat} 入参对齐的选项；由调用方在每次请求前给出当前值（与 props / 状态同步） */
+export interface ICustomModelChatOptions {
   url: string;
   model: string;
   temperature: number;
@@ -36,54 +38,47 @@ export interface ICustomModelProviderOptions {
   customActions: ICustomActionItem[];
   customFetch?: CustomFetch;
 }
+
+export interface ICustomModelProviderOptions {
+  getChatOptions: () => ICustomModelChatOptions;
+}
+
 export class CustomModelProvider extends BaseModelProvider {
-  private url: string;
-  private model: string;
-  private temperature: number;
-  private customComponents: ICustomComponentItem[];
-  private customSnippets: IGenPromptSnippet[];
-  private customExamples: IGenPromptExample[];
-  private customActions: ICustomActionItem[];
-  private chatConfig: IChatConfig;
-  private customFetch?: CustomFetch;
+  private getChatOptions: () => ICustomModelChatOptions;
   protected responseHandlers: IResponseHandler<IStreamData>[] = [];
-  constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
+  constructor({ getChatOptions }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
-    this.url = url;
-    this.model = model;
-    this.temperature = temperature;
-    this.customComponents = customComponents;
-    this.customSnippets = customSnippets;
-    this.customExamples = customExamples;
-    this.customActions = customActions;
-    this.chatConfig = chatConfig;
-    this.customFetch = customFetch; 
+    this.getChatOptions = getChatOptions;
   }
   validateRequest(_: ChatCompletionRequest) { }
 
-  changeLlmConfig(model: string, temperature: number) {
-    this.model = model;
-    this.temperature = temperature;
-  }
   setResponseHandlers(handlers: IResponseHandler<IStreamData>[]) {
     this.responseHandlers = handlers;
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await chat(
-      {
-        url: this.url,
-        messages: request.messages,
-        model: this.model,
-        temperature: this.temperature,
-        signal: request.options?.signal,
-        customComponents: this.customComponents,
-        customSnippets: this.customSnippets,
-        customExamples: this.customExamples,
-        customActions: this.customActions,
-        customFetch: this.customFetch,
-      }
-    );
+    const {
+      url,
+      model,
+      temperature,
+      customComponents,
+      customSnippets,
+      customExamples,
+      customActions,
+      customFetch,
+    } = this.getChatOptions();
+    return await chat({
+      url,
+      messages: request.messages,
+      model,
+      temperature,
+      signal: request.options?.signal,
+      customComponents,
+      customSnippets,
+      customExamples,
+      customActions,
+      customFetch,
+    });
   }
 
   async chat(_: ChatCompletionRequest) {
@@ -102,9 +97,10 @@ export class CustomModelProvider extends BaseModelProvider {
     const bodyStream = response.body!;
     // const chunkStream = createAsyncIterableStream(getChunkStringStream(bodyStream));
     const reader = bodyStream.getReader();
-    
+
     const context: any = {};
-    context.chatConfig = this.chatConfig;
+    const { chatConfig } = this.getChatOptions();
+    context.chatConfig = chatConfig;
 
     const signal = request.options?.signal;
     signal?.addEventListener('abort',
@@ -121,7 +117,7 @@ export class CustomModelProvider extends BaseModelProvider {
       this.handlerChunk(data, context);
     });
     this.handlerEnd(context);
-    
+
   }
 
   handlerChunk(rawData: string, context: any) {

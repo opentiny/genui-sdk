@@ -102,7 +102,7 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
   <tiny-dialog-box
     :visible="visible"
     :title="agentData.index > -1 ? '编辑 Agent' : '添加 Agent'"
-    width="520px"
+    width="540px"
     :append-to-body="true"
     @update:visible="emit('update:visible', $event)"
     @close="handleClose"
@@ -112,7 +112,7 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
         <div class="agent-url-action-row">
           <tiny-input
             :model-value="agentData.agentCardUrl"
-            placeholder="完整的 Agent Card 地址"
+            placeholder="http://localhost:3000/agent-card"
             @update:model-value="updateField('agentCardUrl', $event)"
           />
           <tiny-button type="primary" :loading="agentQueryLoading" @click="emit('queryAgentCard')">

@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue';
 import { TinyDialogBox, TinyButton } from '@opentiny/vue';
 import { CodeEditor } from 'monaco-editor-vue3';
+import { useMonacoPlaygroundTheme } from './use-monaco-playground-theme';
 import * as jsonDiffPatch from 'jsondiffpatch';
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
 import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
@@ -14,6 +15,9 @@ const props = defineProps<{
 }>();
 
 const visible = defineModel<boolean>({ default: false });
+
+/** 在 #tiny-genui-config-provider 内，随 Provider 解析后的 theme 切换 Monaco（auto 已是 light/dark） */
+const monacoTheme = useMonacoPlaygroundTheme();
 
 const editorOptions = {
   fontSize: 14,
@@ -101,7 +105,7 @@ watch(
           class="json-patch-dev-content-editor"
           v-model:value="left"
           language="json"
-          theme="vs"
+          :theme="monacoTheme"
           :options="editorOptions"
         />
       </div>
@@ -111,7 +115,7 @@ watch(
           class="json-patch-dev-content-editor"
           v-model:value="jsonPatch"
           language="json"
-          theme="vs"
+          :theme="monacoTheme"
           :options="editorOptions"
         />
       </div>
@@ -121,7 +125,7 @@ watch(
           class="json-patch-dev-content-editor"
           v-model:value="right"
           language="json"
-          theme="vs"
+          :theme="monacoTheme"
           :options="editorOptions"
         />
       </div>

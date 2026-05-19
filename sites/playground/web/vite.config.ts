@@ -58,6 +58,9 @@ export default defineConfig(({ command }) => {
   return {
     envDir: './env',
     plugins,
+    optimizeDeps: {
+      exclude: ['monaco-editor', 'monaco-editor-vue3'],
+    },
     build: {
       rollupOptions: {
         output: {

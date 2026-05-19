@@ -195,6 +195,15 @@ const confirmMCPServer = async () => {
         <div class="mcp-server-item-description">{{ server.description }}</div>
       </div>
     </div>
+    <div v-if="!llmConfig.mcpServers || llmConfig.mcpServers.length === 0" class="mcp-server-list-empty">
+      <div class="mcp-server-item-empty">
+        <div class="mcp-server-item-empty-icon">
+          点击右上角
+          <component :is="IconPlus" class="mcp-server-item-empty-plus-icon" />
+          添加 MCP 服务
+        </div>
+      </div>
+    </div>
     <div class="mcp-server-tool-call-context">
       <tiny-checkbox :model-value="chatConfig.addToolCallContext" @update:model-value="updateAddToolCallContext">
         调用结果添加到上下文
@@ -238,7 +247,6 @@ const confirmMCPServer = async () => {
 
 <style scoped lang="less">
 .mcp-server-list {
-  margin-top: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -246,7 +254,7 @@ const confirmMCPServer = async () => {
   .mcp-server-item {
     border: none;
     border-radius: 6px;
-    padding: 6px 10px;
+    padding: 10px;
     transition: background-color 0.2s ease;
 
     &:hover {
@@ -257,7 +265,6 @@ const confirmMCPServer = async () => {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
     }
 
     &-name {
@@ -270,12 +277,44 @@ const confirmMCPServer = async () => {
       font-size: 12px;
       color: #999;
       overflow-wrap: break-word;
+      margin-top: 4px;
     }
 
     &-enabled {
       margin-left: 4px;
     }
   }
+}
+
+.mcp-server-list-empty {
+  margin-top: 12px;
+}
+
+.mcp-server-item-empty {
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.mcp-server-item-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8c8c8c;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+.mcp-server-item-empty-plus-icon {
+  width: 12px;
+  height: 12px;
+  color: #595959;
 }
 
 .mcp-server-tool-call-context {

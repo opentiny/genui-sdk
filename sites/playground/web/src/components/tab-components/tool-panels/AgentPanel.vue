@@ -233,11 +233,11 @@ const updateAgentEnabled = (agent, enabled) => {
 </script>
 
 <template>
-  <tiny-collapse-item name="agent" title="Agent（a2a）">
+  <tiny-collapse-item name="agent" title="Agent（A2A 协议）">
     <template #title-right>
       <tiny-button type="text" :icon="IconPlus" @click.stop="addAgent"> </tiny-button>
     </template>
-    <div class="mcp-server-list">
+    <div class="mcp-server-list" v-if="llmConfig.agents && llmConfig.agents.length > 0">
       <div class="mcp-server-item" v-for="(agent, index) in llmConfig.agents || []" :key="agent.name">
         <div class="mcp-server-item-header">
           <div class="mcp-server-item-name">{{ agent.name }}</div>
@@ -264,7 +264,16 @@ const updateAgentEnabled = (agent, enabled) => {
             </tiny-popover>
           </div>
         </div>
-        <div class="mcp-server-item-description">{{ agent.description }}</div>
+        <div class="mcp-server-item-description" v-if="agent.description">{{ agent.description }}</div>
+      </div>
+    </div>
+    <div v-else class="mcp-server-list-empty">
+      <div class="mcp-server-item-empty">
+        <div class="mcp-server-item-empty-icon">
+          点击右上角
+          <component :is="IconPlus" class="mcp-server-item-empty-plus-icon" />
+          添加 Agent
+        </div>
       </div>
     </div>
     <AgentDialog :visible="showAgentFormDialog" :agent-data="agentData" :agent-card="agentCard"
@@ -315,6 +324,37 @@ const updateAgentEnabled = (agent, enabled) => {
       margin-left: 4px;
     }
   }
+}
+
+.mcp-server-list-empty {
+  margin-top: 12px;
+}
+
+.mcp-server-item-empty {
+  border: 1px dashed #d9d9d9;
+  border-radius: 8px;
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.mcp-server-item-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8c8c8c;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  letter-spacing: 0.2px;
+}
+
+.mcp-server-item-empty-plus-icon {
+  width: 12px;
+  height: 12px;
+  color: #595959;
 }
 
 :deep(.mcp-server-item-actions-popover) {

@@ -12,6 +12,7 @@ const modelsFileMap = {
   alpha: 'alpha-models.json',
   'agent-alpha': 'opentiny-models.json',
   'production': 'opentiny-models.json',
+  'github': 'github-models.json',
   'default': 'maas-models.json',
 };
 
