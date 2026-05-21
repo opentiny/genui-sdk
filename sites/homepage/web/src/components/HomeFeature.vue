@@ -81,11 +81,13 @@ const features = [
           :src="feature.icon"
           alt="home-feature-card-icon"
         />
-        <div class="home-feature-card-title">
-          {{ feature.title }}
-        </div>
-        <div class="home-feature-card-description">
-          {{ feature.description }}
+        <div class="home-feature-card-content">
+          <div class="home-feature-card-title">
+            {{ feature.title }}
+          </div>
+          <div class="home-feature-card-description">
+            {{ feature.description }}
+          </div>
         </div>
       </div>
     </div>
@@ -94,11 +96,12 @@ const features = [
 
 <style lang="less" scoped>
 .home-feature {
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-content: center;
-  padding: 110px 12.5% 110px 12.5%;
+  padding: 110px 12.5%;
 
   &-header {
     display: flex;
@@ -112,21 +115,27 @@ const features = [
     gap: 45px;
   }
 
-  @media (max-width: 768px) {
-    &-content {
-      grid-template-columns: repeat(1, 1fr);
-    }
-  }
-
   &-card {
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 48px;
     border: 3px solid #fff;
-    border-radius: 12px;
-    box-shadow: 0px 4px 30px 0px rgba(234, 233, 237, 0.9);
+    border-radius: 16px;
     cursor: pointer;
+    box-shadow: 0px 4px 30px 0px rgba(230, 230, 230, 0.6);
+
+    &:hover {
+      box-shadow: 0px 4px 32px 0px rgba(230, 230, 230, 0.9);
+    }
+    @media (max-width: 768px) {
+      flex-direction: row;
+      border-radius: 6px;
+      box-shadow: 0px 2px 12px 0px rgba(230, 230, 230, 0.6);
+      div&-title {
+        margin-bottom: 0;
+      }
+    }
 
     &-icon {
       width: 64px;
@@ -139,6 +148,9 @@ const features = [
         width: 48px;
         height: 48px;
         margin-bottom: 16px;
+      }
+      .home-feature-card-description {
+        font-size: 14px;
       }
     }
 
@@ -158,10 +170,21 @@ const features = [
     }
   }
 
+  @media (max-width: 768px) {
+    &-content {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
   @media (max-width: 1280px) {
     &-card {
       padding: 24px;
+      justify-content: normal;
     }
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px 150px 240px;
   }
 }
 </style>

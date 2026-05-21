@@ -57,17 +57,36 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="loadingText" class="loading-container" type="loading-text">{{ loadingText }}</div>
+  <div v-if="loadingText" class="loading-wrapper">
+    <div  class="loading-container" type="loading-text">{{ loadingText }}</div>
+  </div>
 </template>
 <style scoped lang="less">
+.loading-wrapper {
+  width: fit-content;
+  max-width: 100%;
+  overflow: hidden;
+  direction: rtl;
+}
 .loading-container[type='loading-text'] {
   margin: 10px 0;
-  background: linear-gradient(90deg, #666 0%, #666 45%, #999 50%, #999 55%, #666 60%, #666 100%);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: text-shimmer 6s linear infinite;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  direction: ltr;
+  display: inline-block;
+}
+
+@supports ((background-clip: text)) {
+  .loading-container[type='loading-text'] {
+    background: linear-gradient(90deg, #666 0%, #666 45%, #999 50%, #999 55%, #666 60%, #666 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: text-shimmer 6s linear infinite;
+  }
 }
 
 @keyframes text-shimmer {

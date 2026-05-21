@@ -1,0 +1,8 @@
+{
+  "name": "genui-sdk-angular-builder",
+  "description": "不可删除该文件， dts插件分析需要隔离scope",
+  "private": true,
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}

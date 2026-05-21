@@ -23,7 +23,7 @@ const backgroundClass = computed(() =>
 </script>
 
 <template>
-  <section class="home-ability home-ability-2" :class="backgroundClass">
+  <section class="home-ability" :class="backgroundClass">
     <div class="home-ability-title">
       <div class="home-ability-title-text genui-title">{{ title }}</div>
       <div class="home-ability-title-subtitle genui-subtitle">
@@ -45,11 +45,15 @@ const backgroundClass = computed(() =>
   padding: 110px 12.5%;
 
   @media (max-width: 1280px) {
-    padding: 80px 10% 80px 10%;
+    padding: 80px 10%;
   }
 
   @media (max-width: 768px) {
     padding: 40px 10% 40px 10%;
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px;
   }
 
   &-title {

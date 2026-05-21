@@ -1,5 +1,5 @@
 {
-  "plugins": ["./custom-json-parser.js"],
+  "plugins": ["./scripts/custom-json-parser.js"],
   "semi": true,
   "singleQuote": true,
   "printWidth": 120,

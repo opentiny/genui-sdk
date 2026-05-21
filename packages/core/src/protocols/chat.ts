@@ -13,6 +13,7 @@ export interface IOpenaiCompatibleChunk {
  * 流式响应的增量数据
  */
 export interface IStreamDelta {
+  reasoning_content?: string;
   content?: string;
   tool_calls?: Array<{
     id: string;
@@ -30,6 +31,32 @@ export interface IStreamDelta {
   }>;
 }
 
+/**
+ * 单次流式响应中的一条 choice（与 OpenAI chat.completion.chunk 对齐）
+ */
+export interface IChatStreamChoice {
+  index: number;
+  delta?: IStreamDelta;
+  finish_reason?: string | null;
+}
+
+/**
+ * 单次 SSE data 行解析后的完整负载（含 id、model、choices 等顶层字段）
+ */
+export interface IStreamData {
+  id?: string;
+  object?: string;
+  model?: string;
+  type?: string;
+  created?: number;
+  choices?: IChatStreamChoice[];
+  usage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
+}
+
 export interface ISchemaCardMessageItem {
   type: 'schema-card';
   content: string;
@@ -42,6 +69,11 @@ export interface IMarkdownMessageItem {
   content: string;
 }
 
+export interface IReasoningMessageItem {
+  type: 'reasoning';
+  content: string;
+  thinking?: boolean;
+}
 export interface IToolMessageItem {
   type: 'tool';
   name: string;
@@ -56,7 +88,8 @@ export interface IToolMessageItem {
 export type IMessageItem =
   | IMarkdownMessageItem
   | ISchemaCardMessageItem
-  | IToolMessageItem;
+  | IToolMessageItem
+  | IReasoningMessageItem;
 
 /**
  * 单轮对话中的消息对象
@@ -65,6 +98,7 @@ export interface IChatMessage {
   role: 'assistant';
   content: string;
   messages: IMessageItem[];
+  [customKey: string]: any;
 }
 
 /**

@@ -1,73 +1,119 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, nextTick } from 'vue';
+import {
+  onMounted,
+  onUnmounted,
+  ref,
+  computed,
+  watch,
+} from 'vue';
 import { TinyButton, TinyButtonGroup, TinyTooltip } from '@opentiny/vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
-import { IconArrowRight, IconRefresh } from '@opentiny/vue-icon';
-import genuiGuideDefault from '@/assets/genui_guide_default.svg';
-import { LinkKey, openLink } from '@/utils/link';
+import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
+import {
+  IconArrowRight,
+  IconPause,
+  IconRefresh,
+  IconStartCircle,
+} from '@opentiny/vue-icon';
+import { LinkKey, linkMap } from '@/utils/link';
+import { useMobile } from '@/composables/useMobile';
 import { splitJsonIntoChunks } from '@/utils/jsonUtil';
 import caculatorJson from '@/static/caculator.json';
 import todoJson from '@/static/todo.json';
 
-interface IUserMessage {
-  role: 'user';
-  content: string;
-  customMessage?: string;
-}
-
-interface IAssistantMessage {
-  role: 'assistant';
-  content: string;
-}
-
-type IMessage = IUserMessage | IAssistantMessage;
-
 const TinyIconArrowRight = IconArrowRight();
+const TinyIconPause = IconPause();
 const TinyIconRefresh = IconRefresh();
+const TinyIconStartCircle = IconStartCircle();
 
-const message = ref<IMessage | null>(null);
+const message = ref<{ role: 'assistant'; content: string } | null>(null);
 const extendSelect = ref('element');
 const generating = ref(false);
-const schemaRendererRef = ref<HTMLElement | null>(null);
-const hasStartedStreaming = ref(false);
-let shouldStopStreaming = false;
+const streamCompleted = ref(false);
+const hasPlayedOnce = ref(false);
+const preparingPlayback = ref(false);
+const userRowVisible = ref(true);
+const aiAvatarVisible = ref(true);
+const cardVisible = ref(true);
+const suppressExitAnimation = ref(false);
+const rendererKey = ref(0);
+const { isMobile } = useMobile();
+let streamGeneration = 0;
+let pauseRequested = false;
+let resumeChunkIndex = 0;
+let revealCardOnFirstChunk = false;
+
+const messageContentMap = {
+  element: '生成一个计算器，不要用button，使用div，马卡龙配色，不要使用TinyLayout，要好看的',
+  page: '创建一个待办应用，界面要丰富，把想到的功能尽量加进去',
+};
+const bubbleContentMap = {
+  element: '生成一个计算器，使用div，马卡龙配色，要好看的',
+  page: '创建一个待办应用，界面要丰富，把想到的功能尽量加进去',
+};
+const inputMessage = computed(
+  () => `?input-message=${messageContentMap[extendSelect.value as keyof typeof messageContentMap]}`,
+);
+
+/** 已开始回放流程（生成中 / 准备中 / 暂停待续）时固定在右下角；仅待播放或重播待命时居中 */
+const streamControlsDocked = computed(
+  () =>
+    generating.value ||
+    preparingPlayback.value ||
+    !streamCompleted.value,
+);
+
+const userBubbleContent = computed(
+  () => bubbleContentMap[extendSelect.value as keyof typeof messageContentMap],
+);
 
 const getJsonData = (type: string) => {
   return type === 'element' ? caculatorJson : todoJson;
 };
 
-const initCodeAreaHeight = () => {
-  nextTick(() => {
-    const height = document.querySelector(
-      '.home-extend-schema-renderer'
-    )?.clientHeight;
-    const codeArea = document.querySelector('.home-extend-schema-code');
-    if (height && codeArea) {
-      (codeArea as HTMLElement).style.height = `${height}px`;
-    }
-  });
+const bumpStreamGeneration = () => {
+  streamGeneration += 1;
 };
 
-const handleRefresh = () => {
-  handleExtendClick(extendSelect.value);
-};
-
-const handleExtendClick = (value: string) => {
-  if (generating.value) {
-    shouldStopStreaming = true;
-  }
-
-  extendSelect.value = value;
-  hasStartedStreaming.value = false;
-
+const resetReplayVisualState = () => {
+  suppressExitAnimation.value = true;
+  userRowVisible.value = false;
+  aiAvatarVisible.value = false;
+  cardVisible.value = false;
   message.value = {
     role: 'assistant',
     content: '',
   };
+};
 
-  setTimeout(() => {
-    loadChunksStreaming();
-  }, 100);
+const getFullSchemaContent = (type: string) => {
+  const chunkSize = type === 'element' ? 30 : 20;
+  return splitJsonIntoChunks(getJsonData(type), chunkSize).join('');
+};
+
+const resetToCompletedFrame = (type: string) => {
+  bumpStreamGeneration();
+  rendererKey.value += 1;
+  pauseRequested = false;
+  resumeChunkIndex = 0;
+  revealCardOnFirstChunk = false;
+  generating.value = false;
+  streamCompleted.value = true;
+  hasPlayedOnce.value = false;
+  preparingPlayback.value = false;
+  suppressExitAnimation.value = false;
+  userRowVisible.value = true;
+  aiAvatarVisible.value = true;
+  cardVisible.value = true;
+  message.value = {
+    role: 'assistant',
+    content: getFullSchemaContent(type),
+  };
+};
+
+const handleExtendClick = (value: string) => {
+  extendSelect.value = value;
+  resetToCompletedFrame(value);
 };
 
 const customActions = {
@@ -78,18 +124,11 @@ const customActions = {
   },
 };
 
-const initMessage = () => {
-  generating.value = false;
-  hasStartedStreaming.value = false;
-  shouldStopStreaming = false;
-};
-
-const loadChunksStreaming = async () => {
-  if (hasStartedStreaming.value) return;
-  hasStartedStreaming.value = true;
-
+const runChunkStreaming = async (startIndex: number, accumulatedContent: string) => {
+  const myGen = streamGeneration;
+  pauseRequested = false;
   generating.value = true;
-  let accumulatedContent = '';
+  streamCompleted.value = false;
 
   if (!message.value) {
     message.value = {
@@ -103,138 +142,242 @@ const loadChunksStreaming = async () => {
 
   try {
     const jsonData = getJsonData(currentType);
-
-    if (shouldStopStreaming) {
-      initMessage();
-      return;
-    }
-
     const chunks = splitJsonIntoChunks(jsonData, chunkSize);
+    let accumulated = accumulatedContent;
 
-    for (let i = 0; i < chunks.length; i++) {
-      if (shouldStopStreaming && message.value?.content) {
-        initMessage();
+    for (let i = startIndex; i < chunks.length; i++) {
+      if (myGen !== streamGeneration) {
+        generating.value = false;
         return;
       }
 
-      accumulatedContent += chunks[i];
-      initCodeAreaHeight();
+      if (pauseRequested) {
+        resumeChunkIndex = i;
+        if (message.value) {
+          message.value.content = accumulated;
+        }
+        generating.value = false;
+        return;
+      }
 
+      accumulated += chunks[i];
       if (message.value) {
-        message.value.content = accumulatedContent;
+        message.value.content = accumulated;
+      }
+
+      if (revealCardOnFirstChunk && accumulated.length > 0) {
+        cardVisible.value = true;
+        revealCardOnFirstChunk = false;
       }
 
       if (i === chunks.length - 1) {
         generating.value = false;
-        shouldStopStreaming = false;
-      } else {
-        await new Promise((resolve) => setTimeout(resolve, 50));
+        streamCompleted.value = true;
+        hasPlayedOnce.value = true;
+        resumeChunkIndex = 0;
+        return;
+      }
 
-        if (shouldStopStreaming) {
-          initMessage();
-          return;
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      if (myGen !== streamGeneration) {
+        generating.value = false;
+        return;
+      }
+
+      if (pauseRequested) {
+        resumeChunkIndex = i + 1;
+        if (message.value) {
+          message.value.content = accumulated;
         }
+        generating.value = false;
+        return;
       }
     }
   } catch (error) {
-    if (!shouldStopStreaming) {
-      console.error('Error loading JSON:', error);
-    }
+    console.error('Error loading JSON:', error);
     generating.value = false;
-    hasStartedStreaming.value = false;
-    shouldStopStreaming = false;
   }
 };
 
-let observer: IntersectionObserver | null = null;
+const handleCornerPause = () => {
+  pauseRequested = true;
+};
+
+const handleCornerResume = () => {
+  runChunkStreaming(resumeChunkIndex, message.value?.content ?? '');
+};
+
+const handleCornerReplay = () => {
+  if (preparingPlayback.value) return;
+  bumpStreamGeneration();
+  rendererKey.value += 1;
+  const myGen = streamGeneration;
+  pauseRequested = false;
+  resumeChunkIndex = 0;
+  revealCardOnFirstChunk = false;
+  preparingPlayback.value = true;
+  generating.value = false;
+  resetReplayVisualState();
+  setTimeout(() => {
+    if (myGen !== streamGeneration) return;
+    suppressExitAnimation.value = false;
+    userRowVisible.value = true;
+  }, 100);
+  setTimeout(() => {
+    if (myGen !== streamGeneration) return;
+    aiAvatarVisible.value = true;
+  }, 500);
+  setTimeout(() => {
+    if (myGen !== streamGeneration) return;
+    revealCardOnFirstChunk = true;
+    streamCompleted.value = false;
+    preparingPlayback.value = false;
+    runChunkStreaming(0, '');
+  }, 700);
+};
+
+watch(isMobile, (mobile) => {
+  if (mobile && extendSelect.value === 'page') {
+    handleExtendClick('element');
+  }
+});
 
 onMounted(() => {
-  message.value = {
-    role: 'assistant',
-    content: '',
-  };
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting && !hasStartedStreaming.value) {
-          loadChunksStreaming();
-        }
-      });
-    },
-    {
-      threshold: 0.1,
-    }
-  );
-
-  setTimeout(() => {
-    if (schemaRendererRef.value) {
-      observer?.observe(schemaRendererRef.value);
-    }
-  }, 100);
+  resetToCompletedFrame(extendSelect.value);
 });
 
 onUnmounted(() => {
-  if (observer) {
-    observer.disconnect();
-    observer = null;
-  }
+  bumpStreamGeneration();
 });
 </script>
 
 <template>
   <section class="home-extend">
     <div class="home-extend-title genui-title">解锁更多玩法</div>
-    <tiny-button-group class="extend-button-group" v-model="extendSelect">
+    <tiny-button-group
+      class="extend-button-group"
+      :class="{ 'extend-button-group--mobile': isMobile }"
+      v-model="extendSelect"
+    >
       <tiny-button
         class="extend-button extend-button-element-1"
         :class="{ 'extend-button-element-active': extendSelect === 'element' }"
+        :reset-time="0"
         value="element"
         @click="handleExtendClick('element')"
         >计算器</tiny-button
       >
       <tiny-button
+        v-if="!isMobile"
         class="extend-button extend-button-element-2"
+        :reset-time="0"
         :class="{ 'extend-button-element-active': extendSelect === 'page' }"
         value="page"
         @click="handleExtendClick('page')"
         >Todo应用</tiny-button
       >
     </tiny-button-group>
-    <div class="home-extend-schema" ref="schemaRendererRef">
+    <div class="home-extend-schema">
       <div class="home-extend-schema-header">
         <div class="home-extend-schema-header-action">
           <div class="home-extend-schema-header-action-close"></div>
           <div class="home-extend-schema-header-action-full"></div>
           <div class="home-extend-schema-header-action-exit"></div>
         </div>
-        <div
-          class="home-extend-schema-header-subtitle"
-          @click="openLink(LinkKey.Playground)"
+        <a
+          class="home-extend-schema-header-subtitle is-link"
+          :href="linkMap[LinkKey.Playground] + inputMessage"
+          target="_blank"
         >
-          <span>进入 Playground</span>
+          <span>我也试试，进入 Playground</span>
           <tiny-icon-arrow-right />
-        </div>
+        </a>
       </div>
       <div class="home-extend-schema-content">
-        <div class="home-extend-schema-renderer-container">
-          <GenuiRenderer
-            v-if="message && message.content"
-            class="home-extend-schema-renderer"
-            :content="message.content"
-            :generating="generating"
-            :customActions="customActions"
-          />
-          <img v-else :src="genuiGuideDefault" alt="genui-guide-default" />
-          <tiny-tooltip content="重新播放" placement="top" effect="light">
-            <tiny-button
-              class="refresh-button"
-              circle
-              size="medium"
-              :icon="TinyIconRefresh"
-              @click="handleRefresh"
-            ></tiny-button>
-          </tiny-tooltip>
+        <div class="home-extend-schema-content-scroll">
+          <div class="home-extend-schema-content-inner">
+            <div class="home-extend-chat-mock">
+              <div
+                class="home-extend-user-row"
+                :class="{ 'is-visible': userRowVisible, 'no-exit': suppressExitAnimation }"
+              >
+                <div class="home-extend-user-bubble">{{ userBubbleContent }}</div>
+                <div class="home-extend-avatar home-extend-avatar-user">
+                  <IconUser class="home-extend-avatar-icon" />
+                </div>
+              </div>
+              <div class="home-extend-ai-row">
+                <div
+                  class="home-extend-avatar home-extend-avatar-ai"
+                  :class="{ 'is-visible': aiAvatarVisible, 'no-exit': suppressExitAnimation }"
+                >
+                  <IconAi class="home-extend-avatar-icon" />
+                </div>
+                <div
+                  class="home-extend-render-area"
+                  :class="{ 'is-visible': cardVisible, 'no-exit': suppressExitAnimation }"
+                >
+                  <GenuiRenderer
+                    :key="rendererKey"
+                    class="home-extend-schema-renderer"
+                    :content="message?.content || ''"
+                    :generating="generating"
+                    :customActions="customActions"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          class="home-extend-stream-controls"
+          :class="{ 'home-extend-stream-controls--docked': streamControlsDocked }"
+          aria-label="回放控制"
+        >
+          <div class="home-extend-stream-controls-surface">
+            <tiny-tooltip v-if="generating" content="暂停" placement="top" effect="light">
+              <tiny-button
+                class="home-extend-control-btn"
+                circle
+                :reset-time="0"
+                :size="streamControlsDocked ? 'medium' : 'large'"
+                :icon="TinyIconPause"
+                @click="handleCornerPause"
+              />
+            </tiny-tooltip>
+            <tiny-tooltip
+              v-else-if="!streamCompleted"
+              content="继续"
+              placement="top"
+              effect="light"
+            >
+              <tiny-button
+                class="home-extend-control-btn"
+                circle
+                :reset-time="0"
+                :size="streamControlsDocked ? 'medium' : 'large'"
+                :icon="TinyIconStartCircle"
+                @click="handleCornerResume"
+              />
+            </tiny-tooltip>
+            <tiny-tooltip
+              v-else
+              :content="preparingPlayback ? '准备播放中' : hasPlayedOnce ? '重播' : '播放'"
+              placement="top"
+              effect="light"
+            >
+              <tiny-button
+                class="home-extend-control-btn"
+                circle
+                :reset-time="0"
+                :size="streamControlsDocked ? 'medium' : 'large'"
+                :icon="hasPlayedOnce ? TinyIconRefresh : TinyIconStartCircle"
+                :disabled="preparingPlayback"
+                @click="handleCornerReplay"
+              />
+            </tiny-tooltip>
+          </div>
         </div>
       </div>
     </div>
@@ -248,7 +391,7 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 30px 8% 0px 8%;
+  padding: 0px 8%;
 
   &-title {
     margin-bottom: 40px;
@@ -266,36 +409,38 @@ onUnmounted(() => {
       rgba(232, 238, 254, 0.3) 100%
     );
     border-radius: 24px;
-    padding: 3%;
+    padding: 28px;
 
     &-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 26px;
+      margin-bottom: 16px;
 
       &-action {
         display: flex;
-        gap: 16px;
+        gap: 12px;
 
-        &-close {
+        div {
           width: 16px;
           height: 16px;
-          background-color: rgba(254, 3, 4, 1);
           border-radius: 50%;
+
+          @media (min-width: 1920px) {
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        &-close {
+          background-color: rgba(254, 3, 4, 1);
         }
 
         &-full {
-          width: 16px;
-          height: 16px;
           background-color: rgba(254, 199, 3, 1);
-          border-radius: 50%;
         }
 
         &-exit {
-          width: 16px;
-          height: 16px;
           background-color: rgba(0, 207, 106, 1);
-          border-radius: 50%;
         }
       }
 
@@ -305,6 +450,10 @@ onUnmounted(() => {
         gap: 8px;
         color: rgba(20, 118, 255, 1);
         cursor: pointer;
+        font-size: 16px;
+        &.is-link {
+          text-decoration: none;
+        }
 
         svg {
           fill: rgba(20, 118, 255, 1);
@@ -313,62 +462,185 @@ onUnmounted(() => {
     }
 
     &-content {
+      position: relative;
       display: flex;
-      justify-content: center;
-      align-items: center;
+      flex-direction: column;
       width: 100%;
-      height: 500px;
+      min-height: 560px;
+      height: 590px;
       background: #fff;
       border-radius: 12px;
-      padding: 5% 5%;
-      overflow: auto;
+      overflow: hidden;
+      box-sizing: border-box;
+      container-type: size;
+      container-name: extend-stream;
+    }
 
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
+    &-content-scroll {
+      flex: 1 1 0;
+      min-height: 0;
+      width: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      box-sizing: border-box;
+      scrollbar-gutter: stable;
+      border-bottom-right-radius: 12px;
+    }
+
+    &-content-inner {
+      padding: 5% 5%;
+      box-sizing: border-box;
+      position: relative;
+      width: 100%;
+      @media (max-width: 768px) {
+        padding: 20px;
       }
     }
 
     @media (min-width: 1280px) {
       &-content {
-        height: 575px;
+        min-height: 640px;
+        height: 720px;
       }
     }
 
-    &-renderer {
-      &-container {
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        height: 100%;
-      }
-    }
-
-    &-code {
-      height: 400px;
-      width: 50%;
-      overflow-y: auto;
-      margin-left: 3%;
-
-      code {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-      }
-    }
   }
-
   @media (max-width: 768px) {
     &-schema {
       padding: 5%;
     }
   }
+
+  @media (min-width: 1920px) {
+    padding: 0px 240px;
+
+    &-title {
+      margin-bottom: 60px;
+    }
+  }
 }
 
-.refresh-button {
+
+
+.home-extend-chat-mock {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.home-extend-user-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 16px;
+  width: 100%;
+}
+
+.home-extend-user-row,
+.home-extend-avatar-ai,
+.home-extend-render-area {
+  opacity: 0;
+  transform: translateY(80px);
+  transition: opacity 420ms ease, transform 420ms ease;
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &.no-exit:not(.is-visible) {
+    transition: none;
+  }
+}
+
+.home-extend-user-bubble {
+  max-width: min(92%, 720px);
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(232, 238, 254, 1);
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(25, 25, 25, 1);
+  word-break: break-word;
+  white-space: pre-wrap;
+  border-top-right-radius: 0;
+  margin-top: 8px;
+}
+
+.home-extend-ai-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 16px;
+  width: 100%;
+}
+
+.home-extend-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home-extend-avatar-icon {
+  font-size: 40px;
+}
+
+.home-extend-render-area {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  border-bottom-right-radius: 12px;
+  overflow: hidden;
+
+  :deep(div.schema-render-container) {
+    max-width: 100%;
+    border-bottom-right-radius: 12px;
+    overflow: hidden;
+  }
+}
+
+.home-extend-stream-controls {
   position: absolute;
-  right: calc(4%);
-  bottom: calc(8% + 18px);
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+
+  &-surface {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: max-content;
+    pointer-events: auto;
+    will-change: transform;
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translate(-50%, -50%);
+  }
+
+  &--docked &-surface {
+    transform: translate(
+      calc(50cqw - 24px - 100%),
+      calc(50cqh - 16px - 100%)
+    );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &-surface {
+      transition-duration: 0.01ms;
+    }
+  }
+}
+
+.home-extend-control-btn {
   box-shadow: 0 2px 4px #00000029;
 }
 
@@ -376,11 +648,11 @@ onUnmounted(() => {
   border-radius: 382px;
   width: fit-content;
   height: 56px;
-  background-color: rgba(243, 243, 244, 1);
+  background-color: rgba(232, 238, 254, 1);
   display: flex;
   align-items: center;
   padding: 4px;
-  margin-bottom: 60px;
+  margin-bottom: 48px;
 
   .extend-button {
     height: 100%;
@@ -388,7 +660,8 @@ onUnmounted(() => {
     margin-left: 0;
     border-radius: 0;
     border: none;
-    background-color: rgba(243, 243, 244, 1);
+    background-color: rgba(232, 238, 254, 1);
+    font-size: 16px;
 
     &-element-1 {
       border-radius: 382px;
@@ -400,13 +673,22 @@ onUnmounted(() => {
 
     &-element-active {
       background-color: #fff;
+      font-weight: 700;
     }
   }
 
   @media (max-width: 768px) {
-    .extend-button {
-      width: 80px;
-    }
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-extend-avatar-user,
+  .home-extend-avatar-ai {
+    display: none;
+  }
+  .home-extend-schema-content {
+    border-radius: 6px;
   }
 }
 </style>

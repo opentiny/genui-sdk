@@ -5272,7 +5272,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": []
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -5442,7 +5442,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-width",
+                    "property": "labelWidth",
                     "label": {
                       "text": {
                         "zh_CN": "标签宽度"
@@ -5482,7 +5482,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-align",
+                    "property": "labelAlign",
                     "label": {
                       "text": {
                         "zh_CN": "必填标识占位"
@@ -5502,7 +5502,7 @@
                     "labelPosition": "left"
                   },
                   {
-                    "property": "label-suffix",
+                    "property": "labelSuffix",
                     "label": {
                       "text": {
                         "zh_CN": "标签后缀"
@@ -5735,7 +5735,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": ["labelWidth", "disabled"]
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -5750,7 +5750,7 @@
             "zh_CN": "表单项"
           },
           "component": "TinyFormItem",
-          "description": "由按钮、输入框、选择器、单选框、多选框等控件组成，用以收集、校验、提交数据",
+          "description": "由按钮、输入框、选择器、单选框、多选框等控件组成，用以收集、校验、提交数据, 必须放在 TinyForm 中使用， 可以是直接子元素或者间接子元素",
           "docUrl": "",
           "screenshot": "",
           "tags": "",
@@ -6673,7 +6673,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "输入框尺寸。该属性的可选值为 medium / small / mini"
+                      "zh_CN": "输入框尺寸。该属性的可选值为： medium 、small 、 mini"
                     },
                     "labelPosition": "left"
                   }
@@ -7622,7 +7622,7 @@
                       "props": {}
                     },
                     "description": {
-                      "zh_CN": "设置打开时的值(Boolean / String / Number)"
+                      "zh_CN": "设置打开时的值，类型为：Boolean | String | Number"
                     },
                     "labelPosition": "left"
                   },
@@ -7642,7 +7642,7 @@
                       "props": {}
                     },
                     "description": {
-                      "zh_CN": "设置关闭时的值(Boolean / String / Number)"
+                      "zh_CN": "设置关闭时的值，类型为：Boolean | String | Number"
                     },
                     "labelPosition": "left"
                   },
@@ -9641,7 +9641,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": []
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -9750,7 +9750,7 @@
             "isLayout": false,
             "rootSelector": "",
             "shortcuts": {
-              "properties": ["label-width", "disabled"]
+              "properties": ["name", "title"]
             },
             "contextMenu": {
               "actions": ["create symbol"],
@@ -10010,7 +10010,7 @@
                               }
                             },
                             "description": {
-                              "zh_CN": "设置内置列的类型，该属性的可选值为 index（序号）/ selection（复选框）/ radio（单选框）/ expand（展开行）"
+                              "zh_CN": "设置内置列的类型，该属性的可选值为 index（序号）、 selection（复选框）、 radio（单选框）、 expand（展开行）"
                             },
                             "labelPosition": "left"
                           },
@@ -10088,7 +10088,7 @@
                               }
                             },
                             "description": {
-                              "zh_CN": "设置内置列的内容超出部分显示省略号配置，该属性的可选值为 ellipsis（只显示省略号）/ title（显示为原生 title）/ tooltip（显示为 tooltip 提示）"
+                              "zh_CN": "设置内置列的内容超出部分显示省略号配置，该属性的可选值为： ellipsis(只显示省略号） 、 title(显示为原生 title) 、 tooltip(显示为 tooltip 提示）"
                             },
                             "labelPosition": "top"
                           }
@@ -12220,7 +12220,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "触发方式，该属性的可选值为 click / focus / hover / manual，该属性的默认值为 click"
+                      "zh_CN": "触发方式，该属性的可选值为： click 、 focus 、 hover 、 manual，该属性的默认值为 click"
                     },
                     "labelPosition": "left"
                   },
@@ -12757,7 +12757,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "日期框尺寸。该属性的可选值为 medium / small / mini"
+                      "zh_CN": "日期框尺寸。该属性的可选值为： medium 、 small 、 mini"
                     },
                     "labelPosition": "left"
                   }
@@ -13110,7 +13110,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "输入框尺寸。该属性的可选值为 medium / small / mini"
+                      "zh_CN": "输入框尺寸。该属性的可选值为： medium 、small 、 mini"
                     },
                     "labelPosition": "left"
                   },

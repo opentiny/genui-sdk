@@ -1,7 +1,23 @@
 {
   "name": "@opentiny/genui-sdk-server",
   "version": "0.0.1",
-  "description": "",
+  "description": "A server for the OpenTiny GenUI SDK, to enhance LLM return structure stream content",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://docs.opentiny.design/genui-sdk/guide/server-usage",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "server",
+    "genui-sdk",
+    "generative-ui",
+    "stream-ui"
+  ],
   "main": "output/dist/index.js",
   "types": "output/dist/index.d.ts",
   "type": "module",
@@ -15,13 +31,16 @@
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
-    "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
+    "prebuild": "pnpm --filter @opentiny/genui-sdk-materials-* build && pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-chat-completions build",
     "build": "vite build",
+    "analyze": "vite build --mode analyze",
+    "prebuild:lib:npm": "pnpm prebuild",
+    "build:lib:npm": "pnpm build",
     "postbuild": "tsx scripts/post-build.ts",
-    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
     "dev": "tsx watch --tsconfig ./tsconfig.dev.json test/start.ts"
   },
   "dependencies": {
@@ -43,7 +62,6 @@
     "tsx": "^4.8.1",
     "vite": "^7.0.0",
     "vite-jsconfig-paths": "^2.0.1",
-    "vite-plugin-bundle-obfuscator": "^1.8.0",
     "vite-plugin-dts": "^4.0.0"
   }
 }

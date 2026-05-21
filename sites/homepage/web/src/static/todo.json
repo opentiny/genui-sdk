@@ -435,8 +435,7 @@
             "data": {
               "type": "JSExpression",
               "value": "this.filteredTodos()"
-            },
-            "max-height": "400px"
+            }
           }
         },
         {
@@ -453,7 +452,7 @@
               "type": "JSExpression",
               "value": "this.state.newTodo"
             },
-            "label-position": "top"
+            "labelPosition": "top"
           },
           "children": [
             {

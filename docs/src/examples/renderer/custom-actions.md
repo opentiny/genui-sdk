@@ -103,3 +103,44 @@ const customActions = {
 #### 完整示例：
 
 <demo vue="../../../demos/renderer/custom-actions-form.vue" />
+
+
+## 把自定义组件信息传给 Server
+
+渲染器支持自定义组件后，同步修改LLM生成对话服务，把自定义的Actions信息发送给大模型。
+
+```ts {9-30}
+const response = await fetch(url, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    messages: [{ role: 'user', content: userInput }],
+    model: 'deepseek-v3.2',
+    stream: true,
+    metadata: {
+      tinygenui: JSON.stringify({
+        customActions: [
+          {
+            name: 'openPage',
+            description: '打开新页面',
+            parameters: {
+              type: 'object',
+              properties: {
+                url: {
+                  type: 'string',
+                  description: '要打开的页面地址',
+                },
+                target: {
+                  type: 'string',
+                  description: '打开方式，可选值：_self（当前窗口）、_blank（新窗口）',
+                },
+              },
+              required: ['url', 'target'],
+            },
+          }
+        ]
+      }),
+    },
+  }),
+});
+```

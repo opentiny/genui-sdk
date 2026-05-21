@@ -23,7 +23,7 @@ const content = ref({
           type: 'JSExpression',
           value: 'this.state.formData',
         },
-        'label-position': 'top',
+        labelPosition: 'top',
       },
       children: [
         {

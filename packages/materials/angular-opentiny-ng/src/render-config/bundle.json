@@ -4495,7 +4495,7 @@
                     "property": "placeholder",
                     "label": {
                       "text": {
-                        "zh_CN": "占位文本"
+                        "zh_CN": "占位文本, 数组类型，示例：`['开始日期占位文本', '结束日期占位文本']`"
                       }
                     },
                     "description": {
@@ -4506,7 +4506,7 @@
                     "disabled": false,
                     "cols": 12,
                     "labelPosition": "left",
-                    "type": "string",
+                    "type": "Array",
                     "widget": {
                       "component": "I18nConfigurator",
                       "props": {

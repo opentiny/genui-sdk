@@ -22,6 +22,7 @@ import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
 import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue';
+import ReasoningRenderer from './renderer/ReasoningRenderer.vue';
 import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
@@ -29,7 +30,7 @@ import { emitter } from './event-emitter';
 import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
-import type { IMessageItem } from '@opentiny/genui-sdk-core';
+import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
@@ -37,6 +38,7 @@ import { useResize } from './composable/use-resize';
 import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
 import { GENUI_CONFIG, CUSTOM_CONTEXT } from './injection-tokens';
+import { IResponseHandler, defaultResponseHandlers } from './response-handler';
 
 const props = defineProps<IChatProps>();
 
@@ -93,7 +95,7 @@ const wrapSlots = (slots: any) => {
       });
       const slotFn = toSlotFunction(slots[key]);
       if (slotFn) {
-        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value });
+        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value, chatMessage: messageManager.value.messages.value[props.index] });
       }
       return null;
     };
@@ -135,7 +137,7 @@ const saveState = (context: Record<string | symbol, any>) => {
   const cardId = context[cardIdSymbol];
   const cardMessage = getCardMessage(cardId);
   if (cardMessage) {
-    (cardMessage as any).state = Object.assign({}, context.state || {});
+    (cardMessage as any).state = JSON.parse(JSON.stringify(context.state || {}));
   }
   saveConversations();
 };
@@ -229,24 +231,30 @@ const messageRenderers = {
     );
   },
   tool: ToolRenderer,
+  reasoning: ReasoningRenderer,
   markdown: markdownRenderer,
   templateData: TemplateDataRenderer,
   'loading-text': props.thinkComponent || GeneratingComponent,
   'error-text': ErrorText,
 };
 
+const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
+
 
 const customModelProvider = new CustomModelProvider({
-  url: props.url,
-  model: props.model || '',
-  temperature: props.temperature ?? 0.3,
-  chatConfig: props.chatConfig || { addToolCallContext: false, showThinkingResult: false },
-  customComponents: props.customComponents || [],
-  customSnippets: props.customSnippets || [],
-  customExamples: props.customExamples || [],
-  customActions: [...(props.customActions || []), continueChatAction, saveStateAction],
-  customFetch: props.customFetch,
+  getChatOptions: () => ({
+    url: props.url,
+    model: props.model || '',
+    temperature: props.temperature ?? 0.3,
+    chatConfig: props.chatConfig || { addToolCallContext: false, showThinkingResult: false },
+    customComponents: props.customComponents || [],
+    customSnippets: props.customSnippets || [],
+    customExamples: props.customExamples || [],
+    customActions: [...(props.customActions || []), continueChatAction, saveStateAction],
+    customFetch: props.customFetch,
+  }),
 });
+customModelProvider.setResponseHandlers(responseHandlers.value);
 
 const client = new AIClient({
   provider: 'custom',
@@ -455,17 +463,21 @@ watch(
   },
 );
 
-watch(
-  () => [props.model, props.temperature],
-  () => {
-    customModelProvider.changeLlmConfig(props.model || '', props.temperature ?? 0.3);
-  },
-);
-
 defineExpose({
   setInputMessage,
   handleNewConversation,
   getConversation: () => conversation,
+  // experimental, not stable
+  getResponseHandlers: () => responseHandlers.value,
+  // experimental, not stable
+  setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
+    responseHandlers.value = handlers;
+    customModelProvider.setResponseHandlers(handlers);
+  },
+  getMessageRenderers: () => messageRenderers,
+  setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {
+    messageRenderers[key] = renderer;
+  },
 });
 </script>
 
@@ -473,7 +485,7 @@ defineExpose({
   <div
     class="tg-chat-container"
     :class="{ 'dark': genuiConfig?.theme === 'dark' }"
-    :style="props.chatConfig?.showThinkingResult === false ? { '--thinking-display': 'none' } : {}"
+    :style="!props.chatConfig?.showThinkingResult ? { '--thinking-display': 'none' } : {}"
   >
     <div
       class="messages-container"
@@ -588,7 +600,8 @@ defineExpose({
 }
 :deep(.tr-bubble__content-wrapper) {
   @avatar-and-gap-width: 56px;
-  max-width: calc(100% - @avatar-and-gap-width * 2);
+  // TODO: 后续规范变量名，在对外暴露
+  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width ,@avatar-and-gap-width) * 2);
 
   .tr-bubble__content {
     max-width: 100%;

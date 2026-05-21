@@ -59,7 +59,7 @@ export class RendererMain {
     this.el.nativeElement.detectChanges = () => this.detectChanges();
     this.el.nativeElement.setContext = (context: any) => this.contextService.setContext(context);
     this.el.nativeElement.getContext = () => this.contextService.getContext()
-    this.el.nativeElement.setState = (state: any) => this.setState(state);
+    this.el.nativeElement.setState = (state: any) => this._setState(state);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -73,6 +73,14 @@ export class RendererMain {
       componentName: 'div',
       children: this.pageSchema.children,
     };
+  }
+
+  public setContext(context: any) {
+    this.contextService.setContext(context);
+  }
+
+  public getContext() {
+    return this.contextService.getContext();
   }
 
   private setMethods(data: any, clear: boolean = false) {
@@ -89,7 +97,11 @@ export class RendererMain {
     this.contextService.setContext(this.methods);
   }
 
-  private setState(data: any, clear: boolean = false) {
+  public setState(state: any) {
+    this._setState(state);
+  }
+
+  private _setState(data: any, clear: boolean = false) {
     clear && reset(this.state);
     if (!this.pageSchema.state) {
       this.pageSchema.state = data;
@@ -111,7 +123,7 @@ export class RendererMain {
     };
     this.contextService.setContext(context, true);
     this.setMethods(newSchema.methods || {}, true);
-    this.setState(newSchema.state || {}, true);
+    this._setState(newSchema.state || {}, true);
     Object.assign(this.pageSchema, newSchema);
     await new Promise((resolve) => setTimeout(resolve, 0));
     setPageCss(newSchema.css || '', this.cssScopeId);

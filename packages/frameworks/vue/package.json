@@ -1,18 +1,62 @@
 {
   "name": "@opentiny/genui-sdk-vue",
   "version": "1.0.0",
+  "description": "A Vue3 component library for enhanced LLM display and interaction",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "vue",
+    "component",
+    "library",
+    "llm",
+    "generative-ui",
+    "stream-ui"
+  ],
   "main": "output/dist/index.js",
   "types": "output/dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./output/dist/index.d.ts",
+      "import": "./output/dist/index.js"
+    },
+    "./chat": {
+      "types": "./output/dist/chat.d.ts",
+      "import": "./output/dist/chat.js"
+    },
+    "./renderer": {
+      "types": "./output/dist/renderer.d.ts",
+      "import": "./output/dist/renderer.js"
+    },
+    "./config-provider": {
+      "types": "./output/dist/config-provider.d.ts",
+      "import": "./output/dist/config-provider.js"
+    },
+    "./transform-jsx": {
+      "types": "./output/dist/transform-jsx.d.ts",
+      "import": "./output/dist/transform-jsx.js"
+    }
+  },
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "build": "vite build",
-    "build:no-obfuscator": "pnpm build --mode no-obfuscator",
     "build:web-component": "vite build --config vite.config.web-component.ts",
-    "postbuild": "tsx scripts/postbuild.ts",
     "postbuild:web-component": "tsx scripts/transform-style.ts",
+    "postbuild": "tsx scripts/postbuild.ts",
+    "analyze": "vite build --mode analyze",
+    "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build && pnpm -F @opentiny/tiny-schema-renderer build",
+    "build:lib:npm": "pnpm build",
     "test": "vitest"
   },
   "dependencies": {
@@ -20,19 +64,43 @@
     "@opentiny/tiny-robot-kit": "0.3.3",
     "@opentiny/tiny-robot-svgs": "0.3.3",
     "@opentiny/vue": "^3.28.0",
+    "@opentiny/vue-renderless": "^3.28.2",
     "@opentiny/vue-icon": "^3.28.0",
     "@opentiny/vue-theme": "^3.28.0",
     "uuid": "^11.1.0",
     "vue": "^3.5.13",
-    "@opentiny/vue-button": "^3.28.0",
     "@opentiny/vue-chart-bar": "~3.14.0",
     "@opentiny/vue-chart-histogram": "~3.14.0",
     "@opentiny/vue-chart-line": "~3.14.0",
     "@opentiny/vue-chart-pie": "~3.14.0",
     "@opentiny/vue-chart-radar": "~3.14.0",
     "@opentiny/vue-chart-ring": "3.14.0",
+    "@opentiny/vue-carousel": "^3.28.0",
+    "@opentiny/vue-carousel-item": "^3.28.0",
+    "@opentiny/vue-checkbox-button": "^3.28.0",
+    "@opentiny/vue-checkbox-group": "^3.28.0",
+    "@opentiny/vue-col": "^3.28.0",
+    "@opentiny/vue-date-picker": "^3.28.0",
+    "@opentiny/vue-layout": "^3.28.0",
+    "@opentiny/vue-row": "^3.28.0",
+    "@opentiny/vue-search": "^3.28.0",
     "@opentiny/vue-select": "^3.28.0",
+    "@opentiny/vue-transfer": "^3.28.0",
+    "@opentiny/vue-button": "^3.28.0",
+    "@opentiny/vue-grid": "^3.28.0",
+    "@opentiny/vue-form": "^3.28.0",
+    "@opentiny/vue-form-item": "^3.28.0",
+    "@opentiny/vue-input": "^3.28.0",
+    "@opentiny/vue-notify": "^3.28.0",
+    "@opentiny/vue-card": "^3.28.0",
+    "@opentiny/vue-checkbox": "^3.28.0",
+    "@opentiny/vue-numeric": "^3.28.0",
+    "@opentiny/vue-radio": "^3.28.0",
+    "@opentiny/vue-switch": "^3.28.0",
     "@opentiny/vue-tabs": "^3.28.0",
+    "@opentiny/vue-tab-item": "^3.28.0",
+    "@opentiny/vue-tree": "^3.28.0",
+    "@opentiny/vue-radio-group": "^3.28.0",
     "@opentiny/tiny-engine-builtin-component": "^2.6.0"
   },
   "devDependencies": {
@@ -40,9 +108,7 @@
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/tiny-schema-renderer": "workspace:*",
-    "ai": "^5.0.10",
     "rollup-plugin-visualizer": "^6.0.5",
-    "vite-plugin-bundle-obfuscator": "^1.8.0",
     "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",

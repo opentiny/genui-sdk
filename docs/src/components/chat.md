@@ -2,6 +2,8 @@
 
 `GenuiChat` 是一个集成的 TinyRobot 对话组件，内部封装了会话管理、流式返回、生成状态等功能，提供了开箱即用的对话体验。
 
+仅使用 Chat 时可从 `@opentiny/genui-sdk-vue/chat` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
+
 ## Props
 
 ### url
@@ -591,6 +593,7 @@ interface IBubbleSlotsProps {
   bubbleProps: BubbleProps;
   isFinished: boolean;
   messageManager: UseMessageReturn;
+  chatMessage: IMessage
 }
 ```
 
@@ -608,8 +611,10 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-`BubbleProps` 和 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
+`BubbleProps` 、`UseConversationReturn`、 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
 
 查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
+
+查看 [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
 
 查看 [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法

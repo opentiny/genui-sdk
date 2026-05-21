@@ -39,6 +39,7 @@ const props = defineProps({
 .home-guide-card {
   display: flex;
   padding: 5%;
+  min-width: 331px;
 
   &-active {
     background-color: rgba(246, 246, 246, 1);
@@ -69,6 +70,7 @@ const props = defineProps({
       font-weight: 400;
       line-height: var(--line-height-body-xs);
       letter-spacing: 0px;
+      white-space: nowrap;
     }
   }
 }

@@ -145,3 +145,6 @@ vite.config.ts.timestamp-*
 
 # Rollup visualizer files
 stats.html
+
+# GitHub Pages 本地合并输出
+_site/

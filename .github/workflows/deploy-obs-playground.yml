@@ -1,0 +1,90 @@
+name: Deploy GenUI SDK Playground to Huawei OBS
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 选择您将要发布的环境
+        required: false
+        type: choice
+        default: alpha
+        options:
+          - alpha
+          - prod
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{  github.event.inputs.env || 'alpha' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Checkout repository (with submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+      - name: Install deps
+        run: pnpm install
+      - name: Show environment
+        run: |
+          echo "Building environment: ${{ github.event.inputs.env || 'alpha' }}"
+          echo "GENUI_ASSETS_URL: ${{ secrets.GENUI_ASSETS_URL }}"
+          echo "GENUI_BACKEND_URL: ${{ vars.GENUI_BACKEND_URL }}"
+      - name: Build genui-sdk-playground-web
+        run: pnpm build:playground-web --base=${{ secrets.GENUI_ASSETS_URL }}/${{ github.event.inputs.env || 'alpha' }}/
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+          VITE_CHAT_URL: ${{ vars.GENUI_BACKEND_URL }}/chat-genui
+          VITE_GET_MODELS_URL: ${{ vars.GENUI_BACKEND_URL }}/get-models
+          VITE_CHECK_MCP_URL: ${{ vars.GENUI_BACKEND_URL }}/check-mcp
+      - name: Copy files
+        run: |
+          cp sites/playground/web/dist/index.html sites/playground/web/dist/404.html
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-artifact
+          path: sites/playground/web/dist/
+  # Deploy job
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.env }}
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist-artifact
+          path: sites/playground/web/dist/
+      - name: Show environment
+        run: |
+          echo "Deploying environment: ${{ github.event.inputs.env || 'alpha' }}"
+      # ===== 下载 obsutil =====
+      - name: Install obsutil
+        run: |
+          curl -o obsutil.tar.gz https://obs-community.obs.cn-north-1.myhuaweicloud.com/obsutil/current/obsutil_linux_amd64.tar.gz
+          tar -xzf obsutil.tar.gz
+          chmod +x obsutil_linux_amd64_*/obsutil
+          sudo mv obsutil_linux_amd64_*/obsutil /usr/local/bin/obsutil
+
+      # ===== 配置并上传 =====
+      - name: Upload to OBS
+        run: |
+          # 一次性配置 AK/SK/endpoint
+          obsutil config -i=${{ secrets.HUAWEI_CLOUD_AK }} \
+                         -k=${{ secrets.HUAWEI_CLOUD_SK }} \
+                         -e=${{ secrets.HUAWEI_CLOUD_ENDPOINT }}
+
+          # 把本地 dist/ 目录整站同步到桶根目录
+          echo "Environment: ${{ github.event.inputs.env || 'alpha' }}"
+          mv sites/playground/web/dist ${{ github.event.inputs.env || 'alpha' }}
+          obsutil cp ${{ github.event.inputs.env || 'alpha' }} obs://${{ secrets.HUAWEI_CLOUD_BUCKET }}/genui-sdk-playground -r -f

@@ -1,0 +1,235 @@
+diff --git a/dist/index.d.ts b/dist/index.d.ts
+index 962e4731a14ffab8e76a82c2f96ebfc4d6674ee3..8d2dcb0293f37293090ea19ccf473087e1e23694 100644
+--- a/dist/index.d.ts
++++ b/dist/index.d.ts
+@@ -5299,6 +5299,8 @@ declare function getTextFromDataUrl(dataUrl: string): string;
+  */
+ declare function isDeepEqualData(obj1: any, obj2: any): boolean;
+ 
++declare function fixJson(input: string): string;
++
+ declare function parsePartialJson(jsonText: string | undefined): Promise<{
+     value: JSONValue$1 | undefined;
+     state: 'undefined-input' | 'successful-parse' | 'repaired-parse' | 'failed-parse';
+@@ -6426,4 +6428,4 @@ declare global {
+     var AI_SDK_TELEMETRY_INTEGRATIONS: TelemetryIntegration[] | undefined;
+ }
+ 
+-export { AbstractChat, Agent, AgentCallParameters, AgentStreamParameters, AsyncIterableStream, CallSettings, CallWarning, ChatAddToolApproveResponseFunction, ChatInit, ChatOnDataCallback, ChatOnErrorCallback, ChatOnFinishCallback, ChatOnToolCallCallback, ChatRequestOptions, ChatState, ChatStatus, ChatTransport, ChunkDetector, CompletionRequestOptions, ContentPart, CreateUIMessage, DataUIPart, DeepPartial, DefaultChatTransport, DefaultGeneratedFile, DirectChatTransport, DirectChatTransportOptions, DynamicToolCall, DynamicToolError, DynamicToolResult, DynamicToolUIPart, EmbedManyResult, EmbedResult, Embedding, EmbeddingModel, EmbeddingModelMiddleware, EmbeddingModelUsage, ErrorHandler, ToolLoopAgent as Experimental_Agent, ToolLoopAgentSettings as Experimental_AgentSettings, DownloadFunction as Experimental_DownloadFunction, Experimental_GenerateImageResult, GeneratedFile as Experimental_GeneratedImage, InferAgentUIMessage as Experimental_InferAgentUIMessage, LogWarningsFunction as Experimental_LogWarningsFunction, SpeechResult as Experimental_SpeechResult, TranscriptionResult as Experimental_TranscriptionResult, FileUIPart, FinishReason, GenerateImageResult, GenerateObjectResult, GenerateTextOnFinishCallback, GenerateTextOnStartCallback, GenerateTextOnStepFinishCallback, GenerateTextOnStepStartCallback, GenerateTextOnToolCallFinishCallback, GenerateTextOnToolCallStartCallback, GenerateTextResult, GenerateVideoPrompt, GenerateVideoResult, GeneratedAudioFile, GeneratedFile, HttpChatTransport, HttpChatTransportInitOptions, ImageModel, ImageModelMiddleware, ImageModelProviderMetadata, ImageModelResponseMetadata, ImageModelUsage, InferAgentUIMessage, InferCompleteOutput as InferGenerateOutput, InferPartialOutput as InferStreamOutput, InferUIDataParts, InferUIMessageChunk, InferUITool, InferUITools, InvalidArgumentError, InvalidDataContentError, InvalidMessageRoleError, InvalidStreamPartError, InvalidToolApprovalError, InvalidToolInputError, JSONValue, JsonToSseTransformStream, LanguageModel, LanguageModelMiddleware, LanguageModelRequestMetadata, LanguageModelResponseMetadata, LanguageModelUsage, LogWarningsFunction, MessageConversionError, MissingToolResultsError, NoImageGeneratedError, NoObjectGeneratedError, NoOutputGeneratedError, NoSpeechGeneratedError, NoSuchProviderError, NoSuchToolError, NoTranscriptGeneratedError, NoVideoGeneratedError, ObjectStreamPart, OnFinishEvent, OnStartEvent, OnStepFinishEvent, OnStepStartEvent, OnToolCallFinishEvent, OnToolCallStartEvent, output as Output, PrepareReconnectToStreamRequest, PrepareSendMessagesRequest, PrepareStepFunction, PrepareStepResult, Prompt, Provider, ProviderMetadata, ProviderRegistryProvider, ReasoningOutput, ReasoningUIPart, RepairTextFunction, RerankResult, RerankingModel, RetryError, SafeValidateUIMessagesResult, SerialJobExecutor, SourceDocumentUIPart, SourceUrlUIPart, SpeechModel, SpeechModelResponseMetadata, StaticToolCall, StaticToolError, StaticToolOutputDenied, StaticToolResult, StepResult, StepStartUIPart, StopCondition, StreamObjectOnFinishCallback, StreamObjectResult, StreamTextOnChunkCallback, StreamTextOnErrorCallback, StreamTextOnFinishCallback, StreamTextOnStartCallback, StreamTextOnStepFinishCallback, StreamTextOnStepStartCallback, StreamTextOnToolCallFinishCallback, StreamTextOnToolCallStartCallback, StreamTextResult, StreamTextTransform, TelemetryIntegration, TelemetrySettings, TextStreamChatTransport, TextStreamPart, TextUIPart, TimeoutConfiguration, ToolApprovalRequestOutput, ToolCallNotFoundForApprovalError, ToolCallRepairError, ToolCallRepairFunction, ToolChoice, ToolLoopAgent, ToolLoopAgentOnFinishCallback, ToolLoopAgentOnStartCallback, ToolLoopAgentOnStepFinishCallback, ToolLoopAgentOnStepStartCallback, ToolLoopAgentOnToolCallFinishCallback, ToolLoopAgentOnToolCallStartCallback, ToolLoopAgentSettings, ToolSet, ToolUIPart, TranscriptionModel, TranscriptionModelResponseMetadata, TypedToolCall, TypedToolError, TypedToolOutputDenied, TypedToolResult, UIDataPartSchemas, UIDataTypes, UIMessage, UIMessageChunk, UIMessagePart, UIMessageStreamError, UIMessageStreamOnFinishCallback, UIMessageStreamOnStepFinishCallback, UIMessageStreamOptions, UIMessageStreamWriter, UITool, UIToolInvocation, UITools, UI_MESSAGE_STREAM_HEADERS, UnsupportedModelVersionError, UseCompletionOptions, Warning, addToolInputExamplesMiddleware, assistantModelMessageSchema, bindTelemetryIntegration, callCompletionApi, consumeStream, convertFileListToFileUIParts, convertToModelMessages, cosineSimilarity, createAgentUIStream, createAgentUIStreamResponse, createDownload, createProviderRegistry, createTextStreamResponse, createUIMessageStream, createUIMessageStreamResponse, customProvider, defaultEmbeddingSettingsMiddleware, defaultSettingsMiddleware, embed, embedMany, experimental_createProviderRegistry, experimental_customProvider, experimental_generateImage, generateSpeech as experimental_generateSpeech, experimental_generateVideo, transcribe as experimental_transcribe, extractJsonMiddleware, extractReasoningMiddleware, generateImage, generateObject, generateText, getStaticToolName, getTextFromDataUrl, getToolName, getToolOrDynamicToolName, hasToolCall, isDataUIPart, isDeepEqualData, isFileUIPart, isReasoningUIPart, isStaticToolUIPart, isTextUIPart, isToolOrDynamicToolUIPart, isToolUIPart, lastAssistantMessageIsCompleteWithApprovalResponses, lastAssistantMessageIsCompleteWithToolCalls, modelMessageSchema, parsePartialJson, pipeAgentUIStreamToResponse, pipeTextStreamToResponse, pipeUIMessageStreamToResponse, pruneMessages, readUIMessageStream, registerTelemetryIntegration, rerank, safeValidateUIMessages, simulateReadableStream, simulateStreamingMiddleware, smoothStream, stepCountIs, streamObject, streamText, systemModelMessageSchema, toolModelMessageSchema, uiMessageChunkSchema, userModelMessageSchema, validateUIMessages, wrapEmbeddingModel, wrapImageModel, wrapLanguageModel, wrapProvider };
++export { fixJson, AbstractChat, Agent, AgentCallParameters, AgentStreamParameters, AsyncIterableStream, CallSettings, CallWarning, ChatAddToolApproveResponseFunction, ChatInit, ChatOnDataCallback, ChatOnErrorCallback, ChatOnFinishCallback, ChatOnToolCallCallback, ChatRequestOptions, ChatState, ChatStatus, ChatTransport, ChunkDetector, CompletionRequestOptions, ContentPart, CreateUIMessage, DataUIPart, DeepPartial, DefaultChatTransport, DefaultGeneratedFile, DirectChatTransport, DirectChatTransportOptions, DynamicToolCall, DynamicToolError, DynamicToolResult, DynamicToolUIPart, EmbedManyResult, EmbedResult, Embedding, EmbeddingModel, EmbeddingModelMiddleware, EmbeddingModelUsage, ErrorHandler, ToolLoopAgent as Experimental_Agent, ToolLoopAgentSettings as Experimental_AgentSettings, DownloadFunction as Experimental_DownloadFunction, Experimental_GenerateImageResult, GeneratedFile as Experimental_GeneratedImage, InferAgentUIMessage as Experimental_InferAgentUIMessage, LogWarningsFunction as Experimental_LogWarningsFunction, SpeechResult as Experimental_SpeechResult, TranscriptionResult as Experimental_TranscriptionResult, FileUIPart, FinishReason, GenerateImageResult, GenerateObjectResult, GenerateTextOnFinishCallback, GenerateTextOnStartCallback, GenerateTextOnStepFinishCallback, GenerateTextOnStepStartCallback, GenerateTextOnToolCallFinishCallback, GenerateTextOnToolCallStartCallback, GenerateTextResult, GenerateVideoPrompt, GenerateVideoResult, GeneratedAudioFile, GeneratedFile, HttpChatTransport, HttpChatTransportInitOptions, ImageModel, ImageModelMiddleware, ImageModelProviderMetadata, ImageModelResponseMetadata, ImageModelUsage, InferAgentUIMessage, InferCompleteOutput as InferGenerateOutput, InferPartialOutput as InferStreamOutput, InferUIDataParts, InferUIMessageChunk, InferUITool, InferUITools, InvalidArgumentError, InvalidDataContentError, InvalidMessageRoleError, InvalidStreamPartError, InvalidToolApprovalError, InvalidToolInputError, JSONValue, JsonToSseTransformStream, LanguageModel, LanguageModelMiddleware, LanguageModelRequestMetadata, LanguageModelResponseMetadata, LanguageModelUsage, LogWarningsFunction, MessageConversionError, MissingToolResultsError, NoImageGeneratedError, NoObjectGeneratedError, NoOutputGeneratedError, NoSpeechGeneratedError, NoSuchProviderError, NoSuchToolError, NoTranscriptGeneratedError, NoVideoGeneratedError, ObjectStreamPart, OnFinishEvent, OnStartEvent, OnStepFinishEvent, OnStepStartEvent, OnToolCallFinishEvent, OnToolCallStartEvent, output as Output, PrepareReconnectToStreamRequest, PrepareSendMessagesRequest, PrepareStepFunction, PrepareStepResult, Prompt, Provider, ProviderMetadata, ProviderRegistryProvider, ReasoningOutput, ReasoningUIPart, RepairTextFunction, RerankResult, RerankingModel, RetryError, SafeValidateUIMessagesResult, SerialJobExecutor, SourceDocumentUIPart, SourceUrlUIPart, SpeechModel, SpeechModelResponseMetadata, StaticToolCall, StaticToolError, StaticToolOutputDenied, StaticToolResult, StepResult, StepStartUIPart, StopCondition, StreamObjectOnFinishCallback, StreamObjectResult, StreamTextOnChunkCallback, StreamTextOnErrorCallback, StreamTextOnFinishCallback, StreamTextOnStartCallback, StreamTextOnStepFinishCallback, StreamTextOnStepStartCallback, StreamTextOnToolCallFinishCallback, StreamTextOnToolCallStartCallback, StreamTextResult, StreamTextTransform, TelemetryIntegration, TelemetrySettings, TextStreamChatTransport, TextStreamPart, TextUIPart, TimeoutConfiguration, ToolApprovalRequestOutput, ToolCallNotFoundForApprovalError, ToolCallRepairError, ToolCallRepairFunction, ToolChoice, ToolLoopAgent, ToolLoopAgentOnFinishCallback, ToolLoopAgentOnStartCallback, ToolLoopAgentOnStepFinishCallback, ToolLoopAgentOnStepStartCallback, ToolLoopAgentOnToolCallFinishCallback, ToolLoopAgentOnToolCallStartCallback, ToolLoopAgentSettings, ToolSet, ToolUIPart, TranscriptionModel, TranscriptionModelResponseMetadata, TypedToolCall, TypedToolError, TypedToolOutputDenied, TypedToolResult, UIDataPartSchemas, UIDataTypes, UIMessage, UIMessageChunk, UIMessagePart, UIMessageStreamError, UIMessageStreamOnFinishCallback, UIMessageStreamOnStepFinishCallback, UIMessageStreamOptions, UIMessageStreamWriter, UITool, UIToolInvocation, UITools, UI_MESSAGE_STREAM_HEADERS, UnsupportedModelVersionError, UseCompletionOptions, Warning, addToolInputExamplesMiddleware, assistantModelMessageSchema, bindTelemetryIntegration, callCompletionApi, consumeStream, convertFileListToFileUIParts, convertToModelMessages, cosineSimilarity, createAgentUIStream, createAgentUIStreamResponse, createDownload, createProviderRegistry, createTextStreamResponse, createUIMessageStream, createUIMessageStreamResponse, customProvider, defaultEmbeddingSettingsMiddleware, defaultSettingsMiddleware, embed, embedMany, experimental_createProviderRegistry, experimental_customProvider, experimental_generateImage, generateSpeech as experimental_generateSpeech, experimental_generateVideo, transcribe as experimental_transcribe, extractJsonMiddleware, extractReasoningMiddleware, generateImage, generateObject, generateText, getStaticToolName, getTextFromDataUrl, getToolName, getToolOrDynamicToolName, hasToolCall, isDataUIPart, isDeepEqualData, isFileUIPart, isReasoningUIPart, isStaticToolUIPart, isTextUIPart, isToolOrDynamicToolUIPart, isToolUIPart, lastAssistantMessageIsCompleteWithApprovalResponses, lastAssistantMessageIsCompleteWithToolCalls, modelMessageSchema, parsePartialJson, pipeAgentUIStreamToResponse, pipeTextStreamToResponse, pipeUIMessageStreamToResponse, pruneMessages, readUIMessageStream, registerTelemetryIntegration, rerank, safeValidateUIMessages, simulateReadableStream, simulateStreamingMiddleware, smoothStream, stepCountIs, streamObject, streamText, systemModelMessageSchema, toolModelMessageSchema, uiMessageChunkSchema, userModelMessageSchema, validateUIMessages, wrapEmbeddingModel, wrapImageModel, wrapLanguageModel, wrapProvider };
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 3d9c238d5eed7e046b5d74eeb420caeb36953ab0..103143e0fff72f7ac04d900ccd04d67712b861f9 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -45,7 +45,7 @@ import {
+ import { AISDKError } from "@ai-sdk/provider";
+ var name = "AI_InvalidArgumentError";
+ var marker = `vercel.ai.error.${name}`;
+-var symbol = Symbol.for(marker);
++var symbol = /* @__PURE__ */Symbol.for(marker);
+ var _a;
+ var InvalidArgumentError = class extends AISDKError {
+   constructor({
+@@ -71,7 +71,7 @@ _a = symbol;
+ import { AISDKError as AISDKError2 } from "@ai-sdk/provider";
+ var name2 = "AI_InvalidStreamPartError";
+ var marker2 = `vercel.ai.error.${name2}`;
+-var symbol2 = Symbol.for(marker2);
++var symbol2 = /* @__PURE__ */Symbol.for(marker2);
+ var _a2;
+ var InvalidStreamPartError = class extends AISDKError2 {
+   constructor({
+@@ -92,7 +92,7 @@ _a2 = symbol2;
+ import { AISDKError as AISDKError3 } from "@ai-sdk/provider";
+ var name3 = "AI_InvalidToolApprovalError";
+ var marker3 = `vercel.ai.error.${name3}`;
+-var symbol3 = Symbol.for(marker3);
++var symbol3 = /* @__PURE__ */Symbol.for(marker3);
+ var _a3;
+ var InvalidToolApprovalError = class extends AISDKError3 {
+   constructor({ approvalId }) {
+@@ -113,7 +113,7 @@ _a3 = symbol3;
+ import { AISDKError as AISDKError4, getErrorMessage } from "@ai-sdk/provider";
+ var name4 = "AI_InvalidToolInputError";
+ var marker4 = `vercel.ai.error.${name4}`;
+-var symbol4 = Symbol.for(marker4);
++var symbol4 = /* @__PURE__ */Symbol.for(marker4);
+ var _a4;
+ var InvalidToolInputError = class extends AISDKError4 {
+   constructor({
+@@ -137,7 +137,7 @@ _a4 = symbol4;
+ import { AISDKError as AISDKError5 } from "@ai-sdk/provider";
+ var name5 = "AI_ToolCallNotFoundForApprovalError";
+ var marker5 = `vercel.ai.error.${name5}`;
+-var symbol5 = Symbol.for(marker5);
++var symbol5 = /* @__PURE__ */Symbol.for(marker5);
+ var _a5;
+ var ToolCallNotFoundForApprovalError = class extends AISDKError5 {
+   constructor({
+@@ -162,7 +162,7 @@ _a5 = symbol5;
+ import { AISDKError as AISDKError6 } from "@ai-sdk/provider";
+ var name6 = "AI_MissingToolResultsError";
+ var marker6 = `vercel.ai.error.${name6}`;
+-var symbol6 = Symbol.for(marker6);
++var symbol6 = /* @__PURE__ */Symbol.for(marker6);
+ var _a6;
+ var MissingToolResultsError = class extends AISDKError6 {
+   constructor({ toolCallIds }) {
+@@ -185,7 +185,7 @@ _a6 = symbol6;
+ import { AISDKError as AISDKError7 } from "@ai-sdk/provider";
+ var name7 = "AI_NoImageGeneratedError";
+ var marker7 = `vercel.ai.error.${name7}`;
+-var symbol7 = Symbol.for(marker7);
++var symbol7 = /* @__PURE__ */Symbol.for(marker7);
+ var _a7;
+ var NoImageGeneratedError = class extends AISDKError7 {
+   constructor({
+@@ -207,7 +207,7 @@ _a7 = symbol7;
+ import { AISDKError as AISDKError8 } from "@ai-sdk/provider";
+ var name8 = "AI_NoObjectGeneratedError";
+ var marker8 = `vercel.ai.error.${name8}`;
+-var symbol8 = Symbol.for(marker8);
++var symbol8 = /* @__PURE__ */Symbol.for(marker8);
+ var _a8;
+ var NoObjectGeneratedError = class extends AISDKError8 {
+   constructor({
+@@ -235,7 +235,7 @@ _a8 = symbol8;
+ import { AISDKError as AISDKError9 } from "@ai-sdk/provider";
+ var name9 = "AI_NoOutputGeneratedError";
+ var marker9 = `vercel.ai.error.${name9}`;
+-var symbol9 = Symbol.for(marker9);
++var symbol9 = /* @__PURE__ */Symbol.for(marker9);
+ var _a9;
+ var NoOutputGeneratedError = class extends AISDKError9 {
+   // used in isInstance
+@@ -256,7 +256,7 @@ _a9 = symbol9;
+ import { AISDKError as AISDKError10 } from "@ai-sdk/provider";
+ var name10 = "AI_NoSpeechGeneratedError";
+ var marker10 = `vercel.ai.error.${name10}`;
+-var symbol10 = Symbol.for(marker10);
++var symbol10 = /* @__PURE__ */Symbol.for(marker10);
+ var _a10;
+ var NoSpeechGeneratedError = class extends AISDKError10 {
+   constructor(options) {
+@@ -277,7 +277,7 @@ _a10 = symbol10;
+ import { AISDKError as AISDKError11 } from "@ai-sdk/provider";
+ var name11 = "AI_NoTranscriptGeneratedError";
+ var marker11 = `vercel.ai.error.${name11}`;
+-var symbol11 = Symbol.for(marker11);
++var symbol11 = /* @__PURE__ */Symbol.for(marker11);
+ var _a11;
+ var NoTranscriptGeneratedError = class extends AISDKError11 {
+   constructor(options) {
+@@ -298,7 +298,7 @@ _a11 = symbol11;
+ import { AISDKError as AISDKError12 } from "@ai-sdk/provider";
+ var name12 = "AI_NoVideoGeneratedError";
+ var marker12 = `vercel.ai.error.${name12}`;
+-var symbol12 = Symbol.for(marker12);
++var symbol12 = /* @__PURE__ */Symbol.for(marker12);
+ var _a12;
+ var NoVideoGeneratedError = class extends AISDKError12 {
+   constructor({
+@@ -338,7 +338,7 @@ _a12 = symbol12;
+ import { AISDKError as AISDKError13 } from "@ai-sdk/provider";
+ var name13 = "AI_NoSuchToolError";
+ var marker13 = `vercel.ai.error.${name13}`;
+-var symbol13 = Symbol.for(marker13);
++var symbol13 = /* @__PURE__ */Symbol.for(marker13);
+ var _a13;
+ var NoSuchToolError = class extends AISDKError13 {
+   constructor({
+@@ -361,7 +361,7 @@ _a13 = symbol13;
+ import { AISDKError as AISDKError14, getErrorMessage as getErrorMessage2 } from "@ai-sdk/provider";
+ var name14 = "AI_ToolCallRepairError";
+ var marker14 = `vercel.ai.error.${name14}`;
+-var symbol14 = Symbol.for(marker14);
++var symbol14 = /* @__PURE__ */Symbol.for(marker14);
+ var _a14;
+ var ToolCallRepairError = class extends AISDKError14 {
+   constructor({
+@@ -397,7 +397,7 @@ var UnsupportedModelVersionError = class extends AISDKError15 {
+ import { AISDKError as AISDKError16 } from "@ai-sdk/provider";
+ var name15 = "AI_UIMessageStreamError";
+ var marker15 = `vercel.ai.error.${name15}`;
+-var symbol15 = Symbol.for(marker15);
++var symbol15 = /* @__PURE__ */Symbol.for(marker15);
+ var _a15;
+ var UIMessageStreamError = class extends AISDKError16 {
+   constructor({
+@@ -420,7 +420,7 @@ _a15 = symbol15;
+ import { AISDKError as AISDKError17 } from "@ai-sdk/provider";
+ var name16 = "AI_InvalidDataContentError";
+ var marker16 = `vercel.ai.error.${name16}`;
+-var symbol16 = Symbol.for(marker16);
++var symbol16 = /* @__PURE__ */Symbol.for(marker16);
+ var _a16;
+ var InvalidDataContentError = class extends AISDKError17 {
+   constructor({
+@@ -442,7 +442,7 @@ _a16 = symbol16;
+ import { AISDKError as AISDKError18 } from "@ai-sdk/provider";
+ var name17 = "AI_InvalidMessageRoleError";
+ var marker17 = `vercel.ai.error.${name17}`;
+-var symbol17 = Symbol.for(marker17);
++var symbol17 = /* @__PURE__ */Symbol.for(marker17);
+ var _a17;
+ var InvalidMessageRoleError = class extends AISDKError18 {
+   constructor({
+@@ -463,7 +463,7 @@ _a17 = symbol17;
+ import { AISDKError as AISDKError19 } from "@ai-sdk/provider";
+ var name18 = "AI_MessageConversionError";
+ var marker18 = `vercel.ai.error.${name18}`;
+-var symbol18 = Symbol.for(marker18);
++var symbol18 = /* @__PURE__ */Symbol.for(marker18);
+ var _a18;
+ var MessageConversionError = class extends AISDKError19 {
+   constructor({
+@@ -487,7 +487,7 @@ import { DownloadError } from "@ai-sdk/provider-utils";
+ import { AISDKError as AISDKError20 } from "@ai-sdk/provider";
+ var name19 = "AI_RetryError";
+ var marker19 = `vercel.ai.error.${name19}`;
+-var symbol19 = Symbol.for(marker19);
++var symbol19 = /* @__PURE__ */Symbol.for(marker19);
+ var _a19;
+ var RetryError = class extends AISDKError20 {
+   constructor({
+@@ -2964,7 +2964,7 @@ import {
+ import { safeParseJSON } from "@ai-sdk/provider-utils";
+ 
+ // src/util/fix-json.ts
+-function fixJson(input) {
++export function fixJson(input) {
+   const stack = ["ROOT"];
+   let lastValidIndex = -1;
+   let literalStart = null;
+@@ -12184,7 +12184,7 @@ var experimental_customProvider = customProvider;
+ import { AISDKError as AISDKError24, NoSuchModelError as NoSuchModelError3 } from "@ai-sdk/provider";
+ var name20 = "AI_NoSuchProviderError";
+ var marker20 = `vercel.ai.error.${name20}`;
+-var symbol20 = Symbol.for(marker20);
++var symbol20 = /* @__PURE__ */Symbol.for(marker20);
+ var _a20;
+ var NoSuchProviderError = class extends NoSuchModelError3 {
+   constructor({
+diff --git a/package.json b/package.json
+index d8943032224572580d9d0c669bd9ee99494eec26..d522fdec10903ad3e93f8404374c6ac825189bb7 100644
+--- a/package.json
++++ b/package.json
+@@ -41,6 +41,18 @@
+       "import": "./dist/test/index.mjs",
+       "module": "./dist/test/index.mjs",
+       "require": "./dist/test/index.js"
++    },
++    "./src/util/fix-json": {
++      "types": "./src/util/fix-json.ts",
++      "import": "./src/util/fix-json.ts",
++      "module": "./src/util/fix-json.ts",
++      "require": "./src/util/fix-json.ts"
++    },
++    "./src/util/*": {
++      "types": "./src/util/*",
++      "import": "./src/util/*",
++      "module": "./src/util/*",
++      "require": "./src/util/*"
+     }
+   },
+   "dependencies": {

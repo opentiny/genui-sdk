@@ -2,6 +2,8 @@
 
 `GenuiConfigProvider` 用于为渲染器提供主题能力，并将主题样式限定在特定作用域内。
 
+仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
+
 ## Props
 
 ### theme

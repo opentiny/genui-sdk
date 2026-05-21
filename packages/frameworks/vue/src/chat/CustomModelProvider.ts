@@ -1,15 +1,33 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
-import { reactive, toRaw } from 'vue';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
 import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-import { emitter } from './event-emitter';
-import useSchemaStream from './useSchemaStream';
-import type { IStreamDelta, IMessageItem, IChatMessage } from '@opentiny/genui-sdk-core';
-import { v4 as uuidv4 } from 'uuid';
-import { useI18n } from './i18n';
+import type { IChatMessage, IStreamData } from '@opentiny/genui-sdk-core';
+import type { IResponseHandler } from './response-handler';
 
-export interface ICustomModelProviderOptions {
+async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handler: (data: string) => void) {
+  let buffer = '';
+  const decoder = new TextDecoder('utf-8');
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    while (true) {
+      const lineEnd = buffer.indexOf('\n');
+      if (lineEnd === -1) break;
+      const line = buffer.slice(0, lineEnd).trim();
+      buffer = buffer.slice(lineEnd + 1);
+      if (!line.startsWith('data:')) continue;
+      const data = line.slice(5).trim();
+      if (data === '[DONE]') break;
+      handler(data);
+    }
+  }
+  return true;
+}
+
+/** 与 {@link chat} 入参对齐的选项；由调用方在每次请求前给出当前值（与 props / 状态同步） */
+export interface ICustomModelChatOptions {
   url: string;
   model: string;
   temperature: number;
@@ -20,50 +38,47 @@ export interface ICustomModelProviderOptions {
   customActions: ICustomActionItem[];
   customFetch?: CustomFetch;
 }
+
+export interface ICustomModelProviderOptions {
+  getChatOptions: () => ICustomModelChatOptions;
+}
+
 export class CustomModelProvider extends BaseModelProvider {
-  private url: string;
-  private model: string;
-  private temperature: number;
-  private customComponents: ICustomComponentItem[];
-  private customSnippets: IGenPromptSnippet[];
-  private customExamples: IGenPromptExample[];
-  private customActions: ICustomActionItem[];
-  private chatConfig: IChatConfig;
-  private customFetch?: CustomFetch;
-  constructor({ url, model, temperature, chatConfig, customComponents, customSnippets, customExamples, customActions, customFetch }: ICustomModelProviderOptions) {
+  private getChatOptions: () => ICustomModelChatOptions;
+  protected responseHandlers: IResponseHandler<IStreamData>[] = [];
+  constructor({ getChatOptions }: ICustomModelProviderOptions) {
     super({ provider: 'custom' });
-    this.url = url;
-    this.model = model;
-    this.temperature = temperature;
-    this.customComponents = customComponents;
-    this.customSnippets = customSnippets;
-    this.customExamples = customExamples;
-    this.customActions = customActions;
-    this.chatConfig = chatConfig;
-    this.customFetch = customFetch;
+    this.getChatOptions = getChatOptions;
   }
   validateRequest(_: ChatCompletionRequest) { }
 
-  changeLlmConfig(model: string, temperature: number) {
-    this.model = model;
-    this.temperature = temperature;
+  setResponseHandlers(handlers: IResponseHandler<IStreamData>[]) {
+    this.responseHandlers = handlers;
   }
 
   async getData(request: ChatCompletionRequest) {
-    return await chat(
-      {
-        url: this.url,
-        messages: request.messages,
-        model: this.model,
-        temperature: this.temperature,
-        signal: request.options?.signal,
-        customComponents: this.customComponents,
-        customSnippets: this.customSnippets,
-        customExamples: this.customExamples,
-        customActions: this.customActions,
-        customFetch: this.customFetch,
-      }
-    );
+    const {
+      url,
+      model,
+      temperature,
+      customComponents,
+      customSnippets,
+      customExamples,
+      customActions,
+      customFetch,
+    } = this.getChatOptions();
+    return await chat({
+      url,
+      messages: request.messages,
+      model,
+      temperature,
+      signal: request.options?.signal,
+      customComponents,
+      customSnippets,
+      customExamples,
+      customActions,
+      customFetch,
+    });
   }
 
   async chat(_: ChatCompletionRequest) {
@@ -79,162 +94,65 @@ export class CustomModelProvider extends BaseModelProvider {
       onDone({ type: 'error', error });
       return;
     }
-    const reader = response.body!.getReader();
+    const bodyStream = response.body!;
+    // const chunkStream = createAsyncIterableStream(getChunkStringStream(bodyStream));
+    const reader = bodyStream.getReader();
+
+    const context: any = {};
+    const { chatConfig } = this.getChatOptions();
+    context.chatConfig = chatConfig;
+
     const signal = request.options?.signal;
-      signal?.addEventListener('abort',
-        () => {
-          reader.cancel();
-        },
-        { once: true }
-      )
-    
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
-    const toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }> = {};
-    let inProcessToolCallId;
-    const { handleSchemaStream, clearSchemaState } = useSchemaStream();
-    const chatMessage = reactive<IChatMessage>({
-      role: 'assistant',
-      content: '',
-      messages: [],
+    signal?.addEventListener('abort',
+      () => {
+        reader.cancel();
+        this.handlerEnd(context);
+      },
+      { once: true }
+    )
+
+    this.handlerStart(context, handler);
+
+    await readChunk(reader, (data) => {
+      this.handlerChunk(data, context);
     });
-    onData(chatMessage);
+    this.handlerEnd(context);
 
-    /**
-     * 发送通知事件
-     */
-    const emitNotification = (delta: IStreamDelta) => {
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage) {
-        emitter.emit('notification', {
-          type: lastMessage.type as 'markdown' | 'schema-card',
-          delta,
-          chatMessage: structuredClone(toRaw(chatMessage)),
-        });
-      }
-    };
+  }
 
-    /**
-     * 处理 schema 和 markdown 流式内容
-     */
-    const onSchemaCard = (content: string, delta: IStreamDelta) => {
-      handleSchemaStream(content, chatMessage);
+  handlerChunk(rawData: string, context: any) {
+    try {
+      const streamData = JSON.parse(rawData) as IStreamData;
 
-      // 如果是新创建的 schema-card，需要生成 id
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-        lastMessage.id = uuidv4();
-      }
-
-      // 发送通知
-      emitNotification(delta);
-    };
-
-    const onToolCall = (toolCalls: any[], delta: IStreamDelta) => {
-      toolCalls.forEach((toolCall) => {
-        const {
-          id,
-          function: { name, arguments: argsDelta },
-        } = toolCall;
-
-        let toolCallItem: IMessageItem & { type: 'tool' };
-        // 有id的就是首次工具调用返回
-        if (id) {
-          inProcessToolCallId = id;
-          toolCallItem = reactive({
-            type: 'tool',
-            name: name,
-            formatPretty: true,
-            status: 'running',
-            content: JSON.stringify({ arguments: argsDelta || '' }, null, 2),
-            id,
-          });
-          toolCallIdMap[id] = toolCallItem;
-          chatMessage.messages.push(toolCallItem);
-        } else {
-          toolCallItem = toolCallIdMap[inProcessToolCallId];
-          const prevArgs = JSON.parse(toolCallItem.content).arguments;
-          const nextArgs = prevArgs + (argsDelta || '');
-  
-          toolCallItem.content = JSON.stringify({ arguments: nextArgs }, null, 2);
-        }
-
-
-
-        emitter.emit('notification', {
-          type: 'tool',
-          delta,
-          toolCallData: structuredClone(toRaw(toolCallItem)),
-          chatMessage: structuredClone(toRaw(chatMessage)),
-        });
-      });
-    };
-
-    const onToolResult = (toolCallsResult: any[], delta: IStreamDelta) => {
-      const {
-        id,
-        function: { arguments: args, result },
-      } = toolCallsResult[0];
-      const toolCallItem = toolCallIdMap[id];
-      if (toolCallItem) {
-        toolCallItem.status = 'success';
-        toolCallItem.content = JSON.stringify({ arguments: args, result }, null, 2);
-
-        emitter.emit('notification', {
-          type: 'tool',
-          delta,
-          toolCallData: structuredClone(toRaw(toolCallItem)),
-          chatMessage: structuredClone(toRaw(chatMessage)),
-        });
-
-        if (this.chatConfig.addToolCallContext) {
-          const { t } = useI18n();
-          chatMessage.content +=
-            t('toolCall.context', {
-              toolName: toolCallItem.name,
-              toolParams: JSON.stringify(args),
-              toolResult: JSON.stringify(result),
-            }) + '\n\n';
+      for (const handler of this.responseHandlers) {
+        if (handler.match(streamData, context)) {
+          const handled = handler.handler(streamData, context);
+          if (handled) break;
+        } else if (handler.notMatchHandler) {
+          const handled = handler.notMatchHandler(streamData, context);
+          if (handled) break;
         }
       }
-    };
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      // Append new chunk to buffer
-      buffer += decoder.decode(value, { stream: true });
-      // Process complete lines from buffer
-      while (true) {
-        const lineEnd = buffer.indexOf('\n');
-        if (lineEnd === -1) break;
-        const line = buffer.slice(0, lineEnd).trim();
-        buffer = buffer.slice(lineEnd + 1);
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') break;
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta || {};
-            const { tool_calls, tool_calls_result, content } = delta;
-            if (tool_calls) {
-              onToolCall(tool_calls, delta);
-              clearSchemaState();
-            } else if (tool_calls_result) {
-              onToolResult(tool_calls_result, delta);
-            } else if (content) {
-              onSchemaCard(content, delta);
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+
+  handlerStart(context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) {
+    for (const handler of this.responseHandlers) {
+      if (handler.start) {
+        handler.start(context, handlers);
       }
     }
-    onDone();
-    emitter.emit('notification', {
-      type: 'done',
-      delta: {},
-      chatMessage: structuredClone(toRaw(chatMessage)),
-    });
   }
+
+  handlerEnd(context: any) {
+    for (const handler of this.responseHandlers) {
+      if (handler.end) {
+        handler.end(context);
+      }
+    }
+  }
+
 }

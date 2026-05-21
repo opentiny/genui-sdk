@@ -34,6 +34,28 @@ yarn add @opentiny/genui-sdk-vue
 ```
 :::
 
+## 按需引入
+
+`@opentiny/genui-sdk-vue` 除主入口外，还提供按功能拆分的子路径导出。只需 Chat 或只需 Renderer 时，可从对应子路径引入，在构建工具对摇树不友好时，避免打入未使用的模块。
+
+| 子路径 | 适用场景 | 主要导出内容 |
+| --- | --- | --- |
+| `@opentiny/genui-sdk-vue/chat` | 仅需对话组件 | `GenuiChat` |
+| `@opentiny/genui-sdk-vue/renderer` | 仅需渲染器（自建对话 UI） | `GenuiRenderer` |
+| `@opentiny/genui-sdk-vue/config-provider` | 仅需主题/国际化容器 | `GenuiConfigProvider` |
+
+```ts
+// 仅使用 Chat
+import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
+
+// 仅使用 Renderer
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+
+// Chat + 主题
+import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+```
+
 ## 改造项目
 
 ### 修改 `src/main.js` 或 `src/main.ts`
@@ -233,4 +255,4 @@ html {
 
 - 查看 [组件文档](../components/chat) 了解 `GenuiChat` 的详细 API
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
-- 查看 [特性示例](../examples/chat) 学习高级用法
+- 查看 [特性示例](../examples/chat/custom-actions) 学习高级用法

@@ -2,14 +2,15 @@
 import { nextTick, onMounted, onUnmounted, ref } from 'vue';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
-import { Button as TinyButton } from '@opentiny/vue';
+import { TinyButton } from '@opentiny/vue';
 import genuiChatIcon from '@/assets/genui_chat_icon.svg';
 import genuiInusecon from '@/assets/genui_inuse_icon.svg';
+import arrowRightIcon from '@/assets/arrow.svg';
 import gneuiSettingsIcon from '@/assets/genui_settings_icon.svg';
 import { guideCodeMap } from '@/config';
-import { LinkKey, openLink } from '@/utils/link';
+import { LinkKey, linkMap } from '@/utils/link';
 import HomeGuideCard from './HomeGuideCard.vue';
-import HomeGuideMobile from './HomeGuideMobile.vue';
+import HomeGuideStepMobile from './HomeGuideStepMobile.vue';
 
 const activeCard = ref(0);
 const codeRef = ref<HTMLElement | null>(null);
@@ -29,7 +30,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile);
 });
 
-hljs.registerLanguage('javascript', javascript);
+hljs.registerLanguage('javascript', javascript);  
 
 function hightlight() {
   nextTick(() => {
@@ -56,10 +57,10 @@ const handleGuideCardClick = (index: number) => {
       </div>
     </div>
     <div :class="isMobile ? 'home-guide-content-mobile' : 'home-guide-content'">
-      <home-guide-mobile
+      <home-guide-step-mobile
         v-if="isMobile"
         @change="handleGuideCardClick"
-      ></home-guide-mobile>
+      ></home-guide-step-mobile>
       <div v-else class="home-guide-content-left">
         <home-guide-card
           title="步骤1：引入并使用chat组件"
@@ -82,13 +83,14 @@ const handleGuideCardClick = (index: number) => {
           :active="activeCard === 2"
           @click="handleGuideCardClick(2)"
         />
-        <tiny-button
-          class="home-guide-content-left-button"
-          round
-          size="small"
-          @click="openLink(LinkKey.ChatDoc)"
-          >开发文档</tiny-button
-        >
+        <a :href="linkMap[LinkKey.ChatDoc]" target="_blank" class="btn-link">
+          <tiny-button
+            class="home-guide-content-left-button"
+            size="medium"
+            round
+            >开发文档 <img :src="arrowRightIcon" alt="arrow-right" /> </tiny-button
+          >
+        </a>
       </div>
       <div class="home-guide-content-right">
         <div class="home-guide-content-right-framework">
@@ -110,6 +112,7 @@ const handleGuideCardClick = (index: number) => {
 
 <style lang="less" scoped>
 .home-guide {
+  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -136,35 +139,38 @@ const handleGuideCardClick = (index: number) => {
   &-content {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
 
     &-mobile {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 30px;
 
       .home-guide-content-right {
         width: 100%;
 
         &-framework {
-          height: 300px;
+          height: 376px;
         }
       }
     }
 
     &-left {
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-
+      gap: 0;
       &-button {
-        max-width: 110px;
-        margin-left: 32px;
+        margin-top: 24px;
+        img {
+          margin-left: 8px;
+        }
       }
 
-      @media (max-width: 1280px) {
+      @media (min-width: 1280px) {
         &-button {
-          max-width: 120px;
+          height: 44px;
+          font-size: 16px;
         }
       }
     }
@@ -177,16 +183,17 @@ const handleGuideCardClick = (index: number) => {
 
     &-right {
       flex: 1;
-      max-height: 400px;
+      width: 1px;
       background: rgba(242, 242, 242, 1);
       border-radius: 24px;
-      padding: 30px;
+      padding: 20px;
       margin-left: 10%;
-      height: -webkit-fill-available;
-      width: 600px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
 
       &-framework {
-        height: 100%;
+        height: 360px;
         display: flex;
         flex-direction: column;
         background: linear-gradient(
@@ -195,6 +202,7 @@ const handleGuideCardClick = (index: number) => {
           rgba(19, 19, 19, 1) 100%
         );
         border-radius: 12px;
+        overflow: hidden;
 
         .guide-code {
           flex: 1;
@@ -203,42 +211,88 @@ const handleGuideCardClick = (index: number) => {
         &-header {
           background: rgba(61, 61, 61, 1);
           border-radius: 12px 12px 0 0;
-          height: 40px;
-          padding: 15px 28px;
+          height: 52px;
+          padding-left: 28px;
 
           &-action {
             display: flex;
+            align-items: center;
             height: 100%;
-            gap: 12px;
+            gap: 10px;
+
+            div {
+              width: 14px;
+              height: 14px;
+              border-radius: 50%;
+            }
 
             .header-action-close {
-              width: 10px;
-              height: 10px;
               background-color: rgba(254, 3, 4, 1);
-              border-radius: 50%;
             }
 
             .header-action-full {
-              width: 10px;
-              height: 10px;
               background-color: rgba(254, 199, 3, 1);
-              border-radius: 50%;
             }
 
             .header-action-exit {
-              width: 10px;
-              height: 10px;
               background-color: rgba(0, 207, 106, 1);
-              border-radius: 50%;
             }
           }
         }
       }
+
+      @media (min-width: 1280px) {
+        &-framework {
+          height: 380px;
+        }
+      }
+
+      @media (min-width: 1600px) {
+        &-framework {
+          height: 392px;
+        }
+      }
+
+      @media (min-width: 1920px) {
+        &-framework {
+          height: 400px;
+        }
+      }
+
+      @media (min-width: 2000px) {
+        &-framework {
+          height: 430px;
+        }
+      }
+
+    }
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px 0px 240px;
+  }
+}
+
+@media (max-width: 768px) {
+  .home-guide-content-right-framework {
+    border-radius: 6px;
+
+    &-header {
+      border-radius: 6px 6px 0 0;
+    }
+  }
+
+  :deep(.guide-code) {
+    font-size: 14px;
+    border-radius: 0 0 6px 6px;
+
+    &::-webkit-scrollbar-corner {
+      border-bottom-right-radius: 6px;
     }
   }
 }
 
-/deep/.guide-code {
+:deep(.guide-code) {
   background: #0b1020;
   padding: 20px;
   margin: 0;
@@ -246,9 +300,37 @@ const handleGuideCardClick = (index: number) => {
   border-radius: 0 0 12px 12px;
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  font-size: 13px;
+  font-size: 16px;
   line-height: 1.6;
   color: #e5e7eb;
+
+  &::-webkit-scrollbar {
+    width: 10px; /* 纵向滚动条宽度 */
+    height: 10px; /* 横向滚动条高度 */
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #0b1020;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #9ca3af;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd;
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: #0b1020;
+    border-bottom-right-radius: 12px;
+  }
+
+  // TODO: 临时解决部署后代码阴影问题，后续更换更优雅方案
+  code[class*=language-] {
+    text-shadow: none;
+  }
 
   code.hljs {
     background: transparent;

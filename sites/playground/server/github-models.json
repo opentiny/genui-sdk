@@ -1,0 +1,58 @@
+{
+  "modelscope": {
+    "name": "deepseek",
+    "baseUrl": "https://api-inference.modelscope.cn/v1",
+    "apiKeyEnvName": "MODEL_SCOPE_API_KEY",
+    "models": [
+      {
+        "name": "Qwen3.5-397B-A17B",
+        "id": "Qwen/Qwen3.5-397B-A17B",
+        "supportJsonFormat": false
+      },
+
+      {
+        "name": "DeepSeek-V3.2",
+        "id": "deepseek-ai/DeepSeek-V3.2",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "Qwen3-Coder-480B-A35B-Instruct",
+        "id": "Qwen/Qwen3-Coder-480B-A35B-Instruct",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "MiniMax-M2.5",
+        "id": "MiniMax/MiniMax-M2.5",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "GLM-5",
+        "id": "ZhipuAI/GLM-5",
+        "supportJsonFormat": false
+      }
+    ]
+  },
+  "longcat": {
+    "name": "deepseek",
+    "baseUrl": "https://api.longcat.chat/openai/v1",
+    "apiKeyEnvName": "LONGCAT_API_KEY",
+    "models": [
+      {
+        "name": "longcat/LongCat-Flash-Lite",
+        "id": "LongCat-Flash-Lite",
+        "supportJsonFormat": false,
+        "specificPrompt": "表单的提交按钮需要生成onClick事件，并在函数中使用 this.callAction 去调用 continueChat"
+      },
+      {
+        "name": "longcat/LongCat-Flash-Chat",
+        "id": "LongCat-Flash-Chat",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "longcat/LongCat-Flash-Thinking-2601",
+        "id": "LongCat-Flash-Thinking-2601",
+        "supportJsonFormat": false
+      }
+    ]
+  }
+}

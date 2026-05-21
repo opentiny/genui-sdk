@@ -1,7 +1,6 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { Component } from 'vue';
 import type { IRendererSlots } from '../renderer';
-import type { EventEmitter } from './event-emitter';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
 import type {
   INotificationPayload,
@@ -9,6 +8,7 @@ import type {
   IGenPromptSnippet,
   IGenPromptExample,
   IGenPromptAction,
+  IChatMessage,
 } from '@opentiny/genui-sdk-core';
 
 export interface ICustomActionItem extends IGenPromptAction {
@@ -31,7 +31,7 @@ export interface IChatConfig {
   showThinkingResult?: boolean;
 }
 
-interface IMessageItem {
+export interface IMessageItem {
   type: string;
   content: string;
   [customKey: string]: any;
@@ -48,6 +48,7 @@ export interface IBubbleSlotsProps {
   bubbleProps: BubbleProps;
   isFinished: boolean;
   messageManager: UseMessageReturn;
+  chatMessage: IChatMessage;
 }
 
 /**

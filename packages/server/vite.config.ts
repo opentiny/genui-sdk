@@ -4,50 +4,27 @@ import path from 'path';
 import packageJson from './package.json';
 import jsconfigPaths from 'vite-jsconfig-paths';
 import type { PluginOption } from 'vite';
-import obfuscator from 'vite-plugin-bundle-obfuscator';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => {
-  console.log(mode);
-
   const plugins = [
     dts({
       rollupTypes: true,
-      bundledPackages: [
-        '@opentiny/genui-sdk-core',
-        '@opentiny/genui-sdk-chat-completions'
-      ]
+      bundledPackages: ['@opentiny/genui-sdk-core', '@opentiny/genui-sdk-chat-completions'],
     }),
     jsconfigPaths({
       projects: ['./tsconfig.json'],
     }) as PluginOption,
   ];
 
-  if (mode === 'no-obfuscator') {
+  if (mode === 'analyze') {
     plugins.push(
       visualizer({
         open: true,
       }),
     );
-  } else {
-    plugins.push(
-      obfuscator({
-        apply: 'build',
-        threadPool: true,
-        options: {
-          compact: true,
-          debugProtection: false,
-          deadCodeInjection: true,
-          deadCodeInjectionThreshold: 0.4,
-          identifierNamesGenerator: 'hexadecimal',
-          stringArray: true,
-          stringArrayEncoding: ['base64'], // 进一步加密字符串
-          splitStrings: true,
-          transformObjectKeys: true,
-        },
-      }),
-    );
   }
+
   return {
     plugins,
 

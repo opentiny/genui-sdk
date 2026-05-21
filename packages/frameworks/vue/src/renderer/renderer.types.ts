@@ -3,7 +3,8 @@ import type { CardSchema } from '@opentiny/genui-sdk-core';
 
 export interface IRendererProps {
   content: string | { [prop: string]: any };
-  generating: boolean;
+  generating?: boolean;
+  isJsonComplete?: boolean;
   customComponents?: Record<string, Component>;
   customActions?: any;
   requiredCompleteFieldSelectors?: string[];

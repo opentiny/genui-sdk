@@ -1,0 +1,7 @@
+<div class="schema-render-container">
+  <ng-template [ngTemplateOutlet]="headerTemplate"
+    [ngTemplateOutletContext]="{ schema: schema, isError: isError, isFinished: !this.generating }"></ng-template>
+  <tiny-schema-renderer #rendererInstance [schema]="displaySchema"></tiny-schema-renderer>
+  <ng-template [ngTemplateOutlet]="footerTemplate"
+    [ngTemplateOutletContext]="{ schema: schema, isError: isError, isFinished: !this.generating }"></ng-template>
+</div>

@@ -15,6 +15,13 @@ export default defineConfig({
       md.use(tabsMarkdownPlugin);
     },
   },
+  vue:{
+    template: {
+      compilerOptions: {
+        isCustomElement: (tag) => tag === 'genui-renderer-ng-element',
+      },
+    },
+  },
   vite: {
     server: {
       host: '0.0.0.0', // 允许外部访问
@@ -36,11 +43,23 @@ export default defineConfig({
     sidebar: {
       '/guide/': [
         {
-          text: '指引',
+          text: 'GenUI SDK Vue 指引',
           items: [
             { text: '快速开始', link: '/guide/quick-start' },
             { text: '使用 Renderer 组件', link: '/guide/start-with-renderer' },
             { text: '搭配 TinyRobot 使用', link: '/guide/renderer-with-tiny-robot' },
+          ],
+        },
+        {
+          text: 'GenUI SDK Angular 指引',
+          items: [
+            { text: '安装与配置', link: '/guide/angular/install' },
+            { text: '使用 Renderer 组件', link: '/guide/angular/start-with-renderer' },
+          ],
+        },
+        {
+          text: 'GenUI SDK Server 指引',
+          items: [
             { text: 'Server 包使用文档', link: '/guide/server-usage' },
           ],
         },
@@ -56,7 +75,9 @@ export default defineConfig({
         },
         {
           text: 'Angular 组件文档',
-          items: [{ text: 'GenuiRenderer(未开放)', link: '/components/angular-renderer' }],
+          items: [
+            { text: 'GenuiRenderer', link: '/components/angular/renderer' }
+          ],
         },
         {
           text: 'Server 库文档',
@@ -106,6 +127,23 @@ export default defineConfig({
             },
           ],
         },
+        {
+          text: 'Angular 组件特性示例',
+          items: [
+            {
+              text: 'Renderer 组件',
+              items: [
+                { text: '自定义 Actions', link: '/examples/angular/renderer/custom-actions' },
+                // { text: '自定义 Components/Directives', link: '/examples/angular/renderer/custom-components-directives' },
+                {
+                  text: '配置缓冲字段',
+                  link: '/examples/angular/renderer/required-complete-field-selectors',
+                },
+                { text: '传递合并 State', link: '/examples/angular/renderer/state' },
+              ],
+             },
+          ],
+        }
       ],
     },
     socialLinks: [{ icon: 'github', link: 'https://github.com/opentiny/genui-sdk' }],

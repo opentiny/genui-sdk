@@ -1,0 +1,14 @@
+<div class="demo-container">
+  <div class="input-group">
+    <input [(ngModel)]="inputText" type="text" placeholder="请输入问题..." (keyup.enter)="handleSend()" />
+    <button (click)="handleSend()">发送</button>
+  </div>
+  <genui-renderer [content]="schema">
+    <ng-template #header let-schema="schema">
+      卡片标题：{{ schema.componentName }}
+    </ng-template>
+    <ng-template #footer let-schema="schema">
+      <button (click)="handlePrint(schema)">打印schema</button>
+    </ng-template>
+  </genui-renderer>
+</div>

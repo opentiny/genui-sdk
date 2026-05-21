@@ -1,68 +1,77 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { Button as TinyButton, Tag as TinyTag } from "@opentiny/vue";
-import genuiAbility1 from "@/assets/genui_ability_1.svg";
-import genuiAbility2 from "@/assets/genui_ability_2.png";
-import genuiAbility3 from "@/assets/genui_ability_3.svg";
-import { LinkKey, openLink } from "@/utils/link";
-import HomeAbility from "@/components/HomeAbility.vue";
-import HomeActionVideo from "@/components/HomeActionVideo.vue";
-import HomeFlowVideo from "@/components/HomeFlowVideo.vue";
-import HomeGuide from "@/components/HomeGuide.vue";
-import HomeFeature from "@/components/HomeFeature.vue";
-import HomeLink from "@/components/HomeLink.vue";
-import HomeExtend from "@/components/HomeExtend.vue";
+import { ref, computed } from 'vue';
+import { TinyButton, TinyTag } from '@opentiny/vue';
+import genuiAbility1 from '@/assets/genui_ability_1.svg';
+import genuiAbility2 from '@/assets/genui_ability_2.webp';
+import genuiAbility3 from '@/assets/create-github.webp';
+import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
+import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4';
+import genuiFlowVedioCover from '@/assets/search-ticket.webp';
+import searchTicketVedio from '@/assets/video/search-ticket.mp4';
+import { LinkKey, linkMap } from '@/utils/link';
+import { useMobile } from '@/composables/useMobile';
+import HomeAbility from '@/components/HomeAbility.vue';
+import HomeGuide from '@/components/HomeGuide.vue';
+import HomeFeature from '@/components/HomeFeature.vue';
+import HomeLink from '@/components/HomeLink.vue';
+import HomeExtend from '@/components/HomeExtend.vue';
+import HomeMcpToolMobile from '@/components/HomeMcpToolMobile.vue';
 
-const abilityContentWrapClass = ref("home-ability-content-wrap");
+const abilityContentWrapClass = ref('home-ability-content-wrap');
 const abilityThreePartContent = ref({
-  title: "Create_repository",
-  subtitle: "Create a new GitHub repository in your account",
+  title: 'Create_repository',
+  subtitle: 'Create a new GitHub repository in your account',
   parameters: [
     {
-      label: "name *required",
-      description: "Repository name",
-      tagColor: "green",
-      tag: "string",
+      label: 'name *required',
+      description: 'Repository name',
+      tagColor: 'green',
+      tag: 'string',
     },
     {
-      label: "private",
-      description: "Whether repo should be private",
-      tagColor: "orange",
-      tag: "boolean",
+      label: 'private',
+      description: 'Whether repo should be private',
+      tagColor: 'orange',
+      tag: 'boolean',
     },
     {
-      label: "autoInit",
-      description: "Initialize with README",
-      tagColor: "orange",
-      tag: "boolean",
+      label: 'autoInit',
+      description: 'Initialize with README',
+      tagColor: 'orange',
+      tag: 'boolean',
     },
     {
-      label: "description",
-      description: "Repository description",
-      tagColor: "green",
-      tag: "string",
+      label: 'description',
+      description: 'Repository description',
+      tagColor: 'green',
+      tag: 'string',
     },
   ],
+});
+const { isMobile } = useMobile();
+const buttonSize = computed(() => {
+  return isMobile.value ? 'default' : 'medium';
 });
 </script>
 
 <template>
-  <div class="genui-sdk-container">
+  <div :class="{ 'genui-sdk-container': true, 'genui-sdk-container-mobile': isMobile }">
     <!-- 第一屏 -->
-    <div class="home-core">
+    <div :class="{ 'home-core': true, 'home-core-mobile': isMobile }">
       <div class="home-core-left">
         <div class="home-core-title">OpenTiny GenUI SDK</div>
         <div class="home-core-subtitle">增强大模型对话展示和交互</div>
-        <div class="home-core-decsription">
-          为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性
-        </div>
+        <div class="home-core-decsription">为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性</div>
         <div class="operation-button-group">
-          <tiny-button round type="primary" @click="openLink(LinkKey.DevDoc)"
-            >开发文档</tiny-button
-          >
-          <tiny-button round @click="openLink(LinkKey.Playground)"
-            >演练场</tiny-button
-          >
+          <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
+            <tiny-button :reset-time="0" round type="primary" :size="buttonSize">开发文档</tiny-button>
+          </a>
+          <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+            <tiny-button :reset-time="0" round ghost :size="buttonSize">演练场</tiny-button>
+          </a>
+          <a href="https://github.com/opentiny/genui-sdk" target="_blank" class="btn-link">
+            <tiny-button :reset-time="0" round ghost :size="buttonSize">GitHub</tiny-button>
+          </a>
         </div>
       </div>
       <div class="home-core-right">
@@ -72,18 +81,32 @@ const abilityThreePartContent = ref({
 
     <!-- 第二屏 -->
     <home-ability
-      class="home-ability-1"
+      class="home-ability-2"
       title="超越文字的表达能力"
       subtitle="以界面重构文字，打破文字表达壁垒，用可视化界面释放信息价值"
     >
-      <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
+      <div class="ability-image-wrap-2">
+        <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
+      </div>
     </home-ability>
 
     <!-- 第三屏 -->
-    <home-action-video></home-action-video>
+    <home-ability title="更加流畅的交互方式" subtitle="打破两步交互，实现界面到对话的一站式流转">
+      <video
+        class="cover-image ability-image"
+        id="genui-action-vedio"
+        controls
+        preload="none"
+        :poster="genuiActionVedioCover"
+      >
+        <source :src="orderMilkTeaVedio" type="video/mp4" />
+      </video>
+    </home-ability>
 
+    <home-mcp-tool-mobile v-if="isMobile"></home-mcp-tool-mobile>
     <home-ability
-      class="home-ability-3"
+      v-else
+      class="home-ability-4"
       title="结合MCP工具，让AI更懂业务场景"
       subtitle="接入MCP工具后，模型在调用工具缺少参数时能自动生成交互式UI来收集所需信息"
       background="morandi"
@@ -91,9 +114,7 @@ const abilityThreePartContent = ref({
       <div :class="abilityContentWrapClass">
         <div :class="`${abilityContentWrapClass}-left`">
           <div :class="`${abilityContentWrapClass}-left-header`">
-            <span :class="`${abilityContentWrapClass}-left-header-title`">{{
-              abilityThreePartContent.title
-            }}</span>
+            <span :class="`${abilityContentWrapClass}-left-header-title`">{{ abilityThreePartContent.title }}</span>
             <span :class="`${abilityContentWrapClass}-left-header-subtitle`">{{
               abilityThreePartContent.subtitle
             }}</span>
@@ -106,30 +127,33 @@ const abilityThreePartContent = ref({
               :key="parameter.label"
             >
               <div :class="`${abilityContentWrapClass}-parameter-label`">
-                <span
-                  :class="`${abilityContentWrapClass}-parameter-label-text`"
-                  >{{ parameter.label }}</span
-                >
-                <tiny-tag :color="parameter.tagColor">{{
-                  parameter.tag
-                }}</tiny-tag>
+                <span :class="`${abilityContentWrapClass}-parameter-label-text`">{{ parameter.label }}</span>
+                <tiny-tag :color="parameter.tagColor">{{ parameter.tag }}</tiny-tag>
               </div>
-              <span
-                :class="`${abilityContentWrapClass}-parameter-description`"
-                >{{ parameter.description }}</span
-              >
+              <span :class="`${abilityContentWrapClass}-parameter-description`">{{ parameter.description }}</span>
             </div>
           </div>
         </div>
-        <img
-          :class="`${abilityContentWrapClass}-right`"
-          :src="genuiAbility3"
-          alt="genui-mcp-tool"
-        />
+        <img :class="`${abilityContentWrapClass}-right`" :src="genuiAbility3" alt="genui-mcp-tool" />
       </div>
     </home-ability>
 
-    <home-flow-video></home-flow-video>
+    <home-ability
+      class="home-ability-5"
+      title="界面混排与流式渲染"
+      subtitle="生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
+    >
+      <video
+        ref="videoRef"
+        class="cover-image ability-image"
+        id="genui-flow-vedio"
+        controls
+        preload="none"
+        :poster="genuiFlowVedioCover"
+      >
+        <source :src="searchTicketVedio" type="video/mp4" />
+      </video>
+    </home-ability>
 
     <home-extend></home-extend>
 
@@ -140,10 +164,13 @@ const abilityThreePartContent = ref({
 </template>
 
 <style lang="less">
-@import "./home.less";
+@import './home.less';
 </style>
 
 <style lang="less" scoped>
+:deep(.tiny-button.tiny-button--default.is-ghost) {
+  color: var(--tv-color-text);
+}
 .genui-sdk-container {
   display: flex;
   flex-direction: column;
@@ -152,16 +179,28 @@ const abilityThreePartContent = ref({
   background-color: var(--bg-color);
   overflow-x: hidden;
 
+  .btn-link {
+    + .btn-link {
+      margin-left: 16px;
+    }
+  }
+
   .home-core {
     display: flex;
     align-items: center;
     justify-content: center;
     width: 100%;
-    background-image: url("@/assets/genui_ability_bg_1.svg");
+    background-image: url('@/assets/genui_ability_bg_1.svg');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     padding: 10% 12.5%;
+
+    // 开启gpu加速，优化首屏滚动卡顿
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
 
     &-left {
       display: flex;
@@ -170,13 +209,26 @@ const abilityThreePartContent = ref({
       margin-right: 6%;
     }
 
+    .operation-button-group {
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.62s forwards;
+      opacity: 0;
+    }
+
     &-right {
       width: 60%;
+      animation: slideUpFromBottom 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
+      opacity: 0;
 
       img {
         width: 100%;
         height: 100%;
         object-fit: contain;
+        filter: drop-shadow(0 0 40px rgba(232, 220, 244, 0.7));
+      }
+      @media (max-width: 768px) {
+        img {
+          filter: drop-shadow(0 0 18px rgba(232, 220, 244, 0.3));
+        }
       }
     }
 
@@ -187,6 +239,8 @@ const abilityThreePartContent = ref({
       text-align: left;
       margin-bottom: 6px;
       white-space: nowrap;
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
+      opacity: 0;
     }
 
     &-subtitle {
@@ -194,26 +248,28 @@ const abilityThreePartContent = ref({
       line-height: var(--line-height-title-lg);
       font-weight: 700;
       text-align: left;
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background: linear-gradient(
-        90deg,
-        rgba(188, 67, 203, 1),
-        rgba(14, 112, 255, 1) 92%
-      );
-      background-clip: text;
+      color: rgba(14, 112, 255, 1);
       margin-bottom: 26px;
       white-space: nowrap;
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
+      opacity: 0;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      background-image: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
     }
 
     &-decsription {
-      font-size: var(--font-size-body-sm);
+      font-size: 20px;
       font-weight: 400;
       line-height: var(--line-height-description);
       text-align: left;
-      color: var(--text-secondary);
+      color: rgba(89, 89, 89, 1);
       margin-bottom: 76px;
+      animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
+      opacity: 0;
+      line-height: 1.5;
+      max-width: calc(var(--font-size-title-lg) * 12);
 
       @media (max-width: 1280px) {
         margin-bottom: 42px;
@@ -221,16 +277,8 @@ const abilityThreePartContent = ref({
     }
 
     @media (max-width: 768px) {
-      &-right {
-        display: none;
-      }
-
-      &-title {
-        white-space: normal;
-      }
-
-      &-subtitle {
-        white-space: normal;
+      &-left {
+        margin-right: 0;
       }
     }
 
@@ -247,13 +295,199 @@ const abilityThreePartContent = ref({
         font-size: var(--font-size-title-lg-sm-md);
       }
 
-      &-decsription {
-        font-size: var(--font-size-body-sm-sm);
+      &-right {
+        width: 70%;
+      }
+    }
+
+    @media (min-width: 1920px) {
+      padding: 140px 232px;
+
+      :deep(.operation-button-group .tiny-button) {
+        width: 152px;
+        height: 48px;
+        font-size: var(--font-size-body-sm);
+      }
+    }
+  }
+
+  .home-ability-2 {
+    padding-bottom: 0 !important;
+  }
+
+  .home-ability-4 {
+    background: rgba(248, 248, 255, 1);
+  }
+
+  :deep(.ability-image-wrap-2) {
+    display: flex;
+    padding: 16px;
+    border-radius: 24px;
+    background-image: url('@/assets/genui_ability_bg_2.svg');
+    background-size: cover;
+
+    img {
+      border-radius: 16px;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+.genui-sdk-container-mobile {
+  .home-core {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 50px 20px !important;
+    background: url('@/assets/genui_ability_mobile_bg_1.svg') center/cover no-repeat;
+
+    &-left {
+      font-size: var(--font-size-title-md);
+    }
+
+    &-decsription {
+      font-size: 14px;
+      white-space: normal;
+      margin-bottom: 28px;
+    }
+
+    &-left {
+      margin-bottom: 40px;
+
+      div {
+        text-align: center;
+      }
+    }
+
+    &-right {
+      width: 100%;
+    }
+  }
+
+  :deep(.genui-title) {
+    font-size: var(--font-size-title-md);
+    margin-bottom: 8px;
+  }
+
+  :deep(.genui-subtitle) {
+    font-size: var(--font-size-body-md);
+    margin-bottom: 20px;
+  }
+
+  :deep(.home-ability) {
+    padding: 46px 20px 0px 20px;
+    &-title {
+      &-text {
+        font-size: var(--font-size-title-md);
+        margin-bottom: 8px;
       }
 
-      &-right {
-        width: 40%;
+      &-subtitle {
+        font-size: var(--font-size-body-md);
+        margin-bottom: 30px;
       }
+    }
+
+    .ability-image-wrap-2 {
+      padding: 8px;
+      border-radius: 8px !important;
+
+      img {
+        border-radius: 6px !important;
+      }
+    }
+
+    .cover-image {
+      border-radius: 8px !important;
+    }
+  }
+
+  :deep(.home-extend) {
+    padding: 46px 20px 0px 20px;
+
+    &-title {
+      margin-bottom: 20px;
+    }
+
+    &-schema {
+      padding: 16px 12px 12px;
+      border-radius: 8px;
+
+      &-header {
+        &-action {
+          gap: 8px;
+
+          div {
+            width: 12px;
+            height: 12px;
+          }
+        }
+
+        &-subtitle {
+          font-size: 14px;
+        }
+      }
+    }
+
+    .extend-button-element-active {
+      color: rgba(25, 25, 25, 1) !important;
+    }
+
+    .extend-button-group {
+      height: 32px;
+      margin-bottom: 30px;
+      padding: 2px;
+
+      button {
+        font-size: 14px;
+        font-weight: 400;
+        line-height: 19px;
+        color: rgba(89, 89, 89, 1);
+      }
+    }
+  }
+
+  :deep(.home-guide) {
+    padding: 46px 20px 0px 20px;
+
+    &-content {
+      &-right {
+        padding: 12px;
+        border-radius: 8px;
+
+        &-framework {
+          border-radius: 6px;
+        }
+      }
+    }
+  }
+
+  :deep(.home-feature) {
+    padding: 46px 20px 0px 20px;
+
+    &-content {
+      gap: 20px;
+    }
+
+    &-card {
+      &-content {
+        margin-left: 16px;
+      }
+    }
+  }
+
+  :deep(.home-link) {
+    margin-top: 60px;
+    padding: 46px 20px 43px 20px;
+    background-image: url('@/assets/genui_ability_mobile_bg_2.svg');
+
+    &-description {
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 20px;
     }
   }
 }
@@ -272,7 +506,7 @@ const abilityThreePartContent = ref({
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 30px 0px 30px 120px;
+    padding: 30px 0px 30px 100px;
 
     @media (max-width: 1280px) {
       padding: 20px 0px 20px 60px;
@@ -316,7 +550,7 @@ const abilityThreePartContent = ref({
   &-parameters {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 24px;
   }
 
   @media (max-width: 1280px) {
@@ -325,7 +559,7 @@ const abilityThreePartContent = ref({
     }
 
     &-parameters {
-      gap: 5px;
+      gap: 12px;
     }
   }
 
@@ -378,7 +612,7 @@ const abilityThreePartContent = ref({
         font-size: 6px;
         line-height: 6px;
 
-        /deep/ .tiny-tag {
+        :deep(.tiny-tag) {
           font-size: 6px;
           line-height: 6px;
         }
@@ -399,7 +633,19 @@ const abilityThreePartContent = ref({
 }
 
 .cover-image {
-  border-radius: 32px;
+  border-radius: 28px;
   cursor: pointer;
+}
+
+@keyframes slideUpFromBottom {
+  from {
+    opacity: 0;
+    transform: translateY(60px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

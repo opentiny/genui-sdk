@@ -1,7 +1,6 @@
 import path from 'path';
 import { defineConfig, PluginOption } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
-import obfuscator from 'vite-plugin-bundle-obfuscator';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import escapeStringRegexp from 'escape-string-regexp';
 import dts from 'vite-plugin-dts';
@@ -13,24 +12,14 @@ export default defineConfig(({ mode }) => {
     root: path.resolve(__dirname, './'),
     plugins: [
       vue(),
-      mode === 'no-obfuscator'
+      cssInjectedByJsPlugin({
+        relativeCSSInjection: true,
+      }),
+      mode === 'analyze'
         ? visualizer({
-          open: true
-        })
-        : obfuscator({
-          apply: 'build',
-          threadPool: true,
-          options: {
-            compact: true,
-            debugProtection: false,
-            deadCodeInjection: true,
-            deadCodeInjectionThreshold: 0.4,
-            identifierNamesGenerator: 'hexadecimal',
-            stringArray: true,
-            transformObjectKeys: true,
-          },
-        }) as PluginOption, // TODO: pluginOption types are not equal
-      cssInjectedByJsPlugin(),
+            open: true,
+          })
+        : null,
       dts({
         rollupTypes: true,
         bundledPackages: [
@@ -44,16 +33,24 @@ export default defineConfig(({ mode }) => {
           paths: {
             // 临时规避此包无.d.ts文件的问题
             '@opentiny/tiny-schema-renderer': ['../src/types/tiny-schema-renderer.d.ts'],
+            '@opentiny/tiny-schema-renderer/transform-jsx': ['../src/types/tiny-schema-renderer.d.ts'],
           },
           include: ['../src/types/tiny-schema-renderer.d.ts'],
-        }
+        },
       }),
     ],
     build: {
+      cssCodeSplit: true,
       lib: {
-        entry: path.resolve(__dirname, './src/index.ts'),
+        entry: {
+          index: path.resolve(__dirname, './src/index.ts'),
+          chat: path.resolve(__dirname, './src/chat/index.ts'),
+          renderer: path.resolve(__dirname, './src/renderer/index.ts'),
+          'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
+          'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
+        },
         formats: ['es'],
-        fileName: `index`,
+        fileName: (_, entryName) => `${entryName}.js`,
       },
       outDir: path.resolve(__dirname, './output/dist'),
       sourcemap: false,
@@ -66,7 +63,9 @@ export default defineConfig(({ mode }) => {
         },
       },
       rollupOptions: {
-        external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
+        external: [
+          ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
+        ]
       },
     },
   };

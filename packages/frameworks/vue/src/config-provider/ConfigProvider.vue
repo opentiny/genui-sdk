@@ -8,14 +8,14 @@ import { GENUI_I18N, GENUI_CONFIG } from '../chat/injection-tokens';
 import { useMediaTheme } from './use-media-theme';
 
 export interface ConfigProviderProps {
-  theme: 'light' | 'dark' | 'lite' | 'auto';
+  theme?: 'light' | 'dark' | 'lite' | 'auto';
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
 }
 
 interface IRobotProviderProps {
-  theme: 'dark' | 'light';
+  colorMode: 'dark' | 'light';
   targetElement?: string;
 }
 
@@ -86,7 +86,7 @@ onMounted(() => {
 
 const robotProviderProps = computed(() => {
   const providerProps: IRobotProviderProps = {
-    theme: actualTheme.value === 'dark' ? 'dark' : 'light',
+    colorMode: actualTheme.value === 'dark' ? 'dark' : 'light',
   };
   if (genuiConfig?.value?.id) {
     providerProps.targetElement = '#' + genuiConfig.value.id;

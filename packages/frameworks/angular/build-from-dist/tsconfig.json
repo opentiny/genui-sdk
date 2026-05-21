@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "../output/dist",
+    "esModuleInterop": true
+  },
+  "typeRoots": [
+    "../dist/renderer",
+    "../node_modules/@opentiny/tiny-schema-renderer-ng/dist/renderer"
+  ],
+  "files": ["./index.ts"]
+}

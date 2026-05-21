@@ -14,12 +14,6 @@ export class RendererContextService {
   setContext(context: any, clear: boolean = false) {
     clear && Object.keys(this.context).forEach((key) => delete this.context[key]);
     Object.assign(this.context, context);
-    this.contextChange();
   }
 
-  contextChange() {
-    // 重新赋值获得新地址，触发parseDataPipe刷新
-    // console.log('contextChange', this.context);
-    // this.context = {...this.context};
-  }
 }
