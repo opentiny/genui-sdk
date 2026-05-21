@@ -7,5 +7,6 @@ const __dirname = dirname(__filename);
 
 const outputPath = join(__dirname, '../output/web-component/genui-renderer.js');
 let content = readFileSync(outputPath, 'utf-8');
+// 防止与angular的样式冲突
 content = content.replaceAll('--ti', '--tio');
 writeFileSync(outputPath, content, 'utf-8');

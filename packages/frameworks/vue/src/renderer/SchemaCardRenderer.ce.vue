@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { computed, defineOptions } from 'vue';
 import SchemaCardRenderer from './SchemaCardRenderer.vue';
+import { parseBooleanAttribute, parseJsonAttribute } from '../web-component/parse-attribute';
 
 defineOptions({
   shadowRoot: false,
 });
 
 const props = defineProps<{
-  content?: string | { [prop: string]: any };
+  content?: string | Record<string, unknown>;
   generating?: boolean | string;
+  isJsonComplete?: boolean | string;
   customComponents?: string; // JSON string
   customActions?: string; // JSON string
   requiredCompleteFieldSelectors?: string; // JSON string
@@ -16,55 +18,30 @@ const props = defineProps<{
   state?: string; // JSON string
 }>();
 
-// 解析字符串属性为对象，适配 Web Component 的属性传递
-const parsedCustomComponents = computed(() => {
-  if (!props.customComponents) return undefined;
-  try {
-    return JSON.parse(props.customComponents);
-  } catch {
-    return undefined;
-  }
-});
+const parsedCustomComponents = computed(() => parseJsonAttribute<Record<string, unknown>>(props.customComponents));
 
-const parsedCustomActions = computed(() => {
-  if (!props.customActions) return undefined;
-  try {
-    return JSON.parse(props.customActions);
-  } catch {
-    return undefined;
-  }
-});
+const parsedCustomActions = computed(
+  () =>
+    parseJsonAttribute<Record<string, { execute: (params: unknown, context: unknown) => void }>>(props.customActions) ??
+    {},
+);
 
-const parsedRequiredCompleteFieldSelectors = computed(() => {
-  if (!props.requiredCompleteFieldSelectors) return undefined;
-  try {
-    return JSON.parse(props.requiredCompleteFieldSelectors);
-  } catch {
-    return undefined;
-  }
-});
+const parsedRequiredCompleteFieldSelectors = computed(() =>
+  parseJsonAttribute<string[]>(props.requiredCompleteFieldSelectors),
+);
 
-const parsedState = computed(() => {
-  if (!props.state) return undefined;
-  try {
-    return JSON.parse(props.state);
-  } catch {
-    return undefined;
-  }
-});
+const parsedState = computed(() => parseJsonAttribute<Record<string, unknown>>(props.state));
 
-const isGenerating = computed(() => {
-  if (typeof props.generating === 'string') {
-    return props.generating === 'true';
-  }
-  return props.generating || false;
-});
+const isGenerating = computed(() => parseBooleanAttribute(props.generating));
+
+const isJsonComplete = computed(() => parseBooleanAttribute(props.isJsonComplete));
 </script>
 
 <template>
   <SchemaCardRenderer
-    :content="content"
+    :content="content ?? '{}'"
     :generating="isGenerating"
+    :is-json-complete="isJsonComplete"
     :custom-components="parsedCustomComponents"
     :custom-actions="parsedCustomActions"
     :required-complete-field-selectors="parsedRequiredCompleteFieldSelectors"

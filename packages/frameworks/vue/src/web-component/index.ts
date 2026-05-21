@@ -1,9 +1,11 @@
 import SchemaCardRenderer from '../renderer/SchemaCardRenderer.ce.vue';
 import { defineCustomElement } from 'vue';
 
+export { parseBooleanAttribute, parseJsonAttribute } from './parse-attribute';
+
 export const SchemaCardRendererElement = defineCustomElement(SchemaCardRenderer);
 
-export function registerSchemaCardRenderer(tagName: string = 'genui-renderer') {
+export function registerSchemaCardRenderer(tagName = 'genui-renderer') {
   if (!customElements.get(tagName)) {
     customElements.define(tagName, SchemaCardRendererElement);
   }
