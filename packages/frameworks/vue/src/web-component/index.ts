@@ -8,7 +8,11 @@ export const SchemaCardRendererElement = defineCustomElement(SchemaCardRenderer)
 export function registerSchemaCardRenderer(tagName = 'genui-renderer') {
   if (typeof customElements === 'undefined') return;
   if (!customElements.get(tagName)) {
-    customElements.define(tagName, SchemaCardRendererElement);
+    try {
+      customElements.define(tagName, SchemaCardRendererElement);
+    } catch (error) {
+      console.error(`Failed to define custom element ${tagName}:`, error);
+    }
   }
 }
 
