@@ -694,6 +694,9 @@ importers:
       '@opentiny/vue-numeric':
         specifier: ^3.28.0
         version: 3.28.0
+      '@opentiny/vue-pager':
+        specifier: ^3.28.0
+        version: 3.28.0
       '@opentiny/vue-radio':
         specifier: ^3.28.0
         version: 3.28.0
@@ -6980,6 +6983,7 @@ packages:
 
   glob@10.5.0:
     resolution: {integrity: sha512-DfXN8DfhJ7NH3Oe7cFmu3NCu1wKbkReJ8TorzSAFbSKrlNaQSKfIzqYqVY8zlbs2NLBbWpRiU52GX2PbaBVNkg==}
+    deprecated: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
     hasBin: true
 
   glob@7.2.3:
