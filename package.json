@@ -18,6 +18,8 @@
     "build:playground": "pnpm --filter genui-sdk-playground build",
     "build:playground-web": "pnpm prebuild:playground && pnpm --filter genui-sdk-playground-web build",
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
+    "ai:verify": "bash scripts/ai-verify.sh",
+    "ai:init": "bash scripts/ai-init.sh",
     "benchmarks": "pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks",
     "build:docs": "pnpm --filter genui-sdk-docs build",
     "build": "pnpm build:playground"

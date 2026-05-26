@@ -94,6 +94,15 @@ chore: 升级依赖版本
 - 为新功能补充必要的注释和文档
 - 修改或新增功能时，请同步更新相关测试用例
 
+## AI 贡献者（Agent / Copilot）
+
+若你使用 AI Agent 参与本仓库改造，请遵循 Harness 工作流：
+
+1. 阅读 [AGENTS.md](AGENTS.md)（仓库地图、命令、会话协议）
+2. 执行 `bash scripts/ai-init.sh` 完成环境冒烟
+3. 在 [ai-features.json](ai-features.json) 中选择一条未完成特性实现
+4. 方案与 Prompt 详见 [docs/inner-docs/AI_HARNESS.md](docs/inner-docs/AI_HARNESS.md)
+
 ## 加入社区
 
 如果你对 GenUI SDK 或 OpenTiny 开源项目感兴趣，欢迎通过以下方式加入：

@@ -1,0 +1,201 @@
+{
+  "version": 1,
+  "meta": {
+    "repo": "genui-sdk",
+    "harness_level": "L2",
+    "last_session": "generator-complete-agentic",
+    "last_agent": "Generator"
+  },
+  "features": [
+    {
+      "id": "F-harness-001",
+      "category": "harness",
+      "priority": "P0",
+      "scope": ["."],
+      "description": "Harness 工件齐全且 ai-init.sh 可执行通过",
+      "steps": [
+        "确认 AGENTS.md、ai-spec.md、ai-features.json、ai-progress.md、scripts/ai-init.sh 存在",
+        "在仓库根执行 bash scripts/ai-init.sh"
+      ],
+      "acceptance": [
+        "scripts/ai-init.sh 退出码为 0",
+        "AGENTS.md 包含仓库地图与常用命令表"
+      ],
+      "commands": ["bash scripts/ai-init.sh"],
+      "passes": true,
+      "evidence": "bash scripts/ai-init.sh 退出码 0（含 core vitest 45 passed）",
+      "commit": ""
+    },
+    {
+      "id": "F-harness-002",
+      "category": "dx",
+      "priority": "P1",
+      "scope": ["CONTRIBUTING.zh-CN.md", "README.zh-CN.md"],
+      "description": "贡献文档与 README 指向 AGENTS.md 与 AI_HARNESS.md",
+      "steps": [
+        "在 CONTRIBUTING.zh-CN.md 增加「AI 贡献者」小节",
+        "在 README.zh-CN.md 增加 Harness 链接（一行即可）"
+      ],
+      "acceptance": [
+        "CONTRIBUTING.zh-CN.md 含 AGENTS.md 链接",
+        "README.zh-CN.md 含 AI 友好型改造说明链接"
+      ],
+      "commands": [],
+      "passes": true,
+      "evidence": "CONTRIBUTING.zh-CN.md 与 README.zh-CN.md 已添加 Harness 链接",
+      "commit": ""
+    },
+    {
+      "id": "F-dx-001",
+      "category": "dx",
+      "priority": "P1",
+      "scope": ["packages/core"],
+      "description": "@opentiny/genui-sdk-core 公共 API 经 index 统一导出且入口有模块说明",
+      "steps": [
+        "检查 packages/core/src/index 或等价入口",
+        "补全缺失的公共导出",
+        "在入口文件顶部添加 3–5 行模块职责说明"
+      ],
+      "acceptance": [
+        "外部引用仅通过包 main/types 指向的入口",
+        "pnpm --filter @opentiny/genui-sdk-core test -- --run 通过"
+      ],
+      "commands": ["pnpm --filter @opentiny/genui-sdk-core test -- --run"],
+      "passes": true,
+      "evidence": "packages/core/src/index.ts 增加模块说明；vitest 45 passed",
+      "commit": ""
+    },
+    {
+      "id": "F-dx-002",
+      "category": "dx",
+      "priority": "P1",
+      "scope": ["packages/server"],
+      "description": "@opentiny/genui-sdk-server 入口导出清晰且 README 含最小启动说明",
+      "steps": [
+        "核对 output/dist 入口与 package.json main/types",
+        "README 补充 dev/build 与 AGENTS.md 命令对齐"
+      ],
+      "acceptance": [
+        "pnpm --filter @opentiny/genui-sdk-server build 成功",
+        "README 含 pnpm dev:server 或等效说明"
+      ],
+      "commands": [
+        "pnpm --filter @opentiny/genui-sdk-server build"
+      ],
+      "passes": true,
+      "evidence": "README Monorepo 小节含 pnpm dev:server / build:server；server build exit 0",
+      "commit": ""
+    },
+    {
+      "id": "F-dx-003",
+      "category": "dx",
+      "priority": "P2",
+      "scope": ["packages/frameworks/vue"],
+      "description": "@opentiny/genui-sdk-vue 公共导出经 index 收敛",
+      "steps": [
+        "列出对外使用的组件/工具",
+        "经 index 导出并避免深层路径泄漏"
+      ],
+      "acceptance": [
+        "pnpm --filter @opentiny/genui-sdk-vue build 成功"
+      ],
+      "commands": ["pnpm --filter @opentiny/genui-sdk-vue build"],
+      "passes": true,
+      "evidence": "packages/frameworks/vue/src/index.ts 模块说明；vue build exit 0",
+      "commit": ""
+    },
+    {
+      "id": "F-refactor-001",
+      "category": "refactor",
+      "priority": "P2",
+      "scope": ["projects/tiny-schema-renderer"],
+      "description": "tiny-schema-renderer 模块边界文档化（README 含目录职责表）",
+      "steps": [
+        "阅读 renderer 目录结构",
+        "更新 projects/tiny-schema-renderer/README.md"
+      ],
+      "acceptance": [
+        "README 含主要目录与职责对照表",
+        "pnpm --filter @opentiny/tiny-schema-renderer build 成功"
+      ],
+      "commands": ["pnpm --filter @opentiny/tiny-schema-renderer build"],
+      "passes": true,
+      "evidence": "README 目录结构表；tiny-schema-renderer build exit 0",
+      "commit": ""
+    },
+    {
+      "id": "F-functional-001",
+      "category": "functional",
+      "priority": "P1",
+      "scope": ["sites/playground"],
+      "description": "演练场可启动且首页可访问（冒烟）",
+      "steps": [
+        "pnpm i",
+        "pnpm dev 启动后访问 web 默认端口"
+      ],
+      "acceptance": [
+        "dev 进程无立即崩溃",
+        "浏览器可打开演练场页面（HTTP 200）"
+      ],
+      "commands": ["pnpm dev"],
+      "passes": true,
+      "evidence": "genui-sdk-playground-web vite dev 就绪；curl http://localhost:5173/ → 200",
+      "commit": ""
+    },
+    {
+      "id": "F-functional-002",
+      "category": "functional",
+      "priority": "P2",
+      "scope": ["projects/tiny-schema-renderer"],
+      "description": "提供最小 Schema 示例可在 renderer 路径验证",
+      "steps": [
+        "在 README 或 examples 增加最小 JSON schema 样例",
+        "说明如何在 playground 或 dev 中加载"
+      ],
+      "acceptance": [
+        "文档含完整最小 schema 文本",
+        "样例字段与 renderer 支持能力一致"
+      ],
+      "commands": [],
+      "passes": true,
+      "evidence": "README「最小 Schema 示例」含 Page/Text 样例与 dev/playground 验证说明",
+      "commit": ""
+    },
+    {
+      "id": "F-docs-001",
+      "category": "docs",
+      "priority": "P2",
+      "scope": ["docs"],
+      "description": "inner-docs 增加 AI Harness 索引页链接到 AGENTS.md",
+      "steps": [
+        "在 docs/inner-docs/USAGE.md 或 index 增加链接"
+      ],
+      "acceptance": [
+        "inner-docs 中可发现 AI_HARNESS.md 与 AGENTS.md"
+      ],
+      "commands": ["pnpm --filter genui-sdk-docs build"],
+      "passes": true,
+      "evidence": "docs/inner-docs/USAGE.md 顶部链接 AGENTS.md 与 AI_HARNESS.md；docs build exit 0",
+      "commit": ""
+    },
+    {
+      "id": "F-test-001",
+      "category": "test",
+      "priority": "P2",
+      "scope": ["packages/core", "scripts/ai-init.sh"],
+      "description": "ai-init.sh 在 CI 友好模式下运行 core 单测",
+      "steps": [
+        "确认 ai-init.sh 已包含 core vitest --run",
+        "文档说明 SKIP_AI_TESTS=1 可跳过"
+      ],
+      "acceptance": [
+        "默认 ai-init 运行 core 测试",
+        "SKIP_AI_TESTS=1 时跳过测试仍检查工件"
+      ],
+      "commands": ["bash scripts/ai-init.sh", "SKIP_AI_TESTS=1 bash scripts/ai-init.sh"],
+      "passes": true,
+      "evidence": "scripts/ai-init.sh 已实现；两命令均已验证退出码 0",
+      "commit": ""
+    }
+  ]
+}

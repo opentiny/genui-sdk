@@ -41,7 +41,9 @@ GenUI SDK 在设计上兼顾了”开箱即用“与”深度定制“，具备�
 
 ## 贡献指南
 
-如果你对 GenUI SDK 感兴趣，你可以参与贡献。参与贡献前，请先阅读[贡献指南](CONTRIBUTING.zh-CN.md) 
+如果你对 GenUI SDK 感兴趣，你可以参与贡献。参与贡献前，请先阅读[贡献指南](CONTRIBUTING.zh-CN.md)。
+
+使用 AI Agent 协作开发时，请参阅 [AGENTS.md](AGENTS.md) 与 [AI Harness 方案](docs/inner-docs/AI_HARNESS.md)。
 
 你也可以通过以下方式联系我们，进一步交流：
 - 添加官方小助手微信：`opentiny-official`，加入技术交流群

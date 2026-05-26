@@ -1,5 +1,7 @@
 # genui-sdk 组件
 
+> **AI Agent / Harness**：协作开发请参阅仓库根目录 [AGENTS.md](../../AGENTS.md) 与 [AI_HARNESS.md](./AI_HARNESS.md)。
+
 ## GenuiRenderer 渲染组件
 
 渲染 Schema，支持“流式/增量”更新（可传入不完整 JSON 字符串，组件会自动解析并打补丁）。

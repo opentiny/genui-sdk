@@ -1,0 +1,22 @@
+---
+description: GenUI SDK AI Harness — 会话协议与工件约束
+alwaysApply: true
+---
+
+# GenUI SDK — AI Harness
+
+在本仓库工作时，**必须先读** [AGENTS.md](../../AGENTS.md)。
+
+## 必做
+
+1. 开场：`bash scripts/ai-init.sh`（失败则只修回归）
+2. 从 [ai-features.json](../../ai-features.json) 仅选 **一条** `passes: false` 特性实现
+3. JS/TS 包以 **index 统一出口**；最小 diff
+4. 禁止删改 `ai-features.json` 的 `description` / `acceptance`
+5. 未验证不得 `passes: true`；L2/L3 需 Evaluator PASS
+6. 收尾更新 [ai-progress.md](../../ai-progress.md)；可用 `pnpm ai:verify` 检查完成度
+
+## 文档
+
+- 方案：[docs/inner-docs/AI_HARNESS.md](../../docs/inner-docs/AI_HARNESS.md)
+- Prompts：[docs/inner-docs/ai-harness-prompts.md](../../docs/inner-docs/ai-harness-prompts.md)
