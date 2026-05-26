@@ -26,7 +26,7 @@ const callAction = (actionName: string, params: any) => {
   if (!props.customActions[actionName]) {
     console.warn(`Action ${actionName} not found`);
   }
-  props.customActions[actionName]?.execute(params, rendererInstance.value.getContext());
+  return props.customActions[actionName]?.execute(params, rendererInstance.value.getContext());
 };
 
 const SchemaRenderer = inject(GENUI_RENDERER, defaultSchemaRenderer);
