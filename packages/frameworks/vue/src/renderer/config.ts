@@ -1,4 +1,5 @@
 export const requiredCompleteFieldSelectors = [
+  'lifeCycles',
   '[componentName=Img] > props > src',
   'componentName',
   'style',

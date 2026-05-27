@@ -3,6 +3,7 @@ import * as jsonDiffPatch from 'jsondiffpatch';
 import { flatten } from 'flat';
 import { get } from 'radash';
 import { jsonSelectorMatcher } from '../delta-json-path-selector/json-selector-matcher';
+import { normalizeStreamingSchema } from '../schema-stream-normalizer';
 // import DiffMatchPatch from 'diff-match-patch';
 
 type ISchema = any;
@@ -240,7 +241,11 @@ export class DeltaPatcher {
     if (!newValue) {
       return oldValue;
     }
-    const diff = this.diffPatcher.diff(oldValue, newValue);
+    const normalizedNewValue = normalizeStreamingSchema(
+      newValue as Record<string, unknown>,
+      isCompleted,
+    );
+    const diff = this.diffPatcher.diff(oldValue, normalizedNewValue);
     if (!diff) {
       return oldValue;
     }
@@ -249,7 +254,7 @@ export class DeltaPatcher {
       return this.diffPatcher.patch(oldValue, diff);
     }
 
-    const delta = this.getPatchDelta(newValue, diff);
+    const delta = this.getPatchDelta(normalizedNewValue, diff);
     if (!delta) {
       return oldValue;
     }

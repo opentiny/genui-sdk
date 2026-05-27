@@ -4,3 +4,4 @@ export * from './prompt-generator';
 export * from './delta-json-path-selector';
 export * from './stream-pattern-extractor';
 export * from './repair-json';
+export * from './schema-stream-normalizer';

@@ -1,4 +1,5 @@
 export const requiredCompleteFieldSelectors = [ // TODO: move to core & material package
+  'lifeCycles',
   'componentName',
   'style',
   '[type=JSFunction]',
