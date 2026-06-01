@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
 import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
+import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
 import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
@@ -287,7 +288,12 @@ export function createChatGenui() {
     }
     const tools = { ...mcpTools, ...agentTools, ...skillTools };
 
-    const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
+    const renderConfigForFramework =
+      framework === 'Angular'
+        ? ngRendererConfig
+        : framework === 'React'
+          ? reactAntdRendererConfig
+          : rendererConfig;
     const maxSteps = 30;
     let hasError = false; // 标记是否已经处理了错误
 

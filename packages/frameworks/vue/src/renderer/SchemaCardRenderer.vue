@@ -78,7 +78,15 @@ function updateContextAndState() {
 }
 
 watch(
-  [() => props.content, () => props.isJsonComplete],
+  () => props.customActions,
+  () => {
+    nextTick(() => updateContextAndState());
+  },
+  { deep: true },
+);
+
+watch(
+  [() => props.content, () => props.isJsonComplete, () => props.generating],
   ([newVal, isJsonComplete]) => {
     isError.value = false;
     let json: any = newVal;
@@ -96,7 +104,7 @@ watch(
         json = {};
       }
     } else {
-      isCompleted = isJsonComplete ?? true;
+      isCompleted = props.generating ? false : (isJsonComplete ?? true);
     }
     if (!isCompleted && json && 'lifeCycles' in json) {
       const { lifeCycles, ...rest } = json;
@@ -115,11 +123,10 @@ watch(
     immediate: true,
   },
 );
-// 异步组件可能在更新context时候并未ready，导致恢复会话的时候context没更新
+// 异步组件可能在更新 context 时并未 ready，实例就绪后应始终同步 callAction
 watch(() => rendererInstance.value, (newVal) => {
-  if (newVal && updateActionTimer) {
+  if (newVal) {
     nextTick(() => updateContextAndState());
-    updateActionTimer = null;
   }
 }, {
   immediate: true,
@@ -129,7 +136,15 @@ watch(() => rendererInstance.value, (newVal) => {
 <template>
   <div class="schema-render-container">
     <slot name="header" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
-    <SchemaRenderer :schema="displaySchema" ref="rendererInstance" />
+    <SchemaRenderer
+      :schema="displaySchema"
+      :generating="props.generating"
+      :is-json-complete="props.generating ? false : (props.isJsonComplete ?? true)"
+      :custom-actions="props.customActions"
+      :renderer-id="props.id"
+      :renderer-state="props.state"
+      ref="rendererInstance"
+    />
     <slot name="footer" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
   </div>
 </template>

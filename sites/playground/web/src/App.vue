@@ -40,6 +40,14 @@ if (location.search.includes('framework=angular')) {
   framework = 'Angular';
 }
 
+if (location.search.includes('framework=react')) {
+  const SchemaRendererReactAdapter = defineAsyncComponent(() =>
+    import('schema-renderer-react-adapter').then((m) => m.SchemaRendererReactAdapter),
+  );
+  provide(GENUI_RENDERER, SchemaRendererReactAdapter);
+  framework = 'React';
+}
+
 const STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_CONFIG';
 const {
   llmConfig: cacheLLmConfig,

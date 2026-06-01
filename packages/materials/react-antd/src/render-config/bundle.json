@@ -1,0 +1,292 @@
+{
+  "data": {
+    "framework": "React",
+    "materials": {
+      "components": [
+        {
+          "component": "AntButton",
+          "description": "Ant Design 按钮，支持 primary/default/dashed/link/text 等类型",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "text", "type": "string", "defaultValue": "按钮", "description": { "zh_CN": "按钮文字" } },
+                  { "property": "type", "type": "string", "defaultValue": "default", "description": { "zh_CN": "类型：primary、default、dashed、link、text" } },
+                  { "property": "size", "type": "string", "defaultValue": "middle", "description": { "zh_CN": "尺寸：small、middle、large" } },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false },
+                  { "property": "danger", "type": "boolean", "defaultValue": false }
+                ]
+              }
+            ],
+            "events": {
+              "onClick": { "description": { "zh_CN": "点击事件" } }
+            }
+          }
+        },
+        {
+          "component": "AntInput",
+          "description": "Ant Design 输入框",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "value", "type": "string", "defaultValue": "", "description": { "zh_CN": "输入值，可用 model:true 双向绑定" } },
+                  { "property": "modelValue", "type": "string", "defaultValue": "", "description": { "zh_CN": "输入值（modelValue 别名）" } },
+                  { "property": "placeholder", "type": "string", "defaultValue": "请输入" },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false },
+                  { "property": "type", "type": "string", "defaultValue": "text", "description": { "zh_CN": "input type：text、password、email 等" } }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": { "description": { "zh_CN": "值变化事件" } }
+            }
+          }
+        },
+        {
+          "component": "AntSelect",
+          "description": "Ant Design 下拉选择器",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "value", "type": "string", "defaultValue": "", "description": { "zh_CN": "选中值，可用 model:true 双向绑定" } },
+                  { "property": "placeholder", "type": "string", "defaultValue": "请选择" },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false },
+                  {
+                    "property": "options",
+                    "type": "array",
+                    "defaultValue": [],
+                    "description": { "zh_CN": "选项数组，如 [{ label: '男', value: 'male' }]" }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": { "description": { "zh_CN": "选中值变化" } }
+            }
+          }
+        },
+        {
+          "component": "AntForm",
+          "description": "Ant Design 表单容器",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "layout", "type": "string", "defaultValue": "vertical", "description": { "zh_CN": "布局：horizontal、vertical、inline" } }
+                ]
+              }
+            ],
+            "slots": {
+              "default": { "description": { "zh_CN": "表单项子节点，通常放 AntFormItem" } }
+            }
+          }
+        },
+        {
+          "component": "AntFormItem",
+          "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 modelValue 或 value（model:true），不要设置 name 属性",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "label", "type": "string", "defaultValue": "标签", "description": { "zh_CN": "表单项标签" } },
+                  { "property": "required", "type": "boolean", "defaultValue": false, "description": { "zh_CN": "是否必填（仅展示）" } }
+                ]
+              }
+            ],
+            "slots": {
+              "default": { "description": { "zh_CN": "表单项内容，如 AntInput、AntSelect" } }
+            }
+          }
+        },
+        {
+          "component": "AntCard",
+          "description": "Ant Design 卡片容器",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "title", "type": "string", "defaultValue": "卡片标题" },
+                  { "property": "variant", "type": "string", "defaultValue": "outlined", "description": { "zh_CN": "样式：outlined（有边框）、borderless（无边框）、filled（填充）" } }
+                ]
+              }
+            ],
+            "slots": {
+              "default": { "description": { "zh_CN": "卡片内容" } }
+            }
+          }
+        },
+        {
+          "component": "AntTable",
+          "description": "Ant Design 表格",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  {
+                    "property": "columns",
+                    "type": "array",
+                    "defaultValue": [],
+                    "description": { "zh_CN": "列配置，如 [{ title: '姓名', dataIndex: 'name', key: 'name' }]" }
+                  },
+                  {
+                    "property": "dataSource",
+                    "type": "array",
+                    "defaultValue": [],
+                    "description": { "zh_CN": "表格数据源" }
+                  },
+                  { "property": "rowKey", "type": "string", "defaultValue": "key" },
+                  { "property": "pagination", "type": "boolean", "defaultValue": true }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntTabs",
+          "description": "Ant Design 标签页容器",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "defaultActiveKey", "type": "string", "defaultValue": "1" },
+                  { "property": "activeKey", "type": "string", "defaultValue": "" }
+                ]
+              }
+            ],
+            "slots": {
+              "default": { "description": { "zh_CN": "标签页内容，通常放 AntTabPane" } }
+            }
+          }
+        },
+        {
+          "component": "AntTabPane",
+          "description": "Ant Design 单个标签页",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "tab", "type": "string", "defaultValue": "标签" },
+                  { "property": "tabKey", "type": "string", "defaultValue": "1" }
+                ]
+              }
+            ],
+            "slots": {
+              "default": { "description": { "zh_CN": "标签页内容" } }
+            }
+          }
+        },
+        {
+          "component": "AntModal",
+          "description": "Ant Design 对话框",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "open", "type": "boolean", "defaultValue": false, "description": { "zh_CN": "是否显示" } },
+                  { "property": "title", "type": "string", "defaultValue": "对话框" },
+                  { "property": "okText", "type": "string", "defaultValue": "确定" },
+                  { "property": "cancelText", "type": "string", "defaultValue": "取消" }
+                ]
+              }
+            ],
+            "events": {
+              "onOk": { "description": { "zh_CN": "点击确定" } },
+              "onCancel": { "description": { "zh_CN": "点击取消或关闭" } }
+            },
+            "slots": {
+              "default": { "description": { "zh_CN": "对话框内容" } }
+            }
+          }
+        },
+        {
+          "component": "AntSwitch",
+          "description": "Ant Design 开关",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "checked", "type": "boolean", "defaultValue": false, "description": { "zh_CN": "是否选中，可用 model:true 双向绑定" } },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": { "description": { "zh_CN": "开关状态变化" } }
+            }
+          }
+        },
+        {
+          "component": "AntCheckbox",
+          "description": "Ant Design 复选框",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "checked", "type": "boolean", "defaultValue": false },
+                  { "property": "text", "type": "string", "defaultValue": "选项" },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": { "description": { "zh_CN": "选中状态变化" } }
+            }
+          }
+        },
+        {
+          "component": "AntRadio",
+          "description": "Ant Design 单选框",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "value", "type": "string", "defaultValue": "" },
+                  { "property": "checked", "type": "boolean", "defaultValue": false },
+                  { "property": "text", "type": "string", "defaultValue": "选项" },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": { "description": { "zh_CN": "选中变化" } }
+            }
+          }
+        },
+        {
+          "component": "AntDatePicker",
+          "description": "Ant Design 日期选择器",
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  { "property": "value", "type": "string", "defaultValue": "", "description": { "zh_CN": "日期值，可用 model:true 双向绑定" } },
+                  { "property": "placeholder", "type": "string", "defaultValue": "请选择日期" },
+                  { "property": "disabled", "type": "boolean", "defaultValue": false }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": { "description": { "zh_CN": "日期变化" } }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

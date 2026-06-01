@@ -20,6 +20,7 @@
     "@openrouter/ai-sdk-provider": "^1.1.2",
     "@opentiny/genui-sdk-chat-completions": "workspace:*",
     "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-react-antd": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "ai": "5.0.10",
@@ -35,7 +36,8 @@
     "uuid": "^11.1.0",
     "ws": "^8.18.1",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.1"
+    "zod-to-json-schema": "^3.25.1",
+    "@opentiny/genui-sdk-react": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

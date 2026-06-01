@@ -1,0 +1,50 @@
+{
+  "name": "@opentiny/genui-sdk-react",
+  "version": "1.0.0",
+  "description": "Framework-agnostic React renderer for GenUI schema protocol",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "type": "module",
+  "main": "output/dist/index.js",
+  "types": "output/dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./output/dist/index.d.ts",
+      "import": "./output/dist/index.js"
+    },
+    "./render-config": {
+      "types": "./output/dist/render-config.d.ts",
+      "import": "./output/dist/render-config.js"
+    },
+    "./renderer": {
+      "types": "./output/dist/renderer.d.ts",
+      "import": "./output/dist/renderer.js"
+    }
+  },
+  "files": ["output/dist", "README.md"],
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "escape-string-regexp": "^1.0.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^3.0.0"
+  }
+}
