@@ -3,10 +3,12 @@ export const formSchema = {
     'formData': {
       'name': '张三',
       'sex': '男',
-      'department': 'HR',
-      'protocolStart': '2023-01-01',
-      'email': '',
-    },
+      'depart': 'HR',
+      'protocolStart': '2023-01-01'
+    }
+  },
+  'refs': {
+    'formRef': null,
   },
   'methods': {
     'departChange': {
@@ -31,6 +33,10 @@ export const formSchema = {
           'type': 'JSExpression',
           'value': 'this.state.formData',
         },
+        'ref': {
+          'type': 'JSExpression',
+          'value': 'this.refs.formRef',
+        },
         'labelPosition': 'top',
       },
       'children': [
@@ -50,31 +56,6 @@ export const formSchema = {
                   'type': 'JSExpression',
                   'model': true,
                   'value': 'this.state.formData.name',
-                },
-              },
-            },
-          ],
-        },
-        {
-          'componentName': 'TinyFormItem',
-          'props': {
-            'label': '工号',
-            'prop': 'id',
-            'required': true,
-          },
-          'children': [
-            {
-              'componentName': 'TinyInput',
-              'props': {
-                'disabled': true,
-                'modelValue': {
-                  'type': 'JSExpression',
-                  'model': true,
-                  'value': 'this.state.formData.id',
-                },
-                'onChange': {
-                  'type': 'JSFunction',
-                  'value': 'fucntion() { console.log(this.state.formData) }',
                 },
               },
             },
@@ -148,7 +129,7 @@ export const formSchema = {
           'componentName': 'TinyFormItem',
           'props': {
             'label': '入职日期',
-            'prop': 'date',
+            'prop': 'protocolStart',
           },
           'children': [
             {
@@ -159,7 +140,7 @@ export const formSchema = {
                 'modelValue': {
                   'type': 'JSExpression',
                   'model': true,
-                  'value': 'this.state.formData.date',
+                  'value': 'this.state.formData.protocolStart',
                 },
               },
             },
@@ -175,6 +156,10 @@ export const formSchema = {
               'componentName': 'TinyButton',
               'props': {
                 'text': '确认',
+                'onClick': {
+                  'type': 'JSFunction',
+                  'value': 'function() { this.refs.formRef.validate().then(res => { console.log("校验通过", res) }).catch((err) => { console.log("校验失败, 失败只做提示，不继续会话", err) }) }',
+                },
               },
             },
           ],

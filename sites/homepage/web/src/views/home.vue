@@ -16,6 +16,7 @@ import HomeFeature from '@/components/HomeFeature.vue';
 import HomeLink from '@/components/HomeLink.vue';
 import HomeExtend from '@/components/HomeExtend.vue';
 import HomeMcpToolMobile from '@/components/HomeMcpToolMobile.vue';
+import { t } from '@/i18n';
 
 const abilityContentWrapClass = ref('home-ability-content-wrap');
 const abilityThreePartContent = ref({
@@ -59,18 +60,18 @@ const buttonSize = computed(() => {
     <!-- 第一屏 -->
     <div :class="{ 'home-core': true, 'home-core-mobile': isMobile }">
       <div class="home-core-left">
-        <div class="home-core-title">OpenTiny GenUI SDK</div>
-        <div class="home-core-subtitle">增强大模型对话展示和交互</div>
-        <div class="home-core-decsription">为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性</div>
+        <div class="home-core-title">{{ t('hero.title') }}</div>
+        <div class="home-core-subtitle">{{ t('hero.subtitle') }}</div>
+        <div class="home-core-decsription">{{ t('hero.description') }}</div>
         <div class="operation-button-group">
           <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
-            <tiny-button :reset-time="0" round type="primary" :size="buttonSize">开发文档</tiny-button>
+            <tiny-button :reset-time="0" round type="primary" :size="buttonSize">{{ t('hero.devDoc') }}</tiny-button>
           </a>
           <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
-            <tiny-button :reset-time="0" round ghost :size="buttonSize">演练场</tiny-button>
+            <tiny-button :reset-time="0" round ghost :size="buttonSize">{{ t('hero.playground') }}</tiny-button>
           </a>
           <a href="https://github.com/opentiny/genui-sdk" target="_blank" class="btn-link">
-            <tiny-button :reset-time="0" round ghost :size="buttonSize">GitHub</tiny-button>
+            <tiny-button :reset-time="0" round ghost :size="buttonSize">{{ t('hero.github') }}</tiny-button>
           </a>
         </div>
       </div>
@@ -80,18 +81,14 @@ const buttonSize = computed(() => {
     </div>
 
     <!-- 第二屏 -->
-    <home-ability
-      class="home-ability-2"
-      title="超越文字的表达能力"
-      subtitle="以界面重构文字，打破文字表达壁垒，用可视化界面释放信息价值"
-    >
+    <home-ability class="home-ability-2" :title="t('ability.visual.title')" :subtitle="t('ability.visual.subtitle')">
       <div class="ability-image-wrap-2">
         <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
       </div>
     </home-ability>
 
     <!-- 第三屏 -->
-    <home-ability title="更加流畅的交互方式" subtitle="打破两步交互，实现界面到对话的一站式流转">
+    <home-ability :title="t('ability.interaction.title')" :subtitle="t('ability.interaction.subtitle')">
       <video
         class="cover-image ability-image"
         id="genui-action-vedio"
@@ -107,8 +104,8 @@ const buttonSize = computed(() => {
     <home-ability
       v-else
       class="home-ability-4"
-      title="结合MCP工具，让AI更懂业务场景"
-      subtitle="接入MCP工具后，模型在调用工具缺少参数时能自动生成交互式UI来收集所需信息"
+      :title="t('ability.mcp.title')"
+      :subtitle="t('ability.mcp.subtitle')"
       background="morandi"
     >
       <div :class="abilityContentWrapClass">
@@ -119,7 +116,7 @@ const buttonSize = computed(() => {
               abilityThreePartContent.subtitle
             }}</span>
           </div>
-          <span :class="`${abilityContentWrapClass}-label`">Parameters</span>
+          <span :class="`${abilityContentWrapClass}-label`">{{ t('ability.mcp.parameters') }}</span>
           <div :class="`${abilityContentWrapClass}-parameters`">
             <div
               :class="`${abilityContentWrapClass}-parameter`"
@@ -138,11 +135,7 @@ const buttonSize = computed(() => {
       </div>
     </home-ability>
 
-    <home-ability
-      class="home-ability-5"
-      title="界面混排与流式渲染"
-      subtitle="生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
-    >
+    <home-ability class="home-ability-5" :title="t('ability.stream.title')" :subtitle="t('ability.stream.subtitle')">
       <video
         ref="videoRef"
         class="cover-image ability-image"
@@ -215,7 +208,7 @@ const buttonSize = computed(() => {
     }
 
     &-right {
-      width: 60%;
+      width: 55%;
       animation: slideUpFromBottom 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
       opacity: 0;
 
@@ -234,7 +227,6 @@ const buttonSize = computed(() => {
 
     &-title {
       font-size: var(--font-size-title-xl);
-      line-height: var(--line-height-title-xl);
       font-weight: 700;
       text-align: left;
       margin-bottom: 6px;
@@ -245,12 +237,10 @@ const buttonSize = computed(() => {
 
     &-subtitle {
       font-size: var(--font-size-title-lg);
-      line-height: var(--line-height-title-lg);
       font-weight: 700;
       text-align: left;
       color: rgba(14, 112, 255, 1);
       margin-bottom: 26px;
-      white-space: nowrap;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
       opacity: 0;
       -webkit-background-clip: text;
@@ -296,7 +286,8 @@ const buttonSize = computed(() => {
       }
 
       &-right {
-        width: 70%;
+        width: 45%;
+        flex-shrink: 0;
       }
     }
 

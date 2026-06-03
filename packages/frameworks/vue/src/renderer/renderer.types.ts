@@ -1,12 +1,16 @@
 import type { Component, VNode } from 'vue';
-import type { CardSchema } from '@opentiny/genui-sdk-core';
+import type { CardSchema, IGenPromptAction } from '@opentiny/genui-sdk-core';
+
+export interface ICustomAction extends Partial<IGenPromptAction> {
+  execute: (params: any, context: Record<string, any>) => any;
+}
 
 export interface IRendererProps {
   content: string | { [prop: string]: any };
   generating?: boolean;
   isJsonComplete?: boolean;
   customComponents?: Record<string, Component>;
-  customActions?: any;
+  customActions?: Record<string, ICustomAction>;
   requiredCompleteFieldSelectors?: string[];
   id?: string;
   state?: Record<string, any>;

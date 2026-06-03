@@ -25,6 +25,7 @@ export type RootNode = Omit<Node, 'id'> & {
   fileName?: string;
   methods?: Methods;
   state?: Record<string, unknown>;
+  refs?: Record<string, unknown>;
   lifeCycles?: Record<string, unknown>;
   children?: Node[];
   dataSource?: any;
@@ -85,6 +86,10 @@ export const genRootSchema = /* @__PURE__ */ (componentWhiteList?: string[]) => 
       id: z.string().optional().describe('根节点可选 id'),
       methods: methodsSchema.optional().describe('方法集合'),
       state: z.record(z.string(), propValueSchema).optional().describe('全局状态，表单双向绑定必须此字段'),
+      refs: z
+        .record(z.string(), propValueSchema)
+        .optional()
+        .describe('组件实例引用集合，用于在 methods 和事件处理中访问组件实例'),
       componentName: z.string().describe('根组件名，通常为 Page'),
       props: z.record(z.string(), propValueSchema).optional().describe('根组件属性集合'),
       children: z

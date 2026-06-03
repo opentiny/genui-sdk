@@ -27,7 +27,7 @@ import {
   formatJsonPatch,
   generateIdForComponents,
 } from './template-chat-utils';
-import { formatDate, generateId } from '../../utils';
+import { formatDate, generateId, stripSchemaFieldsWhileStreaming } from '../../utils';
 import useTemplate from './useTemplate';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
@@ -152,7 +152,7 @@ const schemaCardRenderer = async (props: any) => {
       if (!value) {
         return;
       }
-      json = value;
+      json = stripSchemaFieldsWhileStreaming(value as Record<string, unknown>, isCompleted);
     }
     deltaPatcher.patchWithDelta(target, json, isCompleted);
     // 给每个组件添加 id
@@ -227,8 +227,11 @@ const jsonPatchRenderer = async (props: any) => {
 
     // 增量 patch 需要基于“当前预览态”持续叠加，避免每个 chunk 都从已应用态重建导致丢操作。
     const patchBaseline = lastPreviewSchema.value ?? currentSchema.value;
-    const targetSchema = JSON.parse(JSON.stringify(patchBaseline));
+    let targetSchema = JSON.parse(JSON.stringify(patchBaseline)) as Record<string, unknown>;
+    targetSchema = stripSchemaFieldsWhileStreaming(targetSchema, isComplete);
     jsonPatchFormatter.patch(targetSchema, standardOperations);
+    // 避免流式未完成时 patch 操作把 lifeCycles 写回 schema
+    targetSchema = stripSchemaFieldsWhileStreaming(targetSchema, isComplete);
     setCurrentPreviewSchema(generateIdForComponents(targetSchema), isComplete || lastOperationComplete);
   } catch (error) {
     errorMessagesMap.value.set(props.cardId, error.message);

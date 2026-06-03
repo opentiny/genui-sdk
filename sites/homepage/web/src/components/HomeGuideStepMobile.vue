@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { TinyButtonGroup, TinyButton } from '@opentiny/vue';
+import { t } from '@/i18n';
 
 const emit = defineEmits(['change']);
 const GUIDE_STEP_ONE = 0;
@@ -24,7 +25,7 @@ const handleGuideChange = (index: number) => {
         :reset-time="0"
         @click="handleGuideChange(GUIDE_STEP_ONE)"
       >
-        引入组件
+        {{ t('guide.step1.mobile') }}
       </tiny-button>
       <tiny-button
         class="home-guide-step-mobile-button"
@@ -33,7 +34,7 @@ const handleGuideChange = (index: number) => {
         :reset-time="0"
         @click="handleGuideChange(GUIDE_STEP_TWO)"
       >
-        使用chat组件
+        {{ t('guide.step2.mobile') }}
       </tiny-button>
       <tiny-button
         class="home-guide-step-mobile-button"
@@ -42,7 +43,7 @@ const handleGuideChange = (index: number) => {
         :reset-time="0"
         @click="handleGuideChange(GUIDE_STEP_THREE)"
       >
-        自定义配置
+        {{ t('guide.step3.mobile') }}
       </tiny-button>
     </tiny-button-group>
   </div>

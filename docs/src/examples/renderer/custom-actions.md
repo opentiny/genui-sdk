@@ -8,13 +8,28 @@
 
 - `name`: 动作名称
 - `description`: 动作描述
+- `parameters`: 参数 JSON Schema 描述
+- `return`: (可选)返回值 JSON Schema 描述，无返回值时可省略
+- `async`: (可选)是否为异步 Action，默认为 `false`；为 `true` 时 `execute` 需返回 Promise
 - `execute`: 执行函数，接收 `params` 和 `context` 两个参数
-- `params`: 参数定义数组（可选），用于描述动作接收的参数，大模型根据描述生成参数传递给`execute`第一个参数
 
 ### execute 函数参数说明
 
 - `params`: 调用动作时传入的参数对象
 - `context`: 渲染器的上下文信息，包含渲染器的状态和方法，可以通过 `context.state` 获取全局双向绑定状态
+
+当 `async: true` 时，`execute` 返回 Promise，`this.callAction` 也会返回 Promise，可在 Schema 的 `methods` 中链式处理：
+
+```json
+{
+  "methods": {
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function() { this.callAction('validateForm').then(function(result) { console.log(result); }); }"
+    }
+  }
+}
+```
 
 ### 示例 1：打开新页面
 

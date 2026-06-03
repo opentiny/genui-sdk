@@ -13,6 +13,7 @@ Schema 协议通过 JSON 对象描述完整的 UI 结构，包括：
 - **组件树结构**：通过嵌套的节点对象描述组件的层次关系
 - **组件属性**：每个组件可以配置属性，支持原始值、JS 表达式、JS 函数等
 - **状态管理**：通过 `state` 字段管理页面级别的状态数据
+- **组件实例引用**：通过 `refs` 字段声明组件实例引用，可在事件处理中调用组件方法
 - **事件处理**：通过 `methods` 字段定义可复用的方法，组件属性可以绑定这些方法
 
 ### 设计原则
@@ -41,6 +42,7 @@ Schema 是一个 JSON 对象，包含完整的页面定义。它必须包含 `co
 
 根节点是 Schema 的顶层节点，除了包含普通节点的所有字段外，还包含页面级别的配置：
 - `state`：全局状态
+- `refs`：组件实例引用
 - `methods`：方法集合
 - `css`：全局样式
 
@@ -55,6 +57,7 @@ type RootNode = Omit<Node, 'id'> & {
   fileName?: string;              // 文件名
   methods?: Methods;              // 方法集合
   state?: Record<string, unknown>; // 全局状态
+  refs?: Record<string, unknown>; // 组件实例引用变量表
   schema?: any;                   // 内嵌或外部 Schema
 };
 ```
@@ -102,6 +105,7 @@ interface Node {
 - **fileName** (string): 文件名标识
 - **methods** (Methods): 方法集合，定义可复用的函数
 - **state** (Record<string, unknown>): 全局状态对象
+- **refs** (Record<string, unknown>): 组件实例引用集合，初始值通常为 `null`（单个引用）或 `[]`（循环场景下的引用数组）
 - **schema** (any): 内嵌或外部 Schema
 
 ## 属性值类型
@@ -304,10 +308,8 @@ interface JSSlot {
   "componentName": "div",
   "id": "list-item",
   "loop": {
-    "list": {
-      "type": "JSExpression",
-      "value": "this.state.items"
-    }
+    "type": "JSExpression",
+    "value": "this.state.items"
   },
   "loopArgs": ["item", "index"],
   "props": {
@@ -404,6 +406,81 @@ interface JSSlot {
       "type": "JSExpression",
       "value": "this.state.inputValue",
       "model": true
+    }
+  }
+}
+```
+
+## 组件实例引用
+
+### 声明引用
+
+在根节点的 `refs` 字段中声明组件实例引用。初始值用于占位，渲染器会在组件挂载后将实际实例写入对应引用。
+
+- 单个组件实例引用：初始值设为 `null`
+- 循环渲染中的引用数组：初始值设为 `[]`
+
+```json
+{
+  "componentName": "Page",
+  "refs": {
+    "formRef": null,
+    "formItemRef": []
+  }
+}
+```
+
+### 绑定引用
+
+在组件的 `props.ref` 中通过 JS 表达式将组件实例绑定到 `this.refs` 上的对应字段。
+
+```json
+{
+  "componentName": "TinyForm",
+  "props": {
+    "ref": {
+      "type": "JSExpression",
+      "value": "this.refs.formRef"
+    },
+    "model": {
+      "type": "JSExpression",
+      "value": "this.state.formData"
+    }
+  }
+}
+```
+
+循环渲染场景下，可通过循环索引访问引用数组中的对应实例：
+
+```json
+{
+  "componentName": "TinyFormItem",
+  "loop": {
+      "type": "JSExpression",
+      "value": "this.state.formItemList"
+  },
+  "loopArgs": ["item", "loopIndex"],
+  "props": {
+    "ref": {
+      "type": "JSExpression",
+      "value": "this.refs.formItemRef[loopIndex]"
+    }
+  }
+}
+```
+
+### 调用组件方法
+
+在 `methods` 或事件处理函数中，通过 `this.refs` 访问组件实例并调用其方法。
+
+```json
+{
+  "componentName": "TinyButton",
+  "props": {
+    "text": "确认",
+    "onClick": {
+      "type": "JSFunction",
+      "value": "function() { this.refs.formRef.validate().then(res => { console.log('校验通过', res) }).catch(err => { console.log('校验失败', err) }) }"
     }
   }
 }
@@ -727,6 +804,7 @@ export type RootNode = Omit<Node, 'id'> & {
   fileName?: string;              // 文件名
   methods?: Methods;               // 方法集合
   state?: Record<string, unknown>; // 全局状态
+  refs?: Record<string, unknown>;  // 组件实例引用变量表
   schema?: any;                    // 内嵌或外部 Schema
 };
 ```
@@ -802,6 +880,10 @@ A: 在 JSExpression 中设置 `model: true`，适用于表单组件。
 A: 有两种方式：
 1. 在根节点的 `methods` 中定义方法，然后在组件属性中使用 `this.方法名` 引用（如 `this.handleClick`）
 2. 直接在组件属性中定义 JSFunction
+
+### Q: 如何调用组件实例方法（如表单校验）？
+
+A: 在根节点的 `refs` 中声明引用，在目标组件的 `props.ref` 中绑定 `this.refs.xxx`，然后在事件处理函数中通过 `this.refs.xxx` 调用组件方法。
 
 ## 参考
 

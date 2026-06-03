@@ -1,25 +1,16 @@
 <script setup lang="ts">
-import {
-  onMounted,
-  onUnmounted,
-  ref,
-  computed,
-  watch,
-} from 'vue';
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { TinyButton, TinyButtonGroup, TinyTooltip } from '@opentiny/vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
-import {
-  IconArrowRight,
-  IconPause,
-  IconRefresh,
-  IconStartCircle,
-} from '@opentiny/vue-icon';
+import { IconArrowRight, IconPause, IconRefresh, IconStartCircle } from '@opentiny/vue-icon';
 import { LinkKey, linkMap } from '@/utils/link';
 import { useMobile } from '@/composables/useMobile';
 import { splitJsonIntoChunks } from '@/utils/jsonUtil';
 import caculatorJson from '@/static/caculator.json';
 import todoJson from '@/static/todo.json';
+import todoJsonEn from '@/static/todo.en.json';
+import { t, locale } from '@/i18n';
 
 const TinyIconArrowRight = IconArrowRight();
 const TinyIconPause = IconPause();
@@ -44,31 +35,29 @@ let resumeChunkIndex = 0;
 let revealCardOnFirstChunk = false;
 
 const messageContentMap = {
-  element: '生成一个计算器，不要用button，使用div，马卡龙配色，不要使用TinyLayout，要好看的',
-  page: '创建一个待办应用，界面要丰富，把想到的功能尽量加进去',
+  element: t('extend.prompt.element'),
+  page: t('extend.prompt.page'),
 };
 const bubbleContentMap = {
-  element: '生成一个计算器，使用div，马卡龙配色，要好看的',
-  page: '创建一个待办应用，界面要丰富，把想到的功能尽量加进去',
+  element: t('extend.prompt.elementBubble'),
+  page: t('extend.prompt.pageBubble'),
 };
 const inputMessage = computed(
   () => `?input-message=${messageContentMap[extendSelect.value as keyof typeof messageContentMap]}`,
 );
 
 /** 已开始回放流程（生成中 / 准备中 / 暂停待续）时固定在右下角；仅待播放或重播待命时居中 */
-const streamControlsDocked = computed(
-  () =>
-    generating.value ||
-    preparingPlayback.value ||
-    !streamCompleted.value,
-);
+const streamControlsDocked = computed(() => generating.value || preparingPlayback.value || !streamCompleted.value);
 
 const userBubbleContent = computed(
-  () => bubbleContentMap[extendSelect.value as keyof typeof messageContentMap],
+  () => bubbleContentMap[extendSelect.value as keyof typeof bubbleContentMap],
 );
 
 const getJsonData = (type: string) => {
-  return type === 'element' ? caculatorJson : todoJson;
+  if (type === 'element') {
+    return caculatorJson;
+  }
+  return locale.value === 'en_US' ? todoJsonEn : todoJson;
 };
 
 const bumpStreamGeneration = () => {
@@ -254,7 +243,7 @@ onUnmounted(() => {
 
 <template>
   <section class="home-extend">
-    <div class="home-extend-title genui-title">解锁更多玩法</div>
+    <div class="home-extend-title genui-title">{{ t('extend.title') }}</div>
     <tiny-button-group
       class="extend-button-group"
       :class="{ 'extend-button-group--mobile': isMobile }"
@@ -266,8 +255,9 @@ onUnmounted(() => {
         :reset-time="0"
         value="element"
         @click="handleExtendClick('element')"
-        >计算器</tiny-button
       >
+        {{ t('extend.calculator') }}
+      </tiny-button>
       <tiny-button
         v-if="!isMobile"
         class="extend-button extend-button-element-2"
@@ -275,8 +265,9 @@ onUnmounted(() => {
         :class="{ 'extend-button-element-active': extendSelect === 'page' }"
         value="page"
         @click="handleExtendClick('page')"
-        >Todo应用</tiny-button
       >
+        {{ t('extend.todoApp') }}
+      </tiny-button>
     </tiny-button-group>
     <div class="home-extend-schema">
       <div class="home-extend-schema-header">
@@ -290,7 +281,7 @@ onUnmounted(() => {
           :href="linkMap[LinkKey.Playground] + inputMessage"
           target="_blank"
         >
-          <span>我也试试，进入 Playground</span>
+          <span>{{ t('extend.tryPlayground') }}</span>
           <tiny-icon-arrow-right />
         </a>
       </div>
@@ -333,10 +324,10 @@ onUnmounted(() => {
         <div
           class="home-extend-stream-controls"
           :class="{ 'home-extend-stream-controls--docked': streamControlsDocked }"
-          aria-label="回放控制"
+          :aria-label="t('extend.replayControls')"
         >
           <div class="home-extend-stream-controls-surface">
-            <tiny-tooltip v-if="generating" content="暂停" placement="top" effect="light">
+            <tiny-tooltip v-if="generating" :content="t('extend.pause')" placement="top" effect="light">
               <tiny-button
                 class="home-extend-control-btn"
                 circle
@@ -346,12 +337,7 @@ onUnmounted(() => {
                 @click="handleCornerPause"
               />
             </tiny-tooltip>
-            <tiny-tooltip
-              v-else-if="!streamCompleted"
-              content="继续"
-              placement="top"
-              effect="light"
-            >
+            <tiny-tooltip v-else-if="!streamCompleted" :content="t('extend.resume')" placement="top" effect="light">
               <tiny-button
                 class="home-extend-control-btn"
                 circle
@@ -363,7 +349,9 @@ onUnmounted(() => {
             </tiny-tooltip>
             <tiny-tooltip
               v-else
-              :content="preparingPlayback ? '准备播放中' : hasPlayedOnce ? '重播' : '播放'"
+              :content="
+                preparingPlayback ? t('extend.preparing') : hasPlayedOnce ? t('extend.replay') : t('extend.play')
+              "
               placement="top"
               effect="light"
             >
@@ -403,11 +391,7 @@ onUnmounted(() => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(
-      180deg,
-      rgba(232, 238, 254, 1),
-      rgba(232, 238, 254, 0.3) 100%
-    );
+    background: linear-gradient(180deg, rgba(232, 238, 254, 1), rgba(232, 238, 254, 0.3) 100%);
     border-radius: 24px;
     padding: 28px;
 
@@ -503,7 +487,6 @@ onUnmounted(() => {
         height: 720px;
       }
     }
-
   }
   @media (max-width: 768px) {
     &-schema {
@@ -519,8 +502,6 @@ onUnmounted(() => {
     }
   }
 }
-
-
 
 .home-extend-chat-mock {
   display: flex;
@@ -543,7 +524,9 @@ onUnmounted(() => {
 .home-extend-render-area {
   opacity: 0;
   transform: translateY(80px);
-  transition: opacity 420ms ease, transform 420ms ease;
+  transition:
+    opacity 420ms ease,
+    transform 420ms ease;
 
   &.is-visible {
     opacity: 1;
@@ -627,10 +610,7 @@ onUnmounted(() => {
   }
 
   &--docked &-surface {
-    transform: translate(
-      calc(50cqw - 24px - 100%),
-      calc(50cqh - 16px - 100%)
-    );
+    transform: translate(calc(50cqw - 24px - 100%), calc(50cqh - 16px - 100%));
   }
 
   @media (prefers-reduced-motion: reduce) {

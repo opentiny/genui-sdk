@@ -49,6 +49,8 @@ export interface IGenPromptAction {
   name: string;
   description?: string;
   parameters?: JsonSchema7Type;
+  return?: JsonSchema7Type;
+  async?: boolean;
 }
 
 export type IGenPromptSnippet = NodeSchema;

@@ -85,7 +85,7 @@ export const createChatTemplate = () => {
       };
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
-      const { model, temperature, prompt: customSystemPrompt, specificPrompt } = llmConfig;
+      const { model, temperature, prompt: customSystemPrompt, specificPrompt, provider, extraBody } = llmConfig;
       const { tools, clientsMap } = await generateAiSdkTools(
         mcpServers.filter((s) => s.enabled),
         abort.signal,
@@ -120,6 +120,11 @@ export const createChatTemplate = () => {
           });
         }
       }
+      const providerOptions =
+        provider?.name && extraBody && Object.keys(extraBody).length > 0
+          ? ({ [provider.name]: extraBody } as StreamTextOptions['providerOptions'])
+          : undefined;
+
       const options: StreamTextOptions = {
         model,
         temperature,
@@ -129,6 +134,7 @@ export const createChatTemplate = () => {
         tools,
         toolChoice: 'auto',
         stopWhen: stepCountIs(maxSteps),
+        ...(providerOptions ? { providerOptions } : {}),
       } as const;
 
       res.on('close', async () => {

@@ -1,0 +1,110 @@
+{
+  "lang": {
+    "switch": "Language",
+    "zh": "中文",
+    "en": "EN"
+  },
+  "hero": {
+    "title": "OpenTiny GenUI SDK",
+    "subtitle": "Enhance LLM conversation display and interaction",
+    "description": "Deliver a seamless intelligent experience for users and powerful customization with ecosystem compatibility for developers",
+    "devDoc": "Docs",
+    "playground": "Playground",
+    "github": "GitHub"
+  },
+  "ability": {
+    "visual": {
+      "title": "Beyond text expression",
+      "subtitle": "Rebuild text with UI, break expression barriers, and unlock information value through visual interfaces"
+    },
+    "interaction": {
+      "title": "Smoother interaction",
+      "subtitle": "Break the two-step interaction pattern and enable one-stop flow from UI to conversation"
+    },
+    "mcp": {
+      "title": "MCP tools for real business scenarios",
+      "subtitle": "After MCP integration, when tool calls lack parameters, the model can auto-generate interactive UI to collect required information",
+      "mobileTitleLine1": "MCP tools",
+      "mobileTitleLine2": "for real business scenarios",
+      "parameters": "Parameters"
+    },
+    "stream": {
+      "title": "Mixed layout & streaming render",
+      "subtitle": "Non-intrusive GenUI integration with mixed layout and streaming UI rendering—no long waits for the interface"
+    }
+  },
+  "extend": {
+    "title": "Unlock more possibilities",
+    "calculator": "Calculator",
+    "todoApp": "Todo App",
+    "tryPlayground": "Try it in Playground",
+    "replayControls": "Playback controls",
+    "pause": "Pause",
+    "resume": "Resume",
+    "preparing": "Preparing playback",
+    "replay": "Replay",
+    "play": "Play",
+    "prompt": {
+      "element": "Generate a calculator without buttons, use div elements, macaron colors, no TinyLayout, make it beautiful",
+      "page": "Create a rich todo app with as many features as you can think of",
+      "elementBubble": "Generate a calculator with div elements, macaron colors, make it beautiful",
+      "pageBubble": "Create a rich todo app with as many features as you can think of"
+    }
+  },
+  "guide": {
+    "title": "Integrate GenUI quickly",
+    "subtitle": "Powerful renderer components and ready-to-use chat components",
+    "devDoc": "Documentation",
+    "step1": {
+      "title": "Step 1: Import and use the chat component",
+      "description": "The out-of-the-box chat component includes conversation UI and message management",
+      "mobile": "Import"
+    },
+    "step2": {
+      "title": "Step 2: Use the chat component",
+      "description": "Configure your LLM service endpoint and experience GenUI right away",
+      "mobile": "Use chat"
+    },
+    "step3": {
+      "title": "Step 3: Add custom configuration",
+      "description": "Powerful customization for theme, components, message toolbar, and more",
+      "mobile": "Customize"
+    }
+  },
+  "feature": {
+    "title": "Built for developers",
+    "subtitle": "OpenTiny GenUI offers rich features and strong ecosystem compatibility",
+    "compatible": {
+      "title": "AI ecosystem compatibility",
+      "description": "OpenAI-format compatible with MCP service integration"
+    },
+    "theme": {
+      "title": "Custom themes",
+      "description": "Theme switching, eye-friendly dark mode, and user customization for different needs"
+    },
+    "component": {
+      "title": "Custom components",
+      "description": "Pass custom components and descriptions to enhance GenUI and enrich generated interfaces"
+    },
+    "action": {
+      "title": "Custom interactions",
+      "description": "Custom behaviors such as opening pages, downloading attachments, and more"
+    },
+    "stack": {
+      "title": "Multi-stack support",
+      "description": "Vue and Angular renderers, plus extensibility for custom tech stacks"
+    },
+    "more": {
+      "title": "More features",
+      "description": "Custom examples and snippets help build better UIs for diverse visual preferences"
+    }
+  },
+  "link": {
+    "title": "Try OpenTiny GenUI now",
+    "description": "Enhance LLM conversation display and interaction for a seamless intelligent experience",
+    "descriptionLine1": "Enhance LLM conversation display and interaction",
+    "descriptionLine2": "for a seamless intelligent experience",
+    "tryNow": "Try now",
+    "productDoc": "Product docs"
+  }
+}

@@ -11,6 +11,7 @@ import { guideCodeMap } from '@/config';
 import { LinkKey, linkMap } from '@/utils/link';
 import HomeGuideCard from './HomeGuideCard.vue';
 import HomeGuideStepMobile from './HomeGuideStepMobile.vue';
+import { t } from '@/i18n';
 
 const activeCard = ref(0);
 const codeRef = ref<HTMLElement | null>(null);
@@ -30,7 +31,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile);
 });
 
-hljs.registerLanguage('javascript', javascript);  
+hljs.registerLanguage('javascript', javascript);
 
 function hightlight() {
   nextTick(() => {
@@ -51,45 +52,40 @@ const handleGuideCardClick = (index: number) => {
 <template>
   <section class="home-guide" :class="isMobile ? 'home-guide-mobile' : ''">
     <div class="home-guide-header">
-      <div class="home-guide-header-title genui-title">快速集成生成式UI</div>
+      <div class="home-guide-header-title genui-title">{{ t('guide.title') }}</div>
       <div class="home-guide-header-subtitle genui-subtitle">
-        提供强大的渲染组件和开箱即用的对话组件
+        {{ t('guide.subtitle') }}
       </div>
     </div>
     <div :class="isMobile ? 'home-guide-content-mobile' : 'home-guide-content'">
-      <home-guide-step-mobile
-        v-if="isMobile"
-        @change="handleGuideCardClick"
-      ></home-guide-step-mobile>
+      <home-guide-step-mobile v-if="isMobile" @change="handleGuideCardClick"></home-guide-step-mobile>
       <div v-else class="home-guide-content-left">
         <home-guide-card
-          title="步骤1：引入并使用chat组件"
-          description="开箱即用的caht组件内置了对话界面与消息管理"
+          :title="t('guide.step1.title')"
+          :description="t('guide.step1.description')"
           :img="genuiChatIcon"
           :active="activeCard === 0"
           @click="handleGuideCardClick(0)"
         />
         <home-guide-card
-          title="步骤2：使用chat组件"
-          description="简单地配置配套的大模型服务地址，即可体验生成式UI"
+          :title="t('guide.step2.title')"
+          :description="t('guide.step2.description')"
           :img="genuiInusecon"
           :active="activeCard === 1"
           @click="handleGuideCardClick(1)"
         />
         <home-guide-card
-          title="步骤3：添加自定义配置"
-          description="强大的定制能力，可定制主题、组件、消息底部工具栏等"
+          :title="t('guide.step3.title')"
+          :description="t('guide.step3.description')"
           :img="gneuiSettingsIcon"
           :active="activeCard === 2"
           @click="handleGuideCardClick(2)"
         />
         <a :href="linkMap[LinkKey.ChatDoc]" target="_blank" class="btn-link">
-          <tiny-button
-            class="home-guide-content-left-button"
-            size="medium"
-            round
-            >开发文档 <img :src="arrowRightIcon" alt="arrow-right" /> </tiny-button
-          >
+          <tiny-button class="home-guide-content-left-button" size="medium" round>
+            {{ t('guide.devDoc') }}
+            <img :src="arrowRightIcon" alt="arrow-right" />
+          </tiny-button>
         </a>
       </div>
       <div class="home-guide-content-right">
@@ -196,11 +192,7 @@ const handleGuideCardClick = (index: number) => {
         height: 360px;
         display: flex;
         flex-direction: column;
-        background: linear-gradient(
-          180,
-          rgba(47, 47, 47, 1),
-          rgba(19, 19, 19, 1) 100%
-        );
+        background: linear-gradient(180, rgba(47, 47, 47, 1), rgba(19, 19, 19, 1) 100%);
         border-radius: 12px;
         overflow: hidden;
 
@@ -264,7 +256,6 @@ const handleGuideCardClick = (index: number) => {
           height: 430px;
         }
       }
-
     }
   }
 
@@ -298,8 +289,7 @@ const handleGuideCardClick = (index: number) => {
   margin: 0;
   overflow: auto;
   border-radius: 0 0 12px 12px;
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-size: 16px;
   line-height: 1.6;
   color: #e5e7eb;
@@ -328,7 +318,7 @@ const handleGuideCardClick = (index: number) => {
   }
 
   // TODO: 临时解决部署后代码阴影问题，后续更换更优雅方案
-  code[class*=language-] {
+  code[class*='language-'] {
     text-shadow: none;
   }
 
