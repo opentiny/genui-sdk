@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineOptions } from 'vue';
+import { computed } from 'vue';
 import SchemaCardRenderer from './SchemaCardRenderer.vue';
 import { parseBooleanAttribute, parseJsonAttribute } from '../web-component/parse-attribute';
 
@@ -11,11 +11,11 @@ const props = defineProps<{
   content?: string | Record<string, unknown>;
   generating?: boolean | string;
   isJsonComplete?: boolean | string;
-  customComponents?: string; // JSON string
-  customActions?: string; // JSON string
-  requiredCompleteFieldSelectors?: string; // JSON string
+  customComponents?: string | Record<string, unknown>; // JSON string
+  customActions?: string | Record<string, { execute: (params: unknown, context: unknown) => void }>; // JSON string
+  requiredCompleteFieldSelectors?: string | string[]; // JSON string
   id?: string;
-  state?: string; // JSON string
+  state?: string | Record<string, unknown>; // JSON string
 }>();
 
 const parsedCustomComponents = computed(() => parseJsonAttribute<Record<string, unknown>>(props.customComponents));

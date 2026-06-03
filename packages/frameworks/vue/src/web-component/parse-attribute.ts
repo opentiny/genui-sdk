@@ -1,4 +1,4 @@
-export function parseJsonAttribute<T>(value: Record<string, unknown> | string | undefined): T | undefined {
+export function parseJsonAttribute<T>(value: Record<string, unknown> | Array<unknown> | string | undefined): T | undefined {
   if (!value) return undefined;
   if (typeof value === 'object') return value as T;
   try {
