@@ -1,10 +1,16 @@
-import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { GenuiRenderer, type GenuiRendererHandle, type ICustomAction } from '@opentiny/genui-sdk-react';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import {
+  PageContextProvider,
+  SchemaRenderer,
+  type GenuiRendererHandle,
+  type ICustomAction,
+} from '@opentiny/genui-sdk-react';
 import { antdRegistry } from '@opentiny/genui-sdk-materials-react-antd/extend-renderer';
+import type { RootNode } from '@opentiny/genui-sdk-core';
 import 'antd/dist/reset.css';
 
 export type ReactHostContentProps = {
-  content: Record<string, unknown>;
+  schema: RootNode;
   generating?: boolean;
   isJsonComplete?: boolean;
   customActions?: Record<string, ICustomAction>;
@@ -39,20 +45,26 @@ export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContent
       },
     }));
 
+    const isJsonComplete = props.generating ? false : (props.isJsonComplete ?? true);
+
     return (
-      <GenuiRenderer
-        ref={(instance) => {
-          rendererRef.current = instance;
-          flushPendingContext();
-        }}
-        content={props.content}
-        generating={props.generating}
-        isJsonComplete={props.isJsonComplete}
-        customComponents={antdRegistry}
-        customActions={props.customActions}
-        id={props.id}
-        state={props.state}
-      />
+      <PageContextProvider customActions={props.customActions}>
+        <div className="schema-render-container">
+          <SchemaRenderer
+            ref={(instance) => {
+              rendererRef.current = instance;
+              flushPendingContext();
+            }}
+            schema={props.schema}
+            customComponents={antdRegistry}
+            generating={props.generating}
+            isJsonComplete={isJsonComplete}
+            customActions={props.customActions}
+            id={props.id}
+            state={props.state}
+          />
+        </div>
+      </PageContextProvider>
     );
   },
 );

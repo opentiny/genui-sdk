@@ -16,8 +16,11 @@ export interface IRendererProps {
   state?: Record<string, unknown>;
 }
 
-export interface GenuiRendererHandle {
+export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
   getContext: () => Record<string, unknown>;
   setState: (state: Record<string, unknown>) => void;
 }
+
+/** @deprecated 使用 SchemaRendererHandle */
+export type GenuiRendererHandle = SchemaRendererHandle;

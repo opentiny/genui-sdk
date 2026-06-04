@@ -4,12 +4,16 @@
 
 ## 架构
 
+与 Vue 一致：`SchemaCardRenderer`（流式） + `SchemaRenderer`（基础渲染器，对齐 tiny-schema-renderer）。
+
 ```
-GenuiRenderer（流式 JSON：repairJson + DeltaPatcher）
-  └── PageContextProvider（state / methods / refs / callAction）
-        └── SchemaRenderer（递归 Node 树）
+GenuiRenderer（= SchemaCardRenderer，流式 JSON：repairJson + DeltaPatcher）
+  └── PageContextProvider
+        └── SchemaRenderer（递归 Node 树，ref: setContext / getContext / setState）
               ├── registry 组件（Box、Text…）
               └── 原生 HTML 透传（div、input、button…）
+
+Playground ?framework=react：Vue SchemaCardRenderer 已做流式合并，适配器只挂载 SchemaRenderer（不再二次 DeltaPatcher）
 ```
 
 ## 快速开始
@@ -24,16 +28,24 @@ import { nativeFormExample } from '@opentiny/genui-sdk-react/render-config';
 ## 扩展组件库
 
 ```tsx
-import { SchemaRenderer, PageContextProvider, defineRegistry, mergeRegistry, builtinRegistry } from '@opentiny/genui-sdk-react';
+import {
+  SchemaRenderer,
+  PageContextProvider,
+  defineRegistry,
+  mergeRegistry,
+  builtinRegistry,
+} from '@opentiny/genui-sdk-react';
 
 const registry = mergeRegistry(builtinRegistry, {
   MyCard: ({ props, children }) => <div className="card">{props.title}{children}</div>,
 });
 
 <PageContextProvider>
-  <SchemaRenderer schema={schema} registry={registry} />
+  <SchemaRenderer ref={rendererRef} schema={schema} registry={registry} />
 </PageContextProvider>
 ```
+
+已有完整 schema 对象、不需要流式修补时，直接用 `SchemaRenderer`；字符串/增量 JSON 用 `GenuiRenderer` 或 `SchemaCardRenderer`。
 
 ## LLM Prompt（原生 HTML 白名单）
 

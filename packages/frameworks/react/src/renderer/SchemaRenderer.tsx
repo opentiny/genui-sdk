@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, memo } from 'react';
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  memo,
+} from 'react';
 import { isHtmlTag } from '../builtin/html-tags';
 import { builtinRegistry } from '../builtin/builtin-registry';
 import {
@@ -12,8 +19,8 @@ import type { Node, RootNode } from '../engine';
 import { initPageFromSchema, usePageContextStore, usePageContext } from '../context/page-context';
 import type { ComponentRegistry, ComponentRenderer } from './component-types';
 import { mergeRegistry } from './define-registry';
-import { Text } from '../builtin/Text';
 import { normalizeDomProps } from '../engine/parse-inline-style';
+import type { ICustomAction, SchemaRendererHandle } from './renderer.types';
 
 function resolveComponent(
   name: string,
@@ -48,9 +55,7 @@ const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
   customElements = {},
   loading,
 }: SchemaNodeRendererProps) {
-  const store = usePageContextStore();
   const context = usePageContext();
-  
 
   const renderNode = (node: Node, nodeScope: Record<string, unknown>): React.ReactNode => {
     const { componentName, loop, loopArgs, condition, children } = node;
@@ -173,66 +178,116 @@ export interface SchemaRendererProps {
   schema: RootNode | null;
   registry?: ComponentRegistry;
   customComponents?: ComponentRegistry;
+  /** @deprecated 使用 generating */
   loading?: boolean;
+  generating?: boolean;
+  isJsonComplete?: boolean;
+  customActions?: Record<string, ICustomAction>;
+  id?: string;
+  state?: Record<string, unknown>;
   fallback?: ComponentRenderer;
 }
 
-export function SchemaRenderer({
-  schema,
-  registry: userRegistry,
-  customComponents = {},
-  loading,
-}: SchemaRendererProps) {
-  const store = usePageContextStore();
-  const context = usePageContext();
-  const registry = useMemo(
-    () => mergeRegistry(builtinRegistry, userRegistry || {}, customComponents),
-    [userRegistry, customComponents],
-  );
+/**
+ * 基础 Schema 渲染器，对齐 tiny-schema-renderer / Vue inject 的默认渲染器。
+ * 需在 PageContextProvider 内使用（SchemaCardRenderer 已包含 Provider）。
+ */
+export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(
+  function SchemaRenderer(
+    {
+      schema,
+      registry: userRegistry,
+      customComponents = {},
+      loading,
+      generating,
+      customActions,
+      id,
+      state,
+    },
+    ref,
+  ) {
+    const store = usePageContextStore();
+    const registry = useMemo(
+      () => mergeRegistry(builtinRegistry, userRegistry || {}, customComponents),
+      [userRegistry, customComponents],
+    );
 
-  useEffect(() => {
-    setDefaultSlotRenderer((children, scope, ctx) =>
-      normalizeChildren(children as Node['children']).map((child, i) => (
+    const customActionsRef = useRef(customActions);
+    customActionsRef.current = customActions;
+
+    const callActionRef = useRef((actionName: string, params: unknown) => {
+      const action = customActionsRef.current?.[actionName];
+      if (!action) {
+        console.warn(`Action ${actionName} not found`);
+        return;
+      }
+      return action.execute(params, store.getContext() as Record<string, unknown>);
+    });
+
+    useImperativeHandle(ref, () => ({
+      setContext: (ctx) => store.setContext(ctx),
+      getContext: () => store.getContext() as Record<string, unknown>,
+      setState: (data) => store.setState(data),
+    }));
+
+    useEffect(() => {
+      if (customActions && Object.keys(customActions).length > 0) {
+        store.setContext({ callAction: callActionRef.current });
+      }
+      if (id) store.setContext({ cardId: id });
+      if (state) store.setState(state);
+    }, [id, state, customActions, store]);
+
+    useEffect(() => {
+      setDefaultSlotRenderer((children, scope, ctx) =>
+        normalizeChildren(children as Node['children']).map((child, i) => (
+          <SchemaNodeRenderer
+            key={i}
+            schema={child}
+            scope={scope}
+            registry={registry}
+            customElements={customComponents}
+          />
+        )) as unknown[],
+      );
+    }, [registry, customComponents]);
+
+    const pageInitSig =
+      schema && Object.keys(schema).length
+        ? JSON.stringify({
+            state: schema.state,
+            methods: schema.methods,
+            refs: schema.refs,
+            css: schema.css,
+          })
+        : '';
+
+    useEffect(() => {
+      if (!schema || !pageInitSig) return;
+      initPageFromSchema(schema, store);
+    }, [pageInitSig, schema, store]);
+
+    const isLoading = generating ?? loading;
+
+    if (!schema?.children?.length) {
+      return <div className="genui-renderer-loading">Loading...</div>;
+    }
+
+    const rootSchema: Node = {
+      componentName: 'div',
+      props: schema.props,
+      children: schema.children,
+    };
+
+    return (
+      <div className="genui-schema-renderer" data-scope={store.getContext().cssScopeId}>
         <SchemaNodeRenderer
-          key={i}
-          schema={child}
-          scope={scope}
+          schema={rootSchema}
           registry={registry}
           customElements={customComponents}
+          loading={isLoading}
         />
-      )) as unknown[],
+      </div>
     );
-  }, [registry, customComponents]);
-
-  // 用序列化签名作依赖：DeltaPatcher 会原地改 methods，引用不变时旧 deps 不会触发 effect
-  const pageInitSig =
-    schema && Object.keys(schema).length
-      ? JSON.stringify({
-          state: schema.state,
-          methods: schema.methods,
-          refs: schema.refs,
-          css: schema.css,
-        })
-      : '';
-
-  useEffect(() => {
-    if (!schema || !pageInitSig) return;
-    initPageFromSchema(schema, store);
-  }, [pageInitSig, schema, store]);
-
-  if (!schema?.children?.length) {
-    return <div className="genui-renderer-loading">Loading...</div>;
-  }
-
-  const rootSchema: Node = {
-    componentName: 'div',
-    props: schema.props,
-    children: schema.children,
-  };
-
-  return (
-    <div className="genui-schema-renderer" data-scope={store.getContext().cssScopeId}>
-      <SchemaNodeRenderer schema={rootSchema} registry={registry} customElements={customComponents} loading={loading} />
-    </div>
-  );
-}
+  },
+);
