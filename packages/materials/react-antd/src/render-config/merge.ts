@@ -8,6 +8,7 @@ export const reactAntdRendererConfig: IRendererConfig = {
   materialsList: [...reactRendererConfig.materialsList, antdBundle],
   whiteList: [...reactWhiteList, ...antdWhiteList],
   examples: [...reactRendererConfig.examples, ...antdExamples],
+  wrapperComponent: 'AntCard',
 };
 
 export { antdExamples, antdFormExample } from './example-schema';
