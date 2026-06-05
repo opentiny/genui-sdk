@@ -28,6 +28,11 @@ const GenuiTemplate = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplate.vue'))
   : shallowRef(null);
 
+// 应用启动时预加载模板页组件，避免首次切换到模板页签时右侧长时间空白
+if (ENABLE_TEMPLATE) {
+  import('./components/genui-template/GenuiTemplate.vue');
+}
+
 /**
  * tiny-schema-renderer-ng
  */
@@ -322,12 +327,20 @@ onUnmounted(() => {
   <div class="genui-playground">
     <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
       @update-custom-examples="updateCustomExamples" v-slot="{ activeName }">
-      <template v-if="ENABLE_TEMPLATE && isTemplateInit">
-        <div v-if="activeName === 'template'" class="chat-container">
-          <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
-            :theme="theme" :chat-config="chatConfig" />
-        </div>
-      </template>
+      <div
+        v-if="ENABLE_TEMPLATE && isTemplateInit"
+        v-show="activeName === 'template'"
+        class="chat-container"
+      >
+        <component
+          v-if="GenuiTemplate"
+          :is="GenuiTemplate"
+          ref="genuiTemplateRef"
+          :llm-config="llmConfig"
+          :theme="theme"
+          :chat-config="chatConfig"
+        />
+      </div>
       <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
         <GenuiConfigProvider :theme="theme" style="height: 100%">
           <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"

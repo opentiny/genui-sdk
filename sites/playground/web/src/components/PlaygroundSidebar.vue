@@ -26,6 +26,11 @@ const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 const GenuiTemplateList = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./genui-template/GenuiTemplateList.vue'))
   : shallowRef(null);
+
+// 预加载模板列表组件，减少切换到模板页签时侧边栏的等待时间
+if (ENABLE_TEMPLATE) {
+  import('./genui-template/GenuiTemplateList.vue');
+}
 // 从上层注入共享的 playground 上下文（这里只需要主题&会话相关）
 const playgroundContext = inject('playgroundContext');
 const { themeData, conversation } = playgroundContext;

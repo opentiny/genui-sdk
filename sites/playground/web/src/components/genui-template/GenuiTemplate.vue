@@ -251,16 +251,20 @@ const handleKeydown = (event: KeyboardEvent) => {
 
 const currentConversationId = computed(() => conversation?.state.currentId);
 
-watch(currentConversationId, () => {
-  schemaEditorVisible.value = false;
-  mobileSchemaJsonEditorOpen.value = false;
-  currentCardId.value = '';
-  isHistoryVersionApplied.value = true;
-  rendererPanelVisible.value = true;
-});
+watch(
+  currentConversationId,
+  () => {
+    schemaEditorVisible.value = false;
+    mobileSchemaJsonEditorOpen.value = false;
+    currentCardId.value = '';
+    isHistoryVersionApplied.value = true;
+    rendererPanelVisible.value = true;
+    resetToLatestVersion();
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
-  resetToLatestVersion();
   window.addEventListener('keydown', handleKeydown);
 });
 
