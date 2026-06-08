@@ -1,4 +1,5 @@
 import { modifyChatBody as continueGeneratingBodyModifier } from "../continue-writing";
+import { appendToolResultPrompt } from '../tool-result/index.js';
 
 export interface IMcpServerConfig {
   name: string;
@@ -69,7 +70,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
     const playgroundConfig = {
       mcpServers,
       framework: framework || 'Vue',
-      promptList,
+      promptList: appendToolResultPrompt(promptList, { mcpServers, agents, skills }),
       model,
       temperature,
       agents: agents.filter((agent) => agent.enabled),

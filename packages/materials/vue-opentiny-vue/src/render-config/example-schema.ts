@@ -243,6 +243,7 @@ export const gridSchema = {
     {
       'componentName': 'TinyGrid',
       'props': {
+        'max-height': '800',
         'columns': [
           { 'type': 'index', 'width': 60 },
           { 'field': 'name', 'title': '姓名' },

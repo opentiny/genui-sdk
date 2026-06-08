@@ -5,6 +5,19 @@ import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';
 import { useI18n } from './i18n';
 
+function deepClone(obj: any): any {
+  if (!obj || typeof obj !== 'object') {
+   return obj;
+  }
+  let cloneData
+   try {
+     cloneData = structuredClone(obj);
+   } catch (error) {
+     cloneData = JSON.parse(JSON.stringify(obj));
+   }
+   return cloneData;
+ }
+
 export interface IResponseHandler<T> {
   name: string;
   match: (data: T, context: any) => boolean;
@@ -31,8 +44,8 @@ function onToolResult(toolCallsResult: any[], delta: IStreamDelta, toolCallIdMap
     emitter.emit('notification', {
       type: 'tool',
       delta,
-      toolCallData: structuredClone(toRaw(toolCallItem)),
-      chatMessage: structuredClone(toRaw(chatMessage)),
+      toolCallData: deepClone(toRaw(toolCallItem)),
+      chatMessage: deepClone(toRaw(chatMessage)),
     });
 
     if (addToolCallContext) {
@@ -80,7 +93,7 @@ function onToolCall(toolCalls: any[], delta: IStreamDelta, toolCallIdMap: Record
       type: 'tool',
       delta,
       toolCallData: toolCallItem,
-      chatMessage: structuredClone(toRaw(chatMessage)),
+      chatMessage: deepClone(toRaw(chatMessage)),
     });
 
   });
@@ -114,7 +127,7 @@ function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
     emitter.emit('notification', {
       type: lastMessage.type as 'markdown' | 'schema-card',
       delta,
-      chatMessage: structuredClone(toRaw(chatMessage)),
+      chatMessage: deepClone(toRaw(chatMessage)),
     });
   }
 };
@@ -175,7 +188,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       emitter.emit('notification', {
         type: 'done',
         delta: {},
-        chatMessage: structuredClone(toRaw(context.chatMessage)),
+        chatMessage: deepClone(toRaw(context.chatMessage)),
       });
     },
   },

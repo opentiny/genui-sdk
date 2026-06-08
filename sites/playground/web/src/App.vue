@@ -1,7 +1,7 @@
 <script setup>
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER, emitter } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, h, shallowRef } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
@@ -13,6 +13,8 @@ import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
 import { getOverlapEliminatorHandler, getContinueGeneratingHandler, locationPartialSchemaJson, movePartialSchemaJsonToLastMessage } from './continue-writing';
 import useIcon from './use-icon';
+import { createPlaygroundToolResultHandler } from './tool-result/index';
+import { useToolResultRegistry } from './tool-result/use-tool-result-registry';
 
 const { topRenderer, addIcons } = useIcon();
 const TopIconsRenderer = topRenderer();
@@ -178,15 +180,34 @@ const insertHandlersAfterName = (handlers, insertHandlers, name) => {
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+const conversationId = computed(() => conversation.value?.state?.currentId);
+
+const {
+  registry: toolResultRegistry,
+  getToolResultAction,
+} = useToolResultRegistry({
+  getMessages: () => conversation.value?.getCurrentConversation()?.messages ?? [],
+  conversationId,
+});
+
+const customActions = computed(() => [getToolResultAction]);
+
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
-    const newResponseHandlers = [
-      ...defaultResponseHandlers,
+    const playgroundToolResultHandler = createPlaygroundToolResultHandler(
+      toolResultRegistry,
+      (payload) => emitter.emit('notification', payload),
+    );
+    const newResponseHandlers = defaultResponseHandlers.map((handler) =>
+      handler.name === 'toolResult' ? playgroundToolResultHandler : handler,
+    );
+
+    newResponseHandlers.push(
       getContinueGeneratingHandler(conversation.value.messageManager),
       locationPartialSchemaJson(),
-    ];
+    );
     
     insertHandlersAfterName(newResponseHandlers, [
       movePartialSchemaJsonToLastMessage(),
@@ -332,7 +353,7 @@ onUnmounted(() => {
         <GenuiConfigProvider :theme="theme" style="height: 100%">
           <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
             :model="llmConfig.model" :temperature="llmConfig.temperature" :features="modelFeatures"
-            :custom-fetch="customFetch" :custom-examples="customExamples">
+            :custom-fetch="customFetch" :custom-examples="customExamples" :custom-actions="customActions">
             <template #empty>
               <div class="empty">
                 <IconAi />
