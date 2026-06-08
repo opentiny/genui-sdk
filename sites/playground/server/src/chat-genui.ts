@@ -18,6 +18,13 @@ import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { buildAgentTools, isAllowedAgentUrl } from './a2a-tools/index.js';
 import { buildSkillTools } from './skills/index.js';
+import {
+  createCompactToolCallResult,
+  createToolResultStore,
+  recoverToolCallResult,
+  storeToolResult,
+  type ToolResultStore,
+} from './tool-result/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
@@ -125,6 +132,7 @@ const initMcpServers = async (
 export const generateAiSdkTools = async (
   mcpServers: McpServersConfig,
   abortSignal?: AbortSignal,
+  toolResultStore?: ToolResultStore,
 ): Promise<{ tools: Record<string, any>; clientsMap: Map<string, Client> }> => {
   if (!mcpServers.length) {
     return { tools: {}, clientsMap: new Map() };
@@ -144,13 +152,20 @@ export const generateAiSdkTools = async (
           inputSchema: new Function('z', `return ${jsonSchemaToZod(mcpTool.inputSchema as JsonSchema, { depth: 1 })}`)(
             z,
           ),
-          execute: async (args: any) => {
+          execute: async (args: any, { toolCallId }: { toolCallId: string }) => {
             try {
               // 调用 MCP 工具
               const result = await client.callTool({
                 name: mcpTool.name,
                 arguments: args,
               });
+
+              if (toolResultStore) {
+
+                const { compactResult, fullResult } = createCompactToolCallResult(mcpTool.name, toolCallId, result.content);
+                storeToolResult(toolResultStore, toolCallId, fullResult);
+                return compactResult;
+              }
               return result.content;
             } catch (error) {
               console.error(`Failed to call tool ${mcpTool.name}:`, error);
@@ -231,12 +246,12 @@ export function createChatGenui() {
     const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
-      const text = await fs.readFile(path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'), 'utf-8');
+      const text = await fs.readFile(path.join(fileURLToPath(import.meta.url), '../../replay/replay.txt'), 'utf-8');
       const data = text.split(/\r?\n\r?\n/);
 
       for await (const item of data) {
         res.write(item.trim() + '\n\n');
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 10));
       }
       res.end();
       return;
@@ -266,9 +281,11 @@ export function createChatGenui() {
 
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt, provider, extraBody } = llmConfig;
+    const toolResultStore = createToolResultStore();
     const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
       mcpServers.filter((s) => s.enabled),
       abort.signal,
+      toolResultStore,
     );
     const agentTools = buildAgentTools(agents, abort.signal);
     const { tools: skillTools, systemPrompt: skillPrompt } = buildSkillTools(skills);
@@ -377,6 +394,7 @@ export function createChatGenui() {
         }
         const newChunk = openaiCompatibleTransformChunk(chunk, { model });
         if (newChunk) {
+          recoverToolCallResult(newChunk, toolResultStore);
           // 在第一次真正写入前再设置为 SSE，避免出错时无法返回普通 JSON
           if (!res.headersSent) {
             res.setHeader('Content-Type', 'text/event-stream');

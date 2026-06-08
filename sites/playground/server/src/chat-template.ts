@@ -10,6 +10,7 @@ import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-complet
 import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
+import { createToolResultStore, recoverToolCallResult } from './tool-result/index.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
@@ -86,9 +87,11 @@ export const createChatTemplate = () => {
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
       const { model, temperature, prompt: customSystemPrompt, specificPrompt, provider, extraBody } = llmConfig;
+      const toolResultStore = createToolResultStore();
       const { tools, clientsMap } = await generateAiSdkTools(
         mcpServers.filter((s) => s.enabled),
         abort.signal,
+        toolResultStore,
       );
       const maxSteps = 30;
       const systemPrompt = `${genPrompt(rendererConfig, tgCustomConfig)}
@@ -158,6 +161,7 @@ export const createChatTemplate = () => {
           const newChunk = openaiCompatibleTransformChunk(chunk, { model });
 
           if (newChunk) {
+            recoverToolCallResult(newChunk as Record<string, unknown>, toolResultStore);
             res.write('data: ' + JSON.stringify(newChunk) + '\n\n');
           }
         }

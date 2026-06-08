@@ -2,6 +2,8 @@
   import { IconArrowDown, IconCancelled, IconError, IconLoading, IconPlugin } from '@opentiny/tiny-robot-svgs'
   import { computed, ref, useCssModule, type Component } from 'vue'
   import { useI18n } from '../i18n';
+
+  const MAX_HIGHLIGHT_JSON_LENGTH = 500;
   
   const props = defineProps<{
     name: string
@@ -42,6 +44,11 @@
       }
     } catch (error) {
       console.warn(error)
+    }
+
+    if (prettyJson.length > MAX_HIGHLIGHT_JSON_LENGTH) {
+      return prettyJson
+      // return prettyJson.slice(0, MAX_HIGHLIGHT_JSON_LENGTH) + '...'
     }
   
     prettyJson = prettyJson.replace(
@@ -159,7 +166,10 @@
       white-space: pre-wrap;
       word-break: break-word;
       font-family: monospace;
+      max-height: 300px;
+      overflow-y: auto;
     }
+
   }
   </style>
   
