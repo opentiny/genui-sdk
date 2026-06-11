@@ -4,6 +4,7 @@ import { GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import type { CSSProperties } from 'vue';
 import { useMonacoPlaygroundTheme, type PlaygroundColorTheme } from './use-monaco-playground-theme';
+import { t } from '../../i18n';
 
 const props = defineProps<{
   visible: boolean;
@@ -44,7 +45,7 @@ const handleJsonEditorChange = (value: string) => {
         class="schema-mobile-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="jsonEditorOpen ? 'Schema JSON 编辑器' : 'Schema JSON 预览'"
+        :aria-label="jsonEditorOpen ? t('templateEditor.jsonEditorAria') : t('templateEditor.jsonPreviewAria')"
       >
         <div class="schema-mobile-sheet__mask" @click="emit('mask-click')" />
         <div class="schema-mobile-sheet__panel" :style="props.panelStyle">
@@ -58,7 +59,7 @@ const handleJsonEditorChange = (value: string) => {
                 @click="emit('update:jsonEditorOpen', true)"
               >
                 <img class="schema-mobile-sheet__entry-icon" :src="viewSchemaIcon" alt="" />
-                查看 JSON
+                {{ t('templateEditor.viewJson') }}
               </button>
               <button
                 v-else
@@ -66,7 +67,7 @@ const handleJsonEditorChange = (value: string) => {
                 class="schema-mobile-sheet__back"
                 @click="emit('update:jsonEditorOpen', false)"
               >
-                返回预览
+                {{ t('templateEditor.backToPreview') }}
               </button>
             </div>
             <div class="schema-mobile-sheet__header-end">
@@ -74,7 +75,7 @@ const handleJsonEditorChange = (value: string) => {
                 type="text"
                 class="genui-schema-toolbar-close-btn"
                 :icon="closeIcon"
-                aria-label="关闭"
+                :aria-label="t('templateEditor.close')"
                 @click="emit('close')"
               />
             </div>
@@ -108,7 +109,7 @@ const handleJsonEditorChange = (value: string) => {
           </div>
           <div v-if="showReturnLatestButton" class="schema-mobile-sheet__footer">
             <tiny-button round class="schema-mobile-sheet__latest-btn" @click="emit('apply-current-version')">
-              应用此版本
+              {{ t('templateEditor.applyVersion') }}
             </tiny-button>
             <tiny-button
               type="primary"
@@ -116,7 +117,7 @@ const handleJsonEditorChange = (value: string) => {
               class="schema-mobile-sheet__latest-btn"
               @click="emit('reset-to-latest-version')"
             >
-              返回最新版本
+              {{ t('templateEditor.returnLatest') }}
             </tiny-button>
           </div>
         </div>

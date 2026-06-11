@@ -7,6 +7,7 @@ import useTemplate from './useTemplate';
 import { useIsMobile } from '../../use-mobile';
 import docCardIcon from '../../assets/images/card.svg';
 import docEditIcon from '../../assets/images/card-edit.svg';
+import { t } from '../../i18n';
 
 const TinyIconRichTextCodeView = iconRichTextCodeView();
 
@@ -67,18 +68,18 @@ const handleDev = () => {
           {{ props.input.substring(0, 20) }}{{ props.input.length > 20 ? '...' : '' }}
         </div>
         <div class="schema-version-card-content-time">
-          <template v-if="generating">生成中...</template>
-          <template v-else>创建时间：{{ generatedTime }}</template>
+          <template v-if="generating">{{ t('templateEditor.generating') }}</template>
+          <template v-else>{{ t('templateEditor.createdAt', { time: generatedTime }) }}</template>
         </div>
       </div>
     </div>
     <div class="schema-version-card-footer">
       <div v-if="isDev && props.type === 'json-patch' && !generating && !isMobile" class="icons-wrap">
-        <div class="icon-item" title="调试 jsonPatch" @click.stop="handleDev">
+        <div class="icon-item" :title="t('templateEditor.debugJsonPatch')" @click.stop="handleDev">
           <TinyIconRichTextCodeView />
         </div>
       </div>
-      <div v-if="errorMessage" class="error-message">解析失败</div>
+      <div v-if="errorMessage" class="error-message">{{ t('templateEditor.parseFailed') }}</div>
     </div>
   </div>
   <JsonPatchDev

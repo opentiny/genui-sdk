@@ -1,0 +1,186 @@
+{
+  "lang": {
+    "switch": "语言"
+  },
+  "app": {
+    "emptyTitle": "GenUI Playground"
+  },
+  "theme": {
+    "default": "默认",
+    "dark": "暗黑",
+    "lite": "清新",
+    "auto": "自动",
+    "switchTitle": "切换主题"
+  },
+  "sidebar": {
+    "openMenu": "打开菜单",
+    "newConversation": "新会话",
+    "closeSidebar": "关闭侧边栏",
+    "collapseSidebar": "收起侧边栏",
+    "close": "关闭",
+    "expandSidebar": "展开侧边栏",
+    "expand": "展开",
+    "newTask": "新建会话",
+    "tabModel": "模型配置",
+    "tabTools": "工具",
+    "tabTheme": "主题",
+    "tabHistory": "历史会话",
+    "tabTemplate": "模板（实验特性）"
+  },
+  "model": {
+    "select": "模型选择",
+    "temperature": "模型温度",
+    "prompt": "提示词",
+    "edit": "编辑",
+    "delete": "删除",
+    "editPrompt": "编辑提示词",
+    "addPrompt": "添加提示词",
+    "cancel": "取消",
+    "confirm": "确定",
+    "exampleTemplates": "示例模板"
+  },
+  "tool": {
+    "addContext": "调用结果添加到上下文",
+    "showInUI": "调用结果展示在界面中"
+  },
+  "history": {
+    "selectMode": "多选",
+    "cancel": "取消",
+    "delete": "删除",
+    "import": "导入",
+    "export": "导出",
+    "exportAll": "导出全部记录",
+    "exportSelected": "导出已选记录",
+    "noExportable": "当前没有可导出的会话",
+    "noImportable": "未找到可导入的会话",
+    "importSuccess": "已导入 {count} 条会话",
+    "importFailed": "导入失败",
+    "invalidJson": "导入文件不是有效的 JSON",
+    "mustBeArray": "导入文件必须是会话数组",
+    "menu": {
+      "export": "导出",
+      "rename": "重命名",
+      "delete": "删除"
+    },
+    "timeBucket": {
+      "today": "今天",
+      "yesterday": "昨天",
+      "twoDaysAgo": "两天前",
+      "aWeekAgo": "一周前",
+      "aMonthAgo": "一个月前"
+    }
+  },
+  "template": {
+    "selectTitle": "选择示例模板",
+    "cancel": "取消",
+    "createNew": "创建新模板",
+    "confirm": "确定",
+    "new": "新建模板",
+    "defaultTitle": "新模板",
+    "confirmDeleteOne": "确定删除该模板吗？",
+    "confirmBatchDelete": "确定删除选中的 {count} 个模板？"
+  },
+  "common": {
+    "edit": "编辑",
+    "remove": "移除",
+    "confirm": "确认",
+    "name": "名称",
+    "description": "描述",
+    "emptyHintPrefix": "点击右上角",
+    "or": "或右上角"
+  },
+  "mcp": {
+    "title": "MCP 服务",
+    "add": "添加 MCP 服务",
+    "edit": "编辑 MCP 服务",
+    "namePlaceholder": "MCP 服务",
+    "descPlaceholder": "描述",
+    "timeout": "超时（毫秒）",
+    "headers": "请求头",
+    "emptyAction": "添加 MCP 服务"
+  },
+  "agent": {
+    "title": "Agent（A2A 协议）",
+    "add": "添加 Agent",
+    "edit": "编辑 Agent",
+    "cardUrlRequired": "请填写 Agent Card URL",
+    "fetchFailed": "获取 Agent Card 失败：{message}",
+    "fetchFailedGeneric": "获取 Agent Card 失败",
+    "nameAndUrlRequired": "请填写名称和 Agent Card URL",
+    "queryFirst": "请先查询并确认 Agent Card 信息",
+    "missingApiUrl": "Agent Card 中缺少 api.url，服务端无法调用该 Agent",
+    "duplicateName": "已存在名为「{name}」的 Agent，名称不可重复",
+    "namePlaceholder": "Agent 名称（用于在界面展示）",
+    "descPlaceholder": "可选：用于在列表展示",
+    "retry": "重试",
+    "query": "查询",
+    "querying": "正在查询 Agent Card...",
+    "parsed": "AgentCard 已解析",
+    "unnamed": "未命名 Agent",
+    "missingApiUrlHint": "缺少 api.url，服务端无法作为工具调用",
+    "capabilitiesEmpty": "未声明或为空",
+    "auth": "认证",
+    "authHint": "工具调用时请在 metadata 中传入 token 或 apiKey",
+    "unnamedCapability": "未命名能力"
+  },
+  "skill": {
+    "importFolder": "导入文件夹",
+    "importSkillFolder": "导入技能文件夹",
+    "addSingle": "添加单条",
+    "edit": "编辑 Skill",
+    "add": "添加 Skill",
+    "nameRequired": "请填写 Skill 名称",
+    "duplicateName": "已存在名为「{name}」的 Skill，名称不可重复",
+    "contentRequired": "请导入文件夹或填写单文档内容",
+    "namePlaceholder": "列表展示名称，可与 SKILL.md 中 name 一致",
+    "descPlaceholder": "列表摘要；导入文件夹时可从主 SKILL.md 自动带出",
+    "pack": "技能包",
+    "pickFolder": "选择文件夹",
+    "clearFolder": "清除文件夹，改用手写单文档",
+    "packSummary": "已加载 {count} 个文件；对话时仅注入技能摘要，完整文档由模型通过 get_skill_content 按需拉取（渐进式披露）。",
+    "singleDoc": "单文档内容",
+    "singleDocPlaceholder": "未导入文件夹时，可在此粘贴整份 SKILL.md；粘贴后会自动解析出名称与描述",
+    "selectFileHint": "在左侧树中选择一个文件以编辑内容",
+    "fileContent": "文件内容",
+    "noFiles": "未选择任何文件，或所选文件夹为空",
+    "noTextFiles": "共选中 {total} 个文件，没有可导入的文本类文件（需为 .md、.txt、.json、.yaml 等常见文本扩展名）。",
+    "importFilesSuccess": "已导入 {count} 个文本文件",
+    "importSkipped": "（已跳过 {count} 个扩展名不匹配的文件）",
+    "importFormHint": "。表单已打开，请核对名称与描述后点击「确认」保存到列表。",
+    "noMainEntry": "未检测到形如 ./目录名/SKILL.md 的主入口，对话摘要可能不完整；可调整目录结构或仍通过 get_skill_content 按路径读取子文档。",
+    "readFolderFailed": "读取文件夹失败：{message}",
+    "defaultPackDesc": "技能包（请补全 SKILL.md 的 name / description）"
+  },
+  "chatFooter": {
+    "refresh": "刷新",
+    "copy": "复制",
+    "continueGenerate": "继续生成（实验特性）",
+    "revertContinueGenerate": "撤回上次继续生成（实验特性）"
+  },
+  "templateEditor": {
+    "generating": "生成中...",
+    "createdAt": "创建时间：{time}",
+    "debugJsonPatch": "调试 jsonPatch",
+    "parseFailed": "解析失败",
+    "debugger": "调试器",
+    "jsonEditorAria": "Schema JSON 编辑器",
+    "jsonPreviewAria": "Schema JSON 预览",
+    "viewJson": "查看 JSON",
+    "backToPreview": "返回预览",
+    "close": "关闭",
+    "closePreview": "关闭预览区",
+    "applyVersion": "应用此版本",
+    "returnLatest": "返回最新版本"
+  },
+  "finishInfo": {
+    "title": "对话信息",
+    "titleMultiGen": "对话信息（含多次生成，仅统计最后一次生成）",
+    "ariaLabel": "本轮对话统计信息",
+    "model": "模型",
+    "finishReason": "结束原因",
+    "time": "时间",
+    "promptTokens": "输入 Token",
+    "completionTokens": "输出 Token",
+    "totalTokens": "总计 Token"
+  }
+}

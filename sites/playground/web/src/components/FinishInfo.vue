@@ -4,6 +4,7 @@ import { computed } from 'vue';
 import { TinyPopover, TinyButton } from '@opentiny/vue';
 import { iconInfoCircle } from '@opentiny/vue-icon';
 import { vFocusHoverSync } from './v-focus-hover-sync';
+import { t } from '../i18n';
 
 const InfoIcon = iconInfoCircle();
 
@@ -48,11 +49,10 @@ function formatInt(n: number) {
 }
 
 const titleContent = computed(() => {
-  const base = '对话信息';
   if (props.chatMessage['originChatMessage'] !== undefined) {
-    return `${base}（含多次生成，仅统计最后一次生成）`;
+    return t('finishInfo.titleMultiGen');
   }
-  return base;
+  return t('finishInfo.title');
 });
 </script>
 
@@ -70,28 +70,28 @@ const titleContent = computed(() => {
         <div class="panel-title">{{ titleContent }}</div>
         <dl class="stat-list">
           <div v-if="finishChunk.model" class="stat-row">
-            <dt>模型</dt>
+            <dt>{{ t('finishInfo.model') }}</dt>
             <dd>{{ finishChunk.model }}</dd>
           </div>
           <div v-if="finishReason != null && finishReason !== ''" class="stat-row">
-            <dt>结束原因</dt>
+            <dt>{{ t('finishInfo.finishReason') }}</dt>
             <dd>{{ finishReason }}</dd>
           </div>
           <div v-if="finishChunk.created != null" class="stat-row">
-            <dt>时间</dt>
+            <dt>{{ t('finishInfo.time') }}</dt>
             <dd>{{ createdLabel }}</dd>
           </div>
           <template v-if="usage">
             <div v-if="usage.prompt_tokens != null" class="stat-row">
-              <dt>输入 Token</dt>
+              <dt>{{ t('finishInfo.promptTokens') }}</dt>
               <dd>{{ formatInt(usage.prompt_tokens) }}</dd>
             </div>
             <div v-if="usage.completion_tokens != null" class="stat-row">
-              <dt>输出 Token</dt>
+              <dt>{{ t('finishInfo.completionTokens') }}</dt>
               <dd>{{ formatInt(usage.completion_tokens) }}</dd>
             </div>
             <div v-if="usage.total_tokens != null" class="stat-row stat-row--emphasis">
-              <dt>总计 Token</dt>
+              <dt>{{ t('finishInfo.totalTokens') }}</dt>
               <dd>{{ formatInt(usage.total_tokens) }}</dd>
             </div>
           </template>
@@ -101,7 +101,7 @@ const titleContent = computed(() => {
     <template #reference>
       <tiny-button
         :reset-time="0"
-        aria-label="本轮对话统计信息"
+        :aria-label="t('finishInfo.ariaLabel')"
         type="text"
         :icon="InfoIcon"
         v-focus-hover-sync

@@ -7,6 +7,7 @@ import {
   TinyFormItem,
   TinyInput,
 } from '@opentiny/vue';
+import { t } from '../../../i18n';
 
 const props = defineProps<{
   visible: boolean;
@@ -68,7 +69,7 @@ function normalizeCapabilityEntry(item: unknown, fallbackTitle?: string): AgentC
     const title =
       pickString(o, ['name', 'id', 'title', 'skillId', 'capabilityId', 'type']) ??
       fallbackTitle ??
-      (description ? '未命名能力' : JSON.stringify(item));
+      (description ? t('agent.unnamedCapability') : JSON.stringify(item));
     return { title, description };
   }
   return { title: String(item) };
@@ -101,7 +102,7 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
 <template>
   <tiny-dialog-box
     :visible="visible"
-    :title="agentData.index > -1 ? '编辑 Agent' : '添加 Agent'"
+    :title="agentData.index > -1 ? t('agent.edit') : t('agent.add')"
     width="540px"
     :append-to-body="true"
     @update:visible="emit('update:visible', $event)"
@@ -116,22 +117,22 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
             @update:model-value="updateField('agentCardUrl', $event)"
           />
           <tiny-button type="primary" :loading="agentQueryLoading" @click="emit('queryAgentCard')">
-            {{ agentCardStatus === 'error' ? '重试' : '查询' }}
+            {{ agentCardStatus === 'error' ? t('agent.retry') : t('agent.query') }}
           </tiny-button>
         </div>
       </tiny-form-item>
-      <tiny-form-item label="名称" prop="name" required>
+      <tiny-form-item :label="t('common.name')" prop="name" required>
         <tiny-input
           :model-value="agentData.name"
-          placeholder="Agent 名称（用于在界面展示）"
+          :placeholder="t('agent.namePlaceholder')"
           @update:model-value="updateField('name', $event)"
         />
       </tiny-form-item>
-      <tiny-form-item label="描述" prop="description">
+      <tiny-form-item :label="t('common.description')" prop="description">
         <tiny-input
           type="textarea"
           :model-value="agentData.description"
-          placeholder="可选：用于在列表展示"
+          :placeholder="t('agent.descPlaceholder')"
           @update:model-value="updateField('description', $event)"
         />
       </tiny-form-item>
@@ -143,24 +144,24 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
         @click="emit('confirmAgent')"
         v-if="agentCardStatus === 'success'"
       >
-        确认
+        {{ t('common.confirm') }}
       </tiny-button>
     </template>
     <div v-if="agentCardStatus === 'loading'" class="agent-card-hint agent-card-hint--info">
-      正在查询 Agent Card...
+      {{ t('agent.querying') }}
     </div>
     <div v-if="agentCardStatus === 'error'" class="agent-card-hint agent-card-hint--error">
       {{ agentCardError }}
     </div>
     <div v-if="agentCardStatus === 'success' && agentCard" class="agent-card-detail">
-      <div class="agent-card-detail__badge">AgentCard 已解析</div>
+      <div class="agent-card-detail__badge">{{ t('agent.parsed') }}</div>
       <div class="agent-card-detail__main">
-        <h4 class="agent-card-detail__title">{{ agentCard.name || '未命名 Agent' }}</h4>
+        <h4 class="agent-card-detail__title">{{ agentCard.name || t('agent.unnamed') }}</h4>
         <p v-if="agentCard.description" class="agent-card-detail__desc">{{ agentCard.description }}</p>
         <div class="agent-card-detail__block">
           <span class="agent-card-detail__block-label">API URL</span>
           <div class="agent-card-detail__url" :class="{ 'is-missing': !agentCard.api?.url }">
-            {{ agentCard.api?.url || '缺少 api.url，服务端无法作为工具调用' }}
+            {{ agentCard.api?.url || t('agent.missingApiUrlHint') }}
           </div>
         </div>
         <div class="agent-card-detail__block agent-card-detail__capabilities">
@@ -171,15 +172,15 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
               <div v-if="item.description" class="agent-card-detail__cap-desc">{{ item.description }}</div>
             </li>
           </ul>
-          <div v-else class="agent-card-detail__cap-empty">未声明或为空</div>
+          <div v-else class="agent-card-detail__cap-empty">{{ t('agent.capabilitiesEmpty') }}</div>
         </div>
         <div
           v-if="agentCard.auth?.type && String(agentCard.auth.type).toLowerCase() !== 'none'"
           class="agent-card-detail__auth"
         >
-          <span class="agent-card-detail__block-label">认证</span>
+          <span class="agent-card-detail__block-label">{{ t('agent.auth') }}</span>
           <span class="agent-card-detail__auth-text">
-            {{ agentCard.auth.type }} · 工具调用时请在 metadata 中传入 token 或 apiKey
+            {{ agentCard.auth.type }} · {{ t('agent.authHint') }}
           </span>
         </div>
       </div>

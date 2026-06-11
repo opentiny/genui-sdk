@@ -3,6 +3,7 @@ import { useConversation, IndexedDBStrategy } from '@opentiny/genui-sdk-vue';
 import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
 import { CustomModelProvider } from './template-provider';
 import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
+import { t } from '../../i18n';
 
 const conversation = shallowRef<ReturnType<typeof useConversation> | null>(null);
 let templateProvider: CustomModelProvider | null = null;
@@ -15,7 +16,6 @@ const currentPreviewSchema = shallowRef<any>(null);
 const currentPreviewSchemaComplete = ref(true);
 // 当前卡片 id，用于记录卡片 id，避免重复执行 patch 操作
 const currentCardId = ref<string>('');
-const DEFAULT_TEMPLATE_TITLE = '新模板';
 
 export interface UseTemplateOptions {
   url: string;
@@ -52,7 +52,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
         onLoaded(conversations) {
           // 如果历史会话为空，则创建一个默认会话
           if (!conversations.length) {
-            conversation.value!.createConversation(DEFAULT_TEMPLATE_TITLE);
+            conversation.value!.createConversation(t('template.defaultTitle'));
             conversation.value!.saveConversations();
           }
         },
@@ -113,7 +113,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     }
 
     const { createConversation, saveConversations } = conversation.value;
-    createConversation(DEFAULT_TEMPLATE_TITLE);
+    createConversation(t('template.defaultTitle'));
     saveConversations();
     setCurrentSchema(null);
     setCurrentPreviewSchema(null);

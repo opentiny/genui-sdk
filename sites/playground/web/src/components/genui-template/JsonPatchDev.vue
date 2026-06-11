@@ -7,6 +7,7 @@ import * as jsonDiffPatch from 'jsondiffpatch';
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
 import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
 import { textToJson } from './template-chat-utils';
+import { t } from '../../i18n';
 
 const props = defineProps<{
   currentSchema: string;
@@ -90,7 +91,7 @@ watch(
 </script>
 
 <template>
-  <tiny-dialog-box v-model:visible="visible" title="调试器" width="80%" height="600px">
+  <tiny-dialog-box v-model:visible="visible" :title="t('templateEditor.debugger')" width="80%" height="600px">
     <!-- footer 居中 -->
     <template #footer>
       <div class="json-patch-dev-footer">

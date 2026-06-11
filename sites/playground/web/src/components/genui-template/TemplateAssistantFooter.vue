@@ -4,6 +4,7 @@ import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';
 import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
 import type { IBubbleSlotsProps } from '@opentiny/genui-sdk-vue';
+import { t } from '../../i18n';
 
 const emit = defineEmits(['refresh', 'copy']);
 
@@ -13,7 +14,7 @@ const RefreshIcon = iconRefresh();
 const CopyIcon = iconCopy();
 
 const vAutoTip = AutoTip;
-const copyTooltip = ref('复制');
+const copyTooltip = ref(t('chatFooter.copy'));
 
 const isLastBubble = computed(() => {
   const { messages } = props.messageManager;
@@ -34,7 +35,7 @@ const refresh = () => {
     <tiny-button
       type="text"
       :icon="RefreshIcon"
-      v-auto-tip="{ always: true, content: '刷新', effect: 'light' }"
+      v-auto-tip="{ always: true, content: t('chatFooter.refresh'), effect: 'light' }"
       @click="refresh"
     >
     </tiny-button>
