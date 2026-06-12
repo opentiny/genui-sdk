@@ -6,11 +6,11 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from 'react';
-import { parseData } from '../engine';
+import { parseData } from './engine';
 import type { CardSchema } from '@opentiny/genui-sdk-core';
-import type { PageContextValue } from '../engine';
-import type { RendererSettings } from '../engine';
-import { setRendererSettings } from '../engine';
+import type { PageContextValue } from './engine';
+import type { RendererSettings } from './engine';
+import { setRendererSettings } from './engine';
 
 export type PageContextStore = {
   getContext: () => PageContextValue;
@@ -39,6 +39,7 @@ export type PageCustomActions = Record<
 
 export interface PageContextProviderProps {
   children: ReactNode;
+  /** 渲染器全局配置，可通过 materials 字段注入外部物料组件表 */
   settings?: RendererSettings;
   initialContext?: Partial<PageContextValue>;
   /** 同步注入，避免 useEffect / initPageFromSchema 时序导致 callAction 尚未就绪 */

@@ -5,7 +5,7 @@ import { Img } from './Img';
 import { Button } from './Button';
 import { Input } from './Input';
 import { Slot } from './Slot';
-import type { ComponentRegistry, ComponentRenderProps } from '../renderer/component-types';
+import type { ComponentRegistry, ComponentRenderProps } from '../types';
 
 function wrap<C extends Record<string, unknown>>(
   Component: ComponentType<C>,

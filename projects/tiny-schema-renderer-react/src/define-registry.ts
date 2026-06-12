@@ -1,4 +1,4 @@
-import type { ComponentRegistry, ComponentRenderer } from './component-types';
+import type { ComponentRegistry, ComponentRenderer } from './types';
 
 export function defineRegistry(
   components: ComponentRegistry,

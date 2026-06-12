@@ -2,36 +2,29 @@ import React, {
   forwardRef,
   useEffect,
   useImperativeHandle,
-  useMemo,
-  useRef,
   memo,
 } from 'react';
-import { isHtmlTag } from '../builtin/html-tags';
-import { builtinRegistry } from '../builtin/builtin-registry';
+import { isHtmlTag } from './builtin/html-tags';
+import { builtinRegistry } from './builtin/builtin-registry';
 import {
   parseData,
   parseCondition,
   getLoopScope,
   getBindProps,
   setDefaultSlotRenderer,
-} from '../engine';
-import type { Node, RootNode } from '../engine';
-import { initPageFromSchema, usePageContextStore, usePageContext } from '../context/page-context';
-import type { ComponentRegistry, ComponentRenderer } from './component-types';
+} from './engine';
+import type { Node, RootNode } from './engine';
+import { initPageFromSchema, usePageContextStore, usePageContext } from './context';
+import type { ComponentRegistry, ComponentRenderer, SchemaRendererHandle, SchemaRendererProps } from './types';
 import { mergeRegistry } from './define-registry';
-import { normalizeDomProps } from '../engine/parse-inline-style';
-import type { ICustomAction, SchemaRendererHandle } from './renderer.types';
+import { getMaterials } from './materials';
+import { normalizeDomProps } from './engine/parse-inline-style';
 
 function resolveComponent(
   name: string,
   registry: ComponentRegistry,
-  customElements: ComponentRegistry,
 ): ComponentRenderer | string | null {
-  return (
-    registry[name] ||
-    customElements[name] ||
-    (isHtmlTag(name) ? name : null)
-  );
+  return registry[name] || (isHtmlTag(name) ? name : null);
 }
 
 function emitFromProps(props: Record<string, unknown>, event: string) {
@@ -44,16 +37,12 @@ interface SchemaNodeRendererProps {
   schema: Node;
   scope?: Record<string, unknown>;
   registry: ComponentRegistry;
-  customElements?: ComponentRegistry;
-  loading?: boolean;
 }
 
 const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
   schema,
   scope = {},
   registry,
-  customElements = {},
-  loading,
 }: SchemaNodeRendererProps) {
   const context = usePageContext();
 
@@ -61,7 +50,7 @@ const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
     const { componentName, loop, loopArgs, condition, children } = node;
     if (!componentName) return null;
 
-    const resolved = resolveComponent(componentName, registry, customElements);
+    const resolved = resolveComponent(componentName, registry);
     if (!resolved) {
       if (import.meta.env.DEV) {
         console.warn(`[genui-react] Unknown component: ${componentName}`);
@@ -90,7 +79,7 @@ const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
       const emit = (event: string) => emitFromProps(bindProps, event);
 
       const childNodes = normalizeChildren(children);
-      const childContent = renderChildren(childNodes, mergeScope, registry, customElements, loading);
+      const childContent = renderChildren(childNodes, mergeScope, registry);
 
       if (typeof resolved === 'string') {
         return React.createElement(
@@ -106,7 +95,6 @@ const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
           renderer={resolved}
           props={bindProps}
           emit={emit}
-          loading={loading}
         >
           {childContent}
         </ResolvedComponent>
@@ -126,16 +114,14 @@ function ResolvedComponent({
   renderer: Renderer,
   props,
   emit,
-  loading,
   children,
 }: {
   renderer: ComponentRenderer;
   props: Record<string, unknown>;
   emit: (e: string) => void;
-  loading?: boolean;
   children?: React.ReactNode;
 }) {
-  return <Renderer props={props} emit={emit} loading={loading}>{children}</Renderer>;
+  return <Renderer props={props} emit={emit}>{children}</Renderer>;
 }
 
 function normalizeChildren(children: Node['children']): Node[] {
@@ -151,8 +137,6 @@ function renderChildren(
   nodes: Node[],
   scope: Record<string, unknown>,
   registry: ComponentRegistry,
-  customElements: ComponentRegistry,
-  loading?: boolean,
 ): React.ReactNode {
   if (!nodes.length) return null;
   return nodes.map((child, i) => (
@@ -161,8 +145,6 @@ function renderChildren(
       schema={child}
       scope={scope}
       registry={registry}
-      customElements={customElements}
-      loading={loading}
     />
   ));
 }
@@ -174,55 +156,14 @@ function domPropsFromBind(bindProps: Record<string, unknown>): Record<string, un
   return props;
 }
 
-export interface SchemaRendererProps {
-  schema: RootNode | null;
-  registry?: ComponentRegistry;
-  customComponents?: ComponentRegistry;
-  /** @deprecated 使用 generating */
-  loading?: boolean;
-  generating?: boolean;
-  isJsonComplete?: boolean;
-  customActions?: Record<string, ICustomAction>;
-  id?: string;
-  state?: Record<string, unknown>;
-  fallback?: ComponentRenderer;
-}
-
 /**
- * 基础 Schema 渲染器，对齐 tiny-schema-renderer / Vue inject 的默认渲染器。
- * 需在 PageContextProvider 内使用（SchemaCardRenderer 已包含 Provider）。
+ * 基础 Schema 渲染器，对齐 Vue tiny-schema-renderer RenderMain（仅接收 schema）。
+ * 物料通过 PageContextProvider.settings / setMaterials 注入；流式属性由 SchemaCardRenderer 处理。
  */
 export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(
-  function SchemaRenderer(
-    {
-      schema,
-      registry: userRegistry,
-      customComponents = {},
-      loading,
-      generating,
-      customActions,
-      id,
-      state,
-    },
-    ref,
-  ) {
+  function SchemaRenderer({ schema }, ref) {
     const store = usePageContextStore();
-    const registry = useMemo(
-      () => mergeRegistry(builtinRegistry, userRegistry || {}, customComponents),
-      [userRegistry, customComponents],
-    );
-
-    const customActionsRef = useRef(customActions);
-    customActionsRef.current = customActions;
-
-    const callActionRef = useRef((actionName: string, params: unknown) => {
-      const action = customActionsRef.current?.[actionName];
-      if (!action) {
-        console.warn(`Action ${actionName} not found`);
-        return;
-      }
-      return action.execute(params, store.getContext() as Record<string, unknown>);
-    });
+    const registry = mergeRegistry(builtinRegistry, getMaterials());
 
     useImperativeHandle(ref, () => ({
       setContext: (ctx) => store.setContext(ctx),
@@ -231,26 +172,17 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     }));
 
     useEffect(() => {
-      if (customActions && Object.keys(customActions).length > 0) {
-        store.setContext({ callAction: callActionRef.current });
-      }
-      if (id) store.setContext({ cardId: id });
-      if (state) store.setState(state);
-    }, [id, state, customActions, store]);
-
-    useEffect(() => {
-      setDefaultSlotRenderer((children, scope, ctx) =>
+      setDefaultSlotRenderer((children, scope, _ctx) =>
         normalizeChildren(children as Node['children']).map((child, i) => (
           <SchemaNodeRenderer
             key={i}
             schema={child}
             scope={scope}
-            registry={registry}
-            customElements={customComponents}
+            registry={mergeRegistry(builtinRegistry, getMaterials())}
           />
         )) as unknown[],
       );
-    }, [registry, customComponents]);
+    }, []);
 
     const pageInitSig =
       schema && Object.keys(schema).length
@@ -267,8 +199,6 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       initPageFromSchema(schema, store);
     }, [pageInitSig, schema, store]);
 
-    const isLoading = generating ?? loading;
-
     if (!schema?.children?.length) {
       return <div className="genui-renderer-loading">Loading...</div>;
     }
@@ -281,13 +211,11 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
     return (
       <div className="genui-schema-renderer" data-scope={store.getContext().cssScopeId}>
-        <SchemaNodeRenderer
-          schema={rootSchema}
-          registry={registry}
-          customElements={customComponents}
-          loading={isLoading}
-        />
+        <SchemaNodeRenderer schema={rootSchema} registry={registry} />
       </div>
     );
   },
 );
+
+/** 默认导出，对齐 Vue 的 tiny-schema-renderer default export */
+export default SchemaRenderer;

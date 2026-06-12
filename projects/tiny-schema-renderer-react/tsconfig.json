@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "strict": true,
+    "resolveJsonModule": true,
+    "types": ["vite/client"],
+    "paths": {
+      "@opentiny/genui-sdk-materials-react-antd/components": [
+        "../../packages/materials/react-antd/src/components/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-react-antd": [
+        "../../packages/materials/react-antd/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-react": ["../../packages/frameworks/react/src/index.ts"]
+    }
+  },
+  "include": ["src", "test"]
+}

@@ -1,11 +1,19 @@
-import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from 'react';
 import {
+  GenuiConfigProvider,
   PageContextProvider,
   SchemaRenderer,
   type GenuiRendererHandle,
   type ICustomAction,
 } from '@opentiny/genui-sdk-react';
-import { antdRegistry } from '@opentiny/genui-sdk-materials-react-antd/extend-renderer';
+import { antdMaterials } from '@opentiny/genui-sdk-materials-react-antd/components';
 import type { RootNode } from '@opentiny/genui-sdk-core';
 import 'antd/dist/reset.css';
 
@@ -23,6 +31,57 @@ export type ReactHostHandle = {
   getRendererHandle: () => GenuiRendererHandle | null;
   setContext: (ctx: Record<string, unknown>) => void;
 };
+
+const ReactHostRenderer = forwardRef<
+  GenuiRendererHandle,
+  ReactHostContentProps & { onReady?: () => void }
+>(function ReactHostRenderer({ onReady, ...props }, ref) {
+  const rendererRef = useRef<GenuiRendererHandle | null>(null);
+
+  /**
+   * 对齐 Vue SchemaCardRenderer：流式属性通过 ref 注入基础渲染器，而非 SchemaRenderer props。
+   */
+  const updateContextAndState = useCallback(() => {
+    const instance = rendererRef.current;
+    if (!instance) return;
+
+    instance.setContext({
+      callAction: (actionName: string, params?: unknown) => {
+        if (!props.customActions?.[actionName]) {
+          console.warn(`Action ${actionName} not found`);
+          return;
+        }
+        return props.customActions[actionName].execute(params, instance.getContext());
+      },
+    });
+    if (props.id) {
+      instance.setContext({ cardId: props.id });
+    }
+    instance.setState(props.state || {});
+  }, [props.customActions, props.id, props.state]);
+
+  const setRendererRef = useCallback(
+    (instance: GenuiRendererHandle | null) => {
+      rendererRef.current = instance;
+      if (typeof ref === 'function') {
+        ref(instance);
+      } else if (ref) {
+        ref.current = instance;
+      }
+      if (instance) {
+        updateContextAndState();
+        onReady?.();
+      }
+    },
+    [ref, updateContextAndState, onReady],
+  );
+
+  useEffect(() => {
+    updateContextAndState();
+  }, [updateContextAndState]);
+
+  return <SchemaRenderer ref={setRendererRef} schema={props.schema} />;
+});
 
 export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContentProps }>(
   function ReactHost({ initial }, ref) {
@@ -45,26 +104,23 @@ export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContent
       },
     }));
 
-    const isJsonComplete = props.generating ? false : (props.isJsonComplete ?? true);
-
     return (
-      <PageContextProvider customActions={props.customActions}>
-        <div className="schema-render-container">
-          <SchemaRenderer
-            ref={(instance) => {
-              rendererRef.current = instance;
-              flushPendingContext();
-            }}
-            schema={props.schema}
-            customComponents={antdRegistry}
-            generating={props.generating}
-            isJsonComplete={isJsonComplete}
-            customActions={props.customActions}
-            id={props.id}
-            state={props.state}
-          />
-        </div>
-      </PageContextProvider>
+      <GenuiConfigProvider materials={antdMaterials}>
+        <PageContextProvider
+          customActions={props.customActions}
+          settings={{ materials: antdMaterials }}
+        >
+          <div className="schema-render-container">
+            <ReactHostRenderer
+              ref={(instance) => {
+                rendererRef.current = instance;
+                flushPendingContext();
+              }}
+              {...props}
+            />
+          </div>
+        </PageContextProvider>
+      </GenuiConfigProvider>
     );
   },
 );

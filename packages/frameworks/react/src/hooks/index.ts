@@ -1,1 +1,1 @@
-export { usePageContext, usePageContextStore } from '../context/page-context';
+export { usePageContext, usePageContextStore } from '@opentiny/tiny-schema-renderer-react';

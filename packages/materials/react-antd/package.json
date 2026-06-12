@@ -38,10 +38,10 @@
       "types": "./dist/render-config.d.ts",
       "require": "./dist/render-config.js"
     },
-    "./extend-renderer": {
-      "import": "./dist/extend-renderer.js",
-      "types": "./dist/extend-renderer.d.ts",
-      "require": "./dist/extend-renderer.js"
+    "./components": {
+      "import": "./dist/components.js",
+      "types": "./dist/components.d.ts",
+      "require": "./dist/components.js"
     }
   }
 }

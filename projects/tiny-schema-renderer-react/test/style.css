@@ -1,0 +1,95 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #f5f7fa;
+  color: #1f2937;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-header {
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.app-header h1 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.demo-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.demo-tab {
+  padding: 6px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.15s;
+}
+
+.demo-tab:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.demo-tab.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.app-content {
+  padding: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.submit-result {
+  margin-top: 16px;
+  padding: 12px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #065f46;
+  white-space: pre-wrap;
+}
+
+.loop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.loop-table th,
+.loop-table td {
+  padding: 10px 14px;
+  text-align: left;
+  border: 1px solid #e5e7eb;
+}
+
+.loop-table th {
+  background: #f9fafb;
+  font-weight: 600;
+}
+
+.loop-table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}

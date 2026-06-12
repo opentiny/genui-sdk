@@ -3,7 +3,11 @@ import type { RendererSettings } from './types';
 let rendererSettings: RendererSettings = {};
 
 export function setRendererSettings(settings: RendererSettings) {
-  rendererSettings = settings;
+  const { materials, ...rest } = settings;
+  rendererSettings = { ...rendererSettings, ...rest };
+  if (materials) {
+    rendererSettings.materials = { ...(rendererSettings.materials ?? {}), ...materials };
+  }
 }
 
 export function getRendererSettings() {

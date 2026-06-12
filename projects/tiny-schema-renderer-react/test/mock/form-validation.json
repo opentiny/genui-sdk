@@ -1,0 +1,160 @@
+{
+  "componentName": "Page",
+  "state": {
+    "formData": {
+      "name": "",
+      "email": "",
+      "phone": ""
+    },
+    "submitResult": ""
+  },
+  "refs": {
+    "formRef": null
+  },
+  "methods": {
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function handleSubmit() { this.refs.formRef.validateFields().then((values) => { this.state.formData = values; this.state.submitResult = '提交成功：\\n' + JSON.stringify(values, null, 2); console.log('表单提交:', values); }).catch((err) => { console.log('校验失败:', err); }); }"
+    },
+    "handleReset": {
+      "type": "JSFunction",
+      "value": "function handleReset() { this.refs.formRef.resetFields(); this.state.formData = { name: '', email: '', phone: '' }; this.state.submitResult = ''; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "员工信息表单（ref 主动校验）",
+        "style": "max-width: 520px; margin: 0 auto;"
+      },
+      "children": [
+        {
+          "componentName": "AntForm",
+          "props": {
+            "layout": "vertical",
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.formRef"
+            },
+            "initialValues": {
+              "type": "JSExpression",
+              "value": "this.state.formData"
+            }
+          },
+          "children": [
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "姓名",
+                "name": "name",
+                "rules": [{ "required": true, "message": "请输入姓名" }]
+              },
+              "children": [
+                {
+                  "componentName": "AntInput",
+                  "props": {
+                    "placeholder": "请输入姓名"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "邮箱",
+                "name": "email",
+                "rules": [
+                  { "required": true, "message": "请输入邮箱" },
+                  { "type": "email", "message": "邮箱格式不正确" }
+                ]
+              },
+              "children": [
+                {
+                  "componentName": "AntInput",
+                  "props": {
+                    "placeholder": "请输入邮箱"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "手机号",
+                "name": "phone",
+                "rules": [
+                  { "required": true, "message": "请输入手机号" },
+                  { "pattern": "^1\\d{10}$", "message": "手机号格式不正确" }
+                ]
+              },
+              "children": [
+                {
+                  "componentName": "AntInput",
+                  "props": {
+                    "placeholder": "请输入手机号"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "display: flex; gap: 12px; justify-content: flex-end;"
+                  },
+                  "children": [
+                    {
+                      "componentName": "AntButton",
+                      "props": {
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "this.handleReset"
+                        }
+                      },
+                      "children": "重置"
+                    },
+                    {
+                      "componentName": "AntButton",
+                      "props": {
+                        "type": "primary",
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "this.handleSubmit"
+                        }
+                      },
+                      "children": "提交"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "submit-result",
+                "style": {
+                  "type": "JSExpression",
+                  "value": "this.state.submitResult ? '' : 'display: none;'"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.submitResult"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

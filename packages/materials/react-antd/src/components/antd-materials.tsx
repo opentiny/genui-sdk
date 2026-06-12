@@ -12,11 +12,13 @@ import {
   Table,
   Tabs,
 } from 'antd';
+import type { FormInstance } from 'antd';
 import type { ComponentRegistry } from '@opentiny/genui-sdk-react';
 import { mergeRegistry } from '@opentiny/genui-sdk-react';
-import { adapt, bindClick, bindModelChange, mapCardVariant, pickStyle } from './components/adapt';
+import { adapt, bindClick, bindModelChange, mapCardVariant, pickStyle } from './adapt';
 
-export const antdRegistry: ComponentRegistry = {
+/** Ant Design 5 运行时物料表，对齐 Vue 物料包的 `vueMaterials`。 */
+export const antdMaterials: ComponentRegistry = {
   AntButton: adapt(Button, (props, emit) => ({
     ...pickStyle(props),
     type: props.type as 'primary' | 'default' | 'dashed' | 'link' | 'text' | undefined,
@@ -46,16 +48,27 @@ export const antdRegistry: ComponentRegistry = {
     onChange: bindModelChange(props, emit, true),
   })),
 
-  AntForm: adapt(Form, (props) => ({
-    ...pickStyle(props),
-    layout: (props.layout as 'horizontal' | 'vertical' | 'inline') ?? 'vertical',
-  })),
+  AntForm: ({ props, children }) => (
+    <Form
+      {...pickStyle(props)}
+      ref={props.ref as React.Ref<FormInstance>}
+      layout={(props.layout as 'horizontal' | 'vertical' | 'inline') ?? 'vertical'}
+      initialValues={props.initialValues as Record<string, unknown> | undefined}
+      onValuesChange={props.onValuesChange as ((changed: Record<string, unknown>, all: Record<string, unknown>) => void) | undefined}
+    >
+      {children}
+    </Form>
+  ),
 
   AntFormItem: ({ props, children }) => (
     <Form.Item
       {...pickStyle(props)}
+      name={props.name as string | number | (string | number)[] | undefined}
       label={props.label as React.ReactNode}
       required={props.required as boolean | undefined}
+      rules={props.rules as object[] | undefined}
+      help={props.help as React.ReactNode}
+      validateStatus={props.validateStatus as 'success' | 'warning' | 'error' | 'validating' | '' | undefined}
     >
       {children}
     </Form.Item>
@@ -75,11 +88,20 @@ export const antdRegistry: ComponentRegistry = {
     pagination: props.pagination as boolean | object | undefined,
   })),
 
-  AntTabs: adapt(Tabs, (props) => ({
+  AntTabs: adapt(Tabs, (props, emit) => ({
     ...pickStyle(props),
     defaultActiveKey: props.defaultActiveKey as string | undefined,
     activeKey: props.activeKey as string | undefined,
     items: props.items as { key: string; label: string; children?: React.ReactNode }[] | undefined,
+    onChange:
+      bindModelChange(props, emit, true) ??
+      ((key: string) => {
+        const handler =
+          (props['onUpdate:activeKey'] as ((v: string) => void) | undefined) ??
+          (props.onChange as ((v: string) => void) | undefined);
+        handler?.(key);
+        emit('change');
+      }),
   })),
 
   AntTabPane: ({ props, children }) => (
@@ -142,6 +164,12 @@ export const antdRegistry: ComponentRegistry = {
   })),
 };
 
-export function mergeAntdRegistry(...registries: ComponentRegistry[]): ComponentRegistry {
-  return mergeRegistry(antdRegistry, ...registries);
+/**
+ * 将 Ant Design 默认物料与额外注册表合并。
+ *
+ * @param registries - 需要叠加的自定义组件注册表
+ * @returns 合并后的完整注册表
+ */
+export function mergeAntdMaterials(...registries: ComponentRegistry[]): ComponentRegistry {
+  return mergeRegistry(antdMaterials, ...registries);
 }

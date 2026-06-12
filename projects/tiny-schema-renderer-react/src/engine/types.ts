@@ -17,4 +17,6 @@ export type PageContextValue = Record<string, unknown> & {
 export type RendererSettings = {
   Function?: typeof Function;
   transformJSX?: (code: string) => string;
+  /** 外部注入的物料组件表，解耦具体 UI 库依赖 */
+  materials?: import('../types').ComponentRegistry;
 };

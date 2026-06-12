@@ -28,7 +28,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*"
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/tiny-schema-renderer-react": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18",

@@ -1,1 +1,2 @@
-export * from './page-context';
+export { PageContextProvider, usePageContext, usePageContextStore, initPageFromSchema } from '@opentiny/tiny-schema-renderer-react';
+export type { PageContextStore, PageCustomActions, PageContextProviderProps } from '@opentiny/tiny-schema-renderer-react';

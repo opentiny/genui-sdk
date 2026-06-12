@@ -1,8 +1,7 @@
-export * from './html-tags';
-export * from './Box';
-export * from './Text';
-export * from './Img';
-export * from './Button';
-export * from './Input';
-export * from './Slot';
-export { builtinRegistry } from './builtin-registry';
+export { builtinRegistry, isHtmlTag } from '@opentiny/tiny-schema-renderer-react';
+export { Box } from '@opentiny/tiny-schema-renderer-react';
+export { Text } from '@opentiny/tiny-schema-renderer-react';
+export { Img } from '@opentiny/tiny-schema-renderer-react';
+export { Button } from '@opentiny/tiny-schema-renderer-react';
+export { Input } from '@opentiny/tiny-schema-renderer-react';
+export { Slot } from '@opentiny/tiny-schema-renderer-react';

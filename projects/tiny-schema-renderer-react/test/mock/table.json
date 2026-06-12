@@ -1,0 +1,159 @@
+{
+  "componentName": "Page",
+  "state": {
+    "columns": [
+      { "dataIndex": "id", "title": "ID" },
+      { "dataIndex": "name", "title": "姓名" },
+      { "dataIndex": "department", "title": "部门" },
+      { "dataIndex": "email", "title": "邮箱" }
+    ],
+    "tableData": [
+      { "id": "001", "name": "张三", "department": "技术部", "email": "zhangsan@example.com" },
+      { "id": "002", "name": "李四", "department": "市场部", "email": "lisi@example.com" },
+      { "id": "003", "name": "王五", "department": "人事部", "email": "wangwu@example.com" },
+      { "id": "004", "name": "赵六", "department": "财务部", "email": "zhaoliu@example.com" }
+    ]
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "员工列表（表格渲染）"
+      },
+      "children": [
+        {
+          "componentName": "AntTable",
+          "props": {
+            "columns": {
+              "type": "JSExpression",
+              "value": "this.state.columns"
+            },
+            "dataSource": {
+              "type": "JSExpression",
+              "value": "this.state.tableData"
+            },
+            "rowKey": "id",
+            "pagination": false
+          }
+        }
+      ]
+    },
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "自定义表格结构（loop 渲染）",
+        "style": "margin-top: 20px;"
+      },
+      "children": [
+        {
+          "componentName": "table",
+          "props": {
+            "className": "loop-table"
+          },
+          "children": [
+            {
+              "componentName": "thead",
+              "children": [
+                {
+                  "componentName": "tr",
+                  "children": [
+                    {
+                      "componentName": "th",
+                      "loop": {
+                        "type": "JSExpression",
+                        "value": "this.state.columns"
+                      },
+                      "loopArgs": ["column"],
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "column.title"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "tbody",
+              "children": [
+                {
+                  "componentName": "tr",
+                  "loop": {
+                    "type": "JSExpression",
+                    "value": "this.state.tableData"
+                  },
+                  "loopArgs": ["row"],
+                  "children": [
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.id"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.name"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.department"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.email"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

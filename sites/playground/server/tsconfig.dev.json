@@ -15,8 +15,8 @@
       "@opentiny/genui-sdk-materials-react-antd/render-config": [
         "../../../packages/materials/react-antd/src/render-config/index.ts"
       ],
-      "@opentiny/genui-sdk-materials-react-antd/extend-renderer": [
-        "../../../packages/materials/react-antd/src/extend-renderer.tsx"
+      "@opentiny/genui-sdk-materials-react-antd/components": [
+        "../../../packages/materials/react-antd/src/components/index.ts"
       ],
       "@opentiny/genui-sdk-materials-react-antd": [
         "../../../packages/materials/react-antd/src/index.ts"
