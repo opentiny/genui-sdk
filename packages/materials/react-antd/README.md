@@ -62,7 +62,7 @@ packages/materials/react-antd/
 | `AntFormItem` | Form.Item | 仅 `label`，数据绑定在子组件上，**不用 `name`** |
 | `AntCard` | Card | 使用 `variant`（`outlined` / `borderless` / `filled`） |
 | `AntTable` | Table | `columns` + `dataSource` |
-| `AntTabs` / `AntTabPane` | Tabs | 标签页 |
+| `AntTabs` | Tabs | 标签页（items 配置） |
 | `AntModal` | Modal | `open` / `onOk` / `onCancel` |
 | `AntSwitch` | Switch | `checked` + `model: true` |
 | `AntCheckbox` | Checkbox | `checked` + `text` |

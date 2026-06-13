@@ -151,38 +151,23 @@
         },
         {
           "component": "AntTabs",
-          "description": "Ant Design 标签页容器",
+          "description": "Ant Design 标签页，通过 items 配置子页签",
           "schema": {
             "properties": [
               {
                 "label": { "zh_CN": "基础属性" },
                 "content": [
                   { "property": "defaultActiveKey", "type": "string", "defaultValue": "1" },
-                  { "property": "activeKey", "type": "string", "defaultValue": "" }
+                  { "property": "activeKey", "type": "string", "defaultValue": "" },
+                  {
+                    "property": "items",
+                    "type": "array",
+                    "defaultValue": [],
+                    "description": { "zh_CN": "子页签列表，每项含 key、label、children(JSSlot)" }
+                  }
                 ]
               }
-            ],
-            "slots": {
-              "default": { "description": { "zh_CN": "标签页内容，通常放 AntTabPane" } }
-            }
-          }
-        },
-        {
-          "component": "AntTabPane",
-          "description": "Ant Design 单个标签页",
-          "schema": {
-            "properties": [
-              {
-                "label": { "zh_CN": "基础属性" },
-                "content": [
-                  { "property": "tab", "type": "string", "defaultValue": "标签" },
-                  { "property": "tabKey", "type": "string", "defaultValue": "1" }
-                ]
-              }
-            ],
-            "slots": {
-              "default": { "description": { "zh_CN": "标签页内容" } }
-            }
+            ]
           }
         },
         {

@@ -8,7 +8,6 @@ export const antdWhiteList = [
   'AntCard',
   'AntTable',
   'AntTabs',
-  'AntTabPane',
   'AntModal',
   'AntSwitch',
   'AntCheckbox',

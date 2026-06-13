@@ -1,23 +1,39 @@
 import { Tabs } from 'antd';
 import type { TabsProps } from 'antd';
-import type { ReactNode } from 'react';
-import {
-  Children,
-  isValidElement,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 
-type AntTabsWrapProps = TabsProps & {
-  children?: ReactNode;
-};
+type TabItem = NonNullable<TabsProps['items']>[number];
+
+type AntTabsWrapProps = TabsProps;
 
 /**
- * Tabs 流式渲染包装：子 Tab 数量增加时自动切到最新 Tab，对齐 Vue TinyTabsWrap。
+ * 将 items 中 JSSlot 解析出的渲染函数转为 React 节点。
+ *
+ * @param items - Tabs items 配置
+ * @returns 可供 Ant Design Tabs 使用的 items
+ */
+function normalizeItems(items?: TabItem[]): TabItem[] | undefined {
+  if (!items?.length) return items;
+
+  return items.map((item) => {
+    const { children, ...rest } = item;
+    if (typeof children === 'function') {
+      const content = children();
+      return {
+        ...rest,
+        children: Array.isArray(content) ? <Fragment>{content}</Fragment> : content,
+      };
+    }
+    return item;
+  });
+}
+
+/**
+ * Tabs 流式渲染包装：基于 items 配置子页签，流式新增时自动切到最新 Tab。
+ * 对齐 Vue TinyTabsWrap，符合 Ant Design 5 items API。
  */
 export function AntTabsWrap({
-  children,
+  items,
   activeKey: controlledActiveKey,
   defaultActiveKey,
   onChange,
@@ -29,21 +45,20 @@ export function AntTabsWrap({
     controlledActiveKey ?? defaultActiveKey,
   );
 
-  const childArray = Children.toArray(children);
-  const childCount = childArray.length;
+  const normalizedItems = useMemo(() => normalizeItems(items), [items]);
+  const itemCount = normalizedItems?.length ?? 0;
 
   useEffect(() => {
-    if (userClickedRef.current || childCount <= prevCountRef.current) {
-      prevCountRef.current = childCount;
+    if (userClickedRef.current || itemCount <= prevCountRef.current) {
+      prevCountRef.current = itemCount;
       return;
     }
-    const last = childArray[childCount - 1];
-    const nextKey = isValidElement(last) ? String(last.key ?? '') : '';
-    if (nextKey) {
-      setActiveKey(nextKey);
+    const lastKey = normalizedItems?.[itemCount - 1]?.key;
+    if (lastKey != null) {
+      setActiveKey(String(lastKey));
     }
-    prevCountRef.current = childCount;
-  }, [childCount, childArray]);
+    prevCountRef.current = itemCount;
+  }, [itemCount, normalizedItems]);
 
   useEffect(() => {
     if (controlledActiveKey != null) {
@@ -54,17 +69,14 @@ export function AntTabsWrap({
   return (
     <Tabs
       {...rest}
+      items={normalizedItems}
       activeKey={controlledActiveKey ?? activeKey}
       defaultActiveKey={defaultActiveKey}
       onChange={(key) => {
+        userClickedRef.current = true;
         setActiveKey(key);
         onChange?.(key);
       }}
-      onTabClick={() => {
-        userClickedRef.current = true;
-      }}
-    >
-      {children}
-    </Tabs>
+    />
   );
 }

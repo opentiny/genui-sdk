@@ -9,12 +9,10 @@ import {
   Select,
   Switch,
   Table,
-  Tabs,
 } from 'antd';
 
 import { AntModalWrap } from './AntModalWrap';
 import { AntTabsWrap } from './AntTabsWrap';
-
 
 export const antdMaterials = {
   AntButton: Button,
@@ -25,7 +23,6 @@ export const antdMaterials = {
   AntCard: Card,
   AntTable: Table,
   AntTabs: AntTabsWrap,
-  AntTabPane: Tabs.TabPane,
   AntModal: AntModalWrap,
   AntSwitch: Switch,
   AntCheckbox: Checkbox,
