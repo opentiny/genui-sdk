@@ -11,6 +11,8 @@ export {
   initPageFromSchema,
 } from './context';
 export type { PageContextStore, PageCustomActions, PageContextProviderProps } from './context';
+export { getPageLifeCycleFns } from './life-cycles';
+export type { LifeCycles, LifeCycleFn } from './life-cycles';
 
 // 物料工具
 export {

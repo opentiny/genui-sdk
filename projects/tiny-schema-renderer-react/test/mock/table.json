@@ -7,12 +7,13 @@
       { "dataIndex": "department", "title": "部门" },
       { "dataIndex": "email", "title": "邮箱" }
     ],
-    "tableData": [
-      { "id": "001", "name": "张三", "department": "技术部", "email": "zhangsan@example.com" },
-      { "id": "002", "name": "李四", "department": "市场部", "email": "lisi@example.com" },
-      { "id": "003", "name": "王五", "department": "人事部", "email": "wangwu@example.com" },
-      { "id": "004", "name": "赵六", "department": "财务部", "email": "zhaoliu@example.com" }
-    ]
+    "tableData": []
+  },
+  "lifeCycles": {
+    "onMounted": {
+      "type": "JSFunction",
+      "value": "function onMounted() { this.state.tableData = [{ id: '001', name: '张三', department: '技术部', email: 'zhangsan@example.com' }, { id: '002', name: '李四', department: '市场部', email: 'lisi@example.com' }, { id: '003', name: '王五', department: '人事部', email: 'wangwu@example.com' }, { id: '004', name: '赵六', department: '财务部', email: 'zhaoliu@example.com' }]; }"
+    }
   },
   "children": [
     {

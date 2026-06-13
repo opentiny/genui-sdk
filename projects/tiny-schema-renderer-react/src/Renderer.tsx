@@ -30,28 +30,47 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       setState: (data) => store.setState(data),
     }));
 
-    useEffect(() => {
-      setDefaultSlotRenderer((children, scope, _ctx) =>
-        normalizeChildren(children as Node['children']).map((child, i) => (
-          <SchemaNodeRenderer key={i} schema={child} scope={scope} />
-        )) as unknown[],
-      );
-    }, []);
-
-    const pageInitSig =
+    /** 页面初始化签名：state/methods/refs/css/lifeCycles 变化时需重跑 init 与生命周期 */
+    const pageInitSignature =
       schema && Object.keys(schema).length
         ? JSON.stringify({
             state: schema.state,
             methods: schema.methods,
             refs: schema.refs,
             css: schema.css,
+            lifeCycles: schema.lifeCycles,
           })
         : '';
 
     useEffect(() => {
-      if (!schema || !pageInitSig) return;
-      initPageFromSchema(schema, store);
-    }, [pageInitSig, schema, store]);
+      if (!schema || !pageInitSignature) return;
+
+      let cancelled = false;
+      (async () => {
+        initPageFromSchema(schema, store);
+        await Promise.resolve();
+        if (cancelled) return;
+        await store.runPendingOnMounted();
+      })();
+
+      return () => {
+        cancelled = true;
+      };
+    }, [pageInitSignature, schema]);
+
+
+    useEffect(() => {
+      setDefaultSlotRenderer((children, scope, _ctx) =>
+        normalizeChildren(children as Node['children']).map((child, i) => (
+          <SchemaNodeRenderer key={i} schema={child} scope={scope} />
+        )) as unknown[],
+      );
+
+      return () => {
+        void store.invokePageOnUnmounted();
+      };
+    }, []);
+
 
     if (!schema?.children?.length) {
       return <div className="genui-renderer-loading">Loading...</div>;

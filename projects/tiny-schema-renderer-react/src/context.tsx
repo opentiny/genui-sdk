@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { parseData } from './engine';
+import { getPageLifeCycleFns, type LifeCycleFn } from './life-cycles';
 import type { CardSchema } from '@opentiny/genui-sdk-core';
 import type { PageContextValue } from './engine';
 import type { IRendererSettings } from './engine';
@@ -17,6 +18,9 @@ export type PageContextStore = {
   setContext: (ctx: Partial<PageContextValue>, clear?: boolean) => void;
   setState: (data: Record<string, unknown>, clear?: boolean) => void;
   subscribe: (listener: () => void) => () => void;
+  invokePageOnUnmounted: () => Promise<void>;
+  runPendingOnMounted: () => Promise<void>;
+  schedulePageLifeCycles: (lifeCycles: unknown) => void;
 };
 
 type CreatePageContextStoreOptions = {
@@ -40,6 +44,37 @@ function createPageContextStore(options: CreatePageContextStoreOptions = {}): Pa
   const listeners = new Set<() => void>();
   let callActionImpl: NonNullable<PageContextValue['callAction']> | undefined;
   let notify: () => void;
+  let pageOnUnmounted: LifeCycleFn | null = null;
+  let pendingOnMounted: LifeCycleFn | null = null;
+
+  const invokePageOnUnmounted = async () => {
+    const fn = pageOnUnmounted;
+    pageOnUnmounted = null;
+    if (typeof fn !== 'function') return;
+    try {
+      await fn();
+    } catch (error) {
+      console.error('SchemaRenderer onUnmounted error:', error);
+    }
+  };
+
+  const runPendingOnMounted = async () => {
+    const fn = pendingOnMounted;
+    pendingOnMounted = null;
+    if (typeof fn !== 'function') return;
+    try {
+      await fn();
+      notify();
+    } catch (error) {
+      console.error('SchemaRenderer onMounted error:', error);
+    }
+  };
+
+  const schedulePageLifeCycles = (lifeCycles: unknown) => {
+    const { onMounted, onUnmounted } = getPageLifeCycleFns(lifeCycles, () => contextValue);
+    pageOnUnmounted = onUnmounted;
+    pendingOnMounted = onMounted;
+  };
 
   const attachInternals = (ctx: PageContextValue): PageContextValue => {
     ctx.__getContext = () => contextValue;
@@ -109,6 +144,9 @@ function createPageContextStore(options: CreatePageContextStoreOptions = {}): Pa
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    invokePageOnUnmounted,
+    runPendingOnMounted,
+    schedulePageLifeCycles,
   };
 }
 
@@ -220,4 +258,5 @@ export function initPageFromSchema(schema: CardSchema, store: PageContextStore) 
     }
     el.textContent = schema.css;
   }
+  store.schedulePageLifeCycles(schema.lifeCycles);
 }
