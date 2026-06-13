@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { parseData } from '../src/engine';
-import { initPageFromSchema } from '../src/context/page-context';
-import type { PageContextStore } from '../src/context/page-context';
+import {
+  parseData,
+  initPageFromSchema,
+  type PageContextStore,
+} from '@opentiny/tiny-schema-renderer-react';
 
 function createMockStore(): PageContextStore {
   let context: Record<string, unknown> = {

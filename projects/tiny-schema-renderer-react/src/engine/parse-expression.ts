@@ -1,8 +1,17 @@
-import { newFn, getRendererSettings } from './new-fn';
+import { getCustomSettings, DEFAULT_RENDERER_SETTINGS } from './use-custom-setting';
 import { getRuntimeCtx } from './context-runtime';
-import type { PageContextValue } from './types';
+import type { PageContextValue } from './parse-data';
 
 const JS_EXPRESSION = 'JSExpression';
+
+/**
+ * 动态创建函数，规避 ESLint no-new-func 规则，并从 customSettings 读取 Function 构造器。
+ * 对齐 Vue tiny-schema-renderer render.js 的 newFn。
+ */
+export function newFn(...argv: string[]) {
+  const Fn = getCustomSettings().Function ?? DEFAULT_RENDERER_SETTINGS.Function ?? Function;
+  return new Fn(...argv);
+}
 
 export function parseExpression(
   data: { type: string; value: string; params?: string[] },
@@ -13,8 +22,8 @@ export function parseExpression(
   try {
     const mergeScope: Record<string, unknown> = { ...ctx, ...scope, slotScope: scope };
     let expression = data.value;
-    if (isJsx && getRendererSettings().transformJSX) {
-      expression = getRendererSettings().transformJSX!(data.value);
+    if (isJsx && getCustomSettings().transformJSX) {
+      expression = getCustomSettings().transformJSX!(data.value);
     }
     let params: Record<string, unknown> = {};
     if (data.params?.length) {
@@ -29,7 +38,7 @@ export function parseExpression(
       ...params,
     });
   } catch {
-    if (!isJsx && getRendererSettings().transformJSX) {
+    if (!isJsx && getCustomSettings().transformJSX) {
       return parseExpression(data, scope, ctx, true);
     }
     return undefined;

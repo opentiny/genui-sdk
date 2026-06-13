@@ -11,7 +11,6 @@
               {
                 "label": { "zh_CN": "基础属性" },
                 "content": [
-                  { "property": "text", "type": "string", "defaultValue": "按钮", "description": { "zh_CN": "按钮文字" } },
                   { "property": "type", "type": "string", "defaultValue": "default", "description": { "zh_CN": "类型：primary、default、dashed、link、text" } },
                   { "property": "size", "type": "string", "defaultValue": "middle", "description": { "zh_CN": "尺寸：small、middle、large" } },
                   { "property": "disabled", "type": "boolean", "defaultValue": false },

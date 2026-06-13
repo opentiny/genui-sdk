@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseData, parseCondition } from '../src/engine';
+import { parseData, parseCondition } from '@opentiny/tiny-schema-renderer-react';
 
 describe('parseData', () => {
   const ctx = {

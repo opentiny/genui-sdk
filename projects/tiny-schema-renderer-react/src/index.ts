@@ -1,6 +1,7 @@
 // 基础渲染器（default 对齐 Vue tiny-schema-renderer 的 default export）
 export { SchemaRenderer } from './Renderer';
 export { default } from './Renderer';
+export type { SchemaRendererHandle, SchemaRendererProps } from './Renderer';
 
 // 上下文
 export {
@@ -11,24 +12,26 @@ export {
 } from './context';
 export type { PageContextStore, PageCustomActions, PageContextProviderProps } from './context';
 
-// 类型
+// 物料工具
+export {
+  defineMaterials,
+  getMaterials,
+  setMaterials,
+  mergeMaterials,
+  getResolvedMaterials,
+} from './materials';
 export type {
+  MaterialComponent,
   ComponentRenderProps,
   ComponentRenderer,
   ComponentRegistry,
-  SchemaRendererHandle,
-  SchemaRendererProps,
-} from './types';
-
-// 注册表 & 物料工具
-export { defineRegistry, mergeRegistry } from './define-registry';
-export { defineMaterials, getMaterials, setMaterials } from './materials';
+} from './materials';
 
 // Engine（公开供外部扩展）
 export * from './engine';
 
-// Builtin 组件 & 注册表
-export { builtinRegistry, isHtmlTag } from './builtin';
+// Builtin 组件 & 内置物料
+export { builtinMaterials, isHtmlTag } from './builtin';
 export { Box } from './builtin/Box';
 export type { BoxProps } from './builtin/Box';
 export { Text } from './builtin/Text';

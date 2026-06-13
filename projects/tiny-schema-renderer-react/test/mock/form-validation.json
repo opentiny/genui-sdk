@@ -14,7 +14,7 @@
   "methods": {
     "handleSubmit": {
       "type": "JSFunction",
-      "value": "function handleSubmit() { this.refs.formRef.validateFields().then((values) => { this.state.formData = values; this.state.submitResult = '提交成功：\\n' + JSON.stringify(values, null, 2); console.log('表单提交:', values); }).catch((err) => { console.log('校验失败:', err); }); }"
+      "value": "function handleSubmit() { console.log(this.state.formData); this.refs.formRef.validateFields().then((values) => { this.state.formData = values; this.state.submitResult = '提交成功：\\n' + JSON.stringify(values, null, 2); console.log('表单提交:', values); }).catch((err) => { console.log('校验失败:', err); }); }"
     },
     "handleReset": {
       "type": "JSFunction",
@@ -25,7 +25,7 @@
     {
       "componentName": "AntCard",
       "props": {
-        "title": "员工信息表单（ref 主动校验）",
+        "title": "员工信息表单（state 双向绑定 + ref 校验）",
         "style": "max-width: 520px; margin: 0 auto;"
       },
       "children": [
@@ -54,7 +54,12 @@
                 {
                   "componentName": "AntInput",
                   "props": {
-                    "placeholder": "请输入姓名"
+                    "placeholder": "请输入姓名",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.name"
+                    }
                   }
                 }
               ]
@@ -73,7 +78,13 @@
                 {
                   "componentName": "AntInput",
                   "props": {
-                    "placeholder": "请输入邮箱"
+                    "type": "email",
+                    "placeholder": "请输入邮箱",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.email"
+                    }
                   }
                 }
               ]
@@ -92,7 +103,12 @@
                 {
                   "componentName": "AntInput",
                   "props": {
-                    "placeholder": "请输入手机号"
+                    "placeholder": "请输入手机号",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.phone"
+                    }
                   }
                 }
               ]

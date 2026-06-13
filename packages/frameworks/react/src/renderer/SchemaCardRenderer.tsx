@@ -13,7 +13,7 @@ import { SchemaRenderer } from '@opentiny/tiny-schema-renderer-react';
 import { PageContextProvider } from '@opentiny/tiny-schema-renderer-react';
 import type { SchemaRendererHandle } from '@opentiny/tiny-schema-renderer-react';
 import { RendererContext } from './RendererContext';
-import { useGenuiMaterials } from './MaterialsContext';
+import { useGenuiMaterials } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
 

@@ -1,7 +1,17 @@
-import { newFn } from './new-fn';
 import { getRuntimeCtx } from './context-runtime';
-import { parseExpression, isJSExpression } from './parse-expression';
-import type { PageContextValue } from './types';
+import { parseExpression, isJSExpression, newFn } from './parse-expression';
+
+export type PageContextValue = Record<string, unknown> & {
+  state?: Record<string, unknown>;
+  refs?: Record<string, unknown>;
+  methods?: Record<string, (...args: unknown[]) => unknown>;
+  cssScopeId?: string;
+  callAction?: (name: string, params?: unknown) => unknown;
+  /** 内部：model 绑定写入 state 后触发重渲染 */
+  __pageNotify?: () => void;
+  /** 内部：函数执行时获取最新 context（避免闭包捕获过期 callAction/state） */
+  __getContext?: () => PageContextValue;
+};
 
 const JS_EXPRESSION = 'JSExpression';
 const JS_FUNCTION = 'JSFunction';
@@ -105,8 +115,15 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
   );
 
   if (modelKey && modelExpr && !hasUpdate) {
-    const updateKey =
-      modelKey === 'modelValue' ? 'onChange' : `onUpdate:${modelKey}`;
+    // Vue 协议用 modelValue；React 受控组件用 value + onChange
+    if (modelKey === 'modelValue') {
+      if (res.value === undefined) {
+        res.value = res.modelValue;
+      }
+      delete res.modelValue;
+    }
+
+    const useOnChange = modelKey === 'modelValue' || modelKey === 'value';
     const rawHandler = parseData(
       {
         type: JS_FUNCTION,
@@ -121,7 +138,7 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
         rawHandler(v);
         getRuntimeCtx(ctx).__pageNotify?.();
       };
-      if (modelKey === 'modelValue') {
+      if (useOnChange) {
         res.onChange = (e: unknown) => {
           const val =
             e && typeof e === 'object' && 'target' in e
@@ -130,13 +147,8 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
           handler(val);
         };
       } else {
-        res[updateKey] = handler;
+        res[`onUpdate:${modelKey}`] = handler;
       }
-    }
-
-    if (modelKey === 'modelValue' && res.modelValue !== undefined && res.value === undefined) {
-      res.value = res.modelValue;
-      delete res.modelValue;
     }
   }
 

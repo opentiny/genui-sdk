@@ -221,7 +221,7 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: ^20.3.10
-        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       '@angular/cli':
         specifier: ^20.3.10
         version: 20.3.13(@types/node@25.5.0)(chokidar@4.0.3)
@@ -293,16 +293,16 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^6.0.0
-        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
       vite-jsconfig-paths:
         specifier: ^2.0.1
-        version: 2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       vite-plugin-dts:
         specifier: ^4.0.0
-        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       vite-plugin-static-copy:
         specifier: ^3.1.2
-        version: 3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -864,7 +864,7 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: ^20.3.10
-        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
+        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
       '@angular/cli':
         specifier: ^20.3.10
         version: 20.3.13(@types/node@25.5.0)(chokidar@4.0.3)
@@ -1045,6 +1045,9 @@ importers:
       '@opentiny/genui-sdk-react':
         specifier: workspace:*
         version: link:../../../packages/frameworks/react
+      '@opentiny/tiny-schema-renderer-react':
+        specifier: workspace:*
+        version: link:../../../projects/tiny-schema-renderer-react
       antd:
         specifier: ^5.24.0
         version: 5.29.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -1185,9 +1188,15 @@ importers:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../../packages/core
+      '@opentiny/genui-sdk-materials-react-antd':
+        specifier: workspace:*
+        version: link:../../../packages/materials/react-antd
       '@opentiny/genui-sdk-materials-vue-opentiny-vue':
         specifier: workspace:*
         version: link:../../../packages/materials/vue-opentiny-vue
+      '@opentiny/genui-sdk-react':
+        specifier: workspace:*
+        version: link:../../../packages/frameworks/react
       '@opentiny/genui-sdk-vue':
         specifier: workspace:*
         version: link:../../../packages/frameworks/vue
@@ -21415,13 +21424,13 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-jsconfig-paths@2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+  vite-jsconfig-paths@2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       debug: 4.4.3
       globrex: 0.1.2
       recrawl-sync: 2.2.3
       tsconfig-paths: 3.15.0
-      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -21538,6 +21547,25 @@ snapshots:
       - rollup
       - supports-color
 
+  vite-plugin-dts@4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      '@microsoft/api-extractor': 7.55.2(@types/node@25.5.0)
+      '@rollup/pluginutils': 5.3.0(rollup@4.54.0)
+      '@volar/typescript': 2.4.27
+      '@vue/language-core': 2.2.0(typescript@5.9.3)
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.9.3
+    optionalDependencies:
+      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
+
   vite-plugin-dts@4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       '@microsoft/api-extractor': 7.55.2(@types/node@25.5.0)
@@ -21594,13 +21622,13 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  vite-plugin-static-copy@3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+  vite-plugin-static-copy@3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       chokidar: 3.6.0
       p-map: 7.0.4
       picocolors: 1.1.1
       tinyglobby: 0.2.15
-      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
 
   vite-plugin-static-copy@3.1.4(vite@7.3.0(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
@@ -21635,6 +21663,22 @@ snapshots:
       fsevents: 2.3.3
       less: 4.5.1
       sass: 1.97.1
+      terser: 5.44.1
+      tsx: 4.21.0
+
+  vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0):
+    dependencies:
+      esbuild: 0.25.12
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.54.0
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 25.5.0
+      fsevents: 2.3.3
+      less: 4.5.1
+      sass: 1.90.0
       terser: 5.44.1
       tsx: 4.21.0
 

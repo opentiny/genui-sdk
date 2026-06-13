@@ -1,7 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseData } from '../src/engine';
-import { getRuntimeCtx } from '../src/engine/context-runtime';
-import type { PageContextValue } from '../src/engine/types';
+import { parseData, type PageContextValue } from '@opentiny/tiny-schema-renderer-react';
 
 describe('model input binding', () => {
   it('updates state and notifies on input change', () => {
@@ -37,7 +35,7 @@ describe('model input binding', () => {
     expect(context.state?.formData).toEqual({ name: 'a' });
     expect(notifyCount).toBe(1);
 
-    const nextCtx = getRuntimeCtx(context);
+    const nextCtx = context.__getContext?.() ?? context;
     const nextProps = parseData(
       {
         modelValue: {

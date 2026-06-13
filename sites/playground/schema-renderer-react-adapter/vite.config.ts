@@ -10,7 +10,13 @@ export default defineConfig({
       fileName: 'index',
     },
     rollupOptions: {
-      external: ['vue', 'react', 'react-dom', '@opentiny/genui-sdk-react'],
+      external: [
+        'vue',
+        'react',
+        'react-dom',
+        '@opentiny/genui-sdk-react',
+        '@opentiny/tiny-schema-renderer-react',
+      ],
     },
   },
 });

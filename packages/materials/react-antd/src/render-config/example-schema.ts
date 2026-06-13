@@ -87,12 +87,12 @@ export const antdFormExample = {
                   componentName: 'AntButton',
                   props: {
                     type: 'primary',
-                    text: 'Submit',
                     onClick: {
                       type: 'JSFunction',
                       value: 'function() { this.handleSubmit(); }',
                     },
                   },
+                  children: [{ componentName: 'Text', props: { text: 'Submit' } }],
                 },
               ],
             },

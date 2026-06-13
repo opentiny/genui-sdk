@@ -9,8 +9,8 @@ import {
 import { parseData } from './engine';
 import type { CardSchema } from '@opentiny/genui-sdk-core';
 import type { PageContextValue } from './engine';
-import type { RendererSettings } from './engine';
-import { setRendererSettings } from './engine';
+import type { IRendererSettings } from './engine';
+import { setCustomSettings } from './engine';
 
 export type PageContextStore = {
   getContext: () => PageContextValue;
@@ -19,12 +19,119 @@ export type PageContextStore = {
   subscribe: (listener: () => void) => () => void;
 };
 
+type CreatePageContextStoreOptions = {
+  initialContext?: Partial<PageContextValue>;
+  getCustomActions?: () => PageCustomActions | undefined;
+  onNotify?: () => void;
+};
+
+/**
+ * 创建页面上下文 store，供 Provider 与无 Provider 时的默认实例复用。
+ */
+function createPageContextStore(options: CreatePageContextStoreOptions = {}): PageContextStore {
+  const { initialContext, getCustomActions, onNotify } = options;
+  let contextValue: PageContextValue = {
+    state: {},
+    refs: {},
+    methods: {},
+    cssScopeId: `data-schema-${Math.random().toString(36).slice(2, 8)}`,
+    ...initialContext,
+  };
+  const listeners = new Set<() => void>();
+  let callActionImpl: NonNullable<PageContextValue['callAction']> | undefined;
+  let notify: () => void;
+
+  const attachInternals = (ctx: PageContextValue): PageContextValue => {
+    ctx.__getContext = () => contextValue;
+    ctx.__pageNotify = () => notify();
+    ctx.callAction = ((actionName: string, params?: unknown) => {
+      if (typeof callActionImpl === 'function') {
+        return callActionImpl(actionName, params);
+      }
+      const action = getCustomActions?.()?.[actionName];
+      if (!action) {
+        console.warn(`Action ${actionName} not found`);
+        return undefined;
+      }
+      return action.execute(params, contextValue as Record<string, unknown>);
+    }) as NonNullable<PageContextValue['callAction']>;
+    return ctx;
+  };
+
+  notify = () => {
+    contextValue = attachInternals({ ...contextValue });
+    onNotify?.();
+    listeners.forEach((listener) => listener());
+  };
+
+  const applyContextPatch = (ctx: Partial<PageContextValue>, clear?: boolean) => {
+    if (typeof ctx.callAction === 'function') {
+      callActionImpl = ctx.callAction;
+    }
+    const { callAction: _ignored, ...rest } = ctx;
+
+    if (clear) {
+      const keep = {
+        cssScopeId: contextValue.cssScopeId,
+        cardId: contextValue.cardId,
+        customContext: contextValue.customContext,
+      };
+      contextValue = attachInternals({
+        state: {},
+        refs: {},
+        methods: {},
+        ...keep,
+        ...rest,
+      });
+    } else {
+      Object.assign(contextValue, rest);
+      attachInternals(contextValue);
+    }
+    notify();
+  };
+
+  attachInternals(contextValue);
+
+  return {
+    getContext: () => contextValue,
+    setContext: (ctx, clear) => {
+      applyContextPatch(ctx, clear);
+    },
+    setState: (data, clear) => {
+      if (clear) contextValue.state = {};
+      Object.assign(
+        contextValue.state!,
+        (parseData(data, {}, contextValue) as Record<string, unknown>) || {},
+      );
+      notify();
+    },
+    subscribe: (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+  };
+}
+
+let defaultPageContextStore: PageContextStore | null = null;
+
+/**
+ * 无 PageContextProvider 时使用的默认 store（如单独挂载 SchemaRenderer）。
+ */
+function getDefaultPageContextStore(): PageContextStore {
+  if (!defaultPageContextStore) {
+    defaultPageContextStore = createPageContextStore();
+  }
+  return defaultPageContextStore;
+}
+
 const PageContext = createContext<PageContextStore | null>(null);
 
+/**
+ * 读取页面上下文 store；未包裹 Provider 时回退到模块级默认 store，不抛错。
+ */
 export function usePageContextStore(): PageContextStore {
   const store = useContext(PageContext);
-  if (!store) throw new Error('usePageContextStore must be used within PageContextProvider');
-  return store;
+  return store ?? getDefaultPageContextStore();
 }
 
 export function usePageContext(): PageContextValue {
@@ -40,7 +147,7 @@ export type PageCustomActions = Record<
 export interface PageContextProviderProps {
   children: ReactNode;
   /** 渲染器全局配置，可通过 materials 字段注入外部物料组件表 */
-  settings?: RendererSettings;
+  settings?: IRendererSettings;
   initialContext?: Partial<PageContextValue>;
   /** 同步注入，避免 useEffect / initPageFromSchema 时序导致 callAction 尚未就绪 */
   customActions?: PageCustomActions;
@@ -52,95 +159,19 @@ export function PageContextProvider({
   initialContext,
   customActions,
 }: PageContextProviderProps) {
-  if (settings) setRendererSettings(settings);
+  if (settings) setCustomSettings(settings);
 
   const [, bump] = useState(0);
-  const contextRef = useRef<PageContextValue>({
-    state: {},
-    refs: {},
-    methods: {},
-    cssScopeId: `data-schema-${Math.random().toString(36).slice(2, 8)}`,
-    ...initialContext,
-  });
-  const listenersRef = useRef(new Set<() => void>());
-  const callActionImplRef = useRef<NonNullable<PageContextValue['callAction']>>();
   const customActionsRef = useRef(customActions);
   customActionsRef.current = customActions;
 
-  const attachInternals = (ctx: PageContextValue): PageContextValue => {
-    ctx.__getContext = () => contextRef.current;
-    ctx.__pageNotify = notify;
-    // 稳定代理：优先 setContext 注入；否则直接读 customActions（不依赖 useEffect 时序）
-    ctx.callAction = ((actionName: string, params?: unknown) => {
-      const injected = callActionImplRef.current;
-      if (typeof injected === 'function') {
-        return injected(actionName, params);
-      }
-      const action = customActionsRef.current?.[actionName];
-      if (!action) {
-        console.warn(`Action ${actionName} not found`);
-        return undefined;
-      }
-      return action.execute(params, contextRef.current as Record<string, unknown>);
-    }) as NonNullable<PageContextValue['callAction']>;
-    return ctx;
-  };
-
-  const applyContextPatch = (ctx: Partial<PageContextValue>, clear?: boolean) => {
-    if (typeof ctx.callAction === 'function') {
-      callActionImplRef.current = ctx.callAction;
-    }
-    const { callAction: _ignored, ...rest } = ctx;
-
-    if (clear) {
-      const keep = {
-        cssScopeId: contextRef.current.cssScopeId,
-        cardId: contextRef.current.cardId,
-        customContext: contextRef.current.customContext,
-      };
-      contextRef.current = attachInternals({
-        state: {},
-        refs: {},
-        methods: {},
-        ...keep,
-        ...rest,
-      });
-    } else {
-      Object.assign(contextRef.current, rest);
-      attachInternals(contextRef.current);
-    }
-    notify();
-  };
-
-  const notify = () => {
-    // useSyncExternalStore 用 Object.is 比较快照；原地改 state 时必须换新引用才会触发重渲染
-    contextRef.current = attachInternals({ ...contextRef.current });
-    bump((v) => v + 1);
-    listenersRef.current.forEach((l) => l());
-  };
-
-  attachInternals(contextRef.current);
-
   const storeRef = useRef<PageContextStore | null>(null);
   if (!storeRef.current) {
-    storeRef.current = {
-      getContext: () => contextRef.current,
-      setContext: (ctx, clear) => {
-        applyContextPatch(ctx, clear);
-      },
-      setState: (data, clear) => {
-        if (clear) contextRef.current.state = {};
-        Object.assign(
-          contextRef.current.state!,
-          (parseData(data, {}, contextRef.current) as Record<string, unknown>) || {},
-        );
-        notify();
-      },
-      subscribe: (listener) => {
-        listenersRef.current.add(listener);
-        return () => listenersRef.current.delete(listener);
-      },
-    };
+    storeRef.current = createPageContextStore({
+      initialContext,
+      getCustomActions: () => customActionsRef.current,
+      onNotify: () => bump((v) => v + 1),
+    });
   }
 
   return <PageContext.Provider value={storeRef.current}>{children}</PageContext.Provider>;

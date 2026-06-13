@@ -8,11 +8,14 @@ import React, {
 } from 'react';
 import {
   GenuiConfigProvider,
-  PageContextProvider,
-  SchemaRenderer,
-  type GenuiRendererHandle,
+  useGenuiMaterials,
   type ICustomAction,
 } from '@opentiny/genui-sdk-react';
+import {
+  PageContextProvider,
+  SchemaRenderer,
+  type SchemaRendererHandle,
+} from '@opentiny/tiny-schema-renderer-react';
 import { antdMaterials } from '@opentiny/genui-sdk-materials-react-antd/components';
 import type { RootNode } from '@opentiny/genui-sdk-core';
 import 'antd/dist/reset.css';
@@ -28,15 +31,15 @@ export type ReactHostContentProps = {
 
 export type ReactHostHandle = {
   updateProps: (props: ReactHostContentProps) => void;
-  getRendererHandle: () => GenuiRendererHandle | null;
+  getRendererHandle: () => SchemaRendererHandle | null;
   setContext: (ctx: Record<string, unknown>) => void;
 };
 
 const ReactHostRenderer = forwardRef<
-  GenuiRendererHandle,
+  SchemaRendererHandle,
   ReactHostContentProps & { onReady?: () => void }
 >(function ReactHostRenderer({ onReady, ...props }, ref) {
-  const rendererRef = useRef<GenuiRendererHandle | null>(null);
+  const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
   /**
    * 对齐 Vue SchemaCardRenderer：流式属性通过 ref 注入基础渲染器，而非 SchemaRenderer props。
@@ -61,7 +64,7 @@ const ReactHostRenderer = forwardRef<
   }, [props.customActions, props.id, props.state]);
 
   const setRendererRef = useCallback(
-    (instance: GenuiRendererHandle | null) => {
+    (instance: SchemaRendererHandle | null) => {
       rendererRef.current = instance;
       if (typeof ref === 'function') {
         ref(instance);
@@ -86,7 +89,7 @@ const ReactHostRenderer = forwardRef<
 export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContentProps }>(
   function ReactHost({ initial }, ref) {
     const [props, setProps] = useState(initial);
-    const rendererRef = useRef<GenuiRendererHandle | null>(null);
+    const rendererRef = useRef<SchemaRendererHandle | null>(null);
     const pendingContextRef = useRef<Record<string, unknown>>({});
 
     const flushPendingContext = () => {
@@ -106,21 +109,38 @@ export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContent
 
     return (
       <GenuiConfigProvider materials={antdMaterials}>
-        <PageContextProvider
-          customActions={props.customActions}
-          settings={{ materials: antdMaterials }}
-        >
-          <div className="schema-render-container">
-            <ReactHostRenderer
-              ref={(instance) => {
-                rendererRef.current = instance;
-                flushPendingContext();
-              }}
-              {...props}
-            />
-          </div>
-        </PageContextProvider>
+        <ReactHostWithMaterials
+          props={props}
+          rendererRef={rendererRef}
+          flushPendingContext={flushPendingContext}
+        />
       </GenuiConfigProvider>
     );
   },
 );
+
+function ReactHostWithMaterials({
+  props,
+  rendererRef,
+  flushPendingContext,
+}: {
+  props: ReactHostContentProps;
+  rendererRef: React.MutableRefObject<SchemaRendererHandle | null>;
+  flushPendingContext: () => void;
+}) {
+  const materials = useGenuiMaterials();
+
+  return (
+    <PageContextProvider settings={{ materials }} customActions={props.customActions}>
+      <div className="schema-render-container">
+        <ReactHostRenderer
+          ref={(instance) => {
+            rendererRef.current = instance;
+            flushPendingContext();
+          }}
+          {...props}
+        />
+      </div>
+    </PageContextProvider>
+  );
+}

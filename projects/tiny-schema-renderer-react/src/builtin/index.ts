@@ -5,4 +5,4 @@ export * from './Img';
 export * from './Button';
 export * from './Input';
 export * from './Slot';
-export { builtinRegistry } from './builtin-registry';
+export { builtinMaterials } from './builtin-materials';
