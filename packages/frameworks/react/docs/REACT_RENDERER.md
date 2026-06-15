@@ -20,7 +20,7 @@ Playground ?framework=react：Vue SchemaCardRenderer 已做流式合并，适配
 
 ```tsx
 import { GenuiRenderer } from '@opentiny/genui-sdk-react';
-import { nativeFormExample } from '@opentiny/genui-sdk-react/render-config';
+import { nativeFormExample } from '@opentiny/genui-sdk-materials-react-antd/render-config';
 
 <GenuiRenderer content={nativeFormExample} isJsonComplete />;
 ```
@@ -47,15 +47,15 @@ const registry = mergeRegistry(builtinRegistry, {
 
 已有完整 schema 对象、不需要流式修补时，直接用 `SchemaRenderer`；字符串/增量 JSON 用 `GenuiRenderer` 或 `SchemaCardRenderer`。
 
-## LLM Prompt（原生 HTML 白名单）
+## LLM Prompt
 
-`reactRendererConfig`（`render-config` 入口）仅允许原生 HTML 与 builtin 别名，禁止 `Tiny*` 组件。
+`reactAntdRendererConfig`（`@opentiny/genui-sdk-materials-react-antd/render-config`）包含 builtin 原生 HTML 与 antd 组件白名单。
 
 服务端示例：
 
 ```ts
-import { reactRendererConfig } from '@opentiny/genui-sdk-react/render-config';
-genPrompt(reactRendererConfig, customConfig);
+import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
+genPrompt(reactAntdRendererConfig, customConfig);
 ```
 
 ## 与 Vue / json-render 的差异

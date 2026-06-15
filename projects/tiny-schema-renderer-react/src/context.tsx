@@ -7,33 +7,32 @@ import {
   type ReactNode,
 } from 'react';
 import { parseData } from './engine';
-import { getPageLifeCycleFns, type LifeCycleFn } from './life-cycles';
+import { getPageLifeCycleFns, type LifeCycleFn, type LifeCycles } from './life-cycles';
 import type { CardSchema } from '@opentiny/genui-sdk-core';
 import type { PageContextValue } from './engine';
 import type { IRendererSettings } from './engine';
 import { setCustomSettings } from './engine';
 
-export type PageContextStore = {
+export type RendererContextStore = {
   getContext: () => PageContextValue;
   setContext: (ctx: Partial<PageContextValue>, clear?: boolean) => void;
   setState: (data: Record<string, unknown>, clear?: boolean) => void;
   subscribe: (listener: () => void) => () => void;
   invokePageOnUnmounted: () => Promise<void>;
   runPendingOnMounted: () => Promise<void>;
-  schedulePageLifeCycles: (lifeCycles: unknown) => void;
+  schedulePageLifeCycles: (lifeCycles: LifeCycles | null | undefined) => void;
 };
 
-type CreatePageContextStoreOptions = {
+type CreateRendererContextStoreOptions = {
   initialContext?: Partial<PageContextValue>;
-  getCustomActions?: () => PageCustomActions | undefined;
   onNotify?: () => void;
 };
 
 /**
- * 创建页面上下文 store，供 Provider 与无 Provider 时的默认实例复用。
+ * 创建渲染器上下文 store，供 Provider 与无 Provider 时的默认实例复用。
  */
-function createPageContextStore(options: CreatePageContextStoreOptions = {}): PageContextStore {
-  const { initialContext, getCustomActions, onNotify } = options;
+function createRendererContextStore(options: CreateRendererContextStoreOptions = {}): RendererContextStore {
+  const { initialContext, onNotify } = options;
   let contextValue: PageContextValue = {
     state: {},
     refs: {},
@@ -70,7 +69,7 @@ function createPageContextStore(options: CreatePageContextStoreOptions = {}): Pa
     }
   };
 
-  const schedulePageLifeCycles = (lifeCycles: unknown) => {
+  const schedulePageLifeCycles = (lifeCycles: LifeCycles | null | undefined) => {
     const { onMounted, onUnmounted } = getPageLifeCycleFns(lifeCycles, () => contextValue);
     pageOnUnmounted = onUnmounted;
     pendingOnMounted = onMounted;
@@ -83,12 +82,8 @@ function createPageContextStore(options: CreatePageContextStoreOptions = {}): Pa
       if (typeof callActionImpl === 'function') {
         return callActionImpl(actionName, params);
       }
-      const action = getCustomActions?.()?.[actionName];
-      if (!action) {
-        console.warn(`Action ${actionName} not found`);
-        return undefined;
-      }
-      return action.execute(params, contextValue as Record<string, unknown>);
+      console.warn(`Action ${actionName} not found`);
+      return undefined;
     }) as NonNullable<PageContextValue['callAction']>;
     return ctx;
   };
@@ -150,72 +145,67 @@ function createPageContextStore(options: CreatePageContextStoreOptions = {}): Pa
   };
 }
 
-let defaultPageContextStore: PageContextStore | null = null;
+let defaultRendererContextStore: RendererContextStore | null = null;
 
 /**
- * 无 PageContextProvider 时使用的默认 store（如单独挂载 SchemaRenderer）。
+ * 无 RendererContextProvider 时使用的默认 store（如单独挂载 SchemaRenderer）。
  */
-function getDefaultPageContextStore(): PageContextStore {
-  if (!defaultPageContextStore) {
-    defaultPageContextStore = createPageContextStore();
+function getDefaultRendererContextStore(): RendererContextStore {
+  if (!defaultRendererContextStore) {
+    defaultRendererContextStore = createRendererContextStore();
   }
-  return defaultPageContextStore;
+  return defaultRendererContextStore;
 }
 
-const PageContext = createContext<PageContextStore | null>(null);
+const RendererStoreContext = createContext<RendererContextStore | null>(null);
 
 /**
- * 读取页面上下文 store；未包裹 Provider 时回退到模块级默认 store，不抛错。
+ * 读取渲染器上下文 store；未包裹 Provider 时回退到模块级默认 store，不抛错。
  */
-export function usePageContextStore(): PageContextStore {
-  const store = useContext(PageContext);
-  return store ?? getDefaultPageContextStore();
+export function useRendererContextStore(): RendererContextStore {
+  const store = useContext(RendererStoreContext);
+  return store ?? getDefaultRendererContextStore();
 }
 
-export function usePageContext(): PageContextValue {
-  const store = usePageContextStore();
+/**
+ * 订阅当前页面运行时上下文（state / methods / refs 等）。
+ */
+export function useRendererContext(): PageContextValue {
+  const store = useRendererContextStore();
   return useSyncExternalStore(store.subscribe, store.getContext, store.getContext);
 }
 
-export type PageCustomActions = Record<
-  string,
-  { execute: (params: unknown, context: Record<string, unknown>) => unknown }
->;
-
-export interface PageContextProviderProps {
+export interface RendererContextProviderProps {
   children: ReactNode;
-  /** 渲染器全局配置，可通过 materials 字段注入外部物料组件表 */
-  settings?: IRendererSettings;
+  /** 渲染器全局配置（materials、Function 等） */
+  'render-settings'?: IRendererSettings;
   initialContext?: Partial<PageContextValue>;
-  /** 同步注入，避免 useEffect / initPageFromSchema 时序导致 callAction 尚未就绪 */
-  customActions?: PageCustomActions;
 }
 
-export function PageContextProvider({
+/**
+ * 包裹 SchemaRenderer，注入渲染器 settings 与页面上下文 store。
+ */
+export function RendererContextProvider({
   children,
-  settings,
+  'render-settings': renderSettings,
   initialContext,
-  customActions,
-}: PageContextProviderProps) {
-  if (settings) setCustomSettings(settings);
+}: RendererContextProviderProps) {
+  if (renderSettings) setCustomSettings(renderSettings);
 
   const [, bump] = useState(0);
-  const customActionsRef = useRef(customActions);
-  customActionsRef.current = customActions;
 
-  const storeRef = useRef<PageContextStore | null>(null);
+  const storeRef = useRef<RendererContextStore | null>(null);
   if (!storeRef.current) {
-    storeRef.current = createPageContextStore({
+    storeRef.current = createRendererContextStore({
       initialContext,
-      getCustomActions: () => customActionsRef.current,
       onNotify: () => bump((v) => v + 1),
     });
   }
 
-  return <PageContext.Provider value={storeRef.current}>{children}</PageContext.Provider>;
+  return <RendererStoreContext.Provider value={storeRef.current}>{children}</RendererStoreContext.Provider>;
 }
 
-export function initPageFromSchema(schema: CardSchema, store: PageContextStore) {
+export function initPageFromSchema(schema: CardSchema, store: RendererContextStore) {
   const current = store.getContext();
   const preserved = {
     cssScopeId: current.cssScopeId,
@@ -236,7 +226,7 @@ export function initPageFromSchema(schema: CardSchema, store: PageContextStore) 
         return result;
       };
     });
-    // 与 Vue tiny-schema-renderer 一致：methods 同时挂到 context 根上，schema 里可写 this.handleSubmit()
+    // methods 同时挂到 context 根上，schema 里可写 this.handleSubmit()
     store.setContext({ methods, ...methods });
   }
   if (schema.state) {
@@ -258,5 +248,5 @@ export function initPageFromSchema(schema: CardSchema, store: PageContextStore) 
     }
     el.textContent = schema.css;
   }
-  store.schedulePageLifeCycles(schema.lifeCycles);
+  store.schedulePageLifeCycles(schema.lifeCycles as LifeCycles | undefined);
 }

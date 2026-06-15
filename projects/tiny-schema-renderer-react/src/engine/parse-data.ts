@@ -115,7 +115,7 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
   );
 
   if (modelKey && modelExpr && !hasUpdate) {
-    // Vue 协议用 modelValue；React 受控组件用 value + onChange
+    // schema 协议用 modelValue；React 受控组件用 value + onChange
     if (modelKey === 'modelValue') {
       if (res.value === undefined) {
         res.value = res.modelValue;

@@ -12,7 +12,7 @@ import {
   type ICustomAction,
 } from '@opentiny/genui-sdk-react';
 import {
-  PageContextProvider,
+  RendererContextProvider,
   SchemaRenderer,
   type SchemaRendererHandle,
 } from '@opentiny/tiny-schema-renderer-react';
@@ -42,7 +42,7 @@ const ReactHostRenderer = forwardRef<
   const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
   /**
-   * 对齐 Vue SchemaCardRenderer：流式属性通过 ref 注入基础渲染器，而非 SchemaRenderer props。
+   * 流式属性通过 ref 注入基础渲染器，而非 SchemaRenderer props。
    */
   const updateContextAndState = useCallback(() => {
     const instance = rendererRef.current;
@@ -131,7 +131,7 @@ function ReactHostWithMaterials({
   const materials = useGenuiMaterials();
 
   return (
-    <PageContextProvider settings={{ materials }} customActions={props.customActions}>
+    <RendererContextProvider render-settings={{ materials }}>
       <div className="schema-render-container">
         <ReactHostRenderer
           ref={(instance) => {
@@ -141,6 +141,6 @@ function ReactHostWithMaterials({
           {...props}
         />
       </div>
-    </PageContextProvider>
+    </RendererContextProvider>
   );
 }

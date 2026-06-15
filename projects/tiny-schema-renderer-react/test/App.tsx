@@ -1,11 +1,10 @@
 import { useState } from 'react';
-import { PageContextProvider, SchemaRenderer } from '../src';
+import { RendererContextProvider, SchemaRenderer } from '../src';
+import { antdMaterials } from '@opentiny/genui-sdk-materials-react-antd/components';
 import { demos } from './mock';
-import { testMaterials } from './materials';
 
 /**
  * 测试应用根组件，提供示例切换与 Schema 渲染。
- * 物料通过 PageContextProvider.settings 外部注入，渲染器核心不依赖具体 UI 库。
  */
 export function App() {
   const [activeId, setActiveId] = useState(demos[0].id);
@@ -29,9 +28,9 @@ export function App() {
         </nav>
       </header>
       <main className="app-content">
-        <PageContextProvider settings={testMaterials}>
+        <RendererContextProvider render-settings={{ materials: antdMaterials }}>
           <SchemaRenderer schema={current.schema} />
-        </PageContextProvider>
+        </RendererContextProvider>
       </main>
     </>
   );

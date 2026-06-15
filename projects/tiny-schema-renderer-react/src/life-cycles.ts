@@ -42,7 +42,7 @@ function parseLifeCycleFn(
 }
 
 /**
- * 从页面 schema 解析 onMounted / onUnmounted，对齐 Vue tiny-schema-renderer lifeCycles。
+ * 从页面 schema 解析 onMounted / onUnmounted。
  *
  * @param lifeCycles - 页面 schema.lifeCycles
  * @param getContext - 获取当前页面上下文

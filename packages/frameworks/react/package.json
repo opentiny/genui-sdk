@@ -5,23 +5,19 @@
   "author": "OpenTiny Team",
   "license": "MIT",
   "type": "module",
-  "main": "output/dist/index.js",
-  "types": "output/dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./output/dist/index.d.ts",
-      "import": "./output/dist/index.js"
-    },
-    "./render-config": {
-      "types": "./output/dist/render-config.d.ts",
-      "import": "./output/dist/render-config.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./renderer": {
-      "types": "./output/dist/renderer.d.ts",
-      "import": "./output/dist/renderer.js"
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.js"
     }
   },
-  "files": ["output/dist", "README.md"],
+  "files": ["dist", "README.md"],
   "scripts": {
     "build": "vite build",
     "test": "vitest run",

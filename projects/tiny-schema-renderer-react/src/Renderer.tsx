@@ -2,7 +2,7 @@ import { forwardRef, useEffect, useImperativeHandle } from 'react';
 import type { RootNode } from '@opentiny/genui-sdk-core';
 import { setDefaultSlotRenderer } from './engine';
 import type { Node } from './engine';
-import { initPageFromSchema, usePageContextStore } from './context';
+import { initPageFromSchema, useRendererContextStore } from './context';
 import { SchemaNodeRenderer, normalizeChildren } from './SchemaNodeRenderer';
 
 export interface SchemaRendererHandle {
@@ -11,18 +11,17 @@ export interface SchemaRendererHandle {
   setState: (state: Record<string, unknown>) => void;
 }
 
-/** 基础渲染器 props，对齐 Vue tiny-schema-renderer RenderMain（仅 schema）。 */
 export interface SchemaRendererProps {
   schema: RootNode | null;
 }
 
 /**
- * 基础 Schema 渲染器，对齐 Vue tiny-schema-renderer RenderMain（仅接收 schema）。
- * 物料通过 PageContextProvider.settings / setMaterials 注入；流式属性由 SchemaCardRenderer 处理。
+ * 基础 Schema 渲染器，仅接收 schema。
+ * 物料通过 RendererContextProvider render-settings / setMaterials 注入；流式属性由 SchemaCardRenderer 处理。
  */
 export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(
   function SchemaRenderer({ schema }, ref) {
-    const store = usePageContextStore();
+    const store = useRendererContextStore();
 
     useImperativeHandle(ref, () => ({
       setContext: (ctx) => store.setContext(ctx),
@@ -90,5 +89,4 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   },
 );
 
-/** 默认导出，对齐 Vue 的 tiny-schema-renderer default export */
 export default SchemaRenderer;

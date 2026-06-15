@@ -15,12 +15,11 @@ export default defineConfig({
       entry: {
         index: path.resolve(__dirname, './src/index.ts'),
         renderer: path.resolve(__dirname, './src/renderer/index.ts'),
-        'render-config': path.resolve(__dirname, './src/render-config/index.ts'),
       },
       formats: ['es'],
       fileName: (_, entryName) => `${entryName}.js`,
     },
-    outDir: path.resolve(__dirname, './output/dist'),
+    outDir: path.resolve(__dirname, './dist'),
     rollupOptions: {
       external: [
         'react',

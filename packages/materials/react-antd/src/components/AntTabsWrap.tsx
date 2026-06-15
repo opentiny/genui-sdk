@@ -30,7 +30,6 @@ function normalizeItems(items?: TabItem[]): TabItem[] | undefined {
 
 /**
  * Tabs 流式渲染包装：基于 items 配置子页签，流式新增时自动切到最新 Tab。
- * 对齐 Vue TinyTabsWrap，符合 Ant Design 5 items API。
  */
 export function AntTabsWrap({
   items,

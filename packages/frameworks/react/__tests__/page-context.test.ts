@@ -2,10 +2,10 @@ import { describe, it, expect } from 'vitest';
 import {
   parseData,
   initPageFromSchema,
-  type PageContextStore,
+  type RendererContextStore,
 } from '@opentiny/tiny-schema-renderer-react';
 
-function createMockStore(): PageContextStore {
+function createMockStore(): RendererContextStore {
   let context: Record<string, unknown> = {
     state: {},
     refs: {},
@@ -37,6 +37,9 @@ function createMockStore(): PageContextStore {
       notify();
     },
     subscribe: () => () => {},
+    invokePageOnUnmounted: async () => {},
+    runPendingOnMounted: async () => {},
+    schedulePageLifeCycles: () => {},
   };
 }
 

@@ -71,19 +71,13 @@ packages/materials/react-antd/
 
 ## Prompt 配置：`reactAntdRendererConfig`
 
-[`src/render-config/merge.ts`](src/render-config/merge.ts) 在 React 原生配置基础上扩展，**不替换** HTML 白名单：
+[`src/render-config/merge.ts`](src/render-config/merge.ts) 合并 builtin 原生 HTML 与 antd 物料配置：
 
 ```ts
-import { reactRendererConfig, whiteList as reactWhiteList } from '@opentiny/genui-sdk-react/render-config';
+import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
 
-export const reactAntdRendererConfig = {
-  materialsList: [...reactRendererConfig.materialsList, antdBundle],
-  whiteList: [...reactWhiteList, ...antdWhiteList],
-  examples: [...reactRendererConfig.examples, ...antdExamples],
-};
+genPrompt(reactAntdRendererConfig, customConfig);
 ```
-
-服务端通过 `genPrompt(reactAntdRendererConfig, customConfig)` 生成 system prompt，无需修改 `genPrompt` 源码。
 
 ## 运行时：`antdRegistry`
 

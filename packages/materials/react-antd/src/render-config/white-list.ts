@@ -1,3 +1,5 @@
+import { builtinWhiteList } from './builtin-white-list';
+
 /** Ant Design componentName whitelist for genPrompt */
 export const antdWhiteList = [
   'AntButton',
@@ -14,3 +16,6 @@ export const antdWhiteList = [
   'AntRadio',
   'AntDatePicker',
 ];
+
+/** builtin + antd 完整白名单 */
+export const whiteList = [...builtinWhiteList, ...antdWhiteList];

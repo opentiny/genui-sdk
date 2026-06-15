@@ -6,7 +6,6 @@ const JS_EXPRESSION = 'JSExpression';
 
 /**
  * 动态创建函数，规避 ESLint no-new-func 规则，并从 customSettings 读取 Function 构造器。
- * 对齐 Vue tiny-schema-renderer render.js 的 newFn。
  */
 export function newFn(...argv: string[]) {
   const Fn = getCustomSettings().Function ?? DEFAULT_RENDERER_SETTINGS.Function ?? Function;

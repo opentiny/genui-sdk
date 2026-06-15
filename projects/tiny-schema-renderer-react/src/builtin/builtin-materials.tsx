@@ -11,7 +11,6 @@ function Page({ children }: { children?: ReactNode }) {
   return <div className="genui-page">{children}</div>;
 }
 
-/** 内置物料组件表，对齐 Vue 物料包直接映射 componentName → Component。 */
 export const builtinMaterials: ComponentRegistry = {
   Page,
   Box,

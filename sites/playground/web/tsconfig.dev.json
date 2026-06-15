@@ -42,9 +42,6 @@
       "@opentiny/genui-sdk-react": [
         "../../../packages/frameworks/react/src/index.ts"
       ],
-      "@opentiny/genui-sdk-react/render-config": [
-        "../../../packages/frameworks/react/src/render-config/index.ts"
-      ],
       "@opentiny/tiny-schema-renderer-react": [
         "../../../projects/tiny-schema-renderer-react/src/index.ts"
       ],

@@ -2,7 +2,6 @@ import type { ComponentType, ReactNode } from 'react';
 import { getCustomSettings, setCustomSettings } from './engine/use-custom-setting';
 import { builtinMaterials } from './builtin/builtin-materials';
 
-/** 物料组件，对齐 Vue 物料包 `Record<string, Component>` 的直接映射。 */
 export type MaterialComponent = ComponentType<any>;
 
 export type ComponentRegistry = Record<string, MaterialComponent>;
@@ -18,17 +17,15 @@ export interface ComponentRenderProps<P = Record<string, unknown>> {
 
 /**
  * 获取当前全局注入的物料组件表。
- * 对齐 Vue tiny-schema-renderer 的 getCustomSettings().materials。
  */
 export function getMaterials(): ComponentRegistry {
   return getCustomSettings().materials ?? {};
 }
 
 /**
- * 注入或合并物料组件表，解耦渲染器与具体 UI 库依赖。
- * 对齐 Vue tiny-schema-renderer 的 setCustomSettings({ materials })。
+ * 注入或合并物料组件表；也可通过 RendererContextProvider 的 render-settings={{ materials }} 注入。
  *
- * @param materials - 物料名到渲染器的映射，如 AntForm、TinyButton 等
+ * @param materials - 物料名到组件的映射
  */
 export function setMaterials(materials: ComponentRegistry) {
   if (!materials || typeof materials !== 'object') return;
@@ -55,14 +52,4 @@ export function mergeMaterials(...materialSets: ComponentRegistry[]): ComponentR
  */
 export function getResolvedMaterials(): ComponentRegistry {
   return mergeMaterials(builtinMaterials, getMaterials());
-}
-
-/**
- * 定义一组物料组件，便于物料包统一导出。
- *
- * @param components - 物料组件注册表
- * @returns 包含 materials 字段的对象，可传给 PageContextProvider.settings 或 setMaterials
- */
-export function defineMaterials(components: ComponentRegistry): { materials: ComponentRegistry } {
-  return { materials: components };
 }

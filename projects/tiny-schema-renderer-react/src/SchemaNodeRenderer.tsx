@@ -7,7 +7,7 @@ import {
   getBindProps,
 } from './engine';
 import type { Node } from './engine';
-import { usePageContext } from './context';
+import { useRendererContext } from './context';
 import type { ComponentRegistry, MaterialComponent } from './materials';
 import { getResolvedMaterials } from './materials';
 import { normalizeDomProps } from './engine/parse-inline-style';
@@ -79,7 +79,7 @@ export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
   schema,
   scope = {},
 }: SchemaNodeRendererProps) {
-  const context = usePageContext();
+  const context = useRendererContext();
   const materials = getResolvedMaterials();
 
   const renderNode = (node: Node, nodeScope: Record<string, unknown>): React.ReactNode => {

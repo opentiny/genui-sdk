@@ -18,7 +18,6 @@ let customSettings: IRendererSettings = {};
 
 /**
  * 设置渲染器全局配置（Function、transformJSX、materials 等）。
- * 对齐 Vue tiny-schema-renderer 的 setCustomSettings。
  */
 export function setCustomSettings(rendererSettings: IRendererSettings): void {
   customSettings = rendererSettings;
@@ -26,14 +25,13 @@ export function setCustomSettings(rendererSettings: IRendererSettings): void {
 
 /**
  * 获取当前渲染器全局配置。
- * 对齐 Vue tiny-schema-renderer 的 getCustomSettings。
  */
 export function getCustomSettings(): IRendererSettings {
   return customSettings || {};
 }
 
 /**
- * 获取 setCustomSettings / getCustomSettings，对齐 Vue useCustomSetting composable。
+ * 返回 setCustomSettings / getCustomSettings 访问器。
  */
 export default function useCustomSetting(): {
   setCustomSettings: (rendererSettings: IRendererSettings) => void;

@@ -1,5 +1,5 @@
-/** LLM componentName whitelist: native HTML + builtin aliases only */
-export const whiteList = [
+/** LLM componentName whitelist: native HTML + builtin aliases */
+export const builtinWhiteList = [
   'Page',
   'Box',
   'Text',

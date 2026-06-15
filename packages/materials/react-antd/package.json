@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "@opentiny/genui-sdk-core": "workspace:*",
-    "@opentiny/genui-sdk-react": "workspace:*",
     "antd": "^5.24.0"
   },
   "peerDependencies": {

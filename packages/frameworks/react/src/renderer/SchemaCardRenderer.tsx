@@ -10,7 +10,7 @@ import {
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import type { RootNode } from '@opentiny/genui-sdk-core';
 import { SchemaRenderer } from '@opentiny/tiny-schema-renderer-react';
-import { PageContextProvider } from '@opentiny/tiny-schema-renderer-react';
+import { RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
 import type { SchemaRendererHandle } from '@opentiny/tiny-schema-renderer-react';
 import { RendererContext } from './RendererContext';
 import { useGenuiMaterials } from '../config-provider';
@@ -27,18 +27,16 @@ const errorSchema: RootNode = {
   ],
 };
 
-const emptySchema: RootNode = { componentName: 'Page', children: [] };
+const emptySchema: RootNode = { componentName: 'Page' };
 
 /**
  * 流式卡片渲染器：repairJson + DeltaPatcher，将 content 转为 schema 后交给基础渲染器。
- * 对齐 Vue 的 SchemaCardRenderer.vue + inject(GENUI_RENDERER) 模式：
- * 通过 RendererContext 注入基础渲染器，默认使用 @opentiny/tiny-schema-renderer-react。
+ * 可通过 RendererContext 注入自定义基础渲染器。
  */
 export const SchemaCardRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
   function SchemaCardRenderer(props, ref) {
-    // 通过 Context 注入基础渲染器，对齐 Vue 的 inject(GENUI_RENDERER, defaultSchemaRenderer)
+    // TODO: 移除 RendererContext 依赖
     const BaseRenderer = useContext(RendererContext) ?? SchemaRenderer;
-    // 对齐 Vue provide(RENDERER_SETTINGS_KEY, { materials: { ...vueMaterials, ...customComponents } })
     const contextMaterials = useGenuiMaterials();
     const mergedMaterials = useMemo(
       () => ({ ...contextMaterials, ...props.customComponents }),
@@ -47,7 +45,7 @@ export const SchemaCardRenderer = forwardRef<SchemaRendererHandle, IRendererProp
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
     /**
-     * 对齐 Vue SchemaCardRenderer.updateContextAndState：通过 ref 向基础渲染器注入流式属性。
+     * 通过 ref 向基础渲染器注入流式属性（callAction、cardId、state）。
      */
     const updateContextAndState = useCallback(() => {
       const instance = rendererRef.current;
@@ -135,17 +133,14 @@ export const SchemaCardRenderer = forwardRef<SchemaRendererHandle, IRendererProp
     }, [props.content, props.isJsonComplete, props.generating]);
 
     return (
-      <PageContextProvider
-        settings={{ materials: mergedMaterials }}
-        customActions={props.customActions}
-      >
+      <RendererContextProvider render-settings={{ materials: mergedMaterials }}>
         <div className="genui-renderer-container schema-render-container">
           <BaseRenderer
             ref={setRendererRef}
             schema={isError ? errorSchema : displaySchema}
           />
         </div>
-      </PageContextProvider>
+      </RendererContextProvider>
     );
   },
 );

@@ -1,22 +1,20 @@
-// 基础渲染器（default 对齐 Vue tiny-schema-renderer 的 default export）
 export { SchemaRenderer } from './Renderer';
 export { default } from './Renderer';
 export type { SchemaRendererHandle, SchemaRendererProps } from './Renderer';
 
 // 上下文
 export {
-  PageContextProvider,
-  usePageContext,
-  usePageContextStore,
+  RendererContextProvider,
+  useRendererContext,
+  useRendererContextStore,
   initPageFromSchema,
 } from './context';
-export type { PageContextStore, PageCustomActions, PageContextProviderProps } from './context';
+export type { RendererContextStore, RendererContextProviderProps } from './context';
 export { getPageLifeCycleFns } from './life-cycles';
 export type { LifeCycles, LifeCycleFn } from './life-cycles';
 
 // 物料工具
 export {
-  defineMaterials,
   getMaterials,
   setMaterials,
   mergeMaterials,
