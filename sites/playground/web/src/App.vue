@@ -15,6 +15,7 @@ import {
   shallowRef,
 } from 'vue';
 import { vueMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/components';
+import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
@@ -376,7 +377,13 @@ onUnmounted(() => {
         </div>
       </template>
       <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
-        <GenuiConfigProvider :theme="theme" :locale="locale" :materials="{ ...vueMaterials }" style="height: 100%">
+        <GenuiConfigProvider
+          :theme="theme"
+          :locale="locale"
+          :materials="{ ...vueMaterials }"
+          :renderer-config="rendererConfig"
+          style="height: 100%"
+        >
           <GenuiChat
             :url="url"
             ref="chat"

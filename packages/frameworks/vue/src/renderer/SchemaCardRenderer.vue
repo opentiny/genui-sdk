@@ -2,9 +2,14 @@
 import { ref, watch, computed, inject, nextTick, onErrorCaptured, provide } from 'vue';
 // @ts-ignore
 import defaultSchemaRenderer, { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
-import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
+import { DeltaPatcher, repairJson, RepairJsonState, type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
-import { GENUI_RENDERER, GENUI_MATERIALS, type GenuiMaterials } from '../chat/injection-tokens';
+import {
+  GENUI_RENDERER,
+  GENUI_MATERIALS,
+  GENUI_DEFAULT_PROPS_MAP,
+  type GenuiMaterials,
+} from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
@@ -31,6 +36,7 @@ const callAction = (actionName: string, params: any) => {
 
 const SchemaRenderer = inject(GENUI_RENDERER, defaultSchemaRenderer);
 const vueMaterials = inject<GenuiMaterials>(GENUI_MATERIALS, {});
+const defaultPropsMap = inject<MaterialDefaultValueMap>(GENUI_DEFAULT_PROPS_MAP, {});
 const customSettings = inject(RENDERER_SETTINGS_KEY, {});
 
 provide(RENDERER_SETTINGS_KEY, {
@@ -39,6 +45,7 @@ provide(RENDERER_SETTINGS_KEY, {
     ...vueMaterials,
     ...props.customComponents,
   },
+  defaultPropsMap,
 });
 
 const deltaPatcher = new DeltaPatcher({
