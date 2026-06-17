@@ -42,7 +42,7 @@ const ReactHostRenderer = forwardRef<
   const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
   /**
-   * 流式属性通过 ref 注入基础渲染器，而非 SchemaRenderer props。
+   * 流式属性通过 ref 注入 SchemaRenderer，而非 SchemaRenderer props。
    */
   const updateContextAndState = useCallback(() => {
     const instance = rendererRef.current;

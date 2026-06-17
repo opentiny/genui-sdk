@@ -3,7 +3,7 @@ import type { RootNode } from '@opentiny/genui-sdk-core';
 import { setDefaultSlotRenderer } from './engine';
 import type { Node } from './engine';
 import { initPageFromSchema, useRendererContextStore } from './context';
-import { SchemaNodeRenderer, normalizeChildren } from './SchemaNodeRenderer';
+import { SchemaNodeRenderer, normalizeChildren } from './Render';
 import { Loading } from './Loading';
 
 export interface SchemaRendererHandle {
@@ -17,8 +17,8 @@ export interface SchemaRendererProps {
 }
 
 /**
- * 基础 Schema 渲染器，仅接收 schema。
- * 物料通过 RendererContextProvider render-settings / setMaterials 注入；流式属性由 SchemaCardRenderer 处理。
+ * 页面级 Schema 渲染入口（文件 RenderMain，对齐 Vue RenderMain.js）。
+ * 负责页面初始化、生命周期与 JSSlot 默认渲染；流式属性由上层 Renderer 处理。
  */
 export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(
   function SchemaRenderer({ schema }, ref) {

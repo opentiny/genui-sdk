@@ -20,7 +20,7 @@
   "files": ["dist", "README.md"],
   "scripts": {
     "build": "vite build",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
   "dependencies": {

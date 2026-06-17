@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { parseData, type PageContextValue } from '@opentiny/tiny-schema-renderer-react';
+import { parseData } from '../src/engine';
+import type { PageContextValue } from '../src/engine/parse-data';
 
 describe('model input binding', () => {
   it('updates state and notifies on input change', () => {

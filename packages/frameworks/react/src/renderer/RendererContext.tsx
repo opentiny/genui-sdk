@@ -9,12 +9,12 @@ export type SchemaRendererComponent = React.ForwardRefExoticComponent<
 >;
 
 /**
- * 基础渲染器 Context；未提供时 SchemaCardRenderer 回退到默认 SchemaRenderer。
+ * 基础渲染器 Context；未提供时 Renderer 回退到默认 SchemaRenderer。
  */
 export const RendererContext = createContext<SchemaRendererComponent | null>(null);
 
 /**
- * 获取 Context 中的基础渲染器（可能为 null，由 SchemaCardRenderer 处理默认值）。
+ * 获取 Context 中的基础渲染器（可能为 null，由 Renderer 处理默认值）。
  */
 export function useSchemaRenderer(): SchemaRendererComponent | null {
   return useContext(RendererContext);
