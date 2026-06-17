@@ -7,7 +7,7 @@ import {
   getBindProps,
 } from './engine';
 import type { Node, RootNode } from './engine';
-import { useRendererContext } from './context';
+import { usePageContext } from './page-context';
 import type { ComponentRegistry, MaterialComponent } from './materials';
 import { getResolvedMaterials } from './materials';
 import { normalizeDomProps } from './engine/parse-inline-style';
@@ -86,7 +86,7 @@ export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
   scope = {},
   parent,
 }: SchemaNodeRendererProps) {
-  const context = useRendererContext();
+  const context = usePageContext();
   const materials = getResolvedMaterials();
 
   // TODO: 不依赖core包

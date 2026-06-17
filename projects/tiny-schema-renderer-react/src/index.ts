@@ -2,5 +2,7 @@ export { SchemaRenderer } from './RenderMain';
 export { default } from './RenderMain';
 export type { SchemaRendererHandle, SchemaRendererProps } from './RenderMain';
 
-export { RendererContextProvider } from './context';
-export type { RendererContextProviderProps } from './context';
+export { setSchema, setMethods, setState, setRefs } from './set-schema';
+
+export { RendererContextProvider } from './RendererContextProvider';
+export type { RendererContextProviderProps } from './RendererContextProvider';

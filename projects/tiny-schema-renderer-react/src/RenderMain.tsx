@@ -1,8 +1,11 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import type { RootNode } from '@opentiny/genui-sdk-core';
 import { setDefaultSlotRenderer } from './engine';
 import type { Node } from './engine';
-import { initPageFromSchema, useRendererContextStore } from './context';
+import { createPageContext } from './use-context';
+import { PageContextProvider } from './page-context';
+import { setSchema } from './set-schema';
+import type { LifeCycleFn } from './life-cycles';
 import { SchemaNodeRenderer, normalizeChildren } from './Render';
 import { Loading } from './Loading';
 
@@ -18,17 +21,29 @@ export interface SchemaRendererProps {
 
 /**
  * 页面级 Schema 渲染入口（文件 RenderMain，对齐 Vue RenderMain.js）。
- * 负责页面初始化、生命周期与 JSSlot 默认渲染；流式属性由上层 Renderer 处理。
+ * pageContext 在内部创建并通过 PageContextProvider 下发；流式属性由上层 Render 处理。
  */
 export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(
   function SchemaRenderer({ schema }, ref) {
-    const store = useRendererContextStore();
+    const page = useMemo(() => createPageContext(), []);
+    const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
 
     useImperativeHandle(ref, () => ({
-      setContext: (ctx) => store.setContext(ctx),
-      getContext: () => store.getContext() as Record<string, unknown>,
-      setState: (data) => store.setState(data),
+      setContext: (ctx) => page.setContext(ctx),
+      getContext: () => page.getContext() as Record<string, unknown>,
+      setState: (data) => page.setState(data),
     }));
+
+    const invokePageOnUnmounted = async () => {
+      const fn = pageOnUnmountedRef.current;
+      pageOnUnmountedRef.current = null;
+      if (typeof fn !== 'function') return;
+      try {
+        await fn();
+      } catch (error) {
+        console.error('SchemaRenderer onUnmounted error:', error);
+      }
+    };
 
     /** 页面初始化签名：state/methods/refs/css/lifeCycles 变化时需重跑 init 与生命周期 */
     const pageInitSignature =
@@ -47,17 +62,21 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
       let cancelled = false;
       (async () => {
-        initPageFromSchema(schema, store);
-        await Promise.resolve();
+        await invokePageOnUnmounted();
+        const { onMounted, onUnmounted } = setSchema(schema, page);
+        pageOnUnmountedRef.current = onUnmounted;
         if (cancelled) return;
-        await store.runPendingOnMounted();
+        try {
+          await onMounted?.();
+        } catch (error) {
+          console.error('SchemaRenderer onMounted error:', error);
+        }
       })();
 
       return () => {
         cancelled = true;
       };
     }, [pageInitSignature, schema]);
-
 
     const parentSchemaRef = useRef<RootNode | null>(schema);
     parentSchemaRef.current = schema;
@@ -76,10 +95,9 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       );
 
       return () => {
-        void store.invokePageOnUnmounted();
+        void invokePageOnUnmounted();
       };
     }, []);
-
 
     const rootSchema: Node = {
       componentName: 'div',
@@ -87,12 +105,16 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       children: schema?.children,
     };
 
-    return schema?.children?.length ? (
-      <div className="genui-schema-renderer" data-scope={store.getContext().cssScopeId}>
-        <SchemaNodeRenderer schema={rootSchema} parent={schema} />
-      </div>
-    ) : (
-      <Loading />
+    return (
+      <PageContextProvider value={page}>
+        {schema?.children?.length ? (
+          <div className="genui-schema-renderer" data-scope={page.getContext().cssScopeId}>
+            <SchemaNodeRenderer schema={rootSchema} parent={schema} />
+          </div>
+        ) : (
+          <Loading />
+        )}
+      </PageContextProvider>
     );
   },
 );

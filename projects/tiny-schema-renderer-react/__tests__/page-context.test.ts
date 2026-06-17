@@ -1,49 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseData } from '../src/engine';
-import { initPageFromSchema, type RendererContextStore } from '../src/context';
+import { createPageContext } from '../src/use-context';
+import { setSchema } from '../src/set-schema';
 
-function createMockStore(): RendererContextStore {
-  let context: Record<string, unknown> = {
-    state: {},
-    refs: {},
-    methods: {},
-    cssScopeId: 'test-scope',
-    callAction: () => 'called',
-  };
-  const getRuntimeContext = () => context as never;
-  context.__getContext = getRuntimeContext;
-  const notify = () => {
-    context = { ...context, __getContext: getRuntimeContext };
-  };
-  context.__pageNotify = notify;
-
-  return {
-    getContext: () => context as never,
-    setContext: (ctx, clear) => {
-      if (clear) {
-        context = { state: {}, refs: {}, methods: {}, ...ctx };
-      } else {
-        Object.assign(context, ctx);
-      }
-      context.__getContext = getRuntimeContext;
-      context.__pageNotify = notify;
-    },
-    setState: (data, clear) => {
-      if (clear) context.state = {};
-      Object.assign(context.state as object, data);
-      notify();
-    },
-    subscribe: () => () => {},
-    invokePageOnUnmounted: async () => {},
-    runPendingOnMounted: async () => {},
-    schedulePageLifeCycles: () => {},
-  };
-}
-
-describe('initPageFromSchema', () => {
-  it('methods execute with latest context via parsed.call(store.getContext())', () => {
-    const store = createMockStore();
-    initPageFromSchema(
+describe('setSchema', () => {
+  it('methods execute with latest context via parsed.call(page.getContext())', () => {
+    const page = createPageContext();
+    setSchema(
       {
         state: { formData: { name: 'test' } },
         methods: {
@@ -55,15 +18,15 @@ describe('initPageFromSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      store,
+      page,
     );
 
-    expect((store.getContext().handleSubmit as () => string)()).toBe('test');
+    expect((page.getContext().handleSubmit as () => string)()).toBe('test');
   });
 
   it('resolves callAction injected after methods were parsed', () => {
-    const store = createMockStore();
-    initPageFromSchema(
+    const page = createPageContext();
+    setSchema(
       {
         methods: {
           handleSubmit: {
@@ -74,20 +37,20 @@ describe('initPageFromSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      store,
+      page,
     );
 
-    store.setContext({
+    page.setContext({
       callAction: (name: string) => (name === 'saveState' ? 'saved' : undefined),
     });
 
-    expect(typeof store.getContext().callAction).toBe('function');
-    expect((store.getContext().handleSubmit as () => string)()).toBe('saved');
+    expect(typeof page.getContext().callAction).toBe('function');
+    expect((page.getContext().handleSubmit as () => string)()).toBe('saved');
   });
 
   it('resetForm-style state assignment triggers re-render snapshot change', () => {
-    const store = createMockStore();
-    initPageFromSchema(
+    const page = createPageContext();
+    setSchema(
       {
         state: { formData: { name: 'test' } },
         methods: {
@@ -99,12 +62,12 @@ describe('initPageFromSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      store,
+      page,
     );
 
-    const before = store.getContext();
-    (store.getContext().resetForm as () => void)();
-    const after = store.getContext();
+    const before = page.getContext();
+    (page.getContext().resetForm as () => void)();
+    const after = page.getContext();
 
     expect(after.state?.formData).toEqual({ name: '' });
     expect(after).not.toBe(before);
@@ -113,8 +76,8 @@ describe('initPageFromSchema', () => {
 
 describe('parseData onClick with methods', () => {
   it('onClick handler can call this.handleSubmit()', () => {
-    const store = createMockStore();
-    initPageFromSchema(
+    const page = createPageContext();
+    setSchema(
       {
         methods: {
           handleSubmit: {
@@ -125,10 +88,10 @@ describe('parseData onClick with methods', () => {
         componentName: 'Page',
         children: [],
       },
-      store,
+      page,
     );
 
-    const ctx = store.getContext();
+    const ctx = page.getContext();
     const onClick = parseData(
       { type: 'JSFunction', value: 'function() { return this.handleSubmit(); }' },
       {},
