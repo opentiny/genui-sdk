@@ -66,6 +66,7 @@ export const SchemaCardRenderer = forwardRef<SchemaRendererHandle, IRendererProp
       instance.setState(props.state || {});
     }, [props.customActions, props.id, props.state]);
 
+    // TODO: 分许没有nextTIck有咩有问题
     const setRendererRef = useCallback(
       (instance: SchemaRendererHandle | null) => {
         rendererRef.current = instance;
@@ -124,6 +125,7 @@ export const SchemaCardRenderer = forwardRef<SchemaRendererHandle, IRendererProp
         json = rest;
       }
 
+      // TODO: 检查一下nextKey是否必要
       const nextKey = JSON.stringify(json) + String(isCompleted);
       if (!props.generating && contentKeyRef.current === nextKey) return;
       contentKeyRef.current = nextKey;
@@ -132,6 +134,7 @@ export const SchemaCardRenderer = forwardRef<SchemaRendererHandle, IRendererProp
       setDisplaySchema({ ...schemaRef.current });
     }, [props.content, props.isJsonComplete, props.generating]);
 
+    // TODO: css样式去哪里了
     return (
       <RendererContextProvider render-settings={{ materials: mergedMaterials }}>
         <div className="genui-renderer-container schema-render-container">

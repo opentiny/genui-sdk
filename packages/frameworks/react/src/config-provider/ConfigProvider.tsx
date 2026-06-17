@@ -23,6 +23,7 @@ export interface GenuiConfigProviderProps {
 /**
  * 全局配置 Provider，通过 Context 向下注入物料表。
  */
+// TODO: 多个ConfigProvider怎么处理，以谁为准
 export function GenuiConfigProvider({ materials, children }: GenuiConfigProviderProps) {
   const value = useMemo(() => materials ?? defaultMaterials, [materials]);
 

@@ -1,9 +1,10 @@
-import { forwardRef, useEffect, useImperativeHandle } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
 import type { RootNode } from '@opentiny/genui-sdk-core';
 import { setDefaultSlotRenderer } from './engine';
 import type { Node } from './engine';
 import { initPageFromSchema, useRendererContextStore } from './context';
 import { SchemaNodeRenderer, normalizeChildren } from './SchemaNodeRenderer';
+import { Loading } from './Loading';
 
 export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
@@ -58,10 +59,19 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     }, [pageInitSignature, schema]);
 
 
+    const parentSchemaRef = useRef<RootNode | null>(schema);
+    parentSchemaRef.current = schema;
+
     useEffect(() => {
+      // TODO: 方案待讨论
       setDefaultSlotRenderer((children, scope, _ctx) =>
         normalizeChildren(children as Node['children']).map((child, i) => (
-          <SchemaNodeRenderer key={i} schema={child} scope={scope} />
+          <SchemaNodeRenderer
+            key={child.id ?? i}
+            schema={child}
+            scope={scope}
+            parent={parentSchemaRef.current}
+          />
         )) as unknown[],
       );
 
@@ -71,20 +81,18 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     }, []);
 
 
-    if (!schema?.children?.length) {
-      return <div className="genui-renderer-loading">Loading...</div>;
-    }
-
     const rootSchema: Node = {
       componentName: 'div',
-      props: schema.props,
-      children: schema.children,
+      props: schema?.props,
+      children: schema?.children,
     };
 
-    return (
+    return schema?.children?.length ? (
       <div className="genui-schema-renderer" data-scope={store.getContext().cssScopeId}>
-        <SchemaNodeRenderer schema={rootSchema} />
+        <SchemaNodeRenderer schema={rootSchema} parent={schema} />
       </div>
+    ) : (
+      <Loading />
     );
   },
 );

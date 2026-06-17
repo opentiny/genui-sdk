@@ -14,7 +14,7 @@
   "methods": {
     "handleSubmit": {
       "type": "JSFunction",
-      "value": "function handleSubmit() { console.log(this.state.formData); this.refs.formRef.validateFields().then((values) => { this.state.formData = values; this.state.submitResult = '提交成功：\\n' + JSON.stringify(values, null, 2); console.log('表单提交:', values); }).catch((err) => { console.log('校验失败:', err); }); }"
+      "value": "function handleSubmit() { console.log(this.state.formData); this.refs.formRef.validateFields().then((values) => { this.state.submitResult = '提交成功：\\n' + JSON.stringify(values, null, 2); console.log('表单提交:', values); }).catch((err) => { console.log('校验失败:', err); }); }"
     },
     "handleReset": {
       "type": "JSFunction",
@@ -169,6 +169,19 @@
               ]
             }
           ]
+        },
+        {
+          "componentName": "div",
+          "children": "姓名："
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.formData.name"
+            }
+          }
         }
       ]
     }

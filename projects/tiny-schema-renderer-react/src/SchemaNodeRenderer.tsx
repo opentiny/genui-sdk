@@ -6,7 +6,7 @@ import {
   getLoopScope,
   getBindProps,
 } from './engine';
-import type { Node } from './engine';
+import type { Node, RootNode } from './engine';
 import { useRendererContext } from './context';
 import type { ComponentRegistry, MaterialComponent } from './materials';
 import { getResolvedMaterials } from './materials';
@@ -32,6 +32,7 @@ function resolveComponent(
  * @param children - schema 上的 children 字段
  * @returns 规范化后的子节点列表
  */
+// TODO: 移除 验证直接写text
 export function normalizeChildren(children: Node['children']): Node[] {
   if (children == null) return [];
   if (typeof children === 'string') {
@@ -52,16 +53,20 @@ function propsFromBind(bindProps: Record<string, unknown>): Record<string, unkno
   return normalizeDomProps({ ...rest });
 }
 
+// TODO: 为什么没有ParseData, 可能vue版本有误
 function renderChildren(
   nodes: Node[],
   scope: Record<string, unknown>,
+  parent: RootNode | null | undefined,
 ): React.ReactNode {
   if (!nodes.length) return null;
   return nodes.map((child, i) => (
+    // TODO: 两边对不上
     <SchemaNodeRenderer
       key={child.id ?? `child-${i}`}
       schema={child}
       scope={scope}
+      parent={parent}
     />
   ));
 }
@@ -69,6 +74,7 @@ function renderChildren(
 export interface SchemaNodeRendererProps {
   schema: Node;
   scope?: Record<string, unknown>;
+  parent?: RootNode | null;
 }
 
 /**
@@ -78,10 +84,12 @@ export interface SchemaNodeRendererProps {
 export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
   schema,
   scope = {},
+  parent,
 }: SchemaNodeRendererProps) {
   const context = useRendererContext();
   const materials = getResolvedMaterials();
 
+  // TODO: 不依赖core包
   const renderNode = (node: Node, nodeScope: Record<string, unknown>): React.ReactNode => {
     const { componentName, loop, loopArgs, condition, children } = node;
     if (!componentName) return null;
@@ -114,7 +122,7 @@ export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
       const bindProps = getBindProps(node, mergeScope, context);
 
       const childNodes = normalizeChildren(children);
-      const childContent = renderChildren(childNodes, mergeScope);
+      const childContent = renderChildren(childNodes, mergeScope, parent);
       const elementProps = propsFromBind(bindProps);
 
       return React.createElement(
