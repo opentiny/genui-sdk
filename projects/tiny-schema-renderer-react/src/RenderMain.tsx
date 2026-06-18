@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-import type { RootNode } from '@opentiny/genui-sdk-core';
+import type { RootNode } from './types';
 import { setDefaultSlotRenderer } from './engine';
-import type { Node } from './engine';
+import type { Node } from './types';
 import { createPageContext } from './use-context';
 import { PageContextProvider } from './page-context';
 import { setSchema } from './set-schema';

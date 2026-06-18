@@ -1,6 +1,6 @@
 import { parseData } from './parse-data';
 import { normalizeDomProps } from './parse-inline-style';
-import type { Node } from '@opentiny/genui-sdk-core';
+import type { Node } from '../types';
 import type { PageContextValue } from './parse-data';
 
 export function getBindProps(

@@ -1,4 +1,3 @@
-export type { RootNode, Node, JSExpression, JSFunction } from '@opentiny/genui-sdk-core';
 export type { PageContextValue } from './parse-data';
 export * from './use-custom-setting';
 export { default as useCustomSetting } from './use-custom-setting';

@@ -39,7 +39,6 @@ export default defineConfig(({ command }) => {
       react(),
       dts({
         rollupTypes: true,
-        bundledPackages: ['@opentiny/genui-sdk-core'],
         include: ['src'],
       }),
     ],

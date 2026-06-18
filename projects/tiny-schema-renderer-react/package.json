@@ -21,9 +21,6 @@
     "test": "vitest run",
     "test:watch": "vitest"
   },
-  "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*"
-  },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"

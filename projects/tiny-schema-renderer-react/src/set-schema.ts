@@ -1,6 +1,6 @@
 import { parseData } from './engine';
 import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
-import type { CardSchema } from '@opentiny/genui-sdk-core';
+import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
 /**

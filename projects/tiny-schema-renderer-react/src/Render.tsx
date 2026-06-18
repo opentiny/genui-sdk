@@ -6,11 +6,12 @@ import {
   getLoopScope,
   getBindProps,
 } from './engine';
-import type { Node, RootNode } from './engine';
-import { usePageContext } from './page-context';
+import type { Node, RootNode } from './types';
+import type { PageContextValue } from './engine';
 import type { ComponentRegistry, MaterialComponent } from './materials';
 import { getResolvedMaterials } from './materials';
 import { normalizeDomProps } from './engine/parse-inline-style';
+import { usePageContext } from './page-context';
 
 /**
  * 按 componentName 从物料表或 HTML 标签名解析可渲染目标。
@@ -24,6 +25,17 @@ function resolveComponent(
   materials: ComponentRegistry,
 ): MaterialComponent | string | null {
   return materials[name] || (isHtmlTag(name) ? name : null);
+}
+
+/**
+ * 将 bindProps 转为 createElement 可用的 props。
+ *
+ * @param bindProps - getBindProps 解析结果
+ * @returns 传给 React.createElement 的 props
+ */
+function propsFromBind(bindProps: Record<string, unknown>): Record<string, unknown> {
+  const { children: _c, schema: _schema, ...rest } = bindProps;
+  return normalizeDomProps({ ...rest });
 }
 
 /**
@@ -43,32 +55,93 @@ export function normalizeChildren(children: Node['children']): Node[] {
 }
 
 /**
- * 将 bindProps 转为 createElement 可用的 props。
+ * 递归渲染 schema 子节点列表，对齐 Vue renderDefault。
  *
- * @param bindProps - getBindProps 解析结果
- * @returns 传给 React.createElement 的 props
+ * @param children - 规范化后的子节点
+ * @param scope - 当前作用域
+ * @param context - 页面上下文
+ * @returns React 子树
  */
-function propsFromBind(bindProps: Record<string, unknown>): Record<string, unknown> {
-  const { children: _c, schema: _schema, ...rest } = bindProps;
-  return normalizeDomProps({ ...rest });
+function renderChildren(
+  children: Node[],
+  scope: Record<string, unknown>,
+  context: PageContextValue,
+): React.ReactNode {
+  if (!children.length) return null;
+  return children
+    .map((child) => renderComponent(child, scope, context))
+    .filter(Boolean);
 }
 
-// TODO: 为什么没有ParseData, 可能vue版本有误
-function renderChildren(
-  nodes: Node[],
+/**
+ * 渲染单个 schema 节点，对齐 Vue renderComponent(schema, scope, context)。
+ *
+ * @param schema - 当前节点 schema
+ * @param scope - 当前作用域
+ * @param context - 页面上下文
+ * @returns React 节点或 null
+ */
+function renderComponent(
+  schema: Node,
   scope: Record<string, unknown>,
-  parent: RootNode | null | undefined,
+  context: PageContextValue,
 ): React.ReactNode {
-  if (!nodes.length) return null;
-  return nodes.map((child, i) => (
-    // TODO: 两边对不上
-    <SchemaNodeRenderer
-      key={child.id ?? `child-${i}`}
-      schema={child}
-      scope={scope}
-      parent={parent}
-    />
-  ));
+  const { componentName, loop, loopArgs, condition, children } = schema;
+
+  if (!componentName) {
+    return null;
+  }
+
+  const materials = getResolvedMaterials();
+  const component = resolveComponent(componentName, materials);
+
+  if (!component) {
+    if (import.meta.env.DEV) {
+      console.warn(`[genui-react] Unknown component: ${componentName}`);
+    } else {
+      return null;
+    }
+    return (
+      <span
+        key={schema.id ?? componentName}
+        style={{ color: '#999', fontSize: 12, display: 'inline-block', margin: 2 }}
+      >
+        [{componentName}]
+      </span>
+    );
+  }
+
+  const loopList = parseData(loop, scope, context);
+
+  const renderElement = (item?: unknown, loopIndex?: number) => {
+    const mergeScope =
+      loopIndex !== undefined
+        ? getLoopScope({ scope, index: loopIndex, item, loopArgs })
+        : scope;
+
+    if (!parseCondition(condition, mergeScope, context)) {
+      return null;
+    }
+
+    const bindProps = getBindProps(schema, mergeScope, context);
+    const childNodes = normalizeChildren(children);
+    const childContent = renderChildren(childNodes, mergeScope, context);
+    const elementProps = propsFromBind(bindProps);
+    const key = schema.id ?? `${componentName}-${loopIndex ?? 0}`;
+
+    return React.createElement(
+      component as string | ComponentType,
+      { key, ...elementProps },
+      childContent,
+    );
+  };
+
+  if (loop) {
+    const list = loopList as unknown[] | null | undefined;
+    return list?.map(renderElement);
+  }
+
+  return renderElement();
 }
 
 export interface SchemaNodeRendererProps {
@@ -78,65 +151,12 @@ export interface SchemaNodeRendererProps {
 }
 
 /**
- * 递归渲染单个 schema 节点，处理 condition、loop 与 componentName 解析。
- * 物料在内部通过 getResolvedMaterials() 解析，无需上层传入。
+ * 递归渲染单个 schema 节点，对齐 Vue renderer 组件。
  */
 export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
   schema,
   scope = {},
-  parent,
 }: SchemaNodeRendererProps) {
   const context = usePageContext();
-  const materials = getResolvedMaterials();
-
-  // TODO: 不依赖core包
-  const renderNode = (node: Node, nodeScope: Record<string, unknown>): React.ReactNode => {
-    const { componentName, loop, loopArgs, condition, children } = node;
-    if (!componentName) return null;
-
-    const resolved = resolveComponent(componentName, materials);
-    if (!resolved) {
-      if (import.meta.env.DEV) {
-        console.warn(`[genui-react] Unknown component: ${componentName}`);
-      }
-      return (
-        <span
-          key={node.id ?? componentName}
-          style={{ color: '#999', fontSize: 12, display: 'inline-block', margin: 2 }}
-        >
-          [{componentName}]
-        </span>
-      );
-    }
-
-    const loopList = loop ? (parseData(loop, nodeScope, context) as unknown[]) : null;
-
-    const renderOne = (item?: unknown, index?: number) => {
-      const mergeScope =
-        index !== undefined
-          ? getLoopScope({ scope: nodeScope, index, item, loopArgs })
-          : nodeScope;
-
-      if (!parseCondition(condition, mergeScope, context)) return null;
-
-      const bindProps = getBindProps(node, mergeScope, context);
-
-      const childNodes = normalizeChildren(children);
-      const childContent = renderChildren(childNodes, mergeScope, parent);
-      const elementProps = propsFromBind(bindProps);
-
-      return React.createElement(
-        resolved as string | ComponentType,
-        { key: node.id ?? `${componentName}-${index ?? 0}`, ...elementProps },
-        childContent,
-      );
-    };
-
-    if (loop && Array.isArray(loopList)) {
-      return loopList.map((item, index) => renderOne(item, index));
-    }
-    return renderOne();
-  };
-
-  return <>{renderNode(schema, scope)}</>;
+  return <>{renderComponent(schema, scope, context)}</>;
 });
