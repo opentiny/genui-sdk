@@ -34,4 +34,20 @@ describe('PatternExtractor', () => {
       expect(result).toBe(expectedResult);
     }
   });
+
+  it('should flush remaining stream cache at stream end', () => {
+    const chunks: string[] = [];
+    const patternExtractor = new PatternExtractor({
+      onNormalWrite: (value) => chunks.push(value),
+      onHandledWrite: (value) => chunks.push(value),
+    });
+
+    patternExtractor.handleContent('hello');
+    expect(chunks).toEqual(['hello']);
+
+    (patternExtractor as PatternExtractor & { streamCache: string }).streamCache = ' tail';
+    patternExtractor.flush();
+
+    expect(chunks).toEqual(['hello', ' tail']);
+  });
 });

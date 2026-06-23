@@ -1,4 +1,6 @@
 import { modifyChatBody as continueGeneratingBodyModifier } from "../continue-writing";
+import { extractLastUserMessageContent, setBuilderLastUserInput } from '../builder';
+import { PlaygroundMode } from '../constants';
 
 export interface IMcpServerConfig {
   name: string;
@@ -43,6 +45,7 @@ export interface IPlaygroundConfig {
   temperature: number;
   agents: IAgentConfig[];
   skills: ISkillConfig[];
+  mode?: PlaygroundMode;
 }
 
 /** 仅序列化已启用的 Skill，并去掉 enabled 字段以减小 metadata 体积 */
@@ -64,7 +67,11 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
     
     const body = JSON.parse(options.body);
     const config = getConfig();
-    const { mcpServers, framework, promptList, model, temperature, agents = [], skills = [] } = config;
+    const { mcpServers, framework, promptList, model, temperature, agents = [], skills = [], mode = PlaygroundMode.Chat } = config;
+
+    if (mode === PlaygroundMode.Builder) {
+      setBuilderLastUserInput(extractLastUserMessageContent(body.messages));
+    }
 
     const playgroundConfig = {
       mcpServers,
@@ -74,6 +81,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
       temperature,
       agents: agents.filter((agent) => agent.enabled),
       skills: skillsPayloadForChat(skills),
+      mode,
     };
 
     return fetch(url, {

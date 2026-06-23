@@ -19,6 +19,7 @@ import { jsonSchemaToZod } from 'json-schema-to-zod';
 import { buildAgentTools, isAllowedAgentUrl } from './a2a-tools/index.js';
 import { buildSkillTools } from './skills/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
+import { PlaygroundMode } from './constants/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -222,8 +223,12 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     temperature: playgroundConfig.temperature || 0.3,
     agents,
     skills: playgroundConfig.skills || [],
+    mode: playgroundConfig.mode || PlaygroundMode.Chat,
   };
 };
+
+const BUILDER_SCHEMA_APPEND_PROMPT = `你是 Builder 模式助手。根据用户描述生成单个页面的 schema JSON。
+仅输出一个 \`\`\`schemaJson 代码块，内容为完整 JSON，不要其他解释文字。`;
 
 export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
@@ -255,37 +260,47 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt, agents, skills } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents, skills, mode } = playgroundConfig;
+    const isBuilderMode = mode === PlaygroundMode.Builder;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
       temperature: playgroundConfig.temperature,
-      mcpServers,
-      skills,
+      mcpServers: isBuilderMode ? [] : mcpServers,
+      skills: isBuilderMode ? [] : skills,
     };
 
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt, provider, extraBody } = llmConfig;
-    const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
-      mcpServers.filter((s) => s.enabled),
-      abort.signal,
-    );
-    const agentTools = buildAgentTools(agents, abort.signal);
-    const { tools: skillTools, systemPrompt: skillPrompt } = buildSkillTools(skills);
-    const duplicateToolNames = new Set<string>();
-    const seenToolNames = new Set<string>();
-    for (const name of [
-      ...Object.keys(mcpTools),
-      ...Object.keys(agentTools),
-      ...Object.keys(skillTools),
-    ]) {
-      if (seenToolNames.has(name)) duplicateToolNames.add(name);
-      seenToolNames.add(name);
+
+    let tools: StreamTextOptions['tools'] = {};
+    let clientsMap: Awaited<ReturnType<typeof generateAiSdkTools>>['clientsMap'] = new Map();
+    let skillPrompt = '';
+
+    if (!isBuilderMode) {
+      const mcpResult = await generateAiSdkTools(
+        mcpServers.filter((s) => s.enabled),
+        abort.signal,
+      );
+      clientsMap = mcpResult.clientsMap;
+      const agentTools = buildAgentTools(agents, abort.signal);
+      const skillToolsResult = buildSkillTools(skills);
+      skillPrompt = skillToolsResult.systemPrompt;
+      const duplicateToolNames = new Set<string>();
+      const seenToolNames = new Set<string>();
+      for (const name of [
+        ...Object.keys(mcpResult.tools),
+        ...Object.keys(agentTools),
+        ...Object.keys(skillToolsResult.tools),
+      ]) {
+        if (seenToolNames.has(name)) duplicateToolNames.add(name);
+        seenToolNames.add(name);
+      }
+      if (duplicateToolNames.size) {
+        console.warn(`Duplicate tool names detected: ${[...duplicateToolNames].join(', ')}`);
+      }
+      tools = { ...mcpResult.tools, ...agentTools, ...skillToolsResult.tools };
     }
-    if (duplicateToolNames.size) {
-      console.warn(`Duplicate tool names detected: ${[...duplicateToolNames].join(', ')}`);
-    }
-    const tools = { ...mcpTools, ...agentTools, ...skillTools };
 
     const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
@@ -299,19 +314,27 @@ export function createChatGenui() {
     const options: StreamTextOptions = {
       model,
       temperature,
-      system:
-        genPrompt(renderConfigForFramework, tgCustomConfig) +
-        '\n' +
-        specificPrompt +
-        '\n' +
-        userAppendPrompt +
-        '\n' +
-        skillPrompt,
+      system: isBuilderMode
+        ? genPrompt(renderConfigForFramework, tgCustomConfig) +
+          '\n' +
+          BUILDER_SCHEMA_APPEND_PROMPT +
+          (userAppendPrompt ? `\n${userAppendPrompt}` : '')
+        : genPrompt(renderConfigForFramework, tgCustomConfig) +
+          '\n' +
+          specificPrompt +
+          '\n' +
+          userAppendPrompt +
+          '\n' +
+          skillPrompt,
       messages: body.messages,
       abortSignal: abort.signal,
-      tools,
-      toolChoice: 'auto',
-      stopWhen: stepCountIs(maxSteps),
+      ...(isBuilderMode
+        ? {}
+        : {
+            tools,
+            toolChoice: 'auto',
+            stopWhen: stepCountIs(maxSteps),
+          }),
       ...(providerOptions ? { providerOptions } : {}),
       onError: (error: any) => {
         if (hasError) {

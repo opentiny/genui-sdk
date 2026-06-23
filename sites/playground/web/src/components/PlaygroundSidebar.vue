@@ -1,6 +1,6 @@
 <script setup>
-import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
-import { iconPlus } from '@opentiny/vue-icon';
+import { TinyTabs, TinyTabItem, TinyButtonGroup, TinyButton } from '@opentiny/vue';
+import { iconPlus, IconMessageCircle, IconCardMode } from '@opentiny/vue-icon';
 import { ref, watch, computed, inject, defineAsyncComponent, shallowRef } from 'vue';
 import NewSvg from '../assets/images/new.svg?raw';
 import OpenSvg from '../assets/images/open.svg?raw';
@@ -11,6 +11,7 @@ import McpTools from './tab-components/mcpTools.vue';
 import GenuiHistory from './tab-components/GenuiHistory.vue';
 import { useIsMobile } from '../hooks';
 import useTemplate from './genui-template/useTemplate';
+import { PlaygroundMode } from '../constants';
 
 const props = defineProps({
   expanded: { type: Boolean, default: true },
@@ -31,7 +32,10 @@ const playgroundContext = inject('playgroundContext');
 const { themeData, conversation } = playgroundContext;
 
 const TinyIconPlus = iconPlus();
+const TinyIconMessageCircle = IconMessageCircle();
+const TinyIconCardMode = IconCardMode();
 const activeName = ref('model');
+const playgroundMode = defineModel('playgroundMode', { default: PlaygroundMode.Chat });
 
 const { isMobile } = useIsMobile();
 
@@ -117,6 +121,40 @@ const updateCustomExamples = (list) => {
 
         <div class="playground-sidebar__actions">
           <div class="playground-sidebar__actions-inner">
+            <tiny-button-group
+              v-if="!isMobile && expanded"
+              class="playground-mode-switch"
+              v-model="playgroundMode"
+              role="radiogroup"
+              aria-label="Playground 模式切换"
+            >
+              <tiny-button
+                class="playground-mode-switch__btn"
+                :class="{ 'playground-mode-switch__btn--active': playgroundMode === PlaygroundMode.Chat }"
+                :value="PlaygroundMode.Chat"
+                :reset-time="0"
+                role="radio"
+                :aria-checked="playgroundMode === PlaygroundMode.Chat"
+                aria-label="Chat 模式"
+                @click="playgroundMode = PlaygroundMode.Chat"
+              >
+                <TinyIconMessageCircle :size="16" />
+                <span v-if="playgroundMode === PlaygroundMode.Chat" class="playground-mode-switch__text">Chat</span>
+              </tiny-button>
+              <tiny-button
+                class="playground-mode-switch__btn"
+                :class="{ 'playground-mode-switch__btn--active': playgroundMode === PlaygroundMode.Builder }"
+                :value="PlaygroundMode.Builder"
+                :reset-time="0"
+                role="radio"
+                :aria-checked="playgroundMode === PlaygroundMode.Builder"
+                aria-label="Builder 模式"
+                @click="playgroundMode = PlaygroundMode.Builder"
+              >
+                <TinyIconCardMode :size="16" />
+                <span v-if="playgroundMode === PlaygroundMode.Builder" class="playground-mode-switch__text">Builder</span>
+              </tiny-button>
+            </tiny-button-group>
             <button
               v-if="expanded"
               type="button"
@@ -268,6 +306,7 @@ const updateCustomExamples = (list) => {
     &-inner {
       display: flex;
       align-items: center;
+      gap: 8px;
     }
   }
 
@@ -317,6 +356,59 @@ const updateCustomExamples = (list) => {
 
   .svg-icon {
     cursor: pointer;
+  }
+}
+
+.playground-mode-switch {
+  border-radius: 54px;
+  width: fit-content;
+  flex-shrink: 0;
+  background: var(--tr-container-bg-default-2, #f0f0f0);
+  display: flex;
+  align-items: center;
+  padding: 4px;
+
+  :deep(.playground-mode-switch__btn) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    margin-left: 0 !important;
+    border: none !important;
+    border-radius: 54px !important;
+    background: var(--tr-container-bg-default-2, #f0f0f0) !important;
+    box-shadow: none !important;
+    padding: 0 8px !important;
+    height: 28px !important;
+    min-width: auto !important;
+    box-sizing: border-box;
+    line-height: 1;
+    font-weight: 400;
+    color: var(--tr-text-primary, rgb(25, 25, 25));
+
+    &:hover,
+    &:focus,
+    &:active {
+      background: var(--tr-container-bg-default-2, #f0f0f0) !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    &.playground-mode-switch__btn--active {
+      background: var(--tr-bubble-content-bg, #fff) !important;
+      padding: 0 12px !important;
+
+      &:hover,
+      &:focus,
+      &:active {
+        background: var(--tr-bubble-content-bg, #fff) !important;
+      }
+    }
+  }
+
+  &__text {
+    font-size: 14px;
+    line-height: 20px;
   }
 }
 

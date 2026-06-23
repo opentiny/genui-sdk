@@ -238,6 +238,8 @@ const messageRenderers = {
   'error-text': ErrorText,
 };
 
+const rendererVersion = ref(0);
+
 const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
 
 
@@ -477,6 +479,7 @@ defineExpose({
   getMessageRenderers: () => messageRenderers,
   setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {
     messageRenderers[key] = renderer;
+    rendererVersion.value++;
   },
 });
 </script>
@@ -492,7 +495,7 @@ defineExpose({
       ref="messagesContainer"
       :style="{ '--messages-container-width': messagesContainerWidth + 'px' }"
     >
-      <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
+      <tr-bubble-provider :key="rendererVersion" :content-renderers="messageRenderers" v-if="showMessages.length">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
       <slot v-else name="empty"></slot>
@@ -585,7 +588,7 @@ defineExpose({
 }
 :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
   // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
-  > [type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
+  > [type]:not([type='']):not([type='schema-card']):not([type='builder-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);
   }
 }

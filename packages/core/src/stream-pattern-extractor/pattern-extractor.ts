@@ -29,6 +29,13 @@ export class PatternExtractor {
     this.state = 'normal';
   }
 
+  public flush() {
+    if (this.streamCache) {
+      this.updateStream(this.streamCache);
+      this.streamCache = '';
+    }
+  }
+
   protected updateNormalStream(value: string) {
     if (value.length > 0) {
       this.onNormalWrite?.(value);

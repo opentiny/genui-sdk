@@ -1,13 +1,17 @@
 <script setup>
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat, GenuiRenderer, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
 import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, h, shallowRef } from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
+import BuilderCard from './components/BuilderCard.vue';
+import { BuilderWorkspace, BuilderCardMessageRenderer } from './components/builder';
+import { createBuilderResponseHandlers, registerBuilderConversationBridge, unregisterBuilderConversationBridge } from './builder';
+import { PlaygroundMode } from './constants';
 import { useInputMessage } from './hooks/use-input-message';
 import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
@@ -103,6 +107,7 @@ const chatConfig = reactive(
 const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
+const playgroundMode = ref(PlaygroundMode.Chat);
 
 let latestModelFeaturesRequest = 0;
 
@@ -178,23 +183,111 @@ const insertHandlersAfterName = (handlers, insertHandlers, name) => {
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+
+let sdkDefaultResponseHandlers = null;
+let cachedDefaultPlaygroundHandlers = null;
+let defaultSchemaCardRenderer = null;
+
+const buildDefaultPlaygroundHandlers = () => {
+  if (cachedDefaultPlaygroundHandlers) {
+    return cachedDefaultPlaygroundHandlers;
+  }
+
+  if (!sdkDefaultResponseHandlers) {
+    return [];
+  }
+
+  const contentHandler = sdkDefaultResponseHandlers.find((handler) => handler.name === 'content');
+  const newResponseHandlers = [
+    ...sdkDefaultResponseHandlers,
+    getContinueGeneratingHandler(conversation.value.messageManager),
+    locationPartialSchemaJson(),
+  ];
+
+  insertHandlersAfterName(
+    newResponseHandlers,
+    [movePartialSchemaJsonToLastMessage(), getOverlapEliminatorHandler(contentHandler)],
+    'init',
+  );
+  cachedDefaultPlaygroundHandlers = newResponseHandlers;
+  return cachedDefaultPlaygroundHandlers;
+};
+
+const registerBuilderCardRenderer = (instance) => {
+  instance.setMessageRenderer('builder-card', BuilderCard);
+};
+
+const registerBuilderSchemaCardRenderer = (instance) => {
+  instance.setMessageRenderer('schema-card', BuilderCardMessageRenderer);
+};
+
+const registerBuilderModeRenderers = (instance) => {
+  registerBuilderCardRenderer(instance);
+  registerBuilderSchemaCardRenderer(instance);
+};
+
+const registerBuilderCardSchemaRenderer = (instance) => {
+  instance.setMessageRenderer('builder-card', (props) =>
+    h(GenuiRenderer, {
+      content: props.schema ?? '',
+      id: props.id,
+      generating: false,
+      isJsonComplete: true,
+    }),
+  );
+};
+
+const registerChatModeRenderers = (instance) => {
+  if (defaultSchemaCardRenderer) {
+    instance.setMessageRenderer('schema-card', defaultSchemaCardRenderer);
+  }
+  registerBuilderCardSchemaRenderer(instance);
+};
+
+const applyPlaygroundMode = (mode) => {
+  const instance = chat.value;
+  if (!instance) {
+    return;
+  }
+
+  if (mode === PlaygroundMode.Builder) {
+    registerBuilderModeRenderers(instance);
+    instance.setResponseHandlers(createBuilderResponseHandlers());
+    return;
+  }
+
+  instance.setResponseHandlers(buildDefaultPlaygroundHandlers());
+  registerChatModeRenderers(instance);
+};
+
 watch(chat, (instance) => {
   if (instance) {
-    const defaultResponseHandlers = instance.getResponseHandlers();
-    const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
-    const newResponseHandlers = [
-      ...defaultResponseHandlers,
-      getContinueGeneratingHandler(conversation.value.messageManager),
-      locationPartialSchemaJson(),
-    ];
-    
-    insertHandlersAfterName(newResponseHandlers, [
-      movePartialSchemaJsonToLastMessage(),
-      getOverlapEliminatorHandler(contentHandler),
-    ], 'init');
-    instance.setResponseHandlers(newResponseHandlers);
+    if (!sdkDefaultResponseHandlers) {
+      sdkDefaultResponseHandlers = [...instance.getResponseHandlers()];
+    }
+    if (!defaultSchemaCardRenderer) {
+      defaultSchemaCardRenderer = instance.getMessageRenderers()['schema-card'];
+    }
+    cachedDefaultPlaygroundHandlers = null;
+    applyPlaygroundMode(playgroundMode.value);
+
+    const conversationInstance = instance.getConversation();
+    registerBuilderConversationBridge({
+      getMessages: () => conversationInstance.messageManager.value.messages.value,
+    });
+    return;
   }
-})
+
+  unregisterBuilderConversationBridge();
+});
+
+watch(
+  playgroundMode,
+  (mode) => {
+    applyPlaygroundMode(mode);
+  },
+  { flush: 'post' },
+);
 
 // 提供给侧边栏及其子组件使用的共享上下文
 const playgroundContext = {
@@ -204,6 +297,7 @@ const playgroundContext = {
   themeData,
   conversation,
   customExamples,
+  playgroundMode,
 };
 
 provide('playgroundContext', playgroundContext);
@@ -266,6 +360,7 @@ const roles = computed(() => {
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
   framework,
+  mode: playgroundMode.value,
 }));
 
 /**
@@ -314,13 +409,15 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown);
+  unregisterBuilderConversationBridge();
 });
 </script>
 
 <template>
   <TopIconsRenderer style="height: 0" />
   <div class="genui-playground">
-    <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
+    <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" v-model:playground-mode="playgroundMode"
+      @new-task="chat?.handleNewConversation()"
       @update-custom-examples="updateCustomExamples" v-slot="{ activeName }">
       <template v-if="ENABLE_TEMPLATE && isTemplateInit">
         <div v-if="activeName === 'template'" class="chat-container">
@@ -330,16 +427,18 @@ onUnmounted(() => {
       </template>
       <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
         <GenuiConfigProvider :theme="theme" style="height: 100%">
-          <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
-            :model="llmConfig.model" :temperature="llmConfig.temperature" :features="modelFeatures"
-            :custom-fetch="customFetch" :custom-examples="customExamples">
-            <template #empty>
-              <div class="empty">
-                <IconAi />
-                <span>GenUI Playground</span>
-              </div>
-            </template>
-          </GenuiChat>
+          <BuilderWorkspace :enabled="playgroundMode === PlaygroundMode.Builder" :theme="theme">
+            <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
+              :model="llmConfig.model" :temperature="llmConfig.temperature" :features="modelFeatures"
+              :custom-fetch="customFetch" :custom-examples="customExamples">
+              <template #empty>
+                <div class="empty">
+                  <IconAi />
+                  <span>GenUI Playground</span>
+                </div>
+              </template>
+            </GenuiChat>
+          </BuilderWorkspace>
         </GenuiConfigProvider>
       </div>
     </PlaygroundSidebar>
