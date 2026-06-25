@@ -41,6 +41,8 @@ export function parseExpression(
   }
 }
 
-export function isJSExpression(data: unknown): data is { type: typeof JS_EXPRESSION; value: string; model?: boolean; params?: string[] } {
+export function isJSExpression(
+  data: unknown,
+): data is { type: typeof JS_EXPRESSION; value: string; model?: boolean; params?: string[] } {
   return !!(data && typeof data === 'object' && (data as { type?: string }).type === JS_EXPRESSION);
 }

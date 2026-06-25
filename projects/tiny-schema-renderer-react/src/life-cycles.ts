@@ -14,10 +14,7 @@ function normalizeLifeCycles(lifeCycles: unknown): LifeCycles {
   return lifeCycles as LifeCycles;
 }
 
-function parseLifeCycleFn(
-  source: unknown,
-  getContext: () => PageContextValue,
-): LifeCycleFn | null {
+function parseLifeCycleFn(source: unknown, getContext: () => PageContextValue): LifeCycleFn | null {
   if (source == null) return null;
   try {
     const parsed = parseData(source, {}, getContext());

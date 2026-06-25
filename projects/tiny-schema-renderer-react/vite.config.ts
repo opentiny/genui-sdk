@@ -56,9 +56,7 @@ export default defineConfig(({ command }) => {
           'react',
           'react-dom',
           'react/jsx-runtime',
-          ...Object.keys(packageJson.dependencies || {}).map(
-            (name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`),
-          ),
+          ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
         ],
       },
     },

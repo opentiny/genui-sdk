@@ -61,10 +61,7 @@ export function createPageContext(): PageContextApi {
     setContext,
     setState: (data, clear) => {
       if (clear) contextValue.state = {};
-      Object.assign(
-        contextValue.state!,
-        (parseData(data, {}, contextValue) as Record<string, unknown>) || {},
-      );
+      Object.assign(contextValue.state!, (parseData(data, {}, contextValue) as Record<string, unknown>) || {});
       notify();
     },
     subscribe: (listener) => {

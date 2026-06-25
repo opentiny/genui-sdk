@@ -12,7 +12,7 @@ describe('setSchema', () => {
         methods: {
           handleSubmit: {
             type: 'JSFunction',
-            value: "function() { return this.state.formData.name; }",
+            value: 'function() { return this.state.formData.name; }',
           },
         },
         componentName: 'Page',

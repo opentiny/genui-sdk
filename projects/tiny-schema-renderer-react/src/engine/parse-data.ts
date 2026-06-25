@@ -32,12 +32,13 @@ export const isStateAccessor = (stateData: unknown) => {
   return d?.accessor?.getter?.type === JS_FUNCTION || d?.accessor?.setter?.type === JS_FUNCTION;
 };
 
-const isFunctionString = (str: unknown) =>
-  typeof str === 'string' && (str.includes('function') || str.includes('=>'));
+const isFunctionString = (str: unknown) => typeof str === 'string' && (str.includes('function') || str.includes('=>'));
 
 type JSSlotRenderer = (scope?: Record<string, unknown>) => unknown[];
 
-let defaultSlotRenderer: ((children: unknown[], scope: Record<string, unknown>, ctx: PageContextValue) => unknown[]) | null = null;
+let defaultSlotRenderer:
+  | ((children: unknown[], scope: Record<string, unknown>, ctx: PageContextValue) => unknown[])
+  | null = null;
 
 export function setDefaultSlotRenderer(
   fn: (children: unknown[], scope: Record<string, unknown>, ctx: PageContextValue) => unknown[],
@@ -57,11 +58,7 @@ function wrapFn(innerFn: (...args: unknown[]) => unknown, ctx: PageContextValue)
   };
 }
 
-function parseJSFunction(
-  data: { type: string; value: string },
-  scope: Record<string, unknown>,
-  ctx: PageContextValue,
-) {
+function parseJSFunction(data: { type: string; value: string }, scope: Record<string, unknown>, ctx: PageContextValue) {
   try {
     if (!isFunctionString(data.value)) return undefined;
     if (typeof scope === 'object' && Object.keys(scope).length > 0) {
@@ -108,9 +105,7 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
   const modelEntry = entries.find(([, value]) => isJSExpression(value) && value.model === true);
   const modelKey = modelEntry?.[0];
   const modelExpr = modelEntry?.[1] as { type: string; value: string; model?: boolean } | undefined;
-  const hasUpdate = entries.some(
-    ([key]) => key.startsWith('on') && modelKey && key === `onUpdate:${modelKey}`,
-  );
+  const hasUpdate = entries.some(([key]) => key.startsWith('on') && modelKey && key === `onUpdate:${modelKey}`);
 
   if (modelKey && modelExpr && !hasUpdate) {
     if (modelKey === 'modelValue') {
@@ -138,9 +133,7 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
       if (useOnChange) {
         res.onChange = (e: unknown) => {
           const val =
-            e && typeof e === 'object' && 'target' in e
-              ? (e as { target: { value?: unknown } }).target?.value
-              : e;
+            e && typeof e === 'object' && 'target' in e ? (e as { target: { value?: unknown } }).target?.value : e;
           handler(val);
         };
       } else {
@@ -152,11 +145,7 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
   const refEntry = entries.find(([key, value]) => key === 'ref' && isJSExpression(value));
   if (refEntry) {
     const refExpr = refEntry[1] as { value: string };
-    res.ref = parseData(
-      { type: JS_FUNCTION, value: `(instance) => { ${refExpr.value} = instance }` },
-      scope,
-      ctx,
-    );
+    res.ref = parseData({ type: JS_FUNCTION, value: `(instance) => { ${refExpr.value} = instance }` }, scope, ctx);
   }
 
   if ('className' in res) {
@@ -167,10 +156,16 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
   return res;
 }
 
-type ParseHandler = { type: (d: unknown) => boolean; parseFunc: (d: unknown, scope: Record<string, unknown>, ctx: PageContextValue) => unknown };
+type ParseHandler = {
+  type: (d: unknown) => boolean;
+  parseFunc: (d: unknown, scope: Record<string, unknown>, ctx: PageContextValue) => unknown;
+};
 
 const parseList: ParseHandler[] = [
-  { type: isJSExpression, parseFunc: (d, s, c) => parseExpression(d as { type: string; value: string; params?: string[] }, s, c) },
+  {
+    type: isJSExpression,
+    parseFunc: (d, s, c) => parseExpression(d as { type: string; value: string; params?: string[] }, s, c),
+  },
   { type: isJSFunction, parseFunc: (d, s, c) => parseJSFunction(d as { type: string; value: string }, s, c) },
   { type: isJSResource, parseFunc: (d, s, c) => parseExpression(d as { type: string; value: string }, s, c) },
   { type: isJSSlot, parseFunc: (d, s, c) => parseJSSlot(d as { type: string; value: unknown }, s, c) },
@@ -192,11 +187,7 @@ export function parseData(data: unknown, scope: Record<string, unknown>, ctx: Pa
   return res;
 }
 
-export function parseCondition(
-  condition: unknown,
-  scope: Record<string, unknown>,
-  ctx: PageContextValue,
-): boolean {
+export function parseCondition(condition: unknown, scope: Record<string, unknown>, ctx: PageContextValue): boolean {
   if (condition == null) return true;
   return !!parseData(condition, scope, ctx);
 }

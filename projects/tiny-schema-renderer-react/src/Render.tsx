@@ -1,11 +1,6 @@
 import React, { memo, type ComponentType } from 'react';
 import { isHtmlTag } from './builtin/html-tags';
-import {
-  parseData,
-  parseCondition,
-  getLoopScope,
-  getBindProps,
-} from './engine';
+import { parseData, parseCondition, getLoopScope, getBindProps } from './engine';
 import type { Node, RootNode } from './types';
 import type { PageContextValue } from './engine';
 import type { ComponentRegistry, MaterialComponent } from './materials';
@@ -13,10 +8,7 @@ import { getResolvedMaterials } from './materials';
 import { normalizeDomProps } from './engine/parse-inline-style';
 import { usePageContext } from './page-context';
 
-function resolveComponent(
-  name: string,
-  materials: ComponentRegistry,
-): MaterialComponent | string | null {
+function resolveComponent(name: string, materials: ComponentRegistry): MaterialComponent | string | null {
   return materials[name] || (isHtmlTag(name) ? name : null);
 }
 
@@ -35,22 +27,12 @@ export function normalizeChildren(children: Node['children']): Node[] {
   return [];
 }
 
-function renderChildren(
-  children: Node[],
-  scope: Record<string, unknown>,
-  context: PageContextValue,
-): React.ReactNode {
+function renderChildren(children: Node[], scope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
   if (!children.length) return null;
-  return children
-    .map((child) => renderComponent(child, scope, context))
-    .filter(Boolean);
+  return children.map((child) => renderComponent(child, scope, context)).filter(Boolean);
 }
 
-function renderComponent(
-  schema: Node,
-  scope: Record<string, unknown>,
-  context: PageContextValue,
-): React.ReactNode {
+function renderComponent(schema: Node, scope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
   const { componentName, loop, loopArgs, condition, children } = schema;
 
   if (!componentName) {
@@ -79,10 +61,7 @@ function renderComponent(
   const loopList = parseData(loop, scope, context);
 
   const renderElement = (item?: unknown, loopIndex?: number) => {
-    const mergeScope =
-      loopIndex !== undefined
-        ? getLoopScope({ scope, index: loopIndex, item, loopArgs })
-        : scope;
+    const mergeScope = loopIndex !== undefined ? getLoopScope({ scope, index: loopIndex, item, loopArgs }) : scope;
 
     if (!parseCondition(condition, mergeScope, context)) {
       return null;
@@ -94,11 +73,7 @@ function renderComponent(
     const elementProps = propsFromBind(bindProps);
     const key = schema.id ?? `${componentName}-${loopIndex ?? 0}`;
 
-    return React.createElement(
-      component as string | ComponentType,
-      { key, ...elementProps },
-      childContent,
-    );
+    return React.createElement(component as string | ComponentType, { key, ...elementProps }, childContent);
   };
 
   if (loop) {
@@ -115,10 +90,7 @@ export interface SchemaNodeRendererProps {
   parent?: RootNode | null;
 }
 
-export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({
-  schema,
-  scope = {},
-}: SchemaNodeRendererProps) {
+export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({ schema, scope = {} }: SchemaNodeRendererProps) {
   const context = usePageContext();
   return <>{renderComponent(schema, scope, context)}</>;
 });

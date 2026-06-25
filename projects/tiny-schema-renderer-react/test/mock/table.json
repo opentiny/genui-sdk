@@ -2,12 +2,25 @@
   "componentName": "Page",
   "state": {
     "columns": [
-      { "dataIndex": "id", "title": "ID" },
-      { "dataIndex": "name", "title": "姓名" },
-      { "dataIndex": "department", "title": "部门" },
-      { "dataIndex": "email", "title": "邮箱" }
+      {
+        "dataIndex": "id",
+        "title": "ID"
+      },
+      {
+        "dataIndex": "name",
+        "title": "姓名"
+      },
+      {
+        "dataIndex": "department",
+        "title": "部门"
+      },
+      {
+        "dataIndex": "email",
+        "title": "邮箱"
+      }
     ],
-    "tableData": []
+    "tableData": [
+    ]
   },
   "lifeCycles": {
     "onMounted": {
@@ -64,7 +77,9 @@
                         "type": "JSExpression",
                         "value": "this.state.columns"
                       },
-                      "loopArgs": ["column"],
+                      "loopArgs": [
+                        "column"
+                      ],
                       "children": [
                         {
                           "componentName": "Text",
@@ -90,7 +105,9 @@
                     "type": "JSExpression",
                     "value": "this.state.tableData"
                   },
-                  "loopArgs": ["row"],
+                  "loopArgs": [
+                    "row"
+                  ],
                   "children": [
                     {
                       "componentName": "td",

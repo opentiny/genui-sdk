@@ -7,10 +7,7 @@ export interface RendererContextProviderProps {
   'render-settings'?: IRendererSettings;
 }
 
-export function RendererContextProvider({
-  children,
-  'render-settings': renderSettings,
-}: RendererContextProviderProps) {
+export function RendererContextProvider({ children, 'render-settings': renderSettings }: RendererContextProviderProps) {
   if (renderSettings) {
     setCustomSettings(renderSettings);
   }
