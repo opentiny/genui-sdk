@@ -80,6 +80,10 @@ const ReactHostRenderer = forwardRef<
     updateContextAndState();
   }, [updateContextAndState]);
 
+  useEffect(() => {
+    updateContextAndState();
+  }, [props.schema, updateContextAndState]);
+
   return <SchemaRenderer ref={setRendererRef} schema={props.schema} />;
 });
 

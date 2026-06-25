@@ -48,6 +48,38 @@ describe('setSchema', () => {
     expect((page.getContext().handleSubmit as () => string)()).toBe('saved');
   });
 
+  it('setSchema clears external context until re-injected', () => {
+    const page = createPageContext();
+    page.setContext({
+      callAction: (name: string) => name,
+      cardId: 'card-1',
+    });
+
+    setSchema(
+      {
+        methods: {
+          handleSubmit: {
+            type: 'JSFunction',
+            value: "function() { return this.callAction('saveState'); }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      page,
+    );
+
+    expect(page.getContext().callAction).toBeUndefined();
+    expect(page.getContext().cardId).toBeUndefined();
+
+    page.setContext({
+      callAction: (name: string) => (name === 'saveState' ? 'saved' : undefined),
+      cardId: 'card-1',
+    });
+
+    expect((page.getContext().handleSubmit as () => string)()).toBe('saved');
+  });
+
   it('resetForm-style state assignment triggers re-render snapshot change', () => {
     const page = createPageContext();
     setSchema(

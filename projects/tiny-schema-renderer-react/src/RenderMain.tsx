@@ -59,10 +59,11 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     if (!schema || !pageInitSignature) return;
 
     let cancelled = false;
+    const { onMounted, onUnmounted } = setSchema(schema, page);
+    pageOnUnmountedRef.current = onUnmounted;
+
     (async () => {
       await invokePageOnUnmounted();
-      const { onMounted, onUnmounted } = setSchema(schema, page);
-      pageOnUnmountedRef.current = onUnmounted;
       if (cancelled) return;
       try {
         await onMounted?.();

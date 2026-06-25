@@ -59,7 +59,6 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
       instance.setState(props.state || {});
     }, [props.customActions, props.id, props.state]);
 
-    // TODO: 分许没有nextTIck有咩有问题
     const setRendererRef = useCallback(
       (instance: SchemaRendererHandle | null) => {
         rendererRef.current = instance;
@@ -126,6 +125,10 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
       patcherRef.current.patchWithDelta(schemaRef.current, json, isCompleted);
       setDisplaySchema({ ...schemaRef.current });
     }, [props.content, props.isJsonComplete, props.generating]);
+
+    useEffect(() => {
+      updateContextAndState();
+    }, [displaySchema, updateContextAndState]);
 
     // TODO: css样式去哪里了
     return (

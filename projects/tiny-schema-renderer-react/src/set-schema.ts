@@ -56,13 +56,8 @@ export function setRefs(data: Record<string, unknown> | undefined, page: PageCon
 }
 
 export function setSchema(schema: CardSchema, page: PageContextApi) {
-  const current = page.getContext();
-  const preserved = {
-    cssScopeId: current.cssScopeId,
-    cardId: current.cardId,
-    customContext: current.customContext,
-  };
-  page.setContext({ state: {}, refs: {}, methods: {}, ...preserved }, true);
+  const cssScopeId = page.getContext().cssScopeId;
+  page.setContext({ state: {}, refs: {}, methods: {}, cssScopeId }, true);
 
   setMethods(schema.methods as Record<string, unknown> | undefined, page, true);
   setState(schema.state as Record<string, unknown> | undefined, page, true);
