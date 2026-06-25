@@ -4,9 +4,6 @@ import type { PageContextValue } from './parse-data';
 
 const JS_EXPRESSION = 'JSExpression';
 
-/**
- * 动态创建函数，规避 ESLint no-new-func 规则，并从 customSettings 读取 Function 构造器。
- */
 export function newFn(...argv: string[]) {
   const Fn = getCustomSettings().Function ?? DEFAULT_RENDERER_SETTINGS.Function ?? Function;
   return new Fn(...argv);

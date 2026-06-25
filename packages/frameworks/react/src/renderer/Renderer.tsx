@@ -29,10 +29,6 @@ const errorSchema: RootNode = {
 
 const emptySchema: RootNode = { componentName: 'Page' };
 
-/**
- * 流式卡片渲染器：repairJson + DeltaPatcher，将 content 转为 schema 后交给 SchemaRenderer。
- * 可通过 RendererContext 注入自定义基础渲染器。
- */
 export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
   function Renderer(props, ref) {
     // TODO: 移除 RendererContext 依赖
@@ -44,9 +40,6 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     );
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
-    /**
-     * 通过 ref 向 SchemaRenderer 注入流式属性（callAction、cardId、state）。
-     */
     const updateContextAndState = useCallback(() => {
       const instance = rendererRef.current;
       if (!instance) return;

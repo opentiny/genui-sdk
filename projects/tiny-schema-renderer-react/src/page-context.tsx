@@ -9,16 +9,10 @@ export interface PageContextProviderProps {
   children: ReactNode;
 }
 
-/**
- * 向子树注入 pageContext store，对齐 Vue provide('pageContext', context)。
- */
 export function PageContextProvider({ value, children }: PageContextProviderProps) {
   return <PageContext.Provider value={value}>{children}</PageContext.Provider>;
 }
 
-/**
- * 订阅并读取当前页面运行时上下文（state / methods / refs 等）。
- */
 export function usePageContext(): PageContextValue {
   const page = useContext(PageContext);
   if (!page) {

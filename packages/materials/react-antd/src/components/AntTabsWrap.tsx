@@ -6,12 +6,6 @@ type TabItem = NonNullable<TabsProps['items']>[number];
 
 type AntTabsWrapProps = TabsProps;
 
-/**
- * 将 items 中 JSSlot 解析出的渲染函数转为 React 节点。
- *
- * @param items - Tabs items 配置
- * @returns 可供 Ant Design Tabs 使用的 items
- */
 function normalizeItems(items?: TabItem[]): TabItem[] | undefined {
   if (!items?.length) return items;
 
@@ -28,9 +22,6 @@ function normalizeItems(items?: TabItem[]): TabItem[] | undefined {
   });
 }
 
-/**
- * Tabs 流式渲染包装：基于 items 配置子页签，流式新增时自动切到最新 Tab。
- */
 export function AntTabsWrap({
   items,
   activeKey: controlledActiveKey,

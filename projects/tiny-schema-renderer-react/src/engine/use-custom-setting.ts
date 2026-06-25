@@ -3,7 +3,6 @@ import type { ComponentType } from 'react';
 export interface IRendererSettings {
   Function?: FunctionConstructor;
   transformJSX?: (code: string) => string;
-  /** 外部注入的物料组件表，解耦具体 UI 库依赖 */
   materials?: Record<string, ComponentType<any>>;
 }
 
@@ -16,23 +15,14 @@ export const DEFAULT_RENDERER_SETTINGS: IRendererSettings = {
 
 let customSettings: IRendererSettings = {};
 
-/**
- * 设置渲染器全局配置（Function、transformJSX、materials 等）。
- */
 export function setCustomSettings(rendererSettings: IRendererSettings): void {
   customSettings = rendererSettings;
 }
 
-/**
- * 获取当前渲染器全局配置。
- */
 export function getCustomSettings(): IRendererSettings {
   return customSettings || {};
 }
 
-/**
- * 返回 setCustomSettings / getCustomSettings 访问器。
- */
 export default function useCustomSetting(): {
   setCustomSettings: (rendererSettings: IRendererSettings) => void;
   getCustomSettings: () => IRendererSettings;

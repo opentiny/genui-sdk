@@ -3,22 +3,10 @@ import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
-/**
- * 清空对象所有自有属性，对齐 Vue RenderMain.reset。
- *
- * @param obj - 待清空的对象
- */
 function reset(obj: Record<string, unknown>) {
   Object.keys(obj).forEach((key) => delete obj[key]);
 }
 
-/**
- * 将 schema.methods 解析并挂载到页面上下文，对齐 Vue RenderMain.setMethods。
- *
- * @param data - schema.methods 定义
- * @param page - 页面上下文控制器
- * @param clear - 是否在写入前清空已有 methods
- */
 export function setMethods(
   data: Record<string, unknown> = {},
   page: PageContextApi,
@@ -54,13 +42,6 @@ export function setMethods(
   page.setContext({ methods, ...methods });
 }
 
-/**
- * 将 schema.state 解析并写入页面状态，对齐 Vue RenderMain.setState。
- *
- * @param data - schema.state 定义
- * @param page - 页面上下文控制器
- * @param clear - 是否在写入前清空已有 state
- */
 export function setState(
   data: Record<string, unknown> | undefined,
   page: PageContextApi,
@@ -75,13 +56,6 @@ export function setState(
   page.setState(data, clear);
 }
 
-/**
- * 将 schema.refs 解析并写入页面 refs，对齐 Vue RenderMain.setRefs。
- *
- * @param data - schema.refs 定义
- * @param page - 页面上下文控制器
- * @param clear - 是否在写入前清空已有 refs
- */
 export function setRefs(
   data: Record<string, unknown> | undefined,
   page: PageContextApi,
@@ -101,13 +75,6 @@ export function setRefs(
   );
 }
 
-/**
- * 根据 schema 初始化页面上下文，对齐 Vue RenderMain.setSchema 的数据部分。
- *
- * @param schema - 页面 schema
- * @param page - 页面上下文控制器
- * @returns 生命周期回调
- */
 export function setSchema(schema: CardSchema, page: PageContextApi) {
   const current = page.getContext();
   const preserved = {

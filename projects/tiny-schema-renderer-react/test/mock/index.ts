@@ -10,9 +10,6 @@ export interface DemoItem {
   schema: RootNode;
 }
 
-/**
- * 所有 mock 示例的索引，供测试页面切换展示。
- */
 export const demos: DemoItem[] = [
   { id: 'form', label: '表单校验', schema: formValidationSchema as RootNode },
   { id: 'table', label: '表格渲染', schema: tableSchema as RootNode },

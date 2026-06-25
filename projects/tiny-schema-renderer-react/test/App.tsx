@@ -3,9 +3,6 @@ import { RendererContextProvider, SchemaRenderer } from '../src';
 import { antdMaterials } from '@opentiny/genui-sdk-materials-react-antd/components';
 import { demos } from './mock';
 
-/**
- * 测试应用根组件，提供示例切换与 Schema 渲染。
- */
 export function App() {
   const [activeId, setActiveId] = useState(demos[0].id);
   const current = demos.find((d) => d.id === activeId) ?? demos[0];

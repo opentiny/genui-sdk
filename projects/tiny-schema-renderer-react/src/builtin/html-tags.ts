@@ -1,4 +1,3 @@
-/** Native HTML tags allowed for schema componentName passthrough */
 export const HTML_TAGS = new Set([
   'a', 'abbr', 'address', 'article', 'aside', 'audio', 'b', 'blockquote', 'br', 'button',
   'canvas', 'caption', 'cite', 'code', 'col', 'colgroup', 'data', 'datalist', 'dd', 'del',

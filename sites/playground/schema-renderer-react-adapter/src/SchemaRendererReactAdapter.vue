@@ -23,7 +23,6 @@ const props = defineProps<{
 
 const containerRef = ref<HTMLDivElement>();
 let root: Root | null = null;
-/** 同步持有 handle，避免 ref 回调晚于 schema 流式更新导致重复 root.render */
 const hostHandleRef = { current: null as ReactHostHandle | null };
 const pendingContext = ref<Record<string, unknown>>({});
 

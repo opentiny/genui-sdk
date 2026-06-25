@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react';
 
-/** 将 schema 中的 CSS 字符串转为 React style 对象 */
 export function parseInlineStyle(style: string): CSSProperties {
   const result: Record<string, string> = {};
   style.split(';').forEach((part) => {

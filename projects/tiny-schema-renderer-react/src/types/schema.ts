@@ -1,7 +1,3 @@
-/**
- * GenUI Schema 协议类型定义（自 @opentiny/genui-sdk-core 复制，避免运行时依赖）。
- */
-
 export type JSExpression = {
   type: 'JSExpression';
   value: string;
@@ -46,5 +42,4 @@ export type RootNode = Omit<Node, 'id'> & {
   schema?: any;
 };
 
-/** 卡片级 Schema，与 RootNode 结构一致 */
 export type CardSchema = RootNode;

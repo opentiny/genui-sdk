@@ -8,10 +8,6 @@ export type PageContextApi = {
   subscribe: (listener: () => void) => () => void;
 };
 
-/**
- * 创建页面运行时上下文，对齐 Vue useContext.js。
- * 变更通过 subscribe 通知消费端（useSyncExternalStore）。
- */
 export function createPageContext(): PageContextApi {
   let contextValue: PageContextValue = {
     state: {},

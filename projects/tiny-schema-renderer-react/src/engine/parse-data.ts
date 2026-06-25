@@ -7,9 +7,7 @@ export type PageContextValue = Record<string, unknown> & {
   methods?: Record<string, (...args: unknown[]) => unknown>;
   cssScopeId?: string;
   callAction?: (name: string, params?: unknown) => unknown;
-  /** 内部：model 绑定写入 state 后触发重渲染 */
   __pageNotify?: () => void;
-  /** 内部：函数执行时获取最新 context（避免闭包捕获过期 callAction/state） */
   __getContext?: () => PageContextValue;
 };
 
@@ -115,7 +113,6 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
   );
 
   if (modelKey && modelExpr && !hasUpdate) {
-    // schema 协议用 modelValue；React 受控组件用 value + onChange
     if (modelKey === 'modelValue') {
       if (res.value === undefined) {
         res.value = res.modelValue;
