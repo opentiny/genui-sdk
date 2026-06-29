@@ -1,4 +1,5 @@
 export type { PageContextValue } from './parse-data';
+export * from './apply-default-props';
 export * from './use-custom-setting';
 export { default as useCustomSetting } from './use-custom-setting';
 export * from './parse-expression';
