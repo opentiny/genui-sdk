@@ -39,7 +39,20 @@ export interface IMarkdownMessageItem {
   cardId: string;
 }
 
-export type IMessageItem = IMarkdownMessageItem | IJsonPatchMessageItem | ISchemaCardMessageItem;
+import type { ComposerSegment } from './schema-composer';
+
+export interface ITemplateUserMessageItem {
+  type: 'template-user';
+  segments: ComposerSegment[];
+  content?: string;
+  selectedNodes?: { id: string; componentName: string }[];
+}
+
+export type IMessageItem =
+  | IMarkdownMessageItem
+  | IJsonPatchMessageItem
+  | ISchemaCardMessageItem
+  | ITemplateUserMessageItem;
 
 export interface IChatMessage {
   role: 'assistant';

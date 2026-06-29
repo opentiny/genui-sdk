@@ -29,6 +29,10 @@ import {
 } from './template-chat-utils';
 import { formatDate, generateId, stripSchemaFieldsWhileStreaming } from '../../utils';
 import useTemplate from './useTemplate';
+import { useSchemaDevModeOptional } from './useSchemaDevMode';
+import { segmentsToPlainText } from './schema-composer';
+import TemplateInlineSender from './TemplateInlineSender.vue';
+import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
 import { emitter } from './template-chat-event-emitter';
@@ -59,6 +63,8 @@ const {
   updateTemplateTitle,
   setCurrentCardId,
 } = useTemplate();
+const schemaDevMode = useSchemaDevModeOptional();
+const isDevMode = computed(() => schemaDevMode?.isDevMode.value ?? false);
 
 watch(
   () => TinyGenuiConfig?.value?.theme,
@@ -284,6 +290,16 @@ const markdownRenderer = new BubbleMarkdownContentRenderer({
 
 const messageRenderers = {
   markdown: markdownRenderer,
+  'template-user': (props: {
+    segments?: import('./schema-composer').ComposerSegment[];
+    content?: string;
+    selectedNodes?: { id: string; componentName: string }[];
+  }) =>
+    h(TemplateUserMessageRenderer, {
+      segments: props.segments,
+      content: props.content,
+      selectedNodes: props.selectedNodes,
+    }),
   'json-patch': (props) => {
     return h(TemplateSchemaMessageRenderer, {
       itemProps: props,
@@ -370,10 +386,42 @@ const clearInputMessage = () => {
 
 // 发送消息
 const handleSendMessage = async () => {
-  const messageContent = inputMessage.value;
   const cardId = generateId();
   setCurrentCardId(cardId);
 
+  if (isDevMode.value && schemaDevMode) {
+    const composer = schemaDevMode.getComposerContent();
+    if (!composer || composer.isEmpty) {
+      return;
+    }
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: composer.apiContent,
+      messageId: cardId,
+      messages: [
+        {
+          type: 'template-user',
+          segments: composer.segments,
+        },
+      ],
+    };
+    messages.value.push(userMessage);
+
+    if (messages.value.length === 1 && messages.value[0].role === 'user') {
+      const currentConversationId = templateConversationState.value?.currentId;
+      if (currentConversationId) {
+        updateTemplateTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
+      }
+    }
+
+    prevSchema.value = JSON.stringify(currentSchema.value);
+    messageManager.value.send();
+    schemaDevMode.clearComposer();
+    scrollToBottom();
+    return;
+  }
+
+  const messageContent = inputMessage.value;
   const userMessage: ChatMessage = {
     role: 'user',
     content: messageContent,
@@ -381,7 +429,6 @@ const handleSendMessage = async () => {
   };
   messages.value.push(userMessage);
 
-  // 如果是第一条 user 消息，更新当前 title
   if (messages.value.length === 1 && messages.value[0].role === 'user') {
     const currentConversationId = templateConversationState.value?.currentId;
     if (currentConversationId) {
@@ -455,7 +502,20 @@ onUnmounted(() => {
       >
         <IconArrowDown class="icon-arrow-down" />
       </div>
+      <TemplateInlineSender
+        v-if="isDevMode"
+        :placeholder="
+          GeneratingStatus.includes(messageManager.messageState.status)
+            ? t('loading.thinking')
+            : t('template.inputPlaceholder')
+        "
+        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
+        :max-length="5000"
+        @submit="handleSendMessage"
+        @cancel="messageManager.abortRequest"
+      />
       <tr-sender
+        v-else
         v-model="inputMessage"
         :placeholder="
           GeneratingStatus.includes(messageManager.messageState.status)
@@ -469,8 +529,7 @@ onUnmounted(() => {
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="messageManager.abortRequest"
-      >
-      </tr-sender>
+      />
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>
     </div>
   </div>

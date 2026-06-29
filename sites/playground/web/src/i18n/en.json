@@ -173,7 +173,10 @@
     "close": "Close",
     "closePreview": "Close preview",
     "applyVersion": "Apply this version",
-    "returnLatest": "Back to latest"
+    "returnLatest": "Back to latest",
+    "devMode": "Dev mode",
+    "selectedNode": "Selected",
+    "clearSelectedNode": "Clear selected component"
   },
   "finishInfo": {
     "title": "Conversation info",

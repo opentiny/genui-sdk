@@ -10,14 +10,18 @@ import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import GenuiTemplateMobileSheet from './GenuiTemplateMobileSheet.vue';
+import InspectModeIcon from './InspectModeIcon.vue';
 import useTemplate from './useTemplate';
 import { useIsMobile } from '../../use-mobile';
 import { useMonacoPlaygroundTheme } from './use-monaco-playground-theme';
+import { provideSchemaDevMode } from './useSchemaDevMode';
+import { useSchemaRendererInspect } from './useSchemaRendererInspect';
 import viewSchemaIcon from '../../assets/images/view-schema.svg';
 import { locale, t } from '../../i18n';
 import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 
 const { isMobile } = useIsMobile();
+const { isDevMode, insertComposerTag, clearComposer } = provideSchemaDevMode();
 
 const TinyCloseIcon = iconClose();
 
@@ -36,6 +40,17 @@ const props = defineProps<{
 }>();
 
 const monacoTheme = useMonacoPlaygroundTheme(() => props.theme);
+
+const {
+  containerRef: rendererContainerRef,
+  onMouseMove: handleRendererMouseMove,
+  onMouseLeave: handleRendererMouseLeave,
+  onClick: handleRendererInspectClick,
+} = useSchemaRendererInspect({
+  isDevMode,
+  schema: currentPreviewSchema,
+  insertComposerTag,
+});
 
 // 桌面：右侧预览列是否展开（关闭后仅占聊天列；切换会话或点击版本卡片会重新展开）
 const rendererPanelVisible = ref(true);
@@ -260,6 +275,7 @@ watch(currentConversationId, () => {
   currentCardId.value = '';
   isHistoryVersionApplied.value = true;
   rendererPanelVisible.value = true;
+  clearComposer();
 });
 
 onMounted(() => {
@@ -300,7 +316,12 @@ onUnmounted(() => {
             />
           </div>
           <div class="schema-version-container__editor">
-            <code-editor v-model:value="schemaEditor" language="json" :theme="monacoTheme" :options="editorOptions" />
+            <code-editor
+              v-model:value="schemaEditor"
+              language="json"
+              :theme="monacoTheme"
+              :options="editorOptions"
+            />
           </div>
         </div>
       </div>
@@ -337,6 +358,16 @@ onUnmounted(() => {
                 {{ t('templateEditor.viewJson') }}
               </button>
               <div class="top-button-group-right">
+                <button
+                  type="button"
+                  class="dev-mode-toggle"
+                  :class="{ 'is-active': isDevMode }"
+                  :aria-label="t('templateEditor.devMode')"
+                  :title="t('templateEditor.devMode')"
+                  @click="isDevMode = !isDevMode"
+                >
+                  <InspectModeIcon class="dev-mode-toggle__icon" />
+                </button>
                 <tiny-button v-if="showReturnLatestButton" type="primary" round @click="resetToLatestVersion">{{
                   t('templateEditor.returnLatest')
                 }}</tiny-button>
@@ -352,12 +383,19 @@ onUnmounted(() => {
                 />
               </div>
             </div>
-            <schema-renderer
-              class="schema-renderer"
-              :content="currentPreviewSchema"
-              :generating="false"
-              :isJsonComplete="currentPreviewSchemaComplete"
-            />
+            <div
+              ref="rendererContainerRef"
+              :class="['schema-renderer', { 'is-inspectable': isDevMode }]"
+              @mousemove="handleRendererMouseMove"
+              @mouseleave="handleRendererMouseLeave"
+              @click.capture="handleRendererInspectClick"
+            >
+              <schema-renderer
+                :content="currentPreviewSchema"
+                :generating="false"
+                :isJsonComplete="currentPreviewSchemaComplete"
+              />
+            </div>
           </div>
         </div>
       </template>
@@ -460,6 +498,25 @@ onUnmounted(() => {
         padding: 20px;
         overflow: auto;
         box-sizing: border-box;
+
+        &.is-inspectable {
+          cursor: default;
+
+          :deep([data-id]) {
+            cursor: default;
+          }
+
+          :deep([data-id].is-schema-hovered:not(.is-schema-selected)) {
+            outline: 2px solid #1890ff;
+            outline-offset: -2px;
+          }
+
+          :deep([data-id].is-schema-selected) {
+            outline: 2px solid #1890ff;
+            outline-offset: -2px;
+            box-shadow: inset 0 0 0 2px rgba(24, 144, 255, 0.15);
+          }
+        }
       }
     }
   }
@@ -551,6 +608,46 @@ onUnmounted(() => {
   &__editor :deep(.monaco-code-editor) {
     flex: 1;
     min-height: 0;
+  }
+}
+
+.dev-mode-toggle {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #666;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover {
+    color: #191919;
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1890ff;
+    outline-offset: 2px;
+  }
+
+  &.is-active {
+    color: #6cb6ff;
+    background: transparent;
+
+    &:hover {
+      color: #6cb6ff;
+      background: rgba(0, 0, 0, 0.06);
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
   }
 }
 </style>
