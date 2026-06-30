@@ -60,10 +60,13 @@
                   "componentName": "AntInput",
                   "props": {
                     "placeholder": "请输入姓名",
-                    "modelValue": {
+                    "value": {
                       "type": "JSExpression",
-                      "model": true,
                       "value": "this.state.formData.name"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(e) { this.state.formData.name = e.target.value; }"
                     }
                   }
                 }
@@ -91,10 +94,13 @@
                   "props": {
                     "type": "email",
                     "placeholder": "请输入邮箱",
-                    "modelValue": {
+                    "value": {
                       "type": "JSExpression",
-                      "model": true,
                       "value": "this.state.formData.email"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(e) { this.state.formData.email = e.target.value; }"
                     }
                   }
                 }
@@ -121,10 +127,13 @@
                   "componentName": "AntInput",
                   "props": {
                     "placeholder": "请输入手机号",
-                    "modelValue": {
+                    "value": {
                       "type": "JSExpression",
-                      "model": true,
                       "value": "this.state.formData.phone"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(e) { this.state.formData.phone = e.target.value; }"
                     }
                   }
                 }

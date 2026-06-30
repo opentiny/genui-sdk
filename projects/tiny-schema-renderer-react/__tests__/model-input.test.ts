@@ -3,7 +3,7 @@ import { parseData } from '../src/engine';
 import type { PageContextValue } from '../src/engine/parse-data';
 
 describe('model input binding', () => {
-  it('updates state and notifies on input change', () => {
+  it('updates state and notifies on explicit value/onChange', () => {
     let context: PageContextValue = {
       state: { formData: { name: '' } },
       refs: {},
@@ -20,10 +20,13 @@ describe('model input binding', () => {
     const props = parseData(
       {
         placeholder: 'name',
-        modelValue: {
+        value: {
           type: 'JSExpression',
-          model: true,
           value: 'this.state.formData.name',
+        },
+        onChange: {
+          type: 'JSFunction',
+          value: 'function(e) { this.state.formData.name = e.target.value; }',
         },
       },
       {},
@@ -39,9 +42,8 @@ describe('model input binding', () => {
     const nextCtx = context.__getContext?.() ?? context;
     const nextProps = parseData(
       {
-        modelValue: {
+        value: {
           type: 'JSExpression',
-          model: true,
           value: 'this.state.formData.name',
         },
       },

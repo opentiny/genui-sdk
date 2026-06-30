@@ -1,10 +1,5 @@
 import type { ReactNode } from 'react';
-import { Box } from './Box';
 import { Text } from './Text';
-import { Img } from './Img';
-import { Button } from './Button';
-import { Input } from './Input';
-import { Slot } from './Slot';
 import type { ComponentRegistry } from '../materials';
 
 function Page({ children }: { children?: ReactNode }) {
@@ -13,15 +8,5 @@ function Page({ children }: { children?: ReactNode }) {
 
 export const builtinMaterials: ComponentRegistry = {
   Page,
-  Box,
-  div: Box,
   Text,
-  span: Text,
-  Img,
-  img: Img,
-  Button,
-  button: Button,
-  Input,
-  input: Input,
-  Slot,
 };

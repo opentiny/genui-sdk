@@ -68,10 +68,13 @@
                               "componentName": "AntInput",
                               "props": {
                                 "placeholder": "请输入姓名",
-                                "modelValue": {
+                                "value": {
                                   "type": "JSExpression",
-                                  "model": true,
                                   "value": "this.state.formData.name"
+                                },
+                                "onChange": {
+                                  "type": "JSFunction",
+                                  "value": "function(e) { this.state.formData.name = e.target.value; }"
                                 }
                               }
                             }

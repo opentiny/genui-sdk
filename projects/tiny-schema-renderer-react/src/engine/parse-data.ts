@@ -102,45 +102,15 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
     }
   });
 
-  const modelEntry = entries.find(([, value]) => isJSExpression(value) && value.model === true);
-  const modelKey = modelEntry?.[0];
-  const modelExpr = modelEntry?.[1] as { type: string; value: string; model?: boolean } | undefined;
-  const hasUpdate = entries.some(([key]) => key.startsWith('on') && modelKey && key === `onUpdate:${modelKey}`);
-
-  if (modelKey && modelExpr && !hasUpdate) {
-    if (modelKey === 'modelValue') {
-      if (res.value === undefined) {
-        res.value = res.modelValue;
-      }
-      delete res.modelValue;
-    }
-
-    const useOnChange = modelKey === 'modelValue' || modelKey === 'value';
-    const rawHandler = parseData(
-      {
-        type: JS_FUNCTION,
-        value: `(value) => { ${modelExpr.value} = value }`,
-      },
-      scope,
-      ctx,
-    ) as ((v: unknown) => void) | undefined;
-
-    if (rawHandler) {
-      const handler = (v: unknown) => {
-        rawHandler(v);
-        getRuntimeCtx(ctx).__pageNotify?.();
-      };
-      if (useOnChange) {
-        res.onChange = (e: unknown) => {
-          const val =
-            e && typeof e === 'object' && 'target' in e ? (e as { target: { value?: unknown } }).target?.value : e;
-          handler(val);
-        };
-      } else {
-        res[`onUpdate:${modelKey}`] = handler;
-      }
-    }
-  }
+  Object.entries(res).forEach(([key, value]) => {
+    if (!key.startsWith('on') || typeof value !== 'function') return;
+    const fn = value as (...args: unknown[]) => unknown;
+    res[key] = (...args: unknown[]) => {
+      const result = fn(...args);
+      getRuntimeCtx(ctx).__pageNotify?.();
+      return result;
+    };
+  });
 
   const refEntry = entries.find(([key, value]) => key === 'ref' && isJSExpression(value));
   if (refEntry) {

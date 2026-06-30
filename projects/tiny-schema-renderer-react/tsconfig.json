@@ -15,9 +15,6 @@
     "jsx": "react-jsx",
     "strict": true,
     "resolveJsonModule": true,
-    "types": [
-      "vite/client"
-    ],
     "paths": {
       "@opentiny/genui-sdk-materials-react-antd/components": [
         "../../packages/materials/react-antd/src/components/index.ts"

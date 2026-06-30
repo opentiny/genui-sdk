@@ -903,11 +903,10 @@ importers:
         version: 5.9.3
 
   projects/tiny-schema-renderer-react:
-    dependencies:
+    devDependencies:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../packages/core
-    devDependencies:
       '@opentiny/genui-sdk-materials-react-antd':
         specifier: workspace:*
         version: link:../../packages/materials/react-antd

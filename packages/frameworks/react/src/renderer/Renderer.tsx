@@ -13,7 +13,7 @@ import { SchemaRenderer } from '@opentiny/tiny-schema-renderer-react';
 import { RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
 import type { SchemaRendererHandle } from '@opentiny/tiny-schema-renderer-react';
 import { RendererContext } from './RendererContext';
-import { useGenuiMaterials } from '../config-provider';
+import { useGenuiDefaultPropsMap, useGenuiMaterials } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
 
@@ -34,9 +34,14 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     // TODO: 移除 RendererContext 依赖
     const BaseRenderer = useContext(RendererContext) ?? SchemaRenderer;
     const contextMaterials = useGenuiMaterials();
+    const defaultPropsMap = useGenuiDefaultPropsMap();
     const mergedMaterials = useMemo(
       () => ({ ...contextMaterials, ...props.customComponents }),
       [contextMaterials, props.customComponents],
+    );
+    const renderSettings = useMemo(
+      () => ({ materials: mergedMaterials, defaultPropsMap }),
+      [mergedMaterials, defaultPropsMap],
     );
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
@@ -132,7 +137,7 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
 
     // TODO: css样式去哪里了
     return (
-      <RendererContextProvider render-settings={{ materials: mergedMaterials }}>
+      <RendererContextProvider render-settings={renderSettings}>
         <div className="genui-renderer-container schema-render-container">
           <BaseRenderer
             ref={setRendererRef}

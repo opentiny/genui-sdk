@@ -24,6 +24,5 @@ export function normalizeDomProps(props: Record<string, unknown>): Record<string
     next.className = next.class;
   }
   delete next.class;
-  delete next.modelValue;
   return next;
 }
