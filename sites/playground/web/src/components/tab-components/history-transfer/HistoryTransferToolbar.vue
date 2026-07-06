@@ -57,7 +57,7 @@ import {
   TinyDropdownMenu,
   TinyDropdownItem,
 } from '@opentiny/vue';
-import type { Conversation } from '@opentiny/tiny-robot-kit';
+import type { PersistedConversation } from '../../../types/conversation';
 import { t } from '../../../i18n';
 import { downloadConversations, parseConversationFile, reconcileImportedConversationIds } from './history-transfer';
 
@@ -65,7 +65,7 @@ const selectionActive = defineModel<boolean>('selectionActive', { default: false
 
 const props = withDefaults(
   defineProps<{
-    conversations: Conversation[];
+    conversations: PersistedConversation[];
     selectedIds?: string[];
   }>(),
   { selectedIds: () => [] },
@@ -76,7 +76,7 @@ const toggleSelectionMode = () => {
 };
 
 const emit = defineEmits<{
-  'import-conversations': [conversations: Conversation[]];
+  'import-conversations': [conversations: PersistedConversation[]];
   'batch-export': [];
   'batch-delete': [];
 }>();

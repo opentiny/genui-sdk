@@ -1,4 +1,4 @@
-import type { ModelCapability } from '../chat.types';
+import type { ModelCapability, UserItem } from '../chat.types';
 
 export type FileCategory = 'image' | 'document';
 
@@ -212,4 +212,53 @@ export const deserializeFile = (fileMeta: FileMeta): File => {
     type: fileMeta.type,
     lastModified: fileMeta.lastModified,
   });
+};
+
+const appendTextItem = (result: UserItem[], text: string) => {
+  if (!text) {
+    return;
+  }
+  const last = result[result.length - 1];
+  if (last?.type === 'text') {
+    last.content += text;
+  } else {
+    result.push({ type: 'text', content: text });
+  }
+};
+
+export const buildTemplateDataFromSubmitText = (templateData: UserItem[], submitText: string): UserItem[] => {
+  const templates = templateData.filter((item) => item.type === 'template' && item.content);
+  if (!templates.length) {
+    const text = submitText.trim();
+    return text ? [{ type: 'text', content: submitText }] : templateData;
+  }
+  if (!submitText) {
+    return templateData;
+  }
+
+  const result: UserItem[] = [];
+  let pos = 0;
+  const matchedTemplates = new Set<string>();
+
+  for (const template of templates) {
+    const filename = template.content;
+    const foundAt = submitText.indexOf(filename, pos);
+    if (foundAt === -1) {
+      continue;
+    }
+    matchedTemplates.add(filename);
+    appendTextItem(result, submitText.slice(pos, foundAt));
+    result.push({ type: 'template', content: filename });
+    pos = foundAt + filename.length;
+  }
+
+  appendTextItem(result, submitText.slice(pos));
+
+  for (const template of templates) {
+    if (!matchedTemplates.has(template.content)) {
+      result.push({ type: 'template', content: template.content });
+    }
+  }
+
+  return result.length ? result : templateData;
 };

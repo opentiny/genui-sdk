@@ -1,4 +1,4 @@
-import type { UserItem } from '@opentiny/tiny-robot';
+import type { UserItem } from './chat.types';
 import { TinyNotify } from '@opentiny/vue';
 import { ref, type Ref } from 'vue';
 import { type FileMeta, processFiles, serializeFile } from './file-upload/file-utils';

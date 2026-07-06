@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Conversation } from '@opentiny/tiny-robot-kit';
+// @ts-nocheck
+import type { Conversation, ChatMessage } from '@opentiny/tiny-robot-kit';
 import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
 import { computed, ref, watch } from 'vue';
 import { TinyModal, TinyCheckboxGroup, TinyCheckbox } from '@opentiny/vue';
@@ -42,14 +43,20 @@ watch(
   },
 );
 
-const handleImportConversations = (imported: Conversation[]) => {
-  if (!conversation) {
+const handleImportConversations = async (imported: Conversation[]) => {
+  if (!conversation?.importConversations) {
     return;
   }
 
   const reconciledImported = reconcileImportedConversationIds(conversation.state.conversations, imported);
-  conversation.state.conversations.unshift(...reconciledImported);
-  conversation.saveConversations();
+  await conversation.importConversations(
+    reconciledImported.map((item) => ({
+      id: item.id,
+      title: item.title,
+      messages: item.messages as ChatMessage[] | undefined,
+      metadata: item.metadata as Record<string, unknown> | undefined,
+    })),
+  );
 };
 
 const handleItemClick = (item: Conversation) => {

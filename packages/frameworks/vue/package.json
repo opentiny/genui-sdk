@@ -58,9 +58,9 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@opentiny/tiny-robot": "0.3.3",
-    "@opentiny/tiny-robot-kit": "0.3.3",
-    "@opentiny/tiny-robot-svgs": "0.3.3",
+    "@opentiny/tiny-robot": "0.4.1",
+    "@opentiny/tiny-robot-kit": "0.4.1",
+    "@opentiny/tiny-robot-svgs": "0.4.1",
     "@opentiny/vue": "^3.28.0",
     "@opentiny/vue-renderless": "^3.28.2",
     "@opentiny/vue-icon": "^3.28.0",
@@ -105,7 +105,9 @@
     "@opentiny/vue-tab-item": "^3.28.0",
     "@opentiny/vue-tree": "^3.28.0",
     "@opentiny/vue-radio-group": "^3.28.0",
-    "@opentiny/tiny-engine-builtin-component": "^2.6.0"
+    "@opentiny/tiny-engine-builtin-component": "^2.6.0",
+    "dompurify": "^3.3.1",
+    "markdown-it": "^14.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",

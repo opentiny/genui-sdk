@@ -1,4 +1,4 @@
-import type { Conversation } from '@opentiny/tiny-robot-kit';
+import type { PersistedConversation } from '../../../types/conversation';
 import { t } from '../../../i18n';
 import { formatDate, generateId } from '../../../utils';
 
@@ -15,8 +15,8 @@ const generateUniqueId = (existingIds: Set<string>) => {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
-const normalizeConversation = (value: unknown): Conversation | null => {
-  if (!isRecord(value) || !Array.isArray(value.messages)) {
+const normalizeConversation = (value: unknown): PersistedConversation | null => {
+  if (!isRecord(value)) {
     return null;
   }
 
@@ -30,12 +30,12 @@ const normalizeConversation = (value: unknown): Conversation | null => {
     title: typeof value.title === 'string' && value.title.trim() ? value.title : t('conversation.newConversation'),
     createdAt: typeof value.createdAt === 'number' ? value.createdAt : Date.now(),
     updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : Date.now(),
-    messages: value.messages as Conversation['messages'],
+    messages: Array.isArray(value.messages) ? value.messages : [],
     metadata: isRecord(value.metadata) ? value.metadata : {},
   };
 };
 
-export const downloadConversations = (conversations: Conversation[], downloadBasenamePrefix = 'genui-history') => {
+export const downloadConversations = (conversations: PersistedConversation[], downloadBasenamePrefix = 'genui-history') => {
   const blob = new Blob([JSON.stringify(conversations, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -58,12 +58,12 @@ export const parseConversationFile = async (file: File) => {
     throw new Error(t('history.mustBeArray'));
   }
 
-  return rawData.map(normalizeConversation).filter(Boolean) as Conversation[];
+  return rawData.map(normalizeConversation).filter(Boolean) as PersistedConversation[];
 };
 
 export const reconcileImportedConversationIds = (
-  existingConversations: Conversation[],
-  importedConversations: Conversation[],
+  existingConversations: PersistedConversation[],
+  importedConversations: PersistedConversation[],
 ) => {
   const existingIds = new Set(existingConversations.map((conversation) => conversation.id));
 

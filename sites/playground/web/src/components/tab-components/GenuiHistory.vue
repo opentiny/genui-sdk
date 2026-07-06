@@ -35,9 +35,10 @@
 </template>
 
 <script setup lang="ts">
-import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
-import { type Conversation, type UseConversationReturn } from '@opentiny/tiny-robot-kit';
+import { TrHistory, useTouchDevice, type HistoryItem } from '@opentiny/tiny-robot';
+import type { LegacyUseConversationReturn } from '@opentiny/genui-sdk-vue';
 import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
+import type { PersistedConversation } from '../../types/conversation';
 import { TinyCheckbox, TinyCheckboxGroup, TinyModal } from '@opentiny/vue';
 import { t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
@@ -56,13 +57,13 @@ watch(selectionActive, (active) => {
 });
 
 const props = defineProps<{
-  conversation: UseConversationReturn;
+  conversation: LegacyUseConversationReturn;
 }>();
 
 const { state, switchConversation, deleteConversation, updateTitle, createConversation, saveConversations } =
   props.conversation;
 
-const groupedHistoryData = computed(() => groupByTimeBuckets(state.conversations));
+const groupedHistoryData = computed(() => groupByTimeBuckets(state.conversations) as any);
 
 watch(
   () => state.conversations.map((c) => c.id),
@@ -72,18 +73,18 @@ watch(
   },
 );
 
-const handleImportConversations = (conversations: Conversation[]) => {
+const handleImportConversations = (conversations: PersistedConversation[]) => {
   state.conversations.unshift(...conversations);
   saveConversations();
 };
 
-const handleItemClick = (item: Conversation) => {
+const handleItemClick = (item: HistoryItem) => {
   switchConversation(item.id);
 };
 
-const handleItemAction = (action: { id: string }, item: Conversation) => {
+const handleItemAction = (action: { id: string }, item: HistoryItem) => {
   if (action.id === 'export') {
-    downloadConversations([item]);
+    downloadConversations([item as PersistedConversation]);
     return;
   }
 
@@ -92,14 +93,13 @@ const handleItemAction = (action: { id: string }, item: Conversation) => {
     saveConversations();
   }
 
-  // 保证至少有一个会话
   if (state.conversations.length === 0) {
     createConversation();
     saveConversations();
   }
 };
 
-const handleItemTitleChange = (title: string, item: Conversation) => {
+const handleItemTitleChange = (title: string, item: HistoryItem) => {
   updateTitle(item.id, title);
   saveConversations();
 };
@@ -107,7 +107,7 @@ const handleItemTitleChange = (title: string, item: Conversation) => {
 const handleBatchExport = () => {
   const idSet = new Set(selectedConversations.value);
   const items = state.conversations.filter((c) => idSet.has(c.id));
-  downloadConversations(items);
+  downloadConversations(items as PersistedConversation[]);
 };
 
 const handleBatchDelete = () => {

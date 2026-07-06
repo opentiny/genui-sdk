@@ -21,6 +21,19 @@ const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
 };
 
+const getReasoningContent = (data: IStreamData): string | undefined => {
+  const choice = data.choices?.[0];
+  const fromDelta = choice?.delta?.reasoning_content;
+  if (typeof fromDelta === 'string' && fromDelta.length > 0) {
+    return fromDelta;
+  }
+  const fromMessage = (choice?.message as { reasoning_content?: string } | undefined)?.reasoning_content;
+  if (typeof fromMessage === 'string' && fromMessage.length > 0) {
+    return fromMessage;
+  }
+  return undefined;
+};
+
 function onToolResult(
   toolCallsResult: any[],
   delta: IStreamDelta,
@@ -106,11 +119,11 @@ function onReasoningContent(reasoningContent: string, delta: IStreamDelta, chatM
   if (reasoningMessage?.type === 'reasoning') {
     reasoningMessage.content += reasoningContent;
   } else {
-    reasoningMessage = {
+    reasoningMessage = reactive({
       type: 'reasoning',
       content: reasoningContent,
       thinking: true,
-    };
+    });
     chatMessage.messages.push(reasoningMessage);
   }
   emitNotification(delta, chatMessage);
@@ -212,13 +225,14 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
   },
   {
     name: 'reasoning',
-    match: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      return Boolean(delta.reasoning_content);
-    },
+    match: (data: IStreamData) => Boolean(getReasoningContent(data)),
     handler: (data: IStreamData, context: any) => {
+      const reasoningContent = getReasoningContent(data);
+      if (!reasoningContent) {
+        return false;
+      }
       const delta = getStreamDelta(data);
-      context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
+      context.reasoningMessage = onReasoningContent(reasoningContent, delta, context.chatMessage);
       if (!context.handleReasoning) {
         watchReasoningEnd(context);
         context.handleReasoning = true;

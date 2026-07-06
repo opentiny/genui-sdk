@@ -8,7 +8,7 @@ import { iconClose } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
-import GenuiTemplateChat from './GenuiTemplateChat.vue';
+import GenuiTemplateChat from '../genui-template-v2/GenuiTemplateChat.vue';
 import GenuiTemplateMobileSheet from './GenuiTemplateMobileSheet.vue';
 import useTemplate from './useTemplate';
 import { useIsMobile } from '../../use-mobile';
@@ -252,7 +252,7 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 };
 
-const currentConversationId = computed(() => conversation?.state.currentId);
+const currentConversationId = computed(() => templateConversationState.value?.currentId);
 
 watch(currentConversationId, () => {
   schemaEditorVisible.value = false;

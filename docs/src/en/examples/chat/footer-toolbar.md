@@ -40,7 +40,7 @@ interface IBubbleSlotsProps {
   index: number;
   bubbleProps: BubbleProps;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageManager: IMessageManagerBridge;
 }
 ```
 
@@ -49,11 +49,11 @@ interface IBubbleSlotsProps {
 - `isFinished`: Whether the current reply has finished; typically used to control toolbar visibility
 - `messageManager`: Message manager containing the current message list, send methods, and more
 
-See TinyRobot documentation for details on `BubbleProps` and `UseMessageReturn`.
+See TinyRobot documentation for `BubbleProps`. `roles.slots.trailer` still works in `GenuiChat`; it is adapted internally to the 0.4.x `#after` slot.
 
 See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definition and usage.
 
-See [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definition and usage.
+See [IMessageManagerBridge](../../../packages/frameworks/vue/src/chat/chat.types.ts) for definition and usage.
 
 ## Creating the User Footer Toolbar Component
 

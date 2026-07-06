@@ -592,7 +592,7 @@ interface IBubbleSlotsProps {
   index: number;
   bubbleProps: BubbleProps;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageManager: IMessageManagerBridge;
   chatMessage: IMessage
 }
 ```
@@ -611,10 +611,8 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-See TinyRobot documentation for `BubbleProps`, `UseConversationReturn`, and `UseMessageReturn`.
+See TinyRobot documentation for `BubbleProps`. `IMessageManagerBridge` is exported from `@opentiny/genui-sdk-vue` and is used in footer slots to access message send APIs.
 
 See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definitions and usage.
 
-See [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definitions and usage.
-
-See [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definitions and usage.
+See [IMessageManagerBridge](../../../packages/frameworks/vue/src/chat/chat.types.ts) for definitions and usage.

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ref, computed, inject } from 'vue';
-import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
 import { GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import { IconEdit, iconCopy } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
@@ -11,7 +10,9 @@ import EditInputRenderer from './EditInputRenderer.vue';
 import { t } from '../i18n';
 
 const props = defineProps<IBubbleSlotsProps>();
-const generating = computed(() => GeneratingStatus.includes(props.messageManager?.messageState.status));
+const generating = computed(
+  () => props.messageManager?.isProcessing?.value ?? false,
+);
 const genuiConfig: any = inject(GENUI_CONFIG, {});
 
 const tooltipEffect = computed(() => {
