@@ -25,13 +25,23 @@ function parseLifeCycleFn(source: unknown, getContext: () => PageContextValue): 
   }
 }
 
+function withMountedNotify(fn: LifeCycleFn, getContext: () => PageContextValue): LifeCycleFn {
+  return async () => {
+    await fn();
+    getContext().__pageNotify?.();
+  };
+}
+
 export function getPageLifeCycleFns(
   lifeCycles: LifeCycles | null | undefined,
   getContext: () => PageContextValue,
 ): { onMounted: LifeCycleFn | null; onUnmounted: LifeCycleFn | null } {
   const cycles = normalizeLifeCycles(lifeCycles);
+  const onMounted = parseLifeCycleFn(cycles.onMounted, getContext);
+  const onUnmounted = parseLifeCycleFn(cycles.onUnmounted, getContext);
+
   return {
-    onMounted: parseLifeCycleFn(cycles.onMounted, getContext),
-    onUnmounted: parseLifeCycleFn(cycles.onUnmounted, getContext),
+    onMounted: onMounted ? withMountedNotify(onMounted, getContext) : null,
+    onUnmounted,
   };
 }

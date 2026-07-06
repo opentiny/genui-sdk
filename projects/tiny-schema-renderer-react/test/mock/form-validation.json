@@ -18,7 +18,7 @@
     },
     "handleReset": {
       "type": "JSFunction",
-      "value": "function handleReset() { this.refs.formRef.resetFields(); this.state.formData = { name: '', email: '', phone: '' }; this.state.submitResult = ''; }"
+      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '' }; this.state.submitResult = ''; this.refs.formRef.setFieldsValue({ name: '', email: '', phone: '' }); }"
     }
   },
   "children": [
@@ -37,9 +37,9 @@
               "type": "JSExpression",
               "value": "this.refs.formRef"
             },
-            "initialValues": {
-              "type": "JSExpression",
-              "value": "this.state.formData"
+            "onValuesChange": {
+              "type": "JSFunction",
+              "value": "function(changed, all) { Object.assign(this.state.formData, all); }"
             }
           },
           "children": [
@@ -59,15 +59,7 @@
                 {
                   "componentName": "AntInput",
                   "props": {
-                    "placeholder": "请输入姓名",
-                    "value": {
-                      "type": "JSExpression",
-                      "value": "this.state.formData.name"
-                    },
-                    "onChange": {
-                      "type": "JSFunction",
-                      "value": "function(e) { this.state.formData.name = e.target.value; }"
-                    }
+                    "placeholder": "请输入姓名"
                   }
                 }
               ]
@@ -93,15 +85,7 @@
                   "componentName": "AntInput",
                   "props": {
                     "type": "email",
-                    "placeholder": "请输入邮箱",
-                    "value": {
-                      "type": "JSExpression",
-                      "value": "this.state.formData.email"
-                    },
-                    "onChange": {
-                      "type": "JSFunction",
-                      "value": "function(e) { this.state.formData.email = e.target.value; }"
-                    }
+                    "placeholder": "请输入邮箱"
                   }
                 }
               ]
@@ -126,15 +110,7 @@
                 {
                   "componentName": "AntInput",
                   "props": {
-                    "placeholder": "请输入手机号",
-                    "value": {
-                      "type": "JSExpression",
-                      "value": "this.state.formData.phone"
-                    },
-                    "onChange": {
-                      "type": "JSFunction",
-                      "value": "function(e) { this.state.formData.phone = e.target.value; }"
-                    }
+                    "placeholder": "请输入手机号"
                   }
                 }
               ]

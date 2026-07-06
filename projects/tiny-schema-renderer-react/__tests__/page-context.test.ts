@@ -104,6 +104,33 @@ describe('setSchema', () => {
     expect(after.state?.formData).toEqual({ name: '' });
     expect(after).not.toBe(before);
   });
+
+  it('onMounted state mutation triggers re-render after lifecycle completes', async () => {
+    const page = createPageContext();
+    let notifyCount = 0;
+    page.subscribe(() => notifyCount++);
+
+    const { onMounted } = setSchema(
+      {
+        state: { tableData: [] as unknown[] },
+        lifeCycles: {
+          onMounted: {
+            type: 'JSFunction',
+            value: "function onMounted() { this.state.tableData = [{ id: '001' }]; }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      page,
+    );
+
+    const notifyAfterInit = notifyCount;
+    await onMounted?.();
+
+    expect(page.getContext().state?.tableData).toEqual([{ id: '001' }]);
+    expect(notifyCount).toBeGreaterThan(notifyAfterInit);
+  });
 });
 
 describe('parseData onClick with methods', () => {
