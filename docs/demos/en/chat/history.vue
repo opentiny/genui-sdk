@@ -38,12 +38,12 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 // Get conversation object and state
 const conversation = computed(() => chatRef.value?.getConversation());
-const conversations = computed(() => conversation.value?.state.conversations || []);
-const currentId = computed(() => conversation.value?.state.currentId);
+const conversations = computed(() => conversation.value?.conversations.value || []);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 
 // Create new conversation
 const handleNewConversation = () => {
-  conversation.value?.createConversation();
+  conversation.value?.createConversation({ title: 'New Conversation' });
 };
 
 // Switch conversation

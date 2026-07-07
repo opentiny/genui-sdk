@@ -8,10 +8,8 @@ export const useInputMessage = (chatInstance: Ref<ComponentPublicInstance<typeof
       return;
     }
 
-    const conversation = chatInstance.value?.getConversation();
-
     const unwatch = watch(
-      () => conversation.state.loading,
+      () => chatInstance.value?.loading,
       (newValue) => {
         if (!newValue) {
           chatInstance.value?.setInputMessage(inputMessage);

@@ -24,10 +24,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // 获取所有会话列表
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
-// 获取当前会话ID
-const currentId = computed(() => conversation.value?.state.currentId);
+// 获取当前会话 ID
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 
@@ -39,7 +39,7 @@ const currentId = computed(() => conversation.value?.state.currentId);
 
 ```typescript
 const conversation = chatRef.value?.getConversation();
-const newConversationId = conversation?.createConversation('新会话标题');
+const newConversationId = conversation?.createConversation({ title: '新会话标题' }).id;
 ```
 
 ### 切换会话
@@ -56,11 +56,21 @@ const conversation = chatRef.value?.getConversation();
 conversation?.deleteConversation(conversationId);
 ```
 
-### 手动保存会话
+### 更新会话标题
 
 ```typescript
 const conversation = chatRef.value?.getConversation();
-await conversation?.saveConversations();
+conversation?.updateConversationTitle(conversationId, '新标题');
+```
+
+### 自动保存
+
+`GenuiChat` 内部已开启 `autoSaveMessages: true`，会话元数据与消息（含 Schema 卡片 `state` 等嵌套字段）会自动节流写入 IndexedDB，**无需**手动保存。
+
+若需立即刷盘（例如关页前），可调用 kit 原生 API：
+
+```typescript
+chatRef.value?.getConversation()?.saveMessages();
 ```
 
 ## 配合侧边栏管理历史记录
@@ -104,12 +114,12 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 // 获取会话对象和状态
 const conversation = computed(() => chatRef.value?.getConversation());
-const conversations = computed(() => conversation.value?.state.conversations || []);
-const currentId = computed(() => conversation.value?.state.currentId);
+const conversations = computed(() => conversation.value?.conversations.value || []);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 
 // 创建新会话
 const handleNewConversation = () => {
-  conversation.value?.createConversation();
+  conversation.value?.createConversation({ title: '新会话' });
 };
 
 // 切换会话

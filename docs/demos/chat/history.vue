@@ -38,12 +38,12 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 // 获取会话对象和状态
 const conversation = computed(() => chatRef.value?.getConversation());
-const conversations = computed(() => conversation.value?.state.conversations || []);
-const currentId = computed(() => conversation.value?.state.currentId);
+const conversations = computed(() => conversation.value?.conversations.value || []);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 
 // 创建新会话
 const handleNewConversation = () => {
-  conversation.value?.createConversation();
+  conversation.value?.createConversation({ title: '新会话' });
 };
 
 // 切换会话

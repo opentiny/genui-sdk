@@ -2,7 +2,7 @@
   <div class="genui-history">
     <history-transfer-toolbar
       v-model:selection-active="selectionActive"
-      :conversations="state.conversations"
+      :conversations="conversations"
       :selected-ids="selectedConversations"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"
@@ -12,7 +12,7 @@
       <tr-history
         class="tr-history-container"
         :data="groupedHistoryData"
-        :selected="state.currentId || undefined"
+        :selected="currentId || undefined"
         :show-rename-controls="isTouchDevice"
         :menu-items="historyMenuItems"
         :menu-list-gap="12"
@@ -36,7 +36,8 @@
 
 <script setup lang="ts">
 import { TrHistory, useTouchDevice, type HistoryItem } from '@opentiny/tiny-robot';
-import type { LegacyUseConversationReturn } from '@opentiny/genui-sdk-vue';
+import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import type { GenuiConversationHandle, ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
 import type { PersistedConversation } from '../../types/conversation';
 import { TinyCheckbox, TinyCheckboxGroup, TinyModal } from '@opentiny/vue';
@@ -57,29 +58,36 @@ watch(selectionActive, (active) => {
 });
 
 const props = defineProps<{
-  conversation: LegacyUseConversationReturn;
+  conversation: GenuiConversationHandle;
+  importConversations: (items: ImportConversationItem[]) => Promise<void>;
 }>();
 
-const { state, switchConversation, deleteConversation, updateTitle, createConversation, saveConversations } =
-  props.conversation;
+const conversations = computed(() => props.conversation.conversations.value);
+const currentId = computed(() => props.conversation.activeConversationId.value);
 
-const groupedHistoryData = computed(() => groupByTimeBuckets(state.conversations) as any);
+const groupedHistoryData = computed(() => groupByTimeBuckets(conversations.value) as any);
 
 watch(
-  () => state.conversations.map((c) => c.id),
+  () => conversations.value.map((c) => c.id),
   () => {
-    const idSet = new Set(state.conversations.map((c) => c.id));
+    const idSet = new Set(conversations.value.map((c) => c.id));
     selectedConversations.value = selectedConversations.value.filter((id) => idSet.has(id));
   },
 );
 
-const handleImportConversations = (conversations: PersistedConversation[]) => {
-  state.conversations.unshift(...conversations);
-  saveConversations();
+const handleImportConversations = async (items: PersistedConversation[]) => {
+  await props.importConversations(
+    items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      messages: item.messages as ChatMessage[] | undefined,
+      metadata: item.metadata,
+    })),
+  );
 };
 
 const handleItemClick = (item: HistoryItem) => {
-  switchConversation(item.id);
+  void props.conversation.switchConversation(item.id);
 };
 
 const handleItemAction = (action: { id: string }, item: HistoryItem) => {
@@ -89,24 +97,21 @@ const handleItemAction = (action: { id: string }, item: HistoryItem) => {
   }
 
   if (action.id === 'delete') {
-    deleteConversation(item.id);
-    saveConversations();
+    void props.conversation.deleteConversation(item.id);
   }
 
-  if (state.conversations.length === 0) {
-    createConversation();
-    saveConversations();
+  if (conversations.value.length === 0) {
+    props.conversation.createConversation({ title: t('conversation.newConversation') });
   }
 };
 
 const handleItemTitleChange = (title: string, item: HistoryItem) => {
-  updateTitle(item.id, title);
-  saveConversations();
+  props.conversation.updateConversationTitle(item.id, title);
 };
 
 const handleBatchExport = () => {
   const idSet = new Set(selectedConversations.value);
-  const items = state.conversations.filter((c) => idSet.has(c.id));
+  const items = conversations.value.filter((c) => idSet.has(c.id));
   downloadConversations(items as PersistedConversation[]);
 };
 
@@ -121,13 +126,12 @@ const handleBatchDelete = () => {
         return;
       }
       for (const id of ids) {
-        deleteConversation(id);
+        void props.conversation.deleteConversation(id);
       }
       selectedConversations.value = [];
-      if (state.conversations.length === 0) {
-        createConversation();
+      if (conversations.value.length === 0) {
+        props.conversation.createConversation({ title: t('conversation.newConversation') });
       }
-      saveConversations();
     });
 };
 </script>

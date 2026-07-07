@@ -203,13 +203,16 @@ const insertHandlersAfterName = (handlers, insertHandlers, name) => {
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+const importConversations = (...args) => chat.value?.importConversations(...args);
+const messageEngine = computed(() => chat.value?.getMessageEngine());
+
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
     const newResponseHandlers = [
       ...defaultResponseHandlers,
-      getContinueGeneratingHandler(conversation.value.messageManager),
+      getContinueGeneratingHandler(messageEngine),
       locationPartialSchemaJson(),
     ];
 
@@ -229,6 +232,7 @@ const playgroundContext = {
   modelData,
   themeData,
   conversation,
+  importConversations,
   customExamples,
 };
 

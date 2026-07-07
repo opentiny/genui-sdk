@@ -68,6 +68,6 @@ VITE_ENABLE_TEMPLATE=true pnpm --filter genui-sdk-playground-web dev
 
 ## 后续可选优化（非本阶段范围）
 
+- ~~去掉显式 `saveConversations()`，完全依赖 `autoSaveMessages`~~（阶段 B 已完成，见 phaseB 文档）
 - 抽取 `useGenuiSchemaChat.ts`，精简 `GenuiChat.vue`
-- Playground 直接使用 tiny-robot-kit API，去掉 `legacyConversation` 适配层
-- 去掉显式 `saveConversations()`，完全依赖 `autoSaveMessages`
+- ~~Playground 直接使用 tiny-robot-kit API，去掉 `legacyConversation` 适配层~~（阶段 C 已完成）

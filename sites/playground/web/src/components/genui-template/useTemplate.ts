@@ -1,14 +1,11 @@
 import { ref, shallowRef, computed } from 'vue';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import type { ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 import { t } from '../../i18n';
-import {
-  useTemplateConversation,
-  type LegacyTemplateConversation,
-} from '../genui-template-v2/useTemplateConversation';
+import { useTemplateConversation } from '../genui-template-v2/useTemplateConversation';
 
 const templateApi = shallowRef<ReturnType<typeof useTemplateConversation> | null>(null);
-const legacyConversation = shallowRef<LegacyTemplateConversation | null>(null);
 const llmConfigRef = shallowRef<LLMConfig>({ model: '', temperature: 0.5 });
 
 const isTemplateInit = ref(false);
@@ -39,7 +36,6 @@ function ensureTemplateConversation(options: UseTemplateOptions) {
     getLlmConfig: () => llmConfigRef.value,
     getTemplateSchema: () => currentSchema.value,
   });
-  legacyConversation.value = templateApi.value.legacyConversation;
   isTemplateInit.value = true;
 }
 
@@ -50,11 +46,24 @@ export default function useTemplate(options?: UseTemplateOptions) {
     ensureTemplateConversation(options);
   }
 
-  const conversation = legacyConversation.value;
-  const messages = computed(() => conversation?.getCurrentConversation()?.messages ?? []);
-  const templateConversationState = computed(() => conversation?.state);
-  const currentConversationId = computed(() => conversation?.state.currentId ?? null);
-  const messageManager = computed(() => conversation?.messageManager.value);
+  const conversation = computed(() => templateApi.value?.conversation);
+  const loading = computed(() => templateApi.value?.loading.value ?? true);
+  const messageManager = computed(() => templateApi.value?.messageManager.value);
+
+  const templateConversationState = computed(() => ({
+    conversations: conversation.value?.conversations.value ?? [],
+    currentId: conversation.value?.activeConversationId.value ?? null,
+    loading: loading.value,
+  }));
+
+  const currentConversationId = computed(() => conversation.value?.activeConversationId.value ?? null);
+
+  const messages = computed(
+    () => conversation.value?.activeConversation.value?.engine.messages.value ?? [],
+  );
+
+  const importConversations = (items: ImportConversationItem[]) =>
+    templateApi.value?.importConversations(items);
 
   const setCurrentPreviewSchema = (schema: any, isComplete: boolean = true) => {
     currentPreviewSchema.value = schema;
@@ -68,34 +77,30 @@ export default function useTemplate(options?: UseTemplateOptions) {
   };
 
   const createTemplate = () => {
-    if (!conversation) {
-      return;
-    }
-
-    conversation.createConversation(t('template.defaultTitle'));
-    void conversation.saveConversations();
+    templateApi.value?.createConversation(t('template.defaultTitle'));
     setCurrentSchema(null);
     setCurrentPreviewSchema(null);
     setCurrentCardId('');
   };
 
   const switchTemplate = (id: string) => {
-    if (!conversation) {
+    const kit = conversation.value;
+    if (!kit) {
       return;
     }
 
-    conversation.switchConversation(id);
-    const currentConv = conversation.getCurrentConversation();
+    void kit.switchConversation(id);
+    const currentMessages = kit.activeConversation.value?.engine.messages.value ?? [];
     let latestSchema: string | null = null;
 
-    if (!currentConv?.messages.length) {
+    if (!currentMessages.length) {
       setCurrentSchema(null);
       setCurrentPreviewSchema(null);
       setCurrentCardId('');
       return;
     }
 
-    const lastMessage = currentConv.messages[currentConv.messages.length - 1];
+    const lastMessage = currentMessages[currentMessages.length - 1];
 
     (lastMessage?.messages as IMessageItem[] | undefined)?.some((message: IMessageItem) => {
       if (message.type === 'schema-card' || message.type === 'json-patch') {
@@ -118,35 +123,31 @@ export default function useTemplate(options?: UseTemplateOptions) {
   };
 
   const deleteTemplate = (id: string) => {
-    if (!conversation) {
+    const kit = conversation.value;
+    if (!kit) {
       return;
     }
 
-    conversation.deleteConversation(id);
-    void conversation.saveConversations();
+    void kit.deleteConversation(id);
 
-    if (conversation.state.conversations.length === 0) {
+    if (kit.conversations.value.length === 0) {
       createTemplate();
     }
   };
 
   const updateTemplateTitle = (id: string, title: string) => {
-    if (!conversation) {
-      return;
-    }
-
-    conversation.updateTitle(id, title);
-    void conversation.saveConversations();
+    conversation.value?.updateConversationTitle(id, title);
   };
 
   const getMessageByCardId = (cardId: string) => {
-    if (!conversation) {
+    const kit = conversation.value;
+    if (!kit) {
       return;
     }
 
     let targetMessage = null;
 
-    conversation.getCurrentConversation()?.messages.some((msg: ChatMessage) => {
+    kit.activeConversation.value?.engine.messages.value.some((msg: ChatMessage) => {
       const messageItems = msg.messages as IMessageItem[] | undefined;
 
       if (!messageItems || !Array.isArray(messageItems)) {
@@ -180,11 +181,12 @@ export default function useTemplate(options?: UseTemplateOptions) {
   };
 
   const templateSchemaList = computed(() => {
-    if (!conversation) {
+    const kit = conversation.value;
+    if (!kit) {
       return [];
     }
 
-    return conversation.state.conversations.map((item) => {
+    return kit.conversations.value.map((item) => {
       const metadataSchema = item.metadata?.lastSchema;
       if (typeof metadataSchema === 'string' && metadataSchema) {
         return {
@@ -215,6 +217,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     messages,
     templateSchemaList,
     createTemplate,
+    importConversations,
     setCurrentPreviewSchema,
     setCurrentSchema,
     setCurrentCardId,

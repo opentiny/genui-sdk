@@ -1,52 +1,17 @@
-import { computed, reactive, ref, watch, type ComputedRef, type Ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import {
   indexedDBStorageStrategyFactory,
   useConversation,
   type ChatMessage,
   type UseMessageOptions,
 } from '@opentiny/tiny-robot-kit';
-import type { IMessageManagerBridge } from '@opentiny/genui-sdk-vue';
+import type { IMessageManagerBridge, ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import { t } from '../../i18n';
 import type { LLMConfig } from '../genui-template/chat.types';
 import { createTemplateResponseProvider } from './createTemplateResponseProvider';
 import { createTemplateStreamHandlerOptions } from './templateStreamHandler';
 
-export interface LegacyTemplateConversationState {
-  conversations: Array<{
-    id: string;
-    title?: string;
-    createdAt?: number;
-    updatedAt?: number;
-    metadata?: Record<string, unknown>;
-    messages?: ChatMessage[];
-  }>;
-  currentId: string | null;
-  loading: boolean;
-}
-
-export interface LegacyMessageManager extends IMessageManagerBridge {
-  messages: Ref<ChatMessage[]>;
-  messageState: { status: string };
-  isProcessing: ComputedRef<boolean>;
-  inputMessage: Ref<string>;
-  send: () => Promise<void>;
-  abortRequest: () => Promise<void>;
-  addMessage: (message: ChatMessage | ChatMessage[]) => void;
-}
-
-export interface LegacyTemplateConversation {
-  state: LegacyTemplateConversationState;
-  messageManager: ComputedRef<LegacyMessageManager>;
-  createConversation: (title?: string) => string;
-  switchConversation: (id: string) => void;
-  deleteConversation: (id: string) => void;
-  updateTitle: (id: string, title: string) => void;
-  saveConversations: () => Promise<void>;
-  getCurrentConversation: () => { messages: ChatMessage[] } | null;
-  importConversations: (
-    items: Array<{ id: string; title?: string; messages?: ChatMessage[]; metadata?: Record<string, unknown> }>,
-  ) => Promise<void>;
-}
+export type TemplateConversationHandle = ReturnType<typeof useConversation>;
 
 export interface UseTemplateConversationOptions {
   getUrl: () => string;
@@ -96,40 +61,29 @@ export function useTemplateConversation(options: UseTemplateConversationOptions)
     },
   });
 
-  const state = reactive<LegacyTemplateConversationState>({
-    conversations: [],
-    currentId: null,
-    loading: true,
-  });
-
-  watch(
-    conversation.conversations,
-    (value) => {
-      state.conversations = value.map((item) => ({ ...item }));
-    },
-    { immediate: true, deep: true },
-  );
-
-  watch(
-    conversation.activeConversationId,
-    (value) => {
-      state.currentId = value;
-    },
-    { immediate: true },
-  );
-
-  watch(loading, (value) => {
-    state.loading = value;
-  }, { immediate: true });
-
-  const createConversationCompat = (title?: string) => {
+  const createConversation = (title?: string) => {
     const created = conversation.createConversation({
       title: title || t('template.defaultTitle'),
     });
     return created.id;
   };
 
-  const messageManager = computed<LegacyMessageManager>(() => {
+  const importConversations = async (items: ImportConversationItem[]) => {
+    for (const item of items) {
+      const created = conversation.createConversation({
+        id: item.id,
+        title: item.title || t('template.defaultTitle'),
+        metadata: item.metadata,
+      });
+      await conversation.switchConversation(created.id);
+      const engine = conversation.activeConversation.value?.engine;
+      if (engine && item.messages?.length) {
+        engine.messages.value.splice(0, engine.messages.value.length, ...item.messages);
+      }
+    }
+  };
+
+  const messageManager = computed<IMessageManagerBridge>(() => {
     const engine = conversation.activeConversation.value?.engine;
     if (!engine) {
       return {
@@ -165,7 +119,7 @@ export function useTemplateConversation(options: UseTemplateConversationOptions)
         if (Array.isArray(message)) {
           engine.messages.value.push(...message);
         } else {
-          engine.messages.value.push(message);
+          engine.messages.value.push(message as ChatMessage);
         }
       },
     };
@@ -187,62 +141,15 @@ export function useTemplateConversation(options: UseTemplateConversationOptions)
         lastSchema: JSON.stringify(schema),
       },
     });
-    const stateItem = state.conversations.find((item) => item.id === currentId);
-    if (stateItem) {
-      stateItem.metadata = {
-        ...stateItem.metadata,
-        lastSchema: JSON.stringify(schema),
-      };
-    }
-  };
-
-  const legacyConversation: LegacyTemplateConversation = {
-    state,
-    messageManager,
-    createConversation: createConversationCompat,
-    switchConversation: (id: string) => {
-      void conversation.switchConversation(id);
-    },
-    deleteConversation: (id: string) => {
-      void conversation.deleteConversation(id);
-    },
-    updateTitle: (id: string, title: string) => {
-      conversation.updateConversationTitle(id, title);
-    },
-    saveConversations: async () => {
-      conversation.saveMessages();
-    },
-    getCurrentConversation: () => {
-      const active = conversation.activeConversation.value;
-      if (!active) {
-        return null;
-      }
-      return { messages: active.engine.messages.value };
-    },
-    importConversations: async (items) => {
-      for (const item of items) {
-        const created = conversation.createConversation({
-          id: item.id,
-          title: item.title || t('template.defaultTitle'),
-          metadata: item.metadata,
-        });
-        await conversation.switchConversation(created.id);
-        const engine = conversation.activeConversation.value?.engine;
-        if (engine && item.messages?.length) {
-          engine.messages.value.splice(0, engine.messages.value.length, ...item.messages);
-          conversation.saveMessages();
-        }
-      }
-    },
   };
 
   return {
     conversation,
-    legacyConversation,
     inputMessage,
     messageManager,
     loading,
     updateConversationLastSchema,
-    createConversation: createConversationCompat,
+    createConversation,
+    importConversations,
   };
 }

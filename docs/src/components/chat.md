@@ -440,10 +440,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // 获取所有会话列表
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
-// 获取当前会话ID
-const currentId = computed(() => conversation.value?.state.currentId);
+// 获取当前会话 ID
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 

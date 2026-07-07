@@ -1,4 +1,4 @@
-import { computed, reactive, ref, watch, type ComputedRef, type Ref } from 'vue';
+import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
 import {
   indexedDBStorageStrategyFactory,
   useConversation,
@@ -12,40 +12,15 @@ import { useI18n } from '../chat/i18n';
 import { createGenuiResponseProvider } from './createGenuiResponseProvider';
 import { createGenuiStreamHandlerOptions } from './genuiStreamHandler';
 import type { GenuiChatRuntimeOptions } from './types';
-import type { IMessage } from '../chat/chat.types';
+import type { IMessage, IMessageManagerBridge } from '../chat/chat.types';
 
-export interface LegacyMessageManager {
-  messages: Ref<ChatMessage[]>;
-  messageState: { status: string };
-  isProcessing: ComputedRef<boolean>;
-  inputMessage: Ref<string>;
-  send: () => Promise<void>;
-  sendMessage: (content?: ChatMessage['content'], clearInput?: boolean) => Promise<void>;
-  abortRequest: () => Promise<void>;
-  addMessage: (message: ChatMessage | ChatMessage[]) => void;
-}
+export type GenuiConversationHandle = ReturnType<typeof useConversation>;
 
-export interface LegacyConversationState {
-  conversations: Array<{
-    id: string;
-    title?: string;
-    createdAt: number;
-    updatedAt: number;
-    metadata?: Record<string, unknown>;
-  }>;
-  currentId: string | null;
-  loading: boolean;
-}
-
-export interface LegacyUseConversationReturn {
-  state: LegacyConversationState;
-  messageManager: ComputedRef<LegacyMessageManager>;
-  createConversation: (title?: string, metadata?: Record<string, unknown>) => string;
-  switchConversation: (id: string) => void;
-  deleteConversation: (id: string) => void;
-  updateTitle: (id: string, title: string) => void;
-  saveConversations: () => Promise<void>;
-  getCurrentConversation: () => (Record<string, unknown> & { messages: ChatMessage[] }) | null;
+export interface ImportConversationItem {
+  id: string;
+  title?: string;
+  messages?: ChatMessage[];
+  metadata?: Record<string, unknown>;
 }
 
 export interface UseGenuiConversationOptions {
@@ -105,38 +80,27 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     },
   });
 
-  const state = reactive<LegacyConversationState>({
-    conversations: [],
-    currentId: null,
-    loading: true,
-  });
-
-  watch(
-    conversation.conversations,
-    (value) => {
-      state.conversations = value;
-    },
-    { immediate: true, deep: true },
-  );
-
-  watch(
-    conversation.activeConversationId,
-    (value) => {
-      state.currentId = value;
-    },
-    { immediate: true },
-  );
-
-  watch(loading, (value) => {
-    state.loading = value;
-  }, { immediate: true });
-
-  const createConversationCompat = (title?: string, metadata?: Record<string, unknown>) => {
+  const createConversation = (title?: string, metadata?: Record<string, unknown>) => {
     const created = conversation.createConversation({
       title: title || t('conversation.newConversation'),
       metadata,
     });
     return created.id;
+  };
+
+  const importConversations = async (items: ImportConversationItem[]) => {
+    for (const item of items) {
+      const created = conversation.createConversation({
+        id: item.id,
+        title: item.title || t('conversation.newConversation'),
+        metadata: item.metadata,
+      });
+      await conversation.switchConversation(created.id);
+      const engine = conversation.activeConversation.value?.engine;
+      if (engine && item.messages?.length) {
+        engine.messages.value.splice(0, engine.messages.value.length, ...item.messages);
+      }
+    }
   };
 
   const ensureActiveConversation = async () => {
@@ -148,7 +112,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
       await conversation.switchConversation(list[0].id);
       return;
     }
-    createConversationCompat();
+    createConversation();
   };
 
   const sendUserMessage = async (content: string, clearInput = true) => {
@@ -179,7 +143,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     }
   };
 
-  const createEmptyMessageManager = (): LegacyMessageManager => ({
+  const createEmptyMessageEngine = (): IMessageManagerBridge => ({
     messages: ref([]),
     messageState: { status: 'init' },
     isProcessing: computed(() => false),
@@ -193,10 +157,10 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     addMessage: () => {},
   });
 
-  const messageManager = computed<LegacyMessageManager>(() => {
+  const messageManager = computed<IMessageManagerBridge>(() => {
     const engine = conversation.activeConversation.value?.engine;
     if (!engine) {
-      return createEmptyMessageManager();
+      return createEmptyMessageEngine();
     }
 
     const mapRequestState = (requestState: string) => {
@@ -225,39 +189,11 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
         if (Array.isArray(message)) {
           engine.messages.value.push(...message);
         } else {
-          engine.messages.value.push(message);
+          engine.messages.value.push(message as ChatMessage);
         }
       },
     };
   });
-
-  const legacyConversation: LegacyUseConversationReturn = {
-    state,
-    messageManager,
-    createConversation: createConversationCompat,
-    switchConversation: (id: string) => {
-      void conversation.switchConversation(id);
-    },
-    deleteConversation: (id: string) => {
-      void conversation.deleteConversation(id);
-    },
-    updateTitle: (id: string, title: string) => {
-      conversation.updateConversationTitle(id, title);
-    },
-    saveConversations: async () => {
-      conversation.saveMessages();
-    },
-    getCurrentConversation: () => {
-      const active = conversation.activeConversation.value;
-      if (!active) {
-        return null;
-      }
-      return {
-        ...active,
-        messages: active.engine.messages.value,
-      };
-    },
-  };
 
   const applyInitialMessages = (messages?: IMessage[]) => {
     if (!messages?.length) {
@@ -291,7 +227,6 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
 
   return {
     conversation,
-    legacyConversation,
     inputMessage,
     messageManager,
     loading,
@@ -300,8 +235,9 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     ensureActiveConversation,
     setResponseHandlers,
     getResponseHandlers: () => responseHandlers.value,
-    createConversation: createConversationCompat,
-    handleNewConversation: () => createConversationCompat(),
+    createConversation,
+    handleNewConversation: () => createConversation(),
+    importConversations,
     setConversationTitle: (messageContent: string) => {
       const currentId = conversation.activeConversationId.value;
       if (!currentId) {

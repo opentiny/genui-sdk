@@ -24,10 +24,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // Get all conversations
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
 // Get the current conversation ID
-const currentId = computed(() => conversation.value?.state.currentId);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 
@@ -39,7 +39,7 @@ Use the object returned by `getConversation()` to manage conversations:
 
 ```typescript
 const conversation = chatRef.value?.getConversation();
-const newConversationId = conversation?.createConversation('New Conversation Title');
+const newConversationId = conversation?.createConversation({ title: 'New Conversation Title' }).id;
 ```
 
 ### Switch Conversation
@@ -56,11 +56,21 @@ const conversation = chatRef.value?.getConversation();
 conversation?.deleteConversation(conversationId);
 ```
 
-### Manually Save Conversations
+### Update Conversation Title
 
 ```typescript
 const conversation = chatRef.value?.getConversation();
-await conversation?.saveConversations();
+conversation?.updateConversationTitle(conversationId, 'New Title');
+```
+
+### Auto-save
+
+`GenuiChat` enables `autoSaveMessages: true` internally. Conversation metadata and messages (including nested fields such as Schema card `state`) are throttled and persisted to IndexedDB automatically—**no manual save is required**.
+
+For an immediate flush (e.g. before closing the page), use the kit API:
+
+```typescript
+chatRef.value?.getConversation()?.saveMessages();
 ```
 
 ## Managing History with a Sidebar
@@ -104,12 +114,12 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 // Get conversation object and state
 const conversation = computed(() => chatRef.value?.getConversation());
-const conversations = computed(() => conversation.value?.state.conversations || []);
-const currentId = computed(() => conversation.value?.state.currentId);
+const conversations = computed(() => conversation.value?.conversations.value || []);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 
 // Create a new conversation
 const handleNewConversation = () => {
-  conversation.value?.createConversation();
+  conversation.value?.createConversation({ title: 'New Conversation' });
 };
 
 // Switch conversation

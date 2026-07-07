@@ -45,15 +45,17 @@ const getRuntimeOptions = (): GenuiChatRuntimeOptions => ({
 });
 
 const {
-  legacyConversation,
+  conversation,
   inputMessage,
   messageManager,
+  loading,
   sendUserMessage,
   sendUserChatMessage,
   setResponseHandlers,
   getResponseHandlers,
   handleNewConversation,
   setConversationTitle,
+  importConversations,
 } = useGenuiConversation({
   getRuntimeOptions,
   initialMessages: props.messages,
@@ -142,7 +144,6 @@ const saveState = (context: Record<string | symbol, unknown>) => {
       JSON.stringify(context.state || {}),
     );
   }
-  void legacyConversation.saveConversations();
 };
 
 const chat = async ({
@@ -366,7 +367,6 @@ const handleSendMessage = async (content?: string) => {
   await sendUserChatMessage(userMessage, false);
   clearInputMessage();
   setConversationTitle(messageContent);
-  void legacyConversation.saveConversations();
   scrollToBottom();
 };
 
@@ -382,18 +382,21 @@ const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
 watch(() => showMessages.value, throttledScrollToBottom, { deep: true });
 watch(
-  () => legacyConversation.state.currentId,
+  () => conversation.activeConversationId.value,
   () => {
     scrollToBottomWithRetry(10, 150);
   },
 );
 
 defineExpose({
+  loading,
   setInputMessage: (message: string) => {
     inputMessage.value = message;
   },
   handleNewConversation,
-  getConversation: () => legacyConversation,
+  getConversation: () => conversation,
+  getMessageEngine: () => messageManager.value,
+  importConversations,
   getResponseHandlers,
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     setResponseHandlers(handlers);
