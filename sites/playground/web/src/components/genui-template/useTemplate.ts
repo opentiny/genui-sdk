@@ -65,6 +65,8 @@ export default function useTemplate(options?: UseTemplateOptions) {
   const importConversations = (items: ImportConversationItem[]) =>
     templateApi.value?.importConversations(items);
 
+  const exportConversations = (ids?: string[]) => templateApi.value?.exportConversations(ids);
+
   const setCurrentPreviewSchema = (schema: any, isComplete: boolean = true) => {
     currentPreviewSchema.value = schema;
     if (isComplete !== currentPreviewSchemaComplete.value) {
@@ -218,6 +220,7 @@ export default function useTemplate(options?: UseTemplateOptions) {
     templateSchemaList,
     createTemplate,
     importConversations,
+    exportConversations,
     setCurrentPreviewSchema,
     setCurrentSchema,
     setCurrentCardId,

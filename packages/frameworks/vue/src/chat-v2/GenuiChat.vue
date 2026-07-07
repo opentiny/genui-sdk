@@ -56,6 +56,7 @@ const {
   handleNewConversation,
   setConversationTitle,
   importConversations,
+  exportConversations,
 } = useGenuiConversation({
   getRuntimeOptions,
   initialMessages: props.messages,
@@ -397,6 +398,7 @@ defineExpose({
   getConversation: () => conversation,
   getMessageEngine: () => messageManager.value,
   importConversations,
+  exportConversations,
   getResponseHandlers,
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     setResponseHandlers(handlers);

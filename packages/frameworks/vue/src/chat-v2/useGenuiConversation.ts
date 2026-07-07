@@ -13,6 +13,9 @@ import { createGenuiResponseProvider } from './createGenuiResponseProvider';
 import { createGenuiStreamHandlerOptions } from './genuiStreamHandler';
 import type { GenuiChatRuntimeOptions } from './types';
 import type { IMessage, IMessageManagerBridge } from '../chat/chat.types';
+import { collectConversationsForExport, type ExportConversationItem } from './collectConversationsForExport';
+
+export type { ExportConversationItem };
 
 export type GenuiConversationHandle = ReturnType<typeof useConversation>;
 
@@ -102,6 +105,9 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
       }
     }
   };
+
+  const exportConversations = async (ids?: string[]) =>
+    collectConversationsForExport(conversation, storage, ids);
 
   const ensureActiveConversation = async () => {
     if (conversation.activeConversation.value?.engine) {
@@ -238,6 +244,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     createConversation,
     handleNewConversation: () => createConversation(),
     importConversations,
+    exportConversations,
     setConversationTitle: (messageContent: string) => {
       const currentId = conversation.activeConversationId.value;
       if (!currentId) {

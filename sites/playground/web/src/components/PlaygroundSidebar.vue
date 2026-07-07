@@ -30,7 +30,7 @@ const GenuiTemplateList = ENABLE_TEMPLATE
   : shallowRef(null);
 // 从上层注入共享的 playground 上下文（这里只需要主题&会话相关）
 const playgroundContext = inject('playgroundContext');
-const { themeData, conversation, importConversations } = playgroundContext;
+const { themeData, conversation, importConversations, exportConversations } = playgroundContext;
 
 const TinyIconPlus = iconPlus();
 const activeName = ref('model');
@@ -198,9 +198,10 @@ const updateCustomExamples = (list) => {
         </tiny-tab-item>
         <tiny-tab-item :title="t('sidebar.tabHistory')" name="history" class="history-tab">
           <GenuiHistory
-            v-if="conversation && importConversations"
+            v-if="conversation && importConversations && exportConversations"
             :conversation="conversation"
             :import-conversations="importConversations"
+            :export-conversations="exportConversations"
           />
         </tiny-tab-item>
         <tiny-tab-item v-if="ENABLE_TEMPLATE && isTemplateInit" :title="t('sidebar.tabTemplate')" name="template">

@@ -6,6 +6,7 @@ import {
   type UseMessageOptions,
 } from '@opentiny/tiny-robot-kit';
 import type { IMessageManagerBridge, ImportConversationItem } from '@opentiny/genui-sdk-vue';
+import { collectConversationsForExport } from '@opentiny/genui-sdk-vue';
 import { t } from '../../i18n';
 import type { LLMConfig } from '../genui-template/chat.types';
 import { createTemplateResponseProvider } from './createTemplateResponseProvider';
@@ -143,6 +144,9 @@ export function useTemplateConversation(options: UseTemplateConversationOptions)
     });
   };
 
+  const exportConversations = async (ids?: string[]) =>
+    collectConversationsForExport(conversation, storage, ids);
+
   return {
     conversation,
     inputMessage,
@@ -151,5 +155,6 @@ export function useTemplateConversation(options: UseTemplateConversationOptions)
     updateConversationLastSchema,
     createConversation,
     importConversations,
+    exportConversations,
   };
 }

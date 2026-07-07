@@ -4,6 +4,7 @@
       v-model:selection-active="selectionActive"
       :conversations="conversations"
       :selected-ids="selectedConversations"
+      :export-conversations="exportConversations"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"
       @batch-delete="handleBatchDelete"
@@ -37,7 +38,7 @@
 <script setup lang="ts">
 import { TrHistory, useTouchDevice, type HistoryItem } from '@opentiny/tiny-robot';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
-import type { GenuiConversationHandle, ImportConversationItem } from '@opentiny/genui-sdk-vue';
+import type { ExportConversationItem, GenuiConversationHandle, ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
 import type { PersistedConversation } from '../../types/conversation';
 import { TinyCheckbox, TinyCheckboxGroup, TinyModal } from '@opentiny/vue';
@@ -60,6 +61,7 @@ watch(selectionActive, (active) => {
 const props = defineProps<{
   conversation: GenuiConversationHandle;
   importConversations: (items: ImportConversationItem[]) => Promise<void>;
+  exportConversations: (ids?: string[]) => Promise<ExportConversationItem[] | undefined>;
 }>();
 
 const conversations = computed(() => props.conversation.conversations.value);
@@ -90,9 +92,12 @@ const handleItemClick = (item: HistoryItem) => {
   void props.conversation.switchConversation(item.id);
 };
 
-const handleItemAction = (action: { id: string }, item: HistoryItem) => {
+const handleItemAction = async (action: { id: string }, item: HistoryItem) => {
   if (action.id === 'export') {
-    downloadConversations([item as PersistedConversation]);
+    const items = await props.exportConversations([item.id]);
+    if (items?.length) {
+      downloadConversations(items);
+    }
     return;
   }
 
@@ -109,10 +114,11 @@ const handleItemTitleChange = (title: string, item: HistoryItem) => {
   props.conversation.updateConversationTitle(item.id, title);
 };
 
-const handleBatchExport = () => {
-  const idSet = new Set(selectedConversations.value);
-  const items = conversations.value.filter((c) => idSet.has(c.id));
-  downloadConversations(items as PersistedConversation[]);
+const handleBatchExport = async () => {
+  const items = await props.exportConversations([...selectedConversations.value]);
+  if (items?.length) {
+    downloadConversations(items);
+  }
 };
 
 const handleBatchDelete = () => {

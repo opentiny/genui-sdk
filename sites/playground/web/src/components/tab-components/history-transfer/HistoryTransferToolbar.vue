@@ -67,6 +67,7 @@ const props = withDefaults(
   defineProps<{
     conversations: PersistedConversation[];
     selectedIds?: string[];
+    exportConversations?: (ids?: string[]) => Promise<PersistedConversation[] | undefined>;
   }>(),
   { selectedIds: () => [] },
 );
@@ -100,13 +101,18 @@ const triggerImport = () => {
   fileInputRef.value?.click();
 };
 
-const exportAll = () => {
+const exportAll = async () => {
   if (props.conversations.length === 0) {
     notify('warning', t('history.noExportable'));
     return;
   }
 
-  downloadConversations(props.conversations);
+  const items = props.exportConversations
+    ? await props.exportConversations()
+    : props.conversations;
+  if (items?.length) {
+    downloadConversations(items);
+  }
 };
 
 const handleExportItemClick = (payload: { itemData?: { action: ExportMenuAction } }) => {

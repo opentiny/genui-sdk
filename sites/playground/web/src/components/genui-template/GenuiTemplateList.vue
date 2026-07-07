@@ -19,7 +19,7 @@ const { isTouchDevice } = useTouchDevice();
 
 const emit = defineEmits(['switch-template']);
 
-const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate, conversation, importConversations } =
+const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate, conversation, importConversations, exportConversations } =
   useTemplate();
 
 const selectedTemplateIds = ref<string[]>([]);
@@ -66,9 +66,12 @@ const handleItemClick = (item: Conversation) => {
   emit('switch-template', item);
 };
 
-const handleItemAction = (action: { id: string }, item: Conversation) => {
+const handleItemAction = async (action: { id: string }, item: Conversation) => {
   if (action.id === 'export') {
-    downloadConversations([item], 'genui-template');
+    const items = await exportConversations?.([item.id]);
+    if (items?.length) {
+      downloadConversations(items, 'genui-template');
+    }
     return;
   }
 
@@ -91,10 +94,12 @@ const handleAddItem = () => {
   createTemplate();
 };
 
-const handleBatchExport = () => {
+const handleBatchExport = async () => {
   const idSet = new Set(selectedTemplateIds.value);
-  const items = conversations.value.filter((c) => idSet.has(c.id));
-  downloadConversations(items, 'genui-template');
+  const items = await exportConversations?.([...idSet]);
+  if (items?.length) {
+    downloadConversations(items, 'genui-template');
+  }
 };
 
 const handleBatchDelete = () => {
@@ -125,6 +130,7 @@ const handleBatchDelete = () => {
       v-model:selection-active="selectionActive"
       :conversations="conversations"
       :selected-ids="selectedTemplateIds"
+      :export-conversations="exportConversations"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"
       @batch-delete="handleBatchDelete"

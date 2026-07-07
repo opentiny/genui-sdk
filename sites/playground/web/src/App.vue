@@ -204,6 +204,7 @@ const insertHandlersAfterName = (handlers, insertHandlers, name) => {
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
 const importConversations = (...args) => chat.value?.importConversations(...args);
+const exportConversations = (...args) => chat.value?.exportConversations(...args);
 const messageEngine = computed(() => chat.value?.getMessageEngine());
 
 watch(chat, (instance) => {
@@ -233,6 +234,7 @@ const playgroundContext = {
   themeData,
   conversation,
   importConversations,
+  exportConversations,
   customExamples,
 };
 
