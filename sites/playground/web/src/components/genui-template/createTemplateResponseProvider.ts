@@ -1,7 +1,7 @@
 import { sseStreamToGenerator } from '@opentiny/tiny-robot-kit';
 import type { MessageRequestBody } from '@opentiny/tiny-robot-kit';
-import { templateChat } from '../genui-template/template-chat-api';
-import type { LLMConfig } from '../genui-template/chat.types';
+import { templateChat } from './template-chat-api';
+import type { LLMConfig } from './chat.types';
 
 export interface TemplateResponseProviderOptions {
   getUrl: () => string;

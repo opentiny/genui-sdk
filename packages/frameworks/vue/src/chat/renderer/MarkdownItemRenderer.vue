@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import { useMarkdownHtml } from '../composables/useMarkdownHtml';
+import { useMarkdownHtml } from '../composable/useMarkdownHtml';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

@@ -5,14 +5,14 @@ import {
   type ChatMessage,
   type UseMessageOptions,
 } from '@opentiny/tiny-robot-kit';
-import type { IResponseHandler } from '../chat/response-handler';
-import { defaultResponseHandlers } from '../chat/response-handler';
+import type { IResponseHandler } from './response-handler';
+import { defaultResponseHandlers } from './response-handler';
 import type { IStreamData } from '@opentiny/genui-sdk-core';
-import { useI18n } from '../chat/i18n';
+import { useI18n } from './i18n';
 import { createGenuiResponseProvider } from './createGenuiResponseProvider';
 import { createGenuiStreamHandlerOptions } from './genuiStreamHandler';
 import type { GenuiChatRuntimeOptions } from './types';
-import type { IMessage, IMessageManagerBridge } from '../chat/chat.types';
+import type { IMessage, IMessageManagerBridge } from './chat.types';
 import { collectConversationsForExport, type ExportConversationItem } from './collectConversationsForExport';
 
 export type { ExportConversationItem };

@@ -4,14 +4,14 @@ import {
   type BubbleContentRendererMatch,
   type BubbleMessage,
 } from '@opentiny/tiny-robot';
-import MarkdownItemRenderer from './renderers/MarkdownItemRenderer.vue';
-import CustomTextItemRenderer from './renderers/CustomTextItemRenderer.vue';
-import ReasoningItemRenderer from './renderers/ReasoningItemRenderer.vue';
-import ToolItemRenderer from './renderers/ToolItemRenderer.vue';
-import ErrorTextItemRenderer from './renderers/ErrorTextItemRenderer.vue';
-import LoadingTextItemRenderer from './renderers/LoadingTextItemRenderer.vue';
-import SchemaCardItemRenderer from './renderers/SchemaCardItemRenderer.vue';
-import TemplateDataItemRenderer from './renderers/TemplateDataItemRenderer.vue';
+import MarkdownItemRenderer from './renderer/MarkdownItemRenderer.vue';
+import CustomTextItemRenderer from './renderer/CustomTextItemRenderer.vue';
+import ReasoningItemRenderer from './renderer/ReasoningItemRenderer.vue';
+import ToolItemRenderer from './renderer/ToolItemRenderer.vue';
+import ErrorTextItemRenderer from './renderer/ErrorTextItemRenderer.vue';
+import LoadingTextItemRenderer from './renderer/LoadingTextItemRenderer.vue';
+import SchemaCardItemRenderer from './renderer/SchemaCardItemRenderer.vue';
+import TemplateDataItemRenderer from './renderer/TemplateDataItemRenderer.vue';
 
 type GenuiBubbleMessage = BubbleMessage & {
   messages?: Array<{ type?: string; content?: string; thinking?: boolean }>;

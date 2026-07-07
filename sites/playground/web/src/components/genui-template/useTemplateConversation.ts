@@ -8,7 +8,7 @@ import {
 import type { IMessageManagerBridge, ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import { collectConversationsForExport } from '@opentiny/genui-sdk-vue';
 import { t } from '../../i18n';
-import type { LLMConfig } from '../genui-template/chat.types';
+import type { LLMConfig } from './chat.types';
 import { createTemplateResponseProvider } from './createTemplateResponseProvider';
 import { createTemplateStreamHandlerOptions } from './templateStreamHandler';
 

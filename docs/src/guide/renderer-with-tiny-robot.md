@@ -53,7 +53,7 @@ export function createChatResponseProvider() {
 }
 ```
 
-Schema 分片解析可放在 `onCompletionChunk`（与 `GenuiChat` 内部 `genuiStreamHandler` 思路一致）。完整解析逻辑见 SDK 源码 `chat-v2/genuiStreamHandler.ts`；下方示例仅演示接入方式。
+Schema 分片解析可放在 `onCompletionChunk`（与 `GenuiChat` 内部 `genuiStreamHandler` 思路一致）。完整解析逻辑见 SDK 源码 `chat/genuiStreamHandler.ts`；下方示例仅演示接入方式。
 
 然后在组件中使用 `useConversation` + `GenuiRenderer`：
 

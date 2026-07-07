@@ -53,7 +53,7 @@ export function createChatResponseProvider() {
 }
 ```
 
-Place schema chunk parsing in `onCompletionChunk` (same idea as `genuiStreamHandler` inside `GenuiChat`). See SDK source `chat-v2/genuiStreamHandler.ts` for the full parser; the example below only shows wiring.
+Place schema chunk parsing in `onCompletionChunk` (same idea as `genuiStreamHandler` inside `GenuiChat`). See SDK source `chat/genuiStreamHandler.ts` for the full parser; the example below only shows wiring.
 
 Then use `useConversation` + `GenuiRenderer` in your component:
 

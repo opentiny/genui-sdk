@@ -1,8 +1,10 @@
-export { GenuiChat } from '../chat-v2/index.js';
-export type { GenuiConversationHandle, ImportConversationItem, ExportConversationItem } from '../chat-v2/useGenuiConversation.js';
-export { collectConversationsForExport } from '../chat-v2/collectConversationsForExport.js';
+export { default as GenuiChat } from './GenuiChat.vue';
+export * from './types.js';
+export { createGenuiResponseProvider } from './createGenuiResponseProvider.js';
+export type { GenuiConversationHandle, ImportConversationItem, ExportConversationItem } from './useGenuiConversation.js';
+export { collectConversationsForExport } from './collectConversationsForExport.js';
 export type { IMessageManagerBridge } from './chat.types.js';
-export { useBubbleRoleAfterSlot } from '../chat-v2/composables/useBubbleRoleAfterSlot.js';
+export { useBubbleRoleAfterSlot } from './composable/useBubbleRoleAfterSlot.js';
 export * from './chat.types.js';
 export * from './injection-tokens.js';
 export * from './i18n/index.js';

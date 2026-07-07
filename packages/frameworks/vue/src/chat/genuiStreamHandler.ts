@@ -4,9 +4,9 @@ import type { IStreamData } from '@opentiny/genui-sdk-core';
 import {
   defaultResponseHandlers,
   type IResponseHandler,
-} from '../chat/response-handler';
-import { emitter } from '../chat/event-emitter';
-import type { IChatConfig } from '../chat/chat.types';
+} from './response-handler';
+import { emitter } from './event-emitter';
+import type { IChatConfig } from './chat.types';
 
 export interface GenuiStreamHandlerContext {
   handlerContext: Record<string, any>;

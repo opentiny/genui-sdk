@@ -1,6 +1,6 @@
 import type { ComputedRef, InjectionKey } from 'vue';
 import type { Component } from 'vue';
-import type { ICustomActionItem } from '../chat/chat.types';
+import type { ICustomActionItem } from './chat.types';
 import type { IRendererSlots } from '../renderer';
 
 export interface GenuiSchemaCardContext {

@@ -2,8 +2,8 @@ import { reactive, toRaw } from 'vue';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { PatternExtractor } from '@opentiny/genui-sdk-core';
 import type { IStreamDelta, IStreamData } from '@opentiny/genui-sdk-core';
-import type { IChatMessage, IMessageItem } from '../genui-template/chat.types';
-import { emitter } from '../genui-template/template-chat-event-emitter';
+import type { IChatMessage, IMessageItem } from './chat.types';
+import { emitter } from './template-chat-event-emitter';
 
 interface TemplateStreamContext {
   initialized: boolean;

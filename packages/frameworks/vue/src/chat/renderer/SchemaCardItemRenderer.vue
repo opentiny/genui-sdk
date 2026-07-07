@@ -3,7 +3,7 @@ import { computed, inject } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
 import { GenuiRenderer } from '../../renderer';
-import { toSlotFunction } from '../../chat/chat-utils';
+import { toSlotFunction } from '../chat-utils';
 import { GENUI_SCHEMA_CARD_CONTEXT } from '../schemaCardContext';
 
 const props = defineProps<BubbleContentRendererProps>();

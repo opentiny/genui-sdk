@@ -3,7 +3,7 @@ import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import type { LLMConfig, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 import { t } from '../../i18n';
-import { useTemplateConversation } from '../genui-template-v2/useTemplateConversation';
+import { useTemplateConversation } from './useTemplateConversation';
 
 const templateApi = shallowRef<ReturnType<typeof useTemplateConversation> | null>(null);
 const llmConfigRef = shallowRef<LLMConfig>({ model: '', temperature: 0.5 });

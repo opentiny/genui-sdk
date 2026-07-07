@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import ErrorText from '../../chat/ErrorText.vue';
+import ErrorText from '../ErrorText.vue';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

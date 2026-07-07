@@ -5,9 +5,9 @@ import {
   type BubbleContentRendererMatch,
   type BubbleMessage,
 } from '@opentiny/tiny-robot';
-import JsonPatchItemRenderer from './renderers/JsonPatchItemRenderer.vue';
-import SchemaCardItemRenderer from './renderers/SchemaCardItemRenderer.vue';
-import LoadingTextItemRenderer from './renderers/LoadingTextItemRenderer.vue';
+import JsonPatchItemRenderer from './JsonPatchItemRenderer.vue';
+import SchemaCardItemRenderer from './SchemaCardItemRenderer.vue';
+import LoadingTextItemRenderer from './LoadingTextItemRenderer.vue';
 
 type GenuiBubbleMessage = {
   content?: unknown;

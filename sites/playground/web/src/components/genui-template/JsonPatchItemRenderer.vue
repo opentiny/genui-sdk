@@ -2,8 +2,8 @@
 import { computed, inject } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import TemplateSchemaMessageRenderer from '../../genui-template/TemplateSchemaMessageRenderer.vue';
-import { TEMPLATE_CHAT_CONTEXT } from '../templateChatContext';
+import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
+import { TEMPLATE_CHAT_CONTEXT } from './templateChatContext';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

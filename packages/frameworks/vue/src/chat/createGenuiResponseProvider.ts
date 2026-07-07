@@ -1,6 +1,6 @@
 import { sseStreamToGenerator } from '@opentiny/tiny-robot-kit';
 import type { MessageRequestBody } from '@opentiny/tiny-robot-kit';
-import { chat } from '../chat/chat-api';
+import { chat } from './chat-api';
 import type { GenuiChatRuntimeOptions } from './types';
 
 export function createGenuiResponseProvider(getOptions: () => GenuiChatRuntimeOptions) {

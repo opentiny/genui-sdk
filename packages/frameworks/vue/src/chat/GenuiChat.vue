@@ -6,23 +6,23 @@ import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
 import { computed, h, inject, nextTick, provide, ref, watch, type Component, type Ref } from 'vue';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IMessageItem } from '@opentiny/genui-sdk-core';
-import type { IChatProps, ICustomActionItem, UserItem, UserTextItem } from '../chat/chat.types';
-import { scrollEnd, throttle } from '../chat/chat-utils';
-import { useResize } from '../chat/composable/use-resize';
-import { useI18n } from '../chat/i18n';
-import { emitter } from '../chat/event-emitter';
-import { CUSTOM_CONTEXT, GENUI_CONFIG } from '../chat/injection-tokens';
-import { cardIdSymbol } from '../chat/useChat';
-import { useChatAction } from '../chat/continue-chat-action';
-import { useFileUpload } from '../chat/useFileUpload';
-import AttachmentsRenderer from '../chat/renderer/AttachmentsRenderer.vue';
-import { type FileMeta, MIME_TYPE_MAP, buildTemplateDataFromSubmitText } from '../chat/file-upload/file-utils';
+import type { IChatProps, ICustomActionItem, UserItem, UserTextItem } from './chat.types';
+import { scrollEnd, throttle } from './chat-utils';
+import { useResize } from './composable/use-resize';
+import { useI18n } from './i18n';
+import { emitter } from './event-emitter';
+import { CUSTOM_CONTEXT, GENUI_CONFIG } from './injection-tokens';
+import { cardIdSymbol } from './useChat';
+import { useChatAction } from './continue-chat-action';
+import { useFileUpload } from './useFileUpload';
+import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
+import { type FileMeta, MIME_TYPE_MAP, buildTemplateDataFromSubmitText } from './file-upload/file-utils';
 import { useGenuiConversation } from './useGenuiConversation';
 import { genuiContentRendererMatches, genuiContentResolver } from './contentRendererMatches';
-import { useBubbleRoleAfterSlot } from './composables/useBubbleRoleAfterSlot';
+import { useBubbleRoleAfterSlot } from './composable/useBubbleRoleAfterSlot';
 import { GENUI_SCHEMA_CARD_CONTEXT } from './schemaCardContext';
 import type { GenuiChatRuntimeOptions } from './types';
-import type { IResponseHandler } from '../chat/response-handler';
+import type { IResponseHandler } from './response-handler';
 import type { IStreamData } from '@opentiny/genui-sdk-core';
 
 const props = defineProps<IChatProps>();
@@ -472,7 +472,7 @@ defineExpose({
 <style scoped lang="less">
 .tg-chat-container {
   --ti-gen-chat-container-bg-color: #f0f0f0;
-  --sender-bg: url('../chat/assets/sender-light.svg') no-repeat center;
+  --sender-bg: url('./assets/sender-light.svg') no-repeat center;
   --sender-border-color: #e5e5e5;
   --generating-bg-before: linear-gradient(90deg, #fff, #a2c7f4);
   --generating-bg-after: #fff;
@@ -487,7 +487,7 @@ defineExpose({
 
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
-    --sender-bg: url('../chat/assets/sender-dark.svg') no-repeat center;
+    --sender-bg: url('./assets/sender-dark.svg') no-repeat center;
     --sender-border-color: #333;
     --generating-bg-before: linear-gradient(90deg, #262626, #808080);
     --generating-bg-after: #191919;

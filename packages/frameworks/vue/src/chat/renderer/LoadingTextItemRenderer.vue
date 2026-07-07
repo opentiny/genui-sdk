@@ -2,9 +2,9 @@
 import { computed } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import GeneratingComponent from '../../chat/GeneratingComponent.vue';
-import type { IMessage } from '../../chat/chat.types';
-import type { INotificationEventEmitter } from '../../chat/chat.types';
+import GeneratingComponent from '../GeneratingComponent.vue';
+import type { IMessage } from '../chat.types';
+import type { INotificationEventEmitter } from '../chat.types';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

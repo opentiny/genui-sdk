@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue';
 import { IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import { useI18n } from '../../chat/i18n';
-import { useMarkdownHtml } from '../composables/useMarkdownHtml';
+import { useI18n } from '../i18n';
+import { useMarkdownHtml } from '../composable/useMarkdownHtml';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

@@ -11,18 +11,18 @@ import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
 import { requiredCompleteFieldSelectors, scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
-import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from '../genui-template/chat.types';
+import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
 import {
   textToJson,
   validateJsonPatch,
   PARSE_PARTIAL_JSON_STATE,
   formatJsonPatch,
   generateIdForComponents,
-} from '../genui-template/template-chat-utils';
+} from './template-chat-utils';
 import { formatDate, generateId, stripSchemaFieldsWhileStreaming } from '../../utils';
-import useTemplate from '../genui-template/useTemplate';
-import TemplateAssistantFooter from '../genui-template/TemplateAssistantFooter.vue';
-import { emitter } from '../genui-template/template-chat-event-emitter';
+import useTemplate from './useTemplate';
+import TemplateAssistantFooter from './TemplateAssistantFooter.vue';
+import { emitter } from './template-chat-event-emitter';
 import useIcon from '../../use-icon';
 import { t } from '../../i18n';
 import { templateContentRendererMatches, templateContentResolver } from './contentRendererMatches';

@@ -3,7 +3,7 @@ import type {
   ICustomActionItem,
   ICustomComponentItem,
   CustomFetch,
-} from '../chat/chat.types';
+} from './chat.types';
 import type { IGenPromptExample, IGenPromptSnippet } from '@opentiny/genui-sdk-core';
 
 export interface GenuiChatRuntimeOptions {

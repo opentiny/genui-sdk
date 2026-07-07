@@ -2,7 +2,7 @@
 import { computed } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import ToolRenderer from '../../chat/renderer/ToolRenderer.vue';
+import ToolRenderer from './ToolRenderer.vue';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

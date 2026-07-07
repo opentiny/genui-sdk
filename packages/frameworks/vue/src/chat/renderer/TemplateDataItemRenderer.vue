@@ -2,9 +2,9 @@
 import { computed } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
-import TemplateDataRenderer from '../../chat/renderer/TemplateDataRenderer.vue';
-import type { UserItem } from '../../chat/chat.types';
-import type { FileMeta } from '../../chat/file-upload/file-utils';
+import TemplateDataRenderer from './TemplateDataRenderer.vue';
+import type { UserItem } from '../chat.types';
+import type { FileMeta } from '../file-upload/file-utils';
 
 const props = defineProps<BubbleContentRendererProps>();
 const { content } = useMessageContent(props);

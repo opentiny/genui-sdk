@@ -1,7 +1,7 @@
 import type { ComputedRef } from 'vue';
 import type { BubbleMessage } from '@opentiny/tiny-robot';
-import { toSlotFunction } from '../../chat/chat-utils';
-import type { IBubbleSlotsProps, IMessageManagerBridge, IRolesConfig } from '../../chat/chat.types';
+import { toSlotFunction } from '../chat-utils';
+import type { IBubbleSlotsProps, IMessageManagerBridge, IRolesConfig } from '../chat.types';
 
 export type BubbleListAfterSlotProps = {
   messages: BubbleMessage[];
