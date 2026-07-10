@@ -1,4 +1,4 @@
-import { getComponent, iconMap } from './material-getter';
+import { iconMap } from './material-getter';
 import { newFn } from './parser-utils';
 // import { renderDefault } from '../renderer';
 import { Notify } from './notify';
@@ -106,10 +106,7 @@ const parseJSXFunction = (data: any, ctx: any) => {
     const fnInfo = parseFunctionString(newValue);
     if (!fnInfo) throw Error('函数解析失败，请检查格式。示例：function fnName() { }');
 
-    return newFn(...fnInfo.params, fnInfo.body).bind({
-      ...ctx,
-      getComponent,
-    });
+    return newFn(...fnInfo.params, fnInfo.body).bind(ctx);
   } catch (error) {
     Notify({
       type: 'warning',

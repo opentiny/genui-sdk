@@ -1,13 +1,5 @@
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  NgZone,
-  OnDestroy,
-  SimpleChanges,
-} from '@angular/core';
-// import { Renderer } from './renderer';
+import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, SimpleChanges } from '@angular/core';
+import type { IRendererMaterials } from './renderer-materials';
 import { RendererContextService } from './context.service';
 import { parseData } from './parser/schema-parser';
 import { getPageLifeCycleFns } from './life-cycles';
@@ -51,6 +43,7 @@ function reset(obj: any) {
 })
 export class RendererMain implements OnDestroy {
   @Input() schema: any = {};
+  @Input() materials?: IRendererMaterials;
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
@@ -73,7 +66,14 @@ export class RendererMain implements OnDestroy {
     this.el.nativeElement.setState = (state: any) => this._setState(state);
   }
 
+  ngOnInit() {
+    this.contextService.materials = this.materials ?? {};
+  }
+
   ngOnChanges(changes: SimpleChanges) {
+    if (changes['materials']) {
+      this.contextService.materials = this.materials ?? {};
+    }
     if (changes['schema']) {
       this.setSchema(changes['schema'].currentValue);
     }
@@ -148,6 +148,7 @@ export class RendererMain implements OnDestroy {
     const context = {
       state: this.state,
       cssScopeId: this.cssScopeId,
+      getComponent: (name: string) => this.contextService.resolveComponent(name),
     };
     this.contextService.setContext(context, true);
     this.setMethods(newSchema.methods || {}, true);

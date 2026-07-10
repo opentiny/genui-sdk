@@ -1,4 +1,4 @@
-import { Component, Injector, Pipe, PipeTransform, TemplateRef, Type, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, inject, Injector, Pipe, PipeTransform, TemplateRef, Type, ViewChild, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 
@@ -12,7 +12,6 @@ import { ParseDataPipe } from './parse-data.pipe';
 import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
-import { getComponent, getModuleRef } from './parser/material-getter';
 import { RendererDirective } from './renderer.directive';
 
 @Pipe({
@@ -20,8 +19,10 @@ import { RendererDirective } from './renderer.directive';
   standalone: true,
 })
 export class GetModuleRefPipe implements PipeTransform {
+  private readonly contextService = inject(RendererContextService);
+
   transform(componentName: string): Type<any> | undefined {
-    return componentName ? getModuleRef(componentName) : undefined;
+    return componentName ? this.contextService.resolveModuleRef(componentName) : undefined;
   }
 }
 
@@ -30,8 +31,10 @@ export class GetModuleRefPipe implements PipeTransform {
   standalone: true,
 })
 export class GetComponentPipe implements PipeTransform {
+  private readonly contextService = inject(RendererContextService);
+
   transform(componentName: string): Type<any> | null {
-    return componentName ? getComponent(componentName) : null;
+    return componentName ? this.contextService.resolveComponent(componentName) : null;
   }
 }
 

@@ -14,12 +14,20 @@
       "import": "./dist/render-config.js",
       "types": "./dist/render-config.d.ts",
       "require": "./dist/render-config.js"
+    },
+    "./materials": {
+      "import": "./dist/materials.js",
+      "types": "./dist/materials.d.ts",
+      "require": "./dist/materials.js"
     }
   },
   "scripts": {
     "build": "vite build"
   },
   "dependencies": {
+    "@angular/core": "^20.3.0",
+    "@angular/forms": "^20.3.0",
+    "@opentiny/ng": "^1.0.3"
   },
   "devDependencies": {
     "escape-string-regexp": "^1.0.5",

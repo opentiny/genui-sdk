@@ -231,6 +231,9 @@ importers:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../core
+      '@opentiny/genui-sdk-materials-angular-opentiny-ng':
+        specifier: workspace:*
+        version: link:../../materials/angular-opentiny-ng
       '@opentiny/tiny-schema-renderer-ng':
         specifier: workspace:*
         version: link:../../../projects/tiny-schema-renderer-ng
@@ -495,6 +498,16 @@ importers:
         version: 3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
 
   packages/materials/angular-opentiny-ng:
+    dependencies:
+      '@angular/core':
+        specifier: ^20.3.0
+        version: 20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)
+      '@angular/forms':
+        specifier: ^20.3.0
+        version: 20.3.15(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
+      '@opentiny/ng':
+        specifier: ^1.0.3
+        version: 1.0.3(d1fd79d4fe287fdf8b571535719c5978)
     devDependencies:
       escape-string-regexp:
         specifier: ^1.0.5
@@ -793,12 +806,6 @@ importers:
       '@angular/router':
         specifier: ^20.3.0
         version: 20.3.15(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(rxjs@7.8.2)
-      '@opentiny/ng':
-        specifier: ^1.0.3
-        version: 1.0.3(d1fd79d4fe287fdf8b571535719c5978)
-      '@opentiny/ng-themes':
-        specifier: ^1.0.3
-        version: 1.0.3
       lodash:
         specifier: 4.17.21
         version: 4.17.21
@@ -827,6 +834,15 @@ importers:
       '@angular/compiler-cli':
         specifier: ^20.3.0
         version: 20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3)
+      '@opentiny/genui-sdk-materials-angular-opentiny-ng':
+        specifier: workspace:*
+        version: link:../../packages/materials/angular-opentiny-ng
+      '@opentiny/ng':
+        specifier: ^1.0.3
+        version: 1.0.3(d1fd79d4fe287fdf8b571535719c5978)
+      '@opentiny/ng-themes':
+        specifier: ^1.0.3
+        version: 1.0.3
       '@types/jasmine':
         specifier: ~5.1.0
         version: 5.1.13

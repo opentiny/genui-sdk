@@ -9,6 +9,10 @@ import {
 } from '@angular/core';
 import { RendererContextService } from './context.service';
 
+/**
+ * Schema 渲染入口指令。
+ * 通过 createEmbeddedView 驱动 renderer-template 模板，子节点递归挂载同一指令。
+ */
 @Directive({
   selector: '[rendererTemplate]',
   standalone: true,

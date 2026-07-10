@@ -1,14 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, ContentChild, Input, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
+import { Component, ContentChild, effect, inject, Input, OnInit, SimpleChanges, TemplateRef, Type, untracked, ViewChild } from '@angular/core';
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
-import {
-  RendererMain as Renderer,
-  Mapper,
-  directiveMap,
-  ModuleRef,
-  RENDERER_SETTINGS,
-} from '@opentiny/tiny-schema-renderer-ng';
+import { RendererMain as Renderer, RENDERER_SETTINGS, type IRendererMaterials } from '@opentiny/tiny-schema-renderer-ng';
 import { requiredCompleteFieldSelectors } from './config';
+import { GENUI_CONFIG } from './injection-tokens';
+import { GenuiConfigStore } from './config-provider';
+import { mergeMaterials, collectCustomMaterials } from './merge-materials';
 import { RendererSettingsService } from './renderer-settings.service';
 
 export const CARD_ID = Symbol('schema-card-id');
@@ -57,6 +54,7 @@ export class GenuiRenderer implements OnInit {
   @Input() customDirectives?: Record<string, Type<any>> = {};
   @Input() customComponents?: Record<string, Type<any>> = {};
   @Input() customComponentsModule?: Record<string, Type<any>> = {};
+  @Input() materials?: IRendererMaterials;
   @Input() customActions?: Record<string, ICustomAction> = {};
   @Input() requiredCompleteFieldSelectors?: string[];
   @Input() isJsonComplete?: boolean;
@@ -64,6 +62,19 @@ export class GenuiRenderer implements OnInit {
   protected deltaPatcher: DeltaPatcher | null = null;
   protected schema: any = {};
   protected updateContextAndStateTimer: any | null = null;
+  protected resolvedMaterials: IRendererMaterials = {};
+
+  private readonly configStore = inject<GenuiConfigStore>(GENUI_CONFIG, { optional: true });
+
+  constructor() {
+    effect(() => {
+      if (!this.configStore) {
+        return;
+      }
+      this.configStore.materials();
+      untracked(() => this.resolveMaterials());
+    });
+  }
 
   get displaySchema() {
     if (this.isError) {
@@ -88,6 +99,7 @@ export class GenuiRenderer implements OnInit {
         ...(this.requiredCompleteFieldSelectors || []),
       ]
     });
+    this.resolveMaterials();
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -98,24 +110,25 @@ export class GenuiRenderer implements OnInit {
         this.keepUpdateContextAndState();
       })
     }
-    if (changes['customDirectives']) {
-      this.customDirectives = changes['customDirectives'].currentValue;
-      if (this.customDirectives) {
-        this.updateCustomDirectives(this.customDirectives);
-      }
+    if (changes['customDirectives'] || changes['customComponents'] || changes['customComponentsModule'] || changes['materials']) {
+      this.resolveMaterials();
     }
-    if (changes['customComponents']) {
-      this.customComponents = changes['customComponents'].currentValue;
-      if (this.customComponents) {
-        this.updateCustomComponents(this.customComponents);
-      }
-    }
-    if (changes['customComponentsModule']) {
-      this.customComponentsModule = changes['customComponentsModule'].currentValue;
-      if (this.customComponentsModule) {
-        this.updateCustomComponentsModule(this.customComponentsModule);
-      }
-    }
+  }
+
+  /**
+   * 合并物料来源并透传给底层渲染器。
+   * 优先级（后者覆盖前者）：ConfigProvider 物料包 → [materials] → custom* 扩展。
+   */
+  protected resolveMaterials(): void {
+    this.resolvedMaterials = mergeMaterials(
+      this.configStore?.materials(),
+      this.materials,
+      collectCustomMaterials({
+        customComponents: this.customComponents,
+        customComponentsModule: this.customComponentsModule,
+        customDirectives: this.customDirectives,
+      }),
+    );
   }
 
   protected processNewContent(newVal: string | object) {
@@ -170,23 +183,5 @@ export class GenuiRenderer implements OnInit {
       });
     }
     this.instance?.setState(this.state);
-  }
-
-  protected updateCustomDirectives(customDirectives: Record<string, Type<any>>) {
-    Object.keys(customDirectives).forEach(key => {
-      directiveMap[key] = customDirectives[key];
-    });
-  }
-
-  protected updateCustomComponents(customComponents: Record<string, Type<any>>) {
-    Object.keys(customComponents).forEach(key => {
-      Mapper[key] = customComponents[key];
-    });
-  }
-
-  protected updateCustomComponentsModule(customComponentsModule: Record<string, Type<any>>) {
-    Object.keys(customComponentsModule).forEach(key => {
-      ModuleRef[key] = customComponentsModule[key];
-    });
   }
 }

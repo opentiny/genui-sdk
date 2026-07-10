@@ -4,10 +4,19 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
-    "types": []
+    "types": [],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@opentiny/genui-sdk-materials-angular-opentiny-ng/materials": [
+        "../../packages/materials/angular-opentiny-ng/src/materials/index.ts"
+      ]
+    }
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "projects/renderer/src/**/*.ts"
   ],
   "exclude": [
     "src/**/*.spec.ts"

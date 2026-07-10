@@ -1,169 +1,94 @@
 import { type Type } from '@angular/core';
+import type { IRendererMaterials, AutoApplyDirectivePattern } from '../renderer-materials';
 import { isHTMLTag } from './parser-utils';
 import { RendererTextComponent } from '../buildin/renderer-text.component';
 import { RendererImageComponent } from '../buildin/renderer-image.component';
-import {
-  TiButtonComponent,
-  TiButtonModule,
-  TiSelectComponent,
-  TiSelectModule,
-  TiTextComponent,
-  TiTextModule,
-  TiTableComponent,
-  TiTableModule,
-  TiModalComponent,
-  TiModalModule,
-  TiDateComponent,
-  TiDateModule,
-  TiPaginationComponent,
-  TiPaginationModule,
-  TiTabsComponent,
-  TiTabModule,
-  TiCheckboxComponent,
-  TiCheckboxModule,
-  TiCheckboxGroupComponent,
-  TiRadioComponent,
-  TiRadioModule,
-  TiRadioGroupComponent,
-  TiTabComponent,
-  TiSwitchComponent,
-  TiSwitchModule,
-  TiTipDirective,
-  TiCardComponent,
-  TiCardModule,
-  TiUploadComponent,
-  TiUploadModule,
-  TiFormfieldComponent,
-  TiFormfieldModule,
-  TiCardHeaderComponent,
-  TiItemComponent,
-  TiDateRangeComponent,
-  TiDateRangeModule,
-  TiSliderComponent,
-  TiSliderModule,
-  TiRateComponent,
-  TiRateModule,
-  TiTextareaComponent,
-  TiTextareaModule,
-} from '@opentiny/ng';
-import { CheckboxControlValueAccessor, DefaultValueAccessor, NgModel } from '@angular/forms';
 import { LogDirective } from '../buildin/log.directive';
 import { nativeElementComponentFactory } from '../native-element.component';
 
-export const Mapper: Record<string, Type<any>> = {
+const BUILTIN_COMPONENTS: Record<string, Type<any>> = {
   Text: RendererTextComponent,
   Img: RendererImageComponent,
-  TiButton: TiButtonComponent,
-  TiSelect: TiSelectComponent,
-  TiText: TiTextComponent,
-  TiTable: TiTableComponent,
-  TiModal: TiModalComponent,
-  TiDate: TiDateComponent,
-  TiPagination: TiPaginationComponent,
-  TiTabs: TiTabsComponent,
-  TiTab: TiTabComponent,
-  TiCheckbox: TiCheckboxComponent,
-  TiCheckboxGroup: TiCheckboxGroupComponent,
-  TiRadio: TiRadioComponent,
-  TiRadioGroup: TiRadioGroupComponent,
-  TiSwitch: TiSwitchComponent,
-  TiCard: TiCardComponent,
-  TiUpload: TiUploadComponent,
-  TiFormField: TiFormfieldComponent,
-  TiCardHeader: TiCardHeaderComponent,
-  TiItem: TiItemComponent,
-  TiDateRange: TiDateRangeComponent,
-  TiSlider: TiSliderComponent,
-  TiRate: TiRateComponent,
-  TiTextArea: TiTextareaComponent,
 };
 
-export const ModuleRef: Record<string, Type<any>> = {
-  TiButton: TiButtonModule,
-  TiSelect: TiSelectModule,
-  TiText: TiTextModule,
-  TiTable: TiTableModule,
-  TiModal: TiModalModule,
-  TiDate: TiDateModule,
-  TiPagination: TiPaginationModule,
-  TiTabs: TiTabModule,
-  TiCheckbox: TiCheckboxModule,
-  TiCheckboxGroup: TiCheckboxModule,
-  TiRadio: TiRadioModule,
-  TiRadioGroup: TiRadioModule,
-  TiSwitch: TiSwitchModule,
-  TiCard: TiCardModule,
-  TiUpload: TiUploadModule,
-  TiFormField: TiFormfieldModule,
-  TiCardHeader: TiCardModule,
-  TiItem: TiFormfieldModule,
-  TiDateRange: TiDateRangeModule,
-  TiSlider: TiSliderModule,
-  TiRate: TiRateModule,
-  TiTextArea: TiTextareaModule,
-};
-
-export const directiveMap: Record<string, Type<any>> = {
-  ngModel: NgModel,
-  defaultValueAccessor: DefaultValueAccessor,
-  checkboxValueAccessor: CheckboxControlValueAccessor,
+const BUILTIN_DIRECTIVES: Record<string, Type<any>> = {
   log: LogDirective,
-  TiTip: TiTipDirective,
 };
-// 指令需要标记为standalone
-(NgModel['ɵdir'] as any).standalone = true;
-(DefaultValueAccessor['ɵdir'] as any).standalone = true;
-(CheckboxControlValueAccessor['ɵdir'] as any).standalone = true;
-// 部分组件需要修改默认搭配的selector
-(TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
-(TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
-(TiRadioComponent['ɵcmp'] as any).selectors[0][0] = 'input';
-(TiCheckboxComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 
 export const iconMap: Record<string, any> = {};
 
-export const customElements: Record<string, Type<any>> = {};
+export type { AutoApplyDirectivePattern };
 
-export const getComponent = (name: string): Type<any> | null => {
+/**
+ * 根据组件名解析可渲染的 Angular 组件类型。
+ *
+ * @param name - schema 中的组件名
+ * @param materials - 应用层传入的物料
+ * @param dynamicComponents - 运行时 HTML 标签组件缓存
+ */
+export const getComponent = (
+  name: string,
+  materials: IRendererMaterials,
+  dynamicComponents: Record<string, Type<any>>,
+): Type<any> | null => {
   return (
-    Mapper[name] ||
-    customElements[name] ||
-    (isHTMLTag(name, true) ? createComponent(name as string) : null)
+    BUILTIN_COMPONENTS[name] ||
+    materials.components?.[name] ||
+    dynamicComponents[name] ||
+    (isHTMLTag(name, true) ? createDynamicComponent(name, dynamicComponents) : null)
   );
 };
-export const getModuleRef = (name: string): Type<any> | undefined => {
-  return ModuleRef[name] || undefined;
-};
-export const getDirective = (name: string): Type<any> | undefined => {
-  return directiveMap[name] || undefined;
+
+/**
+ * 根据组件名获取关联的 NgModule 类型。
+ *
+ * @param name - schema 中的组件名
+ * @param materials - 应用层传入的物料
+ */
+export const getModuleRef = (
+  name: string,
+  materials: IRendererMaterials,
+): Type<any> | undefined => {
+  return materials.modules?.[name];
 };
 
-export const createComponent = (component: string): Type<any> => {
+/**
+ * 根据指令名获取指令类型。
+ *
+ * @param name - schema 中的指令名
+ * @param materials - 应用层传入的物料
+ */
+export const getDirective = (
+  name: string,
+  materials: IRendererMaterials,
+): Type<any> | undefined => {
+  return BUILTIN_DIRECTIVES[name] || materials.directives?.[name];
+};
+
+/**
+ * 判断指令是否已在物料中定义。
+ *
+ * @param name - 指令名
+ * @param materials - 应用层传入的物料
+ */
+export const hasDirective = (name: string, materials: IRendererMaterials): boolean => {
+  return !!getDirective(name, materials);
+};
+
+/**
+ * 获取指令自动应用规则。
+ *
+ * @param materials - 应用层传入的物料
+ */
+export const getAutoApplyPatterns = (materials: IRendererMaterials): AutoApplyDirectivePattern => {
+  return materials.autoApplyDirectives ?? {};
+};
+
+const createDynamicComponent = (
+  component: string,
+  dynamicComponents: Record<string, Type<any>>,
+): Type<any> => {
   const componentFactory = nativeElementComponentFactory(component);
-  Mapper[component] = componentFactory;
+  dynamicComponents[component] = componentFactory;
   return componentFactory;
-};
-
-export const autoApplyDirectivePattern: Record<string, (schema: any) => boolean> = {
-  ngModel: (schema: any) => !!(schema?.props?.ngModel || schema?.props?.onNgModelChange),
-  defaultValueAccessor: (schema: any) => {
-    const componentType = getComponent(schema?.componentName);
-    if (!(componentType as any)?.['ɵcmp']) {
-      return false;
-    }
-    const componentSelectors = (componentType as any)?.['ɵcmp']?.selectors;
-    const selectorMatch = () => ['input', 'textarea'].includes(componentSelectors[0][0]);
-    const propsMatch = () => schema?.props?.['ngModel'] && schema?.props?.type !== 'checkbox';
-    return selectorMatch() && propsMatch();
-  },
-  checkboxValueAccessor: (schema: any) => {
-    const componentType = getComponent(schema?.componentName);
-    if (!(componentType as any)?.['ɵcmp']) {
-      return false;
-    }
-    const componentSelectors = (componentType as any)?.['ɵcmp']?.selectors;
-    const selectorMatch = () => ['input'].includes(componentSelectors[0][0]);
-    const propsMatch = () => schema?.props?.['ngModel'] && schema?.props?.type === 'checkbox';
-    return selectorMatch() && propsMatch();
-  },
 };
