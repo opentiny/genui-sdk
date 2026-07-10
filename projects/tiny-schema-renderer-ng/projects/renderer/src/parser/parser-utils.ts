@@ -1,5 +1,5 @@
 const HTML_TAGS = '';
-export const isHTMLTag = (str: string, expectsLowerCase?: boolean) => {
+export const isHTMLTag = (str: string, expectsLowerCase?: boolean): boolean => {
   return true; //TODO: 实现
 };
 
