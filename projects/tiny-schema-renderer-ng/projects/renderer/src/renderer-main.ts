@@ -73,6 +73,9 @@ export class RendererMain implements OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['materials']) {
       this.contextService.materials = this.materials ?? {};
+      if (!changes['materials'].firstChange) {
+        this.ngZone.run(() => this.cdr.detectChanges());
+      }
     }
     if (changes['schema']) {
       this.setSchema(changes['schema'].currentValue);

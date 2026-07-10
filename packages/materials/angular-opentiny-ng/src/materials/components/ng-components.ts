@@ -80,6 +80,7 @@ export const modules: Record<string, Type<any>> = {
   TiDate: TiDateModule,
   TiPagination: TiPaginationModule,
   TiTabs: TiTabModule,
+  TiTab: TiTabModule,
   TiCheckbox: TiCheckboxModule,
   TiCheckboxGroup: TiCheckboxModule,
   TiRadio: TiRadioModule,

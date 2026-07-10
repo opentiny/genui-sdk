@@ -17,8 +17,6 @@ const BUILTIN_DIRECTIVES: Record<string, Type<any>> = {
 
 export const iconMap: Record<string, any> = {};
 
-export type { AutoApplyDirectivePattern };
-
 /**
  * 根据组件名解析可渲染的 Angular 组件类型。
  *

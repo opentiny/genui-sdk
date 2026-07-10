@@ -1,13 +1,12 @@
 import { Injectable } from '@angular/core';
 import type { Type } from '@angular/core';
-import type { IRendererMaterials } from './renderer-materials';
+import type { AutoApplyDirectivePattern, IRendererMaterials } from './renderer-materials';
 import {
   getAutoApplyPatterns,
   getComponent,
   getDirective,
   getModuleRef,
   hasDirective,
-  type AutoApplyDirectivePattern,
 } from './parser/material-getter';
 
 @Injectable()

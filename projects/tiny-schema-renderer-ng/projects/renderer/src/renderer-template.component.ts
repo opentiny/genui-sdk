@@ -17,6 +17,7 @@ import { RendererDirective } from './renderer.directive';
 @Pipe({
   name: 'getModuleRef',
   standalone: true,
+  pure: false,
 })
 export class GetModuleRefPipe implements PipeTransform {
   private readonly contextService = inject(RendererContextService);
@@ -29,6 +30,7 @@ export class GetModuleRefPipe implements PipeTransform {
 @Pipe({
   name: 'getComponent',
   standalone: true,
+  pure: false,
 })
 export class GetComponentPipe implements PipeTransform {
   private readonly contextService = inject(RendererContextService);

@@ -4,6 +4,7 @@ import { RendererContextService } from './context.service';
 @Pipe({
   name: 'getDirectives',
   standalone: true,
+  pure: false,
 })
 export class GetDirectivesPipe implements PipeTransform {
   private readonly contextService = inject(RendererContextService);
