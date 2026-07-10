@@ -3,8 +3,7 @@ import { Component, ContentChild, effect, inject, Input, OnInit, SimpleChanges, 
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { RendererMain as Renderer, RENDERER_SETTINGS, type IRendererMaterials } from '@opentiny/tiny-schema-renderer-ng';
 import { requiredCompleteFieldSelectors } from './config';
-import { GENUI_CONFIG } from './injection-tokens';
-import { GenuiConfigStore } from './config-provider';
+import { GENUI_MATERIALS } from './injection-tokens';
 import { mergeMaterials, collectCustomMaterials } from './merge-materials';
 import { RendererSettingsService } from './renderer-settings.service';
 
@@ -64,14 +63,14 @@ export class GenuiRenderer implements OnInit {
   protected updateContextAndStateTimer: any | null = null;
   protected resolvedMaterials: IRendererMaterials = {};
 
-  private readonly configStore = inject<GenuiConfigStore>(GENUI_CONFIG, { optional: true });
+  private readonly providerMaterials = inject(GENUI_MATERIALS, { optional: true });
 
   constructor() {
     effect(() => {
-      if (!this.configStore) {
+      if (!this.providerMaterials) {
         return;
       }
-      this.configStore.materials();
+      this.providerMaterials();
       untracked(() => this.resolveMaterials());
     });
   }
@@ -121,7 +120,7 @@ export class GenuiRenderer implements OnInit {
    */
   protected resolveMaterials(): void {
     this.resolvedMaterials = mergeMaterials(
-      this.configStore?.materials(),
+      this.providerMaterials?.(),
       this.materials,
       collectCustomMaterials({
         customComponents: this.customComponents,

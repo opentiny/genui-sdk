@@ -1,8 +1,7 @@
-import { Component, forwardRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
 import { buildMaterialDefaultValueMap, type IRendererConfig, type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
 import type { IRendererMaterials } from '@opentiny/tiny-schema-renderer-ng';
-import { GENUI_CONFIG, GENUI_DEFAULT_PROPS_MAP } from '../injection-tokens';
-import { GenuiConfigStore } from './config-store';
+import { GENUI_DEFAULT_PROPS_MAP, GENUI_MATERIALS } from '../injection-tokens';
 
 export interface GenuiConfigProviderProps {
   id?: string;
@@ -22,8 +21,11 @@ export interface GenuiConfigProviderProps {
     `,
   ],
   providers: [
-    GenuiConfigStore,
-    { provide: GENUI_CONFIG, useExisting: GenuiConfigStore },
+    {
+      provide: GENUI_MATERIALS,
+      useFactory: (provider: GenuiConfigProvider) => provider.materialsState,
+      deps: [forwardRef(() => GenuiConfigProvider)],
+    },
     {
       provide: GENUI_DEFAULT_PROPS_MAP,
       useFactory: (provider: GenuiConfigProvider) => provider.defaultPropsMap,
@@ -37,14 +39,15 @@ export class GenuiConfigProvider implements OnChanges {
   @Input() materials?: IRendererMaterials;
 
   readonly defaultPropsMap: MaterialDefaultValueMap = {};
+  readonly materialsState = signal<IRendererMaterials>({});
 
-  constructor(private readonly configStore: GenuiConfigStore) {
+  constructor() {
     this.syncConfig();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['materials']) {
-      this.configStore.setMaterials(this.materials);
+      this.materialsState.set(this.materials ?? {});
     }
     if (changes['rendererConfig']) {
       this.syncConfig();
