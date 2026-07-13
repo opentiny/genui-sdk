@@ -67,7 +67,9 @@ watch(
   { immediate: true },
 );
 
-const messages = computed(() => messageManager.value?.messages.value ?? []);
+const messages = computed<ChatMessage[]>(
+  () => (messageManager.value?.messages.value ?? []) as ChatMessage[],
+);
 const isProcessing = computed(() => messageManager.value?.isProcessing.value ?? false);
 
 provide(TEMPLATE_CHAT_CONTEXT, {

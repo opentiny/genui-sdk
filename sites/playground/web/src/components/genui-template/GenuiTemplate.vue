@@ -5,7 +5,6 @@ import { GenuiConfigProvider, GenuiRenderer as SchemaRenderer } from '@opentiny/
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
-import type { Conversation } from '@opentiny/tiny-robot-kit';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import type { ISchemaCardMessageItem, IJsonPatchMessageItem } from './chat.types';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
@@ -28,7 +27,7 @@ const {
   currentPreviewSchema,
   currentPreviewSchemaComplete,
   templateConversationState,
-  conversation,
+  messages,
   currentCardId,
 } = useTemplate();
 const props = defineProps<{
@@ -50,11 +49,7 @@ const mobileSheetDragStartY = ref(0);
 const mobileSheetDragStartHeightVh = ref(MOBILE_SHEET_DEFAULT_HEIGHT_VH);
 const mobileSheetDragging = ref(false);
 const latestSchemaCardId = computed(() => {
-  const conversationState = templateConversationState.value;
-  const currentConversation = conversationState?.conversations?.find(
-    (item: Conversation) => item.id === conversationState.currentId,
-  );
-  const lastMessage = currentConversation?.messages?.[currentConversation.messages.length - 1] as IMessage | undefined;
+  const lastMessage = messages.value[messages.value.length - 1] as IMessage | undefined;
   const schemaMessage = lastMessage?.messages?.find(
     (message): message is ISchemaCardMessageItem | IJsonPatchMessageItem =>
       message.type === 'schema-card' || message.type === 'json-patch',
@@ -203,15 +198,7 @@ const applyCurrentVersion = () => {
 };
 
 const resetToLatestVersion = () => {
-  // 获取最新版本的 schema
-  const conversationState = templateConversationState.value;
-  if (!conversationState) {
-    return;
-  }
-  const currentConversation = conversationState.conversations.find(
-    (conversation: Conversation) => conversation.id === conversationState.currentId,
-  );
-  const lastMessage = currentConversation?.messages?.[currentConversation?.messages.length - 1] as IMessage | undefined;
+  const lastMessage = messages.value[messages.value.length - 1] as IMessage | undefined;
   const schemaMessage = lastMessage?.messages?.find(
     (message): message is ISchemaCardMessageItem | IJsonPatchMessageItem =>
       message.type === 'schema-card' || message.type === 'json-patch',
