@@ -22,7 +22,7 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag === 'tiny-schema-renderer-element-ng',
+          isCustomElement: (tag) => tag === 'genui-renderer-ng-element',
         },
       },
     }),

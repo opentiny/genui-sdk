@@ -6,11 +6,11 @@
       "@opentiny/genui-sdk-core": [
         "../../../packages/core/src/index.ts"
       ],
-      "@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config": [
-        "../../../packages/materials/vue-opentiny-vue/src/render-config/index.ts"
+      "@opentiny/genui-sdk-materials-vue-opentiny-vue/meta": [
+        "../../../packages/materials/vue-opentiny-vue/src/meta/index.ts"
       ],
-      "@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config": [
-        "../../../packages/materials/angular-opentiny-ng/src/render-config/index.ts"
+      "@opentiny/genui-sdk-materials-angular-opentiny-ng/meta": [
+        "../../../packages/materials/angular-opentiny-ng/src/meta/index.ts"
       ],
       "@opentiny/genui-sdk-chat-completions": [
         "../../../packages/chat-completions/src/index.ts"

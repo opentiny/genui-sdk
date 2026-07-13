@@ -1,13 +1,7 @@
 import { Component, forwardRef, Input, OnChanges, SimpleChanges, signal } from '@angular/core';
-import { buildMaterialDefaultValueMap, type IRendererConfig, type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
+import { buildMaterialDefaultValueMap, type IMaterialsMeta, type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
 import type { IRendererMaterials } from '@opentiny/tiny-schema-renderer-ng';
 import { GENUI_DEFAULT_PROPS_MAP, GENUI_MATERIALS } from '../injection-tokens';
-
-export interface GenuiConfigProviderProps {
-  id?: string;
-  rendererConfig?: Partial<IRendererConfig>;
-  materials?: IRendererMaterials;
-}
 
 @Component({
   selector: 'genui-config-provider',
@@ -35,7 +29,7 @@ export interface GenuiConfigProviderProps {
 })
 export class GenuiConfigProvider implements OnChanges {
   @Input() id = 'tiny-genui-config-provider';
-  @Input() rendererConfig?: Partial<IRendererConfig>;
+  @Input() rendererConfig?: Partial<IMaterialsMeta>;
   @Input() materials?: IRendererMaterials;
 
   readonly defaultPropsMap: MaterialDefaultValueMap = {};

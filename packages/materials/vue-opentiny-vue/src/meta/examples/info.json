@@ -1,0 +1,96 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "Text",
+      "props": {
+        "style": "font-size: 14px;font-weight: bold;line-height:2;margin-bottom:20px;display:block;",
+        "text": "员工信息详情"
+      }
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "className": "component-base-style",
+        "style": "width: 374px; background: #f5f5f5;border-radius: 12px;line-height:2;font-size:14px;padding: 20px 0;"
+      },
+      "children": [
+        {
+          "componentName": "TinyLayout",
+          "props": {
+            "className": "component-base-style"
+          },
+          "children": [
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 3
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "姓名"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 9
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "张三"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 3
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "电话"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 9
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "18856254558"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "id": "body"
+}

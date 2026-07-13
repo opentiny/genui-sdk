@@ -1,4 +1,19 @@
-export const genCustomActionsPrompt = (actionDefinitions: any[]) => actionDefinitions?.length > 0 ? `
+import type { JsonSchema7Type } from 'zod-to-json-schema';
+
+export interface IGenPromptAction {
+  name: string;
+  description?: string;
+  parameters?: JsonSchema7Type;
+  return?: JsonSchema7Type;
+  async?: boolean;
+}
+
+export function genCustomActionsPrompt(actionDefinitions: IGenPromptAction[]) {
+  if (!actionDefinitions?.length) {
+    return '';
+  }
+
+  return `
 ## Action 定义
 
 以下是一些 Action 的定义：
@@ -43,4 +58,5 @@ ${JSON.stringify(actionDefinitions, null, 2)}
   }
 }
 \`\`\`
-` : '';
+`;
+}

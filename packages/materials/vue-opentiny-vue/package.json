@@ -8,6 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/vue-button": "^3.28.0",
     "@opentiny/vue-card": "^3.28.0",
     "@opentiny/vue-carousel": "^3.28.0",
@@ -64,10 +65,10 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js"
     },
-    "./render-config": {
-      "import": "./dist/render-config.js",
-      "types": "./dist/render-config.d.ts",
-      "require": "./dist/render-config.js"
+    "./meta": {
+      "import": "./dist/meta.js",
+      "types": "./dist/meta.d.ts",
+      "require": "./dist/meta.js"
     },
     "./materials": {
       "import": "./dist/materials.js",

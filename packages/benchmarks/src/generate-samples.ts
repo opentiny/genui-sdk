@@ -1,8 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { genPrompt } from '@opentiny/genui-sdk-core';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
 import { coreLlmBenchmarkSampleCases } from './samples';
 import {
@@ -27,8 +27,8 @@ import { streamText } from 'ai';
  */
 function buildSystemPrompt(framework: 'Vue' | 'Angular', promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
   const { tgCustomConfig, specificPrompt, userAppendPrompt } = promptConfig;
-  const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
-  return genPrompt(renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
+  const renderConfigForFramework = framework === 'Angular' ? ngMaterialsMeta : materialsMeta;
+  return genPrompt(framework, renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
 }
 /**
  * 根据 `scenarios` / `scenario` 过滤要生成样本的场景。

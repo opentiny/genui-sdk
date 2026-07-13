@@ -1,1 +1,1 @@
-export { materials, type IMaterials } from './materials';
+export * from './materials';

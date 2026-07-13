@@ -15,7 +15,6 @@ import { useIsMobile } from '../../use-mobile';
 import { useMonacoPlaygroundTheme } from './use-monaco-playground-theme';
 import viewSchemaIcon from '../../assets/images/view-schema.svg';
 import { locale, t } from '../../i18n';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 
 const { isMobile } = useIsMobile();
 
@@ -278,7 +277,6 @@ onUnmounted(() => {
     :theme="theme"
     :locale="locale"
     :materials="materials"
-    :renderer-config="rendererConfig"
     style="width: 100%; height: 100%"
   >
     <div :class="['genui-schema-template', { 'is-mobile': isMobile }]">

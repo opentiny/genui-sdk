@@ -1,3 +1,5 @@
+import type { IExample } from '@opentiny/genui-sdk-core';
+
 export const formSchema = {
   'state': {
     'formData': {
@@ -1002,7 +1004,7 @@ export const paginationSchema = {
   'id': 'body',
 };
 
-export const examples = [
+export const examples: IExample[] = [
   { name: '双向绑定的表单', schema: formSchema },
   { name: '信息展示卡片', schema: infoCardSchema },
   { name: '表格卡片', schema: gridSchema },

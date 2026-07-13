@@ -5,9 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
-import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
+import { type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
@@ -25,6 +23,7 @@ import {
 import type { PlaygroundAgentConfig } from './a2a-tools/index.js';
 import { buildSkillTools } from './skills/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
+import { genPlaygroundPrompt } from './gen-prompt/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -236,6 +235,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     temperature: playgroundConfig.temperature || 0.3,
     agents,
     skills: playgroundConfig.skills || [],
+    promptVariant: playgroundConfig.promptVariant,
   };
 };
 
@@ -269,7 +269,7 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt, agents, skills } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents, skills, promptVariant } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -301,7 +301,6 @@ export function createChatGenui() {
     }
     const tools = { ...mcpTools, ...agentTools, ...skillTools };
 
-    const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
     const maxSteps = 30;
     let hasError = false; // 标记是否已经处理了错误
 
@@ -314,7 +313,7 @@ export function createChatGenui() {
       model,
       temperature,
       system:
-        genPrompt(renderConfigForFramework, tgCustomConfig) +
+        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig) +
         '\n' +
         specificPrompt +
         '\n' +

@@ -16,7 +16,8 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import { requiredCompleteFieldSelectors, scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import { requiredCompleteFieldSelectors as baseRequiredCompleteFieldSelectors, scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
 import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
@@ -131,6 +132,11 @@ onUnmounted(() => {
 
 const lastPreviewSchema = ref<any>(null);
 // const lastOperationIndex = ref<number>(-1); // TODO: 追踪已执行的index，减少重复执行
+
+const requiredCompleteFieldSelectors = [
+  ...baseRequiredCompleteFieldSelectors,
+  ...(materials.requiredCompleteFieldSelectors ?? []),
+];
 
 const deltaPatcher = new DeltaPatcher({
   requiredCompleteFieldSelectors,
