@@ -7,7 +7,7 @@
     "dev": "pnpm --filter genui-sdk-playground dev",
     "dev:docs": "pnpm --filter genui-sdk-docs dev",
     "dev:homepage": "pnpm --filter genui-sdk-homepage-web dev",
-    "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build",
+    "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build && pnpm --filter @opentiny/tiny-schema-renderer-react build",
     "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
     "prebuild:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm build:materials",
     "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build && pnpm --filter @opentiny/genui-sdk-react build && pnpm --filter @opentiny/genui-sdk-angular build:lib",
