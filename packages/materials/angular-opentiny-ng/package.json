@@ -10,16 +10,17 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js"
     },
-    "./render-config": {
-      "import": "./dist/render-config.js",
-      "types": "./dist/render-config.d.ts",
-      "require": "./dist/render-config.js"
+    "./meta": {
+      "import": "./dist/meta.js",
+      "types": "./dist/meta.d.ts",
+      "require": "./dist/meta.js"
     }
   },
   "scripts": {
     "build": "vite build"
   },
   "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*"
   },
   "devDependencies": {
     "escape-string-regexp": "^1.0.5",

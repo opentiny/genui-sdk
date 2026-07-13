@@ -40,7 +40,7 @@ export default defineConfig(({ command }) => {
       exclude: [/schema-renderer-react-adapter/, /\.tsx$/, /\.jsx$/],
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag === 'tiny-schema-renderer-element-ng',
+          isCustomElement: (tag) => tag === 'genui-renderer-ng-element',
         },
       },
     }),

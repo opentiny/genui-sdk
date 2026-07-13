@@ -1,0 +1,29 @@
+import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-sdk-core';
+import { materialsMeta, miniMaterialsMeta } from '../meta';
+import { components } from './components';
+
+const baseRequiredCompleteFieldSelectors = [
+  '[componentName=TinyNumeric] > props > controlsPosition',
+  '[componentName=TinyNumeric] > props > modelValue',
+  '[componentName=TinyForm] > props > labelPosition',
+  '[componentName=TinyRadioGroup] > props > options > * > label',
+];
+
+const standardRequiredCompleteFieldSelectors = [
+  ...baseRequiredCompleteFieldSelectors,
+  '[componentName=TinyTabItem] > props > name',
+  '[componentName=TinyTransfer] > props > data',
+  '[componentName^=TinyHuicharts] > props > options > theme',
+];
+
+export const materials: IMaterials = {
+  components,
+  requiredCompleteFieldSelectors: standardRequiredCompleteFieldSelectors,
+  defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+};
+
+export const miniMaterials = {
+  components,
+  requiredCompleteFieldSelectors: baseRequiredCompleteFieldSelectors,
+  defaultPropsMap: buildMaterialDefaultValueMap(miniMaterialsMeta),
+};

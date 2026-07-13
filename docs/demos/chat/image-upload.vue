@@ -1,6 +1,6 @@
 <template>
   <div class="chat-container">
-    <GenuiChat :url="url" :features="modelFeatures" model="gpt-4-vision-preview" :messages="messages" />
+    <GenuiChat :url="url" :features="modelFeatures" :messages="messages" />
   </div>
 </template>
 

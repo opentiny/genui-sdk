@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import { CodeEditor } from 'monaco-editor-vue3';
 import { GenuiConfigProvider, GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
@@ -272,88 +273,94 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div :class="['genui-schema-template', { 'is-mobile': isMobile }]">
-    <div class="genui-schema-template-item chat-container">
-      <!-- 桌面：打开内联编辑器时隐藏聊天；移动端：底部抽屉叠在聊天上，聊天保持挂载以便背后仍可见 -->
-      <GenuiConfigProvider
-        v-show="!schemaEditorVisible || isMobile"
-        :theme="theme"
-        :locale="locale"
-        style="width: 100%; height: 100%"
-      >
-        <genui-template-chat class="genui-template-chat" @schema-version-toggle="toggleSchemaVersion" />
-      </GenuiConfigProvider>
-      <div class="schema-version-container" v-show="schemaEditorVisible && !isMobile">
-        <div class="schema-version-container__header">
-          <span class="schema-version-container__title">SchemaJSON</span>
-          <tiny-button
-            type="text"
-            class="genui-schema-toolbar-close-btn"
-            :icon="TinyCloseIcon"
-            :aria-label="t('templateEditor.close')"
-            @click="closeSchemaEditorView"
-          />
-        </div>
-        <div class="schema-version-container__editor">
-          <code-editor v-model:value="schemaEditor" language="json" :theme="monacoTheme" :options="editorOptions" />
-        </div>
-      </div>
-    </div>
-    <genui-template-mobile-sheet
-      v-if="isMobile"
-      :visible="isMobile && schemaEditorVisible"
-      :json-editor-open="mobileSchemaJsonEditorOpen"
-      :panel-style="mobileSheetPanelStyle"
-      :show-return-latest-button="showReturnLatestButton"
-      :current-preview-schema="currentPreviewSchema"
-      :current-preview-schema-complete="currentPreviewSchemaComplete"
-      :schema-editor="schemaEditor"
-      :editor-options="editorOptions"
-      :playground-theme="theme"
-      :view-schema-icon="viewSchemaIcon"
-      :close-icon="TinyCloseIcon"
-      @update:json-editor-open="mobileSchemaJsonEditorOpen = $event"
-      @update:schema-editor="schemaEditor = $event"
-      @mask-click="onMobileSheetMaskClick"
-      @grab-touch-start="onMobileSheetGrabTouchStart"
-      @close="closeSchemaEditorView"
-      @apply-current-version="applyCurrentVersion"
-      @reset-to-latest-version="resetToLatestVersion"
-    />
-    <template v-else>
-      <div class="genui-schema-template-item renderer-container" v-if="currentPreviewSchema && rendererPanelVisible">
-        <div class="renderer-container-wrapper">
-          <div class="top-button-group">
-            <button type="button" class="schema-toggle-text" @click="toggleSchemaEditor">
-              <img class="button-svg-icon" :src="viewSchemaIcon" alt="" />
-              {{ t('templateEditor.viewJson') }}
-            </button>
-            <div class="top-button-group-right">
-              <tiny-button v-if="showReturnLatestButton" type="primary" round @click="resetToLatestVersion">{{
-                t('templateEditor.returnLatest')
-              }}</tiny-button>
-              <tiny-button v-if="showReturnLatestButton" round @click="applyCurrentVersion">
-                {{ t('templateEditor.applyVersion') }}
-              </tiny-button>
-              <tiny-button
-                type="text"
-                class="genui-schema-toolbar-close-btn"
-                :icon="TinyCloseIcon"
-                :aria-label="t('templateEditor.closePreview')"
-                @click="closeRendererPanel"
-              />
-            </div>
+  <GenuiConfigProvider
+    :theme="theme"
+    :locale="locale"
+    :materials="materials"
+    style="width: 100%; height: 100%"
+  >
+    <div :class="['genui-schema-template', { 'is-mobile': isMobile }]">
+      <div class="genui-schema-template-item chat-container">
+        <genui-template-chat
+          v-show="!schemaEditorVisible || isMobile"
+          class="genui-template-chat"
+          @schema-version-toggle="toggleSchemaVersion"
+        />
+        <div class="schema-version-container" v-show="schemaEditorVisible && !isMobile">
+          <div class="schema-version-container__header">
+            <span class="schema-version-container__title">SchemaJSON</span>
+            <tiny-button
+              type="text"
+              class="genui-schema-toolbar-close-btn"
+              :icon="TinyCloseIcon"
+              :aria-label="t('templateEditor.close')"
+              @click="closeSchemaEditorView"
+            />
           </div>
-          <schema-renderer
-            class="schema-renderer"
-            :content="currentPreviewSchema"
-            :generating="false"
-            :isJsonComplete="currentPreviewSchemaComplete"
-          />
+          <div class="schema-version-container__editor">
+            <code-editor v-model:value="schemaEditor" language="json" :theme="monacoTheme" :options="editorOptions" />
+          </div>
         </div>
       </div>
-    </template>
-  </div>
+      <genui-template-mobile-sheet
+        v-if="isMobile"
+        :visible="isMobile && schemaEditorVisible"
+        :json-editor-open="mobileSchemaJsonEditorOpen"
+        :panel-style="mobileSheetPanelStyle"
+        :show-return-latest-button="showReturnLatestButton"
+        :current-preview-schema="currentPreviewSchema"
+        :current-preview-schema-complete="currentPreviewSchemaComplete"
+        :schema-editor="schemaEditor"
+        :editor-options="editorOptions"
+        :playground-theme="theme"
+        :view-schema-icon="viewSchemaIcon"
+        :close-icon="TinyCloseIcon"
+        @update:json-editor-open="mobileSchemaJsonEditorOpen = $event"
+        @update:schema-editor="schemaEditor = $event"
+        @mask-click="onMobileSheetMaskClick"
+        @grab-touch-start="onMobileSheetGrabTouchStart"
+        @close="closeSchemaEditorView"
+        @apply-current-version="applyCurrentVersion"
+        @reset-to-latest-version="resetToLatestVersion"
+      />
+      <template v-else>
+        <div
+          class="genui-schema-template-item renderer-container"
+          v-if="currentPreviewSchema && rendererPanelVisible"
+        >
+          <div class="renderer-container-wrapper">
+            <div class="top-button-group">
+              <button type="button" class="schema-toggle-text" @click="toggleSchemaEditor">
+                <img class="button-svg-icon" :src="viewSchemaIcon" alt="" />
+                {{ t('templateEditor.viewJson') }}
+              </button>
+              <div class="top-button-group-right">
+                <tiny-button v-if="showReturnLatestButton" type="primary" round @click="resetToLatestVersion">{{
+                  t('templateEditor.returnLatest')
+                }}</tiny-button>
+                <tiny-button v-if="showReturnLatestButton" round @click="applyCurrentVersion">
+                  {{ t('templateEditor.applyVersion') }}
+                </tiny-button>
+                <tiny-button
+                  type="text"
+                  class="genui-schema-toolbar-close-btn"
+                  :icon="TinyCloseIcon"
+                  :aria-label="t('templateEditor.closePreview')"
+                  @click="closeRendererPanel"
+                />
+              </div>
+            </div>
+            <schema-renderer
+              class="schema-renderer"
+              :content="currentPreviewSchema"
+              :generating="false"
+              :isJsonComplete="currentPreviewSchemaComplete"
+            />
+          </div>
+        </div>
+      </template>
+    </div>
+  </GenuiConfigProvider>
 </template>
 
 <style scoped lang="less">

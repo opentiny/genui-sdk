@@ -5,10 +5,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 import { fileURLToPath } from 'node:url';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
-import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
-import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
+import { type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
@@ -17,13 +14,18 @@ import { openaiCompatibleTransformChunk, type IOpenaiCompatibleChunk } from '@op
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import type { JsonSchema } from 'json-schema-to-zod';
 import { jsonSchemaToZod } from 'json-schema-to-zod';
-import { buildAgentTools, isAllowedAgentUrl } from './a2a-tools/index.js';
+import {
+  buildAgentTools,
+  isAllowedAgentUrl,
+  isPlaygroundDevelopment,
+  resolveAgentApiUrl,
+} from './a2a-tools/index.js';
+import type { PlaygroundAgentConfig } from './a2a-tools/index.js';
 import { buildSkillTools } from './skills/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
+import { genPlaygroundPrompt } from './gen-prompt/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
-
-const isDevelopment = process.env.NODE_ENV === 'development';
 
 const BUSY_ERROR_MESSAGE = '算力繁忙，请切换其他模型或稍后重试';
 
@@ -195,6 +197,22 @@ export async function generateLlmConfig(llmConfigParams: LLMConfigParams | undef
   };
 }
 
+function filterAllowedPlaygroundAgents(rawAgents: PlaygroundAgentConfig[]): PlaygroundAgentConfig[] {
+  const agents: PlaygroundAgentConfig[] = [];
+
+  for (const agent of rawAgents) {
+    const url = resolveAgentApiUrl(agent);
+    if (!url) {
+      continue;
+    }
+    if (isPlaygroundDevelopment || isAllowedAgentUrl(url)) {
+      agents.push(agent);
+    }
+  }
+
+  return agents;
+}
+
 const getPlaygroundConfig = (playgroundStr: string) => {
   let playgroundConfig: Partial<IPlaygroundConfig> = {};
 
@@ -207,13 +225,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     console.error('Failed to parse playground from metadata:', error);
   }
 
-  const rawAgents = playgroundConfig.agents || [];
-  const agents = rawAgents.filter((agent) => {
-    const url = agent.api?.url;
-    if (!url) return false;
-    // 开发态放开 URL 安全校验，生产态保持 SSRF 防护
-    return isDevelopment || isAllowedAgentUrl(url);
-  });
+  const agents = filterAllowedPlaygroundAgents(playgroundConfig.agents || []);
 
   return {
     mcpServers: playgroundConfig.mcpServers || [],
@@ -223,6 +235,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     temperature: playgroundConfig.temperature || 0.3,
     agents,
     skills: playgroundConfig.skills || [],
+    promptVariant: playgroundConfig.promptVariant,
   };
 };
 
@@ -256,7 +269,7 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt, agents, skills } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents, skills, promptVariant } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -288,12 +301,6 @@ export function createChatGenui() {
     }
     const tools = { ...mcpTools, ...agentTools, ...skillTools };
 
-    const renderConfigForFramework =
-      framework === 'Angular'
-        ? ngRendererConfig
-        : framework === 'React'
-          ? reactAntdRendererConfig
-          : rendererConfig;
     const maxSteps = 30;
     let hasError = false; // 标记是否已经处理了错误
 
@@ -306,7 +313,7 @@ export function createChatGenui() {
       model,
       temperature,
       system:
-        genPrompt(renderConfigForFramework, tgCustomConfig) +
+        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig) +
         '\n' +
         specificPrompt +
         '\n' +

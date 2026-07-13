@@ -110,7 +110,7 @@ export const availableTools: Record<
 
 ```typescript
 import OpenAI from 'openai';
-import type { CustomRequest } from '@opentiny/genui-sdk-vue';
+import type { CustomFetch } from '@opentiny/genui-sdk-vue';
 import { availableTools } from './tools';
 
 /**
@@ -184,9 +184,9 @@ async function executeSingleToolCall(toolCall: any, currentMessages: any[]): Pro
  * 使用 OpenAI SDK 创建 customRequest 函数（处理工具调用和多轮对话）
  *
  * @param config OpenAI 配置
- * @returns CustomRequest 函数
+ * @returns CustomFetch 函数
  */
-export function createOpenAICustomFetch(config: OpenAIConfig): CustomRequest {
+export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
   return async (
     url: string,
     options: {

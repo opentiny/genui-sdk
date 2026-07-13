@@ -2,13 +2,13 @@ import { Request, Response } from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
+import { type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { streamText, stepCountIs } from 'ai';
 import getRawBody from 'raw-body';
 import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-completions';
 import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
+import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 
@@ -36,6 +36,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    promptVariant: playgroundConfig.promptVariant,
   };
 };
 
@@ -76,7 +77,7 @@ export const createChatTemplate = () => {
       }
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
-      const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+      const { mcpServers, framework, userAppendPrompt, promptVariant } = playgroundConfig;
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
@@ -91,7 +92,7 @@ export const createChatTemplate = () => {
         abort.signal,
       );
       const maxSteps = 30;
-      const systemPrompt = `${genPrompt(rendererConfig, tgCustomConfig)}
+      const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;

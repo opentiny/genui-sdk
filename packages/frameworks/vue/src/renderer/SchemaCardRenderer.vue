@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { ref, watch, computed, inject, nextTick, onErrorCaptured, provide } from 'vue';
 // @ts-ignore
-import defaultSchemaRenderer, { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
-import { DeltaPatcher, repairJson, RepairJsonState, type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
+import SchemaRenderer, { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
+import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import {
-  GENUI_RENDERER,
   GENUI_MATERIALS,
-  GENUI_DEFAULT_PROPS_MAP,
-  type GenuiMaterials,
 } from '../chat/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
@@ -24,7 +21,7 @@ const props = withDefaults(defineProps<IRendererProps>(), {
 });
 
 const schema = ref<any>({});
-const rendererInstance = ref<defaultSchemaRenderer>(null);
+const rendererInstance = ref<SchemaRenderer | null>(null);
 
 const callAction = (actionName: string, params: any) => {
   if (!props.customActions?.[actionName]) {
@@ -34,9 +31,9 @@ const callAction = (actionName: string, params: any) => {
   return props.customActions[actionName]?.execute(params, rendererInstance.value.getContext());
 };
 
-const SchemaRenderer = inject(GENUI_RENDERER, defaultSchemaRenderer);
-const vueMaterials = inject<GenuiMaterials>(GENUI_MATERIALS, {});
-const defaultPropsMap = inject<MaterialDefaultValueMap>(GENUI_DEFAULT_PROPS_MAP, {});
+const materialRegistry = inject<IMaterials>(GENUI_MATERIALS, {});
+const vueMaterials = materialRegistry.components ?? {};
+const defaultPropsMap = materialRegistry.defaultPropsMap ?? {};
 const customSettings = inject(RENDERER_SETTINGS_KEY, {});
 
 provide(RENDERER_SETTINGS_KEY, {
@@ -51,6 +48,7 @@ provide(RENDERER_SETTINGS_KEY, {
 const deltaPatcher = new DeltaPatcher({
   requiredCompleteFieldSelectors: [
     ...internalRequiredCompleteFieldSelectors,
+    ...(materialRegistry.requiredCompleteFieldSelectors ?? []),
     ...(props.requiredCompleteFieldSelectors || []),
   ],
 });

@@ -31,7 +31,7 @@
       [componentOutlet]="schema.componentName | getComponent"
       [componentOutletNgModule]="schema.componentName | getModuleRef"
       [componentOutletInjector]="injector"
-      [componentOutletProps]="context | parseData: schema.props : mergeScope"
+      [componentOutletProps]="context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName"
       [componentOutletDirectives]="schema.directives | autoApplyDirectives: schema | getDirectives "
       [componentOutletContent]="
         {

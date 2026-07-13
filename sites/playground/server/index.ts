@@ -8,6 +8,7 @@ import { useProviderModelMapperSync, initProviderModelMapperFromData } from './s
 import { loadProviderModelsDataFromFile, mergeProviderModelsData } from './src/provider-models-mapper.js';
 import { fetchOpenTinyProviderModelsData } from './src/opentiny-models.js';
 import { createChatGenui, checkMcpHandler } from './src/chat-genui.js';
+import { fetchAgentCardHandler } from './src/a2a-tools/index.js';
 import { createChatTemplate } from './src/chat-template.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -100,6 +101,7 @@ const getModelsHandler = async (req: Request, res: Response) => {
 app.get('/get-models', getModelsHandler);
 app.post('/chat-genui', chatGenuiHandler);
 app.post('/check-mcp', checkMcpHandler);
+app.post('/fetch-agent-card', fetchAgentCardHandler);
 app.post('/chat-template', chatTemplateHandler);
 
 const port = process.env.PORT || 3008;

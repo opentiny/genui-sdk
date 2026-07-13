@@ -13,6 +13,11 @@ import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
 import SelectTemplateDialog from './SelectTemplateDialog.vue';
 import { t } from '../../i18n';
 
+const promptVariantLabelMap = {
+  mini: 'model.promptVariantMini',
+  standard: 'model.promptVariantStandard',
+};
+
 const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update-custom-examples']);
 const playgroundContext = inject('playgroundContext');
 const { llmConfig, modelData, customExamples } = playgroundContext;
@@ -36,6 +41,13 @@ const updateConfig = (updates) => {
 const updateModel = (model) => updateConfig({ model });
 
 const updateTemperature = (temperature) => updateConfig({ temperature });
+
+const promptVariantOptions = (['mini', 'standard']).map((key) => ({
+  value: key,
+  label: t(promptVariantLabelMap[key] || key),
+}));
+
+const updatePromptVariant = (promptVariant) => updateConfig({ promptVariant });
 
 const updatePromptList = (promptList) => updateConfig({ promptList });
 
@@ -115,6 +127,14 @@ const createNewTemplate = () => {
       <b>{{ slotScope.slotScope }}</b>
     </template>
   </tiny-slider>
+  <div class="config-title">{{ t('model.promptVariant') }}</div>
+  <tiny-base-select
+    :model-value="llmConfig.promptVariant || 'standard'"
+    @update:model-value="updatePromptVariant"
+    :options="promptVariantOptions"
+    class="config-content"
+    style="margin-bottom: 12px"
+  />
   <div class="config-title prompt-title">
     <span>{{ t('model.prompt') }}</span>
     <span>

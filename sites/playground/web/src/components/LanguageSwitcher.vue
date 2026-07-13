@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { TinyDropdown } from '@opentiny/vue';
-import { setLocale } from '../i18n';
+import { Locale, setLocale } from '../i18n';
 import { iconLanguage } from '@opentiny/vue-icon';
 
 const IconLanguage = iconLanguage();
 
 const langOptions = [
-  { label: '简体中文', value: 'zh_CN' },
-  { label: 'English', value: 'en_US' },
+  { label: '简体中文', value: Locale.ZhCN },
+  { label: 'English', value: Locale.EnUS },
 ];
 
 const menuOptions = {

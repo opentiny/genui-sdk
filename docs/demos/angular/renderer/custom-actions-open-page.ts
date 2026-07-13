@@ -4,7 +4,7 @@ import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
 @Component({
   imports: [GenuiRenderer],
   template: `
-    <genui-renderer [content]="schemaContent" [customActions]="customAction"> </genui-renderer>
+    <genui-renderer [content]="schemaContent" [customActions]="customActions"> </genui-renderer>
   `,
 })
 export class GenuiExample {

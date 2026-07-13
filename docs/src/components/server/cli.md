@@ -32,7 +32,7 @@ genui-sdk-server
 
 服务启动成功后，会输出服务器地址，例如：
 
-```
+```text
 genui-sdk-server is running on http://localhost:3100
 ```
 

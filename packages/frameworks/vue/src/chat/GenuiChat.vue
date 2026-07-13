@@ -21,7 +21,7 @@ import { CustomModelProvider } from './CustomModelProvider';
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
-import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue';
+import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue'; 
 import ReasoningRenderer from './renderer/ReasoningRenderer.vue';
 import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
@@ -466,6 +466,8 @@ watch(
 defineExpose({
   setInputMessage,
   handleNewConversation,
+  // @experimental
+  getProps: () => props,
   getConversation: () => conversation,
   // experimental, not stable
   getResponseHandlers: () => responseHandlers.value,
@@ -478,6 +480,11 @@ defineExpose({
   setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {
     messageRenderers[key] = renderer;
   },
+  generating,
+  // @experimental
+  lastSchemaCardId,
+  continueChatAction,
+  saveStateAction,
 });
 </script>
 

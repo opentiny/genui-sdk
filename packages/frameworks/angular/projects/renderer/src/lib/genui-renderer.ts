@@ -1,8 +1,15 @@
 import { CommonModule } from '@angular/common';
 import { Component, ContentChild, Input, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
-import { RendererMain as Renderer, Mapper, directiveMap, ModuleRef } from '@opentiny/tiny-schema-renderer-ng';
+import {
+  RendererMain as Renderer,
+  Mapper,
+  directiveMap,
+  ModuleRef,
+  RENDERER_SETTINGS,
+} from '@opentiny/tiny-schema-renderer-ng';
 import { requiredCompleteFieldSelectors } from './config';
+import { RendererSettingsService } from './renderer-settings.service';
 
 export const CARD_ID = Symbol('schema-card-id');
 export interface ICustomAction {
@@ -26,6 +33,14 @@ const errorSchema = {
   imports: [
     CommonModule,
     Renderer,
+  ],
+  providers: [
+    RendererSettingsService,
+    {
+      provide: RENDERER_SETTINGS,
+      useFactory: (rss: RendererSettingsService) => rss.getSettings(),
+      deps: [RendererSettingsService],
+    },
   ],
   templateUrl: './genui-renderer.html',
   styleUrls: ['./genui-renderer.css'],
@@ -121,6 +136,10 @@ export class GenuiRenderer implements OnInit {
       }
     } else {
       isCompleted = this.isJsonComplete ?? true;
+    }
+    if (!isCompleted && json && 'lifeCycles' in json) {
+      const { lifeCycles: _lifeCycles, ...rest } = json;
+      json = rest;
     }
     if (this.deltaPatcher) {
       this.deltaPatcher.patchWithDelta(this.schema, json, isCompleted);

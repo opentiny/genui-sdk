@@ -1,7 +1,7 @@
 <script setup>
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import {
   ref,
   watch,
@@ -14,8 +14,7 @@ import {
   h,
   shallowRef,
 } from 'vue';
-import { vueMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/components';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
@@ -31,6 +30,8 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
+import { getMixedContentHandler } from './ng-renderer/content-response-handler';
+import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
 import { locale, t } from './i18n';
 
 const { topRenderer, addIcons } = useIcon();
@@ -38,7 +39,11 @@ const TopIconsRenderer = topRenderer();
 
 addIcons(IconAi);
 
-let framework = 'Vue'; // Angular
+const framework = ref('Vue'); // Angular
+
+if (location.search.includes('framework=angular')) {
+  framework.value = 'Angular';
+}
 
 // 通过环境变量控制是否启用模板功能，默认不启用
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
@@ -46,26 +51,6 @@ const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 const GenuiTemplate = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplate.vue'))
   : shallowRef(null);
-
-/**
- * tiny-schema-renderer-ng
- */
-
-if (location.search.includes('framework=angular')) {
-  const SchemaRendererNgAdapter = defineAsyncComponent(() =>
-    import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
-  );
-  provide(GENUI_RENDERER, SchemaRendererNgAdapter);
-  framework = 'Angular';
-}
-
-if (location.search.includes('framework=react')) {
-  const SchemaRendererReactAdapter = defineAsyncComponent(() =>
-    import('schema-renderer-react-adapter').then((m) => m.SchemaRendererReactAdapter),
-  );
-  provide(GENUI_RENDERER, SchemaRendererReactAdapter);
-  framework = 'React';
-}
 
 const STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_CONFIG';
 const {
@@ -112,6 +97,7 @@ const llmConfig = reactive(
   cacheLLmConfig || {
     temperature: 0.5,
     model: 'qwen3-coder-30b-a3b-instruct',
+    promptVariant: 'standard',
     mcpServers: [],
     agents: [],
     skills: [],
@@ -207,7 +193,21 @@ const insertHandlersAfterName = (handlers, insertHandlers, name) => {
     handlers.splice(index + 1, 0, ...insertHandlers);
   }
   return handlers;
-};
+}
+const insertHandlersBeforeName = (handlers, insertHandlers, name) => {
+  const index = handlers.findIndex(handler => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index, 0, ...insertHandlers);
+  }
+  return handlers;
+}
+const replaceHandlers = (handlers, replaceHandlers, name) => {
+  const index = handlers.findIndex(handler => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index, 1, ...replaceHandlers);
+  }
+  return handlers;
+}
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
@@ -215,6 +215,11 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
+    const newContentHandler = getMixedContentHandler(contentHandler, framework);
+    replaceHandlers(defaultResponseHandlers, [
+      newContentHandler,
+    ], 'content');
+
     const newResponseHandlers = [
       ...defaultResponseHandlers,
       getContinueGeneratingHandler(conversation.value.messageManager),
@@ -227,6 +232,8 @@ watch(chat, (instance) => {
       'init',
     );
     instance.setResponseHandlers(newResponseHandlers);
+
+    instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
   }
 });
 
@@ -299,7 +306,7 @@ const roles = computed(() => {
 
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
-  framework,
+  framework: framework.value,
 }));
 
 /**
@@ -380,8 +387,7 @@ onUnmounted(() => {
         <GenuiConfigProvider
           :theme="theme"
           :locale="locale"
-          :materials="{ ...vueMaterials }"
-          :renderer-config="rendererConfig"
+          :materials="materials"
           style="height: 100%"
         >
           <GenuiChat

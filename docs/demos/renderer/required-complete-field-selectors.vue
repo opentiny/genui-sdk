@@ -30,4 +30,3 @@ const content = ref({
 // 指定需要完整的字段路径
 const selectors = ['props.items', 'children[0].props'];
 </script>
-

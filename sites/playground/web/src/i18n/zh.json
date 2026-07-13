@@ -30,6 +30,10 @@
   "model": {
     "select": "模型选择",
     "temperature": "模型温度",
+    "promptVariant": "提示词版本",
+    "promptVariantMini": "Mini（轻量）",
+    "promptVariantStandard": "Standard（标准）",
+    "promptVariantPlus": "Plus（增强）",
     "prompt": "提示词",
     "edit": "编辑",
     "delete": "删除",
@@ -78,11 +82,14 @@
     "new": "新建模板",
     "defaultTitle": "新模板",
     "confirmDeleteOne": "确定删除该模板吗？",
-    "confirmBatchDelete": "确定删除选中的 {count} 个模板？"
+    "confirmBatchDelete": "确定删除选中的 {count} 个模板？",
+    "inputPlaceholder": "描述要构建的内容"
   },
   "common": {
     "edit": "编辑",
     "remove": "移除",
+    "cancel": "取消",
+    "save": "保存",
     "confirm": "确认",
     "name": "名称",
     "description": "描述",
@@ -106,6 +113,9 @@
     "cardUrlRequired": "请填写 Agent Card URL",
     "fetchFailed": "获取 Agent Card 失败：{message}",
     "fetchFailedGeneric": "获取 Agent Card 失败",
+    "fetchEnvNotConfigured": "服务未配置 Agent Card 查询接口",
+    "invalidCardFormat": "Agent Card 格式无效",
+    "httpError": "HTTP {status}",
     "nameAndUrlRequired": "请填写名称和 Agent Card URL",
     "queryFirst": "请先查询并确认 Agent Card 信息",
     "missingApiUrl": "Agent Card 中缺少 api.url，服务端无法调用该 Agent",

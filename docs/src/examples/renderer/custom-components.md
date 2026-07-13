@@ -126,4 +126,4 @@ AI 生成的 Schema 可以直接使用你注册的自定义组件：
 
 #### 完整示例：
 
-<demo vue="../../../demos/renderer/custom-components.vue" :vueFiles="['../../../demos/renderer/custom-components.vue', '../../../demos/renderer/components/user-profile.vue']"" />
+<demo vue="../../../demos/renderer/custom-components.vue" :vueFiles="['../../../demos/renderer/custom-components.vue', '../../../demos/renderer/components/user-profile.vue']" />

@@ -30,6 +30,10 @@
   "model": {
     "select": "Model",
     "temperature": "Temperature",
+    "promptVariant": "Prompt variant",
+    "promptVariantMini": "Mini",
+    "promptVariantStandard": "Standard",
+    "promptVariantPlus": "Plus",
     "prompt": "Prompts",
     "edit": "Edit",
     "delete": "Delete",
@@ -78,11 +82,14 @@
     "new": "New template",
     "defaultTitle": "New template",
     "confirmDeleteOne": "Delete this template?",
-    "confirmBatchDelete": "Delete {count} selected template(s)?"
+    "confirmBatchDelete": "Delete {count} selected template(s)?",
+    "inputPlaceholder": "Describe what to build"
   },
   "common": {
     "edit": "Edit",
     "remove": "Remove",
+    "cancel": "Cancel",
+    "save": "Save",
     "confirm": "Confirm",
     "name": "Name",
     "description": "Description",
@@ -106,6 +113,9 @@
     "cardUrlRequired": "Please enter Agent Card URL",
     "fetchFailed": "Failed to fetch Agent Card: {message}",
     "fetchFailedGeneric": "Failed to fetch Agent Card",
+    "fetchEnvNotConfigured": "Agent Card fetch endpoint is not configured",
+    "invalidCardFormat": "Invalid Agent Card format",
+    "httpError": "HTTP {status}",
     "nameAndUrlRequired": "Please enter name and Agent Card URL",
     "queryFirst": "Query and confirm Agent Card first",
     "missingApiUrl": "Agent Card is missing api.url; the server cannot call this agent",
