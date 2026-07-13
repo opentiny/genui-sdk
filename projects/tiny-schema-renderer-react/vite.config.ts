@@ -18,9 +18,9 @@ export default defineConfig(({ command }) => {
         alias: {
           '@opentiny/tiny-schema-renderer-react': srcAlias,
           '@opentiny/genui-sdk-react': path.resolve(repoRoot, 'packages/frameworks/react/src/index.ts'),
-          '@opentiny/genui-sdk-materials-react-antd/components': path.resolve(
+          '@opentiny/genui-sdk-materials-react-antd/materials': path.resolve(
             repoRoot,
-            'packages/materials/react-antd/src/components/index.ts',
+            'packages/materials/react-antd/src/materials/index.ts',
           ),
           '@opentiny/genui-sdk-materials-react-antd': path.resolve(
             repoRoot,

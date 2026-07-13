@@ -37,7 +37,7 @@ export default defineConfig(({ command }) => {
   const plugins = [
     react({ include: /schema-renderer-react-adapter/ }),
     vue({
-      exclude: [/schema-renderer-react-adapter/, /\.tsx$/, /\.jsx$/],
+      exclude: [/\.tsx$/, /\.jsx$/],
       template: {
         compilerOptions: {
           isCustomElement: (tag) => tag === 'genui-renderer-ng-element',

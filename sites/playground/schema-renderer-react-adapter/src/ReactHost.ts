@@ -15,25 +15,16 @@ import {
   RendererContextProvider,
   SchemaRenderer,
   type SchemaRendererHandle,
+  type SchemaRendererProps,
 } from '@opentiny/tiny-schema-renderer-react';
-import { antdMaterials } from '@opentiny/genui-sdk-materials-react-antd/components';
-import type { RootNode } from '@opentiny/genui-sdk-core';
+import { materials as reactMaterials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 import 'antd/dist/reset.css';
 
-export type ReactHostContentProps = {
-  schema: RootNode;
-  generating?: boolean;
-  isJsonComplete?: boolean;
-  customActions?: Record<string, ICustomAction>;
-  id?: string;
-  state?: Record<string, unknown>;
-};
+type RootNode = NonNullable<SchemaRendererProps['schema']>;
 
-export type ReactHostHandle = {
-  updateProps: (props: ReactHostContentProps) => void;
-  getRendererHandle: () => SchemaRendererHandle | null;
-  setContext: (ctx: Record<string, unknown>) => void;
-};
+import type { ReactHostHandle, ReactHostContentProps } from './ReactHost.types';
+
+export type { ReactHostHandle, ReactHostContentProps };
 
 const ReactHostRenderer = forwardRef<
   SchemaRendererHandle,
@@ -84,7 +75,10 @@ const ReactHostRenderer = forwardRef<
     updateContextAndState();
   }, [props.schema, updateContextAndState]);
 
-  return <SchemaRenderer ref={setRendererRef} schema={props.schema} />;
+  return React.createElement(SchemaRenderer, {
+    ref: setRendererRef,
+    schema: props.schema,
+  });
 });
 
 export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContentProps }>(
@@ -108,14 +102,14 @@ export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContent
       },
     }));
 
-    return (
-      <GenuiConfigProvider materials={antdMaterials}>
-        <ReactHostWithMaterials
-          props={props}
-          rendererRef={rendererRef}
-          flushPendingContext={flushPendingContext}
-        />
-      </GenuiConfigProvider>
+    return React.createElement(
+      GenuiConfigProvider,
+      { materials: reactMaterials },
+      React.createElement(ReactHostWithMaterials, {
+        props,
+        rendererRef,
+        flushPendingContext,
+      }),
     );
   },
 );
@@ -131,17 +125,19 @@ function ReactHostWithMaterials({
 }) {
   const materials = useGenuiMaterials();
 
-  return (
-    <RendererContextProvider render-settings={{ materials }}>
-      <div className="schema-render-container">
-        <ReactHostRenderer
-          ref={(instance) => {
-            rendererRef.current = instance;
-            flushPendingContext();
-          }}
-          {...props}
-        />
-      </div>
-    </RendererContextProvider>
+  return React.createElement(
+    RendererContextProvider,
+    { 'render-settings': { materials } },
+    React.createElement(
+      'div',
+      { className: 'schema-render-container' },
+      React.createElement(ReactHostRenderer, {
+        ref: (instance: SchemaRendererHandle | null) => {
+          rendererRef.current = instance;
+          flushPendingContext();
+        },
+        ...props,
+      }),
+    ),
   );
 }

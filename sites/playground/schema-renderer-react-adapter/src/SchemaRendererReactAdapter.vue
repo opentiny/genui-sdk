@@ -1,16 +1,16 @@
-<template>
-  <div ref="containerRef" class="schema-renderer-react-adapter"></div>
-</template>
-
 <script setup lang="ts">
 import { ref, watch, onMounted, onBeforeUnmount, toRaw } from 'vue';
 import { createRoot, type Root } from 'react-dom/client';
 import React from 'react';
-import { ReactHost, type ReactHostHandle, type ReactHostContentProps } from './ReactHost';
+import type { ReactHostHandle, ReactHostContentProps } from './ReactHost.types';
 
 type CustomAction = {
   execute: (params: unknown, context: Record<string, unknown>) => unknown;
 };
+
+type ReactHostComponent = React.ForwardRefExoticComponent<
+  { initial: ReactHostContentProps } & React.RefAttributes<ReactHostHandle>
+>;
 
 const props = defineProps<{
   schema: Record<string, unknown>;
@@ -23,8 +23,16 @@ const props = defineProps<{
 
 const containerRef = ref<HTMLDivElement>();
 let root: Root | null = null;
+let ReactHost: ReactHostComponent | null = null;
 const hostHandleRef = { current: null as ReactHostHandle | null };
 const pendingContext = ref<Record<string, unknown>>({});
+
+async function ensureReactHost() {
+  if (!ReactHost) {
+    ({ ReactHost } = await import('./ReactHost'));
+  }
+  return ReactHost;
+}
 
 function resolveIsJsonComplete() {
   if (props.generating) return false;
@@ -55,7 +63,7 @@ function onHostReady(handle: ReactHostHandle | null) {
   if (handle) flushPendingContext();
 }
 
-function syncReactProps() {
+async function syncReactProps() {
   const next = buildContentProps();
   if (!next) return;
   if (hostHandleRef.current) {
@@ -63,9 +71,10 @@ function syncReactProps() {
     flushPendingContext();
     return;
   }
-  if (root) {
+  const Host = await ensureReactHost();
+  if (root && Host) {
     root.render(
-      React.createElement(ReactHost, {
+      React.createElement(Host, {
         ref: onHostReady,
         initial: next,
       }),
@@ -73,10 +82,10 @@ function syncReactProps() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (containerRef.value) {
     root = createRoot(containerRef.value);
-    syncReactProps();
+    await syncReactProps();
   }
 });
 
@@ -91,6 +100,7 @@ onBeforeUnmount(() => {
   root?.unmount();
   root = null;
   hostHandleRef.current = null;
+  ReactHost = null;
 });
 
 function setContext(ctx: Record<string, unknown>) {
@@ -106,6 +116,10 @@ function setState(state: Record<string, unknown>) {
 
 defineExpose({ setContext, getContext, setState });
 </script>
+
+<template>
+  <div ref="containerRef" class="schema-renderer-react-adapter"></div>
+</template>
 
 <style scoped>
 .schema-renderer-react-adapter {

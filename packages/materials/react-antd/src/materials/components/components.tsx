@@ -10,11 +10,12 @@ import {
   Switch,
   Table,
 } from 'antd';
+import type { IMaterialsMap } from '@opentiny/genui-sdk-core';
 
 import { AntModalWrap } from './AntModalWrap';
 import { AntTabsWrap } from './AntTabsWrap';
 
-export const antdMaterials = {
+export const components: IMaterialsMap = {
   AntButton: Button,
   AntInput: Input,
   AntSelect: Select,

@@ -1,13 +1,13 @@
-import type { IRendererConfig } from '@opentiny/genui-sdk-core';
-import antdBundle from './bundle.json' with { type: 'json' };
-import { builtinWhiteList } from './builtin-white-list';
-import { whiteList } from './white-list';
+import type { IMaterialsMeta, IExample, IMaterialsProtocol } from '@opentiny/genui-sdk-core';
+import bundleJson from './materials/bundle.json' with { type: 'json' };
 import { examples } from './example-schema';
+import { builtinWhiteList, whiteList } from './white-list';
 
-/** builtin + 原生 HTML 的 genPrompt 物料描述 */
+export type { IMaterialsMeta, IExample } from '@opentiny/genui-sdk-core';
+
 const builtinMaterials = {
   data: {
-    framework: 'React' as const,
+    framework: 'React',
     materials: {
       components: builtinWhiteList.map((name) => ({
         component: name,
@@ -28,11 +28,11 @@ const builtinMaterials = {
       })),
     },
   },
-};
+} as IMaterialsProtocol;
 
-export const reactAntdRendererConfig: IRendererConfig = {
-  materialsList: [builtinMaterials, antdBundle],
-  whiteList,
+export const materialsMeta: IMaterialsMeta = {
+  materials: [builtinMaterials, bundleJson] as IMaterialsProtocol[],
   examples,
+  whiteList,
   wrapperComponent: 'AntCard',
 };

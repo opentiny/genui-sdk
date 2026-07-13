@@ -32,15 +32,15 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/index.js"
     },
-    "./render-config": {
-      "import": "./dist/render-config.js",
-      "types": "./dist/render-config.d.ts",
-      "require": "./dist/render-config.js"
+    "./meta": {
+      "import": "./dist/meta.js",
+      "types": "./dist/meta.d.ts",
+      "require": "./dist/meta.js"
     },
-    "./components": {
-      "import": "./dist/components.js",
-      "types": "./dist/components.d.ts",
-      "require": "./dist/components.js"
+    "./materials": {
+      "import": "./dist/materials.js",
+      "types": "./dist/materials.d.ts",
+      "require": "./dist/materials.js"
     }
   }
 }

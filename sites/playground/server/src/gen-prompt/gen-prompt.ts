@@ -6,6 +6,7 @@ import {
 } from '@opentiny/genui-sdk-core';
 import { materialsMeta, miniMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
+import { materialsMeta as reactMaterialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 import type { MaterialsMetaVariantKey } from '../types/index.js';
 
 const vueMaterialsMetaByVariant = {
@@ -25,6 +26,9 @@ export function getMaterialsMetaForFramework(
 ): IMaterialsMeta {
   if (framework === 'Angular') {
     return ngMaterialsMeta;
+  }
+  if (framework === 'React') {
+    return reactMaterialsMeta;
   }
   if (promptVariant) {
     return vueMaterialsMetaByVariant[promptVariant];

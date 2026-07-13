@@ -1,4 +1,3 @@
-/** LLM componentName whitelist: native HTML + builtin aliases */
 export const builtinWhiteList = [
   'Page',
   'Box',
@@ -41,3 +40,21 @@ export const builtinWhiteList = [
   'th',
   'td',
 ];
+
+export const antdWhiteList = [
+  'AntButton',
+  'AntInput',
+  'AntSelect',
+  'AntForm',
+  'AntFormItem',
+  'AntCard',
+  'AntTable',
+  'AntTabs',
+  'AntModal',
+  'AntSwitch',
+  'AntCheckbox',
+  'AntRadio',
+  'AntDatePicker',
+];
+
+export const whiteList = [...builtinWhiteList, ...antdWhiteList];

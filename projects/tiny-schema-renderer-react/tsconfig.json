@@ -16,8 +16,8 @@
     "strict": true,
     "resolveJsonModule": true,
     "paths": {
-      "@opentiny/genui-sdk-materials-react-antd/components": [
-        "../../packages/materials/react-antd/src/components/index.ts"
+      "@opentiny/genui-sdk-materials-react-antd/materials": [
+        "../../packages/materials/react-antd/src/materials/index.ts"
       ],
       "@opentiny/genui-sdk-materials-react-antd": [
         "../../packages/materials/react-antd/src/index.ts"

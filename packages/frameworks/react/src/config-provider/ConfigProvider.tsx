@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo } from 'react';
-import { buildMaterialDefaultValueMap, type IRendererConfig } from '@opentiny/genui-sdk-core';
+import type { IMaterials } from '@opentiny/genui-sdk-core';
 import type { GenuiMaterials, MaterialDefaultValueMap } from '../injection-tokens';
 
 const defaultMaterials: GenuiMaterials = {};
@@ -17,17 +17,19 @@ export function useGenuiDefaultPropsMap(): MaterialDefaultValueMap {
 }
 
 export interface GenuiConfigProviderProps {
-  materials?: GenuiMaterials;
-  rendererConfig?: Partial<IRendererConfig>;
+  materials?: IMaterials;
   children: React.ReactNode;
 }
 
 // TODO: 多个ConfigProvider怎么处理，以谁为准
-export function GenuiConfigProvider({ materials, rendererConfig, children }: GenuiConfigProviderProps) {
-  const materialsValue = useMemo(() => materials ?? defaultMaterials, [materials]);
+export function GenuiConfigProvider({ materials, children }: GenuiConfigProviderProps) {
+  const materialsValue = useMemo(
+    () => (materials?.components ?? defaultMaterials) as GenuiMaterials,
+    [materials],
+  );
   const defaultPropsMapValue = useMemo(
-    () => buildMaterialDefaultValueMap(rendererConfig ?? {}),
-    [rendererConfig],
+    () => materials?.defaultPropsMap ?? defaultPropsMap,
+    [materials],
   );
 
   return (

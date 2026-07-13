@@ -2,8 +2,10 @@
 import { defineAsyncComponent, h } from 'vue';
 import { GenuiChat } from '@opentiny/genui-sdk-vue';
 
+type GenuiChatInstance = InstanceType<typeof GenuiChat>;
+
 const GenuiRendererNg = defineAsyncComponent(() => import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter))
-export function getMessageRendererAngular(instance: GenuiChat) {
+export function getMessageRendererAngular(instance: GenuiChatInstance) {
   return (schemaCardProps) => {
     const props = instance.getProps();
     const { continueChatAction, saveStateAction } = instance;

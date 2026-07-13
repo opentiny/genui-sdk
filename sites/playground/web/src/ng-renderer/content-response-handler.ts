@@ -1,4 +1,4 @@
-import type { IChatMessage, IStreamDelta } from "@opentiny/genui-sdk-core";
+import type { IChatMessage, IMessageItem, IStreamDelta } from "@opentiny/genui-sdk-core";
 import { v4 as uuidv4 } from 'uuid';
 
 import { toRaw, type Ref } from "vue";
@@ -14,8 +14,18 @@ function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
       });
     }
   };
+function getSchemaCardType(framework: string) {
+  if (framework === 'Angular') {
+    return 'schema-card-angular';
+  }
+  if (framework === 'React') {
+    return 'schema-card-react';
+  }
+  return 'schema-card';
+}
+
 function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMessage: IChatMessage, framework: string) {
-    const currentSchemaType = framework === 'Angular' ? 'schema-card-angular' as 'schema-card' : 'schema-card';
+    const currentSchemaType = getSchemaCardType(framework);
     if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === currentSchemaType) {
       chatMessage.messages[chatMessage.messages.length - 1].content += content;
     } else {
@@ -23,7 +33,7 @@ function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMess
         type: currentSchemaType,
         content: content,
         id: uuidv4(),
-      });
+      } as IMessageItem);
     }
     emitNotification(delta, chatMessage);
   }

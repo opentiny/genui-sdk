@@ -12,11 +12,11 @@
       "@opentiny/genui-sdk-materials-angular-opentiny-ng/meta": [
         "../../../packages/materials/angular-opentiny-ng/src/meta/index.ts"
       ],
-      "@opentiny/genui-sdk-materials-react-antd/render-config": [
-        "../../../packages/materials/react-antd/src/render-config/index.ts"
+      "@opentiny/genui-sdk-materials-react-antd/meta": [
+        "../../../packages/materials/react-antd/src/meta/index.ts"
       ],
-      "@opentiny/genui-sdk-materials-react-antd/components": [
-        "../../../packages/materials/react-antd/src/components/index.ts"
+      "@opentiny/genui-sdk-materials-react-antd/materials": [
+        "../../../packages/materials/react-antd/src/materials/index.ts"
       ],
       "@opentiny/genui-sdk-materials-react-antd": [
         "../../../packages/materials/react-antd/src/index.ts"

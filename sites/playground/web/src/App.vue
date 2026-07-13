@@ -32,6 +32,7 @@ import {
 import useIcon from './use-icon';
 import { getMixedContentHandler } from './ng-renderer/content-response-handler';
 import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
+import { getMessageRendererReact } from './react-renderer/message-renderer-react';
 import { locale, t } from './i18n';
 
 const { topRenderer, addIcons } = useIcon();
@@ -43,6 +44,10 @@ const framework = ref('Vue'); // Angular
 
 if (location.search.includes('framework=angular')) {
   framework.value = 'Angular';
+}
+
+if (location.search.includes('framework=react')) {
+  framework.value = 'React';
 }
 
 // 通过环境变量控制是否启用模板功能，默认不启用
@@ -234,6 +239,7 @@ watch(chat, (instance) => {
     instance.setResponseHandlers(newResponseHandlers);
 
     instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
+    instance.setMessageRenderer('schema-card-react', getMessageRendererReact(instance));
   }
 });
 

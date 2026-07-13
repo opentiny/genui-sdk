@@ -8,10 +8,11 @@ import {
   useContext,
 } from 'react';
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
-import type { RootNode } from '@opentiny/genui-sdk-core';
 import { SchemaRenderer } from '@opentiny/tiny-schema-renderer-react';
 import { RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
-import type { SchemaRendererHandle } from '@opentiny/tiny-schema-renderer-react';
+import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-schema-renderer-react';
+
+type RootNode = NonNullable<SchemaRendererProps['schema']>;
 import { RendererContext } from './RendererContext';
 import { useGenuiDefaultPropsMap, useGenuiMaterials } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
