@@ -1,3 +1,3 @@
-export { GenuiConfigProvider, useGenuiMaterials, useGenuiDefaultPropsMap } from './ConfigProvider';
+export { GenuiConfigProvider, useGenuiMaterials } from './ConfigProvider';
 export type { GenuiConfigProviderProps } from './ConfigProvider';
-export type { GenuiMaterials, MaterialDefaultValueMap } from '../injection-tokens';
+export * from './injection-tokens';

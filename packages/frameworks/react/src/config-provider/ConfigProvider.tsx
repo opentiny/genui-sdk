@@ -1,19 +1,12 @@
 import { createContext, useContext, useMemo } from 'react';
 import type { IMaterials } from '@opentiny/genui-sdk-core';
-import type { GenuiMaterials, MaterialDefaultValueMap } from '../injection-tokens';
 
-const defaultMaterials: GenuiMaterials = {};
-const defaultPropsMap: MaterialDefaultValueMap = {};
+const defaultMaterials: IMaterials = {};
 
-const MaterialsContext = createContext<GenuiMaterials>(defaultMaterials);
-const DefaultPropsMapContext = createContext<MaterialDefaultValueMap>(defaultPropsMap);
+const MaterialsContext = createContext<IMaterials>(defaultMaterials);
 
-export function useGenuiMaterials(): GenuiMaterials {
+export function useGenuiMaterials(): IMaterials {
   return useContext(MaterialsContext);
-}
-
-export function useGenuiDefaultPropsMap(): MaterialDefaultValueMap {
-  return useContext(DefaultPropsMapContext);
 }
 
 export interface GenuiConfigProviderProps {
@@ -21,20 +14,12 @@ export interface GenuiConfigProviderProps {
   children: React.ReactNode;
 }
 
-// TODO: 多个ConfigProvider怎么处理，以谁为准
 export function GenuiConfigProvider({ materials, children }: GenuiConfigProviderProps) {
-  const materialsValue = useMemo(
-    () => (materials?.components ?? defaultMaterials) as GenuiMaterials,
-    [materials],
-  );
-  const defaultPropsMapValue = useMemo(
-    () => materials?.defaultPropsMap ?? defaultPropsMap,
-    [materials],
-  );
+  const materialsValue = useMemo(() => materials ?? defaultMaterials, [materials]);
 
   return (
     <MaterialsContext.Provider value={materialsValue}>
-      <DefaultPropsMapContext.Provider value={defaultPropsMapValue}>{children}</DefaultPropsMapContext.Provider>
+      {children}
     </MaterialsContext.Provider>
   );
 }

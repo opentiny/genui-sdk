@@ -14,7 +14,7 @@ import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-s
 
 type RootNode = NonNullable<SchemaRendererProps['schema']>;
 import { RendererContext } from './RendererContext';
-import { useGenuiDefaultPropsMap, useGenuiMaterials } from '../config-provider';
+import { useGenuiMaterials } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
 
@@ -35,14 +35,19 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     // TODO: 移除 RendererContext 依赖
     const BaseRenderer = useContext(RendererContext) ?? SchemaRenderer;
     const contextMaterials = useGenuiMaterials();
-    const defaultPropsMap = useGenuiDefaultPropsMap();
-    const mergedMaterials = useMemo(
-      () => ({ ...contextMaterials, ...props.customComponents }),
-      [contextMaterials, props.customComponents],
+    const mergedComponents = useMemo(
+      () => ({
+        ...contextMaterials.components,
+        ...props.customComponents,
+      }),
+      [contextMaterials.components, props.customComponents],
     );
     const renderSettings = useMemo(
-      () => ({ materials: mergedMaterials, defaultPropsMap }),
-      [mergedMaterials, defaultPropsMap],
+      () => ({
+        materials: mergedComponents,
+        defaultPropsMap: contextMaterials.defaultPropsMap,
+      }),
+      [mergedComponents, contextMaterials.defaultPropsMap],
     );
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
@@ -87,13 +92,17 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     const schemaRef = useRef<RootNode>({ ...emptySchema });
     const [displaySchema, setDisplaySchema] = useState<RootNode>(schemaRef.current);
     const [isError, setIsError] = useState(false);
-    const patcherRef = useRef(
-      new DeltaPatcher({
-        requiredCompleteFieldSelectors: [
-          ...defaultSelectors,
-          ...(props.requiredCompleteFieldSelectors || []),
-        ],
-      }),
+    const patcherRef = useRef<DeltaPatcher | null>(null);
+    patcherRef.current = useMemo(
+      () =>
+        new DeltaPatcher({
+          requiredCompleteFieldSelectors: [
+            ...defaultSelectors,
+            ...(contextMaterials.requiredCompleteFieldSelectors || []),
+            ...(props.requiredCompleteFieldSelectors || []),
+          ],
+        }),
+      [contextMaterials.requiredCompleteFieldSelectors, props.requiredCompleteFieldSelectors],
     );
 
     const contentKeyRef = useRef('');

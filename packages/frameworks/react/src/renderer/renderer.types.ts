@@ -1,5 +1,5 @@
 import type { IGenPromptAction } from '@opentiny/genui-sdk-core';
-import type { GenuiMaterials } from '../injection-tokens';
+import type { GenuiMaterials } from '../config-provider';
 
 export interface ICustomAction extends Partial<IGenPromptAction> {
   execute: (params: unknown, context: Record<string, unknown>) => unknown;
