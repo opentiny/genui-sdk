@@ -29,8 +29,6 @@
     "uuid": "11.1.0",
     "vite-commit-hash-plugin": "workspace:*",
     "vue": "^3.5.18",
-    "@opentiny/genui-sdk-materials-react-antd": "workspace:*",
-    "@opentiny/genui-sdk-react": "workspace:*",
     "antd": "^5.24.0",
     "schema-renderer-react-adapter": "workspace:*",
     "react": "^18.3.1",
