@@ -8,8 +8,8 @@ export function parseInlineStyle(style: string): CSSProperties {
     const key = part.slice(0, colon).trim();
     const val = part.slice(colon + 1).trim();
     if (key && val) {
-      const camel = key.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-      result[camel] = val;
+      const normalizedKey = key.startsWith('--') ? key : key.replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
+      result[normalizedKey] = val;
     }
   });
   return result as CSSProperties;

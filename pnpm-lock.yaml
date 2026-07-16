@@ -46,13 +46,13 @@ importers:
     devDependencies:
       vitepress:
         specifier: ^1.6.3
-        version: 1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)
+        version: 1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)
       vitepress-demo-plugin:
         specifier: ^1.4.1
-        version: 1.5.1(shiki@2.5.0)(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3))
+        version: 1.5.1(shiki@2.5.0)(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3))
       vitepress-plugin-tabs:
         specifier: ^0.7.3
-        version: 0.7.3(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3))
+        version: 0.7.3(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3))
 
   packages/benchmarks:
     dependencies:
@@ -224,7 +224,7 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: ^20.3.10
-        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       '@angular/cli':
         specifier: ^20.3.10
         version: 20.3.13(@types/node@25.5.0)(chokidar@4.0.3)
@@ -299,16 +299,16 @@ importers:
         version: 5.9.3
       vite:
         specifier: ^6.0.0
-        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
       vite-jsconfig-paths:
         specifier: ^2.0.1
-        version: 2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       vite-plugin-dts:
         specifier: ^4.0.0
-        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       vite-plugin-static-copy:
         specifier: ^3.1.2
-        version: 3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+        version: 3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -441,6 +441,43 @@ importers:
       escape-string-regexp:
         specifier: ^1.0.5
         version: 1.0.5
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite-plugin-dts:
+        specifier: ^4.0.0
+        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+
+  packages/materials/react-antd:
+    dependencies:
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../../core
+      antd:
+        specifier: ^5.24.0
+        version: 5.29.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.0
+        version: 18.3.29
+      '@types/react-dom':
+        specifier: ^18.3.0
+        version: 18.3.7(@types/react@18.3.29)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.0
+        version: 4.7.0(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+      escape-string-regexp:
+        specifier: ^1.0.5
+        version: 1.0.5
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       typescript:
         specifier: ^5.8.2
         version: 5.9.3
@@ -802,7 +839,7 @@ importers:
     devDependencies:
       '@angular/build':
         specifier: ^20.3.10
-        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0))
+        version: 20.3.13(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(@angular/compiler@20.3.15)(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(@angular/platform-browser@20.3.15(@angular/animations@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@angular/common@20.3.15(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1))(rxjs@7.8.2))(@angular/core@20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)))(@types/node@25.5.0)(chokidar@4.0.3)(karma@6.4.4)(less@4.5.1)(ng-packagr@20.3.2(@angular/compiler-cli@20.3.15(@angular/compiler@20.3.15)(typescript@5.9.3))(tslib@2.8.1)(typescript@5.9.3))(postcss@8.5.6)(terser@5.44.1)(tslib@2.8.1)(tsx@4.21.0)(typescript@5.9.3)(vitest@3.2.4(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
       '@angular/cli':
         specifier: ^20.3.10
         version: 20.3.13(@types/node@25.5.0)(chokidar@4.0.3)
@@ -1850,6 +1887,12 @@ packages:
     resolution: {integrity: sha512-OzIuTaIfC8QXEPmJvB4Y4kw34rSXdCJzxcD1kFStBvr8bK6X1zQAYDo0CNMjojnfTqRQCJ0I7prlErcoRiET2A==}
     peerDependencies:
       vue: ^3.2.0
+
+  '@emotion/hash@0.8.0':
+    resolution: {integrity: sha512-kBJtf7PH6aWwZ6fka3zQ0p6SBYzx4fl1LoZXE2RrnYST9Xljm7WfKJrU4g/Xr3Beg72MLrp1AWNUmuYJTL7Cow==}
+
+  '@emotion/unitless@0.7.5':
+    resolution: {integrity: sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==}
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -11507,6 +11550,10 @@ snapshots:
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
 
+  '@emotion/hash@0.8.0': {}
+
+  '@emotion/unitless@0.7.5': {}
+
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
 
@@ -17291,7 +17338,7 @@ snapshots:
       '@rc-component/trigger': 2.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       classnames: 2.5.1
       copy-to-clipboard: 3.3.3
-      dayjs: 1.11.21
+      dayjs: 1.11.20
       rc-cascader: 3.34.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-checkbox: 3.5.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-collapse: 3.9.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -17307,7 +17354,7 @@ snapshots:
       rc-motion: 2.9.5(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-notification: 5.6.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-pagination: 5.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
-      rc-picker: 4.11.3(dayjs@1.11.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      rc-picker: 4.11.3(dayjs@1.11.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-progress: 4.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-rate: 2.13.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       rc-resize-observer: 1.4.3(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -20851,7 +20898,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
 
-  rc-picker@4.11.3(dayjs@1.11.21)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  rc-picker@4.11.3(dayjs@1.11.20)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.28.4
       '@rc-component/trigger': 2.3.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -20862,7 +20909,7 @@ snapshots:
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
     optionalDependencies:
-      dayjs: 1.11.21
+      dayjs: 1.11.20
 
   rc-progress@4.0.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -21996,13 +22043,13 @@ snapshots:
       '@types/unist': 3.0.3
       vfile-message: 4.0.3
 
-  vite-jsconfig-paths@2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+  vite-jsconfig-paths@2.0.1(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       debug: 4.4.3
       globrex: 0.1.2
       recrawl-sync: 2.2.3
       tsconfig-paths: 3.15.0
-      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -22119,6 +22166,25 @@ snapshots:
       - rollup
       - supports-color
 
+  vite-plugin-dts@4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)):
+    dependencies:
+      '@microsoft/api-extractor': 7.55.2(@types/node@25.5.0)
+      '@rollup/pluginutils': 5.3.0(rollup@4.54.0)
+      '@volar/typescript': 2.4.27
+      '@vue/language-core': 2.2.0(typescript@5.9.3)
+      compare-versions: 6.1.1
+      debug: 4.4.3
+      kolorist: 1.8.0
+      local-pkg: 1.1.2
+      magic-string: 0.30.21
+      typescript: 5.9.3
+    optionalDependencies:
+      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - rollup
+      - supports-color
+
   vite-plugin-dts@4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       '@microsoft/api-extractor': 7.55.2(@types/node@25.5.0)
@@ -22175,13 +22241,13 @@ snapshots:
     transitivePeerDependencies:
       - rollup
 
-  vite-plugin-static-copy@3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
+  vite-plugin-static-copy@3.1.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
       chokidar: 3.6.0
       p-map: 7.0.4
       picocolors: 1.1.1
       tinyglobby: 0.2.15
-      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0)
 
   vite-plugin-static-copy@3.1.4(vite@7.3.0(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)):
     dependencies:
@@ -22216,6 +22282,22 @@ snapshots:
       fsevents: 2.3.3
       less: 4.5.1
       sass: 1.97.1
+      terser: 5.44.1
+      tsx: 4.21.0
+
+  vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.90.0)(terser@5.44.1)(tsx@4.21.0):
+    dependencies:
+      esbuild: 0.25.12
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.54.0
+      tinyglobby: 0.2.15
+    optionalDependencies:
+      '@types/node': 25.5.0
+      fsevents: 2.3.3
+      less: 4.5.1
+      sass: 1.90.0
       terser: 5.44.1
       tsx: 4.21.0
 
@@ -22316,18 +22398,18 @@ snapshots:
       terser: 5.44.1
       tsx: 4.21.0
 
-  vitepress-demo-plugin@1.5.1(shiki@2.5.0)(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3)):
+  vitepress-demo-plugin@1.5.1(shiki@2.5.0)(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3)):
     dependencies:
       shiki: 2.5.0
-      vitepress: 1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)
+      vitepress: 1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)
       vue: 3.5.26(typescript@5.9.3)
 
-  vitepress-plugin-tabs@0.7.3(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3)):
+  vitepress-plugin-tabs@0.7.3(vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3))(vue@3.5.26(typescript@5.9.3)):
     dependencies:
-      vitepress: 1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)
+      vitepress: 1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3)
       vue: 3.5.26(typescript@5.9.3)
 
-  vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3):
+  vitepress@1.6.4(@algolia/client-search@5.35.0)(@types/node@25.5.0)(@types/react@18.3.29)(async-validator@4.2.5)(less@4.5.1)(postcss@8.5.6)(qrcode@1.5.1)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.97.1)(search-insights@2.17.3)(terser@5.44.1)(typescript@5.9.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.35.0)(@types/react@18.3.29)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(search-insights@2.17.3)

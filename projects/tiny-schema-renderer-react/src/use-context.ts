@@ -30,10 +30,13 @@ export function createPageContext(): PageContextApi {
 
   const setContext = (ctx: Partial<PageContextValue>, clear?: boolean) => {
     if (clear) {
-      Object.keys(contextValue).forEach((key) => {
-        delete contextValue[key as keyof PageContextValue];
-      });
-      Object.assign(contextValue, ctx);
+      contextValue = {
+        state: {},
+        refs: {},
+        methods: {},
+        cssScopeId: contextValue.cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`,
+        ...ctx,
+      };
     } else {
       Object.assign(contextValue, ctx);
     }

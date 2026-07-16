@@ -8,17 +8,17 @@ GenUI 集成第三方 UI 库需要同时改两条链路：
 
 | 链路 | 作用 | 本包提供 |
 |------|------|----------|
-| **Prompt 侧** | 告诉 LLM 可用的 `componentName` 及 props | `reactAntdRendererConfig`（白名单 + bundle 元数据 + 示例） |
-| **运行时** | 把 schema 节点映射到真实 React 组件 | `antdRegistry`（`Ant*` 适配器） |
+| **Prompt 侧** | 告诉 LLM 可用的 `componentName` 及 props | `materialsMeta`（白名单 + bundle 元数据 + 示例） |
+| **运行时** | 把 schema 节点映射到真实 React 组件 | `materials.components`（`Ant*` 适配器） |
 
-只改 prompt 不注册 registry → LLM 生成 `AntButton` 但渲染为占位 `[AntButton]`；只注册 registry 不改 prompt → LLM 不知道这些组件。
+只改 prompt 不注册 components -> LLM 生成 `AntButton` 但渲染为占位 `[AntButton]`；只注册 components 不改 prompt -> LLM 不知道这些组件。
 
 ```
-LLM（genPrompt + reactAntdRendererConfig）
+LLM（genPrompt + materialsMeta）
         ↓ 生成 schema
 GenuiRenderer / SchemaRenderer
         ↓ componentName 查找
-antdRegistry + builtinRegistry
+materials.components + builtinRegistry
         ↓
 Ant Design 组件
 ```
@@ -28,17 +28,21 @@ Ant Design 组件
 ```
 packages/materials/react-antd/
 ├── package.json
-├── vite.config.ts              # 三入口：index / render-config / extend-renderer
+├── vite.config.ts              # 三入口：index / meta / materials
 └── src/
     ├── index.ts                # 统一导出
-    ├── extend-renderer.tsx     # antdRegistry 运行时注册表
-    ├── components/
-    │   └── adapt.tsx           # 通用 adapt / bindModelChange 等工具
-    └── render-config/
-        ├── merge.ts            # reactAntdRendererConfig
+    ├── materials/
+    │   ├── components/
+    │   │   ├── components.tsx  # Ant* 组件映射表
+    │   │   ├── AntModalWrap.tsx
+    │   │   └── AntTabsWrap.tsx
+    │   └── materials.ts        # IMaterials 聚合
+    └── meta/
+        ├── meta.ts             # materialsMeta（白名单 + bundle + 示例）
         ├── white-list.ts       # Ant* 白名单
-        ├── bundle.json         # 组件 props/events 元数据（供 genPrompt）
-        └── example-schema.ts   # Ant Design 表单示例
+        ├── materials/
+        │   └── bundle.json     # 组件 props/events 元数据（供 genPrompt）
+        └── examples/           # Ant Design 表单示例
 ```
 
 ## 导出子路径
@@ -46,8 +50,8 @@ packages/materials/react-antd/
 | 子路径 | 内容 |
 |--------|------|
 | `@opentiny/genui-sdk-materials-react-antd` | 全部导出 |
-| `.../render-config` | `reactAntdRendererConfig`、`antdFormExample` 等 |
-| `.../extend-renderer` | `antdRegistry`、`mergeAntdRegistry` |
+| `.../meta` | `materialsMeta`、`examples` 等 |
+| `.../materials` | `materials`（components + defaultPropsMap） |
 
 ## 已接入组件（Ant* 命名）
 
@@ -55,7 +59,7 @@ packages/materials/react-antd/
 
 | componentName | antd 组件 | 说明 |
 |---------------|-----------|------|
-| `AntButton` | Button | `text` → children |
+| `AntButton` | Button | `text` -> children |
 | `AntInput` | Input | 支持 `modelValue` / `value` + `model: true` |
 | `AntSelect` | Select | 选项 `options`，绑定用 `value` + `model: true` |
 | `AntForm` | Form | 容器 |
@@ -69,41 +73,28 @@ packages/materials/react-antd/
 | `AntRadio` | Radio | |
 | `AntDatePicker` | DatePicker | |
 
-## Prompt 配置：`reactAntdRendererConfig`
+## Prompt 配置：`materialsMeta`
 
-[`src/render-config/merge.ts`](src/render-config/merge.ts) 合并 builtin 原生 HTML 与 antd 物料配置：
+[`src/meta/meta.ts`](src/meta/meta.ts) 合并 builtin 原生 HTML 与 antd 物料配置：
 
 ```ts
-import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 
-genPrompt(reactAntdRendererConfig, customConfig);
+genPrompt(materialsMeta, customConfig);
 ```
 
-## 运行时：`antdRegistry`
+## 运行时：`materials`
 
-适配器签名与 `@opentiny/genui-sdk-react` 一致：
-
-```tsx
-type ComponentRenderer = (p: {
-  props: Record<string, unknown>;
-  children?: ReactNode;
-  emit: (event: string) => void;
-  loading?: boolean;
-}) => ReactNode;
-```
-
-使用方式：
+通过 `GenuiConfigProvider` 注入物料：
 
 ```tsx
-import { GenuiRenderer } from '@opentiny/genui-sdk-react';
-import { antdRegistry } from '@opentiny/genui-sdk-materials-react-antd/extend-renderer';
+import { GenuiRenderer, GenuiConfigProvider } from '@opentiny/genui-sdk-react';
+import { materials as antdMaterials } from '@opentiny/genui-sdk-materials-react-antd';
 import 'antd/dist/reset.css';
 
-<GenuiRenderer
-  content={schema}
-  isJsonComplete
-  customComponents={antdRegistry}
-/>
+<GenuiConfigProvider materials={antdMaterials}>
+  <GenuiRenderer content={schema} isJsonComplete />
+</GenuiConfigProvider>
 ```
 
 ## Schema 编写约定
@@ -171,11 +162,11 @@ if (location.search.includes('framework=react')) {
 [`sites/playground/server/src/chat-genui.ts`](../../sites/playground/server/src/chat-genui.ts)：
 
 ```ts
-import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 
 const renderConfigForFramework =
   framework === 'Angular' ? ngRendererConfig
-  : framework === 'React' ? reactAntdRendererConfig
+  : framework === 'React' ? materialsMeta
   : rendererConfig;
 ```
 
@@ -187,18 +178,18 @@ const renderConfigForFramework =
 
 | 文件 | 改动 |
 |------|------|
-| `ReactHost.tsx` | 注入 `customComponents={antdRegistry}`，引入 `antd/dist/reset.css` |
+| `ReactHost.tsx` | 注入 `materials={antdMaterials}`，引入 `antd/dist/reset.css` |
 | `SchemaRendererReactAdapter.vue` | Vue 壳组件，pending context 机制同步 `callAction` |
 | `package.json` | 依赖 `@opentiny/genui-sdk-materials-react-antd`、`antd` |
 
-Vue 侧 [`SchemaCardRenderer.vue`](../../packages/frameworks/vue/src/renderer/SchemaCardRenderer.vue) 负责把 `saveState` / `continueChat` 通过 `setContext({ callAction })` 注入 React 渲染器。
+Vue 侧 `GenuiRenderer` 负责把 `saveState` / `continueChat` 通过 `setContext({ callAction })` 注入 React 渲染器。
 
 ### 4. 独立 Demo 页
 
 [`sites/playground/web/src/react-demo/main.ts`](../../sites/playground/web/src/react-demo/main.ts)：
 
 - 访问 `/react-demo.html`
-- 使用 `antdRegistry` + `antdFormExample` 静态演示
+- 使用 `antdMaterials` + `antdFormExample` 静态演示
 
 ### 5. 开发路径别名
 
@@ -214,19 +205,19 @@ flowchart TB
   subgraph playground [Playground]
     AppVue["App.vue\n?framework=react"]
     GenuiChat["GenuiChat\nVue 聊天壳"]
-    SchemaCard["SchemaCardRenderer\n注入 callAction"]
+    SchemaCard["GenuiRenderer\n注入 callAction"]
     Adapter["SchemaRendererReactAdapter"]
     ReactHost["ReactHost"]
   end
 
   subgraph server [Server]
     ChatGenUI["chat-genui.ts"]
-    GenPrompt["genPrompt(reactAntdRendererConfig)"]
+    GenPrompt["genPrompt(materialsMeta)"]
   end
 
   subgraph materials [react-antd 物料包]
-    RenderConfig["render-config\n白名单 + bundle"]
-    Registry["extend-renderer\nantdRegistry"]
+    RenderConfig["meta\n白名单 + bundle"]
+    Registry["materials\ncomponents"]
   end
 
   subgraph react [genui-sdk-react]
@@ -261,16 +252,16 @@ pnpm --filter @opentiny/genui-sdk-materials-react-antd build
 ## 业务项目接入（非 Playground）
 
 1. 安装 `@opentiny/genui-sdk-react`、`@opentiny/genui-sdk-materials-react-antd`、`antd`
-2. 渲染：`customComponents={antdRegistry}` + 引入 antd CSS
-3. 服务端 prompt：`genPrompt(reactAntdRendererConfig, ...)`
+2. 渲染：`GenuiConfigProvider` 注入 `materials` + 引入 antd CSS
+3. 服务端 prompt：`genPrompt(materialsMeta, ...)`
 4. 若需 `saveState` / `continueChat`，自行实现 `customActions` 或通过 `setContext({ callAction })` 注入
 
 ## 扩展更多 antd 组件
 
-1. 在 [`src/extend-renderer.tsx`](src/extend-renderer.tsx) 增加适配器
-2. 在 [`src/render-config/bundle.json`](src/render-config/bundle.json) 补充 props 元数据
-3. 在 [`src/render-config/white-list.ts`](src/render-config/white-list.ts) 加入 componentName
-4. 可选：在 [`example-schema.ts`](src/render-config/example-schema.ts) 增加示例
+1. 在 [`src/materials/components/components.tsx`](src/materials/components/components.tsx) 增加映射
+2. 在 [`src/meta/materials/bundle.json`](src/meta/materials/bundle.json) 补充 props 元数据
+3. 在 [`src/meta/white-list.ts`](src/meta/white-list.ts) 加入 componentName
+4. 可选：在 [`src/meta/example-schema.ts`](src/meta/example-schema.ts) 增加示例
 
 ## 相关文档
 

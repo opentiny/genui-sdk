@@ -6,9 +6,9 @@
 
 与 Vue 一致：`SchemaCardRenderer`（流式） + `SchemaRenderer`（基础渲染器，对齐 tiny-schema-renderer）。
 
-```
+```text
 GenuiRenderer（= SchemaCardRenderer，流式 JSON：repairJson + DeltaPatcher）
-  └── PageContextProvider
+  └── RendererContextProvider
         └── SchemaRenderer（递归 Node 树，ref: setContext / getContext / setState）
               ├── registry 组件（Box、Text…）
               └── 原生 HTML 透传（div、input、button…）
@@ -20,42 +20,43 @@ Playground ?framework=react：Vue SchemaCardRenderer 已做流式合并，适配
 
 ```tsx
 import { GenuiRenderer } from '@opentiny/genui-sdk-react';
-import { nativeFormExample } from '@opentiny/genui-sdk-materials-react-antd/render-config';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-react';
+import { materials as antdMaterials } from '@opentiny/genui-sdk-materials-react-antd';
 
-<GenuiRenderer content={nativeFormExample} isJsonComplete />;
+<GenuiConfigProvider materials={antdMaterials}>
+  <GenuiRenderer content={schema} isJsonComplete />
+</GenuiConfigProvider>;
 ```
 
 ## 扩展组件库
 
+通过 `GenuiConfigProvider` 注入自定义物料，`GenuiRenderer` 会自动消费：
+
 ```tsx
-import {
-  SchemaRenderer,
-  PageContextProvider,
-  defineRegistry,
-  mergeRegistry,
-  builtinRegistry,
-} from '@opentiny/genui-sdk-react';
+import { GenuiRenderer, GenuiConfigProvider } from '@opentiny/genui-sdk-react';
 
-const registry = mergeRegistry(builtinRegistry, {
-  MyCard: ({ props, children }) => <div className="card">{props.title}{children}</div>,
-});
+const customMaterials = {
+  components: {
+    MyCard: ({ props, children }) => <div className="card">{props.title}{children}</div>,
+  },
+};
 
-<PageContextProvider>
-  <SchemaRenderer ref={rendererRef} schema={schema} registry={registry} />
-</PageContextProvider>
+<GenuiConfigProvider materials={customMaterials}>
+  <GenuiRenderer content={schema} isJsonComplete />
+</GenuiConfigProvider>
 ```
 
-已有完整 schema 对象、不需要流式修补时，直接用 `SchemaRenderer`；字符串/增量 JSON 用 `GenuiRenderer` 或 `SchemaCardRenderer`。
+已有完整 schema 对象、不需要流式修补时，直接用 `GenuiRenderer` 并传 `isJsonComplete`；字符串/增量 JSON 用 `GenuiRenderer` 默认流式模式。
 
 ## LLM Prompt
 
-`reactAntdRendererConfig`（`@opentiny/genui-sdk-materials-react-antd/render-config`）包含 builtin 原生 HTML 与 antd 组件白名单。
+`@opentiny/genui-sdk-materials-react-antd/meta` 包含 builtin 原生 HTML 与 antd 组件白名单。
 
 服务端示例：
 
 ```ts
-import { reactAntdRendererConfig } from '@opentiny/genui-sdk-materials-react-antd/render-config';
-genPrompt(reactAntdRendererConfig, customConfig);
+import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
+genPrompt(materialsMeta, customConfig);
 ```
 
 ## 与 Vue / json-render 的差异

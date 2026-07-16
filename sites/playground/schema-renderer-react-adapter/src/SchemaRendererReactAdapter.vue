@@ -56,6 +56,7 @@ function flushPendingContext() {
   const handle = hostHandleRef.current;
   if (!handle || !Object.keys(pendingContext.value).length) return;
   handle.setContext({ ...pendingContext.value });
+  pendingContext.value = {};
 }
 
 function onHostReady(handle: ReactHostHandle | null) {

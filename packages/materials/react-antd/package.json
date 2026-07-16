@@ -29,18 +29,15 @@
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js"
+      "types": "./dist/index.d.ts"
     },
     "./meta": {
       "import": "./dist/meta.js",
-      "types": "./dist/meta.d.ts",
-      "require": "./dist/meta.js"
+      "types": "./dist/meta.d.ts"
     },
     "./materials": {
       "import": "./dist/materials.js",
-      "types": "./dist/materials.d.ts",
-      "require": "./dist/materials.js"
+      "types": "./dist/materials.d.ts"
     }
   }
 }

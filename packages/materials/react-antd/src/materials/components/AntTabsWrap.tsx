@@ -30,7 +30,7 @@ export function AntTabsWrap({
   ...rest
 }: AntTabsWrapProps) {
   const userClickedRef = useRef(false);
-  const prevCountRef = useRef(0);
+  const prevCountRef = useRef<number | null>(null);
   const [activeKey, setActiveKey] = useState<string | undefined>(
     controlledActiveKey ?? defaultActiveKey,
   );
@@ -39,6 +39,10 @@ export function AntTabsWrap({
   const itemCount = normalizedItems?.length ?? 0;
 
   useEffect(() => {
+    if (prevCountRef.current === null) {
+      prevCountRef.current = itemCount;
+      return;
+    }
     if (userClickedRef.current || itemCount <= prevCountRef.current) {
       prevCountRef.current = itemCount;
       return;
