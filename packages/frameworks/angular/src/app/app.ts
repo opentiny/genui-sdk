@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 import { fetchSchemaStream } from '../fetch-schema-stream';
 import { FormsModule } from '@angular/forms';
-import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 
 @Component({
   selector: 'app-root',
-  imports: [FormsModule, GenuiRenderer],
+  imports: [FormsModule, GenuiConfigProvider, GenuiRenderer],
   templateUrl: './app.html',
   styleUrl: './app.less'
 })
@@ -14,6 +15,7 @@ export class App {
   schema = '';
   rendererKey = '';
   generating = false;
+  protected readonly activeMaterials = materials;
   async handleSend() {
     if (!this.inputText.trim() || this.generating) return;
 

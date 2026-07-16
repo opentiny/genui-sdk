@@ -1,0 +1,74 @@
+{
+  "name": "@opentiny/genui-sdk-materials-vue-element-plus",
+  "version": "1.0.0",
+  "description": "GenUI Vue materials package based on Element Plus",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "vue",
+    "element-plus",
+    "component",
+    "library",
+    "llm",
+    "generative-ui",
+    "stream-ui"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md",
+    "CONTRIBUTING.md"
+  ],
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite --config vite.config.test.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "element-plus": "^2.9.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/tsconfig": "^0.8.1",
+    "element-plus": "^2.9.0",
+    "escape-string-regexp": "^1.0.5",
+    "typescript": "^5.8.2",
+    "vite": "^6.0.0",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^3.0.0",
+    "vue": "^3.5.13"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./meta": {
+      "types": "./dist/meta.d.ts",
+      "import": "./dist/meta.js",
+      "require": "./dist/meta.js"
+    },
+    "./materials": {
+      "types": "./dist/materials.d.ts",
+      "import": "./dist/materials.js",
+      "require": "./dist/materials.js"
+    }
+  }
+}

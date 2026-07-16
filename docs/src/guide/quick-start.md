@@ -15,22 +15,22 @@ npm create vue@latest genui-chat
 
 ## 安装依赖
 
-进入项目目录并安装 GenUI SDK：
+进入项目目录并安装 GenUI SDK 与官方物料包：
 ::: tabs
 == npm
 ```bash
 cd genui-chat
-npm install @opentiny/genui-sdk-vue
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 == pnpm
 ```bash
 cd genui-chat
-pnpm add @opentiny/genui-sdk-vue
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 == yarn
 ```bash
 cd genui-chat
-yarn add @opentiny/genui-sdk-vue
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 :::
 
@@ -41,20 +41,55 @@ yarn add @opentiny/genui-sdk-vue
 | 子路径 | 适用场景 | 主要导出内容 |
 | --- | --- | --- |
 | `@opentiny/genui-sdk-vue/chat` | 仅需对话组件 | `GenuiChat` |
+| `@opentiny/genui-sdk-vue/legacy-chat` | 兼容旧版、内置默认物料的对话组件 | `GenuiLegacyChat` |
 | `@opentiny/genui-sdk-vue/renderer` | 仅需渲染器（自建对话 UI） | `GenuiRenderer` |
-| `@opentiny/genui-sdk-vue/config-provider` | 仅需主题/国际化容器 | `GenuiConfigProvider` |
+| `@opentiny/genui-sdk-vue/legacy-renderer` | 兼容旧版、内置默认物料的渲染器 | `GenuiLegacyRenderer` |
+| `@opentiny/genui-sdk-vue/config-provider` | 主题/国际化/物料配置容器 | `GenuiConfigProvider` |
 
 ```ts
-// 仅使用 Chat
 import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 // 仅使用 Renderer
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+```
 
-// Chat + 主题
+::: tip GenuiChat
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
+
+::: tip GenuiRenderer
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiRenderer Legacy 兼容说明](../components/renderer#兼容组件-genuilegacyrenderer)。
+:::
+
+## 物料配置
+
+从 1.3.0 版本起，`GenuiRenderer` 与 `GenuiChat` 不再内置组件物料，需要通过 `GenuiConfigProvider` 的 `materials` 注入，或自行 `provide(GENUI_MATERIALS)`。这样可以将 SDK 核心与具体 UI 物料解耦，便于按需替换或扩展组件库。
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat url="https://your-chat-backend/api" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
 import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
 import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+</script>
 ```
+
+::: tip GenuiChat
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
+
+仅使用 Renderer 时同理，将 `GenuiChat` 替换为 `GenuiRenderer` 即可。
+
+::: tip GenuiRenderer
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiRenderer Legacy 兼容说明](../components/renderer#兼容组件-genuilegacyrenderer)。
+:::
 
 ## 改造项目
 
@@ -73,15 +108,18 @@ createApp(App).mount('#app');
 
 ### 修改 `src/App.vue`
 
-使用 `GenuiChat` 组件：
+使用 `GenuiChat` 组件，并通过 `GenuiConfigProvider` 注入物料：
 
 ```vue
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 </script>
 
 <template>
-  <GenuiChat />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat />
+  </GenuiConfigProvider>
 </template>
 
 <style>
@@ -101,6 +139,10 @@ html {
 </style>
 ```
 
+::: tip GenuiChat
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
+
 ## 启动项目
 
 运行以下命令启动开发服务器：
@@ -118,7 +160,8 @@ npm run dev
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'; // [!code ++]
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api'; // [!code ++]
 const model = ref('deepseek-v3.2'); // [!code ++]
@@ -126,10 +169,16 @@ const temperature = ref(0.7); // [!code ++]
 </script>
 
 <template>
-  <GenuiChat> <!-- [!code --]-->
-  <GenuiChat :url="url" :model="model" :temperature="temperature" />  <!-- [!code ++]-->
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat> <!-- [!code --]-->
+    <GenuiChat :url="url" :model="model" :temperature="temperature" />  <!-- [!code ++]-->
+  </GenuiConfigProvider>
 </template>
 ```
+
+::: tip GenuiChat
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
 
 ## 通过 GenuiConfigProvider 配置主题
 
@@ -149,8 +198,8 @@ const temperature = ref(0.7); // [!code ++]
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue'; // [!code --]
-import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue'; // [!code ++]
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
@@ -158,13 +207,15 @@ const temperature = ref(0.7);
 </script>
 
 <template>
-  <!-- [!code ++]-->
-  <GenuiConfigProvider theme="dark">
+  <GenuiConfigProvider theme="dark" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature" />
-    <!-- [!code ++]-->
   </GenuiConfigProvider>
 </template>
 ```
+
+::: tip GenuiChat
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
 
 ## 配置空插槽
 
@@ -172,18 +223,11 @@ const temperature = ref(0.7);
 
 ```vue
 <template>
-  <GenuiConfigProvider theme="dark">
-    <!-- [!code --]-->
-    <GenuiChat :url="url" :model="model" :temperature="temperature" />
-    <!-- [!code ++]-->
+  <GenuiConfigProvider theme="dark" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature">    
-      <!-- [!code ++]-->
       <template #empty>
-        <!-- [!code ++]-->
         <div class="empty-text">欢迎使用生成式UI</div>
-      <!-- [!code ++]-->
       </template>
-    <!-- [!code ++]-->
     </GenuiChat>
   </GenuiConfigProvider>
 </template>
@@ -207,6 +251,7 @@ const temperature = ref(0.7);
 <script setup lang="ts">
 import { ref } from 'vue';
 import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
@@ -215,7 +260,7 @@ const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
 </script>
 
 <template>
-  <GenuiConfigProvider :theme="theme">
+  <GenuiConfigProvider :theme="theme" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature">    
       <template #empty>
         <div class="empty-text">欢迎使用生成式UI</div>
@@ -247,6 +292,10 @@ html {
 }
 </style>
 ```
+
+::: tip GenuiChat
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
 
 完成以上步骤后，即可开始体验生成式 UI 了
 ![使用 Renderer 组件示例](../public/quick-start.png)

@@ -4,6 +4,38 @@
 
 When using only Renderer, you can import it on demand from `@opentiny/genui-sdk-vue/renderer`. See [Quick Start - Subpath Imports](../guide/quick-start#subpath-imports).
 
+::: warning Materials required (since v1.3.0)
+`GenuiRenderer` does not include UI materials. Use it with `GenuiConfigProvider`'s `materials` prop. See [Materials Configuration](../guide/quick-start#materials-configuration).
+
+For the previous out-of-the-box behavior, use `GenuiLegacyRenderer` from `@opentiny/genui-sdk-vue/legacy-renderer` instead. Its props and slots are identical to `GenuiRenderer`.
+:::
+
+## Compatibility Component: GenuiLegacyRenderer
+
+`GenuiLegacyRenderer` bundles OpenTiny default materials. Use it when migrating old projects that did not configure `GenuiConfigProvider`. No extra materials package is required.
+
+```vue
+<template>
+  <GenuiLegacyRenderer :content="schemaContent" />
+</template>
+
+<script setup lang="ts">
+import { GenuiLegacyRenderer } from '@opentiny/genui-sdk-vue/legacy-renderer';
+
+const schemaContent = {
+  componentName: 'Page',
+  children: [
+    {
+      componentName: 'TinyButton',
+      props: { text: 'Submit', type: 'primary' },
+    },
+  ],
+};
+</script>
+```
+
+If `GenuiConfigProvider` is used with `materials` in an ancestor, `GenuiLegacyRenderer` prefers those materials.
+
 ## Props
 
 ### content

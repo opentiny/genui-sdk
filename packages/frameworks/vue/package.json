@@ -31,9 +31,17 @@
       "types": "./output/dist/chat.d.ts",
       "import": "./output/dist/chat.js"
     },
+    "./legacy-chat": {
+      "types": "./output/dist/legacy-chat.d.ts",
+      "import": "./output/dist/legacy-chat.js"
+    },
     "./renderer": {
       "types": "./output/dist/renderer.d.ts",
       "import": "./output/dist/renderer.js"
+    },
+    "./legacy-renderer": {
+      "types": "./output/dist/legacy-renderer.d.ts",
+      "import": "./output/dist/legacy-renderer.js"
     },
     "./config-provider": {
       "types": "./output/dist/config-provider.d.ts",
@@ -67,44 +75,6 @@
     "@opentiny/vue-theme": "^3.28.0",
     "uuid": "^11.1.0",
     "vue": "^3.5.13",
-    "@opentiny/vue-huicharts-line": "^3.28.0",
-    "@opentiny/vue-huicharts-histogram": "^3.28.0",
-    "@opentiny/vue-huicharts-bar": "^3.28.0",
-    "@opentiny/vue-huicharts-radar": "^3.28.0",
-    "@opentiny/vue-huicharts-ring": "^3.28.0",
-    "@opentiny/vue-huicharts-pie": "^3.28.0",
-    "@opentiny/vue-huicharts-funnel": "^3.28.0",
-    "@opentiny/vue-huicharts-scatter": "^3.28.0",
-    "@opentiny/vue-huicharts-waterfall": "^3.28.0",
-    "@opentiny/vue-huicharts-gauge": "^3.28.0",
-    "@opentiny/vue-huicharts-graph": "^3.28.0",
-    "@opentiny/vue-huicharts-process": "^3.28.0",
-    "@opentiny/vue-carousel": "^3.28.0",
-    "@opentiny/vue-carousel-item": "^3.28.0",
-    "@opentiny/vue-checkbox-button": "^3.28.0",
-    "@opentiny/vue-checkbox-group": "^3.28.0",
-    "@opentiny/vue-col": "^3.28.0",
-    "@opentiny/vue-date-picker": "^3.28.0",
-    "@opentiny/vue-layout": "^3.28.0",
-    "@opentiny/vue-row": "^3.28.0",
-    "@opentiny/vue-search": "^3.28.0",
-    "@opentiny/vue-select": "^3.28.0",
-    "@opentiny/vue-transfer": "^3.28.0",
-    "@opentiny/vue-button": "^3.28.0",
-    "@opentiny/vue-grid": "^3.28.0",
-    "@opentiny/vue-form": "^3.28.0",
-    "@opentiny/vue-form-item": "^3.28.0",
-    "@opentiny/vue-input": "^3.28.0",
-    "@opentiny/vue-notify": "^3.28.0",
-    "@opentiny/vue-card": "^3.28.0",
-    "@opentiny/vue-checkbox": "^3.28.0",
-    "@opentiny/vue-numeric": "^3.28.0",
-    "@opentiny/vue-radio": "^3.28.0",
-    "@opentiny/vue-switch": "^3.28.0",
-    "@opentiny/vue-tabs": "^3.28.0",
-    "@opentiny/vue-tab-item": "^3.28.0",
-    "@opentiny/vue-tree": "^3.28.0",
-    "@opentiny/vue-radio-group": "^3.28.0",
     "@opentiny/tiny-engine-builtin-component": "^2.6.0"
   },
   "devDependencies": {

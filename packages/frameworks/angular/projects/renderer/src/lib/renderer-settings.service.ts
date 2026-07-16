@@ -1,20 +1,23 @@
 import { Inject, Injectable, Optional, SkipSelf } from '@angular/core';
-import { type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
-import { RENDERER_SETTINGS, type IRendererSettings } from '@opentiny/tiny-schema-renderer-ng';
-import { GENUI_DEFAULT_PROPS_MAP } from './injection-tokens';
+import type { IMaterials } from '@opentiny/genui-sdk-core';
+import {
+  RENDERER_SETTINGS,
+  type IRendererMaterials,
+  type IRendererSettings,
+} from '@opentiny/tiny-schema-renderer-ng';
+import { GENUI_MATERIALS } from './injection-tokens';
 
 @Injectable()
 export class RendererSettingsService {
   constructor(
     @Optional() @SkipSelf() @Inject(RENDERER_SETTINGS) private parentSettings: IRendererSettings | null,
-    @Optional() @Inject(GENUI_DEFAULT_PROPS_MAP) private defaultPropsMap: MaterialDefaultValueMap | null,
-  ) {
-  }
+    @Optional() @Inject(GENUI_MATERIALS) private materials: IMaterials | null,
+  ) {}
 
   getSettings(): IRendererSettings {
     return {
       ...(this.parentSettings ?? {}),
-      defaultPropsMap: this.defaultPropsMap ?? this.parentSettings?.defaultPropsMap ?? {},
+      materials: (this.materials ?? this.parentSettings?.materials ?? {}) as IRendererMaterials,
     };
   }
 }

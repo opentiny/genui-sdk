@@ -4,6 +4,38 @@
 
 仅使用 Renderer 时可从 `@opentiny/genui-sdk-vue/renderer` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
+::: warning 物料配置（自 1.3.0 起）
+`GenuiRenderer` 本身不包含 UI 物料，需配合 `GenuiConfigProvider` 的 `materials` 使用，详见 [物料配置](../guide/quick-start#物料配置)。
+
+若需保持旧版「开箱即用」行为，请改用 `GenuiLegacyRenderer`（`@opentiny/genui-sdk-vue/legacy-renderer`），props 与插槽与 `GenuiRenderer` 完全一致。
+:::
+
+## 兼容组件 GenuiLegacyRenderer
+
+`GenuiLegacyRenderer` 内置 OpenTiny 默认物料，适用于未配置 `GenuiConfigProvider` 的旧项目迁移，无需额外安装物料包。
+
+```vue
+<template>
+  <GenuiLegacyRenderer :content="schemaContent" />
+</template>
+
+<script setup lang="ts">
+import { GenuiLegacyRenderer } from '@opentiny/genui-sdk-vue/legacy-renderer';
+
+const schemaContent = {
+  componentName: 'Page',
+  children: [
+    {
+      componentName: 'TinyButton',
+      props: { text: '提交', type: 'primary' },
+    },
+  ],
+};
+</script>
+```
+
+若外层已配置 `GenuiConfigProvider` 并传入 `materials`，`GenuiLegacyRenderer` 会优先使用 Provider 中的物料。
+
 ## Props
 
 ### content

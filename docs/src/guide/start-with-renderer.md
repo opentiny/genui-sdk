@@ -136,18 +136,22 @@ export async function fetchSchemaStream(
 
 ```vue
 <template>
-  <div class="demo-container">
-    <div class="input-group">
-      <input v-model="inputText" placeholder="请输入问题..." @keyup.enter="handleSend" />
-      <button @click="handleSend">发送</button>
+  <GenuiConfigProvider :materials="materials">
+    <div class="demo-container">
+      <div class="input-group">
+        <input v-model="inputText" placeholder="请输入问题..." @keyup.enter="handleSend" />
+        <button @click="handleSend">发送</button>
+      </div>
+      <GenuiRenderer :content="schema" :key="rendererKey" />
     </div>
-    <GenuiRenderer :content="schema" :key="rendererKey" />
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { fetchSchemaStream } from './fetch-schema-stream';
 
 const inputText = ref('');
@@ -205,6 +209,10 @@ button {
 }
 </style>
 ```
+
+::: tip GenuiRenderer
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiRenderer Legacy 兼容说明](../components/renderer#兼容组件-genuilegacyrenderer)。
+:::
 
 ## 输入问题立即体验
 

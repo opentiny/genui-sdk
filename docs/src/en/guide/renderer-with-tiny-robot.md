@@ -7,15 +7,15 @@ This guide explains how to use the `GenuiRenderer` component with a chat UI such
 :::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 ::::
 
@@ -224,7 +224,9 @@ Then use it in your component:
 ```vue
 <script setup lang="ts">
 import { ref, computed, h, reactive } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
 import { AIClient, GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -337,22 +339,24 @@ const roles = {
 </script>
 
 <template>
-  <div class="chat-container">
-    <div class="messages-container">
-      <TrBubbleProvider :content-renderers="messageRenderers">
-        <TrBubbleList :items="messages" :roles="roles" />
-      </TrBubbleProvider>
+  <GenuiConfigProvider :materials="materials">
+    <div class="chat-container">
+      <div class="messages-container">
+        <TrBubbleProvider :content-renderers="messageRenderers">
+          <TrBubbleList :items="messages" :roles="roles" />
+        </TrBubbleProvider>
+      </div>
+      <div class="sender-container">
+        <TrSender
+          v-model="inputMessage"
+          :loading="generating"
+          :placeholder="generating ? 'Thinking...' : 'Enter a message'"
+          @submit="handleSubmit"
+          @cancel="abortRequest"
+        />
+      </div>
     </div>
-    <div class="sender-container">
-      <TrSender
-        v-model="inputMessage"
-        :loading="generating"
-        :placeholder="generating ? 'Thinking...' : 'Enter a message'"
-        @submit="handleSubmit"
-        @cancel="abortRequest"
-      />
-    </div>
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <style scoped>
@@ -377,6 +381,10 @@ const roles = {
 }
 </style>
 ```
+
+::: tip GenuiRenderer
+For drop-in compatibility without configuring materials, see [GenuiRenderer Legacy compatibility](../components/renderer#compatibility-component-genuilegacyrenderer).
+:::
 
 ## Related documentation
 

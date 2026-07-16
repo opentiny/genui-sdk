@@ -2,12 +2,13 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  inject,
   Input,
   NgZone,
   OnDestroy,
   SimpleChanges,
 } from '@angular/core';
-// import { Renderer } from './renderer';
+import { RENDERER_SETTINGS } from './renderer-settings';
 import { RendererContextService } from './context.service';
 import { parseData } from './parser/schema-parser';
 import { getPageLifeCycleFns } from './life-cycles';
@@ -56,6 +57,8 @@ export class RendererMain implements OnDestroy {
   state: any = {};
   cssScopeId: string = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
+  private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
+
   constructor(
     private contextService: RendererContextService,
     private el: ElementRef,
@@ -63,6 +66,7 @@ export class RendererMain implements OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {
     this.cssScopeId = `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+    this.contextService.setMaterials(this.rendererSettings?.materials ?? {});
   }
 
   ngAfterViewInit() {

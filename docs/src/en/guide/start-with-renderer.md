@@ -136,18 +136,22 @@ Create a simple Vue component with an input, send button, and render area. Confi
 
 ```vue
 <template>
-  <div class="demo-container">
-    <div class="input-group">
-      <input v-model="inputText" placeholder="Enter your question..." @keyup.enter="handleSend" />
-      <button @click="handleSend">Send</button>
+  <GenuiConfigProvider :materials="materials">
+    <div class="demo-container">
+      <div class="input-group">
+        <input v-model="inputText" placeholder="Enter your question..." @keyup.enter="handleSend" />
+        <button @click="handleSend">Send</button>
+      </div>
+      <GenuiRenderer :content="schema" :key="rendererKey" />
     </div>
-    <GenuiRenderer :content="schema" :key="rendererKey" />
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { fetchSchemaStream } from './fetch-schema-stream';
 
 const inputText = ref('');
@@ -205,6 +209,10 @@ button {
 }
 </style>
 ```
+
+::: tip GenuiRenderer
+For drop-in compatibility without configuring materials, see [GenuiRenderer Legacy compatibility](../components/renderer#compatibility-component-genuilegacyrenderer).
+:::
 
 ## Try it now
 

@@ -1,7 +1,7 @@
+import type { DefaultPropsMap } from './renderer-materials';
+
 export type PropsValue = any;
 export type DefaultValue = any;
-type DefaultValueMap = Record<string, PropsValue>;
-export type DefaultPropsMap = Record<string, DefaultValueMap>;
 
 type Container = Record<string, PropsValue> | PropsValue[];
 

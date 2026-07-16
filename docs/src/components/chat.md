@@ -4,6 +4,35 @@
 
 仅使用 Chat 时可从 `@opentiny/genui-sdk-vue/chat` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
+::: warning 物料配置（自 1.3.0 起）
+`GenuiChat` 内部使用 `GenuiRenderer` 渲染 Schema，同样需要通过 `GenuiConfigProvider` 注入物料，详见 [物料配置](../guide/quick-start#物料配置)。
+
+若需保持旧版「开箱即用」行为，请改用 `GenuiLegacyChat`（`@opentiny/genui-sdk-vue/legacy-chat`），props、插槽与 `defineExpose` 方法与 `GenuiChat` 完全一致。
+:::
+
+## 兼容组件 GenuiLegacyChat
+
+`GenuiLegacyChat` 内置 OpenTiny 默认物料，适用于未配置 `GenuiConfigProvider` 的旧项目迁移。
+
+```vue
+<template>
+  <GenuiLegacyChat ref="chatRef" url="https://your-chat-backend/api" />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiLegacyChat } from '@opentiny/genui-sdk-vue/legacy-chat';
+
+const chatRef = ref<InstanceType<typeof GenuiLegacyChat> | null>(null);
+
+function sendMessage() {
+  chatRef.value?.setInputMessage('你好');
+}
+</script>
+```
+
+若外层已配置 `GenuiConfigProvider` 并传入 `materials`，`GenuiLegacyChat` 会优先使用 Provider 中的物料。
+
 ## Props
 
 ### url

@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
+import { MATERIALS_CONTEXT_KEY, type IRendererMaterials } from './renderer-materials';
 
 @Injectable()
 export class RendererContextService {
-  private context: Record<string, any> = {};
+  private context: Record<PropertyKey, any> = {};
+
   constructor() {
     this.context = {};
   }
@@ -16,4 +18,7 @@ export class RendererContextService {
     Object.assign(this.context, context);
   }
 
+  setMaterials(materials: IRendererMaterials) {
+    this.context[MATERIALS_CONTEXT_KEY] = materials ?? {};
+  }
 }

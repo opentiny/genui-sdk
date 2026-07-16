@@ -1,10 +1,10 @@
-import { Component, forwardRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { buildMaterialDefaultValueMap, type IMaterialsMeta, type MaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
-import { GENUI_DEFAULT_PROPS_MAP } from '../injection-tokens';
+import { Component, forwardRef, Input } from '@angular/core';
+import type { IMaterials } from '@opentiny/genui-sdk-core';
+import { GENUI_MATERIALS } from '../injection-tokens';
 
 export interface GenuiConfigProviderProps {
   id?: string;
-  rendererConfig?: Partial<IMaterialsMeta>;
+  materials?: IMaterials;
 }
 
 @Component({
@@ -20,31 +20,20 @@ export interface GenuiConfigProviderProps {
   ],
   providers: [
     {
-      provide: GENUI_DEFAULT_PROPS_MAP,
-      useFactory: (provider: GenuiConfigProvider) => provider.defaultPropsMap,
+      provide: GENUI_MATERIALS,
+      useFactory: (provider: GenuiConfigProvider) => provider.materials,
       deps: [forwardRef(() => GenuiConfigProvider)],
     },
   ],
 })
-export class GenuiConfigProvider implements OnChanges {
+export class GenuiConfigProvider {
   @Input() id = 'tiny-genui-config-provider';
-  @Input() rendererConfig?: Partial<IMaterialsMeta>;
 
-  readonly defaultPropsMap: MaterialDefaultValueMap = {};
+  readonly materials: IMaterials = {};
 
-  constructor() {
-    this.syncConfig();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['rendererConfig']) {
-      this.syncConfig();
-    }
-  }
-
-  private syncConfig(): void {
-    const newMap = buildMaterialDefaultValueMap(this.rendererConfig ?? {});
-    Object.keys(this.defaultPropsMap).forEach((key) => delete this.defaultPropsMap[key]);
-    Object.assign(this.defaultPropsMap, newMap);
+  @Input('materials')
+  set materialsInput(value: IMaterials | undefined) {
+    Object.keys(this.materials).forEach((key) => delete (this.materials as Record<string, unknown>)[key]);
+    Object.assign(this.materials, value ?? {});
   }
 }

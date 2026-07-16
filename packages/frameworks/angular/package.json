@@ -60,6 +60,7 @@
     "@angular/cli": "^20.3.10",
     "@angular/compiler-cli": "^20.3.0",
     "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "@opentiny/tiny-schema-renderer-ng": "workspace:*",
     "@types/jasmine": "~5.1.0",
     "concurrently": "^9.1.2",

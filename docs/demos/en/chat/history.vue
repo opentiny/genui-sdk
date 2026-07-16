@@ -1,37 +1,40 @@
 <template>
-  <div class="chat-with-sidebar">
-    <!-- Sidebar -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <button class="new-chat-btn" @click="handleNewConversation">+ New Chat</button>
-      </div>
-      <div class="conversations-list" v-if="conversations.length > 0">
-        <div
-          v-for="conv in conversations"
-          :key="conv.id"
-          :class="['conversation-item', { active: conv.id === currentId }]"
-          @click="handleSwitchConversation(conv.id)"
-        >
-          <div class="conversation-title">{{ conv.title || 'New Chat' }}</div>
-          <button class="delete-btn" @click.stop="handleDeleteConversation(conv.id)">×</button>
+  <GenuiConfigProvider :materials="materials">
+    <div class="chat-with-sidebar">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <button class="new-chat-btn" @click="handleNewConversation">+ New Chat</button>
+        </div>
+        <div class="conversations-list" v-if="conversations.length > 0">
+          <div
+            v-for="conv in conversations"
+            :key="conv.id"
+            :class="['conversation-item', { active: conv.id === currentId }]"
+            @click="handleSwitchConversation(conv.id)"
+          >
+            <div class="conversation-title">{{ conv.title || 'New Chat' }}</div>
+            <button class="delete-btn" @click.stop="handleDeleteConversation(conv.id)">×</button>
+          </div>
+        </div>
+        <div class="empty-conversations" v-else>
+          <p>No conversations yet</p>
+          <p class="hint">Click the button above to create a new chat</p>
         </div>
       </div>
-      <div class="empty-conversations" v-else>
-        <p>No conversations yet</p>
-        <p class="hint">Click the button above to create a new chat</p>
+
+      <!-- Chat Area -->
+      <div class="chat-container">
+        <GenuiChat ref="chatRef" :url="url" />
       </div>
     </div>
-
-    <!-- Chat Area -->
-    <div class="chat-container">
-      <GenuiChat ref="chatRef" :url="url" />
-    </div>
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref, computed } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);

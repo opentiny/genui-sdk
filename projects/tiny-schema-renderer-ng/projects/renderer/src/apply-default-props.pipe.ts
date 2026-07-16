@@ -15,7 +15,7 @@ export class ApplyDefaultPropsPipe implements PipeTransform {
     componentName: string,
   ): Record<string, unknown> {
     const result = { ...(props ?? {}) };
-    applyDefaultPropsToProps(componentName, result, this.rendererSettings?.defaultPropsMap);
+    applyDefaultPropsToProps(componentName, result, this.rendererSettings?.materials?.defaultPropsMap);
     return result;
   }
 }

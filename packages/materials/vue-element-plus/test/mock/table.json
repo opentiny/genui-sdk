@@ -1,0 +1,120 @@
+{
+  "componentName": "Page",
+  "state": {
+    "tableData": []
+  },
+  "lifeCycles": {
+    "onMounted": {
+      "type": "JSFunction",
+      "value": "function onMounted() { this.state.tableData = [{ id: '001', name: '张三', department: '技术部', email: 'zhangsan@example.com', status: '在职' }, { id: '002', name: '李四', department: '市场部', email: 'lisi@example.com', status: '在职' }, { id: '003', name: '王五', department: '人事部', email: 'wangwu@example.com', status: '离职' }, { id: '004', name: '赵六', department: '财务部', email: 'zhaoliu@example.com', status: '在职' }]; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "ElCard",
+      "props": {
+        "header": "员工列表（表格渲染）"
+      },
+      "children": [
+        {
+          "componentName": "ElTable",
+          "props": {
+            "data": {
+              "type": "JSExpression",
+              "value": "this.state.tableData"
+            },
+            "stripe": true,
+            "border": true,
+            "style": "width: 100%;"
+          },
+          "children": [
+            {
+              "componentName": "ElTableColumn",
+              "props": {
+                "type": "index",
+                "label": "序号",
+                "width": 60,
+                "align": "center"
+              }
+            },
+            {
+              "componentName": "ElTableColumn",
+              "props": {
+                "prop": "id",
+                "label": "工号",
+                "width": 100,
+                "align": "center"
+              }
+            },
+            {
+              "componentName": "ElTableColumn",
+              "props": {
+                "prop": "name",
+                "label": "姓名",
+                "width": 100,
+                "align": "center"
+              }
+            },
+            {
+              "componentName": "ElTableColumn",
+              "props": {
+                "prop": "department",
+                "label": "部门",
+                "width": 120,
+                "align": "center"
+              }
+            },
+            {
+              "componentName": "ElTableColumn",
+              "props": {
+                "prop": "email",
+                "label": "邮箱",
+                "minWidth": 180
+              }
+            },
+            {
+              "componentName": "ElTableColumn",
+              "props": {
+                "prop": "status",
+                "label": "状态",
+                "width": 100,
+                "align": "center"
+              },
+              "children": [
+                {
+                  "componentName": "Template",
+                  "props": {
+                    "slot": "default"
+                  },
+                  "children": [
+                    {
+                      "componentName": "ElTag",
+                      "props": {
+                        "type": {
+                          "type": "JSExpression",
+                          "value": "row.status === '在职' ? 'success' : 'info'"
+                        },
+                        "size": "small"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.status"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
