@@ -43,7 +43,7 @@ function buildContentProps(): ReactHostContentProps | null {
   const schema = structuredClone(toRaw(props.schema)) as Record<string, unknown>;
   if (!schema?.componentName) return null;
   return {
-    schema: schema as ReactHostContentProps['schema'],
+    content: schema,
     generating: props.generating,
     isJsonComplete: resolveIsJsonComplete(),
     customActions: props.customActions ? toRaw(props.customActions) : undefined,

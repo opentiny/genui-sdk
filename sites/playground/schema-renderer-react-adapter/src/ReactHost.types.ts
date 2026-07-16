@@ -1,11 +1,6 @@
-export type ReactHostContentProps = {
-  schema: Record<string, unknown> & { componentName: string };
-  generating?: boolean;
-  isJsonComplete?: boolean;
-  customActions?: Record<string, { execute: (params: unknown, context: Record<string, unknown>) => unknown }>;
-  id?: string;
-  state?: Record<string, unknown>;
-};
+import type { IRendererProps } from '@opentiny/genui-sdk-react';
+
+export type ReactHostContentProps = IRendererProps;
 
 export type ReactHostHandle = {
   updateProps: (props: ReactHostContentProps) => void;
