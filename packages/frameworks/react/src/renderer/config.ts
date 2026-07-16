@@ -1,5 +1,4 @@
 export const requiredCompleteFieldSelectors = [
-  '[componentName=Img] > props > src',
   '[componentName=img] > props > src',
   'componentName',
   'style',
