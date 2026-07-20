@@ -1,5 +1,6 @@
 # @opentiny/genui-sdk-materials-vue-element-plus
 
+
 A GenUI Vue materials package based on [Element Plus](https://element-plus.org/), for schema-driven page generation and rendering.
 
 ## Install
@@ -18,7 +19,7 @@ Import Element Plus styles at the app entry, and inject materials via `ConfigPro
 
 ```ts
 import 'element-plus/dist/index.css';
-import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { materials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
 ```
 

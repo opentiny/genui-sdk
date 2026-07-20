@@ -1,4 +1,6 @@
 export { default as GenuiChat } from './GenuiChat.vue';
+export * from './CustomModelProvider.js';
+export * from './response-handler.js';
 export * from './chat.types.js';
 export * from './i18n/index.js';
 export * from './tiny-robot-patch/index.js';

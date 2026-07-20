@@ -1,6 +1,6 @@
 import { Component, forwardRef, Input } from '@angular/core';
 import type { IMaterials } from '@opentiny/genui-sdk-core';
-import { GENUI_MATERIALS } from '../injection-tokens';
+import { GENUI_MATERIALS } from './injection-tokens';
 
 export interface GenuiConfigProviderProps {
   id?: string;

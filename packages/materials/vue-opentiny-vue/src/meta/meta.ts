@@ -6,8 +6,6 @@ import extendJson from './materials/extend.json' with { type: 'json' };
 import { examples as allExamples } from './example-schema';
 import { miniWhiteList, standardWhiteList } from './white-list';
 
-export type { IMaterialsMeta, IExample } from '@opentiny/genui-sdk-core';
-
 // TODO: 优化物料协议后，删除 as IMaterialsProtocol[]
 const baseMetaMaterials = [bundleJson, builtinJson, extendJson] as IMaterialsProtocol[];
 
@@ -21,7 +19,7 @@ function filterExamples(ids: string[]) {
   return allExamples.filter((example): example is IExample => !!example.id && ids.includes(example.id));
 }
 
-export const materialsMeta = {
+export const materialsMeta: IMaterialsMeta = {
   materials: standardMetaMaterials,
   wrapperComponent: 'TinyCard',
   whiteList: standardWhiteList,
@@ -29,7 +27,7 @@ export const materialsMeta = {
   rules: STANDARD_RULES,
 };
 
-export const miniMaterialsMeta = {
+export const miniMaterialsMeta: IMaterialsMeta = {
   materials: baseMetaMaterials,
   wrapperComponent: 'TinyCard',
   whiteList: miniWhiteList,

@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { genPrompt } from '@opentiny/genui-sdk-core';
+import { genPrompt, type IMaterialsMeta } from '@opentiny/genui-sdk-core';
 import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
@@ -19,16 +19,24 @@ import {
 import { computeTpotMs } from './utils';
 import { streamText } from 'ai';
 
+type IFrameworkKey = 'Vue' | 'Angular';
+type IMetaMap = Record<IFrameworkKey, IMaterialsMeta>;
+
+const metaMap: IMetaMap = {
+  Vue: materialsMeta,
+  Angular: ngMaterialsMeta
+};
+
 /**
  * 与 chat-genui 一致的 system 拼接；framework 来自运行配置（env / benchmark.config），其余来自 llm.config。
- * @param framework 前端框架类型（影响 render-config）
+ * @param framework 前端框架类型（影响 materialsMeta）
  * @param promptConfig prompt 拼接配置
  * @returns 最终 system prompt
  */
-function buildSystemPrompt(framework: 'Vue' | 'Angular', promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
+function buildSystemPrompt(framework: IFrameworkKey, promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
   const { tgCustomConfig, specificPrompt, userAppendPrompt } = promptConfig;
-  const renderConfigForFramework = framework === 'Angular' ? ngMaterialsMeta : materialsMeta;
-  return genPrompt(framework, renderConfigForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
+  const materialsMetaForFramework = metaMap[framework];
+  return genPrompt(framework, materialsMetaForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
 }
 /**
  * 根据 `scenarios` / `scenario` 过滤要生成样本的场景。

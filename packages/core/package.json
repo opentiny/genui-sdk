@@ -1,17 +1,47 @@
 {
   "name": "@opentiny/genui-sdk-core",
   "version": "0.0.1",
+  "description": "GenUI SDK core: protocols, prompt generation, stream schema extraction, delta patching, JSON repair",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "generative-ui",
+    "llm",
+    "schema",
+    "stream-ui"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build",
     "analyze": "vite build --mode analyze",
     "test": "vitest"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "flat": "^6.0.1",
     "jsondiffpatch": "^0.7.3",

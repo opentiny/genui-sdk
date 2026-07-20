@@ -99,8 +99,7 @@ export class CustomModelProvider extends BaseModelProvider {
     const reader = bodyStream.getReader();
 
     const context: any = {};
-    const { chatConfig } = this.getChatOptions();
-    context.chatConfig = chatConfig;
+    this.setupStreamContext(context, request);
 
     const signal = request.options?.signal;
     signal?.addEventListener('abort',
@@ -118,6 +117,11 @@ export class CustomModelProvider extends BaseModelProvider {
     });
     this.handlerEnd(context);
 
+  }
+
+  protected setupStreamContext(context: Record<string, unknown>, _request: ChatCompletionRequest) {
+    const { chatConfig } = this.getChatOptions();
+    context.chatConfig = chatConfig;
   }
 
   handlerChunk(rawData: string, context: any) {

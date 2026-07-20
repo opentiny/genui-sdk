@@ -1,0 +1,254 @@
+{
+  "componentName": "Page",
+  "css": ".page-base-style {padding: 24px;background: #FFFFFF;}.block-base-style {margin: 16px;}.component-base-style {margin: 8px;}",
+  "props": {
+    "className": "page-base-style"
+  },
+  "lifeCycles": {},
+  "children": [
+    {
+      "componentName": "TiTable",
+      "props": {
+        "srcData": {
+          "type": "JSExpression",
+          "value": "this.state.srcData"
+        },
+        "displayedData": {
+          "type": "JSExpression",
+          "model": true,
+          "value": "this.state.displayedData"
+        },
+        "columns": {
+          "type": "JSExpression",
+          "value": "this.state.columns"
+        },
+        "className": "component-base-style"
+      },
+      "children": [
+        {
+          "componentName": "table",
+          "children": [
+            {
+              "componentName": "thead",
+              "children": [
+                {
+                  "componentName": "tr",
+                  "children": [
+                    {
+                      "componentName": "th",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "column.title"
+                            }
+                          }
+                        }
+                      ],
+                      "loop": {
+                        "type": "JSExpression",
+                        "value": "this.state.columns"
+                      },
+                      "loopArgs": [
+                        "column"
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "tbody",
+              "children": [
+                {
+                  "componentName": "tr",
+                  "loop": {
+                    "type": "JSExpression",
+                    "value": "this.state.displayedData"
+                  },
+                  "loopArgs": [
+                    "row"
+                  ],
+                  "children": [
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.name"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.id"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.sex"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.department"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.protocolStart"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "row.email"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "td",
+                      "children": [
+                        {
+                          "componentName": "TinyButton",
+                          "props": {
+                            "onClick": {
+                              "type": "JSFunction",
+                              "value": "function() { this.deleteRow(row) }"
+                            }
+                          },
+                          "children": [
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "`删除${row.name}`"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "state": {
+    "columns": [
+      {
+        "field": "name",
+        "title": "姓名"
+      },
+      {
+        "field": "id",
+        "title": "工号"
+      },
+      {
+        "field": "sex",
+        "title": "性别"
+      },
+      {
+        "field": "department",
+        "title": "部门"
+      },
+      {
+        "field": "protocolStart",
+        "title": "入职日期"
+      },
+      {
+        "field": "email",
+        "title": "邮箱"
+      },
+      {
+        "field": "actions",
+        "title": "操作"
+      }
+    ],
+    "srcData": [
+      {
+        "name": "李四",
+        "id": "2",
+        "sex": "女",
+        "department": "技术部",
+        "protocolStart": "2019-05-15",
+        "email": "lisi@test.com"
+      },
+      {
+        "name": "王五",
+        "id": "3",
+        "sex": "男",
+        "department": "市场部",
+        "protocolStart": "2020-03-20",
+        "email": "wangwu@test.com"
+      }
+    ],
+    "displayedData": []
+  },
+  "methods": {
+    "deleteRow": {
+      "type": "JSFunction",
+      "value": "function(row) { this.state.srcData = this.state.srcData.filter(item => item.id !== row.id) }"
+    }
+  },
+  "dataSource": {
+    "list": []
+  },
+  "id": "body"
+}

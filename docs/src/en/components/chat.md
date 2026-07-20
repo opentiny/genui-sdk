@@ -4,34 +4,32 @@
 
 When using only Chat, you can import it on demand from `@opentiny/genui-sdk-vue/chat`. See [Quick Start - Subpath Imports](../guide/quick-start#subpath-imports).
 
-::: warning Materials required (since v1.3.0)
-`GenuiChat` uses `GenuiRenderer` internally to render schemas. Materials must be injected through `GenuiConfigProvider`. See [Materials Configuration](../guide/quick-start#materials-configuration).
-
-For the previous out-of-the-box behavior, use `GenuiLegacyChat` from `@opentiny/genui-sdk-vue/legacy-chat` instead. Its props, slots, and `defineExpose` methods are identical to `GenuiChat`.
-:::
-
 ## Compatibility Component: GenuiLegacyChat
+
+::: warning Materials configuration (since v1.3.0)
+`GenuiChat` has been refactored to decouple materials. The component no longer includes any UI materials; inject them via `GenuiConfigProvider`.
+
+For previous behavior, use `GenuiLegacyChat` (`@opentiny/genui-sdk-vue/legacy-chat`) instead.
+:::
 
 `GenuiLegacyChat` bundles OpenTiny default materials. Use it when migrating old projects that did not configure `GenuiConfigProvider`.
 
 ```vue
 <template>
-  <GenuiLegacyChat ref="chatRef" url="https://your-chat-backend/api" />
+  <GenuiChat ref="chatRef" url="https://your-chat-backend/api" />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GenuiLegacyChat } from '@opentiny/genui-sdk-vue/legacy-chat';
+import { GenuiLegacyChat as GenuiChat } from '@opentiny/genui-sdk-vue';
 
-const chatRef = ref<InstanceType<typeof GenuiLegacyChat> | null>(null);
+const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 function sendMessage() {
   chatRef.value?.setInputMessage('Hello');
 }
 </script>
 ```
-
-If `GenuiConfigProvider` is used with `materials` in an ancestor, `GenuiLegacyChat` prefers those materials.
 
 ## Props
 

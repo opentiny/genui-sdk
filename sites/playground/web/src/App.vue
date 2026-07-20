@@ -251,6 +251,7 @@ const playgroundContext = {
   themeData,
   conversation,
   customExamples,
+  framework,
 };
 
 provide('playgroundContext', playgroundContext);
@@ -264,7 +265,10 @@ const handleKeydown = (event) => {
 };
 
 const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
-const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate({ url: templateUrl, llmConfig });
+const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate({
+  url: templateUrl,
+  llmConfig,
+});
 const { initInputMessage } = useInputMessage(chat);
 const { isMobile } = useIsMobile();
 const isSidebarOpen = ref(!isMobile.value);

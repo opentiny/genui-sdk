@@ -57,6 +57,18 @@ export const enThemeConfig: DefaultTheme.Config = {
           { text: 'CLI', link: '/en/components/server/cli' },
         ],
       },
+      {
+        text: 'Core',
+        items: [{ text: 'API Docs', link: '/en/components/core/api' }],
+      },
+      {
+        text: 'Materials',
+        items: [
+          { text: 'Vue OpenTiny Vue', link: '/en/components/materials/vue-opentiny-vue' },
+          { text: 'Vue Element Plus', link: '/en/components/materials/vue-element-plus' },
+          { text: 'Angular OpenTiny NG', link: '/en/components/materials/angular-opentiny-ng' },
+        ],
+      },
     ],
     '/en/examples/': [
       {

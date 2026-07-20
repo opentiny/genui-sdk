@@ -3,7 +3,7 @@ import { genCustomActionsPrompt, type IGenPromptAction } from './action';
 import { aboutThis } from './about-this';
 import { genComponentsPrompt, type IGenPromptComponent } from './component';
 import { genExamplesPrompt, type IGenPromptExample } from './examples';
-import { getFrameworkConfig, type IGenPromptFrameworkConfig } from './framework-config';
+import { getFrameworkConfig, type IGenPromptFrameworkConfig, type IGenPromptFramework } from './framework-config';
 import { genJsonSchema, genJsonSchemaPrompt } from './json-schema';
 import { promptPrefix, skillPromptPrefix } from './prefix';
 import { genRulesPrompt } from './rules';
@@ -13,7 +13,6 @@ export type { IGenPromptAction } from './action';
 export type { IGenPromptComponent } from './component';
 export type { IGenPromptExample } from './examples';
 export type { IGenPromptSnippet } from './snippet';
-export type { GenPromptFramework, IGenPromptFrameworkConfig } from './framework-config';
 
 export interface IGenPromptCustomConfig {
   customComponents?: IGenPromptComponent[];
@@ -22,7 +21,6 @@ export interface IGenPromptCustomConfig {
   customActions?: IGenPromptAction[];
 }
 
-export type IGenPromptFramework = 'Vue' | 'React' | 'Angular' | string;
 
 export interface IGenPromptOptions {
   isSkill?: boolean;

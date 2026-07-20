@@ -32,6 +32,11 @@ const callAction = (actionName: string, params: any) => {
 const materials = inject<IMaterials>(GENUI_MATERIALS, {});
 const customSettings = inject(RENDERER_SETTINGS_KEY, {});
 
+watch(() => props.customComponents, (newVal) => {
+  // TODO:  1、materials.components更新后，customComponents会丢失 2、旧的customComponents没有被移除
+  Object.assign(materials.components, newVal);
+}, { immediate: true });
+
 provide(RENDERER_SETTINGS_KEY, {
   ...customSettings,
   materials,

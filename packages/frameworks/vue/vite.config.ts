@@ -23,8 +23,6 @@ export default defineConfig(({ mode }) => {
       dts({
         rollupTypes: true,
         bundledPackages: [
-          '@opentiny/genui-sdk-core',
-          '@opentiny/genui-sdk-materials-vue-opentiny-vue',
           '@opentiny/tiny-schema-renderer',
           'zod',
           'zod-to-json-schema',
@@ -54,8 +52,8 @@ export default defineConfig(({ mode }) => {
         formats: ['es'],
         fileName: (_, entryName) => `${entryName}.js`,
       },
-      outDir: path.resolve(__dirname, './output/dist'),
-      sourcemap: false,
+      outDir: path.resolve(__dirname, './dist'),
+      sourcemap: true,
       terserOptions: {
         mangle: {
           toplevel: true,

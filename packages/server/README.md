@@ -7,7 +7,6 @@ A server for the OpenTiny GenUI SDK to enhance LLM return structure stream conte
 * **OpenAI Compatible:** Drop-in replacement for OpenAI chat completions API.
 * **Easy Integration:** Programmatic API or CLI to start the server.
 
-
 ## Usage
 
 ### CLI
@@ -50,7 +49,6 @@ equipChatCompletions(app, {
 app.listen(3100);
 ```
 
-
 ## Documentation
 
 * [Server Usage Guide](https://docs.opentiny.design/genui-sdk/guide/server-usage)
@@ -58,6 +56,3 @@ app.listen(3100);
 ## API
 
 * [Server API](https://docs.opentiny.design/genui-sdk/components/server/api)
-
-
-

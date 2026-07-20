@@ -6,10 +6,10 @@ export type PlaygroundColorTheme = 'light' | 'dark' | 'lite' | 'auto';
 function useSystemPrefersDark() {
   const prefersDark = ref(false);
   let mql: MediaQueryList | null = null;
-  const sync = () => {
+  function sync() {
     if (!mql) return;
     prefersDark.value = mql.matches;
-  };
+  }
   onMounted(() => {
     if (typeof window === 'undefined') return;
     mql = window.matchMedia('(prefers-color-scheme: dark)');
@@ -22,9 +22,6 @@ function useSystemPrefersDark() {
   return prefersDark;
 }
 
-/**
- * Monaco：`dark` → vs-dark；`auto` 仅在传入 fallback 时跟系统（Provider 内 auto 已解析则走 inject 即可）。
- */
 export function useMonacoPlaygroundTheme(
   fallbackTheme?: () => PlaygroundColorTheme | undefined,
 ): ComputedRef<'vs' | 'vs-dark'> {
@@ -37,3 +34,12 @@ export function useMonacoPlaygroundTheme(
     return isDark ? 'vs-dark' : 'vs';
   });
 }
+
+export const SCHEMA_JSON_DIFF_EDITOR_OPTIONS = {
+  fontSize: 14,
+  minimap: { enabled: false },
+  automaticLayout: true,
+  readOnly: true,
+  originalEditable: false,
+  renderSideBySide: false,
+} as const;

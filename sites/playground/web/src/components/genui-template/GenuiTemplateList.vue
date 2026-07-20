@@ -18,8 +18,14 @@ const { isTouchDevice } = useTouchDevice();
 
 const emit = defineEmits(['switch-template']);
 
-const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate, conversation } =
-  useTemplate();
+const {
+  conversationKit,
+  templateConversationState,
+  updateTemplateTitle,
+  switchTemplate,
+  deleteTemplate,
+  createTemplate,
+} = useTemplate();
 
 const selectedTemplateIds = ref<string[]>([]);
 const selectionActive = ref(false);
@@ -43,13 +49,14 @@ watch(
 );
 
 const handleImportConversations = (imported: Conversation[]) => {
-  if (!conversation) {
+  const kit = conversationKit.value;
+  if (!kit) {
     return;
   }
 
-  const reconciledImported = reconcileImportedConversationIds(conversation.state.conversations, imported);
-  conversation.state.conversations.unshift(...reconciledImported);
-  conversation.saveConversations();
+  const reconciledImported = reconcileImportedConversationIds(kit.state.conversations, imported);
+  kit.state.conversations.unshift(...reconciledImported);
+  kit.saveConversations();
 };
 
 const handleItemClick = (item: Conversation) => {

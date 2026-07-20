@@ -5,7 +5,7 @@ import {
   type IRendererMaterials,
   type IRendererSettings,
 } from '@opentiny/tiny-schema-renderer-ng';
-import { GENUI_MATERIALS } from './injection-tokens';
+import { GENUI_MATERIALS } from './config-provider/injection-tokens';
 
 @Injectable()
 export class RendererSettingsService {

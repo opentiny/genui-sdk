@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
         fileName: `index`,
       },
       outDir: path.resolve(__dirname, './dist'),
+      sourcemap: true,
       rollupOptions: {
         external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
       },

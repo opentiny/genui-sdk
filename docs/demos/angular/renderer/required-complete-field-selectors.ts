@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 
 const content = JSON.stringify({
   componentName: 'Page',
@@ -21,19 +22,21 @@ const content = JSON.stringify({
 });
 
 @Component({
-  imports: [GenuiRenderer],
+  imports: [GenuiConfigProvider, GenuiRenderer],
   template: `
     <button (click)="startStream()">开始渲染</button>
-    <div class="container">
-      <div>
-        <div>默认缓冲字段</div>
-        <GenuiRenderer :content="streamContent" :generating="generating"/>
+    <genui-config-provider [materials]="activeMaterials">
+      <div class="container">
+        <div>
+          <div>默认缓冲字段</div>
+          <genui-renderer [content]="streamContent" [generating]="generating"></genui-renderer>
+        </div>
+        <div>
+          <div>自定义缓冲字段: 拦截文本内容</div>
+          <genui-renderer [content]="streamContent" [generating]="generating" [requiredCompleteFieldSelectors]="requiredCompleteFieldSelectors"></genui-renderer>
+        </div>
       </div>
-      <div>
-        <div>自定义缓冲字段: 拦截文本内容</div>
-        <GenuiRenderer :content="streamContent" :generating="generating" :requiredCompleteFieldSelectors="requiredCompleteFieldSelectors" />
-      </div>
-    </div>
+    </genui-config-provider>
   `,
   styles: [
     `
@@ -58,6 +61,7 @@ const content = JSON.stringify({
   ]
 })
 export class GenuiExample {
+  activeMaterials = materials;
   generating = false;
   requiredCompleteFieldSelectors = [
     '[componentName=Text] > props > text',

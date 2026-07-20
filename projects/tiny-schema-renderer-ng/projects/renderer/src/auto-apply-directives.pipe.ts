@@ -4,8 +4,7 @@ import { getAutoApplyPatterns, getDirective } from './parser/material-getter';
 
 @Pipe({
   name: 'autoApplyDirectives',
-  standalone: true,
-  pure: false,
+  standalone: true
 })
 export class AutoApplyDirectivesPipe implements PipeTransform {
   constructor(private readonly contextService: RendererContextService) {}

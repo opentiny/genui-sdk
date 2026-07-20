@@ -7,44 +7,43 @@ import {
 import { materialsMeta, miniMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import { materialsMeta as reactMaterialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
-import type { MaterialsMetaVariantKey } from '../types/index.js';
+import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
-const vueMaterialsMetaByVariant = {
-  mini: miniMaterialsMeta,
-  standard: materialsMeta,
-} as const;
+type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
 
-export function getGenPromptOptions(promptVariant?: MaterialsMetaVariantKey): IGenPromptOptions | undefined {
-  if (promptVariant === 'mini') {
-    return { includeJsonSchema: false, includeSnippets: false };
-  }
-}
+type IMetaMap = Partial<Record<IFrameworkKey, IVariantMap<IMaterialsMeta>>>;
+type IOptionsMap = Partial<Record<IFrameworkKey, IVariantMap<IGenPromptOptions>>>;
 
-export function getMaterialsMetaForFramework(
-  framework: string,
-  promptVariant?: MaterialsMetaVariantKey,
-): IMaterialsMeta {
-  if (framework === 'Angular') {
-    return ngMaterialsMeta;
+const metaMap: IMetaMap = {
+  Vue: {
+    mini: miniMaterialsMeta,
+    standard: materialsMeta,
+  },
+  Angular: {
+    mini: ngMaterialsMeta,
+    standard: ngMaterialsMeta,
+  },
+  React: {
+    mini: reactMaterialsMeta,
+    standard: reactMaterialsMeta,
+  },
+};
+
+const optionsMap: IOptionsMap = {
+  Vue: {
+    mini: { includeJsonSchema: false, includeSnippets: false },
   }
-  if (framework === 'React') {
-    return reactMaterialsMeta;
-  }
-  if (promptVariant) {
-    return vueMaterialsMetaByVariant[promptVariant];
-  }
-  return materialsMeta;
-}
+};
 
 export function genPlaygroundPrompt(
-  framework: string,
-  promptVariant: MaterialsMetaVariantKey | undefined,
+  framework: IFrameworkKey,
+  promptVariant: IMaterialsMetaVariantKey | undefined,
   tgCustomConfig?: IGenPromptCustomConfig,
 ) {
   return genPrompt(
     framework,
-    getMaterialsMetaForFramework(framework, promptVariant),
+    metaMap[framework]?.[promptVariant] ?? materialsMeta,
     tgCustomConfig,
-    getGenPromptOptions(promptVariant),
+    optionsMap[framework]?.[promptVariant] ?? {},
   );
 }

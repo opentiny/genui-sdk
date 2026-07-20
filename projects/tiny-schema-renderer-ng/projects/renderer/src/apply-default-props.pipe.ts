@@ -5,7 +5,6 @@ import { applyDefaultPropsToProps } from './apply-default-props';
 @Pipe({
   name: 'applyDefaultProps',
   standalone: true,
-  pure: false,
 })
 export class ApplyDefaultPropsPipe implements PipeTransform {
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });

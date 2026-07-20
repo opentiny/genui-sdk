@@ -5,7 +5,6 @@ import { getDirective } from './parser/material-getter';
 @Pipe({
   name: 'getDirectives',
   standalone: true,
-  pure: false,
 })
 export class GetDirectivesPipe implements PipeTransform {
   constructor(private readonly contextService: RendererContextService) {}

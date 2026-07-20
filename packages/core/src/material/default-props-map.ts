@@ -42,10 +42,10 @@ const collectPropertyDefaults = (
 };
 
 export const buildMaterialDefaultValueMap = (
-  materialsConfig: Partial<IMaterialsMeta> = {},
+  materialsMeta: Partial<IMaterialsMeta> = {},
 ): MaterialDefaultValueMap => {
   const result: MaterialDefaultValueMap = {};
-  const materials = materialsConfig.materials ?? [];
+  const materials = materialsMeta.materials ?? [];
 
   materials.forEach((material: IMaterialLike) => {
     material?.data?.materials?.components?.forEach((component: IComponentLike) => {

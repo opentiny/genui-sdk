@@ -70,7 +70,7 @@ export default defineConfig(({ mode }) => {
       },
       outDir: path.resolve(__dirname, '../output/dist'),
       emptyOutDir: true,
-      sourcemap: false,
+      sourcemap: true,
       terserOptions: {
         mangle: {
           toplevel: true,

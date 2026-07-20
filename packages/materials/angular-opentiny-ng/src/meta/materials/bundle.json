@@ -88,7 +88,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "default",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -125,7 +124,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "middle",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -166,7 +164,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -189,7 +186,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -216,7 +212,6 @@
                     {
                       "name": "event",
                       "type": "Event",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "原生事件对象"
                       }
@@ -360,7 +355,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -383,7 +377,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -406,7 +399,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "medium",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -469,7 +461,6 @@
                     {
                       "name": "value",
                       "type": "string",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前输入值"
                       }
@@ -492,7 +483,6 @@
                     {
                       "name": "event",
                       "type": "FocusEvent",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "焦点事件对象"
                       }
@@ -515,7 +505,6 @@
                     {
                       "name": "event",
                       "type": "FocusEvent",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "焦点事件对象"
                       }
@@ -653,8 +642,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "array",
-                    "defaultValue": [
-                    ],
                     "widget": {
                       "component": "ArrayConfigurator",
                       "props": {
@@ -699,7 +686,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -722,7 +708,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -745,7 +730,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "medium",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -786,7 +770,6 @@
                     {
                       "name": "displayedData",
                       "type": "any[]",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前显示的表格数据数组"
                       }
@@ -809,7 +792,6 @@
                     {
                       "name": "tableComponent",
                       "type": "TiTableComponent",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "表格组件实例，可通过 getDataState() 方法获取当前数据状态"
                       }
@@ -931,7 +913,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -954,7 +935,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "50%",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -977,7 +957,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": true,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1000,7 +979,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": true,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1216,7 +1194,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1239,7 +1216,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1262,7 +1238,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1289,7 +1264,6 @@
                     {
                       "name": "value",
                       "type": "any",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前选中的值"
                       }
@@ -1312,7 +1286,6 @@
                     {
                       "name": "visible",
                       "type": "boolean",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "是否显示"
                       }
@@ -1456,7 +1429,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "yyyy-MM-dd",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -1479,7 +1451,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1502,7 +1473,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": true,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -1529,7 +1499,6 @@
                     {
                       "name": "value",
                       "type": "Date",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前选中的日期"
                       }
@@ -1629,7 +1598,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 1,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -1652,7 +1620,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 10,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -1675,7 +1642,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 0,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -1698,12 +1664,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "array",
-                    "defaultValue": [
-                      10,
-                      20,
-                      50,
-                      100
-                    ],
                     "widget": {
                       "component": "ArrayConfigurator",
                       "props": {
@@ -1726,7 +1686,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "prev, pager, next, jumper, ->, total",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -1753,7 +1712,6 @@
                     {
                       "name": "currentPage",
                       "type": "number",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前页码"
                       }
@@ -1776,7 +1734,6 @@
                     {
                       "name": "pageSize",
                       "type": "number",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "每页条数"
                       }
@@ -1875,7 +1832,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "100px",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -1898,7 +1854,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "right",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -1959,7 +1914,6 @@
                     {
                       "name": "tab",
                       "type": "TiTabComponent",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "页签组件实例"
                       }
@@ -2103,7 +2057,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2126,7 +2079,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2153,7 +2105,6 @@
                     {
                       "name": "active",
                       "type": "boolean",
-                      "defaultValue": false,
                       "description": {
                         "zh_CN": "当前页签是否为激活状态"
                       }
@@ -2277,7 +2228,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "'checkbox'",
-                    "defaultValue": "checkbox",
                     "widget": {
                       "component": "InputConfigurator"
                     }
@@ -2298,7 +2248,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2343,7 +2292,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2366,7 +2314,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2393,7 +2340,6 @@
                     {
                       "name": "value",
                       "type": "boolean",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前选中状态"
                       }
@@ -2508,6 +2454,7 @@
                     "description": {
                       "zh_CN": "复选框选项数据源"
                     },
+                    "defaultValue": [],
                     "required": false,
                     "readOnly": false,
                     "disabled": false,
@@ -2536,7 +2483,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2563,7 +2509,6 @@
                     {
                       "name": "value",
                       "type": "any[]",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前选中的值数组"
                       }
@@ -2660,13 +2605,13 @@
                     "description": {
                       "zh_CN": "单选框类型"
                     },
+                    "defaultValue": "radio",
                     "required": true,
                     "readOnly": true,
                     "disabled": true,
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "'radio'",
-                    "defaultValue": "radio",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -2777,7 +2722,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2924,7 +2868,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -2951,7 +2894,6 @@
                     {
                       "name": "value",
                       "type": "any",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前选中的值"
                       }
@@ -3050,7 +2992,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -3073,7 +3014,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -3144,7 +3084,6 @@
                     {
                       "name": "value",
                       "type": "boolean",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前开关状态"
                       }
@@ -3243,7 +3182,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "info",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -3306,7 +3244,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 3000,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -3431,7 +3368,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "top",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -3504,7 +3440,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "hover",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -3626,7 +3561,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "always",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -3663,7 +3597,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": true,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -3686,7 +3619,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -3836,7 +3768,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -3907,7 +3838,6 @@
                     {
                       "name": "response",
                       "type": "any",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "服务器响应数据"
                       }
@@ -3915,7 +3845,6 @@
                     {
                       "name": "file",
                       "type": "File",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "上传的文件对象"
                       }
@@ -3938,7 +3867,6 @@
                     {
                       "name": "error",
                       "type": "Error",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "错误信息"
                       }
@@ -3946,7 +3874,6 @@
                     {
                       "name": "file",
                       "type": "File",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "上传的文件对象"
                       }
@@ -4046,7 +3973,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "true | null",
-                    "defaultValue": null,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -4069,7 +3995,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "left",
                     "widget": {
                       "component": "SelectConfigurator",
                       "props": {
@@ -4106,7 +4031,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "100px",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -4218,7 +4142,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 24,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4241,7 +4164,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 0,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4529,7 +4451,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "string",
-                    "defaultValue": "yyyy-MM-dd",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {
@@ -4552,7 +4473,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -4579,7 +4499,6 @@
                     {
                       "name": "value",
                       "type": "Date[]",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前选中的日期范围 [开始日期, 结束日期]"
                       }
@@ -4680,7 +4599,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 0,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4703,7 +4621,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 0,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4726,7 +4643,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 100,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4749,7 +4665,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 1,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4772,7 +4687,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -4799,7 +4713,6 @@
                     {
                       "name": "value",
                       "type": "number",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前滑块的值"
                       }
@@ -4899,7 +4812,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 0,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4922,7 +4834,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 5,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -4945,7 +4856,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -4972,7 +4882,6 @@
                     {
                       "name": "value",
                       "type": "number",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前评分的值"
                       }
@@ -5116,7 +5025,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -5139,7 +5047,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "boolean",
-                    "defaultValue": false,
                     "widget": {
                       "component": "CheckBoxConfigurator",
                       "props": {
@@ -5162,7 +5069,6 @@
                     "cols": 12,
                     "labelPosition": "left",
                     "type": "number",
-                    "defaultValue": 3,
                     "widget": {
                       "component": "NumberConfigurator",
                       "props": {
@@ -5211,7 +5117,6 @@
                     {
                       "name": "value",
                       "type": "string",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "当前输入值"
                       }
@@ -5234,7 +5139,6 @@
                     {
                       "name": "event",
                       "type": "FocusEvent",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "焦点事件对象"
                       }
@@ -5257,7 +5161,6 @@
                     {
                       "name": "event",
                       "type": "FocusEvent",
-                      "defaultValue": "",
                       "description": {
                         "zh_CN": "焦点事件对象"
                       }

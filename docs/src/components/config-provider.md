@@ -4,8 +4,6 @@
 
 仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
-配合 `GenuiRenderer` 或 `GenuiChat` 使用时，通常需要通过 `materials` 注入组件物料。详见 [物料配置](../guide/quick-start#物料配置)。
-
 ## Props
 
 ### theme
@@ -101,9 +99,9 @@ const customI18n: I18nMessages = {
 
 ### materials
 
-- **类型**: `GenuiMaterialRegistry`
-- **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时建议配置）
-- **说明**: 渲染器使用的组件物料注册表。通常传入 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。
+- **类型**: `IMaterials`
+- **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时需要配置）
+- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。
 
 ```vue
 <template>

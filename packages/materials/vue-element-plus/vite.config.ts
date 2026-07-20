@@ -29,6 +29,7 @@ export default defineConfig({
       formats: ['es'],
       fileName: (_format, entryName) => `${entryName}.js`,
     },
+    sourcemap: true,
     rollupOptions: {
       external: externalPackages.map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
     },

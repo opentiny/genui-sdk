@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, inject, ref } from 'vue';
+import { provide, ref } from 'vue';
 import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import GenuiChat from '../chat/GenuiChat.vue';
@@ -9,8 +9,7 @@ defineProps<IChatProps>();
 
 const chatRef = ref<InstanceType<typeof GenuiChat>>();
 
-const materials = inject(GENUI_MATERIALS, defaultMaterials.components);
-provide(GENUI_MATERIALS, materials);
+provide(GENUI_MATERIALS, defaultMaterials);
 
 defineExpose(
   new Proxy({} as InstanceType<typeof GenuiChat>, {
