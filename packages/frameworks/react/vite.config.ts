@@ -8,18 +8,23 @@ import packageJson from './package.json';
 export default defineConfig({
   plugins: [
     react(),
-    dts({ rollupTypes: true, bundledPackages: ['@opentiny/genui-sdk-core'] }),
+    dts({
+      rollupTypes: true,
+      bundledPackages: ['@opentiny/tiny-schema-renderer-react'],
+    }),
   ],
   build: {
     lib: {
       entry: {
         index: path.resolve(__dirname, './src/index.ts'),
         renderer: path.resolve(__dirname, './src/renderer/index.ts'),
+        'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
       },
       formats: ['es'],
       fileName: (_, entryName) => `${entryName}.js`,
     },
     outDir: path.resolve(__dirname, './dist'),
+    sourcemap: true,
     rollupOptions: {
       external: [
         'react',

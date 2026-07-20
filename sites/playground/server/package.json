@@ -38,8 +38,7 @@
     "vite-commit-hash-plugin": "workspace:*",
     "ws": "^8.18.1",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.25.1",
-    "@opentiny/genui-sdk-react": "workspace:*"
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

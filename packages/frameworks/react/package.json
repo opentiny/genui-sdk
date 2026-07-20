@@ -1,9 +1,26 @@
 {
   "name": "@opentiny/genui-sdk-react",
   "version": "1.0.0",
-  "description": "Framework-agnostic React renderer for GenUI schema protocol",
+  "description": "A React component library for GenUI schema rendering",
   "author": "OpenTiny Team",
   "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/frameworks/react"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "react",
+    "component",
+    "library",
+    "llm",
+    "generative-ui",
+    "stream-ui"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,24 +32,35 @@
     "./renderer": {
       "types": "./dist/renderer.d.ts",
       "import": "./dist/renderer.js"
+    },
+    "./config-provider": {
+      "types": "./dist/config-provider.d.ts",
+      "import": "./dist/config-provider.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "vite build",
+    "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-react build",
+    "build:lib:npm": "pnpm build",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*",
-    "@opentiny/tiny-schema-renderer-react": "workspace:*"
+    "@opentiny/genui-sdk-core": "workspace:*"
   },
   "peerDependencies": {
     "react": ">=18",
     "react-dom": ">=18"
   },
   "devDependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/tiny-schema-renderer-react": "workspace:*",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.0",

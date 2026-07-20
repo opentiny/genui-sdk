@@ -1,269 +1,62 @@
 # @opentiny/genui-sdk-materials-react-antd
 
-Ant Design 5 的 GenUI 物料包，为 React 渲染器提供 **运行时组件注册** 与 **LLM Prompt 配置**，模式与 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 一致。
+A GenUI React materials package based on [Ant Design](https://ant.design/), for schema-driven page generation and rendering.
 
-## 为什么需要物料包
+## Install
 
-GenUI 集成第三方 UI 库需要同时改两条链路：
-
-| 链路 | 作用 | 本包提供 |
-|------|------|----------|
-| **Prompt 侧** | 告诉 LLM 可用的 `componentName` 及 props | `materialsMeta`（白名单 + bundle 元数据 + 示例） |
-| **运行时** | 把 schema 节点映射到真实 React 组件 | `materials.components`（`Ant*` 适配器） |
-
-只改 prompt 不注册 components -> LLM 生成 `AntButton` 但渲染为占位 `[AntButton]`；只注册 components 不改 prompt -> LLM 不知道这些组件。
-
-```
-LLM（genPrompt + materialsMeta）
-        ↓ 生成 schema
-GenuiRenderer / SchemaRenderer
-        ↓ componentName 查找
-materials.components + builtinRegistry
-        ↓
-Ant Design 组件
+```bash
+npm install @opentiny/genui-sdk-materials-react-antd @opentiny/genui-sdk-react @opentiny/genui-sdk-core antd
 ```
 
-## 包结构
+## Quick Start
 
-```
-packages/materials/react-antd/
-├── package.json
-├── vite.config.ts              # 三入口：index / meta / materials
-└── src/
-    ├── index.ts                # 统一导出
-    ├── materials/
-    │   ├── components/
-    │   │   ├── components.tsx  # Ant* 组件映射表
-    │   │   ├── AntModalWrap.tsx
-    │   │   └── AntTabsWrap.tsx
-    │   └── materials.ts        # IMaterials 聚合
-    └── meta/
-        ├── meta.ts             # materialsMeta（白名单 + bundle + 示例）
-        ├── white-list.ts       # Ant* 白名单
-        ├── materials/
-        │   └── bundle.json     # 组件 props/events 元数据（供 genPrompt）
-        └── examples/           # Ant Design 表单示例
-```
+### Frontend Rendering
 
-## 导出子路径
-
-| 子路径 | 内容 |
-|--------|------|
-| `@opentiny/genui-sdk-materials-react-antd` | 全部导出 |
-| `.../meta` | `materialsMeta`、`examples` 等 |
-| `.../materials` | `materials`（components + defaultPropsMap） |
-
-## 已接入组件（Ant* 命名）
-
-与原生 `Button` / `Input` 并存，避免命名冲突：
-
-| componentName | antd 组件 | 说明 |
-|---------------|-----------|------|
-| `AntButton` | Button | `text` -> children |
-| `AntInput` | Input | 支持 `modelValue` / `value` + `model: true` |
-| `AntSelect` | Select | 选项 `options`，绑定用 `value` + `model: true` |
-| `AntForm` | Form | 容器 |
-| `AntFormItem` | Form.Item | 仅 `label`，数据绑定在子组件上，**不用 `name`** |
-| `AntCard` | Card | 使用 `variant`（`outlined` / `borderless` / `filled`） |
-| `AntTable` | Table | `columns` + `dataSource` |
-| `AntTabs` | Tabs | 标签页（items 配置） |
-| `AntModal` | Modal | `open` / `onOk` / `onCancel` |
-| `AntSwitch` | Switch | `checked` + `model: true` |
-| `AntCheckbox` | Checkbox | `checked` + `text` |
-| `AntRadio` | Radio | |
-| `AntDatePicker` | DatePicker | |
-
-## Prompt 配置：`materialsMeta`
-
-[`src/meta/meta.ts`](src/meta/meta.ts) 合并 builtin 原生 HTML 与 antd 物料配置：
-
-```ts
-import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
-
-genPrompt(materialsMeta, customConfig);
-```
-
-## 运行时：`materials`
-
-通过 `GenuiConfigProvider` 注入物料：
+Inject materials via `GenuiConfigProvider`:
 
 ```tsx
-import { GenuiRenderer, GenuiConfigProvider } from '@opentiny/genui-sdk-react';
-import { materials as antdMaterials } from '@opentiny/genui-sdk-materials-react-antd';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
+import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 import 'antd/dist/reset.css';
 
-<GenuiConfigProvider materials={antdMaterials}>
+<GenuiConfigProvider materials={materials}>
   <GenuiRenderer content={schema} isJsonComplete />
 </GenuiConfigProvider>
 ```
 
-## Schema 编写约定
-
-### 表单数据绑定
-
-GenUI 使用 schema state + `model: true`，**不依赖** antd Form 的 `name` 字段：
-
-```json
-{
-  "componentName": "AntInput",
-  "props": {
-    "placeholder": "请输入姓名",
-    "modelValue": {
-      "type": "JSExpression",
-      "model": true,
-      "value": "this.state.formData.name"
-    }
-  }
-}
-```
-
-`AntSelect` / `AntSwitch` / `AntCheckbox` 等用 `value` 或 `checked` + `model: true`。
-
-### 提交与重置
-
-```json
-{
-  "methods": {
-    "handleSubmit": {
-      "type": "JSFunction",
-      "value": "function() { this.callAction('saveState'); this.callAction('continueChat', { message: '提交成功' }); }"
-    },
-    "resetForm": {
-      "type": "JSFunction",
-      "value": "function() { this.state.formData = { name: '', email: '' }; }"
-    }
-  }
-}
-```
-
-Playground 内置 `saveState`、`continueChat` 两个 customAction，由 Vue 壳注入 `callAction`。
-
----
-
-## Playground 集成说明
-
-Playground 仍用 **Vue 聊天壳 + React 渲染适配器** 架构，物料包在三处接入：
-
-### 1. 启用 React 框架
-
-[`sites/playground/web/src/App.vue`](../../sites/playground/web/src/App.vue)：
+### Generate LLM Prompt (Server)
 
 ```ts
-if (location.search.includes('framework=react')) {
-  provide(GENUI_RENDERER, SchemaRendererReactAdapter);
-  framework = 'React';
-}
-```
-
-访问：`http://localhost:5173/?framework=react`
-
-### 2. LLM Prompt（Server）
-
-[`sites/playground/server/src/chat-genui.ts`](../../sites/playground/server/src/chat-genui.ts)：
-
-```ts
+import { genPrompt } from '@opentiny/genui-sdk-core';
 import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 
-const renderConfigForFramework =
-  framework === 'Angular' ? ngRendererConfig
-  : framework === 'React' ? materialsMeta
-  : rendererConfig;
+const systemPrompt = genPrompt('React', materialsMeta, customConfig);
 ```
 
-[`sites/playground/server/package.json`](../../sites/playground/server/package.json) 增加 workspace 依赖。
+`materialsMeta.wrapperComponent` defaults to `AntCard`.
 
-### 3. 运行时渲染（React 适配器）
+## API
 
-[`sites/playground/schema-renderer-react-adapter/`](../../sites/playground/schema-renderer-react-adapter/)：
+| Export Path | Exports | Description |
+|-------------|---------|-------------|
+| `@opentiny/genui-sdk-materials-react-antd` | `materials`, `materialsMeta` | Unified entry |
+| `.../materials` | `materials` | Inject into `GenuiConfigProvider` for schema rendering |
+| `.../meta` | `materialsMeta` | For `genPrompt()` / building the server system prompt |
 
-| 文件 | 改动 |
-|------|------|
-| `ReactHost.tsx` | 注入 `materials={antdMaterials}`，引入 `antd/dist/reset.css` |
-| `SchemaRendererReactAdapter.vue` | Vue 壳组件，pending context 机制同步 `callAction` |
-| `package.json` | 依赖 `@opentiny/genui-sdk-materials-react-antd`、`antd` |
+### `materials`
 
-Vue 侧 `GenuiRenderer` 负责把 `saveState` / `continueChat` 通过 `setContext({ callAction })` 注入 React 渲染器。
+Component registry mapping Ant Design components, used by the renderer to resolve nodes by `componentName`.
 
-### 4. 独立 Demo 页
+### `materialsMeta`
 
-[`sites/playground/web/src/react-demo/main.ts`](../../sites/playground/web/src/react-demo/main.ts)：
+Materials metadata, including:
 
-- 访问 `/react-demo.html`
-- 使用 `antdMaterials` + `antdFormExample` 静态演示
+- `materials`: Protocol descriptions for components
+- `wrapperComponent`: Default wrapper component (`AntCard`)
+- `whiteList`: Whitelist of `componentName` values available to the LLM
+- `examples`: Prompt example schemas
 
-### 5. 开发路径别名
+## More
 
-[`sites/playground/server/tsconfig.dev.json`](../../sites/playground/server/tsconfig.dev.json)  
-[`sites/playground/web/tsconfig.dev.json`](../../sites/playground/web/tsconfig.dev.json)
-
-指向 `packages/materials/react-antd/src/...`，dev 模式下无需先 build 物料包。
-
-### 集成数据流
-
-```mermaid
-flowchart TB
-  subgraph playground [Playground]
-    AppVue["App.vue\n?framework=react"]
-    GenuiChat["GenuiChat\nVue 聊天壳"]
-    SchemaCard["GenuiRenderer\n注入 callAction"]
-    Adapter["SchemaRendererReactAdapter"]
-    ReactHost["ReactHost"]
-  end
-
-  subgraph server [Server]
-    ChatGenUI["chat-genui.ts"]
-    GenPrompt["genPrompt(materialsMeta)"]
-  end
-
-  subgraph materials [react-antd 物料包]
-    RenderConfig["meta\n白名单 + bundle"]
-    Registry["materials\ncomponents"]
-  end
-
-  subgraph react [genui-sdk-react]
-    GenuiRenderer["GenuiRenderer"]
-  end
-
-  ChatGenUI --> GenPrompt
-  RenderConfig --> GenPrompt
-  GenPrompt -->|LLM 生成 schema| GenuiChat
-  AppVue --> GenuiChat
-  GenuiChat --> SchemaCard
-  SchemaCard -->|setContext callAction| Adapter
-  Adapter --> ReactHost
-  Registry --> ReactHost
-  ReactHost --> GenuiRenderer
-```
-
----
-
-## 构建
-
-```bash
-# 构建所有物料包（含 react-antd）
-pnpm build:materials
-
-# 仅构建本包
-pnpm --filter @opentiny/genui-sdk-materials-react-antd build
-```
-
-根目录 `build:materials` 使用 `@opentiny/genui-sdk-materials-*` 通配，新包自动纳入。
-
-## 业务项目接入（非 Playground）
-
-1. 安装 `@opentiny/genui-sdk-react`、`@opentiny/genui-sdk-materials-react-antd`、`antd`
-2. 渲染：`GenuiConfigProvider` 注入 `materials` + 引入 antd CSS
-3. 服务端 prompt：`genPrompt(materialsMeta, ...)`
-4. 若需 `saveState` / `continueChat`，自行实现 `customActions` 或通过 `setContext({ callAction })` 注入
-
-## 扩展更多 antd 组件
-
-1. 在 [`src/materials/components/components.tsx`](src/materials/components/components.tsx) 增加映射
-2. 在 [`src/meta/materials/bundle.json`](src/meta/materials/bundle.json) 补充 props 元数据
-3. 在 [`src/meta/white-list.ts`](src/meta/white-list.ts) 加入 componentName
-4. 可选：在 [`src/meta/example-schema.ts`](src/meta/example-schema.ts) 增加示例
-
-## 相关文档
-
-- [React 渲染器架构](../../frameworks/react/docs/REACT_RENDERER.md)
-- [Vue OpenTiny 物料包](../vue-opentiny-vue/)（同类参考实现）
+- [GenUI SDK](https://opentiny.design/genui-sdk)
+- [Vue OpenTiny materials](../vue-opentiny-vue/)（同类参考实现）
