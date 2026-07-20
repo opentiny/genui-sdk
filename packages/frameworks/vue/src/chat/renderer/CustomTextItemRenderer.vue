@@ -10,7 +10,7 @@ const textContent = computed(() => String((content.value as { content?: string }
 </script>
 
 <template>
-  <span v-if="textContent" class="tr-bubble__body-text">{{ textContent }}</span>
+  <span v-if="textContent" class="tr-bubble__body-text" data-type="custom-text">{{ textContent }}</span>
 </template>
 
 <style scoped lang="less">

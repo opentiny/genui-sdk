@@ -285,7 +285,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
         delta,
         context.toolCallIdMap,
         context.chatMessage,
-        context.chatConfig.addToolCallContext,
+        context.chatConfig?.addToolCallContext,
       );
       return true;
     },

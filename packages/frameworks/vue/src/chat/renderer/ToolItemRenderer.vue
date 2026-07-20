@@ -26,5 +26,7 @@ const toolProps = computed(() => {
 </script>
 
 <template>
-  <ToolRenderer v-bind="toolProps" />
+  <div v-if="toolProps.name" class="tool-item" data-type="tool">
+    <ToolRenderer v-bind="toolProps" />
+  </div>
 </template>

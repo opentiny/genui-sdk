@@ -36,7 +36,11 @@ const getRuntimeOptions = (): GenuiChatRuntimeOptions => ({
   url: props.url || '',
   model: props.model || '',
   temperature: props.temperature ?? 0.3,
-  chatConfig: props.chatConfig || { addToolCallContext: false, showThinkingResult: false },
+  chatConfig: {
+    addToolCallContext: false,
+    showThinkingResult: false,
+    ...props.chatConfig,
+  },
   customComponents: props.customComponents || [],
   customSnippets: props.customSnippets || [],
   customExamples: props.customExamples || [],
@@ -190,8 +194,7 @@ const lastSchemaCardId = computed(() => {
   return 'id' in lastItem ? lastItem.id : null;
 });
 
-const isGeneratingCard = (cardId?: string) =>
-  isProcessing.value && cardId != null && lastSchemaCardId.value === cardId;
+const isGeneratingCard = (cardId?: string) => isProcessing.value && cardId != null && lastSchemaCardId.value === cardId;
 
 const customComponentsMap = computed(() => {
   const map: Record<string, Component> = {};
@@ -365,8 +368,8 @@ const handleSendMessage = async (content?: string) => {
   userMessage.content = apiContent as unknown as string;
   (userMessage as ChatMessage & { messages?: typeof userMessageContent }).messages = userMessageContent;
 
-  await sendUserChatMessage(userMessage, false);
   clearInputMessage();
+  await sendUserChatMessage(userMessage, false);
   setConversationTitle(messageContent);
   scrollToBottom();
 };
@@ -411,7 +414,10 @@ defineExpose({
 <template>
   <div
     class="tg-chat-container"
-    :class="{ dark: genuiConfig?.theme === 'dark' }"
+    :class="{
+      dark: genuiConfig?.theme === 'dark',
+      'is-thinking-collapsed': !props.chatConfig?.showThinkingResult,
+    }"
   >
     <div
       class="messages-container"
@@ -504,12 +510,34 @@ defineExpose({
   margin-top: 8px;
 }
 
-:deep(.tr-bubble.placement-start) {
+:deep(.tr-bubble[data-placement='start']) {
   .tr-bubble__box {
     padding: 0;
     background: transparent;
-    border-radius: 0;
-    box-shadow: none;
+  }
+
+  .tr-bubble__box:has([data-type='schema-card']),
+  .tr-bubble__box[data-shape]:has([data-type='schema-card']) {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.tg-chat-container.is-thinking-collapsed {
+  :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content) {
+    gap: 0;
+  }
+
+  :deep(
+    .tr-bubble[data-role='assistant']
+      .tr-bubble__content
+      > *:not(:has([data-type='schema-card'])):not(:has([data-type='loading-text']))
+  ) {
+    height: 0;
+  }
+
+  :deep(.tr-bubble[data-role='assistant'] [data-type]:not([data-type='schema-card']):not([data-type='loading-text'])) {
+    display: none;
   }
 }
 
@@ -519,13 +547,19 @@ defineExpose({
   }
 }
 
-:deep(.tr-bubble.placement-end) {
+:deep(.tr-bubble[data-placement='end']) {
   width: 100%;
+  --tr-bubble-box-padding: 16px 24px;
+  --tr-bubble-text-font-size: 16px;
+  --tr-bubble-box-shape-rounded-radius: 24px;
 }
 
 :deep(.tr-bubble__body) {
-  @avatar-and-gap-width: 56px;
-  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
+  .tr-bubble__content {
+    @avatar-and-gap-width: 56px;
+    max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
+    overflow-x: auto;
+  }
 }
 
 :deep(.schema-render-container) {
@@ -533,6 +567,17 @@ defineExpose({
   @min-width-safe-padding: 250px;
   @small-screen-min-width: calc(var(--messages-container-width) - @min-width-safe-padding);
   min-width: min(@small-screen-min-width, @large-screen-min-width);
+}
+
+:deep(.tr-bubble[data-placement='start'] .schema-render-container) {
+  width: 100%;
+  background-color: var(--tr-container-bg-default, #fff);
+  background-clip: padding-box;
+  border-radius: 24px;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .sender-container {
@@ -568,7 +613,9 @@ defineExpose({
   }
 
   &:hover {
-    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
+    box-shadow:
+      0px 10px 20px 0px #0000001a,
+      0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {
@@ -615,7 +662,7 @@ defineExpose({
   margin-top: 16px;
 }
 
-.tiny-sender {
+.tr-sender {
   width: 80%;
   margin: 0 auto;
 }

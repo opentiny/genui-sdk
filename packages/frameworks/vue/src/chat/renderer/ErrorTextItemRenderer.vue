@@ -11,5 +11,7 @@ const errorContent = computed(() => String((content.value as { content?: string 
 </script>
 
 <template>
-  <ErrorText :content="errorContent" />
+  <div data-type="error-text">
+    <ErrorText :content="errorContent" />
+  </div>
 </template>

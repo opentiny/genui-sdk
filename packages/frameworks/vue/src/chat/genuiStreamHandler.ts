@@ -41,12 +41,18 @@ export function createGenuiStreamHandlerOptions(options: {
   };
 
   const initStreamOnFirstChunk = (ctx: GenuiChunkContext, streamCtx: GenuiStreamHandlerContext) => {
+    streamCtx.handlerContext.chatConfig = options.getChatConfig();
+
     if (streamCtx.initialized) {
       return;
     }
 
     const { currentMessage } = ctx;
-    const messageRecord = currentMessage as ChatMessage & { messages?: unknown[] };
+    const messageRecord = currentMessage as ChatMessage & { messages?: unknown[]; role?: string };
+
+    if (!messageRecord.role) {
+      messageRecord.role = 'assistant';
+    }
 
     if (!messageRecord.messages) {
       messageRecord.messages = reactive([]);
@@ -81,7 +87,9 @@ export function createGenuiStreamHandlerOptions(options: {
     for (const handler of streamCtx.handlers) {
       if (handler.match(streamData, streamCtx.handlerContext)) {
         if (handler.handler(streamData, streamCtx.handlerContext)) {
-          break;
+          if (handler.name !== 'toolCall' && handler.name !== 'toolResult') {
+            break;
+          }
         }
       } else if (handler.notMatchHandler?.(streamData, streamCtx.handlerContext)) {
         break;

@@ -26,7 +26,7 @@ export function useTemplateConversation(options: UseTemplateConversationOptions)
   const streamHandler = createTemplateStreamHandlerOptions();
 
   const storage = indexedDBStorageStrategyFactory({
-    dbName: 'genui-ai-template',
+    dbName: 'genui-ai-template-v2',
   });
 
   const useMessageOptions: UseMessageOptions = {

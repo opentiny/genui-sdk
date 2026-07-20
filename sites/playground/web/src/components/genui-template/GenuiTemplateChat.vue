@@ -357,8 +357,8 @@ const handleSendMessage = async () => {
   }
 
   prevSchema.value = JSON.stringify(currentSchema.value);
-  await manager.send();
   clearInputMessage();
+  await manager.send();
   scrollToBottom();
 };
 
@@ -476,13 +476,37 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 
-:deep(.tr-bubble.placement-start) {
-  .tr-bubble__box {
+:deep(.tr-bubble[data-placement='start']) {
+  .tr-bubble__content {
     padding: 0;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
   }
+
+  .tr-bubble__box {
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+    overflow: visible;
+  }
+
+  .tr-bubble__box:has([data-type='schema-card']) {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+:deep(.tr-bubble[data-role='assistant']) {
+  --content-bg: var(--tr-container-bg-default, #fff);
+  --text-color: var(--tr-text-primary, #191919);
 }
 
 :deep(.tr-bubble[data-role='assistant'] [data-type='markdown']),
@@ -490,13 +514,29 @@ onUnmounted(() => {
   display: var(--thinking-display, initial);
 }
 
-:deep(.tr-bubble.placement-end) {
+:deep(.tr-bubble[data-placement='end']) {
   width: 100%;
+  --tr-bubble-box-padding: 16px 24px;
+  --tr-bubble-text-font-size: 16px;
+  --tr-bubble-box-shape-rounded-radius: 24px;
 }
 
 :deep(.tr-bubble__body) {
-  @avatar-and-gap-width: 56px;
-  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
+  .tr-bubble__content {
+    @avatar-and-gap-width: 56px;
+    max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
+    overflow-x: auto;
+  }
+}
+
+:deep(.tr-bubble[data-placement='start'] .schema-render-container) {
+  width: 100%;
+  background-color: var(--tr-container-bg-default, #fff);
+  border-radius: 24px;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .sender-container {
@@ -563,7 +603,7 @@ onUnmounted(() => {
   margin-top: 16px;
 }
 
-.tiny-sender {
+.tr-sender {
   width: 80%;
   margin: 0 auto;
 }

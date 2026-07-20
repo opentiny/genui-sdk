@@ -106,8 +106,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     }
   };
 
-  const exportConversations = async (ids?: string[]) =>
-    collectConversationsForExport(conversation, storage, ids);
+  const exportConversations = async (ids?: string[]) => collectConversationsForExport(conversation, storage, ids);
 
   const ensureActiveConversation = async () => {
     if (conversation.activeConversation.value?.engine) {
@@ -131,10 +130,10 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     if (!engine) {
       return;
     }
-    await engine.sendMessage(messageContent);
     if (clearInput) {
       inputMessage.value = '';
     }
+    await engine.sendMessage(messageContent);
   };
 
   const sendUserChatMessage = async (message: ChatMessage, clearInput = true) => {
@@ -143,10 +142,10 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     if (!engine) {
       return;
     }
-    await engine.send(message);
     if (clearInput) {
       inputMessage.value = '';
     }
+    await engine.send(message);
   };
 
   const createEmptyMessageEngine = (): IMessageManagerBridge => ({
@@ -238,7 +237,6 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     loading,
     sendUserMessage,
     sendUserChatMessage,
-    ensureActiveConversation,
     setResponseHandlers,
     getResponseHandlers: () => responseHandlers.value,
     createConversation,
