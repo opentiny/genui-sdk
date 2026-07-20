@@ -46,7 +46,7 @@ export function setDefaultSlotRenderer(
   defaultSlotRenderer = fn;
 }
 
-function wrapFn(innerFn: (...args: unknown[]) => unknown, ctx: PageContextValue) {
+function generateFn(innerFn: (...args: unknown[]) => unknown, ctx: PageContextValue) {
   return (...args: unknown[]) => {
     try {
       const runtimeCtx = getRuntimeCtx(ctx);
@@ -62,13 +62,13 @@ function parseJSFunction(data: { type: string; value: string }, scope: Record<st
   try {
     if (!isFunctionString(data.value)) return undefined;
     if (typeof scope === 'object' && Object.keys(scope).length > 0) {
-      return wrapFn(
+      return generateFn(
         parseExpression({ type: JS_EXPRESSION, value: data.value }, scope, ctx) as (...args: unknown[]) => unknown,
         ctx,
       );
     }
     const innerFn = newFn(`return ${data.value}`).bind(ctx)() as (...args: unknown[]) => unknown;
-    return wrapFn(innerFn, ctx);
+    return generateFn(innerFn, ctx);
   } catch (error) {
     console.warn('JSFunction parse error:', error);
     return undefined;

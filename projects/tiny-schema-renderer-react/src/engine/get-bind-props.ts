@@ -10,17 +10,17 @@ export function getBindProps(
   scope: Record<string, unknown>,
   context: PageContextValue,
 ): Record<string, unknown> {
-  const { componentName, id } = schema;
-  const raw: Record<string, unknown> = {
+  const { componentName } = schema;
+  const bindProps: Record<string, unknown> = {
     ...((parseData(schema.props, scope, context) as Record<string, unknown>) || {}),
-    'data-id': id,
+    'data-id': schema.id,
     'data-tag': componentName,
   };
   if (context.cssScopeId) {
-    raw[context.cssScopeId] = '';
+    bindProps[context.cssScopeId] = '';
   }
 
-  applyDefaultPropsToProps(componentName, raw, getCustomSettings()?.defaultPropsMap);
+  applyDefaultPropsToProps(componentName, bindProps, getCustomSettings()?.defaultPropsMap);
 
-  return normalizeDomProps(raw);
+  return normalizeDomProps(bindProps);
 }

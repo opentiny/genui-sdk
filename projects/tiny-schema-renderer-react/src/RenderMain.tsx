@@ -94,7 +94,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     };
   }, []);
 
-  const rootSchema: Node = {
+  const rootChildrenSchema: Node = {
     componentName: 'div',
     props: schema?.props,
     children: schema?.children,
@@ -104,7 +104,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     <PageContextProvider value={page}>
       {schema?.children?.length ? (
         <div className="genui-schema-renderer" data-scope={page.getContext().cssScopeId}>
-          <SchemaNodeRenderer schema={rootSchema} parent={schema} />
+          <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
         </div>
       ) : (
         <Loading />
