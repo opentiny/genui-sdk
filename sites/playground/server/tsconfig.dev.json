@@ -9,6 +9,9 @@
       "@opentiny/genui-sdk-materials-vue-opentiny-vue/meta": [
         "../../../packages/materials/vue-opentiny-vue/src/meta/index.ts"
       ],
+      "@opentiny/genui-sdk-materials-vue-element-plus/meta": [
+        "../../../packages/materials/vue-element-plus/src/meta/index.ts"
+      ],
       "@opentiny/genui-sdk-materials-angular-opentiny-ng/meta": [
         "../../../packages/materials/angular-opentiny-ng/src/meta/index.ts"
       ],

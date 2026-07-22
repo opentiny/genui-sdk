@@ -34,6 +34,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
+    componentLib: playgroundConfig.componentLib || 'TinyVue',
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
@@ -79,7 +80,7 @@ export const createChatTemplate = () => {
       }
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
-      const { mcpServers, framework, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
+      const { mcpServers, framework, componentLib, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
@@ -96,7 +97,7 @@ export const createChatTemplate = () => {
       const openApiBuiltTools = await buildOpenApiTools(openApiTools);
       const tools = { ...openApiBuiltTools, ...mcpTools };
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig)}
+      const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig, componentLib)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;

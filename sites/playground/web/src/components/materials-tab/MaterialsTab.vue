@@ -1,6 +1,6 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
-import { ref, inject } from 'vue';
+import { inject } from 'vue';
 import { ThemePreviewCard } from '../theme-preview';
 import { t } from '../../i18n';
 import {
@@ -16,8 +16,7 @@ defineProps({
 
 const emit = defineEmits(['update:theme']);
 
-const { framework } = inject('playgroundContext');
-const componentLib = ref('TinyVue');
+const { framework, componentLib } = inject('playgroundContext');
 
 const setFramework = (name) => {
   framework.value = name;
@@ -48,15 +47,14 @@ const setFramework = (name) => {
       </div>
     </div>
 
-    <!-- TODO: 组件库切换暂时不支持 -->
-    <!-- <div class="config-title">{{ t('materials.componentLib') }}</div>
-    <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
-      <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
-        <tiny-radio v-for="item in COMPONENT_LIB_OPTIONS" :key="item" :label="item">{{ item }}</tiny-radio>
-      </tiny-radio-group>
-    </div> -->
-
     <template v-if="framework === 'Vue'">
+      <div class="config-title">{{ t('materials.componentLib') }}</div>
+      <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
+        <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
+          <tiny-radio v-for="item in COMPONENT_LIB_OPTIONS" :key="item" :label="item">{{ item }}</tiny-radio>
+        </tiny-radio-group>
+      </div>
+
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
         <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">

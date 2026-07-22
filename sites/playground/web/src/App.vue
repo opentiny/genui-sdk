@@ -14,7 +14,9 @@ import {
   h,
   shallowRef,
 } from 'vue';
-import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as tinyVueMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as elementPlusMaterials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
+import 'element-plus/dist/index.css';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
@@ -53,10 +55,11 @@ const {
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
   framework: cacheFramework,
+  componentLib: cacheComponentLib,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
 const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
-
+const componentLib = ref(cacheComponentLib === 'ElementUI' ? 'ElementUI' : 'TinyVue');
 /**
  * Normalizes cached custom examples for the id-based contract.
  * Drops invalid/legacy entries and de-duplicates by id.
@@ -160,7 +163,14 @@ watch(
 );
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value],
+  [
+    () => theme.value,
+    () => llmConfig,
+    () => chatConfig,
+    () => customExamples.value,
+    () => framework.value,
+    () => componentLib.value,
+  ],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -170,6 +180,7 @@ watch(
         chatConfig,
         customExamples: customExamples.value,
         framework: framework.value,
+        componentLib: componentLib.value,
       }),
     );
   },
@@ -247,6 +258,7 @@ const playgroundContext = {
   conversation,
   customExamples,
   framework,
+  componentLib,
 };
 
 provide('playgroundContext', playgroundContext);
@@ -312,6 +324,7 @@ const roles = computed(() => {
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
   framework: framework.value,
+  componentLib: componentLib.value,
 }));
 
 /**
@@ -392,7 +405,7 @@ onUnmounted(() => {
         <GenuiConfigProvider
           :theme="theme"
           :locale="locale"
-          :materials="materials"
+          :materials="[tinyVueMaterials, elementPlusMaterials]"
           style="height: 100%"
         >
           <GenuiChat

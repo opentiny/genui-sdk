@@ -3,7 +3,7 @@ import { TinyConfigProvider } from '@opentiny/vue';
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { watch, provide, computed, onMounted, ref } from 'vue';
-import type { IMaterials } from '@opentiny/genui-sdk-core';
+import { mergeMaterials, type IMaterials } from '@opentiny/genui-sdk-core';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
 import { useMediaTheme } from './use-media-theme';
@@ -13,7 +13,7 @@ export interface ConfigProviderProps {
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
-  materials?: IMaterials;
+  materials?: IMaterials | IMaterials[];
 }
 
 interface IRobotProviderProps {
@@ -62,9 +62,17 @@ const genuiConfig = computed(() => {
 provide(GENUI_CONFIG, genuiConfig);
 
 const internalMaterials = {};
-watch(() => props.materials, (newVal) => {
-  Object.assign(internalMaterials, newVal);
-}, { immediate: true });
+watch(
+  () => props.materials,
+  (newVal) => {
+    const merged = Array.isArray(newVal) ? mergeMaterials(...newVal) : (newVal ?? {});
+    Object.keys(internalMaterials).forEach((key) => {
+      delete (internalMaterials as Record<string, unknown>)[key];
+    });
+    Object.assign(internalMaterials, merged);
+  },
+  { immediate: true },
+);
 
 provide(
   GENUI_MATERIALS,

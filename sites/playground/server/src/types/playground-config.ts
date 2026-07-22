@@ -5,9 +5,11 @@ import type { PlaygroundSkillConfig } from '../skills/index.js';
 export type IMaterialsMetaVariantKey = 'mini' | 'standard';
 
 export type IFrameworkKey = 'Vue' | 'Angular' | 'React';
+export type IComponentLibKey = 'TinyVue' | 'ElementUI' | 'TinyNG';
 export interface IPlaygroundConfig {
   mcpServers: McpServersConfig;
   framework: IFrameworkKey;
+  componentLib?: IComponentLibKey;
   promptList: string[];
   model: string;
   temperature: number;

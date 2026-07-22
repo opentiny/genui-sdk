@@ -231,6 +231,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
+    componentLib: playgroundConfig.componentLib || 'TinyVue',
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
@@ -271,7 +272,8 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
+    const { mcpServers, framework, componentLib, userAppendPrompt, agents, skills, openApiTools, promptVariant } =
+      playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -318,7 +320,7 @@ export function createChatGenui() {
       model,
       temperature,
       system:
-        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig) +
+        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig, componentLib) +
         '\n' +
         specificPrompt +
         '\n' +
