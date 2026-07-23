@@ -888,12 +888,6 @@ importers:
 
   projects/tiny-schema-renderer-react:
     devDependencies:
-      '@opentiny/genui-sdk-core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@opentiny/genui-sdk-materials-react-antd':
-        specifier: workspace:*
-        version: link:../../packages/materials/react-antd
       '@types/react':
         specifier: ^18.3.0
         version: 18.3.29

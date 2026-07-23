@@ -49,10 +49,13 @@
                 "componentName": "input",
                 "props": {
                   "placeholder": "Your name",
-                  "modelValue": {
+                  "value": {
                     "type": "JSExpression",
-                    "model": true,
                     "value": "this.state.formData.name"
+                  },
+                  "onChange": {
+                    "type": "JSFunction",
+                    "value": "function(e) { this.state.formData.name = e.target.value; }"
                   }
                 }
               }
@@ -73,10 +76,13 @@
                 "props": {
                   "type": "email",
                   "placeholder": "email@example.com",
-                  "modelValue": {
+                  "value": {
                     "type": "JSExpression",
-                    "model": true,
                     "value": "this.state.formData.email"
+                  },
+                  "onChange": {
+                    "type": "JSFunction",
+                    "value": "function(e) { this.state.formData.email = e.target.value; }"
                   }
                 }
               }

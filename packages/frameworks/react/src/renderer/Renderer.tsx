@@ -17,6 +17,7 @@ import { RendererContext } from './RendererContext';
 import { useGenuiMaterials } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
+import './renderer.css';
 
 const errorSchema: RootNode = {
   componentName: 'Page',
@@ -145,7 +146,6 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
       updateContextAndState();
     }, [displaySchema, updateContextAndState]);
 
-    // TODO: css样式去哪里了
     return (
       <RendererContextProvider render-settings={renderSettings}>
         <div className="genui-renderer-container schema-render-container">

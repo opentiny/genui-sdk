@@ -42,16 +42,7 @@ function renderComponent(
   const component = getComponent(componentName);
 
   if (!component) {
-    if (import.meta.env.DEV) {
-      console.warn(`[genui-react] Unknown component: ${componentName}`);
-    } else {
-      return null;
-    }
-    return (
-      <span style={{ color: '#999', fontSize: 12, display: 'inline-block', margin: 2 }}>
-        [{componentName}]
-      </span>
-    );
+    return null;
   }
 
   const loopList = parseData(loop, scope, context) as unknown[];
