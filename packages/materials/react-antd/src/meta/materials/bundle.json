@@ -6,6 +6,11 @@
         {
           "component": "AntButton",
           "description": "Ant Design 按钮，支持 primary/default/dashed/link/text 等类型",
+          "npm": {
+            "package": "antd",
+            "exportName": "Button",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -50,6 +55,11 @@
         {
           "component": "AntInput",
           "description": "Ant Design 输入框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Input",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -101,6 +111,11 @@
         {
           "component": "AntSelect",
           "description": "Ant Design 下拉选择器",
+          "npm": {
+            "package": "antd",
+            "exportName": "Select",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -126,8 +141,7 @@
                   {
                     "property": "options",
                     "type": "array",
-                    "defaultValue": [
-                    ],
+                    "defaultValue": [],
                     "description": {
                       "zh_CN": "选项数组，如 [{ label: '男', value: 'male' }]"
                     }
@@ -147,6 +161,11 @@
         {
           "component": "AntForm",
           "description": "Ant Design 表单容器",
+          "npm": {
+            "package": "antd",
+            "exportName": "Form",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -177,6 +196,11 @@
         {
           "component": "AntFormItem",
           "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 modelValue 或 value（model:true），不要设置 name 属性",
+          "npm": {
+            "package": "antd",
+            "exportName": "Form.Item",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -213,6 +237,11 @@
         {
           "component": "AntCard",
           "description": "Ant Design 卡片容器",
+          "npm": {
+            "package": "antd",
+            "exportName": "Card",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -246,6 +275,11 @@
         {
           "component": "AntTable",
           "description": "Ant Design 表格",
+          "npm": {
+            "package": "antd",
+            "exportName": "Table",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -283,6 +317,11 @@
         {
           "component": "AntTabs",
           "description": "Ant Design 标签页，通过 items 配置子页签",
+          "npm": {
+            "package": "antd",
+            "exportName": "Tabs",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -314,6 +353,11 @@
         {
           "component": "AntModal",
           "description": "Ant Design 对话框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Modal",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -367,6 +411,11 @@
         {
           "component": "AntSwitch",
           "description": "Ant Design 开关",
+          "npm": {
+            "package": "antd",
+            "exportName": "Switch",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -400,6 +449,11 @@
         {
           "component": "AntCheckbox",
           "description": "Ant Design 复选框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Checkbox",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -434,6 +488,11 @@
         {
           "component": "AntRadio",
           "description": "Ant Design 单选框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Radio",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
@@ -472,6 +531,11 @@
         {
           "component": "AntDatePicker",
           "description": "Ant Design 日期选择器",
+          "npm": {
+            "package": "antd",
+            "exportName": "DatePicker",
+            "destructuring": true
+          },
           "schema": {
             "properties": [
               {
