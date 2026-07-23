@@ -14,14 +14,15 @@ function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
       });
     }
   };
+
+const cardTypeMap: Record<string, string> = {
+  Angular: 'schema-card-angular',
+  React: 'schema-card-react',
+  Vue: 'schema-card',
+};
+
 function getSchemaCardType(framework: string) {
-  if (framework === 'Angular') {
-    return 'schema-card-angular';
-  }
-  if (framework === 'React') {
-    return 'schema-card-react';
-  }
-  return 'schema-card';
+  return cardTypeMap[framework] ?? 'schema-card';
 }
 
 function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMessage: IChatMessage, framework: string) {

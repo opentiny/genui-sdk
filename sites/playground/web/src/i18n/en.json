@@ -35,7 +35,8 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeLite": "Lite",
-    "themeAuto": "System"
+    "themeAuto": "System",
+    "alpha": "Alpha"
   },
   "model": {
     "select": "Model",
