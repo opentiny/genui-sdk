@@ -14,18 +14,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
-    "resolveJsonModule": true,
-    "paths": {
-      "@opentiny/genui-sdk-materials-react-antd/materials": [
-        "../../packages/materials/react-antd/src/materials/index.ts"
-      ],
-      "@opentiny/genui-sdk-materials-react-antd": [
-        "../../packages/materials/react-antd/src/index.ts"
-      ],
-      "@opentiny/genui-sdk-react": [
-        "../../packages/frameworks/react/src/index.ts"
-      ]
-    }
+    "resolveJsonModule": true
   },
   "include": [
     "src",

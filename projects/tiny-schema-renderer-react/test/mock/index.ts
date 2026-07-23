@@ -1,4 +1,4 @@
-import type { RootNode } from '@opentiny/genui-sdk-core';
+import type { RootNode } from '../../src/types';
 import formValidationSchema from './form-validation.json';
 import tableSchema from './table.json';
 import tabsSchema from './tabs.json';

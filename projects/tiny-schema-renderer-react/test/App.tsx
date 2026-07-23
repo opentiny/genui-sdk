@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RendererContextProvider, SchemaRenderer } from '../src';
-import { materials as reactMaterials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 import { demos } from './mock';
+import { materials } from './materials';
 
 export function App() {
   const [activeId, setActiveId] = useState(demos[0].id);
@@ -25,7 +25,7 @@ export function App() {
         </nav>
       </header>
       <main className="app-content">
-        <RendererContextProvider render-settings={{ materials: reactMaterials.components }}>
+        <RendererContextProvider render-settings={{ materials }}>
           <SchemaRenderer schema={current.schema} />
         </RendererContextProvider>
       </main>

@@ -6,7 +6,6 @@ import escapeStringRegexp from 'escape-string-regexp';
 import packageJson from './package.json';
 
 const srcAlias = path.resolve(__dirname, './src');
-const repoRoot = path.resolve(__dirname, '../..');
 
 export default defineConfig(({ command }) => {
   if (command === 'serve') {
@@ -17,15 +16,6 @@ export default defineConfig(({ command }) => {
         dedupe: ['react', 'react-dom'],
         alias: {
           '@opentiny/tiny-schema-renderer-react': srcAlias,
-          '@opentiny/genui-sdk-react': path.resolve(repoRoot, 'packages/frameworks/react/src/index.ts'),
-          '@opentiny/genui-sdk-materials-react-antd/materials': path.resolve(
-            repoRoot,
-            'packages/materials/react-antd/src/materials/index.ts',
-          ),
-          '@opentiny/genui-sdk-materials-react-antd': path.resolve(
-            repoRoot,
-            'packages/materials/react-antd/src/index.ts',
-          ),
         },
       },
       server: {
