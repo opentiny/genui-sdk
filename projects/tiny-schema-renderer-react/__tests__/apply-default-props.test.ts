@@ -16,7 +16,7 @@ describe('applyDefaultPropsToProps', () => {
     expect(props).toEqual({ size: 'large', type: 'primary' });
   });
 
-  it('fills nested paths when intermediate objects are missing', () => {
+  it('does not create missing intermediate objects', () => {
     const props: Record<string, unknown> = {};
     const defaultPropsMap = {
       Select: {
@@ -26,7 +26,27 @@ describe('applyDefaultPropsToProps', () => {
 
     applyDefaultPropsToProps('Select', props, defaultPropsMap);
 
-    expect(props).toEqual({ options: { '0': { label: 'Default' } } });
+    expect(props).toEqual({});
+  });
+
+  it('fills nested paths and array wildcard when containers already exist', () => {
+    const props: Record<string, unknown> = {
+      options: [{ value: 'a' }, { value: 'b', label: 'B' }],
+    };
+    const defaultPropsMap = {
+      Select: {
+        'options.*.label': 'Default',
+      },
+    };
+
+    applyDefaultPropsToProps('Select', props, defaultPropsMap);
+
+    expect(props).toEqual({
+      options: [
+        { value: 'a', label: 'Default' },
+        { value: 'b', label: 'B' },
+      ],
+    });
   });
 
   it('ignores unknown components and invalid maps', () => {
