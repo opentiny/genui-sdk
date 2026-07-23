@@ -26,7 +26,7 @@ on:
           - beta
           - alpha
       publish_optional_packages:
-        description: '同时发布 core 与物料包（vue / angular）'
+        description: '同时发布 core 与物料包（vue-opentiny / vue-element-plus / angular）'
         required: false
         default: false
         type: boolean
@@ -89,6 +89,7 @@ jobs:
           if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
             node ./scripts/update-package-version.js packages/core/package.json "$VERSION"
             node ./scripts/update-package-version.js packages/materials/vue-opentiny-vue/package.json "$VERSION"
+            node ./scripts/update-package-version.js packages/materials/vue-element-plus/package.json "$VERSION"
             node ./scripts/update-package-version.js packages/materials/angular-opentiny-ng/package.json "$VERSION"
           fi
 
@@ -99,6 +100,10 @@ jobs:
       - name: Build Vue materials
         if: github.event.inputs.publish_optional_packages == 'true'
         run: pnpm --filter @opentiny/genui-sdk-materials-vue-opentiny-vue build
+
+      - name: Build Element Plus materials
+        if: github.event.inputs.publish_optional_packages == 'true'
+        run: pnpm --filter @opentiny/genui-sdk-materials-vue-element-plus build
 
       - name: Build Angular materials
         if: github.event.inputs.publish_optional_packages == 'true'
@@ -120,7 +125,7 @@ jobs:
         run: |
           PUBLISH_PKG_JSONS="packages/server/output/package.json,packages/frameworks/vue/package.json,packages/frameworks/angular/output/package.json"
           if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
-            PUBLISH_PKG_JSONS="${PUBLISH_PKG_JSONS},packages/core/package.json,packages/materials/vue-opentiny-vue/package.json,packages/materials/angular-opentiny-ng/package.json"
+            PUBLISH_PKG_JSONS="${PUBLISH_PKG_JSONS},packages/core/package.json,packages/materials/vue-opentiny-vue/package.json,packages/materials/vue-element-plus/package.json,packages/materials/angular-opentiny-ng/package.json"
           fi
           export PUBLISH_PKG_JSONS
           node ./scripts/ci-replace-workspace-deps.js
@@ -136,6 +141,11 @@ jobs:
       - name: Publish Vue materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/vue-opentiny-vue
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Publish Element Plus materials to npm
+        if: github.event.inputs.publish_optional_packages == 'true'
+        working-directory: packages/materials/vue-element-plus
         run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
       - name: Publish Angular materials to npm

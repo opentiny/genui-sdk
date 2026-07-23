@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 
-export function buildMessageBodyV03(input: string): Record<string, unknown> {
+export function buildMessageBodyV0_3(input: string): Record<string, unknown> {
   return {
     message: {
       messageId: randomUUID(),
@@ -10,7 +10,7 @@ export function buildMessageBodyV03(input: string): Record<string, unknown> {
   };
 }
 
-export function buildMessageBodyV10(input: string): Record<string, unknown> {
+export function buildMessageBodyV1_0(input: string): Record<string, unknown> {
   return {
     message: {
       messageId: randomUUID(),

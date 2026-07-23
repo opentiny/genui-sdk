@@ -50,6 +50,7 @@ export async function invokeA2aAgent(
     const text = await invokeAgentWithOfficialSdk(
       agent,
       version,
+      url,
       input,
       headers,
       abortSignal,

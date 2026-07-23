@@ -14,6 +14,7 @@ on:
           - '@opentiny/genui-sdk-react'
           - '@opentiny/genui-sdk-core'
           - '@opentiny/genui-sdk-materials-vue-opentiny-vue'
+          - '@opentiny/genui-sdk-materials-vue-element-plus'
           - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
           - '@opentiny/genui-sdk-materials-react-antd'
       version:
@@ -115,6 +116,13 @@ jobs:
               echo "filter=@opentiny/genui-sdk-materials-vue-opentiny-vue" >> "$GITHUB_OUTPUT"
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/materials/vue-opentiny-vue" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-materials-vue-element-plus)
+              echo "pkg_json=packages/materials/vue-element-plus/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/materials/vue-element-plus/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-materials-vue-element-plus" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/materials/vue-element-plus" >> "$GITHUB_OUTPUT"
               ;;
             @opentiny/genui-sdk-materials-angular-opentiny-ng)
               echo "pkg_json=packages/materials/angular-opentiny-ng/package.json" >> "$GITHUB_OUTPUT"

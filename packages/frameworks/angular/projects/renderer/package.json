@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "tslib": "^2.3.0",
+    "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*"
   },
   "sideEffects": false

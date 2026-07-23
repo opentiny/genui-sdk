@@ -22,7 +22,6 @@ export const enThemeConfig: DefaultTheme.Config = {
         items: [
           { text: 'Quick Start', link: '/en/guide/quick-start' },
           { text: 'Using Renderer', link: '/en/guide/start-with-renderer' },
-          { text: 'With TinyRobot', link: '/en/guide/renderer-with-tiny-robot' },
         ],
       },
       {

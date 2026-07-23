@@ -40,16 +40,6 @@ const TopIconsRenderer = topRenderer();
 
 addIcons(IconAi);
 
-const framework = ref('Vue'); // Angular
-
-if (location.search.includes('framework=angular')) {
-  framework.value = 'Angular';
-}
-
-if (location.search.includes('framework=react')) {
-  framework.value = 'React';
-}
-
 // 通过环境变量控制是否启用模板功能，默认不启用
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 
@@ -63,7 +53,10 @@ const {
   theme: cacheTheme,
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
+  framework: cacheFramework,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
 
 /**
  * Normalizes cached custom examples for the id-based contract.
@@ -100,15 +93,18 @@ const normalizeCustomExamples = (examples) => {
 const isOpen = ref(true);
 const llmConfig = reactive(
   cacheLLmConfig || {
-    temperature: 0.5,
-    model: 'qwen3-coder-30b-a3b-instruct',
-    promptVariant: 'standard',
-    mcpServers: [],
-    agents: [],
-    skills: [],
-    promptList: [],
-  },
-);
+  temperature: 0.5,
+  model: 'qwen3-coder-30b-a3b-instruct',
+  promptVariant: 'standard',
+  mcpServers: [],
+  agents: [],
+  skills: [],
+  openApiTools: [],
+  promptList: [],
+});
+if (!Array.isArray(llmConfig.openApiTools)) {
+  llmConfig.openApiTools = [];
+}
 const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 
 const chatConfig = reactive(
@@ -165,7 +161,7 @@ watch(
 );
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -174,6 +170,7 @@ watch(
         llmConfig,
         chatConfig,
         customExamples: customExamples.value,
+        framework: framework.value,
       }),
     );
   },

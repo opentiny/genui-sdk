@@ -18,7 +18,6 @@ export const zhThemeConfig: DefaultTheme.Config = {
         items: [
           { text: '快速开始', link: '/guide/quick-start' },
           { text: '使用 Renderer 组件', link: '/guide/start-with-renderer' },
-          { text: '搭配 TinyRobot 使用', link: '/guide/renderer-with-tiny-robot' },
         ],
       },
       {

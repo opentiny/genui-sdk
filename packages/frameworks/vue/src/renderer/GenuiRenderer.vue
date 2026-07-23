@@ -34,7 +34,9 @@ const customSettings = inject(RENDERER_SETTINGS_KEY, {});
 
 watch(() => props.customComponents, (newVal) => {
   // TODO:  1、materials.components更新后，customComponents会丢失 2、旧的customComponents没有被移除
-  Object.assign(materials.components, newVal);
+  if (materials.components) {
+    Object.assign(materials.components, newVal);
+  }
 }, { immediate: true });
 
 provide(RENDERER_SETTINGS_KEY, {

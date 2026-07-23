@@ -22,6 +22,7 @@ import {
 } from './a2a-tools/index.js';
 import type { PlaygroundAgentConfig } from './a2a-tools/index.js';
 import { buildSkillTools } from './skills/index.js';
+import { buildOpenApiTools, previewOpenApiTools } from './openapi-tools/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
 
@@ -235,6 +236,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     temperature: playgroundConfig.temperature || 0.3,
     agents,
     skills: playgroundConfig.skills || [],
+    openApiTools: playgroundConfig.openApiTools || [],
     promptVariant: playgroundConfig.promptVariant,
   };
 };
@@ -269,7 +271,7 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt, agents, skills, promptVariant } = playgroundConfig;
+    const { mcpServers, framework, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -280,15 +282,18 @@ export function createChatGenui() {
 
     const llmConfig = await generateLlmConfig(llmConfigParams);
     const { model, temperature, specificPrompt, provider, extraBody } = llmConfig;
+    const externalMcpServers = mcpServers.filter((s) => s.enabled);
     const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
-      mcpServers.filter((s) => s.enabled),
+      externalMcpServers,
       abort.signal,
     );
+    const openApiBuiltTools = await buildOpenApiTools(openApiTools);
     const agentTools = buildAgentTools(agents, abort.signal);
     const { tools: skillTools, systemPrompt: skillPrompt } = buildSkillTools(skills);
     const duplicateToolNames = new Set<string>();
     const seenToolNames = new Set<string>();
     for (const name of [
+      ...Object.keys(openApiBuiltTools),
       ...Object.keys(mcpTools),
       ...Object.keys(agentTools),
       ...Object.keys(skillTools),
@@ -299,7 +304,7 @@ export function createChatGenui() {
     if (duplicateToolNames.size) {
       console.warn(`Duplicate tool names detected: ${[...duplicateToolNames].join(', ')}`);
     }
-    const tools = { ...mcpTools, ...agentTools, ...skillTools };
+    const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools };
 
     const maxSteps = 30;
     let hasError = false; // 标记是否已经处理了错误
@@ -435,6 +440,37 @@ export function createChatGenui() {
 
   return { chatGenuiHandler };
 }
+
+export const checkOpenApiToolsHandler = async (req: Request, res: Response) => {
+  try {
+    const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
+    const { openapi, toolNamePrefix } = body;
+    const openApiDocument = openapi?.trim();
+
+    if (!openApiDocument || typeof openApiDocument !== 'string') {
+      res.send({
+        code: 500,
+        message: 'openapi is required',
+      });
+      return;
+    }
+
+    const data = await previewOpenApiTools({
+      openapi: openApiDocument,
+      toolNamePrefix,
+    });
+
+    res.send({
+      code: 200,
+      data,
+    });
+  } catch (error: any) {
+    res.send({
+      code: 500,
+      message: error.message || String(error),
+    });
+  }
+};
 
 export const checkMcpHandler = async (req: Request, res: Response) => {
   const abort = new AbortController();

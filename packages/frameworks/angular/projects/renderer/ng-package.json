@@ -5,6 +5,7 @@
     "entryFile": "src/public-api.ts"
   },
   "allowedNonPeerDependencies": [
+    "@opentiny/genui-sdk-core",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng"
   ]
 }
