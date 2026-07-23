@@ -3,6 +3,7 @@ import { THEME_PREVIEW_COLOR_PRESETS } from '../theme-preview';
 export const FRAMEWORK_OPTIONS = [
   { name: 'Vue', icon: 'V' },
   { name: 'Angular', icon: 'A' },
+  { name: 'React', icon: 'R' },
 ] as const;
 
 export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'ElementUI'] as const;

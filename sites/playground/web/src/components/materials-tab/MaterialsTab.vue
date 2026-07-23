@@ -21,9 +21,9 @@ const componentLib = ref('TinyVue');
 
 const setFramework = (name) => {
   framework.value = name;
-  // Angular 不支持主题切换, 默认设置为 light 主题
-  if(name === 'Angular') {
-    emit('update:theme', MATERIAL_THEME_OPTIONS[0].value)
+  // 其他框架不支持主题切换，默认设置为light
+  if (name !== 'Vue') {
+    emit('update:theme', MATERIAL_THEME_OPTIONS[0].value);
   }
 };
 </script>

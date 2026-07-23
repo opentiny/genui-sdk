@@ -56,7 +56,9 @@ const {
   framework: cacheFramework,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
+const framework = ref(
+  ['Angular', 'React'].includes(cacheFramework) ? cacheFramework : 'Vue',
+);
 
 /**
  * Normalizes cached custom examples for the id-based contract.
