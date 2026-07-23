@@ -4,7 +4,6 @@ import { parseExpression, isJSExpression, newFn } from './parse-expression';
 export type PageContextValue = Record<string, unknown> & {
   state?: Record<string, unknown>;
   refs?: Record<string, unknown>;
-  methods?: Record<string, (...args: unknown[]) => unknown>;
   cssScopeId?: string;
   callAction?: (name: string, params?: unknown) => unknown;
   __pageNotify?: () => void;

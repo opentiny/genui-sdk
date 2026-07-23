@@ -6,13 +6,14 @@ export type PageContextApi = {
   setContext: (ctx: Partial<PageContextValue>, clear?: boolean) => void;
   setState: (data: Record<string, unknown>, clear?: boolean) => void;
   subscribe: (listener: () => void) => () => void;
+  methods: Record<string, (...args: unknown[]) => unknown>;
 };
 
 export function createPageContext(): PageContextApi {
+  const methods: Record<string, (...args: unknown[]) => unknown> = {};
   let contextValue: PageContextValue = {
     state: {},
     refs: {},
-    methods: {},
     cssScopeId: `data-schema-${Math.random().toString(36).slice(2, 8)}`,
   };
   const listeners = new Set<() => void>();
@@ -33,7 +34,6 @@ export function createPageContext(): PageContextApi {
       contextValue = {
         state: {},
         refs: {},
-        methods: {},
         cssScopeId: contextValue.cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`,
         ...ctx,
       };
@@ -58,5 +58,6 @@ export function createPageContext(): PageContextApi {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
+    methods,
   };
 }

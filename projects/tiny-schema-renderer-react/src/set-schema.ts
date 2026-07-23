@@ -8,7 +8,7 @@ function reset(obj: Record<string, unknown>) {
 }
 
 export function setMethods(data: Record<string, unknown> = {}, page: PageContextApi, clear?: boolean) {
-  const methods = (page.getContext().methods ?? {}) as Record<string, (...args: unknown[]) => unknown>;
+  const { methods } = page;
   if (clear) {
     reset(methods as unknown as Record<string, unknown>);
   }
@@ -17,10 +17,13 @@ export function setMethods(data: Record<string, unknown> = {}, page: PageContext
     methods,
     Object.fromEntries(
       Object.keys(data).map((key) => {
-        const parsed = parseData(data[key], {}, page.getContext()) as (...args: unknown[]) => unknown;
+        const parsed = parseData(data[key], {}, page.getContext());
         return [
           key,
           (...args: unknown[]) => {
+            if (typeof parsed !== 'function') {
+              return undefined;
+            }
             const result = parsed.call(page.getContext(), ...args);
             page.getContext().__pageNotify?.();
             return result;
@@ -30,7 +33,7 @@ export function setMethods(data: Record<string, unknown> = {}, page: PageContext
     ),
   );
 
-  page.setContext({ methods, ...methods });
+  page.setContext({ ...methods });
 }
 
 export function setState(data: Record<string, unknown> | undefined, page: PageContextApi, clear?: boolean) {
@@ -57,7 +60,7 @@ export function setRefs(data: Record<string, unknown> | undefined, page: PageCon
 
 export function setSchema(schema: CardSchema, page: PageContextApi) {
   const cssScopeId = page.getContext().cssScopeId;
-  page.setContext({ state: {}, refs: {}, methods: {}, cssScopeId }, true);
+  page.setContext({ state: {}, refs: {}, cssScopeId }, true);
 
   setMethods(schema.methods as Record<string, unknown> | undefined, page, true);
   setState(schema.state as Record<string, unknown> | undefined, page, true);
