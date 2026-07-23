@@ -179,6 +179,7 @@ export class GenuiRenderer implements OnInit {
   }
 
   protected updateCustomComponents(customComponents: Record<string, Type<any>>) {
+    // TODO: 旧的 customComponents 没有从全局 Mapper 中移除（更新/卸载后残留）
     Object.keys(customComponents).forEach(key => {
       Mapper[key] = customComponents[key];
     });

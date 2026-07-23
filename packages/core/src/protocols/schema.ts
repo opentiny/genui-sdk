@@ -15,7 +15,7 @@ export interface Node {
   id?: string;
   componentName: string;
   props?: Record<string, any> & { columns?: { slots?: Record<string, any> }[] };
-  children?: Node[];
+  children?: Node[] | string;
   componentType?: 'Block' | 'PageStart' | 'PageSection';
   slot?: string | Record<string, any>;
   params?: string[];

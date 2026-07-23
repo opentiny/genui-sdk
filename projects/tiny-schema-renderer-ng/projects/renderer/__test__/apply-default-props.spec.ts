@@ -1,4 +1,5 @@
-import { applyDefaultPropsToProps, type DefaultPropsMap, type PropsValue } from '../src/apply-default-props';
+import { applyDefaultPropsToProps, type PropsValue } from '../src/apply-default-props';
+import type { DefaultPropsMap } from '../src/renderer-materials';
 
 const COMPONENT = 'Select';
 

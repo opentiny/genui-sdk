@@ -1,29 +1,44 @@
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
+import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
+import { t } from '../../../i18n';
 import { findComponentPath, getPositionRelativePath, mergePath } from './schema-path';
 
-/**
- * 格式化 jsonPatch
- * @param currentSchema 当前 schema
- * @param value jsonPatch
- * @returns 格式化后的 jsonPatch
- */
-export const formatJsonPatch = (currentSchema: any, value: any) => {
-  let templeSchema = structuredClone(currentSchema);
+export type IFormattedJsonPatchOperation = JsonPatchOp & {
+  id?: string;
+  idToPath?: string | null;
+  relativePath?: string;
+};
+
+function toStandardPatchOp(item: IFormattedJsonPatchOperation): JsonPatchOp {
+  const { id, idToPath, relativePath, ...standardOp } = item;
+  return standardOp as JsonPatchOp;
+}
+
+export function clonePlainJson<T>(value: T | null | undefined): T | null {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+export const formatJsonPatch = (
+  currentSchema: any,
+  value: any[],
+): IFormattedJsonPatchOperation[] => {
+  const templeSchema = clonePlainJson(currentSchema ?? {}) ?? {};
+
   return value.map((originItem: any) => {
-    const item = structuredClone(originItem);
-    // 通过 id 从 currentSchema 中找到对应的组件路径
+    const item = clonePlainJson(originItem) as IFormattedJsonPatchOperation;
     const componentPath = findComponentPath(templeSchema, item.id);
     item.idToPath = componentPath;
 
     if (!componentPath) {
-      // 如果找不到组件路径，返回原 item
-      console.error(`找不到组件路径: ${item.id}`);
+      console.error(t('templateEditor.componentPathNotFound', { id: String(item.id ?? '') }));
       return item;
     }
 
     if (item.op !== 'move') {
       if (item.path) {
-        // 如果 path 不为空，则把组件路径拼接到 path 前面
         item.relativePath = item.path;
         item.path = componentPath === '/' ? item.path : `${componentPath}${item.path}`;
       } else {
@@ -32,21 +47,50 @@ export const formatJsonPatch = (currentSchema: any, value: any) => {
     }
 
     if (item.op === 'move') {
-      const { id, position, positionId } = item;
+      const { id, position, positionId } = item as IFormattedJsonPatchOperation & {
+        position?: string;
+        positionId?: string;
+      };
       if (id) {
         item.from = findComponentPath(templeSchema, id);
       }
-      if (position) {
+      if (position && positionId && item.from) {
         const positionPath = findComponentPath(templeSchema, positionId);
-        const relativePath = getPositionRelativePath(position, positionId, positionPath, item.from);
-        item.relativePath = relativePath;
-
-        item.path = positionPath === '/' ? relativePath : mergePath(positionPath, relativePath);
+        if (positionPath) {
+          const relativePath = getPositionRelativePath(position, positionId, positionPath, item.from);
+          item.relativePath = relativePath;
+          item.path = positionPath === '/' ? relativePath : mergePath(positionPath, relativePath);
+        }
       }
     }
 
-    jsonPatchFormatter.patch(templeSchema, [item]);
+    jsonPatchFormatter.patch(templeSchema, [toStandardPatchOp(item)]);
 
     return item;
   });
 };
+
+export function applyJsonPatchOperations(
+  baseline: unknown,
+  operations: unknown[],
+): Record<string, unknown> | null {
+  if (!baseline || !Array.isArray(operations) || operations.length === 0) {
+    return null;
+  }
+
+  const formatted = formatJsonPatch(baseline, operations);
+  const standardOperations = formatted
+    .filter((op) => op.idToPath)
+    .map((op) => toStandardPatchOp(op));
+
+  if (standardOperations.length === 0) {
+    return null;
+  }
+
+  const target = clonePlainJson(baseline as Record<string, unknown>);
+  if (!target) {
+    return null;
+  }
+  jsonPatchFormatter.patch(target, standardOperations);
+  return target;
+}

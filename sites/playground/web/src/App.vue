@@ -1,7 +1,7 @@
 <script setup>
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import {
   ref,
   watch,
@@ -15,7 +15,6 @@ import {
   shallowRef,
 } from 'vue';
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
@@ -31,14 +30,14 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
+import { getMixedContentHandler } from './ng-renderer/content-response-handler';
+import { AngularSchemaCardItemRenderer } from './ng-renderer';
 import { locale, t } from './i18n';
 
 const { topRenderer, addIcons } = useIcon();
 const TopIconsRenderer = topRenderer();
 
 addIcons(IconAi);
-
-let framework = 'Vue'; // Angular
 
 // 通过环境变量控制是否启用模板功能，默认不启用
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
@@ -47,25 +46,16 @@ const GenuiTemplate = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplate.vue'))
   : shallowRef(null);
 
-/**
- * tiny-schema-renderer-ng
- */
-
-if (location.search.includes('framework=angular')) {
-  const SchemaRendererNgAdapter = defineAsyncComponent(() =>
-    import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
-  );
-  provide(GENUI_RENDERER, SchemaRendererNgAdapter);
-  framework = 'Angular';
-}
-
 const STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_CONFIG';
 const {
   llmConfig: cacheLLmConfig,
   theme: cacheTheme,
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
+  framework: cacheFramework,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
 
 /**
  * Normalizes cached custom examples for the id-based contract.
@@ -102,14 +92,18 @@ const normalizeCustomExamples = (examples) => {
 const isOpen = ref(true);
 const llmConfig = reactive(
   cacheLLmConfig || {
-    temperature: 0.5,
-    model: 'qwen3-coder-30b-a3b-instruct',
-    mcpServers: [],
-    agents: [],
-    skills: [],
-    promptList: [],
-  },
-);
+  temperature: 0.5,
+  model: 'qwen3-coder-30b-a3b-instruct',
+  promptVariant: 'standard',
+  mcpServers: [],
+  agents: [],
+  skills: [],
+  openApiTools: [],
+  promptList: [],
+});
+if (!Array.isArray(llmConfig.openApiTools)) {
+  llmConfig.openApiTools = [];
+}
 const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 
 const chatConfig = reactive(
@@ -166,7 +160,7 @@ watch(
 );
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -175,6 +169,7 @@ watch(
         llmConfig,
         chatConfig,
         customExamples: customExamples.value,
+        framework: framework.value,
       }),
     );
   },
@@ -199,7 +194,21 @@ const insertHandlersAfterName = (handlers, insertHandlers, name) => {
     handlers.splice(index + 1, 0, ...insertHandlers);
   }
   return handlers;
-};
+}
+const insertHandlersBeforeName = (handlers, insertHandlers, name) => {
+  const index = handlers.findIndex(handler => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index, 0, ...insertHandlers);
+  }
+  return handlers;
+}
+const replaceHandlers = (handlers, replaceHandlers, name) => {
+  const index = handlers.findIndex(handler => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index, 1, ...replaceHandlers);
+  }
+  return handlers;
+}
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
@@ -211,6 +220,11 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
+    const newContentHandler = getMixedContentHandler(contentHandler, framework);
+    replaceHandlers(defaultResponseHandlers, [
+      newContentHandler,
+    ], 'content');
+
     const newResponseHandlers = [
       ...defaultResponseHandlers,
       getContinueGeneratingHandler(messageEngine),
@@ -223,6 +237,8 @@ watch(chat, (instance) => {
       'init',
     );
     instance.setResponseHandlers(newResponseHandlers);
+
+    instance.setMessageRenderer('schema-card-angular', AngularSchemaCardItemRenderer);
   }
 });
 
@@ -236,6 +252,7 @@ const playgroundContext = {
   importConversations,
   exportConversations,
   customExamples,
+  framework,
 };
 
 provide('playgroundContext', playgroundContext);
@@ -299,7 +316,7 @@ const roles = computed(() => {
 
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
-  framework,
+  framework: framework.value,
 }));
 
 /**
@@ -381,7 +398,6 @@ onUnmounted(() => {
           :theme="theme"
           :locale="locale"
           :materials="materials"
-          :renderer-config="rendererConfig"
           style="height: 100%"
         >
           <GenuiChat

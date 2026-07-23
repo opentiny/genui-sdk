@@ -1,28 +1,29 @@
 <script setup lang="ts">
-import { ref, watch, computed, h, inject, onMounted, onUnmounted, toRaw, provide, type Ref } from 'vue';
+import { ref, watch, computed, h, inject, onMounted, onUnmounted, provide, type Ref } from 'vue';
 import '@opentiny/tiny-robot/dist/style.css';
-import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
-import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
-import { DeltaPatcher } from '@opentiny/genui-sdk-core';
 import { TrBubbleList, TrSender, TrBubbleProvider, useTheme } from '@opentiny/tiny-robot';
-import type { BubbleMessage } from '@opentiny/tiny-robot';
+import type { BubbleMessage, BubbleRoleConfig } from '@opentiny/tiny-robot';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import { requiredCompleteFieldSelectors, scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
-import type { INotificationPayload, IMessageItem, IJsonPatchMessageItem, ISchemaCardMessageItem } from './chat.types';
+import type {
+  INotificationPayload,
+  IMessageItem,
+  IJsonPatchMessageItem,
+  ISchemaCardMessageItem,
+  ISchemaManualMessageItem,
+} from './chat.types';
 import {
-  textToJson,
-  validateJsonPatch,
-  PARSE_PARTIAL_JSON_STATE,
-  formatJsonPatch,
-  generateIdForComponents,
+  finalizePendingSchemaCard,
+  getLastUserMessage,
+  isManualSchemaSaveMessage,
 } from './template-chat-utils';
-import { formatDate, generateId, stripSchemaFieldsWhileStreaming } from '../../utils';
-import useTemplate from './useTemplate';
-import TemplateAssistantFooter from './TemplateAssistantFooter.vue';
-import { emitter } from './template-chat-event-emitter';
+import { generateId } from '../../utils';
+import { useTemplateContext } from './composables';
+import AssistantFooter from './TemplateAssistantFooter.vue';
 import useIcon from '../../use-icon';
 import { t } from '../../i18n';
 import { templateContentRendererMatches, templateContentResolver } from './contentRendererMatches';
@@ -31,29 +32,19 @@ import { TEMPLATE_CHAT_CONTEXT } from './templateChatContext';
 const { addIcons } = useIcon();
 addIcons(IconAi, IconUser, IconArrowDown);
 
-defineProps<{
-  messages?: unknown[];
+const props = defineProps<{
+  messages?: IMessage[];
 }>();
-
-const emit = defineEmits(['schema-version-toggle']);
 
 const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
-const errorMessagesMap = ref<Map<string, string>>(new Map());
-
+const { schema, conversation, versionControl, stream, emitter, actions } = useTemplateContext();
 const {
-  messageManager,
-  templateConversationState,
-  currentSchema,
-  currentPreviewSchema,
-  currentCardId,
-  setCurrentSchema,
-  setCurrentPreviewSchema,
-  updateTemplateTitle,
-  setCurrentCardId,
-  updateConversationLastSchema,
-} = useTemplate();
+  errorMessagesMap,
+  handleSchemaJsonChanged,
+  resetLastPreviewSchema,
+} = stream;
 
 watch(
   () => TinyGenuiConfig?.value?.theme,
@@ -64,36 +55,23 @@ watch(
       setColorMode('light');
     }
   },
-  { immediate: true },
+  {
+    immediate: true,
+  },
 );
 
-const messages = computed<ChatMessage[]>(
-  () => (messageManager.value?.messages.value ?? []) as ChatMessage[],
-);
-const isProcessing = computed(() => messageManager.value?.isProcessing.value ?? false);
+const messageManager = computed(() => conversation.messageManager ?? null);
+const messages = computed(() => (conversation.messages ?? []) as ChatMessage[]);
+const isProcessing = computed(() => messageManager.value?.isProcessing?.value ?? false);
 
 provide(TEMPLATE_CHAT_CONTEXT, {
   prevSchema,
   errorMessagesMap,
-  allMessages: messages,
-  onSchemaVersionToggle: (schema: Record<string, unknown>, cardId: string) => {
-    emit('schema-version-toggle', schema, cardId);
+  allMessages: messages as Ref<BubbleMessage[]>,
+  onSchemaVersionToggle: (schemaValue: Record<string, unknown>, cardId: string) => {
+    actions.handleSchemaVersionToggle(schemaValue, cardId);
   },
 });
-
-const handleSchemaJsonChanged = (event: {
-  type: 'schema-card' | 'json-patch';
-  cardId: string;
-  content: string;
-  newMessage: boolean;
-}) => {
-  const { type, cardId, content, newMessage } = event;
-  if (type === 'schema-card') {
-    schemaCardRenderer({ content, cardId, newMessage });
-  } else if (type === 'json-patch') {
-    jsonPatchRenderer({ content, cardId, newMessage });
-  }
-};
 
 onMounted(() => {
   emitter.on('schema-json-changed', handleSchemaJsonChanged);
@@ -102,135 +80,56 @@ onUnmounted(() => {
   emitter.off('schema-json-changed', handleSchemaJsonChanged);
 });
 
-const lastPreviewSchema = ref<any>(null);
-
-const deltaPatcher = new DeltaPatcher({
-  requiredCompleteFieldSelectors,
-});
-
-const schemaCardRenderer = async (props: { content: string; cardId: string; newMessage?: boolean }) => {
-  try {
-    const { content, cardId } = props;
-
-    if (cardId !== currentCardId.value) {
-      return;
-    }
-
-    let json = null;
-    let isCompleted = true;
-    const target = {};
-    if (typeof content === 'string' && content) {
-      const { value, state } = await textToJson(content);
-      isCompleted = state === PARSE_PARTIAL_JSON_STATE.SUCCESSFUL_PARSE;
-      if (!value) {
-        return;
-      }
-      json = stripSchemaFieldsWhileStreaming(value as Record<string, unknown>, isCompleted);
-    }
-    deltaPatcher.patchWithDelta(target, json, isCompleted);
-    const schemaWithId = generateIdForComponents(target);
-    setCurrentPreviewSchema(schemaWithId);
-  } catch (error: any) {
-    console.error('schemaCardRenderer error ===>', error);
-    errorMessagesMap.value.set(props.cardId, error.message);
-  }
+const getCardMessageByIndex = (index: number) => {
+  return (
+    (messages.value[index]?.messages as IMessageItem[] | undefined)?.find(
+      (
+        message,
+      ): message is IJsonPatchMessageItem | ISchemaCardMessageItem | ISchemaManualMessageItem =>
+        message.type === 'schema-card'
+        || message.type === 'json-patch'
+        || message.type === 'schema-manual',
+    ) || ({} as IJsonPatchMessageItem | ISchemaCardMessageItem)
+  );
 };
-
-const isStreamOperation = (operation: any) =>
-  (operation.op === 'add' || operation.op === 'replace') &&
-  typeof operation.id === 'string' &&
-  operation.id !== '' &&
-  typeof operation.path === 'string' &&
-  operation.path !== '' &&
-  'value' in operation;
-
-const jsonPatchRenderer = async (props: { content: string; cardId: string; newMessage: boolean }) => {
-  try {
-    const { content, cardId, newMessage } = props;
-
-    if (cardId !== currentCardId.value) {
-      return;
-    }
-    if (newMessage) {
-      lastPreviewSchema.value = JSON.parse(JSON.stringify(currentPreviewSchema.value));
-    }
-
-    const { value, state } = await textToJson(content);
-    if (state !== 'successful-parse' && state !== 'repaired-parse') {
-      return;
-    }
-    const isComplete = state === 'successful-parse';
-    let lastOperationComplete = true;
-
-    const valid = validateJsonPatch(value as any);
-    if (!valid) {
-      return;
-    }
-
-    const operations = value as any[];
-    if (!isComplete) {
-      const lastOperation = operations[operations.length - 1];
-      if (!isStreamOperation(lastOperation)) {
-        operations.pop();
-        lastOperationComplete = true;
-      } else {
-        lastOperationComplete = false;
-      }
-    }
-    if (operations.length === 0) {
-      return;
-    }
-
-    const newOperations = formatJsonPatch(toRaw(lastPreviewSchema.value), operations);
-    if (newOperations.length === 0) {
-      return;
-    }
-
-    const standardOperations: JsonPatchOp[] = newOperations.map((op) => {
-      const { id, idToPath, relativePath, ...standardOp } = op as any;
-      return standardOp as JsonPatchOp;
-    });
-
-    const patchBaseline = lastPreviewSchema.value ?? currentSchema.value;
-    let targetSchema = JSON.parse(JSON.stringify(patchBaseline)) as Record<string, unknown>;
-    targetSchema = stripSchemaFieldsWhileStreaming(targetSchema, isComplete);
-    jsonPatchFormatter.patch(targetSchema, standardOperations);
-    targetSchema = stripSchemaFieldsWhileStreaming(targetSchema, isComplete);
-    setCurrentPreviewSchema(generateIdForComponents(targetSchema), isComplete || lastOperationComplete);
-  } catch (error: any) {
-    errorMessagesMap.value.set(props.cardId, error.message);
-    console.error('jsonPatch error ===>', error);
-  }
-};
-
-const getCardMessageByIndex = (index: number) =>
-  (messages.value[index]?.messages as IMessageItem[] | undefined)?.find(
-    (message): message is IJsonPatchMessageItem | ISchemaCardMessageItem =>
-      message.type === 'schema-card' || message.type === 'json-patch',
-  ) || ({} as IJsonPatchMessageItem | ISchemaCardMessageItem);
 
 const handleRefresh = ({ index }: { index: number }) => {
-  const manager = messageManager.value;
-  if (!manager) {
+  if (!messageManager.value) {
     return;
   }
-
+  const { messages: mgrMessages, send } = messageManager.value;
   const cardMessage = getCardMessageByIndex(index);
+
   prevSchema.value = cardMessage?.prevSchema ?? '';
-  let parsedSchema = null;
-  try {
-    parsedSchema = JSON.parse(prevSchema.value);
-  } catch {
-    parsedSchema = null;
+
+  if (cardMessage?.type === 'schema-card') {
+    schema.setCurrentSchema(null);
+    schema.setCurrentPreviewSchema({});
+    resetLastPreviewSchema({});
+  } else {
+    let parsedSchema = null;
+    try {
+      parsedSchema = JSON.parse(prevSchema.value);
+    } catch {
+      parsedSchema = null;
+    }
+    if (parsedSchema) {
+      schema.setCurrentSchema(parsedSchema);
+      schema.setCurrentPreviewSchema(parsedSchema);
+      resetLastPreviewSchema(JSON.parse(JSON.stringify(parsedSchema)));
+    }
   }
-  if (parsedSchema) {
-    setCurrentSchema(parsedSchema);
-    setCurrentPreviewSchema(parsedSchema);
+
+  mgrMessages.value = mgrMessages.value.slice(0, index);
+
+  const lastUserMessage = getLastUserMessage(mgrMessages.value as ChatMessage[]);
+  if (lastUserMessage && !lastUserMessage.messageId) {
+    lastUserMessage.messageId = generateId();
   }
-  manager.messages.value = manager.messages.value.slice(0, index);
-  const lastMsg = manager.messages.value[manager.messages.value.length - 1] as ChatMessage & { messageId?: string };
-  setCurrentCardId(lastMsg?.messageId ?? '');
-  void manager.send();
+  schema.setCurrentCardId(String(lastUserMessage?.messageId ?? generateId()));
+
+  versionControl.onSchemaRefresh();
+  send();
 };
 
 const handleCopy = async ({ index }: { index: number }) => {
@@ -244,10 +143,11 @@ const handleCopy = async ({ index }: { index: number }) => {
 const buildAssistantFooterProps = (slotProps: {
   messages: BubbleMessage[];
   messageIndexes: number[];
+  role?: string;
 }) => {
   const index = slotProps.messageIndexes[slotProps.messageIndexes.length - 1];
   const chatMessage = messages.value[index];
-  if (!chatMessage) {
+  if (!chatMessage || isManualSchemaSaveMessage(chatMessage)) {
     return null;
   }
   const isFinished = index !== messages.value.length - 1 || !isProcessing.value;
@@ -256,7 +156,7 @@ const buildAssistantFooterProps = (slotProps: {
     bubbleProps: { role: 'assistant', ...chatMessage },
     isFinished,
     messageManager: messageManager.value!,
-    chatMessage: chatMessage as any,
+    chatMessage: chatMessage as IChatMessage,
   };
 };
 
@@ -273,12 +173,20 @@ const roleConfigs: Record<string, BubbleRoleConfig> = {
 
 const inputMessage = computed({
   get: () => messageManager.value?.inputMessage.value ?? '',
-  set: (value: string) => {
+  set: (v: string) => {
     if (messageManager.value) {
-      messageManager.value.inputMessage.value = value;
+      messageManager.value.inputMessage.value = v;
     }
   },
 });
+
+if (props.messages?.length) {
+  messages.value.splice(0, messages.value.length, ...(props.messages as any));
+}
+
+const messagesContainer: Ref<HTMLElement | undefined> = ref();
+const { scrollToBottom, autoScrollToBottom, isLastMessageInBottom } = scrollEnd(messagesContainer);
+const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
 const showMessages = computed(() => {
   const list = messages.value;
@@ -298,7 +206,7 @@ const showMessages = computed(() => {
 
     if (lastMessage.role === 'assistant') {
       const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
-      const hasLoadingText = existingMessages.some((item) => item?.type === 'loading-text');
+      const hasLoadingText = existingMessages.some((msg) => msg?.type === 'loading-text');
 
       if (!hasLoadingText) {
         return [
@@ -339,50 +247,43 @@ const handleSendMessage = async () => {
   }
 
   const cardId = generateId();
-  setCurrentCardId(cardId);
+  schema.setCurrentCardId(cardId);
 
-  const userMessage: ChatMessage & { messageId: string } = {
+  const userMessage: ChatMessage = {
     role: 'user',
     content: messageContent,
     messageId: cardId,
   };
-
   manager.messages.value.push(userMessage);
 
-  if (manager.messages.value.length === 1) {
-    const currentConversationId = templateConversationState.value?.currentId;
+  if (manager.messages.value.length === 1 && (manager.messages.value[0] as ChatMessage).role === 'user') {
+    const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
-      updateTemplateTitle(currentConversationId, messageContent.substring(0, 20));
+      conversation.updateConversationTitle(currentConversationId, messageContent.substring(0, 20));
     }
   }
 
-  prevSchema.value = JSON.stringify(currentSchema.value);
+  prevSchema.value = JSON.stringify(schema.currentSchema);
   clearInputMessage();
   await manager.send();
   scrollToBottom();
 };
 
-const handleNotification = (event: INotificationPayload) => {
-  if (event.type === 'done') {
-    setCurrentSchema(currentPreviewSchema.value);
-    updateConversationLastSchema(currentSchema.value);
-
-    const lastMessage = messages.value[messages.value.length - 1];
-    const lastMessageCard = (lastMessage as ChatMessage & { messages?: IMessageItem[] })?.messages?.find(
-      (msg) => msg.type === 'schema-card' || msg.type === 'json-patch',
-    );
-
-    if (lastMessageCard) {
-      lastMessageCard.schema = JSON.stringify(currentSchema.value);
-      lastMessageCard.prevSchema = prevSchema.value || '';
-      lastMessageCard.generatedTime = formatDate(new Date());
-    }
-  }
+const finalizeStreamingSchemaCard = () => {
+  finalizePendingSchemaCard(messages.value, {
+    cardId: schema.currentCardId,
+    schema: schema.currentPreviewSchema ?? schema.currentSchema,
+    prevSchema: prevSchema.value || '',
+  });
 };
 
-const messagesContainer: Ref<HTMLElement | undefined> = ref();
-const { scrollToBottom, autoScrollToBottom, isLastMessageInBottom } = scrollEnd(messagesContainer);
-const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
+const handleNotification = (event: INotificationPayload) => {
+  if (event.type === 'done') {
+    schema.setCurrentSchema(schema.currentPreviewSchema);
+    finalizeStreamingSchemaCard();
+    conversation.updateConversationLastSchema(schema.currentSchema);
+  }
+};
 
 watch(() => messages.value, throttledScrollToBottom, { deep: true });
 
@@ -407,7 +308,7 @@ onUnmounted(() => {
           auto-scroll
         >
           <template #after="slotProps">
-            <TemplateAssistantFooter
+            <AssistantFooter
               v-if="slotProps.role === 'assistant' && buildAssistantFooterProps(slotProps)"
               v-bind="buildAssistantFooterProps(slotProps)!"
               @refresh="handleRefresh"
@@ -427,7 +328,7 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
-        :placeholder="isProcessing ? t('loading.thinking') : t('placeholder.input')"
+        :placeholder="isProcessing ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="isProcessing"
         :show-word-limit="true"
@@ -470,6 +371,10 @@ onUnmounted(() => {
 .messages-container {
   flex: 1;
   overflow: auto;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+  }
 }
 
 :deep(.tr-bubble__loading) {
@@ -496,11 +401,6 @@ onUnmounted(() => {
   .tr-bubble__box:has([data-type='schema-card']) {
     width: 100%;
     max-width: 100%;
-    border-radius: 0;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
   }
 }
 

@@ -19,11 +19,14 @@ interface ImageFeatures {
 
 ```vue {10-16}
 <template>
-  <GenuiChat :url="url" :features="modelFeatures" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" :features="modelFeatures" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 

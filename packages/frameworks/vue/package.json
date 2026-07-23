@@ -20,28 +20,36 @@
     "generative-ui",
     "stream-ui"
   ],
-  "main": "output/dist/index.js",
-  "types": "output/dist/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./output/dist/index.d.ts",
-      "import": "./output/dist/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     },
     "./chat": {
-      "types": "./output/dist/chat.d.ts",
-      "import": "./output/dist/chat.js"
+      "types": "./dist/chat.d.ts",
+      "import": "./dist/chat.js"
+    },
+    "./legacy-chat": {
+      "types": "./dist/legacy-chat.d.ts",
+      "import": "./dist/legacy-chat.js"
     },
     "./renderer": {
-      "types": "./output/dist/renderer.d.ts",
-      "import": "./output/dist/renderer.js"
+      "types": "./dist/renderer.d.ts",
+      "import": "./dist/renderer.js"
+    },
+    "./legacy-renderer": {
+      "types": "./dist/legacy-renderer.d.ts",
+      "import": "./dist/legacy-renderer.js"
     },
     "./config-provider": {
-      "types": "./output/dist/config-provider.d.ts",
-      "import": "./output/dist/config-provider.js"
+      "types": "./dist/config-provider.d.ts",
+      "import": "./dist/config-provider.js"
     },
     "./transform-jsx": {
-      "types": "./output/dist/transform-jsx.d.ts",
-      "import": "./output/dist/transform-jsx.js"
+      "types": "./dist/transform-jsx.d.ts",
+      "import": "./dist/transform-jsx.js"
     }
   },
   "type": "module",
@@ -51,13 +59,14 @@
   ],
   "scripts": {
     "build": "vite build",
-    "postbuild": "tsx scripts/postbuild.ts",
     "analyze": "vite build --mode analyze",
     "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build && pnpm -F @opentiny/tiny-schema-renderer build",
     "build:lib:npm": "pnpm build",
     "test": "vitest"
   },
   "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/tiny-robot": "0.4.1",
     "@opentiny/tiny-robot-kit": "0.4.1",
     "@opentiny/tiny-robot-svgs": "0.4.1",
@@ -67,52 +76,12 @@
     "@opentiny/vue-theme": "^3.28.0",
     "uuid": "^11.1.0",
     "vue": "^3.5.13",
-    "@opentiny/vue-huicharts-line": "^3.28.0",
-    "@opentiny/vue-huicharts-histogram": "^3.28.0",
-    "@opentiny/vue-huicharts-bar": "^3.28.0",
-    "@opentiny/vue-huicharts-radar": "^3.28.0",
-    "@opentiny/vue-huicharts-ring": "^3.28.0",
-    "@opentiny/vue-huicharts-pie": "^3.28.0",
-    "@opentiny/vue-huicharts-funnel": "^3.28.0",
-    "@opentiny/vue-huicharts-scatter": "^3.28.0",
-    "@opentiny/vue-huicharts-waterfall": "^3.28.0",
-    "@opentiny/vue-huicharts-gauge": "^3.28.0",
-    "@opentiny/vue-huicharts-graph": "^3.28.0",
-    "@opentiny/vue-huicharts-process": "^3.28.0",
-    "@opentiny/vue-carousel": "^3.28.0",
-    "@opentiny/vue-carousel-item": "^3.28.0",
-    "@opentiny/vue-checkbox-button": "^3.28.0",
-    "@opentiny/vue-checkbox-group": "^3.28.0",
-    "@opentiny/vue-col": "^3.28.0",
-    "@opentiny/vue-date-picker": "^3.28.0",
-    "@opentiny/vue-layout": "^3.28.0",
-    "@opentiny/vue-row": "^3.28.0",
-    "@opentiny/vue-search": "^3.28.0",
-    "@opentiny/vue-select": "^3.28.0",
-    "@opentiny/vue-transfer": "^3.28.0",
-    "@opentiny/vue-button": "^3.28.0",
-    "@opentiny/vue-grid": "^3.28.0",
-    "@opentiny/vue-form": "^3.28.0",
-    "@opentiny/vue-form-item": "^3.28.0",
-    "@opentiny/vue-input": "^3.28.0",
-    "@opentiny/vue-notify": "^3.28.0",
-    "@opentiny/vue-card": "^3.28.0",
-    "@opentiny/vue-checkbox": "^3.28.0",
-    "@opentiny/vue-numeric": "^3.28.0",
-    "@opentiny/vue-radio": "^3.28.0",
-    "@opentiny/vue-switch": "^3.28.0",
-    "@opentiny/vue-tabs": "^3.28.0",
-    "@opentiny/vue-tab-item": "^3.28.0",
-    "@opentiny/vue-tree": "^3.28.0",
-    "@opentiny/vue-radio-group": "^3.28.0",
     "@opentiny/tiny-engine-builtin-component": "^2.6.0",
     "dompurify": "^3.3.1",
     "markdown-it": "^14.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.0",
-    "@opentiny/genui-sdk-core": "workspace:*",
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/tiny-schema-renderer": "workspace:*",
     "rollup-plugin-visualizer": "^6.0.5",
     "vite-plugin-css-injected-by-js": "^3.5.2",

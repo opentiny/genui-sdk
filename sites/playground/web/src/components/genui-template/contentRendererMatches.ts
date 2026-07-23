@@ -37,6 +37,11 @@ export const templateContentRendererMatches: BubbleContentRendererMatch[] = [
   },
   {
     priority: BubbleRendererMatchPriority.NORMAL,
+    find: (_message, content) => content?.type === 'schema-manual',
+    renderer: markRaw(SchemaCardItemRenderer),
+  },
+  {
+    priority: BubbleRendererMatchPriority.NORMAL,
     find: (_message, content) => content?.type === 'markdown',
     renderer: markRaw(BubbleRenderers.Markdown),
   },

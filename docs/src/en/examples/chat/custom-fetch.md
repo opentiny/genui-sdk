@@ -22,11 +22,14 @@ Pass a custom fetch function via the `customFetch` prop:
 
 ```vue
 <template>
-  <GenuiChat :url="url" model="deepseek-v3.2" :customFetch="customFetch" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" model="deepseek-v3.2" :customFetch="customFetch" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import type { CustomFetch } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
@@ -366,13 +369,16 @@ Finally, use the custom `customFetch` in a Vue component:
 
 ```vue
 <template>
-  <div class="app-container">
-    <GenuiChat :customFetch="defaultCustomFetch" model="deepseek-v3.2" :temperature="0.5" :chatConfig="chatConfig" />
-  </div>
+  <GenuiConfigProvider :materials="materials">
+    <div class="app-container">
+      <GenuiChat :customFetch="defaultCustomFetch" model="deepseek-v3.2" :temperature="0.5" :chatConfig="chatConfig" />
+    </div>
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { defaultCustomFetch } from './api/custom-fetch';
 
 const chatConfig = {

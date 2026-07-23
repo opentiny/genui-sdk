@@ -7,15 +7,15 @@
 :::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 ::::
 
@@ -55,12 +55,14 @@ export function createChatResponseProvider() {
 
 Schema 分片解析可放在 `onCompletionChunk`（与 `GenuiChat` 内部 `genuiStreamHandler` 思路一致）。完整解析逻辑见 SDK 源码 `chat/genuiStreamHandler.ts`；下方示例仅演示接入方式。
 
-然后在组件中使用 `useConversation` + `GenuiRenderer`：
+然后在组件中使用 `useConversation` + `GenuiRenderer`，并通过 `GenuiConfigProvider` 注入物料：
 
 ```vue
 <script setup lang="ts">
 import { computed, h, ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
 import { useConversation } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -133,26 +135,28 @@ const roleConfigs = {
 </script>
 
 <template>
-  <div class="chat-container">
-    <div class="messages-container">
-      <TrBubbleProvider :content-renderers="messageRenderers">
-        <TrBubbleList
-          :messages="messages"
-          :role-configs="roleConfigs"
-          content-render-mode="split"
+  <GenuiConfigProvider :materials="materials">
+    <div class="chat-container">
+      <div class="messages-container">
+        <TrBubbleProvider :content-renderers="messageRenderers">
+          <TrBubbleList
+            :messages="messages"
+            :role-configs="roleConfigs"
+            content-render-mode="split"
+          />
+        </TrBubbleProvider>
+      </div>
+      <div class="sender-container">
+        <TrSender
+          v-model="inputMessage"
+          :loading="isProcessing"
+          :placeholder="isProcessing ? '思考中...' : '请输入消息'"
+          @submit="handleSubmit"
+          @cancel="abortRequest"
         />
-      </TrBubbleProvider>
+      </div>
     </div>
-    <div class="sender-container">
-      <TrSender
-        v-model="inputMessage"
-        :loading="isProcessing"
-        :placeholder="isProcessing ? '思考中...' : '请输入消息'"
-        @submit="handleSubmit"
-        @cancel="abortRequest"
-      />
-    </div>
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <style scoped>
@@ -179,6 +183,10 @@ const roleConfigs = {
 ```
 
 若不需要自行拼装消息流，可直接使用开箱即用的 [`GenuiChat`](../components/chat)，内部已封装 `responseProvider`、`genuiStreamHandler` 与 Schema 渲染。
+
+::: tip GenuiRenderer
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiRenderer Legacy 兼容说明](../components/renderer#兼容组件-genuilegacyrenderer)。
+:::
 
 ## 其他相关文档
 

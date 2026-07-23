@@ -2,8 +2,7 @@
 import '@opentiny/tiny-robot/dist/style.css';
 import { TrBubbleList, TrSenderCompat, TrBubbleProvider } from '@opentiny/tiny-robot';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import { computed, h, inject, nextTick, provide, ref, watch, type Component, type Ref } from 'vue';
+import { computed, h, inject, nextTick, provide, ref, watch, markRaw, type Component, type Ref } from 'vue';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IMessageItem } from '@opentiny/genui-sdk-core';
 import type { IChatProps, ICustomActionItem, UserItem, UserTextItem } from './chat.types';
@@ -11,7 +10,7 @@ import { scrollEnd, throttle } from './chat-utils';
 import { useResize } from './composable/use-resize';
 import { useI18n } from './i18n';
 import { emitter } from './event-emitter';
-import { CUSTOM_CONTEXT, GENUI_CONFIG } from './injection-tokens';
+import { CUSTOM_CONTEXT, GENUI_CONFIG } from '../config-provider/injection-tokens';
 import { cardIdSymbol } from './useChat';
 import { useChatAction } from './continue-chat-action';
 import { useFileUpload } from './useFileUpload';
@@ -24,6 +23,11 @@ import { GENUI_SCHEMA_CARD_CONTEXT } from './schemaCardContext';
 import type { GenuiChatRuntimeOptions } from './types';
 import type { IResponseHandler } from './response-handler';
 import type { IStreamData } from '@opentiny/genui-sdk-core';
+import {
+  BubbleRendererMatchPriority,
+  type BubbleContentRendererMatch,
+  type BubbleRoleConfig,
+} from '@opentiny/tiny-robot';
 
 const props = defineProps<IChatProps>();
 
@@ -392,6 +396,12 @@ watch(
   },
 );
 
+const extraContentRendererMatches = ref(new Map<string, BubbleContentRendererMatch>());
+const contentRendererMatches = computed(() => [
+  ...extraContentRendererMatches.value.values(),
+  ...genuiContentRendererMatches,
+]);
+
 defineExpose({
   loading,
   setInputMessage: (message: string) => {
@@ -406,8 +416,16 @@ defineExpose({
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     setResponseHandlers(handlers);
   },
-  getMessageRenderers: () => ({}),
-  setMessageRenderer: () => {},
+  getMessageRenderers: () => Object.fromEntries(extraContentRendererMatches.value),
+  setMessageRenderer: (type: string, renderer: Component) => {
+    const next = new Map(extraContentRendererMatches.value);
+    next.set(type, {
+      priority: BubbleRendererMatchPriority.CONTENT,
+      find: (_message, content) => content?.type === type,
+      renderer: markRaw(renderer),
+    });
+    extraContentRendererMatches.value = next;
+  },
 });
 </script>
 
@@ -424,7 +442,7 @@ defineExpose({
       ref="messagesContainer"
       :style="{ '--messages-container-width': messagesContainerWidth + 'px' }"
     >
-      <tr-bubble-provider v-if="showMessages.length" :content-renderer-matches="genuiContentRendererMatches">
+      <tr-bubble-provider v-if="showMessages.length" :content-renderer-matches="contentRendererMatches">
         <tr-bubble-list
           :messages="showMessages"
           :role-configs="roleConfigs"

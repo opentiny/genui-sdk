@@ -16,47 +16,25 @@ Follow the default prompts to initialize the project.
 
 ## Install Dependencies
 
-Install GenUI SDK in your project directory:
+Install GenUI SDK and the official materials package:
 
 ::: tabs
 == npm
 ```bash
 cd genui-chat
-npm install @opentiny/genui-sdk-vue
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 == pnpm
 ```bash
 cd genui-chat
-pnpm add @opentiny/genui-sdk-vue
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 == yarn
 ```bash
 cd genui-chat
-yarn add @opentiny/genui-sdk-vue
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 :::
-
-## Subpath Imports
-
-Besides the main entry, `@opentiny/genui-sdk-vue` provides subpath exports. Import only Chat or Renderer when needed to avoid bundling unused modules when tree-shaking is limited.
-
-| Subpath | Use case | Main exports |
-| --- | --- | --- |
-| `@opentiny/genui-sdk-vue/chat` | Chat only | `GenuiChat` |
-| `@opentiny/genui-sdk-vue/renderer` | Renderer only (custom chat UI) | `GenuiRenderer` |
-| `@opentiny/genui-sdk-vue/config-provider` | Theme / i18n container only | `GenuiConfigProvider` |
-
-```ts
-// Chat only
-import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
-
-// Renderer only
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
-
-// Chat + theme
-import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
-import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
-```
 
 ## Modify Project
 
@@ -75,15 +53,18 @@ createApp(App).mount('#app');
 
 ### Update `src/App.vue`
 
-Use the `GenuiChat` component:
+Inject materials via `GenuiConfigProvider` and render `GenuiChat`:
 
 ```vue
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 </script>
 
 <template>
-  <GenuiChat />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat />
+  </GenuiConfigProvider>
 </template>
 
 <style>
@@ -120,7 +101,8 @@ Configure the LLM via `url`, `model`, and `temperature`:
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'; // [!code ++]
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api'; // [!code ++]
 const model = ref('deepseek-v3.2'); // [!code ++]
@@ -128,27 +110,29 @@ const temperature = ref(0.7); // [!code ++]
 </script>
 
 <template>
-  <GenuiChat> <!-- [!code --]-->
-  <GenuiChat :url="url" :model="model" :temperature="temperature" />  <!-- [!code ++]-->
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat /> <!-- [!code --]-->
+    <GenuiChat :url="url" :model="model" :temperature="temperature" />  <!-- [!code ++]-->
+  </GenuiConfigProvider>
 </template>
 ```
 
-## Theme with GenuiConfigProvider
+## Materials and Theme with GenuiConfigProvider
 
-Wrap `GenuiChat` with `GenuiConfigProvider` to set the theme. Built-in options:
+Both materials and theme are configured via `GenuiConfigProvider`: `materials` injects UI components, and `theme` controls the appearance.
+
+Built-in theme options:
 
 - `'dark'`: dark theme
 - `'lite'`: fresh theme
 - `'light'`: light theme (default)
 - `'auto'`: follow system preference
 
-### Basic Usage
-
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue'; // [!code --]
-import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue'; // [!code ++]
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
@@ -156,10 +140,8 @@ const temperature = ref(0.7);
 </script>
 
 <template>
-  <!-- [!code ++]-->
-  <GenuiConfigProvider theme="dark">
+  <GenuiConfigProvider theme="dark" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature" />
-    <!-- [!code ++]-->
   </GenuiConfigProvider>
 </template>
 ```
@@ -170,22 +152,17 @@ Use the `empty` slot for welcome text or suggested prompts when there is no conv
 
 ```vue
 <template>
-  <GenuiConfigProvider theme="dark">
-    <!-- [!code --]-->
-    <GenuiChat :url="url" :model="model" :temperature="temperature" />
-    <!-- [!code ++]-->
-    <GenuiChat :url="url" :model="model" :temperature="temperature">    
-      <!-- [!code ++]-->
+  <GenuiConfigProvider theme="dark" :materials="materials">
+    <GenuiChat :url="url" :model="model" :temperature="temperature">
       <template #empty>
-        <!-- [!code ++]-->
         <div class="empty-text">Welcome to Generative UI</div>
-      <!-- [!code ++]-->
       </template>
-    <!-- [!code ++]-->
     </GenuiChat>
   </GenuiConfigProvider>
 </template>
 ```
+
+Add styles:
 
 ```css
 .empty-text { /* [!code ++] */
@@ -203,6 +180,7 @@ Use the `empty` slot for welcome text or suggested prompts when there is no conv
 <script setup lang="ts">
 import { ref } from 'vue';
 import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
@@ -211,8 +189,8 @@ const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
 </script>
 
 <template>
-  <GenuiConfigProvider :theme="theme">
-    <GenuiChat :url="url" :model="model" :temperature="temperature">    
+  <GenuiConfigProvider :theme="theme" :materials="materials">
+    <GenuiChat :url="url" :model="model" :temperature="temperature">
       <template #empty>
         <div class="empty-text">Welcome to Generative UI</div>
       </template>
@@ -247,6 +225,29 @@ html {
 You are ready to try generative UI.
 
 ![Quick start example](../../public/quick-start.png)
+
+## Subpath Imports
+
+Besides the main entry, `@opentiny/genui-sdk-vue` provides subpath exports. Import only Chat or Renderer when needed to avoid bundling unused modules when tree-shaking is limited.
+
+| Subpath | Use case | Main exports |
+| --- | --- | --- |
+| `@opentiny/genui-sdk-vue/chat` | Chat only | `GenuiChat` |
+| `@opentiny/genui-sdk-vue/renderer` | Renderer only (custom chat UI) | `GenuiRenderer` |
+| `@opentiny/genui-sdk-vue/config-provider` | Theme / i18n / materials container | `GenuiConfigProvider` |
+
+```ts
+import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+// Renderer only
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+```
+
+::: tip
+In v1.3.0, materials were decoupled from the SDK. If you need the built-in TinyVue components without configuring materials separately, use `GenuiLegacyChat`. See [GenuiChat Legacy compatibility](../components/chat#compatibility-component-genuilegacychat).
+:::
 
 ## Related Docs
 

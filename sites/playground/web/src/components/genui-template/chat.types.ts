@@ -1,8 +1,4 @@
-/**
- * 模板专用 chat 类型，仅保留无法从 @opentiny/genui-sdk-vue / @opentiny/genui-sdk-core 复用的部分。
- * IMessage、IBubbleSlotsProps 等请从 @opentiny/genui-sdk-vue 引入；
- * IStreamDelta 请从 @opentiny/genui-sdk-core 引入。
- */
+
 import type { IStreamDelta } from '@opentiny/genui-sdk-core';
 
 export interface LLMConfig {
@@ -32,6 +28,36 @@ export interface IJsonPatchMessageItem {
   prevSchema: string;
 }
 
+export type SchemaManualInputType = 'manual_edit_save' | 'user';
+
+export interface ISchemaManualEditRecord {
+  editId: string;
+  schema: string;
+  prevSchema: string;
+  generatedTime: string;
+  input: string;
+  inputType?: SchemaManualInputType;
+
+  sourceCardId?: string;
+
+  sourceCardInput?: string;
+
+  sourceCardGeneratedTime?: string;
+}
+
+export interface ISchemaManualMessageItem {
+  type: 'schema-manual';
+  content: string;
+  input: string;
+  inputType?: SchemaManualInputType;
+  cardId: string;
+  generatedTime: string;
+  schema: string;
+  prevSchema: string;
+
+  edits?: ISchemaManualEditRecord[];
+}
+
 export interface IMarkdownMessageItem {
   type: 'markdown';
   content: string;
@@ -39,7 +65,11 @@ export interface IMarkdownMessageItem {
   cardId: string;
 }
 
-export type IMessageItem = IMarkdownMessageItem | IJsonPatchMessageItem | ISchemaCardMessageItem;
+export type IMessageItem =
+  | IMarkdownMessageItem
+  | IJsonPatchMessageItem
+  | ISchemaCardMessageItem
+  | ISchemaManualMessageItem;
 
 export interface IChatMessage {
   role: 'assistant';

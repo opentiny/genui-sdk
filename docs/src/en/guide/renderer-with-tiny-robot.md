@@ -7,15 +7,15 @@ This guide explains how to use the `GenuiRenderer` component with a chat UI such
 :::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 ::::
 
@@ -55,12 +55,14 @@ export function createChatResponseProvider() {
 
 Place schema chunk parsing in `onCompletionChunk` (same idea as `genuiStreamHandler` inside `GenuiChat`). See SDK source `chat/genuiStreamHandler.ts` for the full parser; the example below only shows wiring.
 
-Then use `useConversation` + `GenuiRenderer` in your component:
+Then use `useConversation` + `GenuiRenderer` in your component, and inject materials via `GenuiConfigProvider`:
 
 ```vue
 <script setup lang="ts">
 import { computed, h, ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
 import { useConversation } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -133,26 +135,28 @@ const roleConfigs = {
 </script>
 
 <template>
-  <div class="chat-container">
-    <div class="messages-container">
-      <TrBubbleProvider :content-renderers="messageRenderers">
-        <TrBubbleList
-          :messages="messages"
-          :role-configs="roleConfigs"
-          content-render-mode="split"
+  <GenuiConfigProvider :materials="materials">
+    <div class="chat-container">
+      <div class="messages-container">
+        <TrBubbleProvider :content-renderers="messageRenderers">
+          <TrBubbleList
+            :messages="messages"
+            :role-configs="roleConfigs"
+            content-render-mode="split"
+          />
+        </TrBubbleProvider>
+      </div>
+      <div class="sender-container">
+        <TrSender
+          v-model="inputMessage"
+          :loading="isProcessing"
+          :placeholder="isProcessing ? 'Thinking...' : 'Type a message'"
+          @submit="handleSubmit"
+          @cancel="abortRequest"
         />
-      </TrBubbleProvider>
+      </div>
     </div>
-    <div class="sender-container">
-      <TrSender
-        v-model="inputMessage"
-        :loading="isProcessing"
-        :placeholder="isProcessing ? 'Thinking...' : 'Type a message'"
-        @submit="handleSubmit"
-        @cancel="abortRequest"
-      />
-    </div>
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <style scoped>
@@ -179,6 +183,10 @@ const roleConfigs = {
 ```
 
 If you do not need to assemble the message pipeline yourself, use [`GenuiChat`](../components/chat) out of the box — it already wraps `responseProvider`, `genuiStreamHandler`, and schema rendering.
+
+::: tip GenuiRenderer
+For drop-in compatibility without configuring materials, see [GenuiRenderer Legacy compatibility](../components/renderer#compatibility-component-genuilegacyrenderer).
+:::
 
 ## Related documentation
 

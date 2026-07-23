@@ -1,4 +1,5 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
+import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { Component } from 'vue';
 import type { IRendererSlots } from '../renderer';
 import type {
@@ -58,7 +59,7 @@ export interface IMessage {
 }
 
 export interface IMessageManagerBridge {
-  messages: { value: unknown[] };
+  messages: { value: ChatMessage[] };
   messageState?: { status: string };
   isProcessing?: { value: boolean };
   inputMessage?: { value: string };

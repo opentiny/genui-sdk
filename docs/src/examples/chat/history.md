@@ -10,12 +10,15 @@
 
 ```vue {12-19}
 <template>
-  <GenuiChat ref="chatRef" :url="url" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat ref="chatRef" :url="url" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref, computed } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
@@ -79,35 +82,38 @@ chatRef.value?.getConversation()?.saveMessages();
 
 ```vue
 <template>
-  <div class="chat-with-sidebar">
-    <!-- 侧边栏 -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <button class="new-chat-btn" @click="handleNewConversation">+ 新建会话</button>
-      </div>
-      <div class="conversations-list">
-        <div
-          v-for="conv in conversations"
-          :key="conv.id"
-          :class="['conversation-item', { active: conv.id === currentId }]"
-          @click="handleSwitchConversation(conv.id)"
-        >
-          <div class="conversation-title">{{ conv.title || '新会话' }}</div>
-          <button class="delete-btn" @click.stop="handleDeleteConversation(conv.id)">×</button>
+  <GenuiConfigProvider :materials="materials">
+    <div class="chat-with-sidebar">
+      <!-- 侧边栏 -->
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <button class="new-chat-btn" @click="handleNewConversation">+ 新建会话</button>
+        </div>
+        <div class="conversations-list">
+          <div
+            v-for="conv in conversations"
+            :key="conv.id"
+            :class="['conversation-item', { active: conv.id === currentId }]"
+            @click="handleSwitchConversation(conv.id)"
+          >
+            <div class="conversation-title">{{ conv.title || '新会话' }}</div>
+            <button class="delete-btn" @click.stop="handleDeleteConversation(conv.id)">×</button>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 聊天区域 -->
-    <div class="chat-container">
-      <GenuiChat ref="chatRef" :url="url" />
+      <!-- 聊天区域 -->
+      <div class="chat-container">
+        <GenuiChat ref="chatRef" :url="url" />
+      </div>
     </div>
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref, computed } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);

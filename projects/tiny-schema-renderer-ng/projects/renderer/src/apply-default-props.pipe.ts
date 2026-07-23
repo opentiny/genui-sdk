@@ -5,7 +5,6 @@ import { applyDefaultPropsToProps } from './apply-default-props';
 @Pipe({
   name: 'applyDefaultProps',
   standalone: true,
-  pure: false,
 })
 export class ApplyDefaultPropsPipe implements PipeTransform {
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
@@ -15,7 +14,7 @@ export class ApplyDefaultPropsPipe implements PipeTransform {
     componentName: string,
   ): Record<string, unknown> {
     const result = { ...(props ?? {}) };
-    applyDefaultPropsToProps(componentName, result, this.rendererSettings?.defaultPropsMap);
+    applyDefaultPropsToProps(componentName, result, this.rendererSettings?.materials?.defaultPropsMap);
     return result;
   }
 }

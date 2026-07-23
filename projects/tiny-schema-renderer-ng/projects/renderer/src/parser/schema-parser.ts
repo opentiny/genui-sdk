@@ -108,7 +108,7 @@ const parseJSXFunction = (data: any, ctx: any) => {
 
     return newFn(...fnInfo.params, fnInfo.body).bind({
       ...ctx,
-      getComponent,
+      getComponent: (name: string) => getComponent(name, ctx),
     });
   } catch (error) {
     Notify({

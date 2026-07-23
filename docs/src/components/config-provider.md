@@ -1,6 +1,6 @@
 # GenuiConfigProvider 组件
 
-`GenuiConfigProvider` 用于为渲染器提供主题能力，并将主题样式限定在特定作用域内。
+`GenuiConfigProvider` 用于为渲染器提供主题、国际化与物料配置能力，并将主题样式限定在特定作用域内。
 
 仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
@@ -96,6 +96,29 @@ const customI18n: I18nMessages = {
 ```
 
 查看 [GenuiConfigProvider 组件 - 国际化配置](../examples/config-provider/i18n) 了解详细用法
+
+### materials
+
+- **类型**: `IMaterials`
+- **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时需要配置）
+- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+</script>
+```
 
 ## Slots
 

@@ -1,11 +1,8 @@
 import { InjectionToken } from '@angular/core';
-
-type DefaultValueMap = Record<string, unknown>;
-
-export type DefaultPropsMap = Record<string, DefaultValueMap>;
+import type { IRendererMaterials } from './renderer-materials';
 
 export interface IRendererSettings {
-  defaultPropsMap?: DefaultPropsMap;
+  materials?: IRendererMaterials;
 }
 
 export const RENDERER_SETTINGS = new InjectionToken<IRendererSettings>('RENDERER_SETTINGS');

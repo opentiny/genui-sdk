@@ -5,9 +5,11 @@ export type { GenuiConversationHandle, ImportConversationItem, ExportConversatio
 export { collectConversationsForExport } from './collectConversationsForExport.js';
 export type { IMessageManagerBridge } from './chat.types.js';
 export { useBubbleRoleAfterSlot } from './composable/useBubbleRoleAfterSlot.js';
+export * from './response-handler.js';
 export * from './chat.types.js';
-export * from './injection-tokens.js';
 export * from './i18n/index.js';
 export * from './event-emitter.js';
 export * from './chat-utils.js';
 export * from './think-tag-wrap-pattern.js';
+export { GENUI_SCHEMA_CARD_CONTEXT } from './schemaCardContext.js';
+export type { GenuiSchemaCardContext } from './schemaCardContext.js';

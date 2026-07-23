@@ -22,7 +22,6 @@ export const enThemeConfig: DefaultTheme.Config = {
         items: [
           { text: 'Quick Start', link: '/en/guide/quick-start' },
           { text: 'Using Renderer', link: '/en/guide/start-with-renderer' },
-          { text: 'With TinyRobot', link: '/en/guide/renderer-with-tiny-robot' },
         ],
       },
       {
@@ -55,6 +54,18 @@ export const enThemeConfig: DefaultTheme.Config = {
         items: [
           { text: 'API Reference', link: '/en/components/server/api' },
           { text: 'CLI', link: '/en/components/server/cli' },
+        ],
+      },
+      {
+        text: 'Core',
+        items: [{ text: 'API Docs', link: '/en/components/core/api' }],
+      },
+      {
+        text: 'Materials',
+        items: [
+          { text: 'Vue OpenTiny Vue', link: '/en/components/materials/vue-opentiny-vue' },
+          { text: 'Vue Element Plus', link: '/en/components/materials/vue-element-plus' },
+          { text: 'Angular OpenTiny NG', link: '/en/components/materials/angular-opentiny-ng' },
         ],
       },
     ],

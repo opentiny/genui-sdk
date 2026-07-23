@@ -1,5 +1,5 @@
 <script setup>
-import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
+import { TinyTabs, TinyTabItem } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { ref, watch, computed, inject, defineAsyncComponent, shallowRef } from 'vue';
 import NewSvg from '../assets/images/new.svg?raw';
@@ -12,6 +12,7 @@ import GenuiHistory from './tab-components/GenuiHistory.vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
 import { useIsMobile } from '../hooks';
 import useTemplate from './genui-template/useTemplate';
+import { MaterialsTab } from './materials-tab';
 import { t } from '../i18n';
 
 const props = defineProps({
@@ -28,9 +29,9 @@ const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 const GenuiTemplateList = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./genui-template/GenuiTemplateList.vue'))
   : shallowRef(null);
-// 从上层注入共享的 playground 上下文（这里只需要主题&会话相关）
+// 从上层注入共享的 playground 上下文（framework / 会话等）
 const playgroundContext = inject('playgroundContext');
-const { themeData, conversation, importConversations, exportConversations } = playgroundContext;
+const { conversation, importConversations, exportConversations } = playgroundContext;
 
 const TinyIconPlus = iconPlus();
 const activeName = ref('model');
@@ -187,14 +188,8 @@ const updateCustomExamples = (list) => {
         <tiny-tab-item :title="t('sidebar.tabTools')" name="tools">
           <McpTools />
         </tiny-tab-item>
-        <tiny-tab-item :title="t('sidebar.tabTheme')" name="theme">
-          <div class="config-title">{{ t('theme.switchTitle') }}</div>
-          <tiny-button-group
-            size="small"
-            :data="themeData"
-            :model-value="theme"
-            @update:model-value="emit('update:theme', $event)"
-          />
+        <tiny-tab-item :title="t('sidebar.tabMaterials')" name="theme">
+          <MaterialsTab :theme="theme" @update:theme="emit('update:theme', $event)" />
         </tiny-tab-item>
         <tiny-tab-item :title="t('sidebar.tabHistory')" name="history" class="history-tab">
           <GenuiHistory
@@ -308,6 +303,7 @@ const updateCustomExamples = (list) => {
       font-size: 14px;
       color: #595959;
       margin-bottom: 12px;
+      margin-top: 16px;
       line-height: 32px;
     }
     :deep(.tiny-button-group .tiny-group-item li button) {
@@ -323,7 +319,7 @@ const updateCustomExamples = (list) => {
       flex: 1;
       min-height: 0;
       overflow: auto;
-      padding: 0 24px 90px;
+      padding: 0 24px 0;
     }
 
     &--tools :deep(.tiny-tabs__content) {

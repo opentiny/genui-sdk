@@ -1,0 +1,21 @@
+<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+  <rect id="card-incremental-editor" x="0.0" y="0.0" width="40" height="40" fill="rgb(255,255,255)" />
+  <path id="card-incremental-editor-path"
+    d="M25 3L34 12L26.9592 12C25.8772 12 25 11.1228 25 10.0408L25 10.0408L25 3L25 3Z" fill="rgb(253,211,167)"
+    fill-rule="evenodd" />
+  <path id="card-incremental-editor-path-2"
+    d="M25.0181 3L25.0037 10.1305C25.0015 11.1428 25.8184 11.9652 26.8283 11.9674L34 11.9674L34 33.7924C34 35.5639 32.5639 37 30.8 37L9.2 37C7.43269 37 6 35.5639 6 33.7924L6 6.20755C6 4.43607 7.43269 3 9.2 3L25.0181 3L25.0181 3Z"
+    fill="rgb(254,154,48)" fill-rule="evenodd" />
+  <path id="card-incremental-editor-path-3" d="M12 25L26 25" stroke="rgb(255,255,255)" stroke-width="1.5"
+    stroke-linejoin="round" />
+  <path id="card-incremental-editor-path-4" d="M12 29L21 29" stroke="rgb(255,255,255)" stroke-width="1.5"
+    stroke-linejoin="round" />
+  <g id="card-incremental-editor-group"
+    transform="matrix(0.707107,0.707107,-0.707107,0.707107,19.7783,12.0005)">
+    <path id="card-incremental-editor-group-path"
+      d="M2.4 0C3.06274 0 3.6 0.537258 3.6 1.2L3.6 1.2L3.6 8.00556C3.6 8.45146 3.451 8.88456 3.17666 9.23607L1.87883 10.899C1.8388 10.9503 1.7612 10.9503 1.72117 10.899L0.42332 9.23607C0.149004 8.88456 0 8.45146 0 8.00556L0 1.2C0 0.537258 0.537258 0 1.2 0L2.4 0Z"
+      stroke="rgb(255,255,255)" stroke-width="1.5" fill-rule="evenodd" />
+    <line id="card-incremental-editor-group-line" x1="0.8" y1="4.6" x2="2.8" y2="4.6"
+      stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linecap="round" />
+  </g>
+</svg>

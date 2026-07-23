@@ -1,13 +1,17 @@
 import { Component } from '@angular/core';
-import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 
 @Component({
-  imports: [GenuiRenderer],
+  imports: [GenuiConfigProvider, GenuiRenderer],
   template: `
-    <genui-renderer [content]="schemaContent" [customActions]="customActions"> </genui-renderer>
+    <genui-config-provider [materials]="activeMaterials">
+      <genui-renderer [content]="schemaContent" [customActions]="customActions"> </genui-renderer>
+    </genui-config-provider>
   `,
 })
 export class GenuiExample {
+  activeMaterials = materials;
   schemaContent = {
     componentName: 'Page',
     children: [

@@ -1,28 +1,16 @@
-/**
- * 从 currentSchema 中找到对应的组件路径
- * @param currentSchema 当前 schema
- * @param id 组件 id
- * @returns 组件路径
- */
 export const findComponentPath = (currentSchema: any, id: string): string | null => {
-  // currentSchema 是个深层对象嵌套，需要递归找到对应的组件路径
   if (!currentSchema || !id) {
     return null;
   }
 
-  // 递归查找函数
   const findInNode = (node: any, path: string = ''): string | null => {
-    // 如果当前节点有 id 且匹配，返回路径
     if (node?.id === id) {
-      // 如果是根节点，返回 '/'
       return path || '/';
     }
 
-    // 如果有 children 数组，递归查找
     if (Array.isArray(node?.children) && node.children.length > 0) {
       for (let i = 0; i < node.children.length; i++) {
         const child = node.children[i];
-        // 构建子节点的路径：/children/0, /children/1 等
         const childPath = path ? `${path}/children/${i}` : `/children/${i}`;
         const result = findInNode(child, childPath);
         if (result !== null) {
@@ -34,7 +22,6 @@ export const findComponentPath = (currentSchema: any, id: string): string | null
     return null;
   };
 
-  // 从根节点开始查找
   return findInNode(currentSchema);
 };
 

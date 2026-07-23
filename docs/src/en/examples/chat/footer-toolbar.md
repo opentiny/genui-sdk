@@ -8,11 +8,14 @@ Configure message footer toolbars for assistant and user roles via the `roles` p
 
 ```vue {12-23}
 <template>
-  <GenuiChat :url="url" :roles="roles" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" :roles="roles" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import AssistantFooter from './components/assistant-footer.vue';
 import UserFooter from './components/user-footer.vue';
 
