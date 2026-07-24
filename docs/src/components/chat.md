@@ -660,8 +660,21 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-`BubbleProps`、`IMessageManagerBridge` 详情可以查看 TinyRobot 相关文档；`IMessageManagerBridge` 由 `@opentiny/genui-sdk-vue` 导出，用于 footer 插槽中访问消息发送能力。
+`BubbleProps` 详情可以查看 TinyRobot 相关文档；`IMessageManagerBridge` 由 `@opentiny/genui-sdk-vue` 导出，用于 footer 插槽中访问消息发送能力：
+
+```typescript
+interface IMessageManagerBridge {
+  messages: Ref<ChatMessage[]>;
+  isProcessing: Ref<boolean>;
+  inputMessage: Ref<string>;
+  requestState: Ref<string>;
+  send: () => Promise<void>;
+  sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
+  abortRequest: () => void | Promise<void>;
+  addMessage: (message: ChatMessage | ChatMessage[]) => void;
+}
+```
 
 查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
 
-查看 [IMessageManagerBridge](../../../packages/frameworks/vue/src/chat/chat.types.ts) 定义与用法
+> **说明**：`GenuiRenderer` 通过 provide 向 schema 渲染层注入 `materials.components` 与 `defaultPropsMap`（来自 `GenuiConfigProvider` 的 materials），不再注入完整 materials 对象。

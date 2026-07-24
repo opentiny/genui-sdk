@@ -1,6 +1,6 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
-import type { Component } from 'vue';
+import type { Component, Ref } from 'vue';
 import type { IRendererSlots } from '../renderer';
 import type {
   INotificationPayload,
@@ -59,14 +59,14 @@ export interface IMessage {
 }
 
 export interface IMessageManagerBridge {
-  messages: { value: ChatMessage[] };
-  messageState?: { status: string };
-  isProcessing?: { value: boolean };
-  inputMessage?: { value: string };
-  send?: () => Promise<void>;
-  sendMessage?: (...args: unknown[]) => Promise<void>;
-  abortRequest?: () => void | Promise<void>;
-  addMessage?: (message: unknown) => void;
+  messages: Ref<ChatMessage[]>;
+  isProcessing: Ref<boolean>;
+  inputMessage: Ref<string>;
+  requestState: Ref<string>;
+  send: () => Promise<void>;
+  sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
+  abortRequest: () => void | Promise<void>;
+  addMessage: (message: ChatMessage | ChatMessage[]) => void;
 }
 
 // 有几个插槽，参数都为这个类型

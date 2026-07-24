@@ -176,38 +176,43 @@ export function createTemplateStreamHandlerOptions() {
       ctx.schemaJsonExtractor.handleContent(content);
     },
     onTurnEnd: (context: { customContext: Record<string, unknown> }) => {
-      const ctx = context.customContext.templateStream as TemplateStreamContext | undefined;
-      if (!ctx?.chatMessage) {
-        return;
-      }
-
-      emitter.emit('notification', {
-        type: 'done',
-        delta: {},
-        chatMessage: structuredClone(toRaw(ctx.chatMessage)) as IChatMessage,
-        cardId: ctx.messageId,
-        input: ctx.input,
-      });
-
-      ctx.initialized = false;
-      ctx.chatMessage = undefined;
+      finishTurn(context.customContext);
     },
-    onError: (context: { currentTurn: ChatMessage[]; error: unknown }) => {
+    onError: (context: { customContext: Record<string, unknown>; currentTurn: ChatMessage[]; error: unknown }) => {
       const lastMessage = context.currentTurn[context.currentTurn.length - 1] as
         | (ChatMessage & { messages?: { type: string; content: string }[] })
         | undefined;
-      if (!lastMessage || lastMessage.role !== 'assistant') {
-        return;
+      if (lastMessage?.role === 'assistant') {
+        if (!lastMessage.messages) {
+          lastMessage.messages = [];
+        }
+        lastMessage.messages.push({
+          type: 'error-text',
+          content: context.error instanceof Error ? context.error.message : String(context.error),
+        });
       }
 
-      if (!lastMessage.messages) {
-        lastMessage.messages = [];
-      }
-
-      lastMessage.messages.push({
-        type: 'error-text',
-        content: context.error instanceof Error ? context.error.message : String(context.error),
-      });
+      finishTurn(context.customContext);
     },
   };
+}
+
+function finishTurn(customContext: Record<string, unknown>) {
+  const ctx = customContext.templateStream as TemplateStreamContext | undefined;
+  if (!ctx) {
+    return;
+  }
+
+  if (ctx.chatMessage) {
+    emitter.emit('notification', {
+      type: 'done',
+      delta: {},
+      chatMessage: structuredClone(toRaw(ctx.chatMessage)) as IChatMessage,
+      cardId: ctx.messageId,
+      input: ctx.input,
+    });
+  }
+
+  ctx.initialized = false;
+  ctx.chatMessage = undefined;
 }

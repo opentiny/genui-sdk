@@ -8,6 +8,16 @@ import {
 import { emitter } from './event-emitter';
 import type { IChatConfig } from './chat.types';
 
+/**
+ * IResponseHandler.start/end 需要第二参 UI handlers 形参；流式生命周期由 kit plugin 驱动，
+ * 此处仅占位，不是业务回调。
+ */
+const noopStreamUiHandlers = {
+  onData: () => {},
+  onDone: () => {},
+  onError: () => {},
+};
+
 export interface GenuiStreamHandlerContext {
   handlerContext: Record<string, any>;
   handlers: IResponseHandler<IStreamData>[];
@@ -59,20 +69,13 @@ export function createGenuiStreamHandlerOptions(options: {
     }
 
     streamCtx.handlerContext.chatMessage = currentMessage;
-
-    const dummyHandlers = {
-      onData: () => {},
-      onDone: () => {},
-      onError: () => {},
-    };
-
-    streamCtx.handlerContext.handlers = dummyHandlers;
+    streamCtx.handlerContext.handlers = noopStreamUiHandlers;
 
     for (const handler of streamCtx.handlers) {
       if (handler.name === 'init') {
         continue;
       }
-      handler.start?.(streamCtx.handlerContext, dummyHandlers);
+      handler.start?.(streamCtx.handlerContext, noopStreamUiHandlers);
     }
 
     streamCtx.initialized = true;
@@ -128,19 +131,20 @@ export function createGenuiStreamHandlerOptions(options: {
       finishStream(context.customContext);
     },
     onError: (context: { customContext: Record<string, unknown>; error: unknown; currentTurn: ChatMessage[] }) => {
-      const lastMessage = context.currentTurn[context.currentTurn.length - 1] as (ChatMessage & { messages?: { type: string; content: string }[] }) | undefined;
-      if (!lastMessage || lastMessage.role !== 'assistant') {
-        return;
+      const lastMessage = context.currentTurn[context.currentTurn.length - 1] as
+        | (ChatMessage & { messages?: { type: string; content: string }[] })
+        | undefined;
+      if (lastMessage?.role === 'assistant') {
+        if (!lastMessage.messages) {
+          lastMessage.messages = [];
+        }
+        lastMessage.messages.push({
+          type: 'error-text',
+          content: context.error instanceof Error ? context.error.message : String(context.error),
+        });
       }
 
-      if (!lastMessage.messages) {
-        lastMessage.messages = [];
-      }
-
-      lastMessage.messages.push({
-        type: 'error-text',
-        content: context.error instanceof Error ? context.error.message : String(context.error),
-      });
+      finishStream(context.customContext);
     },
   };
 }

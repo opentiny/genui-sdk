@@ -1,4 +1,4 @@
-import { computed, ref, watch, type ComputedRef, type Ref } from 'vue';
+import { ref, shallowRef, watch } from 'vue';
 import {
   indexedDBStorageStrategyFactory,
   useConversation,
@@ -14,6 +14,7 @@ import { createGenuiStreamHandlerOptions } from './genuiStreamHandler';
 import type { GenuiChatRuntimeOptions } from './types';
 import type { IMessage, IMessageManagerBridge } from './chat.types';
 import { collectConversationsForExport, type ExportConversationItem } from './collectConversationsForExport';
+import { createMessageManagerBridge } from './createMessageManagerBridge';
 
 export type { ExportConversationItem };
 
@@ -38,6 +39,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
   const inputMessage = ref('');
   const loading = ref(true);
   const responseHandlers = ref<IResponseHandler<IStreamData>[]>(defaultResponseHandlers);
+  const messageManager = shallowRef<IMessageManagerBridge | null>(null);
 
   const streamHandler = createGenuiStreamHandlerOptions({
     getChatConfig: () => options.getRuntimeOptions().chatConfig,
@@ -148,57 +150,21 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     await engine.send(message);
   };
 
-  const createEmptyMessageEngine = (): IMessageManagerBridge => ({
-    messages: ref([]),
-    messageState: { status: 'init' },
-    isProcessing: computed(() => false),
-    inputMessage,
-    send: async () => {},
-    sendMessage: async (content, clearInput) => {
-      const text = typeof content === 'string' ? content : inputMessage.value;
-      await sendUserMessage(text, clearInput);
-    },
-    abortRequest: async () => {},
-    addMessage: () => {},
-  });
-
-  const messageManager = computed<IMessageManagerBridge>(() => {
-    const engine = conversation.activeConversation.value?.engine;
-    if (!engine) {
-      return createEmptyMessageEngine();
-    }
-
-    const mapRequestState = (requestState: string) => {
-      if (engine.isProcessing.value) {
-        return 'streaming';
+  watch(
+    () => conversation.activeConversation.value?.engine,
+    (engine) => {
+      if (!engine) {
+        messageManager.value = null;
+        return;
       }
-      return requestState === 'idle' ? 'init' : requestState;
-    };
-
-    return {
-      messages: engine.messages,
-      get messageState() {
-        return { status: mapRequestState(engine.requestState.value) };
-      },
-      isProcessing: engine.isProcessing,
-      inputMessage,
-      send: async () => {
-        await engine.send();
-      },
-      sendMessage: async (content = inputMessage.value, clearInput = true) => {
-        const text = typeof content === 'string' ? content : inputMessage.value;
-        await sendUserMessage(text, clearInput);
-      },
-      abortRequest: () => engine.abortRequest(),
-      addMessage: (message) => {
-        if (Array.isArray(message)) {
-          engine.messages.value.push(...message);
-        } else {
-          engine.messages.value.push(message as ChatMessage);
-        }
-      },
-    };
-  });
+      messageManager.value = createMessageManagerBridge({
+        engine,
+        inputMessage,
+        onSendText: sendUserMessage,
+      });
+    },
+    { immediate: true },
+  );
 
   const applyInitialMessages = (messages?: IMessage[]) => {
     if (!messages?.length) {

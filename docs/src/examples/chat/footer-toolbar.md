@@ -52,11 +52,9 @@ interface IBubbleSlotsProps {
 - `isFinished`: 当前回答是否已经结束，通常可以用来控制工具栏是否展示
 - `messageManager`: 消息管理器，包含当前消息列表和发送等方法
 
-`BubbleProps` 和 `IMessageManagerBridge` 详情可以查看相关文档。`roles.slots.trailer` 在 `GenuiChat` 中仍可使用，内部会适配为 0.4.x 的 `#after` 插槽。
+`BubbleProps` 和 `IMessageManagerBridge` 详情见 [Chat 组件文档](../../components/chat.md)。`roles.slots.trailer` 在 `GenuiChat` 中仍可使用，内部会适配为 0.4.x 的 `#after` 插槽。
 
 查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
-
-查看 [IMessageManagerBridge](../../../packages/frameworks/vue/src/chat/chat.types.ts) 定义与用法
 
 ## 创建 user 底部工具栏组件
 

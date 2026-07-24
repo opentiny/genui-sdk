@@ -1,4 +1,4 @@
-import { ref, shallowRef, computed } from 'vue';
+import { ref, shallowRef, computed, watch } from 'vue';
 import {
   indexedDBStorageStrategyFactory,
   useConversation,
@@ -6,7 +6,7 @@ import {
   type UseMessageOptions,
 } from '@opentiny/tiny-robot-kit';
 import type { IMessageManagerBridge, ImportConversationItem } from '@opentiny/genui-sdk-vue';
-import { collectConversationsForExport } from '@opentiny/genui-sdk-vue';
+import { collectConversationsForExport, createMessageManagerBridge } from '@opentiny/genui-sdk-vue';
 import type { LLMConfig } from '../chat.types';
 import {
   findLatestSchemaInConversation,
@@ -30,57 +30,12 @@ const storageRef = shallowRef<ReturnType<typeof indexedDBStorageStrategyFactory>
 const inputMessage = ref('');
 const loading = ref(true);
 const isTemplateInit = ref(false);
+const messageManager = shallowRef<IMessageManagerBridge | null>(null);
 
 let templateChatUrl = '';
 let templateLlmConfig: LLMConfig = { model: '', temperature: 0.3 };
 let templateSchema: unknown = null;
 let onLoadedCallback: ((messages: ChatMessage[] | undefined) => void) | undefined;
-
-function createEmptyMessageManager(): IMessageManagerBridge {
-  return {
-    messages: ref([]),
-    messageState: { status: 'init' },
-    isProcessing: computed(() => false),
-    inputMessage,
-    send: async () => {},
-    abortRequest: async () => {},
-    addMessage: () => {},
-  };
-}
-
-function createMessageManagerBridge(conversation: TemplateConversationHandle): IMessageManagerBridge {
-  const engine = conversation.activeConversation.value?.engine;
-  if (!engine) {
-    return createEmptyMessageManager();
-  }
-
-  const mapRequestState = (requestState: string) => {
-    if (engine.isProcessing.value) {
-      return 'streaming';
-    }
-    return requestState === 'idle' ? 'init' : requestState;
-  };
-
-  return {
-    messages: engine.messages,
-    get messageState() {
-      return { status: mapRequestState(engine.requestState.value) };
-    },
-    isProcessing: engine.isProcessing,
-    inputMessage,
-    send: async () => {
-      await engine.send();
-    },
-    abortRequest: () => engine.abortRequest(),
-    addMessage: (message) => {
-      if (Array.isArray(message)) {
-        engine.messages.value.push(...message);
-      } else {
-        engine.messages.value.push(message as ChatMessage);
-      }
-    },
-  };
-}
 
 function getActiveMessages(): ChatMessage[] {
   return conversationRef.value?.activeConversation.value?.engine.messages.value ?? [];
@@ -150,16 +105,25 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
 
     conversationRef.value = conversation;
     isTemplateInit.value = true;
+
+    watch(
+      () => conversation.activeConversation.value?.engine,
+      (engine) => {
+        if (!engine) {
+          messageManager.value = null;
+          return;
+        }
+        messageManager.value = createMessageManagerBridge({
+          engine,
+          inputMessage,
+        });
+      },
+      { immediate: true },
+    );
   }
 
   const conversation = computed(() => conversationRef.value);
   const messages = computed(() => getActiveMessages());
-  const messageManager = computed(() => {
-    if (!conversationRef.value) {
-      return createEmptyMessageManager();
-    }
-    return createMessageManagerBridge(conversationRef.value);
-  });
 
   const templateConversationState = computed(() => ({
     conversations: conversationRef.value?.conversations.value ?? [],

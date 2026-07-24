@@ -115,7 +115,7 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
   }
 }
 
-export const getContinueGeneratingHandler = (messageManager: any) => {
+export const getContinueGeneratingHandler = (messageManager: { value?: { messages?: { value: any[] } } | null }) => {
   return {
     name: 'continueGenerating',
     match: (chunkData, context) => {
@@ -125,20 +125,24 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
       return false;
     },
     start: (context, handlers) => {
-      const messages = messageManager.value.messages;
-      const chatMessage = messages.value[messages.value.length - 2];
-
-      if (chatMessage.requireMore) {
-        context.overlapEliminated = false;
-        messages.value = messages.value.slice(0, messages.value.length - 1);
-        context.chatMessage = chatMessage;
-        delete context.chatMessage.requireMore;
-        context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
-
-        removeSensitiveInfoWarning(chatMessage);
-        const { message } = findLastContinueWritingMessage(context.chatMessage);
-        context.patternExtractor.setState(message?.type === 'schema-card' ? 'handling' : 'normal');
+      const messages = messageManager.value?.messages;
+      if (!messages?.value?.length) {
+        return;
       }
+      const chatMessage = messages.value[messages.value.length - 2];
+      if (!chatMessage?.requireMore) {
+        return;
+      }
+
+      context.overlapEliminated = false;
+      messages.value = messages.value.slice(0, messages.value.length - 1);
+      context.chatMessage = chatMessage;
+      delete context.chatMessage.requireMore;
+      context.chatMessage.originChatMessage = JSON.stringify(context.chatMessage);
+
+      removeSensitiveInfoWarning(chatMessage);
+      const { message } = findLastContinueWritingMessage(context.chatMessage);
+      context.patternExtractor.setState(message?.type === 'schema-card' ? 'handling' : 'normal');
     }
   };
 }

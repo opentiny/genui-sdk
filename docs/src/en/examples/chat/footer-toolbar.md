@@ -56,7 +56,7 @@ See TinyRobot documentation for `BubbleProps`. `roles.slots.trailer` still works
 
 See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definition and usage.
 
-See [IMessageManagerBridge](../../../packages/frameworks/vue/src/chat/chat.types.ts) for definition and usage.
+See [Chat component docs](../../components/chat.md) for `IMessageManagerBridge` definition and usage.
 
 ## Creating the User Footer Toolbar Component
 

@@ -181,7 +181,7 @@ const inputMessage = computed({
 });
 
 if (props.messages?.length) {
-  messages.value.splice(0, messages.value.length, ...(props.messages as any));
+  messages.value.splice(0, messages.value.length, ...(props.messages as ChatMessage[]));
 }
 
 const messagesContainer: Ref<HTMLElement | undefined> = ref();
@@ -192,43 +192,26 @@ const showMessages = computed(() => {
   const list = messages.value;
   const lastMessage = list[list.length - 1] as (ChatMessage & { messages?: { type?: string }[] }) | undefined;
 
-  if (isProcessing.value) {
-    if (!lastMessage || lastMessage.role === 'user') {
-      return [
-        ...list,
-        {
-          role: 'assistant',
-          content: t('loading.thinking'),
-          loading: true,
-        },
-      ];
-    }
-
-    if (lastMessage.role === 'assistant') {
-      const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
-      const hasLoadingText = existingMessages.some((msg) => msg?.type === 'loading-text');
-
-      if (!hasLoadingText) {
-        return [
-          ...list.slice(0, -1),
-          {
-            ...lastMessage,
-            messages: [
-              ...existingMessages,
-              {
-                type: 'loading-text',
-                emitter,
-                message: lastMessage,
-                showThinkingResult: false,
-              },
-            ],
-          },
-        ];
-      }
-    }
+  if (!isProcessing.value || lastMessage?.role !== 'assistant') {
+    return list;
   }
 
-  return list;
+  const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
+  return [
+    ...list.slice(0, -1),
+    {
+      ...lastMessage,
+      messages: [
+        ...existingMessages,
+        {
+          type: 'loading-text',
+          emitter,
+          message: lastMessage,
+          showThinkingResult: false,
+        },
+      ],
+    },
+  ];
 });
 
 const clearInputMessage = () => {

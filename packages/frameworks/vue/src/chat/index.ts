@@ -3,6 +3,8 @@ export * from './types.js';
 export { createGenuiResponseProvider } from './createGenuiResponseProvider.js';
 export type { GenuiConversationHandle, ImportConversationItem, ExportConversationItem } from './useGenuiConversation.js';
 export { collectConversationsForExport } from './collectConversationsForExport.js';
+export { createMessageManagerBridge } from './createMessageManagerBridge.js';
+export type { MessageEngineLike, CreateMessageManagerBridgeOptions } from './createMessageManagerBridge.js';
 export type { IMessageManagerBridge } from './chat.types.js';
 export { useBubbleRoleAfterSlot } from './composable/useBubbleRoleAfterSlot.js';
 export * from './response-handler.js';

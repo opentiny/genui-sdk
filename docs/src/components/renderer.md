@@ -9,6 +9,8 @@
 ::: warning 物料配置（自 1.3.0 起）
 `GenuiRenderer` 进行了物料解耦重构，组件已不包含任何组件物料，需要使用 `GenuiConfigProvider` 注入。
 
+内部会向 schema 渲染层 provide `materials.components` 与 `defaultPropsMap`（来自 ConfigProvider 的 materials），而不是完整 materials 对象。
+
 若需保持旧版行为，请改用 `GenuiLegacyRenderer`（`@opentiny/genui-sdk-vue/legacy-renderer`）。
 :::
 

@@ -638,8 +638,21 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-See TinyRobot documentation for `BubbleProps`. `IMessageManagerBridge` is exported from `@opentiny/genui-sdk-vue` and is used in footer slots to access message send APIs.
+See TinyRobot documentation for `BubbleProps`. `IMessageManagerBridge` is exported from `@opentiny/genui-sdk-vue` and is used in footer slots to access message send APIs:
+
+```typescript
+interface IMessageManagerBridge {
+  messages: Ref<ChatMessage[]>;
+  isProcessing: Ref<boolean>;
+  inputMessage: Ref<string>;
+  requestState: Ref<string>;
+  send: () => Promise<void>;
+  sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
+  abortRequest: () => void | Promise<void>;
+  addMessage: (message: ChatMessage | ChatMessage[]) => void;
+}
+```
 
 See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definitions and usage.
 
-See [IMessageManagerBridge](../../../packages/frameworks/vue/src/chat/chat.types.ts) for definitions and usage.
+> **Note**: `GenuiRenderer` provides `materials.components` and `defaultPropsMap` (from `GenuiConfigProvider` materials) to the schema renderer, not the full materials object.

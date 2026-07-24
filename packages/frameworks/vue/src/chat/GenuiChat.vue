@@ -70,8 +70,8 @@ const {
   initialMessages: props.messages,
 });
 
-const messages = computed(() => messageManager.value.messages.value);
-const isProcessing = computed(() => messageManager.value.isProcessing.value);
+const messages = computed(() => messageManager.value?.messages.value ?? []);
+const isProcessing = computed(() => messageManager.value?.isProcessing.value ?? false);
 
 const isAllowFiles = computed(() => {
   const supportImage = props.features?.supportImage;
@@ -165,12 +165,16 @@ const chat = async ({
   context: Record<string, unknown>;
 }) => {
   saveState(context);
-  messageManager.value.addMessage({
+  const manager = messageManager.value;
+  if (!manager) {
+    return;
+  }
+  manager.addMessage({
     role: 'user',
     content: llmFriendlyMessage,
     messages: [{ type: 'custom-text', content: humanFriendlyMessage }],
   });
-  await messageManager.value.send();
+  await manager.send();
 };
 
 const customContext = computed(() => ({
@@ -236,43 +240,26 @@ const showMessages = computed(() => {
   const list = messages.value;
   const lastMessage = list[list.length - 1] as (ChatMessage & { messages?: { type?: string }[] }) | undefined;
 
-  if (isProcessing.value) {
-    if (!lastMessage || lastMessage.role === 'user') {
-      return [
-        ...list,
-        {
-          role: 'assistant',
-          content: t('loading.thinking'),
-          loading: true,
-        },
-      ];
-    }
-
-    if (lastMessage.role === 'assistant') {
-      const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
-      const hasLoadingText = existingMessages.some((item) => item?.type === 'loading-text');
-
-      if (!hasLoadingText) {
-        return [
-          ...list.slice(0, -1),
-          {
-            ...lastMessage,
-            messages: [
-              ...existingMessages,
-              {
-                type: 'loading-text',
-                emitter,
-                message: lastMessage,
-                showThinkingResult: props.chatConfig?.showThinkingResult ?? false,
-              },
-            ],
-          },
-        ];
-      }
-    }
+  if (!isProcessing.value || lastMessage?.role !== 'assistant') {
+    return list;
   }
 
-  return list;
+  const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
+  return [
+    ...list.slice(0, -1),
+    {
+      ...lastMessage,
+      messages: [
+        ...existingMessages,
+        {
+          type: 'loading-text',
+          emitter,
+          message: lastMessage,
+          showThinkingResult: props.chatConfig?.showThinkingResult ?? false,
+        },
+      ],
+    },
+  ];
 });
 
 const defaultRoles: Record<string, BubbleRoleConfig> = {
@@ -379,7 +366,7 @@ const handleSendMessage = async (content?: string) => {
 };
 
 const abortRequest = () => {
-  void messageManager.value.abortRequest();
+  void messageManager.value?.abortRequest();
 };
 
 const messagesContainer: Ref<HTMLElement | undefined> = ref();
@@ -555,7 +542,9 @@ defineExpose({
     height: 0;
   }
 
-  :deep(.tr-bubble[data-role='assistant'] [data-type]:not([data-type='schema-card']):not([data-type='loading-text'])) {
+  :deep(
+    .tr-bubble[data-role='assistant'] [data-type]:not([data-type='schema-card']):not([data-type='loading-text'])
+  ) {
     display: none;
   }
 }

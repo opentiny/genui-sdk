@@ -21,7 +21,7 @@ export function useMarkdownHtml(source: MaybeRefOrGetter<string>) {
       import('markdown-it'),
       import('dompurify'),
     ]);
-    markdownIt = new MarkdownIt({ html: true });
+    markdownIt = new MarkdownIt({ html: false });
     dompurify = DOMPurify;
     ready.value = true;
     render();

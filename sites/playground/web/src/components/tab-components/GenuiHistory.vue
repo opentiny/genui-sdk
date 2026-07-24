@@ -67,7 +67,7 @@ const props = defineProps<{
 const conversations = computed(() => props.conversation.conversations.value);
 const currentId = computed(() => props.conversation.activeConversationId.value);
 
-const groupedHistoryData = computed(() => groupByTimeBuckets(conversations.value) as any);
+const groupedHistoryData = computed(() => groupByTimeBuckets(conversations.value));
 
 watch(
   () => conversations.value.map((c) => c.id),
@@ -126,7 +126,7 @@ const handleBatchDelete = () => {
   if (ids.length === 0) {
     return;
   }
-  TinyModal.confirm(t('conversation.confirmBatchDelete', { count: ids.length }))
+  TinyModal.confirm(t('history.confirmBatchDelete', { count: ids.length }))
     .then((type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;

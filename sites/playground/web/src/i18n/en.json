@@ -65,6 +65,7 @@
     "export": "Export",
     "exportAll": "Export all",
     "exportSelected": "Export selected",
+    "confirmBatchDelete": "Delete {count} selected conversation(s)?",
     "noExportable": "No conversations to export",
     "noImportable": "No conversations found in file",
     "importSuccess": "Imported {count} conversation(s)",

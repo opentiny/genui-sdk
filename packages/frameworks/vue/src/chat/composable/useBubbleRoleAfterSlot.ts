@@ -11,7 +11,7 @@ export type BubbleListAfterSlotProps = {
 
 export function useBubbleRoleAfterSlot(options: {
   roles?: IRolesConfig;
-  messageManager: ComputedRef<IMessageManagerBridge>;
+  messageManager: ComputedRef<IMessageManagerBridge | null> | { value: IMessageManagerBridge | null };
   allMessages: ComputedRef<BubbleMessage[]>;
   isProcessing: ComputedRef<boolean>;
 }) {
@@ -22,6 +22,11 @@ export function useBubbleRoleAfterSlot(options: {
   };
 
   const renderAfterSlot = (slotProps: BubbleListAfterSlotProps) => {
+    const manager = options.messageManager.value;
+    if (!manager) {
+      return null;
+    }
+
     const role = slotProps.role ?? '';
     const slotFn = resolveAfterSlot(role);
     if (!slotFn) {
@@ -46,7 +51,7 @@ export function useBubbleRoleAfterSlot(options: {
       index,
       bubbleProps: { role, ...chatMessage } as IBubbleSlotsProps['bubbleProps'],
       isFinished,
-      messageManager: options.messageManager.value,
+      messageManager: manager,
       chatMessage: chatMessage as IBubbleSlotsProps['chatMessage'],
     };
 

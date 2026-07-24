@@ -68,14 +68,6 @@ const buildResolvedContent = (message: GenuiBubbleMessage): BubbleMessage['conte
   return message.content;
 };
 
-const getContentItem = (message: BubbleMessage, contentIndex?: number) => {
-  const resolved = buildResolvedContent(message as GenuiBubbleMessage);
-  if (Array.isArray(resolved)) {
-    return resolved[contentIndex ?? 0];
-  }
-  return null;
-};
-
 export const genuiContentResolver = (message: BubbleMessage) => {
   return buildResolvedContent(message as GenuiBubbleMessage);
 };
@@ -122,5 +114,3 @@ export const genuiContentRendererMatches: BubbleContentRendererMatch[] = [
     renderer: markRaw(LoadingTextItemRenderer),
   },
 ];
-
-export { getContentItem };
