@@ -532,11 +532,12 @@ defineExpose({
   .tr-bubble__box {
     padding: 0;
     background: transparent;
+    overflow: visible;
   }
 
   .tr-bubble__box:has([data-type='schema-card']),
   .tr-bubble__box[data-shape]:has([data-type='schema-card']) {
-    width: 100%;
+    width: fit-content;
     max-width: 100%;
   }
 }
@@ -590,12 +591,7 @@ defineExpose({
 :deep(.tr-bubble[data-placement='start'] .schema-render-container) {
   width: 100%;
   background-color: var(--tr-container-bg-default, #fff);
-  background-clip: padding-box;
   border-radius: 24px;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  overflow: hidden;
 }
 
 .sender-container {

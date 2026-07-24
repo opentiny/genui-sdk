@@ -164,6 +164,7 @@ watch(
 .schema-render-container {
   position: relative;
   color: var(--tv-color-text, #191919);
+  width: fit-content;
 }
 
 .schema-render-container:has(.loading-warp):after {

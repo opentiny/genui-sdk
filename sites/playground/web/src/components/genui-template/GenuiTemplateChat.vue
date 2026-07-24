@@ -399,7 +399,7 @@ onUnmounted(() => {
   }
 
   .tr-bubble__box:has([data-type='schema-card']) {
-    width: 100%;
+    width: fit-content;
     max-width: 100%;
   }
 }
@@ -425,18 +425,14 @@ onUnmounted(() => {
   .tr-bubble__content {
     @avatar-and-gap-width: 56px;
     max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
-    overflow-x: auto;
+    overflow: visible;
   }
 }
 
 :deep(.tr-bubble[data-placement='start'] .schema-render-container) {
-  width: 100%;
+  width: fit-content;
   background-color: var(--tr-container-bg-default, #fff);
   border-radius: 24px;
-  border: none;
-  outline: none;
-  box-shadow: none;
-  overflow: hidden;
 }
 
 .sender-container {
