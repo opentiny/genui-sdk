@@ -275,20 +275,17 @@ const isSidebarOpen = ref(!isMobile.value);
 
 onMounted(() => {
   initInputMessage();
+  initExampleList();
   getModelOptions()
     .then(async (data) => {
-      let modelChanged = false;
       if (!data.find((item) => item.value === llmConfig.model)) {
         llmConfig.model = data[0]?.value;
-        modelChanged = true;
       }
       modelData.value = data;
-      if (!modelChanged) {
-        modelFeatures.value = await getModelFeatures(llmConfig.model);
-      }
+      await syncModelFeatures(llmConfig.model);
     })
     .catch((error) => {
-      console.error('获取模型列表失败:', error);
+      console.error('Failed to get model options:', error);
     });
   window.addEventListener('keydown', handleKeydown);
 });
@@ -347,27 +344,6 @@ watch(
   },
   { deep: true },
 );
-
-onMounted(() => {
-  initInputMessage();
-  initExampleList();
-  getModelOptions()
-    .then(async (data) => {
-      if (!data.find((item) => item.value === llmConfig.model)) {
-        llmConfig.model = data[0]?.value;
-      }
-      modelData.value = data;
-      syncModelFeatures(llmConfig.model);
-    })
-    .catch((error) => {
-      console.error('Failed to get model options:', error);
-    });
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
 </script>
 
 <template>

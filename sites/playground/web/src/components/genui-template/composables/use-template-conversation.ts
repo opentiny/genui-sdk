@@ -209,7 +209,26 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
     templateLlmConfig = llmConfig;
   }
 
-  function saveConversations() {}
+  function saveConversations() {
+    const kit = conversationRef.value;
+    const storage = storageRef.value;
+    const currentId = kit?.activeConversationId.value;
+    if (!kit || !currentId) {
+      return;
+    }
+    kit.saveMessages(currentId);
+    if (!storage) {
+      return;
+    }
+    const current = kit.conversations.value.find((item) => item.id === currentId);
+    if (!current) {
+      return;
+    }
+    void storage.saveConversation({
+      ...current,
+      updatedAt: Date.now(),
+    });
+  }
 
   function createConversation() {
     if (!conversationRef.value) {

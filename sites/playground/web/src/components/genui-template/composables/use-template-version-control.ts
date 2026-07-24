@@ -232,8 +232,6 @@ export function useTemplateVersionControl() {
     }
 
     messageMgr.messages.value = [...msgs];
-    currentConversation.messages = [...msgs];
-    currentConversation.updatedAt = Date.now();
 
     setCurrentSchema(schemaPayload);
     setCurrentPreviewSchema(schemaPayload);
