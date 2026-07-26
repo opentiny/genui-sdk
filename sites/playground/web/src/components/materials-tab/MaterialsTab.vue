@@ -79,6 +79,30 @@ const setFramework = (name) => {
         </div>
       </div>
     </template>
+
+    <template v-else-if="framework === 'Angular'">
+      <div class="config-title">{{ t('materials.theme') }}</div>
+      <div class="theme-card-group">
+        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
+          <div
+            class="theme-card"
+            :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"
+            role="radio"
+            :aria-checked="theme === item.value"
+            tabindex="0"
+            @click="emit('update:theme', item.value)"
+            @keydown.enter="emit('update:theme', item.value)"
+            @keydown.space.prevent="emit('update:theme', item.value)"
+          >
+            <tiny-checkbox v-if="theme === item.value" class="theme-card__check" :model-value="true" @click.stop />
+            <ThemePreviewCard :theme="item.value" :theme-colors="MATERIAL_THEME_COLOR_MAP[item.value]" />
+          </div>
+          <span class="theme-card__label" :class="{ 'theme-card__label--active': theme === item.value }">
+            {{ t(item.textKey) }}
+          </span>
+        </div>
+      </div>
+    </template>
   </div>
 </template>
 
@@ -127,21 +151,17 @@ const setFramework = (name) => {
   .framework-btn__name {
     font-size: 12px;
     line-height: 1;
-    color: #595959;
+    color: rgba(25, 25, 25, 1);
   }
 
   .framework-btn--active {
-    border-color: #191919;
+    border-color: rgba(20, 118, 255, 1);
     background: transparent;
   }
 
   .framework-btn--active .framework-btn__icon {
     background: #1476ff;
     color: #fff;
-  }
-
-  .framework-btn--active .framework-btn__name {
-    color: #1476ff;
   }
 
   .library-radio-group {
@@ -217,7 +237,7 @@ const setFramework = (name) => {
   }
 
   .theme-card--active {
-    border-color: #191919;
+    border-color: rgba(20, 118, 255, 1);
   }
 }
 </style>
