@@ -1,11 +1,13 @@
 import { THEME_PREVIEW_COLOR_PRESETS } from '../theme-preview';
+import vueIcon from '../../assets/images/vue.svg';
+import angularIcon from '../../assets/images/angular.svg';
 
 export const FRAMEWORK_OPTIONS = [
-  { name: 'Vue', icon: 'V' },
-  { name: 'Angular', icon: 'A' },
-] as const;
+  { name: 'Vue', icon: vueIcon },
+  { name: 'Angular', icon: angularIcon },
+]
 
-export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'ElementPlus'] as const;
+export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'Element'] as const;
 
 export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeLight', value: 'light' },

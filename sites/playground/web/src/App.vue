@@ -32,6 +32,7 @@ import {
 } from './continue-writing';
 import useIcon from './use-icon';
 import { getMixedContentHandler } from './ng-renderer/content-response-handler';
+import { getBareSchemaContentHandler } from './bare-schema-stream-handler';
 import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
 import { locale, t } from './i18n';
 
@@ -219,7 +220,8 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
-    const newContentHandler = getMixedContentHandler(contentHandler, framework);
+    const mixedHandler = getMixedContentHandler(contentHandler, framework);
+    const newContentHandler = getBareSchemaContentHandler(mixedHandler, framework);
     replaceHandlers(defaultResponseHandlers, [
       newContentHandler,
     ], 'content');
@@ -257,7 +259,7 @@ provide('playgroundContext', playgroundContext);
 
 const materialsMap = {
   TinyVue: tinyMaterials,
-  ElementPlus: epMaterials,
+  Element: epMaterials,
 };
 
 const currentMaterials = computed(() => materialsMap[componentLib.value] ?? tinyMaterials);

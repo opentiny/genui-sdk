@@ -9,7 +9,7 @@ import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
-type IComponentLibKey = 'TinyVue' | 'ElementPlus';
+type IComponentLibKey = 'TinyVue' | 'Element';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
 type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
@@ -22,13 +22,12 @@ const metaMap: IMetaMap = {
       mini: miniMaterialsMeta,
       standard: materialsMeta,
     },
-    ElementPlus: {
+    Element: {
       mini: epMaterialsMeta,
       standard: epMaterialsMeta,
     },
   },
   Angular: {
-    // Angular 仍用 ng，不跟 ElementPlus 走
     TinyVue: {
       mini: ngMaterialsMeta,
       standard: ngMaterialsMeta,

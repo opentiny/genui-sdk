@@ -42,7 +42,9 @@ const setFramework = (name) => {
         @keydown.enter="setFramework(item.name)"
         @keydown.space.prevent="setFramework(item.name)"
       >
-        <span class="framework-btn__icon">{{ item.icon }}</span>
+        <span class="framework-btn__icon">
+          <img class="framework-btn__img" :src="item.icon" alt="item.name">
+        </span>
         <span class="framework-btn__name">{{ item.name }}</span>
       </div>
     </div>
@@ -114,13 +116,14 @@ const setFramework = (name) => {
   .framework-btn__icon {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
-    font-weight: 600;
-    font-size: 14px;
+  }
+
+  .framework-btn__img {
+    width: 100%;
+    height: 100%;
   }
 
   .framework-btn__name {
@@ -131,12 +134,6 @@ const setFramework = (name) => {
 
   .framework-btn--active {
     border-color: rgba(20, 118, 255, 1);
-    background: transparent;
-  }
-
-  .framework-btn--active .framework-btn__icon {
-    background: #1476ff;
-    color: #fff;
   }
 
   .library-radio-group {
@@ -203,7 +200,8 @@ const setFramework = (name) => {
     font-size: 12px;
     line-height: 1;
     color: #595959;
-    text-align: center;
+    text-align: left;
+    padding-left: 8px;
   }
 
   .theme-card__label--active {
