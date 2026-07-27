@@ -32,7 +32,6 @@ import {
 } from './continue-writing';
 import useIcon from './use-icon';
 import { getMixedContentHandler } from './ng-renderer/content-response-handler';
-import { getBareSchemaContentHandler } from './bare-schema-stream-handler';
 import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
 import { locale, t } from './i18n';
 
@@ -220,8 +219,7 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
-    const mixedHandler = getMixedContentHandler(contentHandler, framework);
-    const newContentHandler = getBareSchemaContentHandler(mixedHandler, framework);
+    const newContentHandler = getMixedContentHandler(contentHandler, framework);
     replaceHandlers(defaultResponseHandlers, [
       newContentHandler,
     ], 'content');
