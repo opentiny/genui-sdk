@@ -20,7 +20,8 @@
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
     "benchmarks": "pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks",
     "build:docs": "pnpm --filter genui-sdk-docs build",
-    "build": "pnpm build:playground"
+    "build": "pnpm build:playground",
+    "skills:sync": "node scripts/skill-sync.mjs"
   },
   "pnpm": {
     "patchedDependencies": {

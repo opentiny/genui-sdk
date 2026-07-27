@@ -25,6 +25,7 @@ import { buildSkillTools } from './skills/index.js';
 import { buildOpenApiTools, previewOpenApiTools } from './openapi-tools/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
+import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -325,7 +326,7 @@ export function createChatGenui() {
         userAppendPrompt +
         '\n' +
         skillPrompt,
-      messages: body.messages,
+      messages: normalizeMessagesForAiSdk(body.messages),
       abortSignal: abort.signal,
       tools,
       toolChoice: 'auto',

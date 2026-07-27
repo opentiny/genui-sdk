@@ -543,20 +543,22 @@ defineExpose({
 }
 
 .tg-chat-container.is-thinking-collapsed {
-  :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content) {
+  :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content:has([data-type='schema-card'])) {
     gap: 0;
   }
 
   :deep(
     .tr-bubble[data-role='assistant']
-      .tr-bubble__content
+      .tr-bubble__content:has([data-type='schema-card'])
       > *:not(:has([data-type='schema-card'])):not(:has([data-type='loading-text']))
   ) {
     height: 0;
   }
 
   :deep(
-    .tr-bubble[data-role='assistant'] [data-type]:not([data-type='schema-card']):not([data-type='loading-text'])
+    .tr-bubble[data-role='assistant']
+      .tr-bubble__content:has([data-type='schema-card'])
+      [data-type]:not([data-type='schema-card']):not([data-type='loading-text'])
   ) {
     display: none;
   }

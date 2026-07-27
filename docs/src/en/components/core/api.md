@@ -375,7 +375,8 @@ type IMessageItem =
   | { type: 'schema-card'; content: any; id?: string; state?: Record<string, any> }
   | { type: 'markdown'; content: string }
   | { type: 'reasoning'; content: string; thinking?: boolean }
-  | { type: 'tool'; name: string; status: string; content?: any; [key: string]: any };
+  | { type: 'tool'; name: string; status: string; content?: any; [key: string]: any }
+  | { type: string; content: any; [customKey: string]: any };
 
 interface IChatMessage {
   role: 'assistant';

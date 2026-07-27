@@ -65,11 +65,18 @@ export interface IMarkdownMessageItem {
   cardId: string;
 }
 
+export interface ICustomMessageItem {
+  type: string;
+  content: any;
+  [customKey: string]: any;
+}
+
 export type IMessageItem =
   | IMarkdownMessageItem
   | IJsonPatchMessageItem
   | ISchemaCardMessageItem
-  | ISchemaManualMessageItem;
+  | ISchemaManualMessageItem
+  | ICustomMessageItem;
 
 export interface IChatMessage {
   role: 'assistant';

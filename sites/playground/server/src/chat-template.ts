@@ -11,6 +11,7 @@ import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { buildOpenApiTools } from './openapi-tools/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
+import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
@@ -101,7 +102,7 @@ export const createChatTemplate = () => {
       ${specificPrompt}
       ${customSystemPrompt}`;
 
-      const messages = body.messages;
+      const messages = normalizeMessagesForAiSdk(body.messages);
       if (body.templateSchema) {
         const schemaJsonContext = `
           **当前 schemaJson（这是唯一可信的 ID 来源）：**
