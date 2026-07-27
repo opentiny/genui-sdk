@@ -37,6 +37,10 @@ export default function useTemplate(options?: UseTemplateOptions) {
   };
 
   const createTemplate = () => {
+    const current = conversation.getCurrentConversation();
+    if (current && (!current.messages || current.messages.length === 0)) {
+      return;
+    }
     conversation.createConversation();
     resetEmptyTemplateSchema();
   };
@@ -53,11 +57,19 @@ export default function useTemplate(options?: UseTemplateOptions) {
     schema.applySchemaFromMessages(currentMessages);
   };
 
-  const deleteTemplate = (id: string) => {
-    const isEmpty = conversation.deleteConversation(id);
+  const deleteTemplate = async (id: string) => {
+    const isEmpty = await conversation.deleteConversation(id);
     if (isEmpty) {
-      createTemplate();
+      conversation.createConversation();
+      resetEmptyTemplateSchema();
+      return;
     }
+    const currentMessages = conversation.getCurrentConversation()?.messages;
+    if (!currentMessages?.length) {
+      resetEmptyTemplateSchema();
+      return;
+    }
+    schema.applySchemaFromMessages(currentMessages);
   };
 
   return {

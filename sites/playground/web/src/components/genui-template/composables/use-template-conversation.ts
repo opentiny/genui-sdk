@@ -198,6 +198,10 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
     if (!conversationRef.value) {
       return;
     }
+    const active = conversationRef.value.activeConversation.value;
+    if (active && (active.engine?.messages.value.length ?? 0) === 0) {
+      return;
+    }
     conversationRef.value.createConversation({ title: t('template.defaultTitle') });
   }
 
@@ -208,12 +212,19 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
     await conversationRef.value.switchConversation(id);
   }
 
-  function deleteConversation(id: string) {
+  async function deleteConversation(id: string) {
     if (!conversationRef.value) {
       return false;
     }
-    void conversationRef.value.deleteConversation(id);
-    return conversationRef.value.conversations.value.length === 0;
+    await conversationRef.value.deleteConversation(id);
+    const list = conversationRef.value.conversations.value;
+    if (list.length === 0) {
+      return true;
+    }
+    if (!conversationRef.value.activeConversationId.value) {
+      await conversationRef.value.switchConversation(list[0].id);
+    }
+    return false;
   }
 
   function updateConversationTitle(id: string, title: string) {
@@ -283,12 +294,15 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
     if (!current) {
       return;
     }
+    const metadata = {
+      ...current.metadata,
+      lastSchema: JSON.stringify(schema),
+    };
+    current.metadata = metadata;
+    current.updatedAt = Date.now();
     void storage.saveConversation({
       ...current,
-      metadata: {
-        ...current.metadata,
-        lastSchema: JSON.stringify(schema),
-      },
+      metadata,
     });
   }
 

@@ -448,8 +448,8 @@ const selectors = [
 
 ### getConversation
 
-- **返回类型**: `UseConversationReturn`
-- **说明**: 获取会话管理对象，用于访问会话管理相关的 API，包括会话列表、当前会话、保存/加载会话等功能。
+- **返回类型**: `GenuiConversationHandle`（`@opentiny/tiny-robot-kit` 的 `useConversation` 返回值）
+- **说明**: 获取会话管理对象。本地会话默认存储在 IndexedDB（库名 `genui-ai-v2`），升级自旧版后不会自动迁移旧库数据。
 
 ```vue
 <template>
@@ -632,7 +632,8 @@ interface BubbleRoleConfig {
   avatar?: Component | VNode; // 头像组件
   maxWidth?: string; // 消息最大宽度
   slots?: {
-    // 插槽配置,可用于配置底部工具栏
+    // 0.4.x 仅支持 after / trailer（二者等价，用于底部工具栏）
+    after?: Component<IBubbleSlotsProps>;
     trailer?: Component<IBubbleSlotsProps>;
   };
 }

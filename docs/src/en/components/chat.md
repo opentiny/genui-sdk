@@ -448,8 +448,8 @@ See [Renderer - Buffer Fields](../examples/renderer/required-complete-field-sele
 
 ### getConversation
 
-- **Return type**: `UseConversationReturn`
-- **Description**: Returns the conversation manager object for session APIs, including conversation list, current session, save/load, and related features.
+- **Return type**: `GenuiConversationHandle` (return value of `useConversation` from `@opentiny/tiny-robot-kit`)
+- **Description**: Returns the conversation manager. Local sessions are stored in IndexedDB (`genui-ai-v2` by default); upgrading from older versions does not migrate the previous database automatically.
 
 ```vue
 <template>
@@ -610,7 +610,8 @@ interface BubbleRoleConfig {
   avatar?: Component | VNode; // Avatar component
   maxWidth?: string; // Maximum message width
   slots?: {
-    // Slot config, e.g. footer toolbar
+    // 0.4.x only supports after / trailer (equivalent; used for footer toolbar)
+    after?: Component<IBubbleSlotsProps>;
     trailer?: Component<IBubbleSlotsProps>;
   };
 }

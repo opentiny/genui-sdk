@@ -92,6 +92,16 @@ const handleItemClick = (item: HistoryItem) => {
   void props.conversation.switchConversation(item.id);
 };
 
+const ensureActiveAfterDelete = async () => {
+  if (conversations.value.length === 0) {
+    props.conversation.createConversation({ title: t('conversation.newConversation') });
+    return;
+  }
+  if (!props.conversation.activeConversationId.value) {
+    await props.conversation.switchConversation(conversations.value[0].id);
+  }
+};
+
 const handleItemAction = async (action: { id: string }, item: HistoryItem) => {
   if (action.id === 'export') {
     const items = await props.exportConversations([item.id]);
@@ -102,11 +112,8 @@ const handleItemAction = async (action: { id: string }, item: HistoryItem) => {
   }
 
   if (action.id === 'delete') {
-    void props.conversation.deleteConversation(item.id);
-  }
-
-  if (conversations.value.length === 0) {
-    props.conversation.createConversation({ title: t('conversation.newConversation') });
+    await props.conversation.deleteConversation(item.id);
+    await ensureActiveAfterDelete();
   }
 };
 
@@ -126,19 +133,18 @@ const handleBatchDelete = () => {
   if (ids.length === 0) {
     return;
   }
-  TinyModal.confirm(t('history.confirmBatchDelete', { count: ids.length }))
-    .then((type: 'confirm' | 'cancel') => {
+  TinyModal.confirm(t('history.confirmBatchDelete', { count: ids.length })).then(
+    async (type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;
       }
       for (const id of ids) {
-        void props.conversation.deleteConversation(id);
+        await props.conversation.deleteConversation(id);
       }
       selectedConversations.value = [];
-      if (conversations.value.length === 0) {
-        props.conversation.createConversation({ title: t('conversation.newConversation') });
-      }
-    });
+      await ensureActiveAfterDelete();
+    },
+  );
 };
 </script>
 

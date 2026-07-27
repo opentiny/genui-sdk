@@ -5,7 +5,6 @@ import {
   defaultResponseHandlers,
   type IResponseHandler,
 } from './response-handler';
-import { emitter } from './event-emitter';
 import type { IChatConfig } from './chat.types';
 
 /**
@@ -108,15 +107,6 @@ export function createGenuiStreamHandlerOptions(options: {
 
     for (const handler of streamCtx.handlers) {
       handler.end?.(streamCtx.handlerContext);
-    }
-
-    const chatMessage = streamCtx.handlerContext.chatMessage;
-    if (chatMessage) {
-      emitter.emit('notification', {
-        type: 'done',
-        delta: {},
-        chatMessage,
-      });
     }
   };
 

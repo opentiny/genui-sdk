@@ -63,7 +63,7 @@ export interface IMessageManagerBridge {
   isProcessing: Ref<boolean>;
   inputMessage: Ref<string>;
   requestState: Ref<string>;
-  send: () => Promise<void>;
+  send: (...messages: ChatMessage[]) => Promise<void>;
   sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
   abortRequest: () => void | Promise<void>;
   addMessage: (message: ChatMessage | ChatMessage[]) => void;
@@ -122,7 +122,7 @@ export interface IChatProps {
   customExamples?: IGenPromptExample[];
   customActions?: ICustomActionItem[];
   rendererSlots?: IRendererSlots;
-  thinkComponent?: Component<BubbleProps>;
+  thinkComponent?: Component<IThinkComponentProps>;
   roles?: IRolesConfig;
   features?: ModelCapability;
   customFetch?: CustomFetch;

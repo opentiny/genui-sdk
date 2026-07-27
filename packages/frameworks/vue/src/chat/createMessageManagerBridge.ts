@@ -27,8 +27,8 @@ export function createMessageManagerBridge(
     isProcessing: engine.isProcessing,
     inputMessage,
     requestState: engine.requestState,
-    send: async () => {
-      await engine.send();
+    send: async (...messages: ChatMessage[]) => {
+      await engine.send(...messages);
     },
     sendMessage: async (content = inputMessage.value, clearInput = true) => {
       const text = typeof content === 'string' ? content : inputMessage.value;

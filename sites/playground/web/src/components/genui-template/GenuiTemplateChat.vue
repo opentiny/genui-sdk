@@ -237,9 +237,8 @@ const handleSendMessage = async () => {
     content: messageContent,
     messageId: cardId,
   };
-  manager.messages.value.push(userMessage);
 
-  if (manager.messages.value.length === 1 && (manager.messages.value[0] as ChatMessage).role === 'user') {
+  if (manager.messages.value.length === 0) {
     const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
       conversation.updateConversationTitle(currentConversationId, messageContent.substring(0, 20));
@@ -248,7 +247,7 @@ const handleSendMessage = async () => {
 
   prevSchema.value = JSON.stringify(schema.currentSchema);
   clearInputMessage();
-  await manager.send();
+  await manager.send(userMessage);
   scrollToBottom();
 };
 

@@ -97,11 +97,11 @@ const handleItemAction = async (action: HistoryMenuItem, item: HistoryItem) => {
   }
 
   if (action.id === 'delete') {
-    TinyModal.confirm(t('template.confirmDeleteOne')).then((type: 'confirm' | 'cancel') => {
+    TinyModal.confirm(t('template.confirmDeleteOne')).then(async (type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;
       }
-      deleteTemplate(item.id!);
+      await deleteTemplate(item.id!);
     });
   }
 };
@@ -131,12 +131,12 @@ const handleBatchDelete = () => {
     return;
   }
   TinyModal.confirm(t('template.confirmBatchDelete', { count: ids.length })).then(
-    (type: 'confirm' | 'cancel') => {
+    async (type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;
       }
       for (const id of ids) {
-        deleteTemplate(id);
+        await deleteTemplate(id);
       }
       selectedTemplateIds.value = [];
     },

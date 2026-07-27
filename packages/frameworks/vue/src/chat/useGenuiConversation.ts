@@ -74,14 +74,18 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     autoSaveMessages: true,
     autoSaveThrottle: 1000,
     onLoad(list) {
-      loading.value = false;
       if (!list.length) {
         conversation.createConversation({ title: t('conversation.newConversation') });
+        loading.value = false;
         return;
       }
       if (!conversation.activeConversationId.value) {
-        void conversation.switchConversation(list[0].id);
+        void conversation.switchConversation(list[0].id).finally(() => {
+          loading.value = false;
+        });
+        return;
       }
+      loading.value = false;
     },
   });
 
@@ -91,6 +95,21 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
       metadata,
     });
     return created.id;
+  };
+
+  const isBlankActiveConversation = () => {
+    const active = conversation.activeConversation.value;
+    if (!active) {
+      return false;
+    }
+    return (active.engine?.messages.value.length ?? 0) === 0;
+  };
+
+  const handleNewConversation = () => {
+    if (isBlankActiveConversation()) {
+      return conversation.activeConversationId.value;
+    }
+    return createConversation();
   };
 
   const importConversations = async (items: ImportConversationItem[]) => {
@@ -206,7 +225,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
     setResponseHandlers,
     getResponseHandlers: () => responseHandlers.value,
     createConversation,
-    handleNewConversation: () => createConversation(),
+    handleNewConversation,
     importConversations,
     exportConversations,
     setConversationTitle: (messageContent: string) => {

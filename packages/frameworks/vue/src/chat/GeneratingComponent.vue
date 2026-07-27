@@ -2,7 +2,7 @@
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import type { INotificationPayload } from '@opentiny/genui-sdk-core';
 import type { IThinkComponentProps } from './chat.types';
-import { useI18n } from './i18n'; //TODO: replace with package name
+import { useI18n } from './i18n';
 
 const props = defineProps<IThinkComponentProps>();
 

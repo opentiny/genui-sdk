@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, type Component } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
 import GeneratingComponent from '../GeneratingComponent.vue';
@@ -14,17 +14,24 @@ const thinkProps = computed(() => {
     emitter?: INotificationEventEmitter;
     message?: IMessage;
     showThinkingResult?: boolean;
+    thinkComponent?: Component;
   };
   return {
     emitter: item.emitter!,
     message: item.message!,
     showThinkingResult: item.showThinkingResult ?? false,
+    component: item.thinkComponent || GeneratingComponent,
   };
 });
 </script>
 
 <template>
   <div v-if="thinkProps.emitter && thinkProps.message" data-type="loading-text">
-    <GeneratingComponent v-bind="thinkProps" />
+    <component
+      :is="thinkProps.component"
+      :emitter="thinkProps.emitter"
+      :message="thinkProps.message"
+      :showThinkingResult="thinkProps.showThinkingResult"
+    />
   </div>
 </template>

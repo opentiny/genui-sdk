@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue';
+import { computed, defineComponent, inject } from 'vue';
 import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
 import { useMessageContent } from '@opentiny/tiny-robot';
 import { GenuiRenderer } from '../../renderer';
@@ -33,6 +33,17 @@ const requiredCompleteFieldSelectors = computed(
 
 const headerSlot = computed(() => toSlotFunction(schemaContext?.rendererSlots.value?.header));
 const footerSlot = computed(() => toSlotFunction(schemaContext?.rendererSlots.value?.footer));
+
+const SchemaCardSlotHost = defineComponent({
+  name: 'SchemaCardSlotHost',
+  props: {
+    renderFn: { type: Function, required: true },
+    slotProps: { type: Object, required: true },
+  },
+  setup(hostProps) {
+    return () => hostProps.renderFn(hostProps.slotProps);
+  },
+});
 </script>
 
 <template>
@@ -47,10 +58,10 @@ const footerSlot = computed(() => toSlotFunction(schemaContext?.rendererSlots.va
       :required-complete-field-selectors="requiredCompleteFieldSelectors"
     >
       <template v-if="headerSlot" #header="slotProps">
-        <component :is="{ render: () => headerSlot!(slotProps) }" />
+        <SchemaCardSlotHost :render-fn="headerSlot" :slot-props="slotProps" />
       </template>
       <template v-if="footerSlot" #footer="slotProps">
-        <component :is="{ render: () => footerSlot!(slotProps) }" />
+        <SchemaCardSlotHost :render-fn="footerSlot" :slot-props="slotProps" />
       </template>
     </GenuiRenderer>
   </div>

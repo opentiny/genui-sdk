@@ -143,6 +143,6 @@ export const getContinueGeneratingHandler = (messageManager: { value?: { message
       removeSensitiveInfoWarning(chatMessage);
       const { message } = findLastContinueWritingMessage(context.chatMessage);
       context.patternExtractor.setState(message?.type === 'schema-card' ? 'handling' : 'normal');
-    }
+    },
   };
-}
+};

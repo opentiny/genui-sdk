@@ -2,7 +2,7 @@
 import '@opentiny/tiny-robot/dist/style.css';
 import { TrBubbleList, TrSenderCompat, TrBubbleProvider } from '@opentiny/tiny-robot';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import { computed, h, inject, nextTick, provide, ref, watch, markRaw, type Component, type Ref } from 'vue';
+import { computed, h, inject, nextTick, provide, ref, watch, markRaw, defineComponent, type Component, type Ref } from 'vue';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IMessageItem } from '@opentiny/genui-sdk-core';
 import type { IChatProps, ICustomActionItem, UserItem, UserTextItem } from './chat.types';
@@ -169,12 +169,11 @@ const chat = async ({
   if (!manager) {
     return;
   }
-  manager.addMessage({
+  await manager.send({
     role: 'user',
     content: llmFriendlyMessage,
     messages: [{ type: 'custom-text', content: humanFriendlyMessage }],
   });
-  await manager.send();
 };
 
 const customContext = computed(() => ({
@@ -256,6 +255,7 @@ const showMessages = computed(() => {
           emitter,
           message: lastMessage,
           showThinkingResult: props.chatConfig?.showThinkingResult ?? false,
+          thinkComponent: props.thinkComponent,
         },
       ],
     },
@@ -294,8 +294,21 @@ const { renderAfterSlot } = useBubbleRoleAfterSlot({
   isProcessing,
 });
 
-const createAfterSlotRenderer = (slotProps: Parameters<typeof renderAfterSlot>[0]) => ({
-  render: () => renderAfterSlot(slotProps),
+const BubbleAfterSlot = defineComponent({
+  name: 'BubbleAfterSlot',
+  props: {
+    messages: { type: Array, required: true },
+    role: { type: String, default: undefined },
+    messageIndexes: { type: Array, required: true },
+  },
+  setup(slotProps) {
+    return () =>
+      renderAfterSlot({
+        messages: slotProps.messages as Parameters<typeof renderAfterSlot>[0]['messages'],
+        role: slotProps.role,
+        messageIndexes: slotProps.messageIndexes as number[],
+      });
+  },
 });
 
 const handleSendMessage = async (content?: string) => {
@@ -438,7 +451,7 @@ defineExpose({
           auto-scroll
         >
           <template #after="slotProps">
-            <component :is="createAfterSlotRenderer(slotProps)" />
+            <BubbleAfterSlot v-bind="slotProps" />
           </template>
         </tr-bubble-list>
       </tr-bubble-provider>
