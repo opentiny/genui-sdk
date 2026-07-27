@@ -36,7 +36,7 @@
 </template>
 
 <script setup lang="ts">
-import { TrHistory, useTouchDevice, type HistoryItem } from '@opentiny/tiny-robot';
+import { TrHistory, useTouchDevice, type HistoryData, type HistoryItem } from '@opentiny/tiny-robot';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { ExportConversationItem, GenuiConversationHandle, ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
@@ -67,7 +67,14 @@ const props = defineProps<{
 const conversations = computed(() => props.conversation.conversations.value);
 const currentId = computed(() => props.conversation.activeConversationId.value);
 
-const groupedHistoryData = computed(() => groupByTimeBuckets(conversations.value));
+const groupedHistoryData = computed((): HistoryData<HistoryItem> =>
+  groupByTimeBuckets(
+    conversations.value.map((item) => ({
+      ...item,
+      title: item.title ?? t('conversation.newConversation'),
+    })),
+  ),
+);
 
 watch(
   () => conversations.value.map((c) => c.id),
