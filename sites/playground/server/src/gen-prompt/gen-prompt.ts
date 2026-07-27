@@ -5,22 +5,34 @@ import {
   type IMaterialsMeta,
 } from '@opentiny/genui-sdk-core';
 import { materialsMeta, miniMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
+type IComponentLibKey = 'TinyVue' | 'ElementPlus';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
+type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
-type IMetaMap = Partial<Record<IFrameworkKey, IVariantMap<IMaterialsMeta>>>;
+type IMetaMap = Partial<Record<IFrameworkKey, ILibMap<IMaterialsMeta>>>;
 type IOptionsMap = Partial<Record<IFrameworkKey, IVariantMap<IGenPromptOptions>>>;
 
 const metaMap: IMetaMap = {
   Vue: {
-    mini: miniMaterialsMeta,
-    standard: materialsMeta,
+    TinyVue: {
+      mini: miniMaterialsMeta,
+      standard: materialsMeta,
+    },
+    ElementPlus: {
+      mini: epMaterialsMeta,
+      standard: epMaterialsMeta,
+    },
   },
   Angular: {
-    mini: ngMaterialsMeta,
-    standard: ngMaterialsMeta,
+    // Angular 仍用 ng，不跟 ElementPlus 走
+    TinyVue: {
+      mini: ngMaterialsMeta,
+      standard: ngMaterialsMeta,
+    },
   },
 };
 
@@ -34,11 +46,15 @@ export function genPlaygroundPrompt(
   framework: IFrameworkKey,
   promptVariant: IMaterialsMetaVariantKey | undefined,
   tgCustomConfig?: IGenPromptCustomConfig,
+  componentLib: IComponentLibKey = 'TinyVue',
 ) {
+  const lib = framework === 'Angular' ? 'TinyVue' : componentLib;
+  const variant = promptVariant || 'standard';
+
   return genPrompt(
     framework,
-    metaMap[framework]?.[promptVariant] ?? materialsMeta,
+    metaMap[framework]?.[lib]?.[variant] ?? materialsMeta,
     tgCustomConfig,
-    optionsMap[framework]?.[promptVariant] ?? {},
+    optionsMap[framework]?.[variant] ?? {},
   );
 }

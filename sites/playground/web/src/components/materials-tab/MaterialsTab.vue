@@ -16,8 +16,7 @@ defineProps({
 
 const emit = defineEmits(['update:theme']);
 
-const { framework } = inject('playgroundContext');
-const componentLib = ref('TinyVue');
+const { framework, componentLib } = inject('playgroundContext');
 
 const setFramework = (name) => {
   framework.value = name;
@@ -49,40 +48,16 @@ const setFramework = (name) => {
     </div>
 
     <!-- TODO: 组件库切换暂时不支持 -->
-    <!-- <div class="config-title">{{ t('materials.componentLib') }}</div>
+    <div class="config-title">{{ t('materials.componentLib') }}</div>
     <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
       <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
         <tiny-radio v-for="item in COMPONENT_LIB_OPTIONS" :key="item" :label="item">{{ item }}</tiny-radio>
       </tiny-radio-group>
-    </div> -->
+    </div>
 
     <template v-if="framework === 'Vue'">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
-        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
-          <div
-            class="theme-card"
-            :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"
-            role="radio"
-            :aria-checked="theme === item.value"
-            tabindex="0"
-            @click="emit('update:theme', item.value)"
-            @keydown.enter="emit('update:theme', item.value)"
-            @keydown.space.prevent="emit('update:theme', item.value)"
-          >
-            <tiny-checkbox v-if="theme === item.value" class="theme-card__check" :model-value="true" @click.stop />
-            <ThemePreviewCard :theme="item.value" :theme-colors="MATERIAL_THEME_COLOR_MAP[item.value]" />
-          </div>
-          <span class="theme-card__label" :class="{ 'theme-card__label--active': theme === item.value }">
-            {{ t(item.textKey) }}
-          </span>
-        </div>
-      </div>
-    </template>
-
-    <template v-else-if="framework === 'Angular'">
-      <div class="config-title">{{ t('materials.theme') }}</div>
-      <div class="theme-card-group">
         <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
           <div
             class="theme-card"

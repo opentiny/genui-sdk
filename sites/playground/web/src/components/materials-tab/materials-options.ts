@@ -5,7 +5,7 @@ export const FRAMEWORK_OPTIONS = [
   { name: 'Angular', icon: 'A' },
 ] as const;
 
-export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'ElementUI'] as const;
+export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'ElementPlus'] as const;
 
 export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeLight', value: 'light' },

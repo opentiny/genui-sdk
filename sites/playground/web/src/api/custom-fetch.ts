@@ -42,6 +42,7 @@ export type IOpenApiToolServiceConfig = OpenApiToolServiceConfig;
 export interface IPlaygroundConfig {
   mcpServers: IMcpServerConfig[];
   framework: string;
+  componentLib?: 'TinyVue' | 'ElementPlus';
   promptList: string[];
   model: string;
   temperature: number;
@@ -70,6 +71,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
     const {
       mcpServers,
       framework,
+      componentLib,
       promptList,
       model,
       temperature,
@@ -82,6 +84,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
     const playgroundConfig = {
       mcpServers,
       framework: framework || 'Vue',
+      componentLib: componentLib || 'TinyVue',
       promptList,
       model,
       temperature,

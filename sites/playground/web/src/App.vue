@@ -14,7 +14,8 @@ import {
   h,
   shallowRef,
 } from 'vue';
-import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as epMaterials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
@@ -53,6 +54,7 @@ const {
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
   framework: cacheFramework,
+  componentLib: cacheComponentLib, 
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
 const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
@@ -116,6 +118,7 @@ const chatConfig = reactive(
 const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
+const componentLib = ref(cacheComponentLib || 'TinyVue');
 
 let latestModelFeaturesRequest = 0;
 
@@ -247,9 +250,17 @@ const playgroundContext = {
   conversation,
   customExamples,
   framework,
+  componentLib,
 };
 
 provide('playgroundContext', playgroundContext);
+
+const materialsMap = {
+  TinyVue: tinyMaterials,
+  ElementPlus: epMaterials,
+};
+
+const currentMaterials = computed(() => materialsMap[componentLib.value] ?? tinyMaterials);
 
 const handleKeydown = (event) => {
   // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
@@ -312,6 +323,7 @@ const roles = computed(() => {
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
   framework: framework.value,
+  componentLib: componentLib.value,
 }));
 
 /**
@@ -392,7 +404,7 @@ onUnmounted(() => {
         <GenuiConfigProvider
           :theme="theme"
           :locale="locale"
-          :materials="materials"
+          :materials="currentMaterials"
           style="height: 100%"
         >
           <GenuiChat
