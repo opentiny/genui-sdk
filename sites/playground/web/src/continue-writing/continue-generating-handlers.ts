@@ -63,7 +63,7 @@ export const locationPartialSchemaJson = () => {
     start: (context, handlers) => {
       if (!context.overlapEliminated) {
         const { message, index } = findLastContinueWritingMessage(context.chatMessage);
-        context.partialSchemaJsonIndex = message?.type === 'schema-card' ? index : -1;
+        context.partialSchemaJsonIndex = message?.type === 'schema-card-vue' ? index : -1;
       }
     },
   }
@@ -137,7 +137,7 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
 
         removeSensitiveInfoWarning(chatMessage);
         const { message } = findLastContinueWritingMessage(context.chatMessage);
-        context.patternExtractor.setState(message?.type === 'schema-card' ? 'handling' : 'normal');
+        context.patternExtractor.setState(message?.type === 'schema-card-vue' ? 'handling' : 'normal');
       }
     }
   };

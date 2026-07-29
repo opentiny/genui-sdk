@@ -33,6 +33,7 @@ import {
 import useIcon from './use-icon';
 import { getMixedContentHandler } from './ng-renderer/content-response-handler';
 import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
+import { getMessageRendererVue } from './ng-renderer/message-renderer-vue';
 import { locale, t } from './i18n';
 
 const { topRenderer, addIcons } = useIcon();
@@ -163,7 +164,7 @@ watch(
 );
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value, () => componentLib.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -173,6 +174,7 @@ watch(
         chatConfig,
         customExamples: customExamples.value,
         framework: framework.value,
+        componentLib: componentLib.value,
       }),
     );
   },
@@ -219,7 +221,7 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
-    const newContentHandler = getMixedContentHandler(contentHandler, framework);
+    const newContentHandler = getMixedContentHandler(contentHandler, framework, componentLib);
     replaceHandlers(defaultResponseHandlers, [
       newContentHandler,
     ], 'content');
@@ -238,6 +240,7 @@ watch(chat, (instance) => {
     instance.setResponseHandlers(newResponseHandlers);
 
     instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
+    instance.setMessageRenderer('schema-card', getMessageRendererVue(instance, materialsMap, tinyMaterials));
   }
 });
 
