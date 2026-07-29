@@ -6,7 +6,6 @@ export interface SchemaComposerApi {
   insertTag: (node: SelectedSchemaNode) => void;
   getContent: () => ComposerContent;
   clear: () => void;
-  focus: () => void;
 }
 
 export interface SchemaDevModeContext {

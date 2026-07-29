@@ -15,7 +15,7 @@ import {
 import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
+import type { BubbleRoleConfig, UserItem } from '@opentiny/tiny-robot';
 import { requiredCompleteFieldSelectors, scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
@@ -30,8 +30,8 @@ import {
 import { formatDate, generateId, stripSchemaFieldsWhileStreaming } from '../../utils';
 import useTemplate from './useTemplate';
 import { useSchemaDevModeOptional } from './useSchemaDevMode';
-import { segmentsToPlainText } from './schema-composer';
-import TemplateInlineSender from './TemplateInlineSender.vue';
+import { getComposerContent, segmentsToPlainText } from './schema-composer';
+import type { SelectedSchemaNode } from './schema-node-selection';
 import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
@@ -64,7 +64,8 @@ const {
   setCurrentCardId,
 } = useTemplate();
 const schemaDevMode = useSchemaDevModeOptional();
-const isDevMode = computed(() => schemaDevMode?.isDevMode.value ?? false);
+const templateData = ref<UserItem[]>([]);
+const selectedNodeMap = new Map<string, SelectedSchemaNode>();
 
 watch(
   () => TinyGenuiConfig?.value?.theme,
@@ -332,6 +333,46 @@ const inputMessage = computed({
   },
 });
 
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  if (!templateData.value.length) {
+    templateData.value = [{ type: 'text', content: inputMessage.value }];
+  }
+  const id = generateId();
+  selectedNodeMap.set(id, node);
+  templateData.value = [...templateData.value, { type: 'template', content: node.componentName, id }];
+};
+
+const syncSelectedNodes = (value: UserItem[]) => {
+  const nextMap = new Map<string, SelectedSchemaNode>();
+  for (const item of value) {
+    if (item.type !== 'template') {
+      continue;
+    }
+    if (item.id && selectedNodeMap.has(item.id)) {
+      nextMap.set(item.id, selectedNodeMap.get(item.id)!);
+      continue;
+    }
+    for (const [id, candidate] of selectedNodeMap) {
+      if (!nextMap.has(id) && candidate.componentName === item.content) {
+        nextMap.set(item.id || id, candidate);
+        break;
+      }
+    }
+  }
+  selectedNodeMap.clear();
+  nextMap.forEach((node, id) => selectedNodeMap.set(id, node));
+};
+
+const handleTemplateDataUpdate = (value: UserItem[]) => {
+  syncSelectedNodes(value);
+  templateData.value = value;
+};
+
+const clearComposer = () => {
+  templateData.value = [];
+  selectedNodeMap.clear();
+};
+
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
 }
@@ -382,6 +423,7 @@ const showMessages = computed(() => {
 
 const clearInputMessage = () => {
   inputMessage.value = '';
+  clearComposer();
 };
 
 // 发送消息
@@ -389,9 +431,12 @@ const handleSendMessage = async () => {
   const cardId = generateId();
   setCurrentCardId(cardId);
 
-  if (isDevMode.value && schemaDevMode) {
-    const composer = schemaDevMode.getComposerContent();
-    if (!composer || composer.isEmpty) {
+  const snapshot = templateData.value.slice();
+  const hasTags = snapshot.some((item) => item.type === 'template');
+
+  if (hasTags) {
+    const composer = getComposerContent(snapshot, selectedNodeMap);
+    if (composer.isEmpty) {
       return;
     }
     const userMessage: ChatMessage = {
@@ -416,7 +461,7 @@ const handleSendMessage = async () => {
 
     prevSchema.value = JSON.stringify(currentSchema.value);
     messageManager.value.send();
-    schemaDevMode.clearComposer();
+    clearInputMessage();
     scrollToBottom();
     return;
   }
@@ -468,10 +513,16 @@ watch(() => messages.value, throttledScrollToBottom, { deep: true });
 
 onMounted(() => {
   emitter.on('notification', handleNotification);
+  schemaDevMode?.registerComposer({
+    insertTag: insertComposerTag,
+    getContent: () => getComposerContent(templateData.value, selectedNodeMap),
+    clear: clearComposer,
+  });
 });
 
 onUnmounted(() => {
   emitter.off('notification', handleNotification);
+  schemaDevMode?.registerComposer(null);
 });
 </script>
 
@@ -502,21 +553,9 @@ onUnmounted(() => {
       >
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <TemplateInlineSender
-        v-if="isDevMode"
-        :placeholder="
-          GeneratingStatus.includes(messageManager.messageState.status)
-            ? t('loading.thinking')
-            : t('template.inputPlaceholder')
-        "
-        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        :max-length="5000"
-        @submit="handleSendMessage"
-        @cancel="messageManager.abortRequest"
-      />
       <tr-sender
-        v-else
         v-model="inputMessage"
+        :template-data="templateData"
         :placeholder="
           GeneratingStatus.includes(messageManager.messageState.status)
             ? t('loading.thinking')
@@ -526,6 +565,7 @@ onUnmounted(() => {
         :loading="GeneratingStatus.includes(messageManager.messageState.status)"
         :showWordLimit="true"
         :maxLength="5000"
+        @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="messageManager.abortRequest"
