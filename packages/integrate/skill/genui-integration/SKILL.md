@@ -1,11 +1,22 @@
 ---
 name: genui-integration
-description: 帮助用户集成 GenUI SDK 到项目中。当用户提到 GenUI、genui-sdk、生成式 UI 集成、想要在 Vue 或 Angular 项目中添加 AI 驱动的 UI 渲染、需要设置 genui-sdk-server，或询问 OpenTiny 的生成式 UI 组件时使用。也当用户想要添加带 AI 驱动 UI 生成的聊天界面、集成流式 UI 渲染器、或配置 genui 物料和主题时触发。
+description: 帮助用户集成 GenUI SDK 到项目中。当用户提到 GenUI、genui-sdk、生成式 UI 集成、想要在 Vue 或 Angular 项目中添加 AI 驱动的 UI 渲染、需要设置 genui-sdk-server，或询问 OpenTiny 的生成式 UI 组件时使用。
+version: 1.0.0
+last_synced: 2026-07-29
+source_commit: latest
+maintainer: genui-sdk-team
 ---
 
 # GenUI SDK 集成指南
 
 本 skill 帮助用户将 GenUI SDK 集成到项目中。GenUI SDK 是一个用于构建由大语言模型（LLM）驱动的生成式 UI 界面的工具包，使 AI 能够动态生成交互式 UI 组件。
+
+## 📋 维护信息
+
+- **版本**: 1.0.0
+- **最后同步**: 2026-07-29
+- **源文档 commit**: latest
+- **维护指南**: 参见 [MAINTENANCE.md](MAINTENANCE.md)
 
 ## 理解用户需求
 
@@ -110,3 +121,25 @@ SDK 支持扩展：
 - 强调常见陷阱（如忘记注入物料）
 - 主动提供帮助以满足特定定制需求
 - 引导用户查看 `examples/` 目录获取更多示例
+
+## 🔧 维护工具
+
+本 skill 包含自动化维护工具：
+
+### 检查文档变更
+```bash
+python3 scripts/check_changes.py
+```
+
+### 同步文档到 skill
+```bash
+python3 scripts/sync_skill.py
+```
+
+### 只同步特定部分
+```bash
+python3 scripts/sync_skill.py --only vue
+python3 scripts/sync_skill.py --only examples
+```
+
+详细的维护指南请参见 [MAINTENANCE.md](MAINTENANCE.md)。
