@@ -9,7 +9,7 @@ import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
-type IComponentLibKey = 'TinyVue' | 'Element';
+type IComponentLibKey = 'TinyVue' | 'Element' | 'TinyNg';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
 type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
@@ -28,7 +28,7 @@ const metaMap: IMetaMap = {
     },
   },
   Angular: {
-    TinyVue: {
+    TinyNg: {
       mini: ngMaterialsMeta,
       standard: ngMaterialsMeta,
     },
@@ -47,12 +47,11 @@ export function genPlaygroundPrompt(
   tgCustomConfig?: IGenPromptCustomConfig,
   componentLib: IComponentLibKey = 'TinyVue',
 ) {
-  const lib = framework === 'Angular' ? 'TinyVue' : componentLib;
   const variant = promptVariant || 'standard';
 
   return genPrompt(
     framework,
-    metaMap[framework]?.[lib]?.[variant] ?? materialsMeta,
+    metaMap[framework]?.[componentLib]?.[variant] ?? materialsMeta,
     tgCustomConfig,
     optionsMap[framework]?.[variant] ?? {},
   );

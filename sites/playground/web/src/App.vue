@@ -59,7 +59,7 @@ const {
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
 const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
-
+const componentLib = ref(cacheComponentLib || DEFAULT_COMPONENT_LIB[framework.value]);
 /**
  * Normalizes cached custom examples for the id-based contract.
  * Drops invalid/legacy entries and de-duplicates by id.
@@ -119,7 +119,6 @@ const chatConfig = reactive(
 const modelData = ref([]);
 const modelFeatures = ref({});
 const theme = ref(cacheTheme || 'light');
-const componentLib = ref(cacheComponentLib || 'TinyVue');
 
 let latestModelFeaturesRequest = 0;
 

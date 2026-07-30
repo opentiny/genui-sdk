@@ -1,11 +1,12 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
-import { ref, inject } from 'vue';
+import { inject, computed } from 'vue';
 import { ThemePreviewCard } from '../theme-preview';
 import { t } from '../../i18n';
 import {
   FRAMEWORK_OPTIONS,
-  COMPONENT_LIB_OPTIONS,
+  COMPONENT_LIB_OPTIONS_BY_FRAMEWORK,
+  DEFAULT_COMPONENT_LIB,
   MATERIAL_THEME_OPTIONS,
   MATERIAL_THEME_COLOR_MAP,
 } from './materials-options';
@@ -18,8 +19,11 @@ const emit = defineEmits(['update:theme']);
 
 const { framework, componentLib } = inject('playgroundContext');
 
+const componentLibOptions = computed(() => COMPONENT_LIB_OPTIONS_BY_FRAMEWORK[framework.value]);
+
 const setFramework = (name) => {
   framework.value = name;
+  componentLib.value = DEFAULT_COMPONENT_LIB[name];
   // Angular 不支持主题切换, 默认设置为 light 主题
   if(name === 'Angular') {
     emit('update:theme', MATERIAL_THEME_OPTIONS[0].value)
@@ -53,7 +57,7 @@ const setFramework = (name) => {
     <div class="config-title">{{ t('materials.componentLib') }}</div>
     <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
       <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
-        <tiny-radio v-for="item in COMPONENT_LIB_OPTIONS" :key="item" :label="item">{{ item }}</tiny-radio>
+        <tiny-radio v-for="item in componentLibOptions" :key="item" :label="item">{{ item }}</tiny-radio>
       </tiny-radio-group>
     </div>
 

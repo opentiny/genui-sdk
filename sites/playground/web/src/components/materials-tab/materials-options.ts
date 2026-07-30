@@ -7,7 +7,10 @@ export const FRAMEWORK_OPTIONS = [
   { name: 'Angular', icon: angularIcon },
 ]
 
-export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'Element'] as const;
+export const COMPONENT_LIB_OPTIONS_BY_FRAMEWORK = {
+  Vue: ['TinyVue', 'Element'],
+  Angular: ['TinyNg'],
+} as const;
 
 export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeLight', value: 'light' },
@@ -15,6 +18,11 @@ export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeLite', value: 'lite' },
   { textKey: 'materials.themeAuto', value: 'auto' },
 ] as const;
+
+export const DEFAULT_COMPONENT_LIB = {
+  Vue: 'TinyVue',
+  Angular: 'TinyNg',
+} as const;
 
 export const MATERIAL_THEME_COLOR_MAP = {
   light: THEME_PREVIEW_COLOR_PRESETS.light,
