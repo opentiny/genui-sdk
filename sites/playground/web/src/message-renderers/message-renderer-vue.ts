@@ -10,7 +10,6 @@ const MaterialsScope = defineComponent({
     materials: { type: Object, required: true },
   },
   setup(props, { slots }) {
-    // 子树内覆盖外层 GenuiConfigProvider 注入的 materials
     provide(GENUI_MATERIALS, props.materials as IMaterials);
     return () => slots.default?.();
   },
@@ -28,7 +27,6 @@ export function getMessageRendererVue(
   materialsMap: Record<string, IMaterials>,
   fallbackMaterials: IMaterials,
 ) {
-  // 返回值和 angular 一样：给 setMessageRenderer 用的渲染函数
   return (schemaCardProps: Record<string, any>) => {
     const props = instance.getProps();
     const { continueChatAction, saveStateAction } = instance;

@@ -1,10 +1,14 @@
 import { THEME_PREVIEW_COLOR_PRESETS } from '../theme-preview';
 import vueIcon from '../../assets/images/vue.svg';
 import angularIcon from '../../assets/images/angular.svg';
+import themeLight from '../../assets/images/theme-light.png';
+import themeDark from '../../assets/images/theme-dark.png';
+import themeLite from '../../assets/images/theme-lite.png';
+import themeAuto from '../../assets/images/theme-auto.png';
 
 export const FRAMEWORK_OPTIONS = [
-  { name: 'Vue', icon: vueIcon },
-  { name: 'Angular', icon: angularIcon },
+  { name: 'Vue', icon: vueIcon, label: 'Vue框架' },
+  { name: 'Angular', icon: angularIcon, label: 'Angular框架' },
 ]
 
 export const COMPONENT_LIB_OPTIONS_BY_FRAMEWORK = {
@@ -13,10 +17,10 @@ export const COMPONENT_LIB_OPTIONS_BY_FRAMEWORK = {
 } as const;
 
 export const MATERIAL_THEME_OPTIONS = [
-  { textKey: 'materials.themeLight', value: 'light' },
-  { textKey: 'materials.themeDark', value: 'dark' },
-  { textKey: 'materials.themeLite', value: 'lite' },
-  { textKey: 'materials.themeAuto', value: 'auto' },
+  { textKey: 'materials.themeLight', value: 'light', preview: themeLight },
+  { textKey: 'materials.themeDark', value: 'dark', preview: themeDark },
+  { textKey: 'materials.themeLite', value: 'lite', preview: themeLite },
+  { textKey: 'materials.themeAuto', value: 'auto', preview: themeAuto },
 ] as const;
 
 export const DEFAULT_COMPONENT_LIB = {

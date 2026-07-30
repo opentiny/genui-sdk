@@ -49,11 +49,10 @@ const setFramework = (name) => {
         <span class="framework-btn__icon">
           <img class="framework-btn__img" :src="item.icon" alt="item.name">
         </span>
-        <span class="framework-btn__name">{{ item.name }}</span>
+        <span class="framework-btn__name">{{ item.label }}</span>
       </div>
     </div>
 
-    <!-- TODO: 组件库切换暂时不支持 -->
     <div class="config-title">{{ t('materials.componentLib') }}</div>
     <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
       <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
@@ -76,7 +75,7 @@ const setFramework = (name) => {
             @keydown.space.prevent="emit('update:theme', item.value)"
           >
             <tiny-checkbox v-if="theme === item.value" class="theme-card__check" :model-value="true" @click.stop />
-            <ThemePreviewCard :theme="item.value" :theme-colors="MATERIAL_THEME_COLOR_MAP[item.value]" />
+            <img class="theme-card__img" :src="item.preview" :alt="t(item.textKey)" />
           </div>
           <span class="theme-card__label" :class="{ 'theme-card__label--active': theme === item.value }">
             {{ t(item.textKey) }}
@@ -178,10 +177,16 @@ const setFramework = (name) => {
     box-sizing: border-box;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
-    padding: 8px 8px 0;
     cursor: pointer;
     user-select: none;
     overflow: hidden;
+  }
+
+  .theme-card__img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .theme-card__check {
