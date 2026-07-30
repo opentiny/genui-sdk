@@ -31,9 +31,11 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
-import { getMixedContentHandler } from './ng-renderer/content-response-handler';
-import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
-import { getMessageRendererVue } from './ng-renderer/message-renderer-vue';
+import {
+  getMixedContentHandler,
+  getMessageRendererAngular,
+  getMessageRendererVue,
+} from './message-renderers';
 import { locale, t } from './i18n';
 
 const { topRenderer, addIcons } = useIcon();
@@ -262,8 +264,6 @@ const materialsMap = {
   Element: epMaterials,
 };
 
-const currentMaterials = computed(() => materialsMap[componentLib.value] ?? tinyMaterials);
-
 const handleKeydown = (event) => {
   // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
@@ -406,7 +406,6 @@ onUnmounted(() => {
         <GenuiConfigProvider
           :theme="theme"
           :locale="locale"
-          :materials="currentMaterials"
           style="height: 100%"
         >
           <GenuiChat
