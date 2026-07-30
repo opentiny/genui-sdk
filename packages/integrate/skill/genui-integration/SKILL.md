@@ -1,22 +1,11 @@
 ---
 name: genui-integration
 description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk 或想构建 AI 聊天界面、动态 UI 组件时使用。涵盖主题切换、物料配置、GenuiChat/GenuiRenderer、服务端设置。适用于 Vue/Angular 项目，即使用户只描述需求（如"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
-version: 1.0.0
-last_synced: 2026-07-29
-source_commit: latest
-maintainer: genui-sdk-team
 ---
 
 # GenUI SDK 集成指南
 
 本 skill 帮助用户将 GenUI SDK 集成到项目中。GenUI SDK 是一个用于构建由大语言模型（LLM）驱动的生成式 UI 界面的工具包，使 AI 能够动态生成交互式 UI 组件。
-
-## 📋 维护信息
-
-- **版本**: 1.0.0
-- **最后同步**: 2026-07-29
-- **源文档 commit**: latest
-- **维护指南**: 参见 [MAINTENANCE.md](MAINTENANCE.md)
 
 ## 理解用户需求
 
@@ -159,7 +148,3 @@ SDK 支持扩展：
 - 强调常见陷阱（如忘记注入物料）
 - 主动提供帮助以满足特定定制需求
 - 引导用户查看 `examples/` 目录获取更多示例
-
-## 🔧 维护工具
-
-详细的维护指南请参见 [MAINTENANCE.md](MAINTENANCE.md)。

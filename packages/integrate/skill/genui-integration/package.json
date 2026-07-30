@@ -1,0 +1,40 @@
+{
+  "name": "@opentiny/genui-sdk-integration-skill",
+  "version": "1.0.0",
+  "description": "GenUI SDK integration skill for AI assistants (Vue, Angular, Server)",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://docs.opentiny.design/genui-sdk/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/integrate/skill/genui-integration"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "scripts": {
+    "build": "node scripts/copy-from-docs.mjs",
+    "prepack": "pnpm run build"
+  },
+  "keywords": [
+    "genui",
+    "genui-sdk",
+    "generative-ui",
+    "skill",
+    "cursor",
+    "claude",
+    "integration",
+    "vue",
+    "angular"
+  ],
+  "files": [
+    "SKILL.md",
+    "references",
+    "examples",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}
