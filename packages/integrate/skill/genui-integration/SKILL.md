@@ -1,6 +1,6 @@
 ---
 name: genui-integration
-description: 帮助用户集成 GenUI SDK 到项目中。当用户提到 GenUI、genui-sdk、生成式 UI 集成、想要在 Vue 或 Angular 项目中添加 AI 驱动的 UI 渲染、需要设置 genui-sdk-server，或询问 OpenTiny 的生成式 UI 组件时使用。
+description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk 或想构建 AI 聊天界面、动态 UI 组件时使用。涵盖主题切换、物料配置、GenuiChat/GenuiRenderer、服务端设置。适用于 Vue/Angular 项目，即使用户只描述需求（如"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
 version: 1.0.0
 last_synced: 2026-07-29
 source_commit: latest
@@ -23,24 +23,62 @@ maintainer: genui-sdk-team
 在提供集成指导之前，确定：
 
 1. **使用哪个技术栈？** 询问用户使用什么技术：
-   - **Vue**（Vue 3 组合式 API）
-   - **Angular**（Angular 独立组件）
-   - **Server**（Node.js 后端服务）
-   - **多个/全部**（他们需要全面指导）
+   - **Vue**（Vue 3 组合式 API）→ 阅读 `references/vue.md`
+   - **Angular**（Angular 独立组件）→ 阅读 `references/angular.md`
+   - **Server**（Node.js 后端服务）→ 阅读 `references/server.md`
+   - **其他框架**（React 等）→ 说明当前仅支持 Vue 和 Angular，建议关注官方更新
+   - **多个/全部**（需要全面指导）→ 综合提供所有相关参考
 
 2. **项目状态？** 确定他们是：
-   - 从零开始（新项目）
-   - 添加到现有项目
+   - 从零开始（新项目）→ 提供完整的初始化步骤
+   - 添加到现有项目 → 侧重于配置和集成注意事项
 
 3. **使用场景？** 了解他们想要构建什么：
-   - 带 AI 的完整聊天界面（使用 `GenuiChat`）
+   - 带 AI 的完整聊天界面（使用 `GenuiChat`，仅 Vue）
    - 带流式渲染器的自定义 UI（使用 `GenuiRenderer`）
    - 代理 LLM 调用的后端服务（使用 `genui-sdk-server`）
 
-一旦了解他们的需求，**阅读相应的参考文件**：
-- `references/vue.md` - Vue 集成指南（包含完整代码示例）
-- `references/angular.md` - Angular 集成指南（包含完整代码示例）
-- `references/server.md` - Server 集成指南（包含完整代码示例）
+### 集成模式决策树
+
+根据用户需求，引导他们选择合适的模式：
+
+```
+用户需要什么？
+├─ 快速开始，完整聊天界面
+│  ├─ Vue → GenuiChat（模式 1）
+│  └─ Angular → 不支持，建议使用 GenuiRenderer + 自定义聊天外壳
+├─ 自定义 UI 布局
+│  ├─ Vue → GenuiRenderer（模式 2）
+│  └─ Angular → GenuiRenderer（模式 2）
+├─ 后端服务
+│  └─ 所有框架 → genui-sdk-server（模式 3）
+└─ 不确定
+   └─ 询问具体需求，然后推荐
+```
+
+### 边缘场景处理
+
+- **React 用户**：说明 GenUI SDK 目前仅支持 Vue 和 Angular，建议：
+  1. 关注官方 GitHub 仓库了解 React 支持计划
+  2. 考虑迁移到 Vue 或 Angular
+  3. 参考架构设计，自行实现类似功能
+
+- **TinyVue 配置**：如果用户询问 TinyVue 组件库配置：
+  1. 说明 TinyVue 是 GenUI SDK 的物料系统的一部分
+  2. 引导查看 `references/vue.md` 的物料配置部分
+  3. 提供 `GenuiConfigProvider` 的使用示例
+
+- **主题切换**：如果用户询问深色模式或主题：
+  1. 说明支持 4 种主题：`dark`、`lite`、`light`、`auto`
+  2. 提供 `GenuiConfigProvider` 的 `theme` 属性配置
+  3. 引导查看各参考文件的主题配置章节
+
+- **自定义组件**：如果用户想让 AI 使用业务组件：
+  1. 说明需要在前端注册组件 + 后端配置 `tinygenui` metadata
+  2. 引导查看 `examples/` 目录的自定义组件示例
+  3. 提供前后端联动的完整流程
+
+一旦了解他们的需求，**阅读相应的参考文件**并提供指导。
 
 ## 核心概念
 
@@ -123,23 +161,5 @@ SDK 支持扩展：
 - 引导用户查看 `examples/` 目录获取更多示例
 
 ## 🔧 维护工具
-
-本 skill 包含自动化维护工具：
-
-### 检查文档变更
-```bash
-python3 scripts/check_changes.py
-```
-
-### 同步文档到 skill
-```bash
-python3 scripts/sync_skill.py
-```
-
-### 只同步特定部分
-```bash
-python3 scripts/sync_skill.py --only vue
-python3 scripts/sync_skill.py --only examples
-```
 
 详细的维护指南请参见 [MAINTENANCE.md](MAINTENANCE.md)。
