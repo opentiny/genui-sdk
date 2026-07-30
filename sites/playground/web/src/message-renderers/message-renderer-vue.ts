@@ -15,27 +15,13 @@ const MaterialsScope = defineComponent({
   },
 });
 
-function inferComponentLib(content: unknown): ComponentLib | null {
-  const s = typeof content === 'string' ? content : '';
-  if (/componentName"\s*:\s*"El/.test(s)) return 'Element';
-  if (/componentName"\s*:\s*"Tiny/.test(s)) return 'TinyVue';
-  return null;
-}
-
 export function getMessageRendererVue(
   instance: InstanceType<typeof GenuiChat>,
-  materialsMap: Record<string, IMaterials>,
-  fallbackMaterials: IMaterials,
+  materials: IMaterials,
 ) {
   return (schemaCardProps: Record<string, any>) => {
     const props = instance.getProps();
     const { continueChatAction, saveStateAction } = instance;
-
-    const lib: ComponentLib =
-      schemaCardProps.componentLib ||
-      inferComponentLib(schemaCardProps.content) ||
-      'TinyVue';
-    const materials = materialsMap[lib] ?? fallbackMaterials;
 
     return h(
       MaterialsScope,
@@ -53,7 +39,7 @@ export function getMessageRendererVue(
                 continueChat: continueChatAction,
                 saveState: saveStateAction,
               },
-              key: `${schemaCardProps.id}-${lib}`,
+              key: `${schemaCardProps.id}`,
             }),
           ]),
       },

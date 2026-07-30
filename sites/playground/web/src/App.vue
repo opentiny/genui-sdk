@@ -16,6 +16,7 @@ import {
 } from 'vue';
 import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { materials as epMaterials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
+import { mergeMaterials } from '@opentiny/genui-sdk-core';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
@@ -241,7 +242,7 @@ watch(chat, (instance) => {
     instance.setResponseHandlers(newResponseHandlers);
 
     instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
-    instance.setMessageRenderer('schema-card', getMessageRendererVue(instance, materialsMap, tinyMaterials));
+    instance.setMessageRenderer('schema-card', getMessageRendererVue(instance, mergedMaterials));
   }
 });
 
@@ -263,6 +264,8 @@ const materialsMap = {
   TinyVue: tinyMaterials,
   Element: epMaterials,
 };
+
+const mergedMaterials = mergeMaterials(tinyMaterials, epMaterials);
 
 const handleKeydown = (event) => {
   // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
@@ -406,6 +409,7 @@ onUnmounted(() => {
         <GenuiConfigProvider
           :theme="theme"
           :locale="locale"
+          :materials="mergedMaterials"
           style="height: 100%"
         >
           <GenuiChat
