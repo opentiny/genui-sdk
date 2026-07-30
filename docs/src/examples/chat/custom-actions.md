@@ -5,15 +5,18 @@
 ## 基础用法
 ```vue {14-36}
 <template>
-  <GenuiChat 
-    :url="url" 
-    :customActions="customActions"
-    :messages="messages"
-  />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat 
+      :url="url" 
+      :customActions="customActions"
+      :messages="messages"
+    />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 
@@ -55,6 +58,8 @@ const messages = [
 - `name`: Action 名称，在 Schema 中通过 `this.callAction(name, params)` 调用
 - `description`: Action 的描述，用于帮助 AI 理解何时使用这个 Action
 - `parameters`: 参数定义 JSON Schema 描述
+- `return`: (可选)返回值 JSON Schema 描述，无返回值时可省略
+- `async`: (可选)是否为异步 Action，默认为 `false`；为 `true` 时 `execute` 可返回 Promise
 - `execute`: 执行函数（可选，前端实现时使用）
 
 ```typescript
@@ -62,7 +67,9 @@ interface CustomAction {
   name: string;
   description: string;
   parameters: JSONSchema;
-  execute?: (params: any) => void; // 前端实现
+  return?: JSONSchema;
+  async?: boolean;
+  execute?: (params: any, context: Record<string, any>) => any; // 前端实现
 }
 ```
 

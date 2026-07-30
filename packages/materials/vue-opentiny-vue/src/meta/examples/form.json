@@ -1,0 +1,166 @@
+{
+  "state": {
+    "formData": {
+      "name": "张三",
+      "sex": "男",
+      "depart": "HR",
+      "protocolStart": "2023-01-01"
+    }
+  },
+  "refs": {
+    "formRef": null
+  },
+  "methods": {
+    "departChange": {
+      "type": "JSFunction",
+      "value": "function departChange(value) { console.log(value) }"
+    }
+  },
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "h3",
+      "children": "更新员工信息"
+    },
+    {
+      "componentName": "TinyForm",
+      "props": {
+        "model": {
+          "type": "JSExpression",
+          "value": "this.state.formData"
+        },
+        "ref": {
+          "type": "JSExpression",
+          "value": "this.refs.formRef"
+        },
+        "labelPosition": "top"
+      },
+      "children": [
+        {
+          "componentName": "TinyFormItem",
+          "props": {
+            "label": "姓名",
+            "prop": "name",
+            "required": true
+          },
+          "children": [
+            {
+              "componentName": "TinyInput",
+              "props": {
+                "placeholder": "请输入",
+                "modelValue": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.name"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyFormItem",
+          "props": {
+            "label": "性别",
+            "prop": "sex"
+          },
+          "children": [
+            {
+              "componentName": "TinyRadioGroup",
+              "props": {
+                "options": [
+                  {
+                    "text": "男",
+                    "label": "男"
+                  },
+                  {
+                    "text": "女",
+                    "label": "女"
+                  }
+                ],
+                "modelValue": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.sex"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyFormItem",
+          "props": {
+            "label": "部门",
+            "prop": "depart",
+            "required": true
+          },
+          "children": [
+            {
+              "componentName": "TinySelect",
+              "props": {
+                "placeholder": "请选择",
+                "modelValue": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.depart"
+                },
+                "options": [
+                  {
+                    "value": "HR",
+                    "label": "人事部"
+                  },
+                  {
+                    "value": "other",
+                    "label": "其他部门"
+                  }
+                ],
+                "onChange": {
+                  "type": "JSExpression",
+                  "value": "this.departChange"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyFormItem",
+          "props": {
+            "label": "入职日期",
+            "prop": "protocolStart"
+          },
+          "children": [
+            {
+              "componentName": "TinyDatePicker",
+              "props": {
+                "placeholder": "请输入",
+                "disabled": true,
+                "modelValue": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.protocolStart"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyFormItem",
+          "props": {
+            "label": ""
+          },
+          "children": [
+            {
+              "componentName": "TinyButton",
+              "props": {
+                "text": "确认",
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "function() { this.refs.formRef.validate().then(res => { console.log(\"校验通过\", res) }).catch((err) => { console.log(\"校验失败, 失败只做提示，不继续会话\", err) }) }"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

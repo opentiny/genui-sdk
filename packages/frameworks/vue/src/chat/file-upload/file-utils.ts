@@ -140,11 +140,12 @@ const processFile = async (file: FileMeta, features: ModelCapability): Promise<a
   const maxSize = features.supportImage?.maxImageSize || 0;
   validateFileSize(file, maxSize);
 
-  // ai-sdk格式要求
   if (fileCategory === 'image') {
     return {
-      type: 'image',
-      image: file.base64,
+      type: 'image_url',
+      image_url: {
+        url: file.base64,
+      },
       filename: file.name,
     };
   }

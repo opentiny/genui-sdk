@@ -1,6 +1,6 @@
-import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor } from "@opentiny/genui-sdk-core";
+import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor } from '@opentiny/genui-sdk-core';
 import { ThinkTagWrapPattern } from './think-tag-wrap-pattern';
-import { reactive, toRaw, watch } from "vue";
+import { reactive, readonly, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';
 import { useI18n } from './i18n';
@@ -10,7 +10,10 @@ export interface IResponseHandler<T> {
   match: (data: T, context: any) => boolean;
   handler: (data: T, context: any) => boolean;
   notMatchHandler?: (data: T, context: any) => boolean;
-  start?: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => void;
+  start?: (
+    context: any,
+    handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
+  ) => void;
   end?: (context: any) => void;
 }
 
@@ -18,7 +21,13 @@ const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
 };
 
-function onToolResult(toolCallsResult: any[], delta: IStreamDelta, toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }>, chatMessage: IChatMessage, addToolCallContext: boolean) {
+function onToolResult(
+  toolCallsResult: any[],
+  delta: IStreamDelta,
+  toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }>,
+  chatMessage: IChatMessage,
+  addToolCallContext: boolean,
+) {
   const {
     id,
     function: { arguments: args, result },
@@ -31,8 +40,8 @@ function onToolResult(toolCallsResult: any[], delta: IStreamDelta, toolCallIdMap
     emitter.emit('notification', {
       type: 'tool',
       delta,
-      toolCallData: structuredClone(toRaw(toolCallItem)),
-      chatMessage: structuredClone(toRaw(chatMessage)),
+      toolCallData: readonly(toolCallItem),
+      chatMessage: readonly(chatMessage),
     });
 
     if (addToolCallContext) {
@@ -45,9 +54,15 @@ function onToolResult(toolCallsResult: any[], delta: IStreamDelta, toolCallIdMap
         }) + '\n\n';
     }
   }
-};
+}
 
-function onToolCall(toolCalls: any[], delta: IStreamDelta, toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }>, chatMessage: IChatMessage, toolCallStatus: { inProcessToolCallId: string | null }) {
+function onToolCall(
+  toolCalls: any[],
+  delta: IStreamDelta,
+  toolCallIdMap: Record<string, IMessageItem & { type: 'tool' }>,
+  chatMessage: IChatMessage,
+  toolCallStatus: { inProcessToolCallId: string | null },
+) {
   toolCalls.forEach((toolCall) => {
     const {
       id,
@@ -79,17 +94,15 @@ function onToolCall(toolCalls: any[], delta: IStreamDelta, toolCallIdMap: Record
     emitter.emit('notification', {
       type: 'tool',
       delta,
-      toolCallData: toolCallItem,
-      chatMessage: structuredClone(toRaw(chatMessage)),
+      toolCallData: readonly(toolCallItem),
+      chatMessage: readonly(chatMessage),
     });
-
   });
-
-};
+}
 
 function onReasoningContent(reasoningContent: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  let reasoningMessage = lastMessage
+  let reasoningMessage = lastMessage;
   if (reasoningMessage?.type === 'reasoning') {
     reasoningMessage.content += reasoningContent;
   } else {
@@ -102,11 +115,11 @@ function onReasoningContent(reasoningContent: string, delta: IStreamDelta, chatM
   }
   emitNotification(delta, chatMessage);
   return reasoningMessage;
-};
+}
 
 function onReasoningEnd(reasoningMessage: IMessageItem) {
   if (reasoningMessage?.type === 'reasoning') reasoningMessage.thinking = false;
-};
+}
 
 function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
   const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
@@ -114,10 +127,10 @@ function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
     emitter.emit('notification', {
       type: lastMessage.type as 'markdown' | 'schema-card',
       delta,
-      chatMessage: structuredClone(toRaw(chatMessage)),
+      chatMessage: readonly(chatMessage),
     });
   }
-};
+}
 
 function onMarkdown(content: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'markdown') {
@@ -125,11 +138,11 @@ function onMarkdown(content: string, delta: IStreamDelta, chatMessage: IChatMess
   } else {
     chatMessage.messages.push({
       type: 'markdown',
-      content: content
+      content: content,
     });
   }
   emitNotification(delta, chatMessage);
-};
+}
 
 function onSchemaJSON(content: string, delta: IStreamDelta, chatMessage: IChatMessage) {
   if (chatMessage.messages.length > 0 && chatMessage.messages[chatMessage.messages.length - 1].type === 'schema-card') {
@@ -144,14 +157,18 @@ function onSchemaJSON(content: string, delta: IStreamDelta, chatMessage: IChatMe
   emitNotification(delta, chatMessage);
 }
 
-function watchReasoningEnd (context: any) {
-  context.unWatchReasoning = watch(() => [...context.chatMessage.messages], (newVal) => {
-    if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
-      context.handleReasoning = false;
-      onReasoningEnd(context.reasoningMessage);
-      context.unWatchReasoning?.();
-    }
-  }, { flush: 'sync' });
+function watchReasoningEnd(context: any) {
+  context.unWatchReasoning = watch(
+    () => [...context.chatMessage.messages],
+    (newVal) => {
+      if (context.handleReasoning && newVal[newVal.length - 1]?.type !== 'reasoning') {
+        context.handleReasoning = false;
+        onReasoningEnd(context.reasoningMessage);
+        context.unWatchReasoning?.();
+      }
+    },
+    { flush: 'sync' },
+  );
 }
 
 export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
@@ -159,7 +176,10 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     name: 'init',
     match: (data: IStreamData, context: any) => false,
     handler: (data: IStreamData, context: any) => false,
-    start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
+    start: (
+      context: any,
+      handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
+    ) => {
       const chatMessage = reactive<IChatMessage>({
         role: 'assistant',
         content: '',
@@ -175,7 +195,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       emitter.emit('notification', {
         type: 'done',
         delta: {},
-        chatMessage: structuredClone(toRaw(context.chatMessage)),
+        chatMessage: readonly(context.chatMessage),
       });
     },
   },
@@ -205,7 +225,10 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       }
       return true;
     },
-    start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
+    start: (
+      context: any,
+      handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
+    ) => {
       context.handleReasoning = false;
     },
     end: (context: any) => {
@@ -214,7 +237,7 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
         context.handleReasoning = false;
         onReasoningEnd(context.reasoningMessage);
       }
-    }
+    },
   },
   {
     name: 'toolCall',
@@ -227,7 +250,10 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       onToolCall(delta.tool_calls, delta, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
       return true;
     },
-    start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
+    start: (
+      context: any,
+      handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
+    ) => {
       context.toolCallIdMap = {};
       context.toolCallStatus = { inProcessToolCallId: null };
     },
@@ -240,7 +266,13 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     },
     handler: (data: IStreamData, context: any) => {
       const delta = getStreamDelta(data);
-      onToolResult(delta.tool_calls_result, delta, context.toolCallIdMap, context.chatMessage, context.chatConfig.addToolCallContext);
+      onToolResult(
+        delta.tool_calls_result,
+        delta,
+        context.toolCallIdMap,
+        context.chatMessage,
+        context.chatConfig.addToolCallContext,
+      );
       return true;
     },
   },
@@ -253,15 +285,18 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     handler: (data: IStreamData, context: any) => {
       const delta = getStreamDelta(data);
       context.delta = delta;
-      context.patternExtractor.handleContent(delta.content)
+      context.patternExtractor.handleContent(delta.content);
       context.chatMessage.content += delta.content;
       return true;
     },
-    start: (context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) => {
+    start: (
+      context: any,
+      handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
+    ) => {
       const thinkPatternExtractor = new PatternExtractor({
         onNormalWrite: (value) => onMarkdown(value, context.delta, context.chatMessage),
-        onHandledWrite: (value) => { 
-          context.reasoningMessage = onReasoningContent(value, context.delta, context.chatMessage)
+        onHandledWrite: (value) => {
+          context.reasoningMessage = onReasoningContent(value, context.delta, context.chatMessage);
           if (!context.handleReasoning) {
             watchReasoningEnd(context);
             context.handleReasoning = true;
@@ -274,5 +309,5 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
         onHandledWrite: (value) => onSchemaJSON(value, context.delta, context.chatMessage),
       });
     },
-  }
+  },
 ];

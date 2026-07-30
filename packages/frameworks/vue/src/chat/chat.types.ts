@@ -12,7 +12,7 @@ import type {
 } from '@opentiny/genui-sdk-core';
 
 export interface ICustomActionItem extends IGenPromptAction {
-  execute: (params: any, context: Record<string, any>) => void;
+  execute: (params: any, context: Record<string, any>) => any;
 }
 
 export interface IRolesConfig {

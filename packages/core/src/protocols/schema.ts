@@ -6,11 +6,16 @@ export type JSFunction = { type: 'JSFunction'; value: string; params?: string[] 
 
 export type Methods = Record<string, JSFunction>;
 
+export type LifeCycles = {
+  onMounted?: JSFunction;
+  onUnmounted?: JSFunction;
+};
+
 export interface Node {
   id?: string;
   componentName: string;
   props?: Record<string, any> & { columns?: { slots?: Record<string, any> }[] };
-  children?: Node[];
+  children?: Node[] | string;
   componentType?: 'Block' | 'PageStart' | 'PageSection';
   slot?: string | Record<string, any>;
   params?: string[];
@@ -25,7 +30,8 @@ export type RootNode = Omit<Node, 'id'> & {
   fileName?: string;
   methods?: Methods;
   state?: Record<string, unknown>;
-  lifeCycles?: Record<string, unknown>;
+  refs?: Record<string, unknown>;
+  lifeCycles?: LifeCycles;
   children?: Node[];
   dataSource?: any;
   bridge?: any;
@@ -46,7 +52,7 @@ export const jsFunctionSchema = z
   .object({
     type: z.literal('JSFunction').describe('固定为 JSFunction'),
     value: z.string().describe('函数体字符串（可序列化）'),
-    params: z.array(z.string()).optional().describe('函数参数名列表'),
+    params: z.array(z.string()).optional().describe('额外传递给函数的参数列表'),
   })
   .describe('JS 函数包装');
 
@@ -78,6 +84,17 @@ const propValueSchema: z.ZodType<any> = z.lazy(() =>
     .describe('通用属性值：原始值、JSExpression、JSFunction、JSSlot、数组、对象'),
 );
 
+export const lifeCyclesSchema = z
+  .object({
+    onMounted: jsFunctionSchema
+      .optional()
+      .describe('页面挂载钩子：schema 渲染完成后执行'),
+    onUnmounted: jsFunctionSchema
+      .optional()
+      .describe('页面卸载钩子：schema 变更或页面销毁前执行'),
+  })
+  .describe('页面生命周期配置，支持 onMounted、onUnmounted 两种钩子') as z.ZodType<LifeCycles>;
+
 export const genRootSchema = /* @__PURE__ */ (componentWhiteList?: string[]) => {
   const nodeSchema = genNodeSchema(componentWhiteList);
   const rootNodeSchema = z
@@ -85,6 +102,10 @@ export const genRootSchema = /* @__PURE__ */ (componentWhiteList?: string[]) => 
       id: z.string().optional().describe('根节点可选 id'),
       methods: methodsSchema.optional().describe('方法集合'),
       state: z.record(z.string(), propValueSchema).optional().describe('全局状态，表单双向绑定必须此字段'),
+      refs: z
+        .record(z.string(), propValueSchema)
+        .optional()
+        .describe('组件实例引用集合，用于在 methods 和事件处理中访问组件实例'),
       componentName: z.string().describe('根组件名，通常为 Page'),
       props: z.record(z.string(), propValueSchema).optional().describe('根组件属性集合'),
       children: z
@@ -105,7 +126,7 @@ export const genRootSchema = /* @__PURE__ */ (componentWhiteList?: string[]) => 
         .describe('根条件渲染配置'),
       css: z.string().optional().describe('全局 CSS 样式字符串'),
       fileName: z.string().optional().describe('文件名'),
-      lifeCycles: z.record(z.string(), propValueSchema).optional().describe('生命周期配置'),
+      lifeCycles: lifeCyclesSchema.optional(),
       dataSource: z.any().optional().describe('数据源配置'),
       bridge: z.any().optional().describe('桥接依赖/运行时注入'),
       inputs: z.array(z.any()).optional().describe('输入事件/参数'),

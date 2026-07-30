@@ -4,6 +4,7 @@ import escapeStringRegexp from 'escape-string-regexp';
 import tsconfigPaths from 'vite-jsconfig-paths';
 import dts from 'vite-plugin-dts';
 import packageJson from '../package.json';
+import rendererPackageJson from '../projects/renderer/package.json';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 export default defineConfig(({ mode }) => {
   return {
@@ -33,7 +34,7 @@ export default defineConfig(({ mode }) => {
             '../dist/renderer': ['../../dist/renderer/index.d.ts'] // hack for fix relative path for 'output/dist'
           },
         },
-        bundledPackages: ['@opentiny/tiny-schema-renderer-ng', '@opentiny/genui-sdk-core', 'jsondiffpatch', '@dmsnell/diff-match-patch'],
+        bundledPackages: ['@opentiny/tiny-schema-renderer-ng', 'jsondiffpatch', '@dmsnell/diff-match-patch'],
       }),
       viteStaticCopy({
         targets: [
@@ -70,7 +71,7 @@ export default defineConfig(({ mode }) => {
       },
       outDir: path.resolve(__dirname, '../output/dist'),
       emptyOutDir: true,
-      sourcemap: false,
+      sourcemap: true,
       terserOptions: {
         mangle: {
           toplevel: true,
@@ -80,7 +81,10 @@ export default defineConfig(({ mode }) => {
         },
       },
       rollupOptions: {
-        external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
+        external: [
+          ...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
+          ...Object.keys(rendererPackageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))
+        ],
       },
     },
   };

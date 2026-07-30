@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: '发布版本号（将写入 server / vue / angular 的 package.json，例如 1.0.0-beta.2）'
+        description: '发布版本号，如 1.0.0-beta.2'
         required: true
         type: string
       npm_tag:
@@ -16,6 +16,20 @@ on:
           - latest
           - beta
           - alpha
+      fetch_npm_tag:
+        description: '发包前从 npm 拉取版本替换 workspace 依赖所使用的 tag（通常为 latest）'
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+      publish_optional_packages:
+        description: '同时发布 core 与物料包（vue-opentiny / vue-element-plus / angular）'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   publish:
@@ -72,6 +86,28 @@ jobs:
           node ./scripts/update-package-version.js packages/server/package.json "$VERSION"
           node ./scripts/update-package-version.js packages/frameworks/vue/package.json "$VERSION"
           node ./scripts/update-package-version.js packages/frameworks/angular/package.json "$VERSION"
+          if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
+            node ./scripts/update-package-version.js packages/core/package.json "$VERSION"
+            node ./scripts/update-package-version.js packages/materials/vue-opentiny-vue/package.json "$VERSION"
+            node ./scripts/update-package-version.js packages/materials/vue-element-plus/package.json "$VERSION"
+            node ./scripts/update-package-version.js packages/materials/angular-opentiny-ng/package.json "$VERSION"
+          fi
+
+      - name: Build Core
+        if: github.event.inputs.publish_optional_packages == 'true'
+        run: pnpm --filter @opentiny/genui-sdk-core build
+
+      - name: Build Vue materials
+        if: github.event.inputs.publish_optional_packages == 'true'
+        run: pnpm --filter @opentiny/genui-sdk-materials-vue-opentiny-vue build
+
+      - name: Build Element Plus materials
+        if: github.event.inputs.publish_optional_packages == 'true'
+        run: pnpm --filter @opentiny/genui-sdk-materials-vue-element-plus build
+
+      - name: Build Angular materials
+        if: github.event.inputs.publish_optional_packages == 'true'
+        run: pnpm --filter @opentiny/genui-sdk-materials-angular-opentiny-ng build
 
       - name: Build Server
         run: pnpm --filter @opentiny/genui-sdk-server build:lib:npm
@@ -82,15 +118,47 @@ jobs:
       - name: Build Angular
         run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
 
+      - name: Sync workspace deps for publish
+        env:
+          FETCH_NPM_TAG: ${{ github.event.inputs.fetch_npm_tag }}
+          PUBLISH_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          PUBLISH_PKG_JSONS="packages/server/output/package.json,packages/frameworks/vue/package.json,packages/frameworks/angular/output/package.json"
+          if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
+            PUBLISH_PKG_JSONS="${PUBLISH_PKG_JSONS},packages/core/package.json,packages/materials/vue-opentiny-vue/package.json,packages/materials/vue-element-plus/package.json,packages/materials/angular-opentiny-ng/package.json"
+          fi
+          export PUBLISH_PKG_JSONS
+          node ./scripts/ci-replace-workspace-deps.js
+
       - name: Setup .npmrc for publish
         run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Publish Core to npm
+        if: github.event.inputs.publish_optional_packages == 'true'
+        working-directory: packages/core
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Publish Vue materials to npm
+        if: github.event.inputs.publish_optional_packages == 'true'
+        working-directory: packages/materials/vue-opentiny-vue
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Publish Element Plus materials to npm
+        if: github.event.inputs.publish_optional_packages == 'true'
+        working-directory: packages/materials/vue-element-plus
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Publish Angular materials to npm
+        if: github.event.inputs.publish_optional_packages == 'true'
+        working-directory: packages/materials/angular-opentiny-ng
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
       - name: Publish server to npm
         working-directory: packages/server/output
         run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
       - name: Publish Vue to npm
-        working-directory: packages/frameworks/vue/output
+        working-directory: packages/frameworks/vue
         run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
       - name: Publish Angular to npm

@@ -11,10 +11,16 @@ import {
 } from '@opentiny/vue';
 import { iconPlus, iconEllipsis, iconEdit, iconDel } from '@opentiny/vue-icon';
 import SelectTemplateDialog from './SelectTemplateDialog.vue';
+import { t } from '../../i18n';
+
+const promptVariantLabelMap = {
+  mini: 'model.promptVariantMini',
+  standard: 'model.promptVariantStandard',
+};
 
 const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update-custom-examples']);
 const playgroundContext = inject('playgroundContext');
-const { llmConfig, modelData, customExamples } = playgroundContext;
+const { llmConfig, modelData, customExamples, framework } = playgroundContext;
 
 const IconPlus = iconPlus();
 const IconEllipsis = iconEllipsis();
@@ -35,6 +41,13 @@ const updateConfig = (updates) => {
 const updateModel = (model) => updateConfig({ model });
 
 const updateTemperature = (temperature) => updateConfig({ temperature });
+
+const promptVariantOptions = (['mini', 'standard']).map((key) => ({
+  value: key,
+  label: t(promptVariantLabelMap[key] || key),
+}));
+
+const updatePromptVariant = (promptVariant) => updateConfig({ promptVariant });
 
 const updatePromptList = (promptList) => updateConfig({ promptList });
 
@@ -97,10 +110,10 @@ const createNewTemplate = () => {
 };
 </script>
 <template>
-  <div class="config-title">模型选择</div>
+  <div class="config-title">{{ t('model.select') }}</div>
   <tiny-base-select :model-value="llmConfig.model" @update:model-value="updateModel" :options="modelData"
     :tooltip-config="{ always: false }" class="config-content"></tiny-base-select>
-  <div class="config-title">模型温度</div>
+  <div class="config-title">{{ t('model.temperature') }}</div>
   <tiny-slider
     :model-value="llmConfig.temperature"
     @update:model-value="updateTemperature"
@@ -114,8 +127,18 @@ const createNewTemplate = () => {
       <b>{{ slotScope.slotScope }}</b>
     </template>
   </tiny-slider>
+  <template v-if="framework === 'Vue'">
+    <div class="config-title">{{ t('model.promptVariant') }}</div>
+    <tiny-base-select
+      :model-value="llmConfig.promptVariant || 'standard'"
+      @update:model-value="updatePromptVariant"
+      :options="promptVariantOptions"
+      class="config-content"
+      style="margin-bottom: 12px"
+    />
+  </template>
   <div class="config-title prompt-title">
-    <span>提示词</span>
+    <span>{{ t('model.prompt') }}</span>
     <span>
       <tiny-button type="text" :icon="IconPlus" @click="showAddPromptBox = true"> </tiny-button>
     </span>
@@ -141,11 +164,11 @@ const createNewTemplate = () => {
           <div class="prompt-item-actions">
             <div @click="editPrompt(index)">
               <IconEdit />
-              <span>编辑</span>
+              <span>{{ t('model.edit') }}</span>
             </div>
             <div @click="delPrompt(index)">
               <IconDel />
-              <span>删除</span>
+              <span>{{ t('model.delete') }}</span>
             </div>
           </div>
         </template>
@@ -157,7 +180,7 @@ const createNewTemplate = () => {
   </div>
   <tiny-dialog-box
     v-model:visible="showAddPromptBox"
-    :title="isEditPrompt ? '编辑提示词' : '添加提示词'"
+    :title="isEditPrompt ? t('model.editPrompt') : t('model.addPrompt')"
     width="30%"
     :append-to-body="true"
   >
@@ -170,10 +193,10 @@ const createNewTemplate = () => {
       autofocus
     ></tiny-input>
     <template #footer>
-      <tiny-button @click="resetState" round>取 消</tiny-button>
+      <tiny-button @click="resetState" round>{{ t('model.cancel') }}</tiny-button>
       <tiny-button type="primary"
         @click="isEditPrompt ? updatePrompt(appendPrompt, activeIndex) : addPrompt(activeIndex)" round>
-        确 定
+        {{ t('model.confirm') }}
       </tiny-button>
     </template>
   </tiny-dialog-box>
@@ -181,7 +204,7 @@ const createNewTemplate = () => {
   <!-- 选择示例模板 -->
   <template v-if="ENABLE_TEMPLATE">
     <div class="config-title prompt-title">
-      <span>示例模板</span>
+      <span>{{ t('model.exampleTemplates') }}</span>
       <span>
         <tiny-button type="text" :icon="IconPlus" @click="showSelectExampleBox = true"> </tiny-button>
       </span>
@@ -197,11 +220,11 @@ const createNewTemplate = () => {
           <div class="prompt-item-actions">
             <div @click="editCustomExample(item.id)">
               <IconEdit />
-              <span>编辑</span>
+              <span>{{ t('model.edit') }}</span>
             </div>
             <div @click="delCustomExample(index)">
               <IconDel />
-              <span>删除</span>
+              <span>{{ t('model.delete') }}</span>
             </div>
           </div>
         </template>

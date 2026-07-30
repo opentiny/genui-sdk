@@ -3,9 +3,9 @@ export const requiredCompleteFieldSelectors = [ // TODO: move to core & material
   'style',
   '[type=JSFunction]',
   '[type=JSExpression]',
-  '[type=JSSlot][value=]',
   'type',
   ':empty:object',
+  '[componentName=Page] > css',
   // ng
   '[componentName=img] > props > src',
   '[componentName] > props > ngModel',

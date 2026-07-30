@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import genuiAbility3 from '@/assets/create-github.webp';
 import { TinyTag } from '@opentiny/vue';
-
+import { t } from '@/i18n';
 const wrapperClass = 'home-mcp-tool-mobile';
 const abilityThreePartContent = {
   title: 'Create_repository',
@@ -38,17 +38,17 @@ const abilityThreePartContent = {
 <template>
   <section :class="wrapperClass">
     <div :class="`${wrapperClass}-title genui-title`">
-      <div>结合MCP工具</div>
-      <div>让AI更懂业务场景</div>
+      <div>{{ t('ability.mcp.mobileTitleLine1') }}</div>
+      <div>{{ t('ability.mcp.mobileTitleLine2') }}</div>
     </div>
-    <div :class="`${wrapperClass}-subtitle genui-subtitle`">接入MCP工具后，模型在调用工具缺少参数时能自动生成交互式UI来收集所需信息</div>
+    <div :class="`${wrapperClass}-subtitle genui-subtitle`">{{ t('ability.mcp.subtitle') }}</div>
     <div :class="`${wrapperClass}-content`">
       <img :src="genuiAbility3" alt="genui-ability-3"/>
       <div :class="`${wrapperClass}-content-container`">
         <div :class="`${wrapperClass}-content-title`">{{ abilityThreePartContent.title }}</div>
         <div :class="`${wrapperClass}-content-subtitle`">{{ abilityThreePartContent.subtitle }}</div>
         <div :class="`${wrapperClass}-content-parameters`">
-          <div :class="`${wrapperClass}-content-parameters-label`">Parameters</div>
+          <div :class="`${wrapperClass}-content-parameters-label`">{{ t('ability.mcp.parameters') }}</div>
           <div v-for="parameter in abilityThreePartContent.parameters" :key="parameter.label" :class="`${wrapperClass}-content-parameter`">
             <div :class="`${wrapperClass}-content-parameter-wrap`">
               <div :class="`${wrapperClass}-content-parameter-wrap-label`">{{ parameter.label }}</div>

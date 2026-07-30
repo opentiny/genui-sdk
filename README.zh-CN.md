@@ -1,8 +1,16 @@
 # GenUI SDK
 
+<p align="center">
+  <a href="https://opentiny.design/genui-sdk" target="_blank" rel="noopener noreferrer">
+    <img alt="OpenTiny Logo" src="logo.svg" height="100" style="max-width:100%;">
+  </a>
+</p>
+
 > 语言: [English](README.md) | 简体中文
 
 GenUI SDK 是 OpenTiny 面向生成式 UI（Generative UI）场景的全栈开发套件，帮助你快速搭建 AI 应用。
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/opentiny/genui-sdk)
 
 ## 简介
 

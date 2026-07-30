@@ -8,8 +8,10 @@
 
 - `name`: 动作名称
 - `description`: 动作描述
+- `parameters`: 参数 JSON Schema 描述
+- `return`: (可选)返回值 JSON Schema 描述，无返回值时可省略
+- `async`: (可选)是否为异步 Action，默认为 `false`；为 `true` 时 `execute` 返回 Promise
 - `execute`: 执行函数，接收 `params` 和 `context` 两个参数
-- `params`: 参数定义数组（可选），用于描述动作接收的参数，大模型根据描述生成参数传递给`execute`第一个参数
 
 ### execute 函数参数说明
 

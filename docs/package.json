@@ -15,7 +15,8 @@
   "license": "MIT",
   "dependencies": {
     "@opentiny/genui-sdk-vue": "workspace:*",
-    "@opentiny/genui-sdk-angular": "workspace:*"
+    "@opentiny/genui-sdk-angular": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*"
   },
   "devDependencies": {
     "vitepress": "^1.6.3",

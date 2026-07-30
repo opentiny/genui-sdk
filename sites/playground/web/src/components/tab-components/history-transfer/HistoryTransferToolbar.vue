@@ -1,7 +1,7 @@
 <template>
   <div class="history-transfer-toolbar">
     <span class="history-transfer-toolbar__selection-toggle" :class="{ 'active': selectionActive }" @click="toggleSelectionMode">
-      {{ selectionActive ? '取消' : '多选' }}
+      {{ selectionActive ? t('history.cancel') : t('history.selectMode') }}
     </span>
     <tiny-button
       round
@@ -9,13 +9,13 @@
       :disabled="!selectionActive || selectedIds.length === 0"
       @click="emit('batch-delete')"
     >
-      删除
+      {{ t('history.delete') }}
     </tiny-button>
-    <tiny-button round size="small" @click="triggerImport">导入</tiny-button>
+    <tiny-button round size="small" @click="triggerImport">{{ t('history.import') }}</tiny-button>
     <tiny-dropdown
       border
       trigger="click"
-      title="导出"
+      :title="t('history.export')"
       size="small"
       round
       :hide-on-click="true"
@@ -26,12 +26,12 @@
       <template #dropdown>
         <tiny-dropdown-menu>
           <tiny-dropdown-item
-            label="导出全部记录"
+            :label="t('history.exportAll')"
             :disabled="conversations.length === 0"
             :item-data="exportItemAll"
           />
           <tiny-dropdown-item
-            label="导出已选记录"
+            :label="t('history.exportSelected')"
             :disabled="!selectionActive || selectedIds.length === 0"
             :item-data="exportItemSelected"
           />
@@ -58,6 +58,7 @@ import {
   TinyDropdownItem,
 } from '@opentiny/vue';
 import type { Conversation } from '@opentiny/tiny-robot-kit';
+import { t } from '../../../i18n';
 import { downloadConversations, parseConversationFile, reconcileImportedConversationIds } from './history-transfer';
 
 const selectionActive = defineModel<boolean>('selectionActive', { default: false });
@@ -101,7 +102,7 @@ const triggerImport = () => {
 
 const exportAll = () => {
   if (props.conversations.length === 0) {
-    notify('warning', '当前没有可导出的会话');
+    notify('warning', t('history.noExportable'));
     return;
   }
 
@@ -133,15 +134,15 @@ const handleImportFile = async (event: Event) => {
   try {
     const importedConversations = await parseConversationFile(file);
     if (importedConversations.length === 0) {
-      notify('warning', '未找到可导入的会话');
+      notify('warning', t('history.noImportable'));
       return;
     }
 
     const reconciledImported = reconcileImportedConversationIds(props.conversations, importedConversations);
     emit('import-conversations', reconciledImported);
-    notify('success', `已导入 ${reconciledImported.length} 条会话`);
+    notify('success', t('history.importSuccess', { count: reconciledImported.length }));
   } catch (error) {
-    const message = error instanceof Error ? error.message : '导入失败';
+    const message = error instanceof Error ? error.message : t('history.importFailed');
     notify('error', message);
   } finally {
     input.value = '';

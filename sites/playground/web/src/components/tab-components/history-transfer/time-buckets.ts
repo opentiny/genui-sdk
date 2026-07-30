@@ -1,3 +1,5 @@
+import { t } from '../../../i18n';
+
 export enum TimeBucketKey {
   Today = 'today',
   Yesterday = 'yesterday',
@@ -16,13 +18,8 @@ export const TIME_BUCKET_LABELS = [
   TimeBucketKey.AMonthAgo,
 ] as const satisfies readonly TimeBucketLabel[];
 
-export const TIME_BUCKET_DISPLAY_LABELS: Record<TimeBucketLabel, string> = {
-  [TimeBucketKey.Today]: '今天',
-  [TimeBucketKey.Yesterday]: '昨天',
-  [TimeBucketKey.TwoDaysAgo]: '两天前',
-  [TimeBucketKey.AWeekAgo]: '一周前',
-  [TimeBucketKey.AMonthAgo]: '一个月前',
-};
+export const getTimeBucketDisplayLabel = (label: TimeBucketLabel): string =>
+  t(`history.timeBucket.${label}`);
 
 const MS_PER_DAY = 86400000;
 
@@ -83,7 +80,7 @@ export const groupByTimeBuckets = <T extends WithCreatedAt>(
   }
 
   return TIME_BUCKET_LABELS.filter((label) => buckets[label].length > 0).map((label) => ({
-    group: TIME_BUCKET_DISPLAY_LABELS[label],
+    group: getTimeBucketDisplayLabel(label),
     items: [...buckets[label]],
   }));
 };

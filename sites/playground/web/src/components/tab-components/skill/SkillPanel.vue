@@ -4,6 +4,7 @@ import { TinyButton, TinySwitch, TinyPopover, TinyCollapseItem, TinyNotify } fro
 import SkillFormDialog from './SkillFormDialog.vue';
 import { iconDel, iconEdit, iconPlus, iconEllipsis } from '@opentiny/vue-icon';
 import { fileListToSkillModules, pickMainSkillOverview, remapModulesByName } from './index';
+import { t } from '../../../i18n';
 
 const playgroundContext = inject('playgroundContext');
 const { llmConfig = {} } = playgroundContext || {};
@@ -75,7 +76,7 @@ const onFolderInputChange = async (e) => {
     if (!files?.length) {
       TinyNotify({
         type: 'info',
-        message: '未选择任何文件，或所选文件夹为空',
+        message: t('skill.noFiles'),
         position: 'top-right',
       });
       return;
@@ -89,7 +90,7 @@ const onFolderInputChange = async (e) => {
     if (!Object.keys(modules).length) {
       TinyNotify({
         type: 'warning',
-        message: `共选中 ${files.length} 个文件，没有可导入的文本类文件（需为 .md、.txt、.json、.yaml 等常见文本扩展名）。`,
+        message: t('skill.noTextFiles', { total: files.length }),
         position: 'top-right',
       });
       return;
@@ -112,11 +113,11 @@ const onFolderInputChange = async (e) => {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     const n = Object.keys(remapModules).length;
-    let doneMsg = `已导入 ${n} 个文本文件`;
+    let doneMsg = t('skill.importFilesSuccess', { count: n });
     if (skippedFileNum > 0) {
-      doneMsg += `（已跳过 ${skippedFileNum} 个扩展名不匹配的文件）`;
+      doneMsg += t('skill.importSkipped', { count: skippedFileNum });
     }
-    doneMsg += '。表单已打开，请核对名称与描述后点击「确认」保存到列表。';
+    doneMsg += t('skill.importFormHint');
     TinyNotify({
       type: 'success',
       message: doneMsg,
@@ -126,8 +127,7 @@ const onFolderInputChange = async (e) => {
     if (!overview) {
       TinyNotify({
         type: 'warning',
-        message:
-          '未检测到形如 ./目录名/SKILL.md 的主入口，对话摘要可能不完整；可调整目录结构或仍通过 get_skill_content 按路径读取子文档。',
+        message: t('skill.noMainEntry'),
         position: 'top-right',
       });
     }
@@ -135,7 +135,7 @@ const onFolderInputChange = async (e) => {
     const msg = err && typeof err === 'object' && 'message' in err ? err.message : String(err);
     TinyNotify({
       type: 'error',
-      message: `读取文件夹失败：${msg}`,
+      message: t('skill.readFolderFailed', { message: msg }),
       position: 'top-right',
     });
   } finally {
@@ -178,7 +178,7 @@ const confirmSkill = () => {
   <tiny-collapse-item name="skills" title="Skills">
     <template #title-right>
       <span class="skill-panel-title-actions" @click.stop>
-        <label for="playground-skill-folder-import" class="skill-folder-text-btn">导入文件夹</label>
+        <label for="playground-skill-folder-import" class="skill-folder-text-btn">{{ t('skill.importFolder') }}</label>
         <tiny-button type="text" :icon="IconPlus" @click="addSkill"> </tiny-button>
       </span>
     </template>
@@ -202,11 +202,11 @@ const confirmSkill = () => {
                 <div class="skills-item-actions">
                   <div @click="editSkill(skill, index)">
                     <component :is="IconEdit" />
-                    <span>编辑</span>
+                    <span>{{ t('common.edit') }}</span>
                   </div>
                   <div @click="deleteSkill(index)">
                     <component :is="IconDel" />
-                    <span>移除</span>
+                    <span>{{ t('common.remove') }}</span>
                   </div>
                 </div>
               </template>
@@ -222,11 +222,11 @@ const confirmSkill = () => {
       <div class="skills-item-empty">
         <div class="skills-item-empty-icon">
           <label for="playground-skill-folder-import" class="skill-folder-text-btn skill-folder-btn-inline" @click.stop
-            >导入技能文件夹</label
+            >{{ t('skill.importSkillFolder') }}</label
           >
-          或右上角
+          {{ t('common.or') }}
           <component :is="IconPlus" class="skills-item-empty-plus-icon" />
-          添加单条
+          {{ t('skill.addSingle') }}
         </div>
       </div>
     </div>

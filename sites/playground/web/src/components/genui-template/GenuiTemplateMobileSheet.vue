@@ -1,38 +1,122 @@
 <script setup lang="ts">
-import { CodeEditor } from 'monaco-editor-vue3';
+import { computed, onUnmounted, ref, watch } from 'vue';
 import { GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
-import type { CSSProperties } from 'vue';
-import { useMonacoPlaygroundTheme, type PlaygroundColorTheme } from './use-monaco-playground-theme';
+import { iconClose, iconTime } from '@opentiny/vue-icon';
+import SchemaVersionHistoryPanel from './SchemaVersionHistoryPanel.vue';
+import SchemaJsonEditor from './SchemaJsonEditor.vue';
+import SchemaPreviewToolbar from './SchemaPreviewToolbar.vue';
+import { type PlaygroundColorTheme } from './composables/use-monaco-playground-theme';
+import { useTemplateContext } from './composables';
+import viewSchemaIcon from '../../assets/images/view-schema.svg';
+import { t } from '../../i18n';
 
-const props = defineProps<{
-  visible: boolean;
-  jsonEditorOpen: boolean;
-  panelStyle: CSSProperties;
-  showReturnLatestButton: boolean;
-  currentPreviewSchema: Record<string, unknown> | null;
-  currentPreviewSchemaComplete?: boolean | undefined;
-  schemaEditor: string;
-  editorOptions: Record<string, unknown>;
-  playgroundTheme: PlaygroundColorTheme;
-  viewSchemaIcon: string;
-  closeIcon: unknown;
+defineProps<{
+  theme: PlaygroundColorTheme;
 }>();
 
-const monacoTheme = useMonacoPlaygroundTheme(() => props.playgroundTheme);
+const MOBILE_SHEET_DEFAULT_HEIGHT_VH = 64;
+const MOBILE_SHEET_MIN_HEIGHT_VH = 42;
+const MOBILE_SHEET_MAX_HEIGHT_VH = 92;
 
-const emit = defineEmits<{
-  (event: 'update:jsonEditorOpen', value: boolean): void;
-  (event: 'update:schemaEditor', value: string): void;
-  (event: 'mask-click'): void;
-  (event: 'grab-touch-start', value: TouchEvent): void;
-  (event: 'close'): void;
-  (event: 'apply-current-version'): void;
-  (event: 'reset-to-latest-version'): void;
-}>();
+const TinyCloseIcon = iconClose();
+const TinyIconTime = iconTime();
+const { schema, versionControl, editor, ui, actions } = useTemplateContext();
 
-const handleJsonEditorChange = (value: string) => {
-  emit('update:schemaEditor', value);
+const mobileSheetHeightVh = ref(MOBILE_SHEET_DEFAULT_HEIGHT_VH);
+const mobileSheetDragStartY = ref(0);
+const mobileSheetDragStartHeightVh = ref(MOBILE_SHEET_DEFAULT_HEIGHT_VH);
+const mobileSheetDragging = ref(false);
+
+const mobileSheetPanelStyle = computed(() => ({
+  height: `${mobileSheetHeightVh.value}vh`,
+}));
+
+const clampMobileSheetHeight = (heightVh: number) =>
+  Math.min(MOBILE_SHEET_MAX_HEIGHT_VH, Math.max(MOBILE_SHEET_MIN_HEIGHT_VH, heightVh));
+
+const handleMobileSheetDragMove = (event: TouchEvent) => {
+  if (!mobileSheetDragging.value) {
+    return;
+  }
+  const touch = event.touches[0];
+  if (!touch) {
+    return;
+  }
+  const deltaY = touch.clientY - mobileSheetDragStartY.value;
+  const deltaVh = (deltaY / window.innerHeight) * 100;
+  mobileSheetHeightVh.value = clampMobileSheetHeight(mobileSheetDragStartHeightVh.value - deltaVh);
+  event.preventDefault();
+};
+
+const disposeMobileSheetDrag = () => {
+  window.removeEventListener('touchmove', handleMobileSheetDragMove);
+  window.removeEventListener('touchend', handleMobileSheetDragEnd);
+  window.removeEventListener('touchcancel', handleMobileSheetDragEnd);
+  mobileSheetDragging.value = false;
+};
+
+function handleMobileSheetDragEnd() {
+  if (!mobileSheetDragging.value) {
+    return;
+  }
+  disposeMobileSheetDrag();
+  mobileSheetHeightVh.value = clampMobileSheetHeight(mobileSheetHeightVh.value);
+}
+
+const resetMobileSheetHeight = (options?: { resetDragging?: boolean }) => {
+  if (options?.resetDragging !== false) {
+    mobileSheetDragging.value = false;
+  }
+  mobileSheetHeightVh.value = MOBILE_SHEET_DEFAULT_HEIGHT_VH;
+};
+
+const onMobileSheetGrabTouchStart = (event: TouchEvent) => {
+  const touch = event.touches[0];
+  if (!touch) {
+    return;
+  }
+  mobileSheetDragging.value = true;
+  mobileSheetDragStartY.value = touch.clientY;
+  mobileSheetDragStartHeightVh.value = mobileSheetHeightVh.value;
+  window.addEventListener('touchmove', handleMobileSheetDragMove, { passive: false });
+  window.addEventListener('touchend', handleMobileSheetDragEnd);
+  window.addEventListener('touchcancel', handleMobileSheetDragEnd);
+};
+
+const onMaskClick = () => {
+  if (ui.isJsonEditorActive) {
+    actions.handleMobileJsonEditorOpen(false);
+  }
+};
+
+watch(
+  () => ui.rendererPanelVisible,
+  (open) => {
+    if (open) {
+      resetMobileSheetHeight({ resetDragging: false });
+      return;
+    }
+    resetMobileSheetHeight();
+    disposeMobileSheetDrag();
+  },
+);
+
+onUnmounted(() => {
+  disposeMobileSheetDrag();
+});
+
+const headerTitle = computed(() => {
+  if (!ui.isJsonEditorActive) {
+    return t('templateEditor.previewRender');
+  }
+  return versionControl.schemaEditorShowDiffView
+    ? t('templateEditor.viewChanges')
+    : t('templateEditor.schemaJsonTitle');
+});
+
+const toggleJsonEditor = () => {
+  actions.handleMobileJsonEditorOpen(!ui.isJsonEditorActive);
 };
 </script>
 
@@ -40,85 +124,85 @@ const handleJsonEditorChange = (value: string) => {
   <Teleport to="body">
     <Transition name="schema-mobile-sheet">
       <div
-        v-show="visible"
+        v-show="ui.rendererPanelVisible"
         class="schema-mobile-sheet"
         role="dialog"
         aria-modal="true"
-        :aria-label="jsonEditorOpen ? 'Schema JSON 编辑器' : 'Schema JSON 预览'"
+        :aria-label="
+          ui.isJsonEditorActive
+            ? versionControl.schemaEditorShowDiffView
+              ? t('templateEditor.jsonEditorAria')
+              : t('templateEditor.jsonPreviewAria')
+            : t('templateEditor.jsonPreviewAria')
+        "
       >
-        <div class="schema-mobile-sheet__mask" @click="emit('mask-click')" />
-        <div class="schema-mobile-sheet__panel" :style="props.panelStyle">
-          <div class="schema-mobile-sheet__grab" @touchstart="emit('grab-touch-start', $event)" />
+        <div class="schema-mobile-sheet__mask" @click="onMaskClick" />
+        <div class="schema-mobile-sheet__panel" :style="mobileSheetPanelStyle">
+          <div class="schema-mobile-sheet__grab" @touchstart="onMobileSheetGrabTouchStart" />
           <div class="schema-mobile-sheet__header">
-            <div class="schema-mobile-sheet__header-start">
-              <button
-                v-if="!jsonEditorOpen"
-                type="button"
-                class="schema-mobile-sheet__entry"
-                @click="emit('update:jsonEditorOpen', true)"
+            <h3 class="schema-mobile-sheet__title">{{ headerTitle }}</h3>
+            <div class="schema-mobile-sheet__header-actions">
+              <tiny-button
+                v-if="ui.isJsonEditorActive && actions.schemaEditorDirty && !versionControl.schemaEditorShowDiffView && !versionControl.isEditorReadOnly"
+                type="primary"
+                size="small"
+                round
+                :loading="editor.schemaEditorSaveLoading"
+                @click="actions.handleSaveSchemaEditor"
               >
-                <img class="schema-mobile-sheet__entry-icon" :src="viewSchemaIcon" alt="" />
-                查看 JSON
-              </button>
-              <button
-                v-else
-                type="button"
-                class="schema-mobile-sheet__back"
-                @click="emit('update:jsonEditorOpen', false)"
-              >
-                返回预览
-              </button>
-            </div>
-            <div class="schema-mobile-sheet__header-end">
+                {{ t('templateEditor.save') }}
+              </tiny-button>
               <tiny-button
                 type="text"
                 class="genui-schema-toolbar-close-btn"
-                :icon="closeIcon"
-                aria-label="关闭"
-                @click="emit('close')"
+                :class="{ 'is-active': ui.isHistoryPanelOpen }"
+                :icon="TinyIconTime"
+                :aria-label="t('templateEditor.history')"
+                :title="t('templateEditor.history')"
+                @click="ui.toggleHistoryPanel"
+              />
+              <button
+                type="button"
+                class="schema-mobile-sheet__icon-btn"
+                :class="{ 'is-active': ui.isJsonEditorActive }"
+                :aria-label="t('templateEditor.viewJson')"
+                :title="t('templateEditor.viewJson')"
+                @click="toggleJsonEditor"
+              >
+                <img class="schema-mobile-sheet__icon-btn-image" :src="viewSchemaIcon" alt="" />
+              </button>
+              <tiny-button
+                type="text"
+                class="genui-schema-toolbar-close-btn"
+                :icon="TinyCloseIcon"
+                :aria-label="t('templateEditor.close')"
+                @click="actions.closeSchemaEditorView"
               />
             </div>
           </div>
           <div
-            :class="['schema-mobile-sheet__body', { 'schema-mobile-sheet__body--with-footer': showReturnLatestButton }]"
+            :class="['schema-mobile-sheet__body', { 'schema-mobile-sheet__body--with-footer': versionControl.showReturnLatestButton }]"
           >
             <div
-              v-if="currentPreviewSchema"
-              v-show="!jsonEditorOpen"
+              v-if="schema.currentPreviewSchema"
+              v-show="!ui.isJsonEditorActive"
               class="schema-mobile-sheet__preview schema-mobile-sheet__preview--solo"
             >
               <schema-renderer
                 class="schema-mobile-sheet-renderer"
-                :content="currentPreviewSchema"
+                :content="schema.currentPreviewSchema"
                 :generating="false"
-                :isJsonComplete="currentPreviewSchemaComplete"
+                :is-json-complete="schema.currentPreviewSchemaComplete"
               />
             </div>
             <Transition name="schema-mobile-json">
-              <div v-show="jsonEditorOpen" class="schema-mobile-sheet__editor schema-mobile-sheet__editor--layer">
-                <code-editor
-                  :value="schemaEditor"
-                  language="json"
-                  :theme="monacoTheme"
-                  :options="editorOptions"
-                  @update:value="handleJsonEditorChange"
-                />
+              <div v-show="ui.isJsonEditorActive" class="schema-mobile-sheet__editor schema-mobile-sheet__editor--layer">
+                <schema-json-editor :theme="theme" layout="sheet" />
               </div>
             </Transition>
+            <schema-version-history-panel :theme="theme" />
           </div>
-          <div v-if="showReturnLatestButton" class="schema-mobile-sheet__footer">
-            <tiny-button round class="schema-mobile-sheet__latest-btn" @click="emit('apply-current-version')">
-              应用此版本
-            </tiny-button>
-            <tiny-button
-              type="primary"
-              round
-              class="schema-mobile-sheet__latest-btn"
-              @click="emit('reset-to-latest-version')"
-            >
-              返回最新版本
-            </tiny-button>
-          </div>
+          <schema-preview-toolbar v-if="versionControl.showReturnLatestButton" variant="mobile-footer" />
         </div>
       </div>
     </Transition>
@@ -148,6 +232,11 @@ const handleJsonEditorChange = (value: string) => {
 
     &:active {
       background: rgba(0, 0, 0, 0.08);
+    }
+
+    &.is-active {
+      color: #1677ff;
+      background: rgba(22, 119, 255, 0.1);
     }
   }
 }
@@ -218,97 +307,60 @@ const handleJsonEditorChange = (value: string) => {
     overflow: hidden;
   }
 
-  &__header-start {
+  &__title {
     flex: 1 1 0;
     min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-  }
-
-  &__header-end {
-    flex: 1 1 0;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
-  }
-
-  &__latest-btn {
-    flex-shrink: 1;
-    min-width: 0;
-    max-width: 50%;
-  }
-
-  &__footer {
-    z-index: 3;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    background: #fff;
-
-    .schema-mobile-sheet__latest-btn {
-      max-width: none;
-    }
-  }
-
-  &__entry {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    max-width: 100%;
     margin: 0;
-    padding: 0;
-    border: none;
-    background: transparent;
-    font: inherit;
-    text-align: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
     color: #191919;
-    font-size: 14px;
-    line-height: 22px;
-    text-decoration: none;
-    cursor: pointer;
-    user-select: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  &__header-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  &__icon-btn {
+    box-sizing: border-box;
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
 
     &:hover {
-      color: #191919;
-      text-decoration: underline;
-      text-underline-offset: 2px;
+      background: rgba(0, 0, 0, 0.06);
     }
 
-    &:focus-visible {
-      outline: 2px solid #1890ff;
-      outline-offset: 2px;
-      border-radius: 4px;
+    &:active {
+      background: rgba(0, 0, 0, 0.08);
+    }
+
+    &.is-active {
+      background: rgba(22, 119, 255, 0.1);
     }
   }
 
-  &__entry-icon {
+  &__icon-btn-image {
     width: 16px;
     height: 16px;
-    flex-shrink: 0;
-  }
-
-  &__back {
-    margin: 0;
-    padding: 6px 4px;
-    border: none;
-    background: transparent;
-    font-size: 16px;
-    line-height: 22px;
-    color: #191919;
-    cursor: pointer;
-    white-space: nowrap;
-
-    &:hover {
-      color: #191919;
-    }
+    display: block;
+    object-fit: contain;
   }
 
   &__body {
@@ -348,11 +400,6 @@ const handleJsonEditorChange = (value: string) => {
     min-height: 120px;
     padding: 12px;
     box-sizing: border-box;
-  }
-
-  &__editor--layer :deep(.monaco-code-editor) {
-    flex: 1;
-    min-height: 0;
   }
 }
 

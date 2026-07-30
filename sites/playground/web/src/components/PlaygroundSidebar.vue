@@ -1,5 +1,5 @@
 <script setup>
-import { TinyTabs, TinyTabItem, TinyButtonGroup } from '@opentiny/vue';
+import { TinyTabs, TinyTabItem } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { ref, watch, computed, inject, defineAsyncComponent, shallowRef } from 'vue';
 import NewSvg from '../assets/images/new.svg?raw';
@@ -9,8 +9,11 @@ import MenuSvg from '../assets/images/menu.svg?raw';
 import ModelConfig from './tab-components/ModelConfig.vue';
 import McpTools from './tab-components/mcpTools.vue';
 import GenuiHistory from './tab-components/GenuiHistory.vue';
+import LanguageSwitcher from './LanguageSwitcher.vue';
 import { useIsMobile } from '../hooks';
 import useTemplate from './genui-template/useTemplate';
+import { MaterialsTab } from './materials-tab';
+import { t } from '../i18n';
 
 const props = defineProps({
   expanded: { type: Boolean, default: true },
@@ -26,9 +29,9 @@ const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
 const GenuiTemplateList = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./genui-template/GenuiTemplateList.vue'))
   : shallowRef(null);
-// 从上层注入共享的 playground 上下文（这里只需要主题&会话相关）
+// 从上层注入共享的 playground 上下文（framework / 会话等）
 const playgroundContext = inject('playgroundContext');
-const { themeData, conversation } = playgroundContext;
+const { conversation } = playgroundContext;
 
 const TinyIconPlus = iconPlus();
 const activeName = ref('model');
@@ -37,7 +40,7 @@ const { isMobile } = useIsMobile();
 
 const currentConversationTitle = computed(() => {
   const current = conversation.value?.getCurrentConversation?.();
-  return current?.title || '新会话';
+  return current?.title || t('sidebar.newConversation');
 });
 
 // 侧边栏宽度（使用样式中定义的 CSS 变量，避免重复）
@@ -84,7 +87,7 @@ const updateCustomExamples = (list) => {
       <button
         type="button"
         class="playground-topbar__icon-btn"
-        aria-label="打开菜单"
+        :aria-label="t('sidebar.openMenu')"
         @click="emit('update:expanded', true)"
       >
         <span class="svg-icon" :innerHTML="MenuSvg"></span>
@@ -92,7 +95,13 @@ const updateCustomExamples = (list) => {
       <div class="playground-topbar__title">
         {{ currentConversationTitle }}
       </div>
-      <button v-if="showNewTaskButton" type="button" class="playground-topbar__icon-btn" aria-label="新建会话" @click="handleNewTask">
+      <button
+        v-if="showNewTaskButton"
+        type="button"
+        class="playground-topbar__icon-btn"
+        :aria-label="t('sidebar.newTask')"
+        @click="handleNewTask"
+      >
         <span class="svg-icon" :innerHTML="NewSvg"></span>
       </button>
     </div>
@@ -121,8 +130,8 @@ const updateCustomExamples = (list) => {
               v-if="expanded"
               type="button"
               class="playground-sidebar__icon-btn"
-              :aria-label="isMobile ? '关闭侧边栏' : '收起侧边栏'"
-              :title="isMobile ? '关闭' : '收起'"
+              :aria-label="isMobile ? t('sidebar.closeSidebar') : t('sidebar.collapseSidebar')"
+              :title="isMobile ? t('sidebar.close') : t('sidebar.collapseSidebar')"
               @click="emit('update:expanded', false)"
             >
               <span class="svg-icon" :innerHTML="CloseSvg" />
@@ -131,8 +140,8 @@ const updateCustomExamples = (list) => {
               v-else
               type="button"
               class="playground-sidebar__icon-btn"
-              aria-label="展开侧边栏"
-              title="展开"
+              :aria-label="t('sidebar.expandSidebar')"
+              :title="t('sidebar.expand')"
               @click="toggleExpanded"
             >
               <span class="svg-icon" :innerHTML="OpenSvg" />
@@ -142,8 +151,8 @@ const updateCustomExamples = (list) => {
             v-if="!expanded && !isMobile && showNewTaskButton"
             type="button"
             class="playground-sidebar__icon-btn"
-            aria-label="新建会话"
-            title="新建会话"
+            :aria-label="t('sidebar.newTask')"
+            :title="t('sidebar.newTask')"
             @click="handleNewTask"
           >
             <span class="svg-icon" :innerHTML="NewSvg" />
@@ -154,7 +163,7 @@ const updateCustomExamples = (list) => {
       <div class="playground-sidebar__new-task">
         <button v-if="expanded && showNewTaskButton" class="new-task-btn" type="button" @click="handleNewTask">
           <TinyIconPlus :size="16" />
-          <span class="new-task-btn__text">新建会话</span>
+          <span class="new-task-btn__text">{{ t('sidebar.newTask') }}</span>
           <div class="new-task-btn__shortcut">
             <span>Ctrl</span>
             <span>K</span>
@@ -168,28 +177,26 @@ const updateCustomExamples = (list) => {
         v-model="activeName"
         v-show="expanded"
       >
-        <tiny-tab-item title="模型配置" name="model">
-          <ModelConfig @createNewTemplate="handleCreateNewTemplate" @update-custom-examples="updateCustomExamples"/>
+        <tiny-tab-item :title="t('sidebar.tabModel')" name="model">
+          <ModelConfig @createNewTemplate="handleCreateNewTemplate" @update-custom-examples="updateCustomExamples" />
         </tiny-tab-item>
-        <tiny-tab-item title="工具" name="tools">
+        <tiny-tab-item :title="t('sidebar.tabTools')" name="tools">
           <McpTools />
         </tiny-tab-item>
-        <tiny-tab-item title="主题" name="theme">
-          <div class="config-title">切换主题</div>
-          <tiny-button-group
-            size="small"
-            :data="themeData"
-            :model-value="theme"
-            @update:model-value="emit('update:theme', $event)"
-          />
+        <tiny-tab-item :title="t('sidebar.tabMaterials')" name="theme">
+          <MaterialsTab :theme="theme" @update:theme="emit('update:theme', $event)" />
         </tiny-tab-item>
-        <tiny-tab-item title="历史会话" name="history" class="history-tab">
+        <tiny-tab-item :title="t('sidebar.tabHistory')" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
         </tiny-tab-item>
-        <tiny-tab-item v-if="ENABLE_TEMPLATE" title="模板（实验特性）" name="template">
-          <component v-if="GenuiTemplateList && isTemplateInit" :is="GenuiTemplateList"/>
+        <tiny-tab-item v-if="ENABLE_TEMPLATE && isTemplateInit" :title="t('sidebar.tabTemplate')" name="template">
+          <component v-if="GenuiTemplateList" :is="GenuiTemplateList" />
         </tiny-tab-item>
       </tiny-tabs>
+
+      <footer v-show="expanded" class="playground-sidebar__footer">
+        <LanguageSwitcher />
+      </footer>
     </div>
 
     <!-- 移动端遮罩层 -->
@@ -286,7 +293,11 @@ const updateCustomExamples = (list) => {
       font-size: 14px;
       color: #595959;
       margin-bottom: 12px;
+      margin-top: 16px;
       line-height: 32px;
+    }
+    :deep(.tiny-button-group .tiny-group-item li button) {
+      padding: 0 20px;
     }
 
     :deep(.tiny-tabs__header.is-top) {
@@ -298,7 +309,7 @@ const updateCustomExamples = (list) => {
       flex: 1;
       min-height: 0;
       overflow: auto;
-      padding: 0 24px 90px;
+      padding: 0 24px 0;
     }
 
     &--tools :deep(.tiny-tabs__content) {
@@ -313,6 +324,12 @@ const updateCustomExamples = (list) => {
         overflow: hidden;
       }
     }
+  }
+
+  &__footer {
+    flex-shrink: 0;
+    padding: 12px 24px 24px;
+    border-top: 1px solid #f0f0f0;
   }
 
   .svg-icon {

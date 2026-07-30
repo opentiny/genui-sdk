@@ -23,8 +23,6 @@ export default defineConfig(({ mode }) => {
       dts({
         rollupTypes: true,
         bundledPackages: [
-          '@opentiny/genui-sdk-core',
-          '@opentiny/genui-sdk-materials-vue-opentiny-vue',
           '@opentiny/tiny-schema-renderer',
           'zod',
           'zod-to-json-schema',
@@ -45,15 +43,17 @@ export default defineConfig(({ mode }) => {
         entry: {
           index: path.resolve(__dirname, './src/index.ts'),
           chat: path.resolve(__dirname, './src/chat/index.ts'),
+          'legacy-chat': path.resolve(__dirname, './src/legacy-chat/index.ts'),
           renderer: path.resolve(__dirname, './src/renderer/index.ts'),
+          'legacy-renderer': path.resolve(__dirname, './src/legacy-renderer/index.ts'),
           'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
           'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
         },
         formats: ['es'],
         fileName: (_, entryName) => `${entryName}.js`,
       },
-      outDir: path.resolve(__dirname, './output/dist'),
-      sourcemap: false,
+      outDir: path.resolve(__dirname, './dist'),
+      sourcemap: true,
       terserOptions: {
         mangle: {
           toplevel: true,

@@ -1,0 +1,173 @@
+name: Publish GenUI SDK package
+
+on:
+  workflow_dispatch:
+    inputs:
+      package:
+        description: '要发布的 npm 包'
+        required: true
+        type: choice
+        options:
+          - '@opentiny/genui-sdk-server'
+          - '@opentiny/genui-sdk-vue'
+          - '@opentiny/genui-sdk-angular'
+          - '@opentiny/genui-sdk-core'
+          - '@opentiny/genui-sdk-materials-vue-opentiny-vue'
+          - '@opentiny/genui-sdk-materials-vue-element-plus'
+          - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
+      version:
+        description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
+        required: true
+        type: string
+      npm_tag:
+        description: '发布标签（latest=正式版，beta/alpha=预发版，安装时如 npm install pkg@beta）'
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+      fetch_npm_tag:
+        description: '发包前从 npm 拉取版本替换 workspace 依赖所使用的 tag（通常为 latest）'
+        required: true
+        default: latest
+        type: choice
+        options:
+          - latest
+          - beta
+          - alpha
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Check allowed publishers
+        run: |
+          ALLOWED="${{ vars.ALLOWED_PUBLISHERS }}"
+          if [ -z "$ALLOWED" ]; then
+            echo "::error::请在仓库 Settings → Secrets and variables → Actions → Variables 中配置 ALLOWED_PUBLISHERS（逗号分隔的 GitHub 用户名）"
+            exit 1
+          fi
+          ACTOR="${{ github.actor }}"
+          if echo ",${ALLOWED}," | grep -q ",${ACTOR},"; then
+            echo "✓ 允许发布: $ACTOR"
+          else
+            echo "::error::无权限发布: $ACTOR 不在 ALLOWED_PUBLISHERS 列表中"
+            exit 1
+          fi
+
+      - name: Validate version (semver)
+        run: |
+          VERSION="${{ github.event.inputs.version }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+            echo "::error::版本号需符合语义化版本（如 1.0.0、1.0.0-beta.2），当前值: $VERSION"
+            exit 1
+          fi
+          echo "✓ 版本号格式正确: $VERSION"
+
+      - name: Resolve package config
+        id: pkg
+        run: |
+          case "${{ github.event.inputs.package }}" in
+            @opentiny/genui-sdk-server)
+              echo "pkg_json=packages/server/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/server/output/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-server" >> "$GITHUB_OUTPUT"
+              echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/server/output" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-vue)
+              echo "pkg_json=packages/frameworks/vue/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/frameworks/vue/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-vue" >> "$GITHUB_OUTPUT"
+              echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/frameworks/vue" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-angular)
+              echo "pkg_json=packages/frameworks/angular/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/frameworks/angular/output/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-angular" >> "$GITHUB_OUTPUT"
+              echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/frameworks/angular/output" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-core)
+              echo "pkg_json=packages/core/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/core/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-core" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/core" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-materials-vue-opentiny-vue)
+              echo "pkg_json=packages/materials/vue-opentiny-vue/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/materials/vue-opentiny-vue/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-materials-vue-opentiny-vue" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/materials/vue-opentiny-vue" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-materials-vue-element-plus)
+              echo "pkg_json=packages/materials/vue-element-plus/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/materials/vue-element-plus/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-materials-vue-element-plus" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/materials/vue-element-plus" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-materials-angular-opentiny-ng)
+              echo "pkg_json=packages/materials/angular-opentiny-ng/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/materials/angular-opentiny-ng/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-materials-angular-opentiny-ng" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/materials/angular-opentiny-ng" >> "$GITHUB_OUTPUT"
+              ;;
+            *)
+              echo "::error::未知包: ${{ github.event.inputs.package }}"
+              exit 1
+              ;;
+          esac
+
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Update package version
+        run: node ./scripts/update-package-version.js "${{ steps.pkg.outputs.pkg_json }}" "${{ github.event.inputs.version }}"
+
+      - name: Build package
+        run: pnpm --filter ${{ steps.pkg.outputs.filter }} ${{ steps.pkg.outputs.build_script }}
+
+      - name: Sync workspace deps for publish
+        env:
+          PUBLISH_PKG_JSONS: ${{ steps.pkg.outputs.sync_pkg_json }}
+          FETCH_NPM_TAG: ${{ github.event.inputs.fetch_npm_tag }}
+        run: node ./scripts/ci-replace-workspace-deps.js
+
+      - name: Setup .npmrc for publish
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+
+      - name: Publish to npm
+        working-directory: ${{ steps.pkg.outputs.publish_dir }}
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Create and push tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "${{ github.event.inputs.package }}@${{ github.event.inputs.version }}"
+          git push origin "${{ github.event.inputs.package }}@${{ github.event.inputs.version }}"

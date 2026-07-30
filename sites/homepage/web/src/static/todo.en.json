@@ -1,0 +1,652 @@
+{
+  "componentName": "Page",
+  "state": {
+    "todoList": [
+      {
+        "id": "1",
+        "title": "Complete project requirements document",
+        "description": "Organize product requirements and complete the PRD draft; align with PM and engineering",
+        "priority": "high",
+        "completed": false,
+        "deadline": "2024-12-31",
+        "category": "work"
+      },
+      {
+        "id": "2",
+        "title": "Workout",
+        "description": "30 minutes of cardio and strength training, including 20 minutes on the treadmill and weight training",
+        "priority": "medium",
+        "completed": true,
+        "deadline": "2024-12-10",
+        "category": "life"
+      },
+      {
+        "id": "3",
+        "title": "Buy groceries",
+        "description": "Buy milk, bread, fruit, vegetables, and other daily essentials at the supermarket",
+        "priority": "low",
+        "completed": false,
+        "deadline": "2024-12-08",
+        "category": "life"
+      },
+      {
+        "id": "4",
+        "title": "Learn new React features",
+        "description": "Learn React Server Components and new Hook APIs; complete hands-on practice projects",
+        "priority": "high",
+        "completed": false,
+        "deadline": "2024-12-15",
+        "category": "study"
+      }
+    ],
+    "newTodo": {
+      "title": "",
+      "description": "",
+      "priority": "medium",
+      "deadline": "",
+      "category": "work"
+    },
+    "filterStatus": "all",
+    "filterPriority": "all",
+    "filterCategory": "all",
+    "searchText": ""
+  },
+  "methods": {
+    "addTodo": {
+      "type": "JSFunction",
+      "value": "function() { if (!this.state.newTodo.title.trim()) { return; } const newId = Date.now().toString(); const todo = { ...this.state.newTodo, id: newId, completed: false }; this.state.todoList.push(todo); this.state.newTodo.title = ''; this.state.newTodo.description = ''; this.state.newTodo.priority = 'medium'; this.state.newTodo.deadline = ''; this.state.newTodo.category = 'work'; }"
+    },
+    "toggleTodo": {
+      "type": "JSFunction",
+      "value": "function(id) { const todo = this.state.todoList.find(item => item.id === id); if (todo) { todo.completed = !todo.completed; } }"
+    },
+    "deleteTodo": {
+      "type": "JSFunction",
+      "value": "function(id) { const index = this.state.todoList.findIndex(item => item.id === id); if (index !== -1) { this.state.todoList.splice(index, 1); } }"
+    },
+    "filteredTodos": {
+      "type": "JSFunction",
+      "value": "function() { let filtered = this.state.todoList.filter(todo => { if (this.state.filterStatus === 'active' && todo.completed) return false; if (this.state.filterStatus === 'completed' && !todo.completed) return false; if (this.state.filterPriority !== 'all' && todo.priority !== this.state.filterPriority) return false; if (this.state.filterCategory !== 'all' && todo.category !== this.state.filterCategory) return false; if (this.state.searchText && !todo.title.toLowerCase().includes(this.state.searchText.toLowerCase()) && !todo.description.toLowerCase().includes(this.state.searchText.toLowerCase())) return false; return true; }); return filtered; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "h2",
+          "props": {},
+          "children": "📋 My Todos"
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "margin-bottom: 20px;"
+          },
+          "children": [
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 4
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySearch",
+                      "props": {
+                        "placeholder": "Search todos",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.searchText"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 2
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySelect",
+                      "props": {
+                        "placeholder": "Filter by status",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.filterStatus"
+                        },
+                        "options": [
+                          {
+                            "label": "All",
+                            "value": "all"
+                          },
+                          {
+                            "label": "Active",
+                            "value": "active"
+                          },
+                          {
+                            "label": "Completed",
+                            "value": "completed"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 3
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySelect",
+                      "props": {
+                        "placeholder": "Priority",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.filterPriority"
+                        },
+                        "options": [
+                          {
+                            "label": "All",
+                            "value": "all"
+                          },
+                          {
+                            "label": "High",
+                            "value": "high"
+                          },
+                          {
+                            "label": "Medium",
+                            "value": "medium"
+                          },
+                          {
+                            "label": "Low",
+                            "value": "low"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 2
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinySelect",
+                      "props": {
+                        "placeholder": "Category",
+                        "modelValue": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.filterCategory"
+                        },
+                        "options": [
+                          {
+                            "label": "All",
+                            "value": "all"
+                          },
+                          {
+                            "label": "Work",
+                            "value": "work"
+                          },
+                          {
+                            "label": "Life",
+                            "value": "life"
+                          },
+                          {
+                            "label": "Study",
+                            "value": "study"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TinyGrid",
+          "props": {
+            "columns": [
+              {
+                "type": "index",
+                "width": 60,
+                "title": "#"
+              },
+              {
+                "field": "completed",
+                "title": "Status",
+                "width": 80,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "div",
+                        "children": [
+                          {
+                            "componentName": "TinySwitch",
+                            "props": {
+                              "modelValue": {
+                                "type": "JSExpression",
+                                "value": "row.completed"
+                              },
+                              "onChange": {
+                                "type": "JSExpression",
+                                "value": "() => this.toggleTodo(row.id)"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "title",
+                "title": "Title",
+                "width": 200,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "div",
+                        "props": {
+                          "style": {
+                            "type": "JSExpression",
+                            "value": "row.completed ? 'text-decoration: line-through; color: #999;' : 'font-weight: bold;'"
+                          }
+                        },
+                        "children": [
+                          {
+                            "componentName": "Text",
+                            "props": {
+                              "text": {
+                                "type": "JSExpression",
+                                "value": "row.title"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "description",
+                "title": "Description",
+                "minWidth": "300px",
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "row.description"
+                          },
+                          "style": {
+                            "type": "JSExpression",
+                            "value": "row.completed ? 'color: #999;' : ''"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "priority",
+                "title": "Priority",
+                "width": 100,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "div",
+                        "props": {
+                          "style": {
+                            "type": "JSExpression",
+                            "value": "row.priority === 'high' ? 'color: #ff4d4f' : row.priority === 'medium' ? 'color: #faad14' : 'color: #52c41a'"
+                          }
+                        },
+                        "children": [
+                          {
+                            "componentName": "Text",
+                            "props": {
+                              "text": {
+                                "type": "JSExpression",
+                                "value": "{ high: 'High', medium: 'Medium', low: 'Low' }[row.priority]"
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "deadline",
+                "title": "Deadline",
+                "width": 120,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "row.deadline || 'None'"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "field": "category",
+                "title": "Category",
+                "width": 120,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "{ work: 'Work', life: 'Life', study: 'Study' }[row.category] || row.category"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              },
+              {
+                "title": "Actions",
+                "width": 100,
+                "slots": {
+                  "default": {
+                    "type": "JSSlot",
+                    "value": [
+                      {
+                        "componentName": "TinyButton",
+                        "props": {
+                          "text": "Delete",
+                          "type": "danger",
+                          "size": "small",
+                          "onClick": {
+                            "type": "JSExpression",
+                            "value": "() => this.deleteTodo(row.id)"
+                          }
+                        }
+                      }
+                    ],
+                    "params": [
+                      "row"
+                    ]
+                  }
+                }
+              }
+            ],
+            "data": {
+              "type": "JSExpression",
+              "value": "this.filteredTodos()"
+            }
+          }
+        },
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-top: 30px; margin-bottom: 20px;"
+          },
+          "children": "➕ Add New Todo"
+        },
+        {
+          "componentName": "TinyForm",
+          "props": {
+            "model": {
+              "type": "JSExpression",
+              "value": "this.state.newTodo"
+            },
+            "labelPosition": "top"
+          },
+          "children": [
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "Title",
+                        "required": true
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinyInput",
+                          "props": {
+                            "placeholder": "Enter todo title",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.title"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "Priority"
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinySelect",
+                          "props": {
+                            "placeholder": "Select priority",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.priority"
+                            },
+                            "options": [
+                              {
+                                "label": "High",
+                                "value": "high"
+                              },
+                              {
+                                "label": "Medium",
+                                "value": "medium"
+                              },
+                              {
+                                "label": "Low",
+                                "value": "low"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TinyRow",
+              "children": [
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "Category"
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinySelect",
+                          "props": {
+                            "placeholder": "Select category",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.category"
+                            },
+                            "options": [
+                              {
+                                "label": "Work",
+                                "value": "work"
+                              },
+                              {
+                                "label": "Life",
+                                "value": "life"
+                              },
+                              {
+                                "label": "Study",
+                                "value": "study"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "TinyCol",
+                  "props": {
+                    "span": 6
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyFormItem",
+                      "props": {
+                        "label": "Deadline"
+                      },
+                      "children": [
+                        {
+                          "componentName": "TinyDatePicker",
+                          "props": {
+                            "placeholder": "Select deadline",
+                            "format": "yyyy/MM/dd",
+                            "value-format": "yyyy-MM-dd",
+                            "modelValue": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.newTodo.deadline"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": "Description"
+              },
+              "children": [
+                {
+                  "componentName": "TinyInput",
+                  "props": {
+                    "type": "textarea",
+                    "rows": 3,
+                    "placeholder": "Enter detailed description",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.newTodo.description"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": ""
+              },
+              "children": [
+                {
+                  "componentName": "TinyButton",
+                  "props": {
+                    "text": "Add Todo",
+                    "type": "primary",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.addTodo"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import type { IBubbleSlotsProps } from './common.types';
 import { useGenerateMore } from '../continue-writing';
 import FinishInfo from './FinishInfo.vue';
 import { vFocusHoverSync } from './v-focus-hover-sync';
+import { t } from '../i18n';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
@@ -23,7 +24,7 @@ const CopyIcon = iconCopy();
 const ArrowRightIcon = IconArrowRight();
 const ArrowLeftIcon = IconArrowLeft();
 
-const copyTooltip = ref('复制');
+const copyTooltip = ref(t('chatFooter.copy'));
 
 const isLastBubble = computed(() => {
   const { messages } = props.messageManager;
@@ -74,7 +75,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       type="text"
       :reset-time="0"
       :icon="RefreshIcon"
-      v-auto-tip="{ always: true, content: '刷新', effect: tooltipEffect }"
+      v-auto-tip="{ always: true, content: t('chatFooter.refresh'), effect: tooltipEffect }"
       v-focus-hover-sync
       @click="refresh"
     >
@@ -94,7 +95,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       :reset-time="0"
       type="text"
       :icon="ArrowRightIcon"
-      v-auto-tip="{ always: true, content: '继续生成（实验特性）', effect: tooltipEffect }"
+      v-auto-tip="{ always: true, content: t('chatFooter.continueGenerate'), effect: tooltipEffect }"
       v-focus-hover-sync
       @click="markGenerateMore"
     >
@@ -104,7 +105,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       :reset-time="0"
       type="text"
       :icon="ArrowLeftIcon"
-      v-auto-tip="{ always: true, content: '撤回上次继续生成（实验特性）', effect: tooltipEffect }"
+      v-auto-tip="{ always: true, content: t('chatFooter.revertContinueGenerate'), effect: tooltipEffect }"
       v-focus-hover-sync
       @click="revertGenerateMore"
     >

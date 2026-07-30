@@ -1,12 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { Component, ContentChild, Input, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
-import { RendererMain as Renderer, Mapper, directiveMap, ModuleRef } from '@opentiny/tiny-schema-renderer-ng';
+import {
+  RendererMain as Renderer,
+  Mapper,
+  directiveMap,
+  ModuleRef,
+  RENDERER_SETTINGS,
+} from '@opentiny/tiny-schema-renderer-ng';
 import { requiredCompleteFieldSelectors } from './config';
+import { RendererSettingsService } from './renderer-settings.service';
 
 export const CARD_ID = Symbol('schema-card-id');
 export interface ICustomAction {
-  execute: (params: any, context: Record<string, any>) => void;
+  execute: (params: any, context: Record<string, any>) => any;
   [key: string]: any;
 }
 
@@ -26,6 +33,14 @@ const errorSchema = {
   imports: [
     CommonModule,
     Renderer,
+  ],
+  providers: [
+    RendererSettingsService,
+    {
+      provide: RENDERER_SETTINGS,
+      useFactory: (rss: RendererSettingsService) => rss.getSettings(),
+      deps: [RendererSettingsService],
+    },
   ],
   templateUrl: './genui-renderer.html',
   styleUrls: ['./genui-renderer.css'],
@@ -60,8 +75,9 @@ export class GenuiRenderer implements OnInit {
   callAction(actionName: string, params: any) {
     if (!this.customActions?.[actionName]) {
       console.warn(`Action ${actionName} not found`);
+      return;
     }
-    this.customActions?.[actionName]?.execute(params, this.instance?.getContext() || {});
+    return this.customActions[actionName]?.execute(params, this.instance?.getContext() || {});
   }
 
   ngOnInit() {
@@ -121,6 +137,10 @@ export class GenuiRenderer implements OnInit {
     } else {
       isCompleted = this.isJsonComplete ?? true;
     }
+    if (!isCompleted && json && 'lifeCycles' in json) {
+      const { lifeCycles: _lifeCycles, ...rest } = json;
+      json = rest;
+    }
     if (this.deltaPatcher) {
       this.deltaPatcher.patchWithDelta(this.schema, json, isCompleted);
     } else {
@@ -159,6 +179,7 @@ export class GenuiRenderer implements OnInit {
   }
 
   protected updateCustomComponents(customComponents: Record<string, Type<any>>) {
+    // TODO: 旧的 customComponents 没有从全局 Mapper 中移除（更新/卸载后残留）
     Object.keys(customComponents).forEach(key => {
       Mapper[key] = customComponents[key];
     });

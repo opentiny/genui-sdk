@@ -37,11 +37,14 @@
 <script setup lang="ts">
 import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
 import { type Conversation, type UseConversationReturn } from '@opentiny/tiny-robot-kit';
-import { HistoryTransferToolbar, downloadConversations, historyMenuItems, groupByTimeBuckets } from './history-transfer';
+import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
 import { TinyCheckbox, TinyCheckboxGroup, TinyModal } from '@opentiny/vue';
+import { t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
 
 const { isTouchDevice } = useTouchDevice();
+
+const historyMenuItems = getHistoryMenuItems();
 
 const selectedConversations = ref<string[]>([]);
 const selectionActive = ref(false);
@@ -112,7 +115,7 @@ const handleBatchDelete = () => {
   if (ids.length === 0) {
     return;
   }
-  TinyModal.confirm(`确定删除选中的 ${ids.length} 条会话？`)
+  TinyModal.confirm(t('conversation.confirmBatchDelete', { count: ids.length }))
     .then((type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;

@@ -3,7 +3,8 @@ import { ref, computed } from 'vue';
 import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';
 import { iconRefresh, iconCopy } from '@opentiny/vue-icon';
-import type { IBubbleSlotsProps } from '@opentiny/genui-sdk-vue';
+import type { IBubbleSlotsProps } from '../common.types';
+import { t } from '../../i18n';
 
 const emit = defineEmits(['refresh', 'copy']);
 
@@ -13,7 +14,7 @@ const RefreshIcon = iconRefresh();
 const CopyIcon = iconCopy();
 
 const vAutoTip = AutoTip;
-const copyTooltip = ref('复制');
+const copyTooltip = ref(t('chatFooter.copy'));
 
 const isLastBubble = computed(() => {
   const { messages } = props.messageManager;
@@ -34,7 +35,7 @@ const refresh = () => {
     <tiny-button
       type="text"
       :icon="RefreshIcon"
-      v-auto-tip="{ always: true, content: '刷新', effect: 'light' }"
+      v-auto-tip="{ always: true, content: t('chatFooter.refresh'), effect: 'light' }"
       @click="refresh"
     >
     </tiny-button>
@@ -53,7 +54,6 @@ const refresh = () => {
   align-items: center;
   transition: opacity 0.2s ease;
 
-  // 非最后一个气泡默认隐藏，悬浮时显示
   &:not(.is-last) {
     opacity: 0;
   }
@@ -62,7 +62,6 @@ const refresh = () => {
     opacity: 1;
   }
 }
-// 悬浮到气泡内容上时显示工具栏
 .tr-bubble__content:hover + .playground-assistant-footer,
 .playground-assistant-footer:hover {
   opacity: 1;

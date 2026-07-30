@@ -8,22 +8,31 @@ import useTemplate from './useTemplate';
 import {
   HistoryTransferToolbar,
   downloadConversations,
+  getHistoryMenuItems,
   reconcileImportedConversationIds,
-  historyMenuItems,
 } from '../tab-components/history-transfer';
+import { t } from '../../i18n';
 
 const TinyIconPlus = iconPlus();
 const { isTouchDevice } = useTouchDevice();
 
 const emit = defineEmits(['switch-template']);
 
-const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate, conversation } =
-  useTemplate();
+const {
+  conversationKit,
+  templateConversationState,
+  updateTemplateTitle,
+  switchTemplate,
+  deleteTemplate,
+  createTemplate,
+} = useTemplate();
 
 const selectedTemplateIds = ref<string[]>([]);
 const selectionActive = ref(false);
 
 const conversations = computed(() => templateConversationState.value?.conversations ?? []);
+
+const historyMenuItems = getHistoryMenuItems();
 
 watch(selectionActive, (active) => {
   if (!active) {
@@ -40,13 +49,14 @@ watch(
 );
 
 const handleImportConversations = (imported: Conversation[]) => {
-  if (!conversation) {
+  const kit = conversationKit.value;
+  if (!kit) {
     return;
   }
 
-  const reconciledImported = reconcileImportedConversationIds(conversation.state.conversations, imported);
-  conversation.state.conversations.unshift(...reconciledImported);
-  conversation.saveConversations();
+  const reconciledImported = reconcileImportedConversationIds(kit.state.conversations, imported);
+  kit.state.conversations.unshift(...reconciledImported);
+  kit.saveConversations();
 };
 
 const handleItemClick = (item: Conversation) => {
@@ -62,7 +72,7 @@ const handleItemAction = (action: { id: string }, item: Conversation) => {
   }
 
   if (action.id === 'delete') {
-    TinyModal.confirm('确定删除该模板吗？')
+    TinyModal.confirm(t('template.confirmDeleteOne'))
       .then((type: 'confirm' | 'cancel') => {
         if (type === 'cancel') {
           return;
@@ -91,7 +101,7 @@ const handleBatchDelete = () => {
   if (ids.length === 0) {
     return;
   }
-  TinyModal.confirm(`确定删除选中的 ${ids.length} 个模板？`)
+  TinyModal.confirm(t('template.confirmBatchDelete', { count: ids.length }))
     .then((type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;
@@ -108,7 +118,7 @@ const handleBatchDelete = () => {
   <div class="genui-template-list">
     <button class="new-template-btn" type="button" @click="handleAddItem">
       <TinyIconPlus :size="16" />
-      <span class="new-template-btn__text">新建模板</span>
+      <span class="new-template-btn__text">{{ t('template.new') }}</span>
     </button>
     <history-transfer-toolbar
       v-model:selection-active="selectionActive"

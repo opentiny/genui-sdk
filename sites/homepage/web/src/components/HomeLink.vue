@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { LinkKey, linkMap } from '@/utils/link';
 import { TinyButton } from '@opentiny/vue';
 import { useMobile } from '@/composables/useMobile';
+import { t } from '@/i18n';
 
 const { isMobile } = useMobile();
 
@@ -14,20 +15,20 @@ const buttonSize = computed(() => {
 <template>
   <section class="home-link">
     <div class="home-link-content">
-      <div class="home-link-title genui-title">即刻体验OpenTiny生成式UI</div>
+      <div class="home-link-title genui-title">{{ t('link.title') }}</div>
       <div v-if="!isMobile" class="home-link-description genui-subtitle">
-        增强大模型对话显示与交互，打造极致顺滑的智能体验
+        {{ t('link.description') }}
       </div>
       <div v-else class="home-link-description genui-subtitle">
-        <div>增强大模型对话显示与交互</div>
-        <div>打造极致顺滑的智能体验</div>
+        <div>{{ t('link.descriptionLine1') }}</div>
+        <div>{{ t('link.descriptionLine2') }}</div>
       </div>
       <div class="home-link-button-group">
         <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
-          <tiny-button type="primary" :size="buttonSize" round>立即体验</tiny-button>
+          <tiny-button type="primary" :size="buttonSize" round>{{ t('link.tryNow') }}</tiny-button>
         </a>
         <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
-          <tiny-button :size="buttonSize" round ghost>产品文档</tiny-button>
+          <tiny-button :size="buttonSize" round ghost>{{ t('link.productDoc') }}</tiny-button>
         </a>
       </div>
     </div>

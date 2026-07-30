@@ -1,0 +1,110 @@
+{
+  "lang": {
+    "switch": "语言",
+    "zh": "中文",
+    "en": "EN"
+  },
+  "hero": {
+    "title": "OpenTiny GenUI SDK",
+    "subtitle": "增强大模型对话展示和交互",
+    "description": "为用户打造极致顺滑的智能体验，给开发者提供强大的定制能力与生态兼容性",
+    "devDoc": "开发文档",
+    "playground": "演练场",
+    "github": "GitHub"
+  },
+  "ability": {
+    "visual": {
+      "title": "超越文字的表达能力",
+      "subtitle": "以界面重构文字，打破文字表达壁垒，用可视化界面释放信息价值"
+    },
+    "interaction": {
+      "title": "更加流畅的交互方式",
+      "subtitle": "打破两步交互，实现界面到对话的一站式流转"
+    },
+    "mcp": {
+      "title": "结合MCP工具，让AI更懂业务场景",
+      "subtitle": "接入MCP工具后，模型在调用工具缺少参数时能自动生成交互式UI来收集所需信息",
+      "mobileTitleLine1": "结合MCP工具",
+      "mobileTitleLine2": "让AI更懂业务场景",
+      "parameters": "Parameters"
+    },
+    "stream": {
+      "title": "界面混排与流式渲染",
+      "subtitle": "生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
+    }
+  },
+  "extend": {
+    "title": "解锁更多玩法",
+    "calculator": "计算器",
+    "todoApp": "Todo应用",
+    "tryPlayground": "我也试试，进入 Playground",
+    "replayControls": "回放控制",
+    "pause": "暂停",
+    "resume": "继续",
+    "preparing": "准备播放中",
+    "replay": "重播",
+    "play": "播放",
+    "prompt": {
+      "element": "生成一个计算器，不要用button，使用div，马卡龙配色，不要使用TinyLayout，要好看的",
+      "page": "创建一个待办应用，界面要丰富，把想到的功能尽量加进去",
+      "elementBubble": "生成一个计算器，使用div，马卡龙配色，要好看的",
+      "pageBubble": "创建一个待办应用，界面要丰富，把想到的功能尽量加进去"
+    }
+  },
+  "guide": {
+    "title": "快速集成生成式UI",
+    "subtitle": "提供强大的渲染组件和开箱即用的对话组件",
+    "devDoc": "开发文档",
+    "step1": {
+      "title": "步骤1：引入并使用chat组件",
+      "description": "开箱即用的chat组件内置了对话界面与消息管理",
+      "mobile": "引入组件"
+    },
+    "step2": {
+      "title": "步骤2：使用chat组件",
+      "description": "简单地配置配套的大模型服务地址，即可体验生成式UI",
+      "mobile": "使用chat组件"
+    },
+    "step3": {
+      "title": "步骤3：添加自定义配置",
+      "description": "强大的定制能力，可定制主题、组件、消息底部工具栏等",
+      "mobile": "自定义配置"
+    }
+  },
+  "feature": {
+    "title": "为开发者而生",
+    "subtitle": "OpenTiny生成式UI具备丰富的特性以及强大生态兼容性",
+    "compatible": {
+      "title": "现有AI生态的兼容",
+      "description": "OpenAI格式兼容，支持MCP服务接入"
+    },
+    "theme": {
+      "title": "定制主题",
+      "description": "支持主题切换、护眼暗黑模式及用户自定义，适配不同使用需求"
+    },
+    "component": {
+      "title": "支持自定义组件",
+      "description": "支持传入自定义组件和组件描述，增强生成式UI能力，丰富生成界面"
+    },
+    "action": {
+      "title": "自定义交互",
+      "description": "支持自定义交互行为，例如跳转新网页、下载附件等灵活操作"
+    },
+    "stack": {
+      "title": "多技术栈支持",
+      "description": "兼容Vue与Angular渲染器，同时支持自定义技术栈渲染扩展"
+    },
+    "more": {
+      "title": "更多功能",
+      "description": "自定义示例和自定义片段，能够助力构建更加优秀的UI界面，满足多样视觉偏好"
+    }
+  },
+  "link": {
+    "title": "即刻体验OpenTiny生成式UI",
+    "description": "增强大模型对话显示与交互，打造极致顺滑的智能体验",
+    "descriptionLine1": "增强大模型对话显示与交互",
+    "descriptionLine2": "打造极致顺滑的智能体验",
+    "tryNow": "立即体验",
+    "productDoc": "产品文档"
+  }
+}

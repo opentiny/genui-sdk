@@ -1,0 +1,42 @@
+diff --git a/lib/index.js b/lib/index.js
+index fc662a8ce85dbd67b4832961431e8082306ca991..680baed0d9d31ff31eb9401519975a9d8cb68dca 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -5,7 +5,7 @@ import { debounce, PopupManager, PopperJS, extend, browserInfo, isObject, isEmpt
+ import { iconError, iconSortTriangleDescending, iconSortTriangleAscending, iconSortTriangle, iconUnfilter, iconEdit, iconConmentRefresh, iconMinscreen, iconFullscreen, iconSetting, iconChevronRight, iconChevronDown, iconGridNoData, iconRadio, iconRadioselected, iconSearch, iconCheckedSur, iconCheck, iconHalfselect, iconArrowBottom, IconEllipsis, iconClose, iconYes, iconExpand, iconPutAway, iconEllipsis, iconMarkOn } from '@opentiny/vue-icon';
+ import { $prefix, hooks, defineComponent, h, $install, isVue2, isVnode, $props, mergeClass, resolveTheme, useInstanceSlots, useRelation, emitter, resolveMode, useBreakpoint, setup as setup$1 } from '@opentiny/vue-common';
+ import { uniqueId, toNumber as toNumber$1, isBoolean, each, isObject as isObject$1, isFunction, isArray, findIndexOf, get, set, clone, clear, destructuring, mapTree, eachTree, has, isUndefined, isEqual, find as find$1, filterTree, arrayEach, isNumber, findTree as findTree$1, sum, template, assign, objectMap, sortBy, isString, remove, toStringJSON, toArray, arrayIndexOf } from '@opentiny/vue-renderless/grid/static/';
+-import { getFuncText, getDomNode, getRowid, getEventTargetNode, isScale, emitEvent, hasChildrenList, getListeners, getOffsetPos, getFilters, getColumnConfig, formatText, getRowkey, getRowUniqueId, setCellValue, getColumnList, repairFixed, rowToVisible, colToVisible, getCell, assemColumn, GlobalEvent, getCellValue, updateCellTitle, isPx, getClass, getRowNodes, getCellNodeIndex } from '@opentiny/vue-renderless/grid/utils';
++import { getFuncText, getDomNode, getRowid, getEventTargetNode, isScale, emitEvent, hasChildrenList, getListeners, resolveTableListeners, getOffsetPos, getFilters, getColumnConfig, formatText, getRowkey, getRowUniqueId, setCellValue, getColumnList, repairFixed, rowToVisible, colToVisible, getCell, assemColumn, GlobalEvent, getCellValue, updateCellTitle, isPx, getClass, getRowNodes, getCellNodeIndex } from '@opentiny/vue-renderless/grid/utils';
+ import Tooltip$1 from '@opentiny/vue-tooltip';
+ import { createVNode, mergeProps, isVNode, createTextVNode, resolveComponent, openBlock, createElementBlock, normalizeClass, createBlock, createCommentVNode, normalizeStyle, Fragment, renderList } from 'vue';
+ import { toNumber, findTree, find, isEqual as isEqual$1, arrayEach as arrayEach$1 } from '@opentiny/vue-renderless/grid/static';
+@@ -11485,6 +11485,7 @@ var Table = defineComponent({
+   },
+   render: function render14() {
+     var _class4;
++    this.tableListeners = resolveTableListeners(this);
+     var $grid = this.$grid, bodyProps = this.bodyProps, border = this.border, borderSaas = this.borderSaas, borderVertical = this.borderVertical;
+     var ctxMenuStore = this.ctxMenuStore, dropConfig = this.dropConfig, editConfig = this.editConfig, editRules = this.editRules, filterStore = this.filterStore;
+     var hasFilter2 = this.hasFilter, hasTip2 = this.hasTip, height2 = this.height, highlightCell = this.highlightCell, highlightHoverColumn = this.highlightHoverColumn, highlightHoverRow = this.highlightHoverRow;
+@@ -12058,8 +12059,8 @@ var Grid = defineComponent({
+   },
+   render: function render16() {
+     var _this50 = this;
+-    var fetchOption = this.fetchOption, listeners = this.listeners, loading = this.loading, optimizOpt2 = this.optimizOpt, editConfigOpt2 = this.editConfigOpt, tooltipOpt2 = this.tooltipOpt, pager = this.pager, pagerConfig = this.pagerConfig, remoteFilter = this.remoteFilter, remoteSort = this.remoteSort, selectToolbar = this.selectToolbar;
+-    var seqIndex2 = this.seqIndex, $slots = this.slots, tableCustoms2 = this.tableCustoms, tableData = this.tableData, tableListeners = this.tableListeners, tableLoading = this.tableLoading, tableProps2 = this.tableProps, toolbar = this.toolbar, vSize3 = this.vSize, designConfig = this.designConfig, viewType2 = this.viewType;
++    var fetchOption = this.fetchOption, eventsListeners = this.listeners, loading = this.loading, optimizOpt2 = this.optimizOpt, editConfigOpt2 = this.editConfigOpt, tooltipOpt2 = this.tooltipOpt, pager = this.pager, pagerConfig = this.pagerConfig, remoteFilter = this.remoteFilter, remoteSort = this.remoteSort, selectToolbar = this.selectToolbar;
++    var seqIndex2 = this.seqIndex, $slots = this.slots, tableCustoms2 = this.tableCustoms, tableData = this.tableData, tableLoading = this.tableLoading, tableProps2 = this.tableProps, toolbar = this.toolbar, vSize3 = this.vSize, designConfig = this.designConfig, viewType2 = this.viewType;
+     var columnAnchor = this.columnAnchor, columnAnchorParams = this.columnAnchorParams, fullScreenClass = this.fullScreenClass;
+     if (designConfig != null && designConfig.icons) {
+       Object.assign(GlobalConfig$1.icon, designConfig.icons);
+@@ -12073,7 +12074,8 @@ var Grid = defineComponent({
+     if ((designConfig == null ? void 0 : designConfig.stripe) !== void 0 && !props.stripe) {
+       props.stripe = designConfig == null ? void 0 : designConfig.stripe;
+     }
+-    var tableOns = Object.assign(listeners, tableListeners);
++    var currentTableListeners = getListeners(this.$attrs, isVue2 ? this.$listeners : void 0);
++    var tableOns = Object.assign({}, eventsListeners, currentTableListeners);
+     var rowClassName = this.handleRowClassName, sortChangeEvent2 = this.sortChangeEvent, filterChangeEvent2 = this.filterChangeEvent;
+     if (fetchOption) {
+       Object.assign(props, {
