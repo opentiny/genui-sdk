@@ -15,6 +15,8 @@ PR 建好（或追加 commit）后，在 **`${BRANCH}`** 上 `workflow_dispatch`
 
 ```bash
 # --- docs ---
+# 延迟 20s 再触发，便于抢断同 concurrency group（pages）里先跑的 Build docs
+sleep 20
 gh workflow run "Deploy to github.io" --repo opentiny/docs --ref "${BRANCH}"
 sleep 5
 DOCS_RUN=$(gh run list --repo opentiny/docs \
@@ -49,6 +51,7 @@ open "${DESIGN_PREVIEW}" 2>/dev/null || xdg-open "${DESIGN_PREVIEW}" 2>/dev/null
 ## 规则
 
 - **必须** `--ref "${BRANCH}"`，勿默认打到 `dev`/`main`（除非用户明确要求）
+- docs 的 Deploy **先 `sleep 20` 再触发**，用后来者取消机制抢断同组 `pages` 里的 Build docs；design 不需要此延迟
 - `gh run watch --exit-status` 失败则停，回报 run URL，不要打开过期预览
 - 可串行或并行触发后再分别 `watch`；`gh run list` 须按 branch + workflow 过滤
 - 无 GUI 时把预览 URL 发给用户
