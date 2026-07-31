@@ -7,6 +7,8 @@ import { printLlmBenchmarkResults } from './framework/index';
 import {
   computeTpotMs,
   extractSchemaJsonBlock,
+  formatJudgeParseError,
+  isJudgeTimeoutError,
   parseJudgeJson,
   resolveAiSdkModelForBench,
   resolveMaterialsMeta,
@@ -119,9 +121,9 @@ type LlmJudgeResult = {
 
 /**
  * 使用 LLM-as-a-Judge 对单条样本做质量评估。
- * @param sample 样本数据
- * @param options 运行配置（读取 Judge 模型）
- * @returns Judge 结果（分数与原因）
+ * 错误信息带前缀便于区分：`judge_timeout` / `judge_empty_output` / `judge_non_json` /
+ * `judge_invalid_json` / `judge_missing_score` / `judge_invalid_score` /
+ * `judge_stream_error` / `judge_request_failed`。
  */
 async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkRunOptions): Promise<LlmJudgeResult> {
   const judgeCfg = options.llmJudge;
@@ -159,7 +161,7 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
     let promptTokens = 0;
     let completionTokens = 0;
     let totalTokens = 0;
-    let streamError: string | undefined;
+    let streamError: unknown;
     for await (const chunk of streamResult.fullStream) {
       if (chunk.type === 'text-delta' && chunk.text) {
         output += chunk.text;
@@ -171,7 +173,7 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
         totalTokens = u?.totalTokens ?? totalTokens;
       }
       if (chunk.type === 'error') {
-        streamError = chunk.error instanceof Error ? chunk.error.message : String(chunk.error);
+        streamError = chunk.error;
       }
     }
     const settled = await resolveStreamTextUsage(streamResult);
@@ -189,12 +191,17 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
       completionTokens,
       totalTokens,
     };
-    if (streamError) {
-      return { error: streamError, ...usage };
+    if (streamError != null) {
+      const detail = streamError instanceof Error ? streamError.message : String(streamError);
+      if (isJudgeTimeoutError(streamError) || isJudgeTimeoutError(detail)) {
+        return { error: `judge_timeout: ${detail}`, ...usage };
+      }
+      return { error: `judge_stream_error: ${detail}`, ...usage };
     }
+
     const parsed = parseJudgeJson(output);
-    if (!parsed || typeof parsed.score !== 'number') {
-      return { error: 'Judge output JSON parse failed', ...usage };
+    if (parsed.ok === false) {
+      return { error: formatJudgeParseError(parsed), ...usage };
     }
     const score = Math.min(10, Math.max(1, parsed.score));
     return {
@@ -203,7 +210,11 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
       ...usage,
     };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : String(error) };
+    const detail = error instanceof Error ? error.message : String(error);
+    if (isJudgeTimeoutError(error) || isJudgeTimeoutError(detail)) {
+      return { error: `judge_timeout: ${detail}` };
+    }
+    return { error: `judge_request_failed: ${detail}` };
   }
 }
 
@@ -321,10 +332,14 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
         }
         const judged = await judgeOneSample(sample, options);
         judgeResults[index] = judged;
-        const score = judged.score == null ? '-' : judged.score.toFixed(2);
-        console.log(
-          `[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} score=${score}${judged.error ? ' error' : ''}`,
-        );
+        if (judged.error) {
+          console.log(
+            `[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} error=${judged.error}`,
+          );
+        } else {
+          const score = judged.score == null ? '-' : judged.score.toFixed(2);
+          console.log(`[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} score=${score}`);
+        }
       }
     }
     await Promise.all(Array.from({ length: Math.min(concurrency, parsedSamples.length) }, () => worker()));
