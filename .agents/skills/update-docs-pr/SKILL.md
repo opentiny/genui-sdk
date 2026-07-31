@@ -2,7 +2,7 @@
 name: update-docs-pr
 description: >-
   After publishing a new @opentiny/genui-sdk package, update opentiny/docs
-  (submodule, Vue package version, VitePress sidebar) and opentiny/opentiny.design
+  (submodule, genui package versions, VitePress sidebar) and opentiny/opentiny.design
   (submodule commit only), then open PRs on branch deploy/update-genui-{version}.
   Use when the user asks to 更新文档工程 or 更新官网工程 or sync docs, update opentiny/docs or opentiny.design,
   or create deploy PRs after a genui-sdk release.
@@ -51,7 +51,7 @@ fi
 BRANCH="deploy/update-genui-${version}"
 ```
 
-- `version`：分支名、docs `package.json`、PR 文案
+- `version`：主要用于分支名与 PR 文案；docs 里各 genui 依赖分别取各自 npm 最新正式版（见 docs.md）
 - `COMMIT`：优先用户指定；否则 `main` tip；**两仓共用**；勿再用 tag 覆盖用户指定的 commit
 
 ### Step 2–4

@@ -12,7 +12,7 @@ gh api "repos/opentiny/docs/contents/genui/genui-sdk?ref=dev" --jq .sha
 
 ## 改动规则
 
-1. **`genui/package.json`**：只改 `"@opentiny/genui-sdk-vue": "{version}"`。
+1. **`genui/package.json`**：将所有 **genui 相关**依赖（包名含 `genui` / `@opentiny/genui-sdk*`）各自升到 **该包在 npm 上的最新正式版**（版本号可以不同，勿统一写成同一个 `{version}`）；值为 `workspace:*`（或其它 `workspace:`）的**不要改**；非 genui 依赖不动。可用 `npm view <pkg> version` / `npm view <pkg> versions --json` 查询。
 2. **`.vitepress/config.mts`**：对照 genui-sdk 的 `docs/.vitepress/config/zh-theme.ts`（本仓或 `gh api ...?ref=${COMMIT}`），同步：
    - `sidebar['/genui-sdk/guide/']` / `components/` / `examples/`
    - 文案与结构与 zh-theme 一致；路径沿用 docs 约定（`base: '/genui-sdk/...'` + 相对 `link`），勿原样粘贴 zh-theme 的 `/guide/...`
@@ -82,7 +82,7 @@ gh pr create --repo "${REPO}" \
   --body "$(cat <<EOF
 ## Summary
 - 将 \`genui/genui-sdk\` submodule 更新至 \`${COMMIT}\`（${version}）
-- 将 \`@opentiny/genui-sdk-vue\` 依赖更新为 \`${version}\`
+- 将 genui 相关依赖（非 workspace）各自更新为 npm 最新正式版
 - 同步 GenUI SDK 文档侧栏（若有）
 
 ## Test plan
