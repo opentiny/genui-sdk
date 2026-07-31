@@ -1219,6 +1219,12 @@ importers:
       monaco-editor-vue3:
         specifier: ^1.0.4
         version: 1.0.5(monaco-editor@0.55.1)(vue@3.5.26(typescript@5.9.3))
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
       schema-renderer-ng-adpater:
         specifier: workspace:*
         version: link:../schema-renderer-ng-adpater
