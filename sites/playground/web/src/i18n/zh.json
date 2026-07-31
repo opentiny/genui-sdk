@@ -35,7 +35,9 @@
     "themeLight": "亮色",
     "themeDark": "暗黑",
     "themeLite": "清新",
-    "themeAuto": "跟随系统"
+    "themeAuto": "跟随系统",
+    "frameworkVue": "Vue框架",
+    "frameworkAngular": "Angular框架"
   },
   "model": {
     "select": "模型选择",

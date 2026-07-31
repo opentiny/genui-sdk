@@ -7,8 +7,8 @@ import themeLite from '../../assets/images/theme-lite.png';
 import themeAuto from '../../assets/images/theme-auto.png';
 
 export const FRAMEWORK_OPTIONS = [
-  { name: 'Vue', icon: vueIcon, label: 'Vue框架' },
-  { name: 'Angular', icon: angularIcon, label: 'Angular框架' },
+  { name: 'Vue', icon: vueIcon, labelKey: 'materials.frameworkVue' },
+  { name: 'Angular', icon: angularIcon, labelKey: 'materials.frameworkAngular' },
 ]
 
 export const COMPONENT_LIB_OPTIONS_BY_FRAMEWORK = {

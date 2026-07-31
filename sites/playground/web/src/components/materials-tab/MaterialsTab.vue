@@ -49,7 +49,7 @@ const setFramework = (name) => {
         <span class="framework-btn__icon">
           <img class="framework-btn__img" :src="item.icon" alt="item.name">
         </span>
-        <span class="framework-btn__name">{{ item.label }}</span>
+        <span class="framework-btn__name">{{ t(item.labelKey) }}</span>
       </div>
     </div>
 

@@ -1071,7 +1071,7 @@ importers:
         version: 4.0.1
       element-plus:
         specifier: ^2.14.0
-        version: 2.14.0(vue@3.5.26(typescript@5.8.3))
+        version: 2.14.0(vue@3.5.26(typescript@5.9.3))
       monaco-editor-vue3:
         specifier: ^1.0.4
         version: 1.0.5(monaco-editor@0.55.1)(vue@3.5.26(typescript@5.9.3))
@@ -10826,10 +10826,6 @@ snapshots:
     transitivePeerDependencies:
       - '@algolia/client-search'
 
-  '@element-plus/icons-vue@2.3.2(vue@3.5.26(typescript@5.8.3))':
-    dependencies:
-      vue: 3.5.26(typescript@5.8.3)
-
   '@element-plus/icons-vue@2.3.2(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
@@ -16086,13 +16082,6 @@ snapshots:
       '@vueuse/shared': 13.9.0(vue@3.5.26(typescript@5.9.3))
       vue: 3.5.26(typescript@5.9.3)
 
-  '@vueuse/core@14.3.0(vue@3.5.26(typescript@5.8.3))':
-    dependencies:
-      '@types/web-bluetooth': 0.0.21
-      '@vueuse/metadata': 14.3.0
-      '@vueuse/shared': 14.3.0(vue@3.5.26(typescript@5.8.3))
-      vue: 3.5.26(typescript@5.8.3)
-
   '@vueuse/core@14.3.0(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       '@types/web-bluetooth': 0.0.21
@@ -16127,10 +16116,6 @@ snapshots:
   '@vueuse/shared@13.9.0(vue@3.5.26(typescript@5.9.3))':
     dependencies:
       vue: 3.5.26(typescript@5.9.3)
-
-  '@vueuse/shared@14.3.0(vue@3.5.26(typescript@5.8.3))':
-    dependencies:
-      vue: 3.5.26(typescript@5.8.3)
 
   '@vueuse/shared@14.3.0(vue@3.5.26(typescript@5.9.3))':
     dependencies:
@@ -17177,25 +17162,6 @@ snapshots:
   ee-first@1.1.1: {}
 
   electron-to-chromium@1.5.267: {}
-
-  element-plus@2.14.0(vue@3.5.26(typescript@5.8.3)):
-    dependencies:
-      '@ctrl/tinycolor': 4.2.0
-      '@element-plus/icons-vue': 2.3.2(vue@3.5.26(typescript@5.8.3))
-      '@floating-ui/dom': 1.7.4
-      '@popperjs/core': '@sxzz/popperjs-es@2.11.8'
-      '@types/lodash': 4.17.24
-      '@types/lodash-es': 4.17.12
-      '@vueuse/core': 14.3.0(vue@3.5.26(typescript@5.8.3))
-      async-validator: 4.2.5
-      dayjs: 1.11.20
-      lodash: 4.18.1
-      lodash-es: 4.18.1
-      lodash-unified: 1.0.3(@types/lodash-es@4.17.12)(lodash-es@4.18.1)(lodash@4.18.1)
-      memoize-one: 6.0.0
-      normalize-wheel-es: 1.2.0
-      vue: 3.5.26(typescript@5.8.3)
-      vue-component-type-helpers: 3.3.1
 
   element-plus@2.14.0(vue@3.5.26(typescript@5.9.3)):
     dependencies:

@@ -26,6 +26,7 @@ import { buildOpenApiTools, previewOpenApiTools } from './openapi-tools/index.js
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
+import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -232,7 +233,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
-    componentLib: playgroundConfig.componentLib || 'TinyVue',
+    componentLib: resolveComponentLib(playgroundConfig.framework, playgroundConfig.componentLib),
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,

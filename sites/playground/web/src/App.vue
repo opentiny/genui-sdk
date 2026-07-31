@@ -35,9 +35,9 @@ import useIcon from './use-icon';
 import {
   getMixedContentHandler,
   getMessageRendererAngular,
-  getMessageRendererVue,
 } from './message-renderers';
 import { locale, t } from './i18n';
+import { DEFAULT_COMPONENT_LIB } from './components/materials-tab';
 
 const { topRenderer, addIcons } = useIcon();
 const TopIconsRenderer = topRenderer();
@@ -242,7 +242,6 @@ watch(chat, (instance) => {
     instance.setResponseHandlers(newResponseHandlers);
 
     instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
-    instance.setMessageRenderer('schema-card', getMessageRendererVue(instance, mergedMaterials));
   }
 });
 

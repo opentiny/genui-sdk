@@ -1,5 +1,6 @@
 import { modifyChatBody as continueGeneratingBodyModifier } from '../continue-writing';
 import type { OpenApiToolServiceConfig } from '../components/common.types';
+import { DEFAULT_COMPONENT_LIB } from '../components/materials-tab';
 
 type MaterialsMetaVariantKey = 'mini' | 'standard';
 export interface IMcpServerConfig {
@@ -81,10 +82,11 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
       promptVariant,
     } = config;
 
+    const fw = framework || 'Vue';
     const playgroundConfig = {
       mcpServers,
-      framework: framework || 'Vue',
-      componentLib: componentLib || 'TinyVue',
+      framework: fw,
+      componentLib: componentLib || DEFAULT_COMPONENT_LIB[fw] || 'TinyVue',
       promptList,
       model,
       temperature,

@@ -3,6 +3,10 @@ import { findLastContinueWritingMessage } from "./message-utils";
 import { removeSensitiveInfoWarning } from "./remove-sensitive-info-warning";
 import type { IStreamData, IStreamDelta } from "@opentiny/genui-sdk-core";
 
+function isSchemaCardType(type?: string) {
+  return type === 'schema-card' || type === 'schema-card-angular';
+}
+
 const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
 };
@@ -63,7 +67,7 @@ export const locationPartialSchemaJson = () => {
     start: (context, handlers) => {
       if (!context.overlapEliminated) {
         const { message, index } = findLastContinueWritingMessage(context.chatMessage);
-        context.partialSchemaJsonIndex = message?.type === 'schema-card-vue' ? index : -1;
+        context.partialSchemaJsonIndex = isSchemaCardType(message?.type) ? index : -1;
       }
     },
   }
@@ -137,7 +141,7 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
 
         removeSensitiveInfoWarning(chatMessage);
         const { message } = findLastContinueWritingMessage(context.chatMessage);
-        context.patternExtractor.setState(message?.type === 'schema-card-vue' ? 'handling' : 'normal');
+        context.patternExtractor.setState(isSchemaCardType(message?.type) ? 'handling' : 'normal');
       }
     }
   };

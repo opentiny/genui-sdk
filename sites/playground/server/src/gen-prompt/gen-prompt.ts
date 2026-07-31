@@ -46,35 +46,32 @@ const LIB_RULES: Record<IComponentLibKey, string[]> = {
     '组件的 componentName 必须使用 Tiny 前缀（如 TinyButton、TinyForm），禁止使用其它组件库名称',
   ],
   Element: [
-    '务组件的 componentName 必须使用 El 前缀（如 ElButton、ElForm），禁止使用 Tiny 前缀（如 TinyButton）或其它组件库名称',
+    '组件的 componentName 必须使用 El 前缀（如 ElButton、ElForm），禁止使用 Tiny 前缀（如 TinyButton）或其它组件库名称',
   ],
   TinyNg: [
-    '当前组件库为 OpenTiny Angular（TinyNg）。只能使用本物料白名单中的 componentName，禁止使用 Vue 的 Tiny*/El* 组件名',
+    '当前组件库为 OpenTiny Angular（TinyNg）, 组件的 componentName 必须使用 Ti 前缀, 。只能使用本物料白名单中的 componentName，禁止使用 Tiny 前缀或 El 前缀',
   ],
 };
-
-const SCHEMA_FORMAT_RULES = [
-  '生成 UI 时，语言标记必须是 ```schemaJson',
-];
 
 export function genPlaygroundPrompt(
   framework: IFrameworkKey,
   promptVariant: IMaterialsMetaVariantKey | undefined,
   tgCustomConfig?: IGenPromptCustomConfig,
-  componentLib: IComponentLibKey = 'TinyVue',
+  componentLib?: IComponentLibKey | string,
 ) {
   const variant = promptVariant || 'standard';
+  const libKey = componentLib as IComponentLibKey;
+  const libRules = Object.prototype.hasOwnProperty.call(LIB_RULES, libKey) ? LIB_RULES[libKey] : [];
 
   return genPrompt(
     framework,
-    metaMap[framework]?.[componentLib]?.[variant] ?? materialsMeta,
+    metaMap[framework]?.[libKey]?.[variant] ?? materialsMeta,
     tgCustomConfig,
     {
       ...(optionsMap[framework]?.[variant] ?? {}),
       rules: [
         ...(optionsMap[framework]?.[variant]?.rules ?? []),
-        ...(LIB_RULES[componentLib] ?? []),
-        ...SCHEMA_FORMAT_RULES,
+        ...libRules,
       ],
     },
   );
