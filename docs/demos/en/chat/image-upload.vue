@@ -16,7 +16,7 @@ const messages = [
   {
     role: 'user',
     content: [
-      { type: 'image', filename: 'circle.png', image: 'data:image/png;base64,XXXXXXXXXXX' },
+      { type: 'image_url', filename: 'circle.png', image_url: { url: 'data:image/png;base64,XXXXXXXXXXX' } },
       { type: 'text', text: 'Analyze this image' },
     ],
     messages: [

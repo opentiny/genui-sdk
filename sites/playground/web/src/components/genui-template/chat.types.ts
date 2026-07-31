@@ -13,8 +13,6 @@ export interface ISchemaCardMessageItem {
   cardId: string;
   generatedTime: string;
   schema: string;
-  id?: string;
-  state?: Record<string, any>;
   prevSchema: string;
 }
 
@@ -26,6 +24,7 @@ export interface IJsonPatchMessageItem {
   generatedTime: string;
   schema: string;
   prevSchema: string;
+  applyFailed?: boolean;
 }
 
 export type SchemaManualInputType = 'manual_edit_save' | 'user';
@@ -65,11 +64,18 @@ export interface IMarkdownMessageItem {
   cardId: string;
 }
 
+export interface ICustomMessageItem {
+  type: string;
+  content: any;
+  [customKey: string]: any;
+}
+
 export type IMessageItem =
   | IMarkdownMessageItem
   | IJsonPatchMessageItem
   | ISchemaCardMessageItem
-  | ISchemaManualMessageItem;
+  | ISchemaManualMessageItem
+  | ICustomMessageItem;
 
 export interface IChatMessage {
   role: 'assistant';

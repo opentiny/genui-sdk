@@ -112,7 +112,7 @@ const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 const chatConfig = reactive(
   cacheChatConfig || {
     addToolCallContext: false,
-    showThinkingResult: false,
+    showThinkingResult: true,
   },
 );
 

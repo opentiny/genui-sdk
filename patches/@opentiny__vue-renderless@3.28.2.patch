@@ -197,3 +197,64 @@ index 40ba07091a6f1c2364ae724bc8859de7c0ad2b82..1010ef11e243c70715596dfdb6e4519f
    onMounted(api2.mounted);
    vm.$on("displayed-value-changed", (param) => {
      api2.getDisplayedValue(param);
+diff --git a/grid/utils/common.js b/grid/utils/common.js
+index a557e68633f95db4b162add9e31273ce81743282..012c24e94d49387bfd5b1d0506f5cffb60a21158 100644
+--- a/grid/utils/common.js
++++ b/grid/utils/common.js
+@@ -2,6 +2,7 @@ import {
+   __spreadValues
+ } from "../../chunk-G2ADBYYC.js";
+ import { isNull, find, isFunction } from "@opentiny/utils";
++import { isVue2 } from "@opentiny/vue-common";
+ import { get, set } from "../static";
+ const gridSize = ["medium", "small", "mini"];
+ const getSize = ({ size, $parent }) => size || ($parent && gridSize.includes($parent.size) ? $parent.size : null);
+@@ -116,7 +117,7 @@ const setCellValue = (row, column, value) => {
+ };
+ const hasChildrenList = (item) => item && item.children && item.children.length > 0;
+ const emitEvent = (vm, type, args) => {
+-  if (vm.tableListeners[type]) {
++  if (resolveTableListeners(vm)[type]) {
+     const params = [].concat(args);
+     vm.$emit(type, ...params);
+   }
+@@ -144,16 +145,22 @@ const getListeners = ($attrs, $listeners) => {
+   const regHyphenate = /\B([A-Z])/g;
+   const regEventPrefix = /^on[A-Z]/;
+   const listeners = {};
+-  if ($listeners) {
+-    return $listeners;
++  if ($attrs) {
++    Object.keys($attrs).forEach((name) => {
++      const event = $attrs[name];
++      if (regEventPrefix.test(name) && typeof event === "function") {
++        listeners[name.slice(2).replace(regHyphenate, "-$1").toLowerCase()] = event;
++      }
++    });
+   }
+-  Object.keys($attrs).forEach((name) => {
+-    const event = $attrs[name];
+-    if (regEventPrefix.test(name) && typeof event === "function") {
+-      listeners[name.slice(2).replace(regHyphenate, "-$1").toLowerCase()] = event;
+-    }
+-  });
+-  return listeners;
++  if (Object.keys(listeners).length) {
++    return listeners;
++  }
++  return $listeners || listeners;
++};
++const resolveTableListeners = (vm) => {
++  const gridListeners = vm.$grid ? getListeners(vm.$grid.$attrs, isVue2 ? vm.$grid.$listeners : undefined) : {};
++  return Object.assign({}, gridListeners, getListeners(vm.$attrs, isVue2 ? vm.$listeners : undefined));
+ };
+ function dfsCopy(tree, callback, parent = void 0, isTree = false, childrenKey = "children") {
+   let copy;
+@@ -190,6 +197,7 @@ export {
+   getFilters,
+   getFuncText,
+   getListeners,
++  resolveTableListeners,
+   getRowUniqueId,
+   getRowid,
+   getRowkey,

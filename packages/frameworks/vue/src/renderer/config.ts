@@ -1,5 +1,4 @@
 export const requiredCompleteFieldSelectors = [
-  '[componentName=Img] > props > src',
   '[componentName=img] > props > src',
   'componentName',
   'style',
@@ -9,5 +8,5 @@ export const requiredCompleteFieldSelectors = [
   '[type=JSSlot][value=]',
   'type',
   ':empty:object',
-  '[componentName] > props > ngModel',
+  '[componentName] > props > ref',
 ];

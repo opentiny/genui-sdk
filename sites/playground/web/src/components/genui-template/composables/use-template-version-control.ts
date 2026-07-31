@@ -50,7 +50,6 @@ export function useTemplateVersionControl() {
 
   const allSchemaVersionHistoryEntries = computed(() =>
     collectSchemaVersionHistory(messages.value, {
-      currentCardId: currentCardId.value,
       latestCardId: latestSchemaCardId.value,
     }),
   );

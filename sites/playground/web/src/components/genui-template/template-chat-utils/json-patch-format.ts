@@ -78,19 +78,21 @@ export function applyJsonPatchOperations(
     return null;
   }
 
-  const formatted = formatJsonPatch(baseline, operations);
-  const standardOperations = formatted
-    .filter((op) => op.idToPath)
-    .map((op) => toStandardPatchOp(op));
+  try {
+    const formatted = formatJsonPatch(baseline, operations);
+    if (formatted.some((op) => !op.idToPath)) {
+      return null;
+    }
 
-  if (standardOperations.length === 0) {
+    const standardOperations = formatted.map((op) => toStandardPatchOp(op));
+    const target = clonePlainJson(baseline as Record<string, unknown>);
+    if (!target) {
+      return null;
+    }
+    jsonPatchFormatter.patch(target, standardOperations);
+    return target;
+  } catch (error) {
+    console.error(error);
     return null;
   }
-
-  const target = clonePlainJson(baseline as Record<string, unknown>);
-  if (!target) {
-    return null;
-  }
-  jsonPatchFormatter.patch(target, standardOperations);
-  return target;
 }

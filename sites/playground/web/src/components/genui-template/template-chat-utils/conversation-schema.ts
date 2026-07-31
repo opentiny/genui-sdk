@@ -77,10 +77,82 @@ export function parseJsonPatchOperations(content: string): unknown[] | null {
   }
 }
 
+export function detectJsonPatchApplyFailed(
+  card: IJsonPatchMessageItem,
+  messages?: ChatMessage[],
+): boolean {
+  const operations = parseJsonPatchOperations(card.content);
+  if (!operations) {
+    return false;
+  }
+  const baseline = parseSchemaJson(resolveJsonPatchPrevSchemaString(card, messages));
+  return !baseline || applyJsonPatchOperations(baseline, operations) === null;
+}
+
+export function resolveJsonPatchApplyFailed(
+  card: IJsonPatchMessageItem,
+  messages?: ChatMessage[],
+): boolean {
+  if (typeof card.applyFailed === 'boolean') {
+    return card.applyFailed;
+  }
+  card.applyFailed = detectJsonPatchApplyFailed(card, messages);
+  return card.applyFailed;
+}
+
+export function backfillJsonPatchApplyFailedFlags(messages?: ChatMessage[]): boolean {
+  if (!messages?.length) {
+    return false;
+  }
+
+  let updated = false;
+  for (const chatMessage of messages) {
+    const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
+    if (!Array.isArray(items)) {
+      continue;
+    }
+    for (const item of items) {
+      if (item.type !== 'json-patch' || typeof item.applyFailed === 'boolean') {
+        continue;
+      }
+      if (!item.generatedTime?.trim() || !item.content?.trim()) {
+        continue;
+      }
+      item.applyFailed = detectJsonPatchApplyFailed(item, messages);
+      updated = true;
+    }
+  }
+  return updated;
+}
+
+export function setJsonPatchApplyResult(
+  result: 'success' | 'failed',
+  messages: ChatMessage[] | undefined,
+  cardId: string,
+): void {
+  const card = findSchemaCardByCardId(messages, cardId);
+  if (card?.type === 'json-patch') {
+    card.applyFailed = result === 'failed';
+  }
+}
+
 export function rebuildSchemaFromCard(
   card: ISchemaCardLikeMessage,
   options: { messages?: ChatMessage[] } = {},
 ): Record<string, unknown> | null {
+  if (card.type === 'json-patch' && card.applyFailed === true) {
+    const prevSchemaStr = resolveJsonPatchPrevSchemaString(card, options.messages);
+    return parseSchemaJson(prevSchemaStr);
+  }
+
+  const schemaString = resolveSchemaStringFromCard(card);
+  if (schemaString) {
+    const parsed = parseSchemaJson(schemaString);
+    if (parsed) {
+      return parsed;
+    }
+  }
+
   if (card.type === 'json-patch' && card.content?.trim()) {
     const prevSchemaStr = resolveJsonPatchPrevSchemaString(card, options.messages);
     const baseline = parseSchemaJson(prevSchemaStr);
@@ -90,14 +162,6 @@ export function rebuildSchemaFromCard(
       if (fromPatch && typeof fromPatch === 'object') {
         return fromPatch as Record<string, unknown>;
       }
-    }
-  }
-
-  const schemaString = resolveSchemaStringFromCard(card);
-  if (schemaString) {
-    const parsed = parseSchemaJson(schemaString);
-    if (parsed) {
-      return parsed;
     }
   }
 
@@ -283,10 +347,16 @@ export function findLatestSchemaCardInConversation(
 function applyPendingCardFinalization(
   card: IStreamingSchemaCardMessage,
   options: { schema?: unknown; prevSchema?: string },
+  messages?: ChatMessage[],
 ): void {
-  const schemaPayload = options.schema ?? rebuildSchemaFromCard(card);
-  if (schemaPayload && !card.schema?.trim()) {
-    card.schema = JSON.stringify(schemaPayload);
+  if (card.type === 'json-patch') {
+    resolveJsonPatchApplyFailed(card, messages);
+  }
+  if (card.type !== 'json-patch' || card.applyFailed !== true) {
+    const schemaPayload = options.schema ?? rebuildSchemaFromCard(card, { messages });
+    if (schemaPayload && !card.schema?.trim()) {
+      card.schema = JSON.stringify(schemaPayload);
+    }
   }
   if (options.prevSchema !== undefined) {
     card.prevSchema = options.prevSchema;
@@ -310,7 +380,7 @@ export function finalizePendingSchemaCard(
     return false;
   }
 
-  applyPendingCardFinalization(pendingCard, options);
+  applyPendingCardFinalization(pendingCard, options, messages);
   return true;
 }
 
@@ -322,7 +392,7 @@ export function repairAllStalePendingSchemaCards(messages: ChatMessage[] | undef
     if (!pending) {
       break;
     }
-    applyPendingCardFinalization(pending, {});
+    applyPendingCardFinalization(pending, {}, messages);
     updated = true;
   }
 

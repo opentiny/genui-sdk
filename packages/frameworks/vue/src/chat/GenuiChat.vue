@@ -581,7 +581,7 @@ defineExpose({
     box-shadow: none;
   }
 }
-:deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
+:deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items:has([type^='schema-card'])) {
   // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
   > [type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
     display: var(--thinking-display, initial);

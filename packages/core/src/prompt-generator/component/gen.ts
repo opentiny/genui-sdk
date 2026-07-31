@@ -11,9 +11,8 @@ export interface IGenPromptComponentProperty {
 }
 
 export interface IGenPromptComponentEvent {
-  type: string;
+  event: string;
   functionInfo?: IFunctionInfo;
-  defaultValue?: string;
   description: string;
 }
 

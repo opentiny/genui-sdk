@@ -36,6 +36,7 @@ function buildBaseRuleItems(
     '- 单个组件节点也可以使用 `condition` 来控制显示',
     '- 请注意对话的连续性，不要重复渲染多余内容',
     '- 图片和链接地址不可杜撰',
+    '- 只允许从上下文获取组件API，禁止杜撰组件API',
     ...(wrapperComponent
       ? [`- 根节点请尽可能使用 \`${wrapperComponent}\` 组件包裹，但禁止设置颜色样式`]
       : []),

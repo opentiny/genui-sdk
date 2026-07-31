@@ -38,12 +38,13 @@ function getUsefulEventInfo(events: any) {
   if (!events) {
     return {};
   }
-  return Object.values(events).map((event: any) => {
-    const { label, description } = event;
-    delete event.label;
-    delete event.description;
-    event.description = getI18n(description) || getI18n(label);
-    return event;
+  return Object.entries(events).map(([eventName, eventInfo]: [string, any]) => {
+    const { label, description, functionInfo } = eventInfo || {};
+    return {
+      event: eventName,
+      functionInfo,
+      description: getI18n(description) || getI18n(label),
+    };
   });
 }
 

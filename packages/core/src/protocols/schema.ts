@@ -52,7 +52,7 @@ export const jsFunctionSchema = z
   .object({
     type: z.literal('JSFunction').describe('固定为 JSFunction'),
     value: z.string().describe('函数体字符串（可序列化）'),
-    params: z.array(z.string()).optional().describe('函数参数名列表'),
+    params: z.array(z.string()).optional().describe('额外传递给函数的参数列表'),
   })
   .describe('JS 函数包装');
 

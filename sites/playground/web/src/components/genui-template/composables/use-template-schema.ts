@@ -4,6 +4,7 @@ import { useTemplateConversation } from './use-template-conversation';
 import {
   findLatestSchemaInConversation,
   resolveRenderableSchemaFromMessages,
+  backfillJsonPatchApplyFailedFlags,
 } from '../template-chat-utils';
 
 const currentSchema = shallowRef<any>(null);
@@ -12,7 +13,7 @@ const currentPreviewSchemaComplete = ref(true);
 const currentCardId = ref<string>('');
 
 export function useTemplateSchema() {
-  const { setTemplateSchema } = useTemplateConversation();
+  const { setTemplateSchema, saveConversations } = useTemplateConversation();
 
   function setCurrentPreviewSchema(schema: any, isComplete: boolean = true) {
     currentPreviewSchema.value = schema;
@@ -39,6 +40,9 @@ export function useTemplateSchema() {
     options: { clearIfMissing?: boolean } = {},
   ) {
     const { clearIfMissing = true } = options;
+    if (backfillJsonPatchApplyFailedFlags(messages)) {
+      saveConversations();
+    }
     const latestSchemaInfo = findLatestSchemaInConversation(messages);
 
     if (latestSchemaInfo) {
