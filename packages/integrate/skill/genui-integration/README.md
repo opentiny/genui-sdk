@@ -28,7 +28,8 @@ genui-integration/
 ├── references/           # 详细参考文档
 │   ├── vue.md
 │   ├── angular.md
-│   └── server.md
+│   ├── server.md
+│   └── materials/        # 物料包文档（构建时从 docs 同步 + index.md）
 ├── examples/             # 示例文件（构建时从 docs 复制）
 │   ├── renderer/
 │   ├── chat/
@@ -39,7 +40,8 @@ genui-integration/
 
 ## 文档来源
 
-`examples/` 在构建时从 monorepo 内 [`docs/src/examples`](../../../../docs/src/examples) 复制，与在线文档示例保持一致。
+- `examples/` 在构建时从 monorepo 内 [`docs/src/examples`](../../../../docs/src/examples) 复制，与在线文档示例保持一致。
+- `references/materials/` 中物料专页从 [`docs/src/components/materials`](../../../../docs/src/components/materials) 同步；`index.md` 为 skill 内手写的物料选型入口。
 
 在线文档：https://docs.opentiny.design/genui-sdk/
 

@@ -1,6 +1,6 @@
 ---
 name: genui-integration
-description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk 或想构建 AI 聊天界面、动态 UI 组件时使用。涵盖主题切换、物料配置、GenuiChat/GenuiRenderer、服务端设置。适用于 Vue/Angular 项目，即使用户只描述需求（如"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
+description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk 或想构建 AI 聊天界面、动态 UI 组件时使用。涵盖主题切换、物料配置（官方物料、Element Plus、miniMaterials、Legacy）、GenuiChat/GenuiRenderer、服务端设置。适用于 Vue/Angular 项目，即使用户只描述需求（如"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
 ---
 
 # GenUI SDK 集成指南
@@ -67,6 +67,16 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
   2. 引导查看 `examples/` 目录的自定义组件示例
   3. 提供前后端联动的完整流程
 
+- **Element Plus 用户**：如果项目已使用 Element Plus 而非 OpenTiny Vue：
+  1. 说明可使用 `@opentiny/genui-sdk-materials-vue-element-plus` 替代官方物料
+  2. 引导查看 `references/materials/vue-element-plus.md`
+  3. 提醒需额外引入 `element-plus/dist/index.css`
+
+- **精简组件集**：如果用户不需要图表或想减小物料体积：
+  1. 说明 OpenTiny Vue 官方包提供 `miniMaterials` / `miniMaterialsMeta` 精简集
+  2. 引导查看 `references/materials/vue-opentiny-vue.md`
+  3. 强调前后端须一致使用 mini 版本
+
 一旦了解他们的需求，**阅读相应的参考文件**并提供指导。
 
 ## 核心概念
@@ -77,9 +87,16 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。物料定义 JSON schema 如何渲染为实际的 UI 组件。你必须通过 `GenuiConfigProvider` 注入物料。
 
-官方物料：
+官方物料（默认推荐）：
 - Vue：`@opentiny/genui-sdk-materials-vue-opentiny-vue`
 - Angular：`@opentiny/genui-sdk-materials-angular-opentiny-ng`
+
+可选物料与变体（详见 `references/materials/`）：
+- Vue Element Plus 替代方案：`@opentiny/genui-sdk-materials-vue-element-plus`
+- OpenTiny Vue 精简集：`miniMaterials` / `miniMaterialsMeta`
+- 旧项目迁移：`GenuiLegacyChat` / `GenuiLegacyRenderer`（内置物料）
+
+当用户询问替换 UI 库、精简组件集或迁移方案时，阅读 `references/materials/index.md` 及对应专页。
 
 ### 组件
 
@@ -140,7 +157,7 @@ SDK 支持扩展：
 2. **针对其场景的分步集成指南**
 3. **可以复制和 adapt 的完整工作示例**
 4. **常见用例的配置技巧**
-5. **高级功能的额外文档链接**（指向 `examples/` 目录）
+5. **高级功能的额外文档链接**（指向 `examples/` 目录和 `references/materials/` 物料选型）
 
 记住要：
 - 解释**为什么**需要某些配置，而不仅仅是做什么
