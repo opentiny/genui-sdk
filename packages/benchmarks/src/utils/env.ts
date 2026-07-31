@@ -102,3 +102,20 @@ export function envFramework(key: string, fallback: 'Vue' | 'Angular' | undefine
   }
   return 'Vue';
 }
+
+/**
+ * 读取物料档位：`standard` → materialsMeta；`mini` → miniMaterialsMeta（Vue materials 包导出）。
+ */
+export function envMaterialsVariant(
+  key: string,
+  fallback: 'mini' | 'standard' | undefined,
+): 'mini' | 'standard' {
+  const v = process.env[key]?.trim();
+  if (v === 'mini' || v === 'standard') {
+    return v;
+  }
+  if (fallback === 'mini' || fallback === 'standard') {
+    return fallback;
+  }
+  return 'standard';
+}

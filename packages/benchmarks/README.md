@@ -1,6 +1,6 @@
 # @opentiny/genui-sdk-benchmarks
 
-基于 `@opentiny/genui-sdk-core` 的大模型 **schemaJson 生成** 基准：在线拉流生成样本（Vercel AI SDK + playground 的 Provider 映射），再离线校验、统计并输出 JSON / HTML / Excel 报告。
+验证 **SDK 核心能力**（非演练场）：以 `@opentiny/genui-sdk-core` 的 `genPrompt` + materials 包 `materialsMeta` 生成 system，驱动大模型输出 **schemaJson**，再用 `genRootSchema()` 等协议校验。模型 Provider 仅作跑数基建。
 
 ## 关注指标
 
@@ -10,6 +10,36 @@
 - **TPOT**：首 Token 之后平均每输出 Token 耗时（见下文公式）
 - **Token**：`promptTokens` / `completionTokens` / `totalTokens`
 - **LLM-as-a-Judge**（可选）：对输出质量打分 **1～10**，并给出简要原因
+
+## 与 SDK 主包的关系
+
+对齐方式与 [core README](../core/README.md) / materials 包文档一致：
+
+```ts
+import { genPrompt } from '@opentiny/genui-sdk-core';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+
+const system = genPrompt('Vue', materialsMeta, tgCustomConfig);
+```
+
+- **会随依赖自动跟上**：`genPrompt` 拼装逻辑、`materialsMeta` / `miniMaterialsMeta` 内容、`genRootSchema` 协议。
+- **升级 SDK 后**：重装 workspace 依赖并跑一次烟雾即可；无需与 playground 同步。
+- **`BENCH_MATERIALS_VARIANT`**：在 materials 包导出的 `materialsMeta`（standard）与 Vue `miniMaterialsMeta`（mini）之间选择，不是演练场配置。
+- **`specificPrompt` / `userAppendPrompt`**：基准侧可选附加约束（如要求 ````schemaJson```` 包裹），不属于 core API。
+
+### 核心能力覆盖（相对 `@opentiny/genui-sdk-core`）
+
+| Core 能力 | 基准用法 |
+|-----------|----------|
+| `genPrompt` + materials `materialsMeta` | 生成阶段 system（默认 full，非 plain） |
+| `PatternExtractor` / `SchemaJsonPattern` | 报告阶段提取 ```schemaJson``` |
+| `repairJson` | 解析 schema 块（与渲染器路径一致） |
+| `genRootSchema(whiteList)` | 协议校验（whiteList 来自 materialsMeta） |
+| `wrapperComponent` | 首个可观测容器耗时（Vue `TinyCard` / Angular `TiCard`） |
+| `StreamPatternExtractor` / `DeltaPatcher` | **不在本基准范围**（流式增量 patch；由 core 单测覆盖） |
+| `buildMaterialDefaultValueMap` | **不在本基准范围**（渲染侧） |
+
+默认配置走 **full system（`genPrompt`）**；`BENCH_PLAIN_ONLY` / `BENCH_COMPARE_EMPTY_SYSTEM` 仅用于对照实验。
 
 ## 目录结构
 
@@ -50,7 +80,7 @@ src/
     └── number.ts
 ```
 
-系统提示词由 `genPrompt(framework, materialsMeta, tgCustomConfig)` + `specificPrompt` + `userAppendPrompt` 拼出，与 playground `chat-genui` 思路一致；**无**单独的 `llm.config.ts`。
+系统提示词：`genPrompt(framework, materialsMeta|miniMaterialsMeta, tgCustomConfig)`（SDK 主路径），再按需拼接 `specificPrompt` / `userAppendPrompt`。
 
 ### `maas-models.json` 路径（`BENCH_MAAS_MODELS_PATH`）
 
@@ -59,7 +89,7 @@ src/
 | **解析模型实例**（实际请求） | `resolve-ai-sdk-model.ts` | 通过 **`resolveMaasModelsJsonPath()`**（与下表同源）读取 `BENCH_MAAS_MODELS_PATH` 指向的清单，构建 `ProviderModelMapper` 与 AI SDK model。 |
 | **枚举多模型名称列表** | `maas-manifest-models.ts` | `listMaasManifestModelNames()` 同样使用 **`resolveMaasModelsJsonPath()`**。 |
 
-须在 **`packages/benchmarks/.env`** 中设置 **`BENCH_MAAS_MODELS_PATH`**（相对 benchmarks 包根或绝对路径）；未设置或仅空白时，拉模型列表与实际请求解析都会抛错。
+须在 **`packages/benchmarks/.env`** 中配置 **API Key**（见 `.env.example`）。`BENCH_MAAS_MODELS_PATH` 可选：未设置时默认使用仓库内 `sites/playground/server/maas-models.json`（仅作 Provider 基建）。该路径用于解析模型实例发请求；与 `modelsFromMaasManifest` / `BENCH_MODELS_FROM_MAAS` 无关——后两者只控制是否用清单**枚举**多模型名。
 
 ## 环境与 API Key
 
@@ -77,6 +107,7 @@ src/
 | `BENCH_MODEL` | 单模型 id；与 `BENCH_MODELS` / 配置里的 `models` **至少其一非空**即可；仅多模型时可不设此项 |
 | `BENCH_MODELS` | 逗号分隔多模型；非空时只跑列表内模型，报告也只统计这些模型 |
 | `BENCH_FRAMEWORK` | `Vue` 或 `Angular` |
+| `BENCH_MATERIALS_VARIANT` | `standard`（默认，`materialsMeta`）或 `mini`（Vue `miniMaterialsMeta`）。勿与样本的 `promptVariant`（full/plain）混淆 |
 | `BENCH_SCENARIO` | 单场景 id 过滤 |
 | `BENCH_SCENARIOS` | 逗号分隔多场景；**优先级高于** `BENCH_SCENARIO` |
 | `BENCH_REPEAT` | 每个「模型 × 场景」重复次数（正整数，默认取自 config） |
@@ -103,9 +134,7 @@ src/
 
 - **`compareEmptySystemPlainOnly === true`（仅 plain）**：每个任务只写 **空 system** 的 `*_plain.json`，不写 full。
 - **`compareEmptySystem === true` 且 plainOnly 为 false**：每个「模型 × 场景 × run」写 **full + plain** 各一份。
-- **二者均为 false**：只写 **full**。
-
-当前仓库默认配置里 **`compareEmptySystemPlainOnly` 为 `true`**，即**默认只生成 plain 样本**。若要默认跑完整 system 的 schema 基准，请在 config 或环境中关闭「仅 plain」（例如 `.env` 中 `BENCH_PLAIN_ONLY=false`，并按需设置 `BENCH_COMPARE_EMPTY_SYSTEM`）。
+- **二者均为 false（默认）**：只写 **full**（走 `genPrompt` 主路径）。
 
 ## 中断后继续
 

@@ -39,7 +39,8 @@ export interface LlmBenchmarkMessageFinishInfo {
 }
 
 /**
- * 生成样本时 system prompt 的配置（与 chat-genui 对齐：genPrompt + specificPrompt + userAppendPrompt）。
+ * 生成样本时 system prompt 的配置。
+ * 核心为 SDK `genPrompt` 的 `tgCustomConfig`；`specificPrompt` / `userAppendPrompt` 为基准可选附加约束。
  */
 export type LlmBenchmarkPromptConfig = {
   tgCustomConfig: IGenPromptCustomConfig;
@@ -67,8 +68,14 @@ export interface LlmBenchmarkRunOptions {
   model?: string;
   /** 多模型对比：非空时按列表逐模型生成/过滤报告；与 `model` 可只配置其一或并存（并存时常用于指定主模型 + 多模型列表）。 */
   models?: string[];
-  // 与 chat-genui 一致，决定 genPrompt 使用的物料 materialsMeta（Vue / Angular）
+  // 决定 genPrompt 使用的物料包 materialsMeta（Vue / Angular）
   framework?: 'Vue' | 'Angular';
+  /**
+   * 选用 materials 包导出的哪份 meta：`standard` → `materialsMeta`；Vue `mini` → `miniMaterialsMeta`。
+   * 勿与样本字段 `promptVariant`（full / plain 空 system 对照）混淆。
+   * 可用 `BENCH_MATERIALS_VARIANT` 覆盖。
+   */
+  materialsVariant?: 'mini' | 'standard';
   // 单场景过滤（兼容旧配置）
   scenario?: string;
   // 多场景过滤（优先级高于 scenario）
@@ -132,7 +139,7 @@ export interface LlmBenchmarkResultItem {
   // 自请求开始到首个可观测输出 token 的毫秒数；未观测到则缺省。
   ttftMs?: number;
   totalMs: number;
-  // 自请求开始到输出中首次出现 `TinyCard` 节点（`"componentName": "TinyCard"`）的毫秒数；未出现则缺省。
+  // 自请求开始到输出中首次出现 materialsMeta.wrapperComponent 节点的毫秒数；未出现则缺省。
   firstObservableComponentMs?: number;
   // TPOT（Time Per Output Token），ms/token；completionTokens≤1 时无意义，省略
   tpotMs?: number;

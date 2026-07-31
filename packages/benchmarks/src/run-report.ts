@@ -1,5 +1,5 @@
 import fs from 'node:fs';
-import { genRootSchema } from '@opentiny/genui-sdk-core';
+import { genRootSchema, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { streamText } from 'ai';
 import type { ZodIssue } from 'zod';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions, LlmBenchmarkSample } from './framework/index';
@@ -9,6 +9,7 @@ import {
   extractSchemaJsonBlock,
   parseJudgeJson,
   resolveAiSdkModelForBench,
+  resolveMaterialsMeta,
   resolvePrimaryBenchmarkModelId,
   resolveSamplesDir,
   resolveStreamTextUsage,
@@ -60,9 +61,9 @@ type SchemaJsonValidation = {
 };
 
 /**
- * 校验 schemaJson：是否存在代码块、块内是否合法 JSON、是否通过协议。
+ * 校验 schemaJson：PatternExtractor 提取 → repairJson 解析 → genRootSchema(whiteList) 协议。
  */
-function validateSchemaJson(schemaJsonText: string | null): SchemaJsonValidation {
+function validateSchemaJson(schemaJsonText: string | null, componentWhiteList?: string[]): SchemaJsonValidation {
   if (!schemaJsonText) {
     return {
       isSchemaJsonBlockFound: false,
@@ -72,36 +73,39 @@ function validateSchemaJson(schemaJsonText: string | null): SchemaJsonValidation
     };
   }
 
-  try {
-    const parsed = JSON.parse(schemaJsonText);
-    const result = genRootSchema().safeParse(parsed);
-    if (result.success) {
-      return {
-        isSchemaJsonBlockFound: true,
-        isSchemaJsonValidJson: true,
-        isSchemaJsonValidAgainstProtocol: true,
-      };
-    }
-    const issue = pickMostSpecificIssue(result.error.issues);
-    const path = issue?.path?.length ? issue.path.join('.') : '(root)';
-    const message = issue
-      ? `[${issue.code}] ${issue.message}`
-      : `schema safeParse failed (issues=${result.error.issues.length})`;
-    return {
-      isSchemaJsonBlockFound: true,
-      isSchemaJsonValidJson: true,
-      isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: `${path}: ${message}`,
-    };
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+  const repaired = repairJson(schemaJsonText);
+  if (
+    repaired.state === RepairJsonState.INVALID_INPUT ||
+    repaired.state === RepairJsonState.FAILED ||
+    repaired.value === undefined
+  ) {
     return {
       isSchemaJsonBlockFound: true,
       isSchemaJsonValidJson: false,
       isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: `schema parse failed: ${detail}`,
+      schemaValidationError: `schema JSON repair/parse failed (state=${repaired.state})`,
     };
   }
+
+  const result = genRootSchema(componentWhiteList).safeParse(repaired.value);
+  if (result.success) {
+    return {
+      isSchemaJsonBlockFound: true,
+      isSchemaJsonValidJson: true,
+      isSchemaJsonValidAgainstProtocol: true,
+    };
+  }
+  const issue = pickMostSpecificIssue(result.error.issues);
+  const path = issue?.path?.length ? issue.path.join('.') : '(root)';
+  const message = issue
+    ? `[${issue.code}] ${issue.message}`
+    : `schema safeParse failed (issues=${result.error.issues.length})`;
+  return {
+    isSchemaJsonBlockFound: true,
+    isSchemaJsonValidJson: true,
+    isSchemaJsonValidAgainstProtocol: false,
+    schemaValidationError: `${path}: ${message}`,
+  };
 }
 
 type LlmJudgeResult = {
@@ -207,11 +211,16 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
  * 将单个样本转为报告结果项。
  * @param sample 由生成阶段写入的样本对象
  * @param judge Judge 结果（可选）
+ * @param componentWhiteList materialsMeta.whiteList，传入 genRootSchema
  * @returns 用于汇总/展示的指标结果
  */
-function toReportItem(sample: LlmBenchmarkSample, judge?: LlmJudgeResult): LlmBenchmarkResultItem {
+function toReportItem(
+  sample: LlmBenchmarkSample,
+  judge?: LlmJudgeResult,
+  componentWhiteList?: string[],
+): LlmBenchmarkResultItem {
   const schemaJsonText = extractSchemaJsonBlock(sample.output);
-  const validation = validateSchemaJson(schemaJsonText);
+  const validation = validateSchemaJson(schemaJsonText, componentWhiteList);
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
   const tpotMs =
     typeof sample.metrics.tpotMs === 'number'
@@ -291,6 +300,8 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
 
   const judgeEnabled = options.llmJudge?.enabled === true;
   const judgeResults: Array<LlmJudgeResult | undefined> = [];
+  const materialsMetaForRun = resolveMaterialsMeta(options.framework ?? 'Vue', options.materialsVariant ?? 'standard');
+  const componentWhiteList = materialsMetaForRun.whiteList;
   if (judgeEnabled) {
     const toJudgeCount = parsedSamples.filter((s) => (s.promptVariant ?? 'full') !== 'plain').length;
     console.log(
@@ -320,7 +331,7 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   }
 
   const results: LlmBenchmarkResultItem[] = parsedSamples.map((sample, index) =>
-    toReportItem(sample, judgeEnabled ? judgeResults[index] : undefined),
+    toReportItem(sample, judgeEnabled ? judgeResults[index] : undefined, componentWhiteList),
   );
 
   if (results.length === 0) {

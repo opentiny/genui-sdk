@@ -7,6 +7,7 @@ export * from './fs-paths';
 export * from './judge';
 export * from './maas-manifest-models';
 export * from './number';
+export * from './resolve-materials-meta';
 export * from './resolve-models';
 export * from './resolve-ai-sdk-model';
 export * from './stats';

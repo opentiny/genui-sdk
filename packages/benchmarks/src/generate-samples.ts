@@ -1,15 +1,14 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { genPrompt, type IMaterialsMeta } from '@opentiny/genui-sdk-core';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
-import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
+import { genPrompt } from '@opentiny/genui-sdk-core';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
 import { coreLlmBenchmarkSampleCases } from './samples';
 import {
   formatBeijingRunDirName,
   getSampleFilePath,
-  hasTinyCardComponentDeclaration,
+  hasWrapperComponentDeclaration,
   resolveAiSdkModelForBench,
+  resolveMaterialsMeta,
   resolveModelsForBench,
   resolveSamplesDir,
   resolveStreamTextUsage,
@@ -20,23 +19,20 @@ import { computeTpotMs } from './utils';
 import { streamText } from 'ai';
 
 type IFrameworkKey = 'Vue' | 'Angular';
-type IMetaMap = Record<IFrameworkKey, IMaterialsMeta>;
-
-const metaMap: IMetaMap = {
-  Vue: materialsMeta,
-  Angular: ngMaterialsMeta
-};
+type IMaterialsVariant = 'mini' | 'standard';
 
 /**
- * 与 chat-genui 一致的 system 拼接；framework 来自运行配置（env / benchmark.config），其余来自 llm.config。
- * @param framework 前端框架类型（影响 materialsMeta）
- * @param promptConfig prompt 拼接配置
- * @returns 最终 system prompt
+ * SDK 主路径 system：`genPrompt(framework, materialsMeta, tgCustomConfig)`；
+ * 其后可选附加 bench 约束文案（非 SDK API）。
  */
-function buildSystemPrompt(framework: IFrameworkKey, promptConfig: LlmBenchmarkRunOptions['promptConfig']) {
+function buildSystemPrompt(
+  framework: IFrameworkKey,
+  materialsVariant: IMaterialsVariant,
+  promptConfig: LlmBenchmarkRunOptions['promptConfig'],
+) {
   const { tgCustomConfig, specificPrompt, userAppendPrompt } = promptConfig;
-  const materialsMetaForFramework = metaMap[framework];
-  return genPrompt(framework, materialsMetaForFramework, tgCustomConfig) + '\n' + specificPrompt + '\n' + userAppendPrompt;
+  const base = genPrompt(framework, resolveMaterialsMeta(framework, materialsVariant), tgCustomConfig);
+  return [base, specificPrompt, userAppendPrompt].filter((s) => s.trim().length > 0).join('\n');
 }
 /**
  * 根据 `scenarios` / `scenario` 过滤要生成样本的场景。
@@ -75,6 +71,7 @@ async function generateSingleSample(
   system: string,
   promptVariant: 'full' | 'plain',
   streamTimeoutMs: number | undefined,
+  wrapperComponent: string,
 ): Promise<LlmBenchmarkSample> {
   const start = Date.now();
   let firstTokenAt = 0;
@@ -103,7 +100,11 @@ async function generateSingleSample(
         const before = output;
         output += chunk.text;
         const now = Date.now();
-        if (!firstTinyCardAt && hasTinyCardComponentDeclaration(output) && !hasTinyCardComponentDeclaration(before)) {
+        if (
+          !firstTinyCardAt &&
+          hasWrapperComponentDeclaration(output, wrapperComponent) &&
+          !hasWrapperComponentDeclaration(before, wrapperComponent)
+        ) {
           firstTinyCardAt = now;
         }
       }
@@ -172,7 +173,10 @@ async function generateSingleSample(
 export async function generateSamples(options: LlmBenchmarkRunOptions) {
   (globalThis as any).AI_SDK_LOG_WARNINGS = false;
   const framework = options.framework ?? 'Vue';
-  const systemFull = buildSystemPrompt(framework, options.promptConfig);
+  const materialsVariant = options.materialsVariant ?? 'standard';
+  const materialsMetaForRun = resolveMaterialsMeta(framework, materialsVariant);
+  const wrapperComponent = materialsMetaForRun.wrapperComponent ?? 'TinyCard';
+  const systemFull = buildSystemPrompt(framework, materialsVariant, options.promptConfig);
   const plainOnly = options.compareEmptySystemPlainOnly === true;
   const compareBoth = options.compareEmptySystem === true && !plainOnly;
   const selected = selectSampleCases(coreLlmBenchmarkSampleCases, options);
@@ -187,7 +191,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   let doneJobs = 0;
   const startedAt = Date.now();
   console.log(
-    `[bench] Start generate samples: framework=${framework}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat}, plainOnly=${plainOnly}, compareFullPlusPlain=${compareBoth} (total jobs=${totalJobs})`,
+    `[bench] Start generate samples: framework=${framework}, materialsVariant=${materialsVariant}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat}, plainOnly=${plainOnly}, compareFullPlusPlain=${compareBoth} (total jobs=${totalJobs})`,
   );
 
   const samplesRootDir = resolveSamplesDir(options.samplesDir);
@@ -321,6 +325,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
         job.system,
         job.promptVariant,
         options.streamTimeoutMs,
+        wrapperComponent,
       );
 
       // 防御式：即使父目录没创建成功或 sampleFile 被拼成多级目录，也能避免 ENOENT。

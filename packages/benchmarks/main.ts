@@ -9,6 +9,7 @@ import { runReport } from './src/run-report';
 import {
   envBool,
   envFramework,
+  envMaterialsVariant,
   envPositiveInt,
   envStreamTimeoutMs,
   envString,
@@ -29,6 +30,7 @@ function resolveRunOptions(): LlmBenchmarkRunOptions {
     models: configModels,
     modelsFromMaasManifest,
     framework,
+    materialsVariant: defaultMaterialsVariant,
     scenario,
     scenarios: defaultScenarios,
     repeat,
@@ -67,6 +69,7 @@ function resolveRunOptions(): LlmBenchmarkRunOptions {
     ...(trimmedModel ? { model: trimmedModel } : {}),
     models: models && models.length > 0 ? models : undefined,
     framework: envFramework('BENCH_FRAMEWORK', framework),
+    materialsVariant: envMaterialsVariant('BENCH_MATERIALS_VARIANT', defaultMaterialsVariant),
     scenario: envString('BENCH_SCENARIO', scenario),
     scenarios,
     repeat: envPositiveInt('BENCH_REPEAT', repeat ?? 1),
