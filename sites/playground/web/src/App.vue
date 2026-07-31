@@ -260,11 +260,6 @@ const playgroundContext = {
 
 provide('playgroundContext', playgroundContext);
 
-const materialsMap = {
-  TinyVue: tinyMaterials,
-  Element: epMaterials,
-};
-
 const mergedMaterials = mergeMaterials(tinyMaterials, epMaterials);
 
 const handleKeydown = (event) => {

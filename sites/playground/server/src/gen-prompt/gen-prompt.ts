@@ -41,6 +41,22 @@ const optionsMap: IOptionsMap = {
   }
 };
 
+const LIB_RULES: Record<IComponentLibKey, string[]> = {
+  TinyVue: [
+    '组件的 componentName 必须使用 Tiny 前缀（如 TinyButton、TinyForm），禁止使用其它组件库名称',
+  ],
+  Element: [
+    '务组件的 componentName 必须使用 El 前缀（如 ElButton、ElForm），禁止使用 Tiny 前缀（如 TinyButton）或其它组件库名称',
+  ],
+  TinyNg: [
+    '当前组件库为 OpenTiny Angular（TinyNg）。只能使用本物料白名单中的 componentName，禁止使用 Vue 的 Tiny*/El* 组件名',
+  ],
+};
+
+const SCHEMA_FORMAT_RULES = [
+  '生成 UI 时，语言标记必须是 ```schemaJson',
+];
+
 export function genPlaygroundPrompt(
   framework: IFrameworkKey,
   promptVariant: IMaterialsMetaVariantKey | undefined,
@@ -53,6 +69,13 @@ export function genPlaygroundPrompt(
     framework,
     metaMap[framework]?.[componentLib]?.[variant] ?? materialsMeta,
     tgCustomConfig,
-    optionsMap[framework]?.[variant] ?? {},
+    {
+      ...(optionsMap[framework]?.[variant] ?? {}),
+      rules: [
+        ...(optionsMap[framework]?.[variant]?.rules ?? []),
+        ...(LIB_RULES[componentLib] ?? []),
+        ...SCHEMA_FORMAT_RULES,
+      ],
+    },
   );
 }

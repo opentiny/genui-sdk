@@ -2,8 +2,6 @@ import { defineComponent, h, provide } from 'vue';
 import { GenuiRenderer, GENUI_MATERIALS, type GenuiChat } from '@opentiny/genui-sdk-vue';
 import type { IMaterials } from '@opentiny/genui-sdk-core';
 
-type ComponentLib = 'TinyVue' | 'Element';
-
 const MaterialsScope = defineComponent({
   name: 'MaterialsScope',
   props: {

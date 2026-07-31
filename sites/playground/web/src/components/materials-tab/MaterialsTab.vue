@@ -189,6 +189,17 @@ const setFramework = (name) => {
     object-fit: cover;
   }
 
+  .theme-card--light {
+    overflow: hidden;
+    .theme-card__img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.06);
+      transform-origin: center;
+    }
+  }
+
   .theme-card__check {
     position: absolute;
     top: 6px;
