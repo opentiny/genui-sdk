@@ -292,13 +292,13 @@ export function genSkillContent(
 }
 
 /**
- * 读取 SKILL.md 的 YAML frontmatter；不存在时写入默认 frontmatter。
+ * 确保 SKILL.md 存在并读取其 YAML frontmatter；不存在时写入默认 frontmatter。
  *
  * @param skillSourceDir - SKILL.md 源目录
  * @param defaultFrontmatter - 默认 frontmatter
  * @returns frontmatter 文本（含结尾换行）
  */
-export function readSkillFrontmatter(
+export function ensureSkillFrontmatter(
   skillSourceDir: string,
   defaultFrontmatter: string = DEFAULT_FRONTMATTER,
 ): string {
@@ -497,7 +497,7 @@ export function writeSkillEntry(
     throw new Error('skillDirs 不能为空');
   }
 
-  const frontmatter = readSkillFrontmatter(skillDirs[0], defaultFrontmatter);
+  const frontmatter = ensureSkillFrontmatter(skillDirs[0], defaultFrontmatter);
   const body = formatSkillBody
     ? formatSkillBody(sectionMarkers)
     : skillPrefix.endsWith('\n')

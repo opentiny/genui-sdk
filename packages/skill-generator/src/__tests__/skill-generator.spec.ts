@@ -1,14 +1,15 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { mkdtempSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   assignReferenceFiles,
   buildComponentsIndex,
+  ensureSkillFrontmatter,
   extractComponentsWhitelist,
   extractReferenceSections,
   extractSkillPrefix,
   headingToReferenceFile,
-  readSkillFrontmatter,
   sectionLink,
   splitPromptSections,
   stripInjectedSkillPrefix,
@@ -113,14 +114,21 @@ describe('skill-generator', () => {
 表格`);
   });
 
-  it('readSkillFrontmatter 只读取 YAML frontmatter', () => {
-    const skillSourceDir = join(
-      dirname(fileURLToPath(import.meta.url)),
-      '../../examples/skills/genui-schema-json',
-    );
-    const frontmatter = readSkillFrontmatter(skillSourceDir);
+  it('ensureSkillFrontmatter 只读取 YAML frontmatter', () => {
+    const skillSourceDir = mkdtempSync(join(tmpdir(), 'skill-frontmatter-'));
+    writeFileSync(
+      join(skillSourceDir, 'SKILL.md'),
+      `---
+name: genui-schema-json
+description: test
+---
 
-    expect(frontmatter).toMatch(/^---\nname: genui-schema-json/);
-    expect(frontmatter.endsWith('---\n')).toBe(true);
+# body
+`,
+      'utf8',
+    );
+    const frontmatter = ensureSkillFrontmatter(skillSourceDir);
+
+    expect(frontmatter).toMatch(/^---\nname: genui-schema-json[\s\S]*\n---\n+$/);
   });
 });
