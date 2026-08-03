@@ -1,0 +1,14 @@
+{
+  "framework": "vue",
+  "materialsMetaModule": "../../materials/vue-opentiny-vue/dist/meta.js",
+  "materialsMetaExport": "materialsMeta",
+  "skillDirs": ["../../../skills/genui-schema-json"],
+  "skillBodyFormatter": "genui-schema-json",
+  "referenceSubdir": "generated",
+  "syncComponentsIndex": true,
+  "prune": true,
+  "promptOptions": {
+    "isSkill": true,
+    "includeJsonSchema": false
+  }
+}
