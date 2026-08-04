@@ -16,6 +16,12 @@ type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 type IMetaMap = Partial<Record<IFrameworkKey, ILibMap<IMaterialsMeta>>>;
 type IOptionsMap = Partial<Record<IFrameworkKey, IVariantMap<IGenPromptOptions>>>;
 
+interface IPlaygroundMaterialConfig {
+  framework: IFrameworkKey;
+  promptVariant: IMaterialsMetaVariantKey | undefined;
+  componentLib?: IComponentLibKey | string;
+}
+
 const metaMap: IMetaMap = {
   Vue: {
     TinyVue: {
@@ -41,27 +47,16 @@ const optionsMap: IOptionsMap = {
   }
 };
 
-const LIB_RULES: Record<IComponentLibKey, string[]> = {
-  TinyVue: [
-    '组件的 componentName 必须使用 Tiny 前缀（如 TinyButton、TinyForm），禁止使用其它组件库名称',
-  ],
-  Element: [
-    '组件的 componentName 必须使用 El 前缀（如 ElButton、ElForm），禁止使用 Tiny 前缀（如 TinyButton）或其它组件库名称',
-  ],
-  TinyNg: [
-    '当前组件库为 OpenTiny Angular（TinyNg）, 组件的 componentName 必须使用 Ti 前缀, 。只能使用本物料白名单中的 componentName，禁止使用 Tiny 前缀或 El 前缀',
-  ],
-};
-
 export function genPlaygroundPrompt(
-  framework: IFrameworkKey,
-  promptVariant: IMaterialsMetaVariantKey | undefined,
+  materialConfig: IPlaygroundMaterialConfig,
   tgCustomConfig?: IGenPromptCustomConfig,
-  componentLib?: IComponentLibKey | string,
 ) {
+  const { framework, promptVariant, componentLib } = materialConfig;
   const variant = promptVariant || 'standard';
   const libKey = componentLib as IComponentLibKey;
-  const libRules = Object.prototype.hasOwnProperty.call(LIB_RULES, libKey) ? LIB_RULES[libKey] : [];
+   const antiContaminationRule = [
+    `本次对话当前使用的组件库是 ${libKey}，历史消息中可能包含基于其他组件库生成的 schema，请以当前提供的可用组件列表为准，不要参考历史消息中的 componentName`,
+  ]; 
 
   return genPrompt(
     framework,
@@ -71,7 +66,7 @@ export function genPlaygroundPrompt(
       ...(optionsMap[framework]?.[variant] ?? {}),
       rules: [
         ...(optionsMap[framework]?.[variant]?.rules ?? []),
-        ...libRules,
+        ...antiContaminationRule
       ],
     },
   );

@@ -321,7 +321,7 @@ export function createChatGenui() {
       model,
       temperature,
       system:
-        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig, componentLib) +
+        genPlaygroundPrompt({framework, promptVariant, componentLib}, tgCustomConfig) +
         '\n' +
         specificPrompt +
         '\n' +

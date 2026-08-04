@@ -39,7 +39,7 @@ function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMess
   emitNotification(delta, chatMessage);
 }
 
-export function getMixedContentHandler(contentHandler, framework: Ref<string>, componentLib: Ref<string>) {
+export function getMixedContentHandler(contentHandler, framework: Readonly<Ref<string>>, componentLib: Readonly<Ref<string>>) {
   return {
     ...contentHandler,
     start: (context, handlers) => {

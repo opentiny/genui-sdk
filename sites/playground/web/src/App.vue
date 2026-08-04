@@ -23,7 +23,7 @@ import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
 import { useInputMessage } from './hooks/use-input-message';
-import { useIsMobile } from './hooks';
+import { useIsMobile, useFrameworkConfig } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
 import {
   getOverlapEliminatorHandler,
@@ -37,7 +37,6 @@ import {
   getMessageRendererAngular,
 } from './message-renderers';
 import { locale, t } from './i18n';
-import { DEFAULT_COMPONENT_LIB } from './components/materials-tab';
 
 const { topRenderer, addIcons } = useIcon();
 const TopIconsRenderer = topRenderer();
@@ -61,8 +60,10 @@ const {
   componentLib: cacheComponentLib, 
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
-const componentLib = ref(cacheComponentLib || DEFAULT_COMPONENT_LIB[framework.value]);
+const { framework, componentLib, setFramework, setComponentLib } = useFrameworkConfig({
+  framework: cacheFramework,
+  componentLib: cacheComponentLib,
+});
 /**
  * Normalizes cached custom examples for the id-based contract.
  * Drops invalid/legacy entries and de-duplicates by id.
@@ -255,6 +256,8 @@ const playgroundContext = {
   customExamples,
   framework,
   componentLib,
+  setFramework,
+  setComponentLib,
 };
 
 provide('playgroundContext', playgroundContext);

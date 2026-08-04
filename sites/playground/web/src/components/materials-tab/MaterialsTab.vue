@@ -1,14 +1,11 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
 import { inject, computed } from 'vue';
-import { ThemePreviewCard } from '../theme-preview';
 import { t } from '../../i18n';
 import {
-  FRAMEWORK_OPTIONS,
-  COMPONENT_LIB_OPTIONS_BY_FRAMEWORK,
-  DEFAULT_COMPONENT_LIB,
-  MATERIAL_THEME_OPTIONS,
-  MATERIAL_THEME_COLOR_MAP,
+  frameworkOptions,
+  componentLibOptionsByFramework,
+  materialThemeOptions,
 } from './materials-options';
 
 defineProps({
@@ -17,16 +14,20 @@ defineProps({
 
 const emit = defineEmits(['update:theme']);
 
-const { framework, componentLib } = inject('playgroundContext');
+const { framework, componentLib, setFramework, setComponentLib } = inject('playgroundContext');
 
-const componentLibOptions = computed(() => COMPONENT_LIB_OPTIONS_BY_FRAMEWORK[framework.value]);
+const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
 
-const setFramework = (name) => {
-  framework.value = name;
-  componentLib.value = DEFAULT_COMPONENT_LIB[name];
+const componentLibModel = computed({
+  get: () => componentLib.value,
+  set: (val) => setComponentLib(val),
+});
+
+const handleSetFramework = (name) => {
+  setFramework(name);
   // Angular 不支持主题切换, 默认设置为 light 主题
-  if(name === 'Angular') {
-    emit('update:theme', MATERIAL_THEME_OPTIONS[0].value)
+  if (name === 'Angular') {
+    emit('update:theme', materialThemeOptions[0].value);
   }
 };
 </script>
@@ -36,15 +37,15 @@ const setFramework = (name) => {
     <div class="config-title">{{ t('materials.framework') }}</div>
     <div class="framework-group">
       <div
-        v-for="item in FRAMEWORK_OPTIONS"
+        v-for="item in frameworkOptions"
         :key="item.name"
         class="framework-btn"
         :class="{ 'framework-btn--active': framework === item.name }"
-        @click="setFramework(item.name)"
+        @click="handleSetFramework(item.name)"
         role="button"
         tabindex="0"
-        @keydown.enter="setFramework(item.name)"
-        @keydown.space.prevent="setFramework(item.name)"
+        @keydown.enter="handleSetFramework(item.name)"
+        @keydown.space.prevent="handleSetFramework(item.name)"
       >
         <span class="framework-btn__icon">
           <img class="framework-btn__img" :src="item.icon" alt="item.name">
@@ -55,7 +56,7 @@ const setFramework = (name) => {
 
     <div class="config-title">{{ t('materials.componentLib') }}</div>
     <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
-      <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
+      <tiny-radio-group v-model="componentLibModel" class="library-radio-group__inner">
         <tiny-radio v-for="item in componentLibOptions" :key="item" :label="item">{{ item }}</tiny-radio>
       </tiny-radio-group>
     </div>
@@ -63,7 +64,7 @@ const setFramework = (name) => {
     <template v-if="framework === 'Vue'">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
-        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
+        <div v-for="item in materialThemeOptions" :key="item.value" class="theme-card-item">
           <div
             class="theme-card"
             :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"
