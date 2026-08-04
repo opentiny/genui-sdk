@@ -15,7 +15,7 @@ fi
 BASE_TREE=$(gh api "repos/${REPO}/git/commits/${PARENT_SHA}" --jq .tree.sha)
 
 NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
-  --input - <<EOF
+  --input - --jq '.sha' <<EOF
 {
   "base_tree": "${BASE_TREE}",
   "tree": [
@@ -28,7 +28,7 @@ NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
   ]
 }
 EOF
---jq .sha)
+)
 
 NEW_COMMIT=$(gh api "repos/${REPO}/git/commits" \
   -f "message=chore: update genui-sdk submodule to ${COMMIT}" \
@@ -42,11 +42,12 @@ gh api --method POST "repos/${REPO}/git/refs" \
 || gh api --method PATCH "repos/${REPO}/git/refs/heads/${BRANCH}" \
   -f "sha=${NEW_COMMIT}"
 
-gh pr create --repo "${REPO}" \
-  --base dev \
-  --head "${BRANCH}" \
-  --title "chore: update genui-sdk submodule" \
-  --body "$(cat <<EOF
+if [ "$(gh pr list --repo "${REPO}" --base dev --head "${BRANCH}" --state open --json number --jq 'length')" = "0" ]; then
+  gh pr create --repo "${REPO}" \
+    --base dev \
+    --head "${BRANCH}" \
+    --title "chore: update genui-sdk submodule" \
+    --body "$(cat <<EOF
 ## Summary
 - 将 \`genui-sdk\` submodule 更新至 \`${COMMIT}\`
 
@@ -55,6 +56,7 @@ gh pr create --repo "${REPO}" \
 
 EOF
 )"
+fi
 ```
 
-同名 PR 已存在则跳过 `gh pr create`，只追加 commit。禁止 force。
+禁止 force。

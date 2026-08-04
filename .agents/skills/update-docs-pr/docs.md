@@ -1,13 +1,20 @@
 # 更新 opentiny/docs
 
-从 `dev` 读线上文件，用 Git Data API 在 `${BRANCH}` 上提交并提 PR。
+从分支 tip（已存在则用 `${BRANCH}`，否则 `dev`）读线上文件，用 Git Data API 在 `${BRANCH}` 上提交并提 PR。
 
 ## 读取
 
 ```bash
-gh api "repos/opentiny/docs/contents/genui/package.json?ref=dev"
-gh api "repos/opentiny/docs/contents/.vitepress/config.mts?ref=dev"
-gh api "repos/opentiny/docs/contents/genui/genui-sdk?ref=dev" --jq .sha
+REPO=opentiny/docs
+if gh api "repos/${REPO}/git/ref/heads/${BRANCH}" >/dev/null 2>&1; then
+  REF="${BRANCH}"
+else
+  REF=dev
+fi
+
+gh api "repos/${REPO}/contents/genui/package.json?ref=${REF}"
+gh api "repos/${REPO}/contents/.vitepress/config.mts?ref=${REF}"
+gh api "repos/${REPO}/contents/genui/genui-sdk?ref=${REF}" --jq .sha
 ```
 
 ## 改动规则
@@ -38,10 +45,16 @@ PKG_BLOB=$(gh api "repos/${REPO}/git/blobs" \
 {更新后的 package.json 全文}
 EOF
 )" -f encoding=utf-8 --jq .sha)
-# 有侧栏变更时再建 CFG_BLOB
+
+# 有侧栏变更时再建 CFG_BLOB；无变更则跳过，并从下方 tree 去掉 config.mts 条目
+CFG_BLOB=$(gh api "repos/${REPO}/git/blobs" \
+  -f content="$(cat <<'EOF'
+{更新后的 config.mts 全文}
+EOF
+)" -f encoding=utf-8 --jq .sha)
 
 NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
-  --input - <<EOF
+  --input - --jq '.sha' <<EOF
 {
   "base_tree": "${BASE_TREE}",
   "tree": [
@@ -52,6 +65,12 @@ NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
       "sha": "${PKG_BLOB}"
     },
     {
+      "path": ".vitepress/config.mts",
+      "mode": "100644",
+      "type": "blob",
+      "sha": "${CFG_BLOB}"
+    },
+    {
       "path": "genui/genui-sdk",
       "mode": "160000",
       "type": "commit",
@@ -60,8 +79,7 @@ NEW_TREE=$(gh api "repos/${REPO}/git/trees" \
   ]
 }
 EOF
---jq .sha)
-# 有侧栏时 tree 追加 .vitepress/config.mts → CFG_BLOB
+)
 
 NEW_COMMIT=$(gh api "repos/${REPO}/git/commits" \
   -f "message=chore: update genui-sdk to ${version}" \
@@ -75,11 +93,12 @@ gh api --method POST "repos/${REPO}/git/refs" \
 || gh api --method PATCH "repos/${REPO}/git/refs/heads/${BRANCH}" \
   -f "sha=${NEW_COMMIT}"
 
-gh pr create --repo "${REPO}" \
-  --base dev \
-  --head "${BRANCH}" \
-  --title "chore: update genui-sdk to ${version}" \
-  --body "$(cat <<EOF
+if [ "$(gh pr list --repo "${REPO}" --base dev --head "${BRANCH}" --state open --json number --jq 'length')" = "0" ]; then
+  gh pr create --repo "${REPO}" \
+    --base dev \
+    --head "${BRANCH}" \
+    --title "chore: update genui-sdk to ${version}" \
+    --body "$(cat <<EOF
 ## Summary
 - 将 \`genui/genui-sdk\` submodule 更新至 \`${COMMIT}\`（${version}）
 - 将 genui 相关依赖（非 workspace）各自更新为 npm 最新正式版
@@ -92,6 +111,5 @@ gh pr create --repo "${REPO}" \
 
 EOF
 )"
+fi
 ```
-
-同名 PR 已存在则跳过 `gh pr create`，只追加 commit。

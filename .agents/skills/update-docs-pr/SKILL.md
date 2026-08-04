@@ -20,7 +20,7 @@ description: >-
 
 ## 前置检查
 
-1. **版本号**：如 `1.3.0`（去掉 `v`）。`opentiny.design` 不写版本，只共用 `COMMIT`。
+1. **版本号**：用户提供（如 `1.3.0` / `v1.3.0`），去前导 `v`；须为非空 semver。`opentiny.design` 不写版本，只共用 `COMMIT`。
 2. **鉴权**：`gh auth status`；未登录则提示 `gh auth login` 或提供对两仓有写权限的 token。
 
 ```text
@@ -43,6 +43,12 @@ BRANCH = deploy/update-genui-{version}
 ### Step 1：确定 version 与 COMMIT
 
 ```bash
+version="${version#v}"
+if [ -z "${version}" ] || ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+  echo "version required (semver, e.g. 1.3.0)" >&2
+  exit 1
+fi
+
 if [ -n "${USER_COMMIT}" ]; then
   COMMIT="${USER_COMMIT}"
 else
@@ -51,7 +57,7 @@ fi
 BRANCH="deploy/update-genui-${version}"
 ```
 
-- `version`：主要用于分支名与 PR 文案；docs 里各 genui 依赖分别取各自 npm 最新正式版（见 docs.md）
+- `version`：用户输入并去前导 `v`；用于分支名与 PR 文案；docs 里各 genui 依赖分别取各自 npm 最新正式版（见 docs.md）
 - `COMMIT`：优先用户指定；否则 `main` tip；**两仓共用**；勿再用 tag 覆盖用户指定的 commit
 
 ### Step 2–4
