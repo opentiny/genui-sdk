@@ -17,7 +17,7 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   // 单场景过滤（兼容项）；为空时不过滤
   scenario: undefined,
   // 多场景过滤（优先级高于 scenario）；为空时跑全部内置场景
-  scenarios: ['simple-form'],
+  scenarios: undefined,
   // 每个“模型 × 场景”重复执行次数（最小为 1）
   repeat: 1,
   // 为 true 时额外生成空 system 的「纯文本」对照样本（*_plain.json）；可用 BENCH_COMPARE_EMPTY_SYSTEM=true
@@ -42,7 +42,7 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   // LLM-as-a-Judge 配置（默认关闭，避免报告阶段额外模型调用）
   llmJudge: {
     // 是否启用 Judge 评估
-    enabled: true,
+    enabled: false,
     // Judge 模型 id；为空则复用 model
     model: undefined,
     // 可选 system prompt；为空时使用内置默认规则
