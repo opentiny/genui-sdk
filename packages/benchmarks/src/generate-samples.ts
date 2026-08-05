@@ -72,6 +72,8 @@ async function generateSingleSample(
   promptVariant: 'full' | 'plain',
   streamTimeoutMs: number | undefined,
   wrapperComponent: string,
+  framework: IFrameworkKey,
+  materialsVariant: IMaterialsVariant,
 ): Promise<LlmBenchmarkSample> {
   const start = Date.now();
   let firstTokenAt = 0;
@@ -148,6 +150,8 @@ async function generateSingleSample(
     promptVariant,
     runIndex,
     model,
+    framework,
+    materialsVariant,
     messages: sampleCase.messages,
     output,
     generatedAt: new Date().toISOString(),
@@ -326,6 +330,8 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
         job.promptVariant,
         options.streamTimeoutMs,
         wrapperComponent,
+        framework,
+        materialsVariant,
       );
 
       // 防御式：即使父目录没创建成功或 sampleFile 被拼成多级目录，也能避免 ENOENT。

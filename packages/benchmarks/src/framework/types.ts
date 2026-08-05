@@ -203,6 +203,10 @@ export interface LlmBenchmarkSample {
   promptVariant?: 'full' | 'plain';
   runIndex?: number;
   model: string;
+  /** 生成时使用的框架；缺省时报告阶段回退到运行配置 */
+  framework?: 'Vue' | 'Angular';
+  /** 生成时使用的 materials 档位；缺省时报告阶段回退到运行配置 */
+  materialsVariant?: 'mini' | 'standard';
   messages: LlmBenchmarkMessage[];
   output: string;
   generatedAt: string;

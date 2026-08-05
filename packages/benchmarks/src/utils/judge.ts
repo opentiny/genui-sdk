@@ -42,7 +42,12 @@ export function parseJudgeJson(text: string): ParseJudgeJsonResult {
   if (parsed.score === undefined || parsed.score === null) {
     return { ok: false, code: 'missing_score', preview: truncatePreview(JSON.stringify(parsed)) };
   }
-  if (typeof parsed.score !== 'number' || !Number.isFinite(parsed.score)) {
+  if (
+    typeof parsed.score !== 'number' ||
+    !Number.isFinite(parsed.score) ||
+    parsed.score < 1 ||
+    parsed.score > 10
+  ) {
     return {
       ok: false,
       code: 'invalid_score',

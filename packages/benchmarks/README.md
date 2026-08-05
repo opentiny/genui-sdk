@@ -96,7 +96,7 @@ src/
 在 **本包根目录**（与 `main.ts` 同级）放置 `.env`。可参考 `.env.example`。
 
 - **API Key / Base URL 的环境变量名**由 `maas-models.json`（及你配置的 `BENCH_MAAS_MODELS_PATH`）里各 provider 的 **`apiKeyEnvName`**、**`baseUrlEnvName`** 决定；仓库自带清单里常见为 **`DEEPSEEK_API_KEY`**，可选 **`DEEPSEEK_BASE_URL`** 覆盖默认 `baseUrl`。
-- 须在 `.env` 中设置 **`BENCH_MAAS_MODELS_PATH`** 指向 `maas-models.json`（见上文「`maas-models.json` 路径」）；未设置或仅空白会在枚举模型名或解析模型实例时抛错。
+- **`BENCH_MAAS_MODELS_PATH` 可选**（见上文「`maas-models.json` 路径」）：未设置或仅空白时回退到仓库默认清单；文件不存在时才会报错。
 
 布尔型环境变量：未设置、空字符串或**仅空白**表示「用 `benchmark.config.ts` 默认值」；若去掉首尾空白后非空，则 **`1`**、**`true`**、**`yes`**（后两者**大小写不敏感**）为真，其它非空值（如 `false`、`0`）为假。
 
@@ -118,7 +118,7 @@ src/
 | `BENCH_JSON` | `true` 时控制台输出 JSON；否则表格 + Summary |
 | `BENCH_WRITE_EXCEL` | 是否生成 `report_<runDir>.xlsx`（`runDir` 为本次样本/报告所在子目录名；默认 `true`） |
 | `BENCH_MODELS_FROM_MAAS` | 为真且 **`models` 在 config 中为空** 时，用 `BENCH_MAAS_MODELS_PATH` 清单中的模型名作为多模型列表（config 里 `modelsFromMaasManifest: true` 时不必再设此项） |
-| `BENCH_MAAS_MODELS_PATH` | `maas-models.json`：**绝对路径**，或相对 **benchmarks 包根目录**（与 `main.ts`、`.env` 同级）。**枚举模型名**与 **`resolveAiSdkModelForBench` 解析实例**共用此路径；未设置或仅空白会报错（见 `.env.example`） |
+| `BENCH_MAAS_MODELS_PATH` | `maas-models.json`：**绝对路径**，或相对 **benchmarks 包根目录**（与 `main.ts`、`.env` 同级）。**枚举模型名**与 **`resolveAiSdkModelForBench` 解析实例**共用此路径；未设置或仅空白时使用仓库默认清单（见 `.env.example`） |
 | `BENCH_COMPARE_EMPTY_SYSTEM` | 在**非**「仅 plain」模式下，是否额外生成空 system 对照样本（`*_plain.json`） |
 | `BENCH_PLAIN_ONLY` | 仅生成 plain、不生成 full（常与 `TARGET` 配合向已有 run 补文件） |
 | `BENCH_TARGET_SAMPLE_RUN_DIR` | 样本与报告写入**已有**子目录（相对样本根目录或绝对路径），不再新建北京时间戳目录 |

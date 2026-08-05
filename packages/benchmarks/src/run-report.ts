@@ -203,9 +203,8 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
     if (parsed.ok === false) {
       return { error: formatJudgeParseError(parsed), ...usage };
     }
-    const score = Math.min(10, Math.max(1, parsed.score));
     return {
-      score,
+      score: parsed.score,
       reason: parsed.reason,
       ...usage,
     };
@@ -222,16 +221,20 @@ async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkR
  * 将单个样本转为报告结果项。
  * @param sample 由生成阶段写入的样本对象
  * @param judge Judge 结果（可选）
- * @param componentWhiteList materialsMeta.whiteList，传入 genRootSchema
+ * @param options 运行配置；whiteList 优先按样本上的 framework / materialsVariant 解析
  * @returns 用于汇总/展示的指标结果
  */
 function toReportItem(
   sample: LlmBenchmarkSample,
   judge?: LlmJudgeResult,
-  componentWhiteList?: string[],
+  options?: LlmBenchmarkRunOptions,
 ): LlmBenchmarkResultItem {
+  const materialsMeta = resolveMaterialsMeta(
+    sample.framework ?? options?.framework ?? 'Vue',
+    sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
+  );
   const schemaJsonText = extractSchemaJsonBlock(sample.output);
-  const validation = validateSchemaJson(schemaJsonText, componentWhiteList);
+  const validation = validateSchemaJson(schemaJsonText, materialsMeta.whiteList);
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
   const tpotMs =
     typeof sample.metrics.tpotMs === 'number'
@@ -311,8 +314,6 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
 
   const judgeEnabled = options.llmJudge?.enabled === true;
   const judgeResults: Array<LlmJudgeResult | undefined> = [];
-  const materialsMetaForRun = resolveMaterialsMeta(options.framework ?? 'Vue', options.materialsVariant ?? 'standard');
-  const componentWhiteList = materialsMetaForRun.whiteList;
   if (judgeEnabled) {
     const toJudgeCount = parsedSamples.filter((s) => (s.promptVariant ?? 'full') !== 'plain').length;
     console.log(
@@ -346,7 +347,7 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   }
 
   const results: LlmBenchmarkResultItem[] = parsedSamples.map((sample, index) =>
-    toReportItem(sample, judgeEnabled ? judgeResults[index] : undefined, componentWhiteList),
+    toReportItem(sample, judgeEnabled ? judgeResults[index] : undefined, options),
   );
 
   if (results.length === 0) {
