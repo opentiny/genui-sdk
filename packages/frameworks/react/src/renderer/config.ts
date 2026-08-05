@@ -8,4 +8,5 @@ export const requiredCompleteFieldSelectors = [
   '[type=JSSlot][value=]',
   'type',
   ':empty:object',
+  '[componentName] > props > ref',
 ];

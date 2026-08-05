@@ -47,6 +47,19 @@
               "onClick": {
                 "description": {
                   "zh_CN": "点击事件"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "鼠标事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
@@ -103,6 +116,19 @@
               "onChange": {
                 "description": {
                   "zh_CN": "值变化事件"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "ChangeEvent，可通过 event.target.value 取值"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
@@ -153,6 +179,26 @@
               "onChange": {
                 "description": {
                   "zh_CN": "选中值变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "any",
+                      "description": {
+                        "zh_CN": "当前选中值"
+                      }
+                    },
+                    {
+                      "name": "option",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "当前选中项"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
@@ -391,11 +437,29 @@
               "onOk": {
                 "description": {
                   "zh_CN": "点击确定"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [],
+                  "returns": {}
                 }
               },
               "onCancel": {
                 "description": {
                   "zh_CN": "点击取消或关闭"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "关闭事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             },
@@ -441,6 +505,26 @@
               "onChange": {
                 "description": {
                   "zh_CN": "开关状态变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "checked",
+                      "type": "boolean",
+                      "description": {
+                        "zh_CN": "切换后的选中状态"
+                      }
+                    },
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
@@ -480,6 +564,19 @@
               "onChange": {
                 "description": {
                   "zh_CN": "选中状态变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "ChangeEvent，可通过 event.target.checked 取值"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
@@ -523,6 +620,19 @@
               "onChange": {
                 "description": {
                   "zh_CN": "选中变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "ChangeEvent，可通过 event.target.value / checked 取值"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
@@ -565,6 +675,26 @@
               "onChange": {
                 "description": {
                   "zh_CN": "日期变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "date",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "dayjs 日期对象，未选时为 null"
+                      }
+                    },
+                    {
+                      "name": "dateString",
+                      "type": "string",
+                      "description": {
+                        "zh_CN": "格式化后的日期字符串"
+                      }
+                    }
+                  ],
+                  "returns": {}
                 }
               }
             }
