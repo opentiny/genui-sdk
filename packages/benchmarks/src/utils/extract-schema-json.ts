@@ -7,10 +7,13 @@ import { PatternExtractor } from '@opentiny/genui-sdk-core';
 export function extractSchemaJsonBlock(content: string): string | null {
   if (!content) return null;
   let handled = '';
+  let firstBlockDone = false;
   const extractor = new PatternExtractor({
-    onNormalWrite() {},
+    onNormalWrite() {
+      if (handled.length > 0) firstBlockDone = true;
+    },
     onHandledWrite(chunk) {
-      handled += chunk;
+      if (!firstBlockDone) handled += chunk;
     },
   });
   extractor.handleContent(content);
