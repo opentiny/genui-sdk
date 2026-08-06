@@ -22,8 +22,9 @@ import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
+import { useMaterialsConfig } from './components/materials-tab/materials-options';
 import { useInputMessage } from './hooks/use-input-message';
-import { useIsMobile, useFrameworkConfig } from './hooks';
+import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
 import {
   getOverlapEliminatorHandler,
@@ -60,7 +61,7 @@ const {
   componentLib: cacheComponentLib, 
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-const { framework, componentLib, setFramework, setComponentLib } = useFrameworkConfig({
+const { framework, componentLib, setFramework, setComponentLib } = useMaterialsConfig({
   framework: cacheFramework,
   componentLib: cacheComponentLib,
 });

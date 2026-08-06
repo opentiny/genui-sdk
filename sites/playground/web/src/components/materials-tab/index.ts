@@ -5,4 +5,6 @@ export {
   defaultComponentLib,
   materialThemeOptions,
   materialThemeColorMap,
+  useMaterialsConfig,
+  type MaterialsCache,
 } from './materials-options';
