@@ -104,7 +104,38 @@ import { equipChatCompletions } from '@opentiny/genui-sdk-server';
 import cors from 'cors';
 
 const app = express();
-app.use(cors());
+
+const isProduction = process.env.NODE_ENV === 'production';
+
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (isProduction) return false;
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1');
+  } catch {
+    return false;
+  }
+}
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  }),
+);
 
 // 添加 GenUI 聊天补全端点
 equipChatCompletions(app, {
@@ -367,19 +398,42 @@ const response = await fetch('https://api.openai.com/v1/chat/completions', {
 
 ### CORS 配置
 
-与 Express 集成时，适当配置 CORS:
+与 Express 集成时，使用显式 origin 白名单配置 CORS。开发环境自动放行 `localhost` / `127.0.0.1` 任意端口的 `http` origin；生产环境须在 `ALLOWED_ORIGINS` 中配置正式前端域名，勿使用无选项 `cors()`。
 
 ```typescript
 import cors from 'cors';
 
-// 允许特定来源
-app.use(cors({
-  origin: ['http://localhost:5173', 'https://your-domain.com'],
-  credentials: true,
-}));
+const isProduction = process.env.NODE_ENV === 'production';
 
-// 或仅用于开发
-app.use(cors());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (isProduction) return false;
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return protocol === 'http:' && (hostname === 'localhost' || hostname === '127.0.0.1');
+  } catch {
+    return false;
+  }
+}
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  }),
+);
 ```
 
 ### 速率限制
@@ -407,6 +461,7 @@ app.use('/chat/completions', limiter);
 # .env.production
 BASE_URL=https://api.openai.com/v1
 API_KEY=your-production-api-key
+ALLOWED_ORIGINS=https://your-domain.com
 PORT=3100
 NODE_ENV=production
 ```
@@ -464,9 +519,9 @@ CMD ["npx", "genui-sdk-server"]
 **问题**: 浏览器因 CORS 错误阻止请求
 
 **解决方案**:
-1. 向你的 Express 应用添加 CORS 中间件
-2. 配置 allowed origins properly
-3. 对于开发，你可以使用无选项的 `cors()`
+1. 添加 CORS 中间件并配置显式 allowed origins（见上文 CORS 配置示例）
+2. 生产环境确认 `ALLOWED_ORIGINS` 包含前端域名，且浏览器请求的 `Origin` 在白名单中
+3. 开发环境 `localhost` / `127.0.0.1` 任意端口自动放行，勿使用无选项 `cors()`
 
 ### 流式不工作
 
