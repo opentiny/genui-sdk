@@ -140,6 +140,18 @@ export const enThemeConfig: DefaultTheme.Config = {
           },
         ],
       },
+      {
+        text: 'React Examples',
+        items: [
+          {
+            text: 'Renderer',
+            items: [
+              { text: 'Custom Actions', link: '/en/examples/react/renderer/custom-actions' },
+              { text: 'Merged State', link: '/en/examples/react/renderer/state' },
+            ],
+          },
+        ],
+      },
     ],
   },
 };

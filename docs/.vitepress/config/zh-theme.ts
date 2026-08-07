@@ -136,6 +136,18 @@ export const zhThemeConfig: DefaultTheme.Config = {
           },
         ],
       },
+      {
+        text: 'React 组件特性示例',
+        items: [
+          {
+            text: 'Renderer 组件',
+            items: [
+              { text: '自定义 Actions', link: '/examples/react/renderer/custom-actions' },
+              { text: '传递合并 State', link: '/examples/react/renderer/state' },
+            ],
+          },
+        ],
+      },
     ],
   },
 };
