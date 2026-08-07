@@ -28,6 +28,13 @@ export const zhThemeConfig: DefaultTheme.Config = {
         ],
       },
       {
+        text: 'GenUI SDK React 指引',
+        items: [
+          { text: '安装与配置', link: '/guide/react/install' },
+          { text: '使用 Renderer 组件', link: '/guide/react/start-with-renderer' },
+        ],
+      },
+      {
         text: 'GenUI SDK Server 指引',
         items: [{ text: 'Server 包使用文档', link: '/guide/server-usage' }],
       },
@@ -46,6 +53,13 @@ export const zhThemeConfig: DefaultTheme.Config = {
         items: [{ text: 'GenuiRenderer', link: '/components/angular/renderer' }],
       },
       {
+        text: 'React 组件文档',
+        items: [
+          { text: 'GenuiRenderer', link: '/components/react/renderer' },
+          { text: 'GenuiConfigProvider', link: '/components/react/config-provider' },
+        ],
+      },
+      {
         text: 'Server 库文档',
         items: [
           { text: 'API 参考', link: '/components/server/api' },
@@ -62,6 +76,7 @@ export const zhThemeConfig: DefaultTheme.Config = {
           { text: 'Vue OpenTiny Vue', link: '/components/materials/vue-opentiny-vue' },
           { text: 'Vue Element Plus', link: '/components/materials/vue-element-plus' },
           { text: 'Angular OpenTiny NG', link: '/components/materials/angular-opentiny-ng' },
+          { text: 'React Ant Design', link: '/components/materials/react-antd' },
         ],
       },
     ],
