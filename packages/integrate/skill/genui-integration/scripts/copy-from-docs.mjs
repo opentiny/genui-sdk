@@ -12,6 +12,7 @@ const examplesTarget = path.join(skillRoot, 'examples');
 
 const docsMaterials = path.join(docsRoot, 'components/materials');
 const materialsTarget = path.join(skillRoot, 'references/materials');
+const MATERIALS_PRESERVED = new Set(['index.md']);
 
 async function assertDirExists(dir, label) {
   const info = await stat(dir);
@@ -45,11 +46,29 @@ try {
 console.log(`Copied examples from ${docsExamples} to ${examplesTarget}`);
 
 await assertDirExists(docsMaterials, 'docs materials');
-await mkdir(materialsTarget, { recursive: true });
+
+const materialsTmp = path.join(skillRoot, 'references/materials.__build_tmp__');
+await rm(materialsTmp, { recursive: true, force: true });
+await mkdir(materialsTmp, { recursive: true });
+
 const materialFiles = (await readdir(docsMaterials)).filter((file) => file.endsWith('.md'));
 for (const file of materialFiles) {
-  const source = path.join(docsMaterials, file);
-  const content = rewriteMaterialLinks(await readFile(source, 'utf8'));
-  await writeFile(path.join(materialsTarget, file), content);
+  const content = rewriteMaterialLinks(await readFile(path.join(docsMaterials, file), 'utf8'));
+  await writeFile(path.join(materialsTmp, file), content);
 }
+
+try {
+  await mkdir(materialsTarget, { recursive: true });
+  for (const file of await readdir(materialsTarget)) {
+    if (!MATERIALS_PRESERVED.has(file)) {
+      await rm(path.join(materialsTarget, file), { recursive: true, force: true });
+    }
+  }
+  for (const file of materialFiles) {
+    await cp(path.join(materialsTmp, file), path.join(materialsTarget, file));
+  }
+} finally {
+  await rm(materialsTmp, { recursive: true, force: true });
+}
+
 console.log(`Copied ${materialFiles.length} material docs from ${docsMaterials} to ${materialsTarget}`);

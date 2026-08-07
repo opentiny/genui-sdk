@@ -1,6 +1,6 @@
 ---
 name: genui-integration
-description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk 或想构建 AI 聊天界面、动态 UI 组件时使用。涵盖主题切换、物料配置（官方物料、Element Plus、miniMaterials、Legacy）、GenuiChat/GenuiRenderer、服务端设置。适用于 Vue/Angular 项目，即使用户只描述需求（如"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
+description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk、genui-sdk-server，或想构建 AI 聊天界面、动态 UI 组件、Node.js 后端 LLM 代理（OpenAI 兼容 chat/completions API）时使用。涵盖 Vue/Angular 前端（主题、物料、GenuiChat/GenuiRenderer）与 Server 后端（CLI、Express 集成、流式代理）。即使用户只描述需求（如"搭建 LLM 代理服务"、"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
 ---
 
 # GenUI SDK 集成指南
@@ -54,7 +54,7 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 - **TinyVue 配置**：如果用户询问 TinyVue 组件库配置：
   1. 说明 TinyVue 是 GenUI SDK 的物料系统的一部分
-  2. 引导查看 `references/vue.md` 的物料配置部分
+  2. 引导查看 `references/materials/index.md` 及 [快速开始 - 物料与主题](https://docs.opentiny.design/genui-sdk/guide/quick-start#通过-genuiconfigprovider-配置物料与主题)
   3. 提供 `GenuiConfigProvider` 的使用示例
 
 - **主题切换**：如果用户询问深色模式或主题：
@@ -127,12 +127,12 @@ GenUI SDK 使用服务器发送事件（SSE）和 OpenAI 兼容格式。LLM 在�
 ### 模式 1：GenuiChat（仅 Vue，推荐快速开始）
 - **适用场景**：快速构建完整的聊天界面
 - **特点**：开箱即用，包含会话管理、流式传输、生成状态
-- **详细指南**：见 `references/vue.md` 的"集成模式 1"部分
+- **详细指南**：见 `references/vue.md` 模式 1 概况，操作步骤见 [快速开始](https://docs.opentiny.design/genui-sdk/guide/quick-start)
 
 ### 模式 2：GenuiRenderer（Vue 和 Angular，自定义 UI）
 - **适用场景**：构建自定义聊天界面或与现有 UI 集成
 - **特点**：更灵活的控制，需要自己处理流式数据
-- **详细指南**：见 `references/vue.md` 或 `references/angular.md` 的"集成模式 2"部分
+- **详细指南**：见 `references/vue.md` 或 `references/angular.md` 模式 2 概况；Vue 见 [使用 Renderer 组件](https://docs.opentiny.design/genui-sdk/guide/start-with-renderer)，Angular 见 [Angular Renderer 指南](https://docs.opentiny.design/genui-sdk/guide/angular/start-with-renderer)
 
 ### 模式 3：Server 集成
 - **适用场景**：代理 LLM 调用的后端服务
