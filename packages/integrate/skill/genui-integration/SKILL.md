@@ -72,6 +72,11 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
   2. 引导查看 `references/angular.md` 的 `openAllowedPage` 模式（origin 白名单 + 协议校验）
   3. 跨域或 `_blank` 须使用 `noopener,noreferrer`，拒绝未授权目标
 
+- **Legacy 迁移**：如果用户从 v1.3.0 前版本升级、希望零配置快速迁移：
+  1. 引导使用 `GenuiLegacyChat`（Vue）或 `GenuiLegacyRenderer`（Vue/Angular）
+  2. 说明内置默认物料，无需 `GenuiConfigProvider`
+  3. 新项目仍应使用当前版组件 + 官方物料包，见 `references/vue.md` 或 `references/angular.md` 兼容组件章节
+
 - **Element Plus 用户**：如果项目已使用 Element Plus 而非 OpenTiny Vue：
   1. 说明可使用 `@opentiny/genui-sdk-materials-vue-element-plus` 替代官方物料
   2. 引导查看 `references/materials/vue-element-plus.md`
@@ -90,7 +95,7 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 ### 物料（Materials）
 
-GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。物料定义 JSON schema 如何渲染为实际的 UI 组件。你必须通过 `GenuiConfigProvider` 注入物料。
+GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。使用当前版 **GenuiChat** / **GenuiRenderer**（v1.3.0+）时，须通过 `GenuiConfigProvider` 注入物料。**Legacy 兼容组件**（`GenuiLegacyChat` / `GenuiLegacyRenderer`）内置默认物料，无需 ConfigProvider，见各参考文件「兼容组件」章节。
 
 官方物料（默认推荐）：
 - Vue：`@opentiny/genui-sdk-materials-vue-opentiny-vue`
@@ -109,7 +114,7 @@ GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。物料定义
 
 **GenuiRenderer**：核心渲染器组件，将 JSON schema 转换为 UI。Vue 和 Angular 都可用。当你需要更多控制 UI 或想要构建自定义聊天界面时使用。
 
-**GenuiConfigProvider**：配置提供者，注入物料和主题。所有集成都需要。
+**GenuiConfigProvider**：配置提供者，注入物料和主题。当前版 GenuiChat / GenuiRenderer 集成需要；Legacy 兼容路径可省略。
 
 ### 流式协议
 
@@ -138,7 +143,7 @@ GenUI SDK 使用服务器发送事件（SSE）和 OpenAI 兼容格式。LLM 在�
 
 ### 主题配置
 
-所有集成都支持通过 `GenuiConfigProvider` 配置主题：
+GenuiChat / GenuiRenderer 集成通过 `GenuiConfigProvider` 配置主题：
 - `'dark'` - 深色主题
 - `'lite'` - 清新主题
 - `'light'` - 浅色主题（默认）
@@ -167,6 +172,6 @@ SDK 支持扩展：
 记住要：
 - 解释**为什么**需要某些配置，而不仅仅是做什么
 - 提供何时使用不同模式的上下文
-- 强调常见陷阱（如忘记注入物料）
+- 强调常见陷阱（如当前版集成忘记注入物料；Legacy 路径则无需 ConfigProvider）
 - 主动提供帮助以满足特定定制需求
 - 引导用户查看 `examples/` 目录获取更多示例

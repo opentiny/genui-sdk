@@ -38,6 +38,23 @@ pnpm add @opentiny/genui-sdk-server
 yarn add @opentiny/genui-sdk-server
 ```
 
+### Express 集成依赖
+
+使用模式 3（Express 集成）及下文速率限制示例时，需额外安装：
+
+```bash
+# npm
+npm install express cors express-rate-limit
+
+# pnpm
+pnpm add express cors express-rate-limit
+
+# yarn
+yarn add express cors express-rate-limit
+```
+
+> `express`、`cors` 用于 Express 集成与 CORS 配置；`express-rate-limit` 用于速率限制示例。
+
 ## 配置
 
 ### 环境变量
@@ -441,7 +458,7 @@ app.use(
 
 ### 速率限制
 
-考虑添加速率限制以防止滥用:
+考虑添加速率限制以防止滥用。需先安装 `express-rate-limit`（见上方 Express 集成依赖）。
 
 ```typescript
 import rateLimit from 'express-rate-limit';
@@ -468,6 +485,23 @@ ALLOWED_ORIGINS=https://your-domain.com
 PORT=3100
 NODE_ENV=production
 ```
+
+### 示例 package.json（Express 集成）
+
+Express 集成部署时，`package.json` 需声明运行时依赖，Docker 的 `npm install` 才能安装速率限制等模块：
+
+```json
+{
+  "dependencies": {
+    "@opentiny/genui-sdk-server": "^1.0.0",
+    "express": "^4.21.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.5.0"
+  }
+}
+```
+
+CLI 模式（`npx genui-sdk-server`）仅需 `@opentiny/genui-sdk-server`；下方 Dockerfile 适用于 CLI 快速部署。
 
 ### Docker 部署
 
