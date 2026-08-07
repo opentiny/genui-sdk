@@ -67,6 +67,11 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
   2. 引导查看 `examples/` 目录的自定义组件示例
   3. 提供前后端联动的完整流程
 
+- **openPage / 页面跳转**：如果用户实现导航类自定义动作：
+  1. 说明 LLM 控制的 URL 不可信，不可直接 `window.open(params.url)`
+  2. 引导查看 `references/angular.md` 的 `openAllowedPage` 模式（origin 白名单 + 协议校验）
+  3. 跨域或 `_blank` 须使用 `noopener,noreferrer`，拒绝未授权目标
+
 - **Element Plus 用户**：如果项目已使用 Element Plus 而非 OpenTiny Vue：
   1. 说明可使用 `@opentiny/genui-sdk-materials-vue-element-plus` 替代官方物料
   2. 引导查看 `references/materials/vue-element-plus.md`
@@ -145,7 +150,7 @@ GenUI SDK 使用服务器发送事件（SSE）和 OpenAI 兼容格式。LLM 在�
 
 SDK 支持扩展：
 - **自定义组件**：让 AI 使用你的业务组件
-- **自定义动作**：定义 AI 可以触发的交互
+- **自定义动作**：定义 AI 可以触发的交互（导航类 action 如 openPage 须做 URL 白名单校验）
 
 详细配置和示例见 `examples/` 目录下的相关文档。
 

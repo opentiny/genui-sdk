@@ -307,6 +307,8 @@ const customActions = [
 ];
 ```
 
+**安全提示（openPage）**：服务端 `customActions` metadata 只描述 action 能力，**不能**替代前端校验。LLM 传入的 URL 不可信，前端 `execute` 必须校验协议（仅 `http`/`https`）与 origin（同源或白名单），跨域或 `_blank` 导航使用 `noopener,noreferrer`，拒绝未授权目标。实现参考 `references/angular.md` 中的 `openAllowedPage`。建议在 `description` 中明确可导航范围，降低模型生成越权 URL 的概率。
+
 ### 完整请求示例
 
 ```javascript

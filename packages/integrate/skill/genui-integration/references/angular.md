@@ -357,9 +357,43 @@ export class GenuiExample {
 
 ## Custom Actions
 
-Define actions that can be triggered from the generated UI:
+Define actions that can be triggered from the generated UI. LLM-controlled URLs are untrusted — configure an origin allowlist before opening links.
 
 ```typescript
+const ALLOWED_NAVIGATION_ORIGINS = [
+  'https://opentiny.design',
+  'https://docs.opentiny.design',
+];
+
+function resolveAllowedNavigationUrl(rawUrl: unknown): URL | null {
+  if (typeof rawUrl !== 'string' || !rawUrl.trim()) return null;
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl, window.location.origin);
+  } catch {
+    return null;
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol)) return null;
+  const sameOrigin = parsed.origin === window.location.origin;
+  const allowlisted = ALLOWED_NAVIGATION_ORIGINS.includes(parsed.origin);
+  return sameOrigin || allowlisted ? parsed : null;
+}
+
+function openAllowedPage(rawUrl: unknown, rawTarget: unknown = '_self'): void {
+  const url = resolveAllowedNavigationUrl(rawUrl);
+  if (!url) {
+    console.warn('[openPage] blocked disallowed navigation target:', rawUrl);
+    return;
+  }
+  const target = rawTarget === '_blank' ? '_blank' : '_self';
+  const crossOrigin = url.origin !== window.location.origin;
+  if (target === '_blank' || crossOrigin) {
+    window.open(url.href, '_blank', 'noopener,noreferrer');
+    return;
+  }
+  window.location.assign(url.href);
+}
+
 import { Component } from '@angular/core';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
@@ -381,8 +415,8 @@ export class GenuiExample {
   
   customActions = {
     'openPage': {
-      execute: (params: any, context: any) => {
-        window.open(params.url, params.target || '_self');
+      execute: (params: { url?: string; target?: string }) => {
+        openAllowedPage(params.url, params.target);
       },
     },
     'showNotification': {
