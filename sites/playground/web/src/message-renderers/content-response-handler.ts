@@ -20,7 +20,7 @@ const cardTypeMap: Record<string, string> = {
   Vue: 'schema-card',
 };
 
-function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMessage: IChatMessage, framework: string, componentLib: string) {
+function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMessage: IChatMessage, framework: string) {
   const currentSchemaType = cardTypeMap[framework] ?? 'schema-card';
   if (
     chatMessage.messages.length > 0 &&
@@ -33,21 +33,19 @@ function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMess
       content: content,
       id: uuidv4(),
       framework,
-      componentLib,
     });
   }
   emitNotification(delta, chatMessage);
 }
 
-export function getMixedContentHandler(contentHandler, framework: Readonly<Ref<string>>, componentLib: Readonly<Ref<string>>) {
+export function getMixedContentHandler(contentHandler, framework: Readonly<Ref<string>>) {
   return {
     ...contentHandler,
     start: (context, handlers) => {
       context.framework = framework.value;
-      context.componentLib = componentLib.value;
       contentHandler.start(context, handlers);
       context.patternExtractor.onHandledWrite = (value) =>
-        onSchemaJsonForFramework(value, context.delta, context.chatMessage, context.framework, context.componentLib);
+        onSchemaJsonForFramework(value, context.delta, context.chatMessage, context.framework);
     },
   };
 }

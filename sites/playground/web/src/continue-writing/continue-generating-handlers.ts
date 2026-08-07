@@ -4,7 +4,7 @@ import { removeSensitiveInfoWarning } from "./remove-sensitive-info-warning";
 import type { IStreamData, IStreamDelta } from "@opentiny/genui-sdk-core";
 
 function isSchemaCardType(type?: string) {
-  return type === 'schema-card' || type === 'schema-card-angular';
+  return type.startsWith('schema-card');
 }
 
 const getStreamDelta = (data: IStreamData): IStreamDelta => {

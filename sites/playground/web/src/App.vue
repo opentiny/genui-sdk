@@ -225,7 +225,7 @@ watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
     const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
-    const newContentHandler = getMixedContentHandler(contentHandler, framework, componentLib);
+    const newContentHandler = getMixedContentHandler(contentHandler, framework);
     replaceHandlers(defaultResponseHandlers, [
       newContentHandler,
     ], 'content');
