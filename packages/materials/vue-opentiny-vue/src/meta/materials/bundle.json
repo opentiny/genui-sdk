@@ -2355,6 +2355,27 @@
                       "zh_CN": "表单验证规则"
                     },
                     "labelPosition": "top"
+                  },
+                  {
+                    "property": "validateOnRuleChange",
+                    "label": {
+                      "text": {
+                        "zh_CN": "校验规则变化时触发校验"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "校验规则变化时触发校验"
+                    },
+                    "labelPosition": "top",
+                    "defaultValue": false
                   }
                 ],
                 "description": {
@@ -3266,6 +3287,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "I18nConfigurator",
@@ -3704,6 +3726,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -3900,6 +3923,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "description": {
                       "zh_CN": "单选框组的绑定值"
                     }
@@ -4103,6 +4127,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -4526,6 +4551,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": false,
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -4700,6 +4726,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -4967,6 +4994,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": false,
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -5220,6 +5248,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": false,
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -5402,6 +5431,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": [],
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -7812,6 +7842,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -9452,6 +9483,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "I18nConfigurator",
@@ -10284,6 +10316,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": [],
                     "widget": {
                       "component": "I18nConfigurator",
                       "props": {}
