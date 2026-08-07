@@ -46,8 +46,8 @@
     "access": "public"
   },
   "scripts": {
+    "prebuild": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-react build",
     "build": "vite build",
-    "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-react build",
     "build:lib:npm": "pnpm build",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
