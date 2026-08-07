@@ -39,7 +39,7 @@
     "@opentiny/vue-card": "~3.31.0",
     "@opentiny/vue-carousel": "~3.31.0",
     "@opentiny/vue-carousel-item": "~3.31.0",
-    "@opentiny/vue-huicharts-line": "3.28.0",
+    "@opentiny/vue-huicharts-line": "~3.31.0",
     "@opentiny/vue-huicharts-histogram": "~3.31.0",
     "@opentiny/vue-huicharts-bar": "~3.31.0",
     "@opentiny/vue-huicharts-radar": "~3.31.0",
