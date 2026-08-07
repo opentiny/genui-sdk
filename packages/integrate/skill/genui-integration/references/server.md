@@ -380,6 +380,9 @@ const requestParams = {
 // ✅ 好 - 服务器处理 API 密钥
 const response = await fetch('https://your-server.com/chat/completions', {
   method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
   body: JSON.stringify({
     messages: [...],
     model: 'deepseek-v3.2',
