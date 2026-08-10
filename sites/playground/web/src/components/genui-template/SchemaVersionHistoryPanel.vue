@@ -4,6 +4,7 @@ import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
 import type { PlaygroundColorTheme } from './composables/use-monaco-playground-theme';
 import { useTemplateContext } from './composables';
+import chevronDownIcon from '../../assets/images/chevron-down.svg';
 import { t } from '../../i18n';
 
 const props = defineProps<{
@@ -68,23 +69,15 @@ const toggleGroup = (label: string) => {
               :aria-expanded="!isGroupCollapsed(group.label)"
               @click="toggleGroup(group.label)"
             >
-              <svg
+              <img
                 class="schema-version-history-panel__section-chevron"
                 :class="{ 'is-collapsed': isGroupCollapsed(group.label) }"
+                :src="chevronDownIcon"
+                alt=""
                 width="10"
                 height="10"
-                viewBox="0 0 10 10"
                 aria-hidden="true"
-              >
-                <path
-                  d="M2 3.5L5 6.5L8 3.5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+              />
               <span class="schema-version-history-panel__section-label">{{ group.label }}</span>
             </button>
             <div
@@ -96,7 +89,7 @@ const toggleGroup = (label: string) => {
                 :key="entry.cardId"
                 type="button"
                 class="schema-version-history-panel__item"
-                :class="{ 'is-active': entry.isCurrent, 'is-pending': entry.isPending }"
+                :class="{ 'is-pending': entry.isPending }"
                 @click="actions.handleHistoryEntrySelect(entry)"
               >
                 <div class="schema-version-history-panel__item-main">
@@ -144,10 +137,6 @@ const toggleGroup = (label: string) => {
       &:hover {
         background: rgba(255, 255, 255, 0.06);
       }
-    }
-
-    .schema-version-history-panel__section-chevron {
-      color: #8c8c8c;
     }
 
     .schema-version-history-panel__item {
@@ -237,7 +226,6 @@ const toggleGroup = (label: string) => {
   &__section-chevron {
     flex-shrink: 0;
     display: block;
-    color: #8c8c8c;
     transition: transform 0.15s ease;
 
     &.is-collapsed {

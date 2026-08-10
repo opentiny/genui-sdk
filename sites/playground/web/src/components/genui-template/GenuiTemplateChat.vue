@@ -18,8 +18,13 @@ import type {
 } from './chat.types';
 import {
   finalizePendingSchemaCard,
+  findLatestPendingSchemaCard,
+  findSchemaCardByCardId,
+  generateIdForComponents,
   getLastUserMessage,
   isManualSchemaSaveMessage,
+  resolveJsonPatchApplyFailed,
+  setJsonPatchApplyResult,
 } from './template-chat-utils';
 import { generateId } from '../../utils';
 import { useTemplateContext } from './composables';
@@ -41,7 +46,6 @@ const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter, actions } = useTemplateContext();
 const {
-  errorMessagesMap,
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
 } = stream;
@@ -251,20 +255,32 @@ const handleSendMessage = async () => {
   scrollToBottom();
 };
 
-const finalizeStreamingSchemaCard = () => {
+const handleNotification = (event: INotificationPayload) => {
+  if (event.type !== 'done') {
+    return;
+  }
+
+  const cardId =
+    schema.currentCardId
+    || findLatestPendingSchemaCard(messages.value)?.cardId
+    || '';
+  const card = cardId ? findSchemaCardByCardId(messages.value, cardId) : null;
+  let applyFailed = false;
+  if (card?.type === 'json-patch') {
+    applyFailed = resolveJsonPatchApplyFailed(card, messages.value);
+    setJsonPatchApplyResult(applyFailed ? 'failed' : 'success', messages.value, cardId);
+  }
+  const preview = schema.currentPreviewSchema;
+  if (preview && !applyFailed) {
+    generateIdForComponents(preview);
+  }
+  schema.setCurrentSchema(preview);
   finalizePendingSchemaCard(messages.value, {
-    cardId: schema.currentCardId,
-    schema: schema.currentPreviewSchema ?? schema.currentSchema,
+    cardId: cardId || undefined,
+    ...(applyFailed || !preview ? {} : { schema: preview }),
     prevSchema: prevSchema.value || '',
   });
-};
-
-const handleNotification = (event: INotificationPayload) => {
-  if (event.type === 'done') {
-    schema.setCurrentSchema(schema.currentPreviewSchema);
-    finalizeStreamingSchemaCard();
-    conversation.updateConversationLastSchema(schema.currentSchema);
-  }
+  conversation.updateConversationLastSchema(schema.currentSchema);
 };
 
 watch(() => messages.value, throttledScrollToBottom, { deep: true });
@@ -314,7 +330,7 @@ onUnmounted(() => {
         :clearable="true"
         :loading="isProcessing"
         :show-word-limit="true"
-        :max-length="5000"
+        :max-length="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="messageManager?.abortRequest()"

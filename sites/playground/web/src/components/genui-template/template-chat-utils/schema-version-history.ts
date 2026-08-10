@@ -35,7 +35,6 @@ export interface ISchemaVersionHistoryEntry {
   authorLabel: string;
   authorType: 'user' | 'ai';
   isLatest: boolean;
-  isCurrent: boolean;
   isPending: boolean;
   cardMessage: ISchemaCardLikeMessage;
 }
@@ -221,7 +220,7 @@ function buildAuthor(card: ISchemaCardLikeMessage): { authorLabel: string; autho
 
 export function collectSchemaVersionHistory(
   messages: ChatMessage[] | undefined,
-  options: { currentCardId?: string; latestCardId?: string } = {},
+  options: { latestCardId?: string } = {},
 ): ISchemaVersionHistoryEntry[] {
   if (!messages?.length) {
     return [];
@@ -246,7 +245,7 @@ export function collectSchemaVersionHistory(
       if (isManualCard) {
         const manualCard = item as ISchemaManualMessageItem;
         const edits = getManualEdits(manualCard);
-        edits.forEach((edit, editIndex) => {
+        edits.forEach((edit) => {
           const isPending = !edit.generatedTime?.trim();
           const snapshot = manualEditToCardSnapshot(manualCard, edit);
           if (!isPending && !isSchemaVersionHistoryCollectible(snapshot, messages)) {
@@ -254,7 +253,6 @@ export function collectSchemaVersionHistory(
           }
           const createdAtMs = parseGeneratedTimeMs(edit.generatedTime);
           const { authorLabel, authorType } = buildAuthor(manualCard);
-          const isLastEdit = editIndex === edits.length - 1;
 
           entries.push({
             cardId: edit.editId,
@@ -270,9 +268,6 @@ export function collectSchemaVersionHistory(
             authorLabel,
             authorType,
             isLatest: false,
-            isCurrent:
-              options.currentCardId === edit.editId
-              || (options.currentCardId === manualCard.cardId && isLastEdit),
             isPending,
             cardMessage: snapshot,
           });
@@ -301,7 +296,6 @@ export function collectSchemaVersionHistory(
         authorLabel,
         authorType,
         isLatest: false,
-        isCurrent: item.cardId === options.currentCardId,
         isPending,
         cardMessage: item,
       });

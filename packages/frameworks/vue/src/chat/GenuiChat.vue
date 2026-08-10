@@ -474,7 +474,7 @@ defineExpose({
         :button-group="buttonGroup"
         :loading="isProcessing"
         :show-word-limit="true"
-        :max-length="1000"
+        :max-length="20000"
         v-model:template-data="templateData"
         @files-selected="(files) => handleFilesSelected(files, inputMessage)"
         @update:template-data="handleTemplateDataUpdate"

@@ -10,7 +10,6 @@ const props = defineProps<{
   itemProps: any;
   type: 'json-patch' | 'schema-card' | 'schema-manual';
   prevSchema: string;
-  errorMessagesMap: Map<string, string>;
 }>();
 
 const { isMobile } = useIsMobile();
@@ -49,7 +48,6 @@ const handleSchemaVersionCardClick = (cardId: string) => {
     v-else
     :key="itemProps?.cardId"
     :type="type"
-    :error-messages-map="errorMessagesMap"
     v-bind="schemaVersionCardProps"
     @card-select="handleSchemaVersionCardClick"
   />
