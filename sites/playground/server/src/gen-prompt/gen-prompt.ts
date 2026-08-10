@@ -54,7 +54,7 @@ export function genPlaygroundPrompt(
   const { framework, promptVariant, componentLib } = materialConfig;
   const variant = promptVariant || 'standard';
   const libKey = componentLib as IComponentLibKey;
-   const antiContaminationRule = [
+  const antiContaminationRule = [
     `本次对话当前使用的组件库是 ${libKey}，历史消息中可能包含基于其他组件库生成的 schema，请以当前提供的可用组件列表为准，不要参考历史消息中的 componentName`,
   ]; 
 
