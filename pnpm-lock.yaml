@@ -1059,13 +1059,13 @@ importers:
         specifier: ^3.28.0
         version: 3.31.0
       '@opentiny/vue-icon':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.3
       '@opentiny/vue-renderless':
-        specifier: ~3.28.2
+        specifier: ^3.28.2
         version: 3.28.2(patch_hash=eb3ac6e181df6a7b1b1d12df90f8c6775eeab5e34da8d6c96016768645b502fd)
       '@opentiny/vue-theme':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.0
       ai:
         specifier: 6.0.116
