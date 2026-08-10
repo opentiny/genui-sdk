@@ -19,6 +19,8 @@
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*"
   },
   "devDependencies": {
+    "vite-jsconfig-paths": "^2.0.1",
+    "vite-plugin-node-polyfills": "^0.24.0",
     "vitepress": "^1.6.3",
     "vitepress-demo-plugin": "^1.4.1",
     "vitepress-plugin-tabs": "^0.7.3"

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@opentiny/genui-sdk-vue": ["../packages/frameworks/vue/src/index.ts"],
+      "@opentiny/genui-sdk-core": ["../packages/core/src/index.ts"],
+      "@opentiny/tiny-schema-renderer": ["../projects/tiny-schema-renderer/index.js"],
+      "@opentiny/genui-sdk-materials-vue-opentiny-vue/materials": [
+        "../packages/materials/vue-opentiny-vue/src/materials/index.ts"
+      ]
+    }
+  },
+  "include": [".vitepress/**/*", "demos/**/*", "src/**/*", "../packages/**/*", "../projects/**/*"]
+}
