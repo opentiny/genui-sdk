@@ -2,10 +2,27 @@
 
 本指南涵盖将 GenUI SDK 集成到 Angular 项目中的选型与 skill 增量说明。安装与逐步操作见在线文档。
 
+## 支持的 Angular 版本
+
+- **官方支持范围**：Angular **20.3.x**（与 `@opentiny/genui-sdk-angular` peer 依赖 `^20.3.0` 一致）
+- **Angular 21+**：peer 依赖尚未覆盖该主版本；若强行升级，官方物料与 schema renderer 均未验证 zoneless / 原生动画路径，**不推荐**
+
 ## 安装与配置
 
-- **概况**：安装 `@opentiny/genui-sdk-angular` 与官方物料包；引入 `@opentiny/ng-themes` 样式；配置 `zone.js`、`provideZoneChangeDetection()` 与 `provideAnimations()`；通过 `GenuiConfigProvider` 注入 `materials`。
+- **SDK 包**：安装 `@opentiny/genui-sdk-angular` 与官方物料包 `@opentiny/genui-sdk-materials-angular-opentiny-ng`；引入 `@opentiny/ng-themes` 样式；通过 `GenuiConfigProvider` 注入 `materials`
+- **运行时前置（使用官方 OpenTiny NG 物料时）**：`zone.js`、`provideZoneChangeDetection()`、`provideAnimations()` — 归因于 `@opentiny/ng` 物料库，而非 Angular 集成的通用要求
 - **详细步骤**：[安装与配置](https://docs.opentiny.design/genui-sdk/guide/angular/install)
+
+## Angular 21+ 说明
+
+Angular 21 起框架推荐 zoneless 变更检测，并以 `animate.enter` / `animate.leave` 逐步替代 legacy `@angular/animations`。**当前 GenUI 官方集成路径不支持该方案**：
+
+- 官方物料 `@opentiny/ng` 仍依赖 Zone.js 与 legacy `provideAnimations()`
+- schema renderer 流式更新通过 `NgZone.run()` 触发变更检测，zoneless 路径未验证
+
+在 `@opentiny/ng` 完成 zoneless / 原生动画迁移前，即使项目使用 Angular 21，也应继续按 [安装文档](https://docs.opentiny.design/genui-sdk/guide/angular/install) 的 legacy 配置（Zone.js + `provideAnimations()`）。**不要**用 `animate.enter` / `animate.leave` 或 zoneless provider 替代当前物料所需的 legacy 动画与变更检测 setup。
+
+若使用自定义物料且完全不依赖 `@opentiny/ng`，Zone / Animation 要求可能减轻；但 GenUI renderer 的流式更新路径在 zoneless 下仍为**实验性、非官方支持**。
 
 ## 集成：GenuiRenderer
 
@@ -92,10 +109,10 @@ v1.3.0 起须通过 `GenuiConfigProvider` 注入物料；从更早版本升级�
 ## 与 Vue 的主要区别
 
 1. **No GenuiChat**: Angular currently only has `GenuiRenderer`, not the integrated `GenuiChat` component
-2. **Zone.js Required**: Angular integration requires Zone.js for change detection
-3. **Animations Required**: Must provide `provideAnimations()` in app config
+2. **Zone.js（官方物料）**: 使用官方 OpenTiny NG 物料时需要 Zone.js 变更检测
+3. **Animations（官方物料）**: 使用官方物料时须在 app config 中提供 legacy `provideAnimations()`
 4. **Metadata for Framework**: When making requests, include `metadata.tinygenui` with `framework: 'Angular'` to get Angular-compatible schemas
-5. **Standalone Components**: Uses Angular's standalone component pattern (Angular 14+)
+5. **Standalone Components**: 使用 Standalone 组件模式；目标 Angular **20.3.x**
 
 ## 常见问题
 
@@ -115,6 +132,8 @@ v1.3.0 起须通过 `GenuiConfigProvider` 注入物料；从更早版本升级�
 
 **问题**: UI 在流式传输期间不更新
 
+**适用范围**：以下排查针对**使用官方 OpenTiny NG 物料**的场景。
+
 **解决方案**: 
 1. Make sure Zone.js is installed and configured in `angular.json`
 2. Ensure `provideZoneChangeDetection()` is in your app config
@@ -124,7 +143,9 @@ v1.3.0 起须通过 `GenuiConfigProvider` 注入物料；从更早版本升级�
 
 **问题**: Material components don't animate properly
 
-**解决方案**: Add `provideAnimations()` to your app config providers
+**适用范围**：以下排查针对**使用官方 OpenTiny NG 物料**的场景。
+
+**解决方案**: 在 app config providers 中添加 legacy `provideAnimations()`。Angular 21+ 的 `animate.enter` / `animate.leave` **不能替代**当前官方物料所需的 legacy 动画 provider。
 
 ### Wrong Framework Schema
 
