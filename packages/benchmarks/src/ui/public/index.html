@@ -1,0 +1,1242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>GenUI Bench — Launch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0c1117;
+      --bg-elev: #141b24;
+      --bg-panel: #18212c;
+      --line: #2a3544;
+      --line-soft: #1f2a36;
+      --text: #e8eef6;
+      --muted: #8b9bb0;
+      --faint: #5c6b7e;
+      --accent: #3dd6c6;
+      --accent-dim: rgba(61, 214, 198, 0.14);
+      --accent-strong: #2bbfaf;
+      --warn: #e8a54b;
+      --danger: #ef6b6b;
+      --ok: #6bcf8e;
+      --radius: 12px;
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+      --font: "DM Sans", ui-sans-serif, sans-serif;
+      --mono: "JetBrains Mono", ui-monospace, monospace;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, rgba(61, 214, 198, 0.09), transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, rgba(232, 165, 75, 0.06), transparent 50%),
+        var(--bg);
+      line-height: 1.45;
+    }
+
+    .shell {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 28px 20px 120px;
+    }
+
+    header.hero {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 28px;
+      padding-bottom: 22px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+    .brand {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(1.75rem, 3vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    .brand h1 span {
+      color: var(--accent);
+    }
+    .badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid rgba(61, 214, 198, 0.28);
+      padding: 4px 8px;
+      border-radius: 999px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .lede {
+      margin: 0;
+      color: var(--muted);
+      max-width: 62ch;
+      font-size: 0.98rem;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    @media (min-width: 960px) {
+      .layout {
+        grid-template-columns: 1.35fr 0.9fr;
+        align-items: start;
+      }
+      .log-column { position: sticky; top: 16px; }
+    }
+
+    .card {
+      background: linear-gradient(180deg, var(--bg-elev), var(--bg-panel));
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .card-hd {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--line-soft);
+      background: rgba(255, 255, 255, 0.015);
+    }
+    .card-hd h2 {
+      margin: 0;
+      font-size: 0.92rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+    .card-hd .hint {
+      color: var(--faint);
+      font-size: 0.78rem;
+      font-family: var(--mono);
+    }
+    .card-bd { padding: 16px 18px 18px; }
+
+    .section + .section {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px dashed var(--line-soft);
+    }
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 640px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    label.field {
+      display: grid;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    label.field > span.lbl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    label.field .req {
+      color: var(--warn);
+      font-size: 0.7rem;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #0d131a;
+      color: var(--text);
+      border-radius: 9px;
+      padding: 9px 11px;
+      font: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: rgba(61, 214, 198, 0.55);
+      box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+    input[type="number"] { font-variant-numeric: tabular-nums; }
+
+    .seg {
+      display: inline-flex;
+      padding: 3px;
+      background: #0d131a;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      gap: 2px;
+    }
+    .seg button {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .seg button:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 12px;
+      border: 1px solid var(--line-soft);
+      border-radius: 10px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+    .toggle-row + .toggle-row { margin-top: 8px; }
+    .toggle-row .meta { display: grid; gap: 2px; }
+    .toggle-row .meta strong {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .toggle-row .meta small {
+      color: var(--faint);
+      font-size: 0.75rem;
+    }
+    .switch {
+      position: relative;
+      width: 42px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+      position: absolute;
+    }
+    .switch span {
+      position: absolute;
+      inset: 0;
+      background: #2a3544;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .switch span::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #c9d4e2;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.15s;
+    }
+    .switch input:checked + span { background: var(--accent-strong); }
+    .switch input:checked + span::after {
+      transform: translateX(18px);
+      background: #06221f;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: #0d131a;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .chip[aria-pressed="true"] {
+      border-color: rgba(61, 214, 198, 0.45);
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+    .chip:hover { border-color: rgba(61, 214, 198, 0.35); }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .btn-ghost {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.75rem;
+      padding: 5px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+
+    .scenario-group { margin-bottom: 12px; }
+    .scenario-group summary {
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 8px;
+      user-select: none;
+    }
+    .scenario-group summary::-webkit-details-marker { display: none; }
+    .scenario-group summary::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.7;
+    }
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 6px 10px;
+      padding-left: 14px;
+    }
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .check input {
+      accent-color: var(--accent-strong);
+      width: 14px;
+      height: 14px;
+    }
+    .check code {
+      font-family: var(--mono);
+      font-size: 0.76rem;
+      color: var(--text);
+    }
+
+    .log-card .card-bd {
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 420px;
+      max-height: min(72vh, 720px);
+    }
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--line-soft);
+      font-size: 0.8rem;
+      color: var(--muted);
+      flex-wrap: wrap;
+    }
+    .result-links {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .result-links[hidden] { display: none !important; }
+    .result-links a {
+      font-family: var(--font);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--accent);
+      border: 1px solid rgba(61, 214, 198, 0.35);
+      background: var(--accent-dim);
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+    .result-links a:hover { border-color: var(--accent); color: #fff; }
+    .result-links .run-dir {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--faint);
+    }
+    .progress-wrap {
+      padding: 0 14px 10px;
+      border-bottom: 1px solid var(--line-soft);
+      background: #0e141c;
+    }
+    .progress-wrap[hidden] { display: none !important; }
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 6px;
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+    .progress-meta #progressPhase { font-weight: 600; color: var(--text); }
+    .progress-meta #progressCount {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      color: var(--faint);
+    }
+    .progress-track {
+      height: 8px;
+      border-radius: 999px;
+      background: #1a2330;
+      overflow: hidden;
+      border: 1px solid var(--line-soft);
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #2bbfaf, var(--accent));
+      transition: width 0.25s ease;
+    }
+    .progress-fill.indeterminate {
+      width: 36% !important;
+      animation: progress-slide 1.2s ease-in-out infinite;
+    }
+    .progress-fill.done {
+      background: linear-gradient(90deg, #3fa86a, var(--ok));
+    }
+    .progress-fill.error {
+      background: linear-gradient(90deg, #c44b4b, var(--danger));
+    }
+    @keyframes progress-slide {
+      0% { transform: translateX(-120%); }
+      100% { transform: translateX(320%); }
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--faint);
+    }
+    .dot.idle { background: var(--faint); }
+    .dot.running {
+      background: var(--warn);
+      box-shadow: 0 0 0 4px rgba(232, 165, 75, 0.18);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+    .dot.done { background: var(--ok); }
+    .dot.error { background: var(--danger); }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.45; }
+    }
+    #log {
+      flex: 1;
+      overflow: auto;
+      margin: 0;
+      padding: 12px 14px 16px;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: #b7c4d4;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #090d12;
+    }
+    #log .err { color: #ff9b9b; }
+    #log .warn { color: #f0c27a; }
+    #log .ok { color: #8be0b0; }
+
+    .dock {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      backdrop-filter: blur(14px);
+      background: rgba(12, 17, 23, 0.86);
+      border-top: 1px solid var(--line);
+      padding: 14px 20px;
+    }
+    .dock-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .dock-summary {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+    .dock-summary strong { color: var(--text); font-weight: 600; }
+    .dock-actions { display: flex; gap: 10px; align-items: center; }
+    .btn {
+      appearance: none;
+      border: 0;
+      font: inherit;
+      font-weight: 600;
+      font-size: 0.92rem;
+      padding: 11px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.1s, opacity 0.15s, background 0.15s;
+    }
+    .btn:active { transform: translateY(1px); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary {
+      background: linear-gradient(180deg, #4ae0d0, var(--accent-strong));
+      color: #04201c;
+      box-shadow: 0 8px 24px rgba(61, 214, 198, 0.25);
+    }
+    .btn-primary:hover:not(:disabled) { filter: brightness(1.05); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--line);
+    }
+
+    .error-banner {
+      display: none;
+      margin-bottom: 16px;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(239, 107, 107, 0.35);
+      background: rgba(239, 107, 107, 0.1);
+      color: #ffc1c1;
+      font-size: 0.88rem;
+    }
+    .error-banner.show { display: block; }
+
+    .loading {
+      color: var(--muted);
+      padding: 40px;
+      text-align: center;
+    }
+
+    #log,
+    #log * {
+      text-align: left;
+    }
+
+    details.advanced summary {
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="hero">
+      <div class="brand">
+        <h1>GenUI <span>Bench</span></h1>
+        <span class="badge">schemaJson · SDK</span>
+      </div>
+      <p class="lede">在页面中选择运行配置，点击启动后将执行样本生成与报告汇总。默认值来自 <code style="font-family:var(--mono);font-size:0.85em;color:var(--accent)">benchmark.config</code> 与环境变量。</p>
+    </header>
+
+    <div id="errorBanner" class="error-banner"></div>
+    <div id="app" class="loading">加载配置中…</div>
+  </div>
+
+  <div class="dock" id="dock" hidden>
+    <div class="dock-inner">
+      <div class="dock-summary" id="dockSummary">—</div>
+      <div class="dock-actions">
+        <button type="button" class="btn btn-secondary" id="btnShutdown">关闭服务</button>
+        <button type="button" class="btn btn-primary" id="btnRun">启动测试</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const state = {
+      meta: null,
+      selectedModels: new Set(),
+      selectedScenarios: new Set(),
+      framework: 'Vue',
+      materialsVariant: 'standard',
+      runState: 'idle',
+    };
+
+    /** 从 bench 日志解析的进度（generate / judge / report） */
+    const progress = {
+      phase: 'idle', // idle | generate | judge | report | done | error
+      done: 0,
+      total: 0,
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showError(msg) {
+      const el = $('errorBanner');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function resetProgress() {
+      progress.phase = 'idle';
+      progress.done = 0;
+      progress.total = 0;
+      renderProgress();
+    }
+
+    function renderProgress() {
+      const wrap = $('progressWrap');
+      const fill = $('progressFill');
+      const phaseEl = $('progressPhase');
+      const countEl = $('progressCount');
+      const bar = $('progressBar');
+      if (!wrap || !fill || !phaseEl || !countEl || !bar) return;
+
+      const active =
+        state.runState === 'running' ||
+        progress.phase === 'done' ||
+        progress.phase === 'error' ||
+        progress.total > 0;
+      wrap.hidden = !active;
+      if (!active) return;
+
+      const phaseLabels = {
+        idle: '等待…',
+        generate: '生成样本',
+        judge: 'LLM Judge',
+        report: '汇总报告',
+        done: '已完成',
+        error: '失败',
+      };
+      phaseEl.textContent = phaseLabels[progress.phase] || progress.phase;
+
+      const indeterminate =
+        progress.phase === 'report' ||
+        (state.runState === 'running' && progress.phase === 'idle') ||
+        (progress.phase === 'generate' && progress.total === 0);
+
+      fill.classList.remove('indeterminate', 'done', 'error');
+      if (progress.phase === 'error') fill.classList.add('error');
+      else if (progress.phase === 'done') fill.classList.add('done');
+
+      if (indeterminate) {
+        fill.classList.add('indeterminate');
+        fill.style.width = '36%';
+        countEl.textContent =
+          progress.phase === 'report'
+            ? 'writing report…'
+            : state.runState === 'running'
+              ? 'starting…'
+              : '';
+        bar.setAttribute('aria-valuenow', '0');
+        return;
+      }
+
+      const pct =
+        progress.total > 0
+          ? Math.min(100, Math.round((progress.done / progress.total) * 100))
+          : progress.phase === 'done'
+            ? 100
+            : 0;
+      fill.style.width = pct + '%';
+      countEl.textContent =
+        progress.total > 0
+          ? `${progress.done} / ${progress.total} (${pct}%)`
+          : progress.phase === 'done'
+            ? '100%'
+            : '';
+      bar.setAttribute('aria-valuenow', String(pct));
+    }
+
+    function ingestProgressFromLog(line) {
+      const start = line.match(/total jobs=(\d+)/i);
+      if (start) {
+        progress.phase = 'generate';
+        progress.total = Number(start[1]) || 0;
+        progress.done = 0;
+        renderProgress();
+        return;
+      }
+
+      const job = line.match(/\b(?:done|skip existing)\s+\((\d+)\/(\d+)\)/i);
+      if (job) {
+        progress.phase = 'generate';
+        progress.done = Number(job[1]);
+        progress.total = Number(job[2]);
+        if (progress.done >= progress.total && progress.total > 0 && state.runState === 'running') {
+          progress.phase = 'report';
+        }
+        renderProgress();
+        return;
+      }
+
+      const judge = line.match(/\[bench\]\[judge\]\s+(\d+)\/(\d+)/i);
+      if (judge) {
+        progress.phase = 'judge';
+        progress.done = Number(judge[1]);
+        progress.total = Number(judge[2]);
+        renderProgress();
+        return;
+      }
+
+      if (/\[bench-ui\]\s+Done/i.test(line)) {
+        if (progress.total > 0) progress.done = progress.total;
+        progress.phase = 'done';
+        renderProgress();
+        return;
+      }
+      if (/\[bench-ui\]\s+Failed/i.test(line)) {
+        progress.phase = 'error';
+        renderProgress();
+      }
+    }
+
+    function appendLog(line) {
+      const pre = $('log');
+      if (!pre) return;
+      const div = document.createElement('div');
+      const lower = line.toLowerCase();
+      if (lower.includes('[error]') || lower.includes('failed') || lower.includes('error=')) {
+        div.className = 'err';
+      } else if (lower.includes('[warn]')) {
+        div.className = 'warn';
+      } else if (lower.includes('[bench-ui] done') || lower.includes('score=')) {
+        div.className = 'ok';
+      }
+      div.textContent = line;
+      pre.appendChild(div);
+      pre.scrollTop = pre.scrollHeight;
+      ingestProgressFromLog(line);
+    }
+
+    function setStatus(runState) {
+      state.runState = runState;
+      const dot = $('statusDot');
+      const label = $('statusLabel');
+      if (!dot || !label) return;
+      dot.className = 'dot ' + runState;
+      const map = { idle: '空闲', running: '运行中…', done: '已完成', error: '失败' };
+      label.textContent = map[runState] || runState;
+      const btn = $('btnRun');
+      if (btn) btn.disabled = runState === 'running';
+      if (runState === 'running' && progress.phase === 'idle') {
+        renderProgress();
+      }
+      if (runState === 'done' && progress.phase !== 'error') {
+        if (progress.total > 0) progress.done = progress.total;
+        progress.phase = 'done';
+        renderProgress();
+      }
+      if (runState === 'error') {
+        progress.phase = 'error';
+        renderProgress();
+      }
+    }
+
+    function updateDockSummary() {
+      const el = $('dockSummary');
+      if (!el) return;
+      const models = state.selectedModels.size;
+      const scenarios = state.selectedScenarios.size;
+      const all = state.meta?.scenarioGroups?.reduce((n, g) => n + g.scenarios.length, 0) || 0;
+      const scenLabel = scenarios === 0 ? `全部 ${all} 场景` : `${scenarios} 个场景`;
+      el.innerHTML = `将运行 <strong>${models || 0}</strong> 个模型 × <strong>${scenLabel}</strong>`;
+    }
+
+    function toggleChip(set, value, btn) {
+      if (set.has(value)) {
+        set.delete(value);
+        btn.setAttribute('aria-pressed', 'false');
+      } else {
+        set.add(value);
+        btn.setAttribute('aria-pressed', 'true');
+      }
+      updateDockSummary();
+    }
+
+    function render(meta) {
+      state.meta = meta;
+      const d = meta.defaults || {};
+      state.framework = d.framework || 'Vue';
+      state.materialsVariant = d.materialsVariant || 'standard';
+
+      const defaultModels = Array.isArray(d.models) && d.models.length
+        ? d.models
+        : d.model
+          ? [d.model]
+          : [];
+      state.selectedModels = new Set(defaultModels.filter((m) => meta.models.includes(m)));
+      if (state.selectedModels.size === 0 && d.model) {
+        state.selectedModels.add(d.model);
+      }
+
+      const defaultScenarios = Array.isArray(d.scenarios) ? d.scenarios : [];
+      state.selectedScenarios = new Set(defaultScenarios);
+
+      const modelChips = meta.models.map((m) => {
+        const on = state.selectedModels.has(m);
+        return `<button type="button" class="chip" data-model="${esc(m)}" aria-pressed="${on}">${esc(m)}</button>`;
+      }).join('') || '<span style="color:var(--faint);font-size:0.85rem">未找到模型清单，请检查 maas-models.json</span>';
+
+      const scenarioHtml = meta.scenarioGroups.map((g) => {
+        const checks = g.scenarios.map((id) => {
+          const on = state.selectedScenarios.has(id);
+          return `<label class="check"><input type="checkbox" data-scenario="${esc(id)}" ${on ? 'checked' : ''}/><code>${esc(id)}</code></label>`;
+        }).join('');
+        return `<details class="scenario-group" open>
+          <summary>${esc(g.label)} <span style="color:var(--faint);font-weight:500;font-size:0.75rem;font-family:var(--mono)">${g.scenarios.length}</span></summary>
+          <div class="scenario-grid">${checks}</div>
+        </details>`;
+      }).join('');
+
+      const runDirOptions = ['<option value="">（新建时间戳目录）</option>']
+        .concat((meta.existingRunDirs || []).map((dir) =>
+          `<option value="${esc(dir)}" ${d.targetSampleRunDir === dir ? 'selected' : ''}>${esc(dir)}</option>`
+        )).join('');
+
+      $('app').classList.remove('loading');
+      $('app').innerHTML = `
+        <div class="layout">
+          <div class="card">
+            <div class="card-hd">
+              <h2>运行配置</h2>
+              <span class="hint">port ${meta.port}</span>
+            </div>
+            <div class="card-bd">
+              <section class="section">
+                <h3 class="section-title">模型</h3>
+                <div class="toolbar">
+                  <button type="button" class="btn-ghost" id="modelsAll">全选</button>
+                  <button type="button" class="btn-ghost" id="modelsClear">清空</button>
+                </div>
+                <div class="chips" id="modelChips">${modelChips}</div>
+                <div style="height:12px"></div>
+                <div class="toggle-row">
+                  <div class="meta">
+                    <strong>使用清单全部模型</strong>
+                    <small>勾选后忽略上方选择，跑 maas-models.json 中全部模型</small>
+                  </div>
+                  <label class="switch"><input type="checkbox" id="modelsFromMaas" ${d.modelsFromMaasManifest ? 'checked' : ''}/><span></span></label>
+                </div>
+                <div style="height:12px"></div>
+                <label class="field">
+                  <span class="lbl">主模型 id（报告 / Judge 默认）</span>
+                  <input type="text" id="primaryModel" value="${esc(d.model || '')}" placeholder="例如 DeepSeek-V3.2" />
+                </label>
+              </section>
+
+              <section class="section">
+                <h3 class="section-title">物料 / 框架</h3>
+                <div class="grid-2">
+                  <label class="field">
+                    <span class="lbl">Framework</span>
+                    <div class="seg" id="frameworkSeg">
+                      <button type="button" data-v="Vue" aria-pressed="${state.framework === 'Vue'}">Vue</button>
+                      <button type="button" data-v="Angular" aria-pressed="${state.framework === 'Angular'}">Angular</button>
+                    </div>
+                  </label>
+                  <label class="field">
+                    <span class="lbl">Materials variant</span>
+                    <div class="seg" id="variantSeg">
+                      <button type="button" data-v="standard" aria-pressed="${state.materialsVariant === 'standard'}">standard</button>
+                      <button type="button" data-v="mini" aria-pressed="${state.materialsVariant === 'mini'}">mini</button>
+                    </div>
+                  </label>
+                </div>
+              </section>
+
+              <section class="section">
+                <h3 class="section-title">场景</h3>
+                <div class="toolbar">
+                  <button type="button" class="btn-ghost" id="scenAll">全选</button>
+                  <button type="button" class="btn-ghost" id="scenClear">清空（= 跑全部）</button>
+                </div>
+                <div id="scenarioList">${scenarioHtml}</div>
+              </section>
+
+              <section class="section">
+                <h3 class="section-title">执行参数</h3>
+                <div class="grid-2">
+                  <label class="field"><span class="lbl">Repeat</span><input type="number" id="repeat" min="1" value="${Number(d.repeat) || 1}" /></label>
+                  <label class="field"><span class="lbl">Concurrency</span><input type="number" id="concurrency" min="1" value="${Number(d.concurrency) || 5}" /></label>
+                  <label class="field"><span class="lbl">Stream timeout (ms)</span><input type="number" id="streamTimeoutMs" min="0" step="1000" value="${Number(d.streamTimeoutMs) ?? 600000}" /></label>
+                  <label class="field">
+                    <span class="lbl">续跑目录 targetSampleRunDir</span>
+                    <select id="targetSampleRunDir">${runDirOptions}</select>
+                  </label>
+                </div>
+                <div style="height:10px"></div>
+                <div class="toggle-row">
+                  <div class="meta"><strong>跳过已存在样本</strong><small>续跑时默认开启</small></div>
+                  <label class="switch"><input type="checkbox" id="skipExisting" ${d.skipExistingSampleFiles ? 'checked' : ''}/><span></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="meta"><strong>额外生成 plain（空 system）</strong><small>compareEmptySystem</small></div>
+                  <label class="switch"><input type="checkbox" id="compareEmpty" ${d.compareEmptySystem ? 'checked' : ''}/><span></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="meta"><strong>仅 plain</strong><small>不生成 full system 样本</small></div>
+                  <label class="switch"><input type="checkbox" id="plainOnly" ${d.compareEmptySystemPlainOnly ? 'checked' : ''}/><span></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="meta"><strong>写出 Excel</strong><small>report_&lt;runDir&gt;.xlsx</small></div>
+                  <label class="switch"><input type="checkbox" id="writeExcel" ${d.writeExcel !== false ? 'checked' : ''}/><span></span></label>
+                </div>
+                <div class="toggle-row">
+                  <div class="meta"><strong>控制台 JSON</strong><small>BENCH_JSON</small></div>
+                  <label class="switch"><input type="checkbox" id="jsonOut" ${d.json ? 'checked' : ''}/><span></span></label>
+                </div>
+              </section>
+
+              <section class="section">
+                <h3 class="section-title">Prompt 附加</h3>
+                <label class="field" style="margin-bottom:10px">
+                  <span class="lbl">specificPrompt</span>
+                  <textarea id="specificPrompt">${esc(d.specificPrompt || '')}</textarea>
+                </label>
+                <label class="field">
+                  <span class="lbl">userAppendPrompt</span>
+                  <textarea id="userAppendPrompt">${esc(d.userAppendPrompt || '')}</textarea>
+                </label>
+              </section>
+
+              <section class="section">
+                <h3 class="section-title">LLM Judge</h3>
+                <div class="toggle-row">
+                  <div class="meta"><strong>启用 Judge</strong><small>报告阶段额外模型打分</small></div>
+                  <label class="switch"><input type="checkbox" id="judgeEnabled" ${d.llmJudgeEnabled ? 'checked' : ''}/><span></span></label>
+                </div>
+                <div style="height:10px"></div>
+                <div class="grid-2">
+                  <label class="field"><span class="lbl">Judge 模型</span><input type="text" id="judgeModel" value="${esc(d.llmJudgeModel || '')}" placeholder="空则复用主模型" /></label>
+                  <label class="field"><span class="lbl">Judge system prompt</span><input type="text" id="judgeSystem" value="${esc(d.llmJudgeSystemPrompt || '')}" placeholder="空则用内置规则" /></label>
+                </div>
+              </section>
+
+              <section class="section">
+                <details class="advanced">
+                  <summary>高级路径</summary>
+                  <div class="grid-2">
+                    <label class="field"><span class="lbl">samplesDir</span><input type="text" id="samplesDir" value="${esc(d.samplesDir || '')}" placeholder="默认 reports/" /></label>
+                    <label class="field"><span class="lbl">outputDir</span><input type="text" id="outputDir" value="${esc(d.outputDir || '')}" placeholder="默认跟随 run 目录" /></label>
+                  </div>
+                </details>
+              </section>
+            </div>
+          </div>
+
+          <div class="log-column">
+            <div class="card log-card">
+              <div class="card-hd">
+                <h2>运行日志</h2>
+                <button type="button" class="btn-ghost" id="clearLog">清空</button>
+              </div>
+              <div class="card-bd">
+                <div class="status-bar">
+                  <span class="dot idle" id="statusDot"></span>
+                  <span id="statusLabel">空闲</span>
+                  <div class="result-links" id="resultLinks" hidden>
+                    <span class="run-dir" id="pathHint"></span>
+                    <a id="linkConclusions" href="#" target="_blank" rel="noopener">查看结论</a>
+                  </div>
+                </div>
+                <div class="progress-wrap" id="progressWrap" hidden>
+                  <div class="progress-meta">
+                    <span id="progressPhase">—</span>
+                    <span id="progressCount"></span>
+                  </div>
+                  <div class="progress-track" id="progressBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="progress-fill" id="progressFill"></div>
+                  </div>
+                </div>
+                <pre id="log"></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      $('dock').hidden = false;
+      bindFormEvents();
+      updateDockSummary();
+      connectLogs();
+      pollStatus();
+    }
+
+    function bindFormEvents() {
+      $('modelChips')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-model]');
+        if (!btn) return;
+        toggleChip(state.selectedModels, btn.getAttribute('data-model'), btn);
+      });
+      $('modelsAll')?.addEventListener('click', () => {
+        state.meta.models.forEach((m) => state.selectedModels.add(m));
+        document.querySelectorAll('#modelChips .chip').forEach((b) => b.setAttribute('aria-pressed', 'true'));
+        updateDockSummary();
+      });
+      $('modelsClear')?.addEventListener('click', () => {
+        state.selectedModels.clear();
+        document.querySelectorAll('#modelChips .chip').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        updateDockSummary();
+      });
+
+      $('scenarioList')?.addEventListener('change', (e) => {
+        const input = e.target.closest('[data-scenario]');
+        if (!input) return;
+        const id = input.getAttribute('data-scenario');
+        if (input.checked) state.selectedScenarios.add(id);
+        else state.selectedScenarios.delete(id);
+        updateDockSummary();
+      });
+      $('scenAll')?.addEventListener('click', () => {
+        state.meta.scenarioGroups.forEach((g) => g.scenarios.forEach((id) => state.selectedScenarios.add(id)));
+        document.querySelectorAll('#scenarioList input[data-scenario]').forEach((el) => { el.checked = true; });
+        updateDockSummary();
+      });
+      $('scenClear')?.addEventListener('click', () => {
+        state.selectedScenarios.clear();
+        document.querySelectorAll('#scenarioList input[data-scenario]').forEach((el) => { el.checked = false; });
+        updateDockSummary();
+      });
+
+      const syncMiniAvailability = () => {
+        const miniBtn = $('variantSeg')?.querySelector('button[data-v="mini"]');
+        if (!miniBtn) return;
+        const angular = state.framework === 'Angular';
+        miniBtn.disabled = angular;
+        miniBtn.title = angular ? 'mini 仅 Vue materials 包导出' : '';
+        if (angular && state.materialsVariant === 'mini') {
+          state.materialsVariant = 'standard';
+          $('variantSeg').querySelectorAll('button').forEach((b) => {
+            b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === 'standard'));
+          });
+        }
+      };
+      const bindSeg = (id, key) => {
+        $(id)?.addEventListener('click', (e) => {
+          const btn = e.target.closest('button[data-v]');
+          if (!btn || btn.disabled) return;
+          state[key] = btn.getAttribute('data-v');
+          $(id).querySelectorAll('button').forEach((b) => {
+            b.setAttribute('aria-pressed', String(b === btn));
+          });
+          if (key === 'framework') syncMiniAvailability();
+        });
+      };
+      bindSeg('frameworkSeg', 'framework');
+      bindSeg('variantSeg', 'materialsVariant');
+      syncMiniAvailability();
+
+      $('clearLog')?.addEventListener('click', () => { const p = $('log'); if (p) p.innerHTML = ''; });
+      $('btnRun').onclick = startRun;
+      $('btnShutdown').onclick = async () => {
+        if (!confirm('关闭 UI 服务并退出进程？')) return;
+        await fetch('/api/shutdown', { method: 'POST' });
+        appendLog('[ui] Shutdown requested');
+      };
+    }
+
+    function collectPayload() {
+      const fromMaas = $('modelsFromMaas')?.checked === true;
+      const models = fromMaas ? [] : [...state.selectedModels];
+      const scenarios = [...state.selectedScenarios];
+      const primary = ($('primaryModel')?.value || '').trim();
+      return {
+        model: primary || (models[0] || undefined),
+        models: models.length ? models : undefined,
+        modelsFromMaasManifest: fromMaas,
+        framework: state.framework,
+        materialsVariant: state.materialsVariant,
+        scenarios: scenarios.length ? scenarios : undefined,
+        repeat: Number($('repeat')?.value || 1),
+        concurrency: Number($('concurrency')?.value || 5),
+        streamTimeoutMs: Number($('streamTimeoutMs')?.value || 0),
+        compareEmptySystem: $('compareEmpty')?.checked === true,
+        compareEmptySystemPlainOnly: $('plainOnly')?.checked === true,
+        targetSampleRunDir: ($('targetSampleRunDir')?.value || '').trim() || undefined,
+        skipExistingSampleFiles: $('skipExisting')?.checked === true,
+        specificPrompt: $('specificPrompt')?.value ?? '',
+        userAppendPrompt: $('userAppendPrompt')?.value ?? '',
+        llmJudgeEnabled: $('judgeEnabled')?.checked === true,
+        llmJudgeModel: ($('judgeModel')?.value || '').trim() || undefined,
+        llmJudgeSystemPrompt: ($('judgeSystem')?.value || '').trim() || undefined,
+        writeExcel: $('writeExcel')?.checked === true,
+        json: $('jsonOut')?.checked === true,
+        samplesDir: ($('samplesDir')?.value || '').trim() || undefined,
+        outputDir: ($('outputDir')?.value || '').trim() || undefined,
+      };
+    }
+
+    let lastSeenError;
+
+    async function startRun() {
+      const payload = collectPayload();
+      const hasModels = payload.modelsFromMaasManifest || (payload.models && payload.models.length) || payload.model;
+      if (!hasModels) {
+        showError('请至少选择一个模型，或开启「使用清单全部模型」。');
+        return;
+      }
+      $('errorBanner').classList.remove('show');
+      resetProgress();
+      setStatus('running');
+      appendLog('[ui] Submitting run…');
+      try {
+        const res = await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const msg = data.error || `HTTP ${res.status}`;
+          setStatus('error');
+          showError(msg);
+          appendLog('[ui] Start failed: ' + msg);
+          return;
+        }
+        appendLog('[ui] Accepted — waiting for server logs…');
+      } catch (err) {
+        const msg = String(err && err.message ? err.message : err);
+        const hint =
+          msg === 'Failed to fetch' || msg.includes('NetworkError')
+            ? '（配置页服务可能已退出，请在终端重新运行 pnpm benchmarks 并刷新页面）'
+            : '';
+        setStatus('error');
+        showError(msg + hint);
+        appendLog('[ui] Start failed: ' + msg + (hint ? ' ' + hint : ''));
+      }
+    }
+
+    function connectLogs() {
+      const es = new EventSource('/api/logs');
+      es.onmessage = (ev) => {
+        try {
+          const msg = JSON.parse(ev.data);
+          if (msg.type === 'log' && msg.line) appendLog(msg.line);
+          if (msg.type === 'hello' && msg.state) setStatus(msg.state);
+        } catch { /* ignore */ }
+      };
+      es.onerror = () => {
+        /* browser will retry; status poll will surface disconnect */
+      };
+    }
+
+    function pollStatus() {
+      const tick = async () => {
+        try {
+          const res = await fetch('/api/status');
+          if (!res.ok) throw new Error('status HTTP ' + res.status);
+          const data = await res.json();
+          if (data.state) setStatus(data.state);
+          if (data.lastError && data.lastError !== lastSeenError) {
+            lastSeenError = data.lastError;
+            appendLog('[ui] Server error: ' + data.lastError);
+            showError(data.lastError);
+          }
+          if (data.state !== 'error') lastSeenError = undefined;
+          const linksEl = $('resultLinks');
+          const linkConclusions = $('linkConclusions');
+          const hint = $('pathHint');
+          const links = data.links || {};
+          const hasAny = Boolean(links.conclusions);
+          if (linksEl) linksEl.hidden = !hasAny;
+          if (hint) hint.textContent = links.runDir || (data.lastSamplesDir
+            ? data.lastSamplesDir.split(/[/\\]/).slice(-1)[0] || ''
+            : '');
+          if (linkConclusions) {
+            if (links.conclusions) {
+              linkConclusions.href = links.conclusions;
+              linkConclusions.hidden = false;
+            } else {
+              linkConclusions.hidden = true;
+            }
+          }
+        } catch (err) {
+          if (state.runState === 'running') {
+            setStatus('error');
+            const msg = '无法连接配置页服务（可能已关闭）。请重新运行 pnpm benchmarks 并刷新。';
+            showError(msg);
+            appendLog('[ui] ' + msg);
+          }
+        }
+      };
+      tick();
+      setInterval(tick, 2000);
+    }
+
+    (async () => {
+      try {
+        const res = await fetch('/api/meta');
+        if (!res.ok) throw new Error('Failed to load /api/meta');
+        render(await res.json());
+      } catch (err) {
+        $('app').textContent = '无法加载配置：' + (err.message || err);
+      }
+    })();
+  </script>
+</body>
+</html>

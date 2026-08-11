@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "benchmarks": "tsx ./main.ts"
+    "benchmarks": "tsx ./main.ts",
+    "benchmarks:cli": "tsx ./main.ts --cli",
+    "benchmarks:ui": "tsx ./main.ts"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.7",

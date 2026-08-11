@@ -2,111 +2,45 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { config as loadEnv } from 'dotenv';
 
-import type { LlmBenchmarkRunOptions } from './src/framework/index';
-import { benchmarkConfig } from './src/benchmark.config';
 import { generateSamples } from './src/generate-samples';
 import { runReport } from './src/run-report';
-import {
-  envBool,
-  envFramework,
-  envMaterialsVariant,
-  envPositiveInt,
-  envStreamTimeoutMs,
-  envString,
-  envStringList,
-  listMaasManifestModelNames,
-} from './src/utils';
+import { resolveRunOptions } from './src/resolve-run-options';
+import { envBool } from './src/utils';
+import { startBenchUi } from './src/ui/server';
 
 const packageDir = path.dirname(fileURLToPath(import.meta.url));
 loadEnv({ path: path.join(packageDir, '.env') });
 
-/**
- * 运行选项：以 `src/benchmark.config.ts` 为基准，`.env` 中 `BENCH_*` 覆盖对应项。
- * @returns 最终可执行的运行配置
- */
-function resolveRunOptions(): LlmBenchmarkRunOptions {
-  const {
-    model,
-    models: configModels,
-    modelsFromMaasManifest,
-    framework,
-    materialsVariant: defaultMaterialsVariant,
-    scenario,
-    scenarios: defaultScenarios,
-    repeat,
-    concurrency: defaultConcurrency,
-    promptConfig,
-    llmJudge,
-    json,
-    samplesDir,
-    outputDir,
-    compareEmptySystem: defaultCompareEmptySystem,
-    compareEmptySystemPlainOnly: defaultPlainOnly,
-    targetSampleRunDir: defaultTargetRunDir,
-    writeExcel: defaultWriteExcel,
-  } = benchmarkConfig;
-  const defaultModelsFromManifest =
-    configModels && configModels.length > 0
-      ? configModels
-      : modelsFromMaasManifest || envBool('BENCH_MODELS_FROM_MAAS', false)
-        ? listMaasManifestModelNames()
-        : undefined;
-  const scenarios = envStringList('BENCH_SCENARIOS', defaultScenarios);
-  const models = envStringList('BENCH_MODELS', defaultModelsFromManifest);
-  const concurrency = envPositiveInt('BENCH_CONCURRENCY', defaultConcurrency ?? 2);
-  const judgeEnabled = envBool('BENCH_LLM_JUDGE', llmJudge?.enabled ?? false);
-  const judgeModel = envString('BENCH_LLM_JUDGE_MODEL', llmJudge?.model);
-  const compareEmptySystem = envBool('BENCH_COMPARE_EMPTY_SYSTEM', defaultCompareEmptySystem ?? false);
-  const compareEmptySystemPlainOnly = envBool('BENCH_PLAIN_ONLY', defaultPlainOnly ?? false);
-  const targetSampleRunDir = envString('BENCH_TARGET_SAMPLE_RUN_DIR', defaultTargetRunDir);
-  const skipExistingDefault = Boolean(targetSampleRunDir);
-  const skipExistingSampleFiles = envBool('BENCH_SKIP_EXISTING_SAMPLES', skipExistingDefault);
-  const modelRaw = envString('BENCH_MODEL', model);
-  const trimmedModel =
-    modelRaw === undefined || modelRaw === '' ? undefined : modelRaw.trim() || undefined;
-  const streamTimeoutMs = envStreamTimeoutMs('BENCH_STREAM_TIMEOUT_MS', benchmarkConfig.streamTimeoutMs);
-  return {
-    ...(trimmedModel ? { model: trimmedModel } : {}),
-    models: models && models.length > 0 ? models : undefined,
-    framework: envFramework('BENCH_FRAMEWORK', framework),
-    materialsVariant: envMaterialsVariant('BENCH_MATERIALS_VARIANT', defaultMaterialsVariant),
-    scenario: envString('BENCH_SCENARIO', scenario),
-    scenarios,
-    repeat: envPositiveInt('BENCH_REPEAT', repeat ?? 1),
-    concurrency,
-    streamTimeoutMs,
-    promptConfig,
-    compareEmptySystem,
-    compareEmptySystemPlainOnly,
-    ...(targetSampleRunDir ? { targetSampleRunDir } : {}),
-    skipExistingSampleFiles,
-    llmJudge: {
-      enabled: judgeEnabled,
-      model: judgeModel,
-      systemPrompt: llmJudge?.systemPrompt,
-    },
-    json: envBool('BENCH_JSON', json ?? false),
-    writeExcel: envBool('BENCH_WRITE_EXCEL', defaultWriteExcel ?? true),
-    samplesDir: envString('BENCH_SAMPLES_DIR', samplesDir),
-    outputDir: envString('BENCH_OUTPUT_DIR', outputDir),
-  };
+function wantsCli(): boolean {
+  const argv = process.argv.slice(2);
+  if (argv.includes('--cli') || argv.includes('--no-ui')) return true;
+  // BENCH_UI=false / 0 → headless；未设置时默认打开配置页
+  if (process.env.BENCH_UI !== undefined && process.env.BENCH_UI.trim() !== '') {
+    return !envBool('BENCH_UI', true);
+  }
+  return false;
 }
 
 /**
- * 统一入口：固定串行执行 generate + report。
- * - 先生成 samples（在线调用模型）
- * - 再根据 samples 做离线统计并输出报告
+ * 无 UI：固定串行执行 generate + report。
  */
-async function main() {
+async function runCli() {
   const benchmarkStartedAtMs = Date.now();
   const options = resolveRunOptions();
   const gen = await generateSamples(options);
   await runReport({
     ...options,
     benchmarkStartedAtMs,
-    // 让 report 只读取本次 runDir 下的样本
     samplesDir: gen.samplesDir,
   });
+}
+
+async function main() {
+  if (wantsCli()) {
+    await runCli();
+    return;
+  }
+  await startBenchUi();
 }
 
 main().catch((error) => {

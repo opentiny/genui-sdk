@@ -355,15 +355,8 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   }
   const invalidSchemaRows = results.filter((item) => !item.isSchemaJsonValidAgainstProtocol);
   if (invalidSchemaRows.length > 0) {
-    console.log(`\nSchema Validation Errors (all ${invalidSchemaRows.length})`);
-    console.table(
-      invalidSchemaRows.map((item) => ({
-        scenario: item.scenario,
-        variant: item.promptVariant ?? 'full',
-        model: item.model ?? '',
-        runIndex: item.runIndex ?? 1,
-        schemaError: item.schemaValidationError ?? '',
-      })),
+    console.log(
+      `[bench] Schema validation failed: ${invalidSchemaRows.length}/${results.length}（详见 report.html）`,
     );
   }
   return await printLlmBenchmarkResults(results, options, parsedSamples);

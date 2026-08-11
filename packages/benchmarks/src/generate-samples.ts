@@ -193,7 +193,6 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   const variantsPerRun = plainOnly ? 1 : compareBoth ? 2 : 1;
   const totalJobs = selected.length * repeat * modelIds.length * variantsPerRun;
   let doneJobs = 0;
-  const startedAt = Date.now();
   console.log(
     `[bench] Start generate samples: framework=${framework}, materialsVariant=${materialsVariant}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat}, plainOnly=${plainOnly}, compareFullPlusPlain=${compareBoth} (total jobs=${totalJobs})`,
   );
@@ -306,13 +305,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
       if (skipExisting && fs.existsSync(sampleFile)) {
         files.push(sampleFile);
         doneJobs++;
-        const elapsedMs = Date.now() - startedAt;
-        const avgPerJobMs = elapsedMs / Math.max(1, doneJobs);
-        const remainJobs = totalJobs - doneJobs;
-        const remainMs = Math.round(avgPerJobMs * remainJobs);
-        console.log(
-          `[bench][w${workerNo}] skip existing (${doneJobs}/${totalJobs}) -> ${sampleFile} | est remain=${remainMs}ms`,
-        );
+        console.log(`[bench][w${workerNo}] skip existing (${doneJobs}/${totalJobs})`);
         continue;
       }
 
@@ -340,15 +333,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
 
       files.push(sampleFile);
       doneJobs++;
-
-      const elapsedMs = Date.now() - startedAt;
-      const avgPerJobMs = elapsedMs / Math.max(1, doneJobs);
-      const remainJobs = totalJobs - doneJobs;
-      const remainMs = Math.round(avgPerJobMs * remainJobs);
-
-      console.log(
-        `[bench][w${workerNo}] done (${doneJobs}/${totalJobs}) -> ${sampleFile} | ttftMs=${sample.metrics.ttftMs ?? '-'}, tinyCardMs=${sample.metrics.firstObservableComponentMs ?? '-'}, totalMs=${sample.metrics.totalMs} | est remain=${remainMs}ms`,
-      );
+      console.log(`[bench][w${workerNo}] done (${doneJobs}/${totalJobs})`);
     }
   }
 

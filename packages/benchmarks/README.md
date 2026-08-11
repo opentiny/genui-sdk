@@ -41,15 +41,36 @@ const system = genPrompt('Vue', materialsMeta, tgCustomConfig);
 
 默认配置走 **full system（`genPrompt`）**；`BENCH_PLAIN_ONLY` / `BENCH_COMPARE_EMPTY_SYSTEM` 仅用于对照实验。
 
+## 启动方式
+
+默认打开本地 **配置页 UI**（浏览器表单选择模型 / 场景 / 物料等，点击启动后跑 generate → report）：
+
+```bash
+pnpm benchmarks
+# 或
+pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks
+```
+
+无界面（CI / 脚本，仅用 `benchmark.config` + `BENCH_*`）：
+
+```bash
+pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks:cli
+# 等价：tsx ./main.ts --cli   或   BENCH_UI=false
+```
+
+配置页默认监听 `127.0.0.1:3847`（占用则顺延）；日志经 SSE 实时显示在页面右侧。
+
 ## 目录结构
 
 ```text
-main.ts                      # 入口：串行 generateSamples → runReport（.env 在包根目录）
-package.json                 # 脚本名：benchmarks
+main.ts                      # 入口：默认 UI；--cli 时串行 generateSamples → runReport
+package.json                 # 脚本：benchmarks / benchmarks:cli
 src/
 ├── benchmark.config.ts      # 默认运行项；可被环境变量 BENCH_* 覆盖
+├── resolve-run-options.ts   # 解析 BENCH_* + UI 表单合并
 ├── generate-samples.ts      # 在线生成样本并写入本次 run 目录
 ├── run-report.ts            # 读取样本、可选 Judge、汇总并写 report.json / report.html
+├── ui/                      # 配置页：server.ts + public/index.html
 ├── framework/
 │   ├── types.ts             # LlmBenchmarkRunOptions、样本与结果类型
 │   ├── runner.ts            # 报告落盘、HTML、comparisonByScenario 聚合
@@ -77,6 +98,7 @@ src/
     ├── comparison-scenario-label.ts
     ├── stats.ts
     ├── maas-manifest-models.ts   # resolveMaasModelsJsonPath、listMaasManifestModelNames（BENCH_MAAS_MODELS_PATH）
+    ├── resolve-materials-meta.ts
     └── number.ts
 ```
 
@@ -104,6 +126,7 @@ src/
 
 | 变量 | 作用 |
 | --- | --- |
+| `BENCH_UI` | 为 `false` / `0` 时跳过配置页、直接 CLI 跑测；未设置时默认打开 UI（亦可用 `--cli` / `--no-ui`） |
 | `BENCH_MODEL` | 单模型 id；与 `BENCH_MODELS` / 配置里的 `models` **至少其一非空**即可；仅多模型时可不设此项 |
 | `BENCH_MODELS` | 逗号分隔多模型；非空时只跑列表内模型，报告也只统计这些模型 |
 | `BENCH_FRAMEWORK` | `Vue` 或 `Angular` |
@@ -115,7 +138,7 @@ src/
 | `BENCH_STREAM_TIMEOUT_MS` | 单次 `streamText` 超时（毫秒）；默认 `600000`（10 分钟）；**`0`** 表示不启用超时（生成与 Judge 均适用） |
 | `BENCH_LLM_JUDGE` | 是否启用 Judge（覆盖 `benchmark.config` 中 `llmJudge.enabled`） |
 | `BENCH_LLM_JUDGE_MODEL` | Judge 使用的模型 id（空则复用主模型：显式 `model`，否则为 `models` 首项） |
-| `BENCH_JSON` | `true` 时控制台输出 JSON；否则表格 + Summary |
+| `BENCH_JSON` | `true` 时控制台额外输出 JSON 结果；默认不打印明细表 / Summary（见 report.html） |
 | `BENCH_WRITE_EXCEL` | 是否生成 `report_<runDir>.xlsx`（`runDir` 为本次样本/报告所在子目录名；默认 `true`） |
 | `BENCH_MODELS_FROM_MAAS` | 为真且 **`models` 在 config 中为空** 时，用 `BENCH_MAAS_MODELS_PATH` 清单中的模型名作为多模型列表（config 里 `modelsFromMaasManifest: true` 时不必再设此项） |
 | `BENCH_MAAS_MODELS_PATH` | `maas-models.json`：**绝对路径**，或相对 **benchmarks 包根目录**（与 `main.ts`、`.env` 同级）。**枚举模型名**与 **`resolveAiSdkModelForBench` 解析实例**共用此路径；未设置或仅空白时使用仓库默认清单（见 `.env.example`） |
@@ -184,7 +207,7 @@ pnpm benchmarks
 - **`report.html`**：按场景对比柱状图（含 TTFT、Total、TPOT、Token、Schema 通过率等）与单次运行明细图、明细表
 - **`report_<runDir>.xlsx`**（未关 `BENCH_WRITE_EXCEL` 时）：`runDir` 为输出目录文件夹名。含 **`明细`**：`model`、`scenario`、`runIndex`、`totalMs`、`tpsMs`（列名如此，数值为 **TPOT**，单位 ms/token）、`promptTokens`、`completionTokens`、`totalTokens`、`llmJudgeScore`、`llmJudgeReason`、`llmJudgeError`、`llmJudgeInputTokens`、`llmJudgeOutputTokens`、`errorMessage`、`promptVariant`、`generatedAt`；另含 **`按场景对比`**。「明细」仅指标与短文本列，**不含**模型原始输出 / schemaJson（完整内容见同目录 `report.json` 与样本 `*.json`）。开启 **`BENCH_LLM_JUDGE`** 且提供商在响应中返回 usage 时，`llmJudgeInputTokens` / `llmJudgeOutputTokens` 才有值；`report.json` 的 `results` 中对应字段为 `llmJudgePromptTokens` / `llmJudgeCompletionTokens` / `llmJudgeTotalTokens` 与 `benchTotalTokens` 等（与 Excel 列名以 JSON 为准）。
 
-控制台：`json: false` 时打印明细表与 **Benchmark Summary**（含平均 Judge 分、平均 TPOT 等）。
+控制台：默认只打进度与 Report Files；明细与汇总见 `report.html`。`BENCH_JSON=true` 时额外打印 JSON。
 
 ## `results` 逐条字段说明
 
