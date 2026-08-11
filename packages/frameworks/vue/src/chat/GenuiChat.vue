@@ -1,58 +1,86 @@
 <script setup lang="ts">
 import '@opentiny/tiny-robot/dist/style.css';
-import {
-  TrBubbleList,
-  TrSender,
-  TrBubbleProvider,
-  BubbleMarkdownContentRenderer,
-} from '@opentiny/tiny-robot';
-import { AIClient, GeneratingStatus, STATUS, type ChatMessage } from '@opentiny/tiny-robot-kit';
+import { TrBubbleList, TrSenderCompat, TrBubbleProvider } from '@opentiny/tiny-robot';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type {
-  BubbleRoleConfig,
-  BubbleCommonProps,
-  BubbleContentItem,
-  UserItem,
-  UserTextItem,
-} from '@opentiny/tiny-robot';
-import { ref, watch, computed, h, inject, provide } from 'vue';
-import type { Ref, Component } from 'vue';
-import { CustomModelProvider } from './CustomModelProvider';
-import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
+import { computed, h, inject, nextTick, provide, ref, watch, markRaw, defineComponent, type Component, type Ref } from 'vue';
+import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import type { IMessageItem } from '@opentiny/genui-sdk-core';
+import type { IChatProps, ICustomActionItem, UserItem, UserTextItem } from './chat.types';
+import { scrollEnd, throttle } from './chat-utils';
+import { useResize } from './composable/use-resize';
+import { useI18n } from './i18n';
+import { emitter } from './event-emitter';
+import { CUSTOM_CONTEXT, GENUI_CONFIG } from '../config-provider/injection-tokens';
+import { cardIdSymbol } from './useChat';
+import { useChatAction } from './continue-chat-action';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
-import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue'; 
-import ReasoningRenderer from './renderer/ReasoningRenderer.vue';
-import ToolRenderer from './renderer/ToolRenderer.vue';
-import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
-import { cardIdSymbol } from './useChat';
-import { emitter } from './event-emitter';
-import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
-import GeneratingComponent from './GeneratingComponent.vue';
-import { useChatAction } from './continue-chat-action';
-import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
-import type { IRendererProps } from '../renderer';
-import { GenuiRenderer } from '../renderer';
-import ErrorText from './ErrorText.vue';
-import { useResize } from './composable/use-resize';
-import { useConversation } from './tiny-robot-patch/useConversation';
-import { useI18n } from './i18n';
-import { GENUI_CONFIG } from '../config-provider/injection-tokens';
-import { IResponseHandler, defaultResponseHandlers } from './response-handler';
+import { type FileMeta, MIME_TYPE_MAP, buildTemplateDataFromSubmitText } from './file-upload/file-utils';
+import { useGenuiConversation } from './useGenuiConversation';
+import { genuiContentRendererMatches, genuiContentResolver } from './contentRendererMatches';
+import { useBubbleRoleAfterSlot } from './composable/useBubbleRoleAfterSlot';
+import { GENUI_SCHEMA_CARD_CONTEXT } from './schemaCardContext';
+import type { GenuiChatRuntimeOptions } from './types';
+import type { IResponseHandler } from './response-handler';
+import type { IStreamData } from '@opentiny/genui-sdk-core';
+import {
+  BubbleRendererMatchPriority,
+  type BubbleContentRendererMatch,
+  type BubbleRoleConfig,
+} from '@opentiny/tiny-robot';
 
 const props = defineProps<IChatProps>();
 
 const genuiConfig: any = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
 
+const bundledCustomActions = ref<ICustomActionItem[]>([]);
+
+const getRuntimeOptions = (): GenuiChatRuntimeOptions => ({
+  url: props.url || '',
+  model: props.model || '',
+  temperature: props.temperature ?? 0.3,
+  chatConfig: {
+    addToolCallContext: false,
+    showThinkingResult: false,
+    ...props.chatConfig,
+  },
+  customComponents: props.customComponents || [],
+  customSnippets: props.customSnippets || [],
+  customExamples: props.customExamples || [],
+  customActions: [...(props.customActions || []), ...bundledCustomActions.value],
+  customFetch: props.customFetch,
+});
+
+const {
+  conversation,
+  inputMessage,
+  messageManager,
+  loading,
+  sendUserMessage,
+  sendUserChatMessage,
+  setResponseHandlers,
+  getResponseHandlers,
+  handleNewConversation,
+  setConversationTitle,
+  importConversations,
+  exportConversations,
+} = useGenuiConversation({
+  getRuntimeOptions,
+  initialMessages: props.messages,
+});
+
+const messages = computed(() => messageManager.value?.messages.value ?? []);
+const isProcessing = computed(() => messageManager.value?.isProcessing.value ?? false);
+
 const isAllowFiles = computed(() => {
   const supportImage = props.features?.supportImage;
-
   if (supportImage && supportImage?.enabled !== false) {
     return true;
   }
   return false;
 });
+
 const buttonGroup = computed(() => {
   const fileTypes = props.features?.supportImage?.supportedFileTypes;
   const accept = fileTypes?.map((type: string) => MIME_TYPE_MAP[type.toLowerCase()]).join(',');
@@ -64,61 +92,42 @@ const buttonGroup = computed(() => {
   };
 });
 
-// 定义角色图标以及样式
-const defaultRoles: { user: BubbleRoleConfig; assistant: BubbleRoleConfig } = {
-  assistant: {
-    placement: 'start',
-    avatar: h(IconAi, { style: { fontSize: '32px' } }),
-    maxWidth: '100%',
-    customContentField: 'messages',
-  },
-  user: {
-    placement: 'end',
-    maxWidth: '90%',
-    avatar: h(IconUser, { style: { fontSize: '32px' } }),
-    customContentField: 'messages',
-  },
+const { attachments, templateData, clearAttachments, processAttachments, handleFilesSelected, handleTemplateEdit } =
+  useFileUpload();
+
+const handleTemplateDataUpdate = (_value: UserItem[]) => {
+  const updatedTemplateData = handleTemplateEdit(templateData, inputMessage.value);
+  inputMessage.value = '';
+  templateData.value = updatedTemplateData;
 };
 
-const wrapSlots = (slots: any) => {
-  if (!slots) {
+const clearInputMessage = () => {
+  inputMessage.value = '';
+  templateData.value = [];
+  clearAttachments();
+};
+
+const handleRemoveAttachment = (item: FileMeta | undefined) => {
+  if (!item) {
     return;
   }
-  const newSlots: Record<string, any> = {};
-  Object.keys(slots).forEach((key) => {
-    newSlots[key] = (props: any) => {
-      const isFinished = computed(() => {
-        if (props.bubbleProps.role !== 'assistant') {
-          return true;
-        }
-        return props.index !== messageManager.value.messages.value.length - 1 || !generating.value;
-      });
-      const slotFn = toSlotFunction(slots[key]);
-      if (slotFn) {
-        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value, chatMessage: messageManager.value.messages.value[props.index] });
-      }
-      return null;
-    };
-  });
-  return newSlots;
+  attachments.value = attachments.value.filter((attachment) => item.name !== attachment.name);
+  templateData.value = templateData.value.filter((data) => data.type !== 'template' || data.content !== item.name);
 };
 
-const roles = computed(() => {
-  const mergedRoles = { ...defaultRoles };
-  for (const keyAny in props.roles) {
-    const key = keyAny as keyof IRolesConfig;
-    mergedRoles[key] = {
-      ...defaultRoles[key],
-      ...props.roles[key],
-      slots: wrapSlots(props.roles[key]?.slots),
-    };
-  }
+const senderRef = ref<{ setTemplateData?: (data: UserItem[]) => void }>();
 
-  return mergedRoles;
-});
+watch(
+  templateData,
+  async (value) => {
+    await nextTick();
+    senderRef.value?.setTemplateData?.(value);
+  },
+  { deep: true },
+);
 
-const flatAllMessages = (messages: ChatMessage[]) =>
-  messages
+const flatAllMessages = (chatMessages: ChatMessage[]) =>
+  chatMessages
     .filter((item) => item.role === 'assistant')
     .reduce((acc: IMessageItem[], chatItem) => {
       const itemMessages = (chatItem as { messages?: IMessageItem[] }).messages;
@@ -130,406 +139,355 @@ const flatAllMessages = (messages: ChatMessage[]) =>
 
 const getCardMessage = (cardId: string) => {
   const flatMessages = flatAllMessages(messages.value);
-  return flatMessages.find((message: IMessageItem) => 'id' in message && message.id === cardId);
+  return flatMessages.find((message) => 'id' in message && message.id === cardId);
 };
 
-const saveState = (context: Record<string | symbol, any>) => {
-  const cardId = context[cardIdSymbol];
+const saveState = (context: Record<string | symbol, unknown>) => {
+  const cardId = context[cardIdSymbol] as string | undefined;
+  if (!cardId) {
+    return;
+  }
   const cardMessage = getCardMessage(cardId);
   if (cardMessage) {
-    (cardMessage as any).state = JSON.parse(JSON.stringify(context.state || {}));
+    (cardMessage as IMessageItem & { state?: Record<string, unknown> }).state = JSON.parse(
+      JSON.stringify(context.state || {}),
+    );
   }
-  saveConversations();
 };
 
-const chat = ({ llmFriendlyMessage, humanFriendlyMessage, context }: any) => {
+const chat = async ({
+  llmFriendlyMessage,
+  humanFriendlyMessage,
+  context,
+}: {
+  llmFriendlyMessage: string;
+  humanFriendlyMessage: string;
+  context: Record<string, unknown>;
+}) => {
   saveState(context);
-  messageManager.value.addMessage({
+  const manager = messageManager.value;
+  if (!manager) {
+    return;
+  }
+  await manager.send({
     role: 'user',
     content: llmFriendlyMessage,
-    messages: [{ type: 'text', content: humanFriendlyMessage }],
+    messages: [{ type: 'custom-text', content: humanFriendlyMessage }],
   });
-  messageManager.value.send();
 };
 
-const { continueChatAction, saveStateAction } = useChatAction({chat, saveState}); //TODO: Refactor
+const customContext = computed(() => ({
+  chat,
+  generating: isProcessing.value,
+}));
 
+provide(CUSTOM_CONTEXT, customContext);
 
-const generating = computed(() => GeneratingStatus.includes(messageManager.value.messageState.status));
-
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
-  mdConfig: { html: true },
-});
+const { continueChatAction, saveStateAction } = useChatAction({ chat, saveState });
+bundledCustomActions.value = [continueChatAction, saveStateAction];
 
 const lastSchemaCardId = computed(() => {
-  const lastChatMessage = messages.value[messages.value.length - 1];
+  const lastChatMessage = messages.value[messages.value.length - 1] as
+    | (ChatMessage & { messages?: IMessageItem[] })
+    | undefined;
   if (lastChatMessage?.role !== 'assistant') {
     return null;
   }
-  const items = lastChatMessage?.messages;
-  if (!Array.isArray(items) || !items?.length) {
+  const items = lastChatMessage.messages;
+  if (!Array.isArray(items) || !items.length) {
     return null;
   }
-  return items[items.length - 1].id;
+  const lastItem = items[items.length - 1];
+  return 'id' in lastItem ? lastItem.id : null;
 });
 
-const messageRenderers = {
-  'custom-text': (props: BubbleCommonProps & { content: string }) =>
-    h('span', { class: 'tr-bubble__body-text' }, props.content),
-  'schema-card': (schemaCardProps: IRendererProps) => {
-    const customComponentsMap: Record<string, Component> = {};
-    if (props.customComponents) {
-      props.customComponents.forEach((item) => {
-        if (item.ref && item.component) {
-          customComponentsMap[item.component] = item.ref;
-        }
-      });
+const isGeneratingCard = (cardId?: string) => isProcessing.value && cardId != null && lastSchemaCardId.value === cardId;
+
+const customComponentsMap = computed(() => {
+  const map: Record<string, Component> = {};
+  props.customComponents?.forEach((item) => {
+    if (item.ref && item.component) {
+      map[item.component] = item.ref;
     }
+  });
+  return map;
+});
 
-    // 将 customActions 数组转换为对象格式
-    const customActionsMap: Record<string, ICustomActionItem> = {};
-    if (props.customActions) {
-      props.customActions.forEach((action) => {
-        if (action.name) {
-          customActionsMap[action.name] = action;
-        }
-      });
+const customActionsMap = computed(() => {
+  const map: Record<string, ICustomActionItem> = {};
+  props.customActions?.forEach((action) => {
+    if (action.name) {
+      map[action.name] = action;
     }
-
-    return h(
-      'div',
-      {},
-      h(
-        GenuiRenderer,
-        {
-          ...schemaCardProps,
-          requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
-          generating: lastSchemaCardId.value === schemaCardProps.id ? generating.value : false,
-          customComponents: customComponentsMap,
-          customActions: {
-            ...customActionsMap,
-            continueChat: continueChatAction,
-            saveState: saveStateAction,
-          },
-          key: schemaCardProps.id,
-        },
-        {
-          header: toSlotFunction(props.rendererSlots?.header),
-          footer: toSlotFunction(props.rendererSlots?.footer),
-        },
-      ),
-    );
-  },
-  tool: ToolRenderer,
-  reasoning: ReasoningRenderer,
-  markdown: markdownRenderer,
-  templateData: TemplateDataRenderer,
-  'loading-text': props.thinkComponent || GeneratingComponent,
-  'error-text': ErrorText,
-};
-
-const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
-
-
-const customModelProvider = new CustomModelProvider({
-  getChatOptions: () => ({
-    url: props.url,
-    model: props.model || '',
-    temperature: props.temperature ?? 0.3,
-    chatConfig: props.chatConfig || { addToolCallContext: false, showThinkingResult: false },
-    customComponents: props.customComponents || [],
-    customSnippets: props.customSnippets || [],
-    customExamples: props.customExamples || [],
-    customActions: [...(props.customActions || []), continueChatAction, saveStateAction],
-    customFetch: props.customFetch,
-  }),
-});
-customModelProvider.setResponseHandlers(responseHandlers.value);
-
-const client = new AIClient({
-  provider: 'custom',
-  providerImplementation: customModelProvider,
+  });
+  return {
+    ...map,
+    continueChat: continueChatAction,
+    saveState: saveStateAction,
+  };
 });
 
-let conversation = useConversation({
-  client,
-  autoSave: false,
-  events: {
-    onReceiveData(data, messages, preventDefault) {
-      messages.value.push(data as any);
-      preventDefault();
-    },
-    onLoaded(conversations) {
-      if (!conversations.length) {
-        createConversation();
-        saveConversations();
-      }
-
-      // 如果通过 props.messages 传入了初始消息，则在会话加载完成后覆盖当前会话的消息
-      if (props.messages?.length) {
-        const currentMessages = messageManager.value.messages.value;
-        currentMessages.splice(0, currentMessages.length, ...(props.messages as any));
-      }
-    },
-    onFinish(data: any, context) {
-      if (data?.type === 'error') {
-        context.messages.value.push({
-          role: 'assistant',
-          content: '',
-          messages: [{ type: 'error-text', content: data.error.message }],
-        });
-      }
-      saveConversations();
-    },
-  },
-});
-const { messageManager, createConversation, updateTitle, state: conversationState, saveConversations } = conversation;
-
-const messages = computed(() => messageManager.value.messages.value);
-
-const inputMessage = computed({
-  get: () => messageManager.value.inputMessage.value,
-  set: (v: string) => {
-    messageManager.value.inputMessage.value = v;
-  },
+provide(GENUI_SCHEMA_CARD_CONTEXT, {
+  isGeneratingCard,
+  customComponentsMap,
+  customActionsMap,
+  requiredCompleteFieldSelectors: computed(() => props.requiredCompleteFieldSelectors || []),
+  rendererSlots: computed(() => props.rendererSlots),
 });
 
-const setInputMessage = (message: string) => {
-  inputMessage.value = message;
-}
-
-if (props.messages?.length) {
-  messages.value.splice(0, messages.value.length, ...(props.messages as any));
-}
-
-const { attachments, templateData, clearAttachments, processAttachments, handleFilesSelected, handleTemplateEdit } =
-  useFileUpload();
-
-const handleTemplateDataUpdate = (value: UserItem[]) => {
-  // 使用 handleTemplateEdit 处理 template 编辑，保持 templateData 和 attachments 同步
-  const updatedTemplateData = handleTemplateEdit(templateData, inputMessage.value);
-  inputMessage.value = '';
-  templateData.value = updatedTemplateData;
-};
 const showMessages = computed(() => {
-  let showMessages = messages.value;
+  const list = messages.value;
+  const lastMessage = list[list.length - 1] as (ChatMessage & { messages?: { type?: string }[] }) | undefined;
 
-  if (messageManager.value.messageState.status === STATUS.PROCESSING) {
-    return [
-      ...showMessages,
-      {
-        role: 'assistant',
-        content: t('loading.thinking'),
-        loading: true,
-      },
-    ];
+  if (!isProcessing.value || lastMessage?.role !== 'assistant') {
+    return list;
   }
 
-  const lastMessage = messages.value[messages.value.length - 1];
-
-  // 在流式返回过程中，为最后一条助手消息添加 loading-text 组件
-  if (generating.value && lastMessage?.role === 'assistant') {
-    const existingMessages = Array.isArray((lastMessage as any)?.messages) ? (lastMessage as any).messages : [];
-    // 检查是否已经存在 loading-text，避免重复添加
-    const hasLoadingText = existingMessages.some((msg: any) => msg.type === 'loading-text');
-
-    if (!hasLoadingText) {
-      return [
-        ...showMessages.slice(0, -1),
+  const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
+  return [
+    ...list.slice(0, -1),
+    {
+      ...lastMessage,
+      messages: [
+        ...existingMessages,
         {
-          ...lastMessage,
-          messages: [
-            ...existingMessages,
-            {
-              type: 'loading-text',
-              emitter: emitter,
-              message: lastMessage,
-              showThinkingResult: props.chatConfig?.showThinkingResult,
-            },
-          ],
+          type: 'loading-text',
+          emitter,
+          message: lastMessage,
+          showThinkingResult: props.chatConfig?.showThinkingResult ?? false,
+          thinkComponent: props.thinkComponent,
         },
-      ];
+      ],
+    },
+  ];
+});
+
+const defaultRoles: Record<string, BubbleRoleConfig> = {
+  assistant: {
+    placement: 'start',
+    avatar: h(IconAi, { style: { fontSize: '32px' } }),
+  },
+  user: {
+    placement: 'end',
+    avatar: h(IconUser, { style: { fontSize: '32px' } }),
+  },
+};
+
+const roleConfigs = computed(() => {
+  const mergedRoles: Record<string, BubbleRoleConfig> = { ...defaultRoles };
+  if (props.roles) {
+    for (const key of Object.keys(props.roles) as Array<'user' | 'assistant'>) {
+      const { slots: _slots, ...roleConfig } = props.roles[key] ?? {};
+      mergedRoles[key] = {
+        ...defaultRoles[key],
+        ...roleConfig,
+      };
     }
   }
-  return showMessages;
+  return mergedRoles;
 });
-const setConversationTitle = (messageContent: string) => {
-  const currentTitle = conversationState.conversations.find(
-    (conversation) => conversation.id === conversationState.currentId,
-  )?.title;
-  const DEFAULT_TITLE = t('conversation.newConversation');
-  if (currentTitle === DEFAULT_TITLE && conversationState.currentId) {
-    const contentStr = typeof messageContent === 'string' ? messageContent : JSON.stringify(messageContent);
-    updateTitle(conversationState.currentId, contentStr.substring(0, 20));
+
+const { renderAfterSlot } = useBubbleRoleAfterSlot({
+  roles: props.roles,
+  messageManager,
+  allMessages: messages,
+  isProcessing,
+});
+
+const BubbleAfterSlot = defineComponent({
+  name: 'BubbleAfterSlot',
+  props: {
+    messages: { type: Array, required: true },
+    role: { type: String, default: undefined },
+    messageIndexes: { type: Array, required: true },
+  },
+  setup(slotProps) {
+    return () =>
+      renderAfterSlot({
+        messages: slotProps.messages as Parameters<typeof renderAfterSlot>[0]['messages'],
+        role: slotProps.role,
+        messageIndexes: slotProps.messageIndexes as number[],
+      });
+  },
+});
+
+const handleSendMessage = async (content?: string) => {
+  if (isProcessing.value) {
+    return;
   }
-};
-const clearInputMessage = () => {
-  inputMessage.value = '';
-  templateData.value = [];
-  clearAttachments();
-};
 
-const handleRemoveAttachment = (item: FileMeta | undefined) => {
-  if (!item) return;
-  attachments.value = attachments.value.filter((attachment) => item.name !== attachment.name);
-  templateData.value = templateData.value.filter((data) => data.type !== 'template' || data.content !== item.name);
-};
-
-const handleSendMessage = async (ipt: string) => {
-  const messageContent = ipt;
-  const userMessageContent: BubbleContentItem[] = [];
-  let apiContent: any[] = [];
+  const messageContent = typeof content === 'string' ? content : inputMessage.value;
   const attachmentsValue = attachments.value.slice();
-  const templateDataValue = templateData.value.slice();
+  let templateDataValue = templateData.value.slice();
+  const hasAttachments = attachmentsValue.length > 0;
+
+  if (!messageContent?.trim() && !hasAttachments) {
+    return;
+  }
+
+  if (!hasAttachments) {
+    await sendUserMessage(messageContent.trim());
+    setConversationTitle(messageContent);
+    scrollToBottom();
+    return;
+  }
+
+  const userMessageContent: Array<{
+    type: string;
+    templateData?: UserItem[];
+    attachments?: FileMeta[];
+  }> = [];
 
   const userMessage: ChatMessage = {
     role: 'user',
     content: messageContent,
   };
-  messages.value.push(userMessage);
 
-  if (attachmentsValue.length > 0) {
-    const result = await processAttachments(attachmentsValue, props.features || {});
-    if (!result) {
-      messageManager.value.send();
-      scrollToBottom();
-      return;
-    }
-    apiContent = templateDataValue.map((templateItem: UserItem) => {
-      if (templateItem.type === 'template') {
-        return result.apiContent.find((att: any) => att.filename === templateItem.content);
-      } else {
-        return {
-          type: 'text',
-          text: (templateItem as UserTextItem).content,
-        };
-      }
-    });
-
-    // 添加 templateData 类型的消息项，用于渲染
-    if (templateDataValue.length > 0) {
-      userMessageContent.push({
-        type: 'templateData',
-        templateData: templateDataValue,
-        attachments: attachmentsValue,
-      });
-    }
-
-    userMessage.content = apiContent;
-    userMessage.messages = userMessageContent;
+  const result = await processAttachments(attachmentsValue, props.features || {});
+  if (!result) {
+    scrollToBottom();
+    return;
   }
 
-  messageManager.value.send();
+  templateDataValue = buildTemplateDataFromSubmitText(templateDataValue, messageContent);
+
+  const apiContent = templateDataValue.map((templateItem) => {
+    if (templateItem.type === 'template') {
+      return result.apiContent.find((att: { filename?: string }) => att.filename === templateItem.content);
+    }
+    return {
+      type: 'text',
+      text: (templateItem as UserTextItem).content,
+    };
+  });
+
+  if (templateDataValue.length > 0) {
+    userMessageContent.push({
+      type: 'templateData',
+      templateData: templateDataValue,
+      attachments: attachmentsValue,
+    });
+  }
+
+  userMessage.content = apiContent as unknown as string;
+  (userMessage as ChatMessage & { messages?: typeof userMessageContent }).messages = userMessageContent;
+
   clearInputMessage();
+  await sendUserChatMessage(userMessage, false);
   setConversationTitle(messageContent);
-  saveConversations();
   scrollToBottom();
 };
 
-const handleNewConversation = () => {
-  createConversation();
-  saveConversations();
-};
-
 const abortRequest = () => {
-  messageManager.value.abortRequest();
-  saveConversations();
+  void messageManager.value?.abortRequest();
 };
 
 const messagesContainer: Ref<HTMLElement | undefined> = ref();
 const { width: messagesContainerWidth } = useResize(messagesContainer);
 const { scrollToBottom, scrollToBottomWithRetry, autoScrollToBottom, isLastMessageInBottom } =
   scrollEnd(messagesContainer);
-// 使用节流包装 scrollToBottom，延迟 400ms
 const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
-// 最新消息滚动到底部
-watch(() => messages.value, throttledScrollToBottom, { deep: true });
+watch(() => showMessages.value, throttledScrollToBottom, { deep: true });
 watch(
-  () => conversationState.currentId,
+  () => conversation.activeConversationId.value,
   () => {
-    // 切换会话, 使用带重试机制的滚动函数，确保在 DOM 完全渲染后滚动到底部
     scrollToBottomWithRetry(10, 150);
   },
 );
 
+const extraContentRendererMatches = ref(new Map<string, BubbleContentRendererMatch>());
+const contentRendererMatches = computed(() => [
+  ...extraContentRendererMatches.value.values(),
+  ...genuiContentRendererMatches,
+]);
+
 defineExpose({
-  setInputMessage,
+  loading,
+  setInputMessage: (message: string) => {
+    inputMessage.value = message;
+  },
   handleNewConversation,
-  // @experimental
-  getProps: (): IChatProps => props,
   getConversation: () => conversation,
-  // experimental, not stable
-  getResponseHandlers: () => responseHandlers.value,
-  // experimental, not stable
+  getMessageEngine: () => messageManager.value,
+  importConversations,
+  exportConversations,
+  getResponseHandlers,
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
-    responseHandlers.value = handlers;
-    customModelProvider.setResponseHandlers(handlers);
+    setResponseHandlers(handlers);
   },
-  getMessageRenderers: () => messageRenderers,
-  setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {
-    messageRenderers[key] = renderer;
+  getMessageRenderers: () => Object.fromEntries(extraContentRendererMatches.value),
+  setMessageRenderer: (type: string, renderer: Component) => {
+    const next = new Map(extraContentRendererMatches.value);
+    next.set(type, {
+      priority: BubbleRendererMatchPriority.CONTENT,
+      find: (_message, content) => content?.type === type,
+      renderer: markRaw(renderer),
+    });
+    extraContentRendererMatches.value = next;
   },
-  generating,
-  // @experimental
-  lastSchemaCardId,
-  continueChatAction,
-  saveStateAction,
 });
 </script>
 
 <template>
   <div
     class="tg-chat-container"
-    :class="{ 'dark': genuiConfig?.theme === 'dark' }"
-    :style="!props.chatConfig?.showThinkingResult ? { '--thinking-display': 'none' } : {}"
+    :class="{
+      dark: genuiConfig?.theme === 'dark',
+      'is-thinking-collapsed': !props.chatConfig?.showThinkingResult,
+    }"
   >
     <div
       class="messages-container"
       ref="messagesContainer"
       :style="{ '--messages-container-width': messagesContainerWidth + 'px' }"
     >
-      <tr-bubble-provider :content-renderers="messageRenderers" v-if="showMessages.length">
-        <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
+      <tr-bubble-provider v-if="showMessages.length" :content-renderer-matches="contentRendererMatches">
+        <tr-bubble-list
+          :messages="showMessages"
+          :role-configs="roleConfigs"
+          :content-resolver="genuiContentResolver"
+          content-render-mode="split"
+          auto-scroll
+        >
+          <template #after="slotProps">
+            <BubbleAfterSlot v-bind="slotProps" />
+          </template>
+        </tr-bubble-list>
       </tr-bubble-provider>
       <slot v-else name="empty"></slot>
     </div>
     <div class="sender-container">
-      <!-- TODO: 抽离到组件 -->
       <div
-        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
+        :class="['scroll-to-bottom-button', { 'is-generating': isProcessing }]"
         v-show="!isLastMessageInBottom"
         @click="scrollToBottom"
       >
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <tr-sender
+      <tr-sender-compat
+        ref="senderRef"
         v-model="inputMessage"
-        :placeholder="
-          GeneratingStatus.includes(messageManager.messageState.status)
-            ? t('placeholder.thinking')
-            : t('placeholder.input')
-        "
+        :placeholder="isProcessing ? t('placeholder.thinking') : t('placeholder.input')"
         :clearable="true"
         :allow-files="isAllowFiles"
-        :buttonGroup="buttonGroup"
-        :loading="GeneratingStatus.includes(messageManager.messageState.status)"
-        @files-selected="(files) => handleFilesSelected(files, inputMessage)"
+        :button-group="buttonGroup"
+        :loading="isProcessing"
+        :show-word-limit="true"
+        :max-length="20000"
         v-model:template-data="templateData"
+        @files-selected="(files) => handleFilesSelected(files, inputMessage)"
         @update:template-data="handleTemplateDataUpdate"
-        :showWordLimit="true"
-        :maxLength="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="abortRequest"
       >
-        <template #header v-if="attachments.length > 0">
+        <template v-if="attachments.length > 0" #header>
           <div class="attachments-container">
             <AttachmentsRenderer :attachments="attachments" @remove="handleRemoveAttachment" />
           </div>
         </template>
-      </tr-sender>
+      </tr-sender-compat>
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>
     </div>
   </div>
@@ -538,7 +496,6 @@ defineExpose({
 <style scoped lang="less">
 .tg-chat-container {
   --ti-gen-chat-container-bg-color: #f0f0f0;
-  --thinking-display: initial;
   --sender-bg: url('./assets/sender-light.svg') no-repeat center;
   --sender-border-color: #e5e5e5;
   --generating-bg-before: linear-gradient(90deg, #fff, #a2c7f4);
@@ -551,6 +508,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: auto;
+
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
     --sender-bg: url('./assets/sender-dark.svg') no-repeat center;
@@ -560,9 +518,6 @@ defineExpose({
   }
 }
 
-.is-loading-in-top {
-  margin-top: -48px;
-}
 .messages-container {
   flex: 1;
   overflow: auto;
@@ -573,50 +528,87 @@ defineExpose({
   margin-top: 8px;
 }
 
-:deep(.tr-bubble.placement-start) {
-  .tr-bubble__content {
+:deep(.tr-bubble[data-placement='start']) {
+  .tr-bubble__box {
     padding: 0;
     background: transparent;
-    border-radius: 0;
-    box-shadow: none;
+    overflow: visible;
+  }
+
+  .tr-bubble__box:has([data-type='schema-card']),
+  .tr-bubble__box[data-shape]:has([data-type='schema-card']) {
+    width: fit-content;
+    max-width: 100%;
   }
 }
-:deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items:has([type^='schema-card'])) {
-  // 匹配：type非空 + 排除 schema-card/loading-text 这两个值
-  > [type]:not([type='']):not([type='schema-card']):not([type='loading-text']) {
-    display: var(--thinking-display, initial);
+
+.tg-chat-container.is-thinking-collapsed {
+  :deep(.tr-bubble[data-role='assistant'] .tr-bubble__content:has([data-type='schema-card'])) {
+    gap: 0;
+  }
+
+  :deep(
+    .tr-bubble[data-role='assistant']
+      .tr-bubble__content:has([data-type='schema-card'])
+      > *:not(:has([data-type='schema-card'])):not(:has([data-type='loading-text']))
+  ) {
+    height: 0;
+  }
+
+  :deep(
+    .tr-bubble[data-role='assistant']
+      .tr-bubble__content:has([data-type='schema-card'])
+      [data-type]:not([data-type='schema-card']):not([data-type='loading-text'])
+  ) {
+    display: none;
   }
 }
+
 :deep(.tr-bubble__step-tool) {
   & + .tr-bubble__step-tool {
     margin-top: 16px;
   }
 }
 
-:deep(.tr-bubble.placement-end) {
+:deep(.tr-bubble[data-placement='end']) {
   width: 100%;
+  --tr-bubble-box-padding: 16px 24px;
+  --tr-bubble-text-font-size: 16px;
+  --tr-bubble-box-shape-rounded-radius: 24px;
 }
-:deep(.tr-bubble__content-wrapper) {
-  @avatar-and-gap-width: 56px;
-  // TODO: 后续规范变量名，在对外暴露
-  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width ,@avatar-and-gap-width) * 2);
 
+:deep(.tr-bubble__body) {
   .tr-bubble__content {
-    max-width: 100%;
-  }
-  .tr-bubble__content-items {
+    @avatar-and-gap-width: 56px;
+    max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
     overflow-x: auto;
   }
 }
+
+:deep(.schema-render-container) {
+  @large-screen-min-width: 400px;
+  @min-width-safe-padding: 250px;
+  @small-screen-min-width: calc(var(--messages-container-width) - @min-width-safe-padding);
+  min-width: min(@small-screen-min-width, @large-screen-min-width);
+}
+
+:deep(.tr-bubble[data-placement='start'] .schema-render-container) {
+  width: 100%;
+  background-color: var(--tr-container-bg-default, #fff);
+  border-radius: 24px;
+}
+
 .sender-container {
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
   background: var(--sender-bg);
+
   .attachments-container {
     padding: 0 20px;
   }
 }
+
 .scroll-to-bottom-button {
   position: absolute;
   left: 50%;
@@ -632,13 +624,16 @@ defineExpose({
   cursor: pointer;
   border: 1px solid var(--sender-border-color);
   z-index: 1000;
+
   & > svg {
     width: 20px;
     height: 20px;
   }
 
   &:hover {
-    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
+    box-shadow:
+      0px 10px 20px 0px #0000001a,
+      0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {
@@ -677,6 +672,7 @@ defineExpose({
     }
   }
 }
+
 .footer-text {
   font-size: 12px;
   color: #999;
@@ -684,11 +680,9 @@ defineExpose({
   margin-top: 16px;
 }
 
-:deep(.schema-render-container) {
-  @large-screen-min-width: 400px;
-  @min-width-safe-padding: 250px;
-  @small-screen-min-width: calc(var(--messages-container-width) - @min-width-safe-padding);
-  min-width: min(@small-screen-min-width, @large-screen-min-width);
+.tr-sender {
+  width: 80%;
+  margin: 0 auto;
 }
 
 @keyframes rotate-border {
@@ -698,10 +692,5 @@ defineExpose({
   to {
     transform: rotate(360deg);
   }
-}
-
-.tiny-sender {
-  width: 80%;
-  margin: 0 auto;
 }
 </style>

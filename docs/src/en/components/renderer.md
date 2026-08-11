@@ -9,6 +9,8 @@ When using only Renderer, you can import it on demand from `@opentiny/genui-sdk-
 ::: warning Materials configuration (since v1.3.0)
 `GenuiRenderer` has been refactored to decouple materials. The component no longer includes any UI materials; inject them via `GenuiConfigProvider`.
 
+Internally it provides `materials.components` and `defaultPropsMap` (from ConfigProvider materials) to the schema renderer, not the full materials object.
+
 For previous behavior, use `GenuiLegacyRenderer` (`@opentiny/genui-sdk-vue/legacy-renderer`) instead.
 :::
 

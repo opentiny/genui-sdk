@@ -41,7 +41,8 @@ watch(() => props.customComponents, (newVal) => {
 
 provide(RENDERER_SETTINGS_KEY, {
   ...customSettings,
-  materials,
+  materials: materials.components || {},
+  defaultPropsMap: materials.defaultPropsMap,
 });
 
 const deltaPatcher = shallowRef(null);
@@ -163,6 +164,7 @@ watch(
 .schema-render-container {
   position: relative;
   color: var(--tv-color-text, #191919);
+  width: fit-content;
 }
 
 .schema-render-container:has(.loading-warp):after {

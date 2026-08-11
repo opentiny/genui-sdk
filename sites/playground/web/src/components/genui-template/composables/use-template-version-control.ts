@@ -195,7 +195,7 @@ export function useTemplateVersionControl() {
       attachSourceMetadata(options.sourceCardId);
     }
 
-    const msgs = messageMgr.messages.value;
+    const msgs = messageMgr.messages.value as ChatMessage[];
     const mergeTarget = getMergeableManualSaveMessage(msgs);
 
     let cardId: string;
@@ -231,8 +231,6 @@ export function useTemplateVersionControl() {
     }
 
     messageMgr.messages.value = [...msgs];
-    currentConversation.messages = [...msgs];
-    currentConversation.updatedAt = Date.now();
 
     setCurrentSchema(schemaPayload);
     setCurrentPreviewSchema(schemaPayload);
@@ -317,10 +315,7 @@ export function useTemplateVersionControl() {
     if (!conversationState) {
       return;
     }
-    const currentConversation = conversationState.conversations.find(
-      (item) => item.id === conversationState.currentId,
-    );
-    applySchemaFromMessages(currentConversation?.messages, {
+    applySchemaFromMessages(messages.value, {
       clearIfMissing: !conversationState.loading,
     });
     resetVersionPreviewMode();

@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import type { UserItem } from '@opentiny/tiny-robot';
+import type { UserItem } from '../chat.types';
 import type { FileMeta } from '../file-upload/file-utils';
 import { IMAGE_MIME_TYPES } from '../file-upload/file-utils';
 import { ref } from 'vue';

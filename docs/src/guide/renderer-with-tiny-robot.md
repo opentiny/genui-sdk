@@ -21,230 +21,84 @@ yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue 
 
 ## 基础使用
 
-首先，创建一个自定义的模型提供者来处理流式返回。以下是 `CustomModelProvider` 的完整实现：
+> **tiny-robot 0.4.x**：不再使用 `AIClient` + `BaseModelProvider`。请通过 `useConversation` 的 `responseProvider` 对接后端 SSE，并在 `onCompletionChunk` 中处理 schema 流式分片。
 
-````typescript
-import {
-  BaseModelProvider,
-  type ChatCompletionRequest,
-  type ChatCompletionStreamResponse,
-} from '@opentiny/tiny-robot-kit';
-import { PatternExtractor, type IChatMessage } from '@opentiny/genui-sdk-core';
-import { reactive } from 'vue';
+首先定义 `responseProvider`，将后端 SSE 转为 tiny-robot 可消费的异步生成器：
 
-function appendMarkdown(content: string, chatMessage: IChatMessage) {
-  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'markdown') {
-    lastMessage.content += content;
-  } else {
-    chatMessage.messages.push({ type: 'markdown', content });
-  }
-}
+```typescript
+import { sseStreamToGenerator } from '@opentiny/tiny-robot-kit';
+import type { MessageRequestBody } from '@opentiny/tiny-robot-kit';
 
-function appendSchemaCard(content: string, chatMessage: IChatMessage) {
-  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'schema-card') {
-    lastMessage.content += content;
-  } else {
-    chatMessage.messages.push({ type: 'schema-card', content });
-  }
-}
+const CHAT_URL = 'https://your-chat-backend/api';
 
-// 用 PatternExtractor 拆分 markdown 与 schemaJson（默认 SchemaJsonPattern）
-function useSchemaStream() {
-  let chatMessageRef: IChatMessage | null = null;
-
-  const patternExtractor = new PatternExtractor({
-    onNormalWrite: (value) => {
-      if (!chatMessageRef) return;
-      chatMessageRef.content += value;
-      appendMarkdown(value, chatMessageRef);
-    },
-    onHandledWrite: (value) => {
-      if (!chatMessageRef) return;
-      chatMessageRef.content += value;
-      appendSchemaCard(value, chatMessageRef);
-    },
-  });
-
-  const handleSchemaStream = (content: string, chatMessage: IChatMessage) => {
-    if (!content || typeof content !== 'string') return;
-    chatMessageRef = chatMessage;
-    patternExtractor.handleContent(content);
-  };
-
-  return { handleSchemaStream };
-}
-
-export class CustomModelProvider extends BaseModelProvider {
-  constructor(private url: string) {
-    super({ provider: 'custom' });
-  }
-
-  async chatStream(
-    request: ChatCompletionRequest,
-    handler: {
-      onData: (data: ChatCompletionStreamResponse) => void;
-      onDone: () => void;
-      onError: (error: any) => void;
-    },
-  ) {
-    const { onDone, onData } = handler;
-    let response: Response;
-
-    try {
-      response = await fetch(this.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: request.messages,
-          model: 'deepseek-v3.2',
-          stream: true,
-        }),
-        signal: request.options?.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      onDone({ type: 'error', error } as any);
-      return;
-    }
-
-    const reader = response.body!.getReader();
-    const decoder = new TextDecoder('utf-8');
-    let buffer = '';
-    const { handleSchemaStream } = useSchemaStream();
-
-    const chatMessage = reactive<IChatMessage>({
-      role: 'assistant',
-      content: '',
-      messages: [],
+export function createChatResponseProvider() {
+  return async (requestBody: MessageRequestBody, abortSignal: AbortSignal) => {
+    const response = await fetch(CHAT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: requestBody.messages,
+        model: 'deepseek-v3.2',
+        stream: true,
+      }),
+      signal: abortSignal,
     });
-    onData(chatMessage as any);
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-
-      while (true) {
-        const lineEnd = buffer.indexOf('\n');
-        if (lineEnd === -1) break;
-
-        const line = buffer.slice(0, lineEnd).trim();
-        buffer = buffer.slice(lineEnd + 1);
-
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') {
-            onDone();
-            return;
-          }
-
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
-            const content = delta?.content;
-
-            if (content) {
-              handleSchemaStream(content, chatMessage);
-              const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-              if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-                // 演示示例，使用Math.random作为key
-                lastMessage.id = Math.random().toString(36).substring(2, 15);
-              }
-              onData(chatMessage as any);
-            }
-          } catch (e) {
-            console.error('Parse error:', e);
-          }
-        }
-      }
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    onDone();
-  }
+    return sseStreamToGenerator(response, { signal: abortSignal });
+  };
 }
-````
+```
 
-然后在你的组件中使用：
+Schema 分片解析可放在 `onCompletionChunk`（与 `GenuiChat` 内部 `genuiStreamHandler` 思路一致）。完整解析逻辑见 SDK 源码 `chat/genuiStreamHandler.ts`；下方示例仅演示接入方式。
+
+然后在组件中使用 `useConversation` + `GenuiRenderer`，并通过 `GenuiConfigProvider` 注入物料：
 
 ```vue
 <script setup lang="ts">
-import { ref, computed, h, reactive } from 'vue';
+import { computed, h, ref } from 'vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
 import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
-import { AIClient, GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
+import { useConversation } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import '@opentiny/tiny-robot/dist/style.css';
 import type { IRendererProps } from '@opentiny/genui-sdk-vue';
-import { CustomModelProvider } from './CustomModelProvider'; // 引入上面定义的 CustomModelProvider
+import { createChatResponseProvider } from './createChatResponseProvider';
 
-const client = new AIClient({
-  provider: 'custom',
-  providerImplementation: new CustomModelProvider('https://your-chat-backend/api'),
+const inputMessage = ref('');
+
+const conversation = useConversation({
+  useMessageOptions: {
+    responseProvider: createChatResponseProvider(),
+    plugins: [{ name: 'thinking', disabled: true }],
+    // onCompletionChunk: genuiStreamHandler.onCompletionChunk, // 生产环境建议复用 SDK 实现
+  },
 });
 
-const messages = ref<ChatMessage[]>([]);
-const inputMessage = ref('');
-const messageState = reactive({ status: STATUS.INIT, errorMsg: null });
-let abortController: AbortController | null = null;
-
-const generating = computed(() => GeneratingStatus.includes(messageState.status));
+const engine = computed(() => conversation.activeConversation.value?.engine);
+const messages = computed(() => engine.value?.messages.value ?? []);
+const isProcessing = computed(() => engine.value?.isProcessing.value ?? false);
 
 const sendMessage = async (messageContent: string) => {
-  if (generating.value || !messageContent.trim()) return;
+  if (isProcessing.value || !messageContent.trim() || !engine.value) {
+    return;
+  }
 
-  const userMessage: ChatMessage = {
+  engine.value.messages.value.push({
     role: 'user',
     content: messageContent,
-  };
-  messages.value.push(userMessage);
+  } as ChatMessage);
 
-  messageState.status = STATUS.PROCESSING;
-  abortController = new AbortController();
-
-  try {
-    await client.chatStream(
-      {
-        messages: messages.value,
-        options: { stream: true, signal: abortController.signal },
-      },
-      {
-        onData: (data: any) => {
-          messageState.status = STATUS.STREAMING;
-          const lastMessage = messages.value[messages.value.length - 1];
-          if (lastMessage?.role === 'assistant') {
-            Object.assign(lastMessage, data);
-          } else {
-            messages.value.push(data);
-          }
-        },
-        onError: (error: any) => {
-          messageState.status = STATUS.ERROR;
-          messageState.errorMsg = error;
-          console.error('Stream error:', error);
-        },
-        onDone: () => {
-          messageState.status = STATUS.FINISHED;
-        },
-      },
-    );
-  } catch (error) {
-    messageState.status = STATUS.ERROR;
-  } finally {
-    abortController = null;
-  }
+  await engine.value.send();
 };
 
 const abortRequest = () => {
-  abortController?.abort();
-  messageState.status = STATUS.FINISHED;
+  void engine.value?.abortRequest();
 };
 
 const markdownRenderer = new BubbleMarkdownContentRenderer({
@@ -254,38 +108,29 @@ const markdownRenderer = new BubbleMarkdownContentRenderer({
 const lastSchemaCardId = computed(() => {
   const lastMsg = messages.value[messages.value.length - 1];
   if (lastMsg?.role !== 'assistant') return null;
-  const items = (lastMsg as any).messages;
+  const items = (lastMsg as ChatMessage & { messages?: { type?: string; id?: string }[] }).messages;
   if (!Array.isArray(items) || !items.length) return null;
-  const schemaCard = items.find((m: any) => m.type === 'schema-card');
+  const schemaCard = items.find((m) => m.type === 'schema-card');
   return schemaCard?.id || null;
 });
 
 const messageRenderers = {
-  'schema-card': (props: IRendererProps) => {
-    return h(
-      'div',
-      {},
-      h(GenuiRenderer, {
-        ...props,
-        generating: lastSchemaCardId.value === props.id ? generating.value : false,
-      }),
-    );
-  },
+  'schema-card': (props: IRendererProps) =>
+    h(GenuiRenderer, {
+      ...props,
+      generating: lastSchemaCardId.value === props.id ? isProcessing.value : false,
+    }),
   markdown: markdownRenderer,
 };
 
 const handleSubmit = (content: string) => {
-  sendMessage(content);
+  inputMessage.value = '';
+  void sendMessage(content);
 };
 
-const roles = {
-  user: {
-    placement: 'end',
-  },
-  assistant: {
-    placement: 'start',
-    customContentField: 'messages',
-  },
+const roleConfigs = {
+  user: { placement: 'end' as const },
+  assistant: { placement: 'start' as const },
 };
 </script>
 
@@ -294,14 +139,18 @@ const roles = {
     <div class="chat-container">
       <div class="messages-container">
         <TrBubbleProvider :content-renderers="messageRenderers">
-          <TrBubbleList :items="messages" :roles="roles" />
+          <TrBubbleList
+            :messages="messages"
+            :role-configs="roleConfigs"
+            content-render-mode="split"
+          />
         </TrBubbleProvider>
       </div>
       <div class="sender-container">
         <TrSender
           v-model="inputMessage"
-          :loading="generating"
-          :placeholder="generating ? '思考中...' : '请输入消息'"
+          :loading="isProcessing"
+          :placeholder="isProcessing ? '思考中...' : '请输入消息'"
           @submit="handleSubmit"
           @cancel="abortRequest"
         />
@@ -332,6 +181,8 @@ const roles = {
 }
 </style>
 ```
+
+若不需要自行拼装消息流，可直接使用开箱即用的 [`GenuiChat`](../components/chat)，内部已封装 `responseProvider`、`genuiStreamHandler` 与 Schema 渲染。
 
 ::: tip GenuiRenderer
 若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiRenderer Legacy 兼容说明](../components/renderer#兼容组件-genuilegacyrenderer)。

@@ -1,34 +1,43 @@
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue';
 import { IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import { BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
-import { ref } from 'vue';
+import type { BubbleContentRendererProps } from '@opentiny/tiny-robot';
+import { useMessageContent } from '@opentiny/tiny-robot';
 import { useI18n } from '../i18n';
+import { useMarkdownHtml } from '../composable/useMarkdownHtml';
 
-const props = defineProps<{
-  content: string;
-  thinking?: boolean;
-}>();
+const props = defineProps<BubbleContentRendererProps>();
+const { content } = useMessageContent(props);
+const { t } = useI18n();
 
 const open = ref(false);
-const { t } = useI18n();
+
+const reasoningItem = computed(() => content.value as { content?: string; thinking?: boolean });
+
+const textContent = computed(() => String(reasoningItem.value?.content ?? ''));
+const thinking = computed(() => reasoningItem.value?.thinking ?? false);
+
+watch(
+  thinking,
+  (value) => {
+    if (value) {
+      open.value = true;
+    }
+  },
+  { immediate: true },
+);
+
+const { html: markdownContent, ready: markdownReady } = useMarkdownHtml(textContent);
 
 const handleClick = () => {
   open.value = !open.value;
 };
-
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
-  mdConfig: { html: true },
-});
-
-const MarkdownContent = (markdownProps: { content: string }) =>
-  markdownRenderer.render({ content: markdownProps.content });
 </script>
 
 <template>
   <div class="tr-bubble__reasoning" data-type="reasoning">
     <div class="header" @click="handleClick">
-      <div class="icon-and-text" :class="{ thinking: props.thinking }">
+      <div class="icon-and-text" :class="{ thinking }">
         <svg
           class="thinking-icon"
           width="1em"
@@ -49,7 +58,7 @@ const MarkdownContent = (markdownProps: { content: string }) =>
             d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"
           />
         </svg>
-        <span class="title">{{ props.thinking ? t('reasoning.thinking') : t('reasoning.thinkingEnd') }}</span>
+        <span class="title">{{ thinking ? t('reasoning.thinking') : t('reasoning.thinkingEnd') }}</span>
       </div>
       <IconArrowDown class="expand-icon" :class="{ '-rotate-90': !open }" />
     </div>
@@ -60,12 +69,17 @@ const MarkdownContent = (markdownProps: { content: string }) =>
         </div>
         <div class="border-line"></div>
       </div>
-      <MarkdownContent :content="props.content" class="detail-content" />
+      <div
+        v-if="markdownReady && markdownContent"
+        class="detail-content markdown-content markdown-body"
+        v-html="markdownContent"
+      />
+      <div v-else-if="textContent" class="detail-content">{{ textContent }}</div>
     </div>
   </div>
 </template>
 
-<style lang="less" scoped>
+<style scoped lang="less">
 .tr-bubble__reasoning:not(:last-child) {
   margin-top: 8px;
 }

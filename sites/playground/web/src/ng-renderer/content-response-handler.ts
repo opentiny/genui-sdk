@@ -1,4 +1,4 @@
-import type { IChatMessage, IStreamDelta } from '@opentiny/genui-sdk-core';
+import type { IChatMessage, IMessageItem, IStreamDelta } from '@opentiny/genui-sdk-core';
 import { v4 as uuidv4 } from 'uuid';
 
 import { readonly, type Ref } from 'vue';
@@ -6,14 +6,15 @@ import { emitter } from '@opentiny/genui-sdk-vue';
 
 function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
   const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  const notificationType = lastMessage.type?.startsWith('schema-card-') ? 'schema-card' : lastMessage.type;
-  if (lastMessage) {
-    emitter.emit('notification', {
-      type: notificationType,
-      delta,
-      chatMessage: readonly(chatMessage),
-    });
+  if (!lastMessage) {
+    return;
   }
+  const notificationType = lastMessage.type?.startsWith('schema-card-') ? 'schema-card' : lastMessage.type;
+  emitter.emit('notification', {
+    type: notificationType as 'markdown' | 'schema-card' | 'done',
+    delta,
+    chatMessage: readonly(chatMessage),
+  });
 }
 const cardTypeMap: Record<string, string> = {
   Angular: 'schema-card-angular',
@@ -30,9 +31,9 @@ function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMess
   } else {
     chatMessage.messages.push({
       type: currentSchemaType,
-      content: content,
+      content,
       id: uuidv4(),
-    });
+    } as IMessageItem);
   }
   emitNotification(delta, chatMessage);
 }

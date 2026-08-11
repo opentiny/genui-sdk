@@ -448,8 +448,8 @@ const selectors = [
 
 ### getConversation
 
-- **返回类型**: `UseConversationReturn`
-- **说明**: 获取会话管理对象，用于访问会话管理相关的 API，包括会话列表、当前会话、保存/加载会话等功能。
+- **返回类型**: `GenuiConversationHandle`（`@opentiny/tiny-robot-kit` 的 `useConversation` 返回值）
+- **说明**: 获取会话管理对象。本地会话默认存储在 IndexedDB（库名 `genui-ai-v2`），升级自旧版后不会自动迁移旧库数据。
 
 ```vue
 <template>
@@ -467,10 +467,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // 获取所有会话列表
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
-// 获取当前会话ID
-const currentId = computed(() => conversation.value?.state.currentId);
+// 获取当前会话 ID
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 
@@ -632,7 +632,8 @@ interface BubbleRoleConfig {
   avatar?: Component | VNode; // 头像组件
   maxWidth?: string; // 消息最大宽度
   slots?: {
-    // 插槽配置,可用于配置底部工具栏
+    // 0.4.x 仅支持 after / trailer（二者等价，用于底部工具栏）
+    after?: Component<IBubbleSlotsProps>;
     trailer?: Component<IBubbleSlotsProps>;
   };
 }
@@ -641,7 +642,7 @@ interface IBubbleSlotsProps {
   index: number;
   bubbleProps: BubbleProps;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageManager: IMessageManagerBridge;
   chatMessage: IMessage
 }
 ```
@@ -660,10 +661,21 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-`BubbleProps` 、`UseConversationReturn`、 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
+`BubbleProps` 详情可以查看 TinyRobot 相关文档；`IMessageManagerBridge` 由 `@opentiny/genui-sdk-vue` 导出，用于 footer 插槽中访问消息发送能力：
+
+```typescript
+interface IMessageManagerBridge {
+  messages: Ref<ChatMessage[]>;
+  isProcessing: Ref<boolean>;
+  inputMessage: Ref<string>;
+  requestState: Ref<string>;
+  send: () => Promise<void>;
+  sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
+  abortRequest: () => void | Promise<void>;
+  addMessage: (message: ChatMessage | ChatMessage[]) => void;
+}
+```
 
 查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
 
-查看 [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
-
-查看 [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
+> **说明**：`GenuiRenderer` 通过 provide 向 schema 渲染层注入 `materials.components` 与 `defaultPropsMap`（来自 `GenuiConfigProvider` 的 materials），不再注入完整 materials 对象。

@@ -57,7 +57,7 @@ import {
   TinyDropdownMenu,
   TinyDropdownItem,
 } from '@opentiny/vue';
-import type { Conversation } from '@opentiny/tiny-robot-kit';
+import type { PersistedConversation } from '../../../types/conversation';
 import { t } from '../../../i18n';
 import { downloadConversations, parseConversationFile, reconcileImportedConversationIds } from './history-transfer';
 
@@ -65,8 +65,9 @@ const selectionActive = defineModel<boolean>('selectionActive', { default: false
 
 const props = withDefaults(
   defineProps<{
-    conversations: Conversation[];
+    conversations: PersistedConversation[];
     selectedIds?: string[];
+    exportConversations?: (ids?: string[]) => Promise<PersistedConversation[] | undefined>;
   }>(),
   { selectedIds: () => [] },
 );
@@ -76,7 +77,7 @@ const toggleSelectionMode = () => {
 };
 
 const emit = defineEmits<{
-  'import-conversations': [conversations: Conversation[]];
+  'import-conversations': [conversations: PersistedConversation[]];
   'batch-export': [];
   'batch-delete': [];
 }>();
@@ -100,13 +101,18 @@ const triggerImport = () => {
   fileInputRef.value?.click();
 };
 
-const exportAll = () => {
+const exportAll = async () => {
   if (props.conversations.length === 0) {
     notify('warning', t('history.noExportable'));
     return;
   }
 
-  downloadConversations(props.conversations);
+  const items = props.exportConversations
+    ? await props.exportConversations()
+    : props.conversations;
+  if (items?.length) {
+    downloadConversations(items);
+  }
 };
 
 const handleExportItemClick = (payload: { itemData?: { action: ExportMenuAction } }) => {

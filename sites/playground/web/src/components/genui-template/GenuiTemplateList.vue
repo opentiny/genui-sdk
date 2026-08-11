@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { Conversation } from '@opentiny/tiny-robot-kit';
-import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
+import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import { TrHistory, useTouchDevice, type HistoryItem, type HistoryMenuItem } from '@opentiny/tiny-robot';
 import { computed, ref, watch } from 'vue';
 import { TinyModal, TinyCheckboxGroup, TinyCheckbox } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
@@ -11,6 +11,7 @@ import {
   getHistoryMenuItems,
   reconcileImportedConversationIds,
 } from '../tab-components/history-transfer';
+import type { PersistedConversation } from '../../types/conversation';
 import { t } from '../../i18n';
 
 const TinyIconPlus = iconPlus();
@@ -19,18 +20,25 @@ const { isTouchDevice } = useTouchDevice();
 const emit = defineEmits(['switch-template']);
 
 const {
-  conversationKit,
+  conversation,
   templateConversationState,
   updateTemplateTitle,
   switchTemplate,
   deleteTemplate,
   createTemplate,
+  importConversations,
+  exportConversations,
 } = useTemplate();
 
 const selectedTemplateIds = ref<string[]>([]);
 const selectionActive = ref(false);
 
-const conversations = computed(() => templateConversationState.value?.conversations ?? []);
+const conversations = computed((): HistoryItem[] =>
+  (templateConversationState.value?.conversations ?? []).map((item) => ({
+    ...item,
+    title: item.title || t('template.defaultTitle'),
+  })),
+);
 
 const historyMenuItems = getHistoryMenuItems();
 
@@ -48,41 +56,60 @@ watch(
   },
 );
 
-const handleImportConversations = (imported: Conversation[]) => {
-  const kit = conversationKit.value;
-  if (!kit) {
+const handleImportConversations = async (imported: PersistedConversation[]) => {
+  const kit = conversation.value;
+  if (!kit || !importConversations) {
     return;
   }
 
-  const reconciledImported = reconcileImportedConversationIds(kit.state.conversations, imported);
-  kit.state.conversations.unshift(...reconciledImported);
-  kit.saveConversations();
+  const reconciledImported = reconcileImportedConversationIds(
+    kit.conversations.value as PersistedConversation[],
+    imported,
+  );
+  await importConversations(
+    reconciledImported.map((item) => ({
+      id: item.id,
+      title: item.title,
+      messages: item.messages as ChatMessage[] | undefined,
+      metadata: item.metadata as Record<string, unknown> | undefined,
+    })),
+  );
 };
 
-const handleItemClick = (item: Conversation) => {
+const handleItemClick = (item: HistoryItem) => {
+  if (!item.id) {
+    return;
+  }
   switchTemplate(item.id);
-
   emit('switch-template', item);
 };
 
-const handleItemAction = (action: { id: string }, item: Conversation) => {
+const handleItemAction = async (action: HistoryMenuItem, item: HistoryItem) => {
+  if (!item.id) {
+    return;
+  }
   if (action.id === 'export') {
-    downloadConversations([item], 'genui-template');
+    const items = await exportConversations?.([item.id]);
+    if (items?.length) {
+      downloadConversations(items, 'genui-template');
+    }
     return;
   }
 
   if (action.id === 'delete') {
-    TinyModal.confirm(t('template.confirmDeleteOne'))
-      .then((type: 'confirm' | 'cancel') => {
-        if (type === 'cancel') {
-          return;
-        }
-        deleteTemplate(item.id);
-      });
+    TinyModal.confirm(t('template.confirmDeleteOne')).then(async (type: 'confirm' | 'cancel') => {
+      if (type === 'cancel') {
+        return;
+      }
+      await deleteTemplate(item.id!);
+    });
   }
 };
 
-const handleItemTitleChange = (title: string, item: Conversation) => {
+const handleItemTitleChange = (title: string, item: HistoryItem) => {
+  if (!item.id) {
+    return;
+  }
   updateTemplateTitle(item.id, title);
 };
 
@@ -90,10 +117,12 @@ const handleAddItem = () => {
   createTemplate();
 };
 
-const handleBatchExport = () => {
+const handleBatchExport = async () => {
   const idSet = new Set(selectedTemplateIds.value);
-  const items = conversations.value.filter((c) => idSet.has(c.id));
-  downloadConversations(items, 'genui-template');
+  const items = await exportConversations?.([...idSet]);
+  if (items?.length) {
+    downloadConversations(items, 'genui-template');
+  }
 };
 
 const handleBatchDelete = () => {
@@ -101,16 +130,17 @@ const handleBatchDelete = () => {
   if (ids.length === 0) {
     return;
   }
-  TinyModal.confirm(t('template.confirmBatchDelete', { count: ids.length }))
-    .then((type: 'confirm' | 'cancel') => {
+  TinyModal.confirm(t('template.confirmBatchDelete', { count: ids.length })).then(
+    async (type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;
       }
       for (const id of ids) {
-        deleteTemplate(id);
+        await deleteTemplate(id);
       }
       selectedTemplateIds.value = [];
-    });
+    },
+  );
 };
 </script>
 
@@ -122,7 +152,7 @@ const handleBatchDelete = () => {
     </button>
     <history-transfer-toolbar
       v-model:selection-active="selectionActive"
-      :conversations="conversations"
+      :conversations="(conversations as PersistedConversation[])"
       :selected-ids="selectedTemplateIds"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"

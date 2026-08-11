@@ -31,7 +31,7 @@ import {
 } from './continue-writing';
 import useIcon from './use-icon';
 import { getMixedContentHandler } from './ng-renderer/content-response-handler';
-import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
+import { AngularSchemaCardItemRenderer } from './ng-renderer';
 import { locale, t } from './i18n';
 
 const { topRenderer, addIcons } = useIcon();
@@ -212,6 +212,10 @@ const replaceHandlers = (handlers, replaceHandlers, name) => {
 
 const chat = ref(null);
 const conversation = computed(() => chat.value?.getConversation());
+const importConversations = (...args) => chat.value?.importConversations(...args);
+const exportConversations = (...args) => chat.value?.exportConversations(...args);
+const messageEngine = computed(() => chat.value?.getMessageEngine());
+
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
@@ -223,7 +227,7 @@ watch(chat, (instance) => {
 
     const newResponseHandlers = [
       ...defaultResponseHandlers,
-      getContinueGeneratingHandler(conversation.value.messageManager),
+      getContinueGeneratingHandler(messageEngine),
       locationPartialSchemaJson(),
     ];
 
@@ -234,7 +238,7 @@ watch(chat, (instance) => {
     );
     instance.setResponseHandlers(newResponseHandlers);
 
-    instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
+    instance.setMessageRenderer('schema-card-angular', AngularSchemaCardItemRenderer);
   }
 });
 
@@ -245,6 +249,8 @@ const playgroundContext = {
   modelData,
   themeData,
   conversation,
+  importConversations,
+  exportConversations,
   customExamples,
   framework,
 };
@@ -260,30 +266,26 @@ const handleKeydown = (event) => {
 };
 
 const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
-const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate({
-  url: templateUrl,
-  llmConfig,
-});
+const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate(
+  ENABLE_TEMPLATE ? { url: templateUrl, llmConfig } : undefined,
+);
 const { initInputMessage } = useInputMessage(chat);
 const { isMobile } = useIsMobile();
 const isSidebarOpen = ref(!isMobile.value);
 
 onMounted(() => {
   initInputMessage();
+  initExampleList();
   getModelOptions()
     .then(async (data) => {
-      let modelChanged = false;
       if (!data.find((item) => item.value === llmConfig.model)) {
         llmConfig.model = data[0]?.value;
-        modelChanged = true;
       }
       modelData.value = data;
-      if (!modelChanged) {
-        modelFeatures.value = await getModelFeatures(llmConfig.model);
-      }
+      await syncModelFeatures(llmConfig.model);
     })
     .catch((error) => {
-      console.error('获取模型列表失败:', error);
+      console.error('Failed to get model options:', error);
     });
   window.addEventListener('keydown', handleKeydown);
 });
@@ -342,27 +344,6 @@ watch(
   },
   { deep: true },
 );
-
-onMounted(() => {
-  initInputMessage();
-  initExampleList();
-  getModelOptions()
-    .then(async (data) => {
-      if (!data.find((item) => item.value === llmConfig.model)) {
-        llmConfig.model = data[0]?.value;
-      }
-      modelData.value = data;
-      syncModelFeatures(llmConfig.model);
-    })
-    .catch((error) => {
-      console.error('Failed to get model options:', error);
-    });
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
 </script>
 
 <template>

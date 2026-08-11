@@ -448,8 +448,8 @@ See [Renderer - Buffer Fields](../examples/renderer/required-complete-field-sele
 
 ### getConversation
 
-- **Return type**: `UseConversationReturn`
-- **Description**: Returns the conversation manager object for session APIs, including conversation list, current session, save/load, and related features.
+- **Return type**: `GenuiConversationHandle` (return value of `useConversation` from `@opentiny/tiny-robot-kit`)
+- **Description**: Returns the conversation manager. Local sessions are stored in IndexedDB (`genui-ai-v2` by default); upgrading from older versions does not migrate the previous database automatically.
 
 ```vue
 <template>
@@ -467,10 +467,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // Get all conversations
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
 // Get current conversation id
-const currentId = computed(() => conversation.value?.state.currentId);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 
@@ -610,7 +610,8 @@ interface BubbleRoleConfig {
   avatar?: Component | VNode; // Avatar component
   maxWidth?: string; // Maximum message width
   slots?: {
-    // Slot config, e.g. footer toolbar
+    // 0.4.x only supports after / trailer (equivalent; used for footer toolbar)
+    after?: Component<IBubbleSlotsProps>;
     trailer?: Component<IBubbleSlotsProps>;
   };
 }
@@ -619,7 +620,7 @@ interface IBubbleSlotsProps {
   index: number;
   bubbleProps: BubbleProps;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageManager: IMessageManagerBridge;
   chatMessage: IMessage
 }
 ```
@@ -638,10 +639,21 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-See TinyRobot documentation for `BubbleProps`, `UseConversationReturn`, and `UseMessageReturn`.
+See TinyRobot documentation for `BubbleProps`. `IMessageManagerBridge` is exported from `@opentiny/genui-sdk-vue` and is used in footer slots to access message send APIs:
+
+```typescript
+interface IMessageManagerBridge {
+  messages: Ref<ChatMessage[]>;
+  isProcessing: Ref<boolean>;
+  inputMessage: Ref<string>;
+  requestState: Ref<string>;
+  send: () => Promise<void>;
+  sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
+  abortRequest: () => void | Promise<void>;
+  addMessage: (message: ChatMessage | ChatMessage[]) => void;
+}
+```
 
 See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definitions and usage.
 
-See [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definitions and usage.
-
-See [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definitions and usage.
+> **Note**: `GenuiRenderer` provides `materials.components` and `defaultPropsMap` (from `GenuiConfigProvider` materials) to the schema renderer, not the full materials object.

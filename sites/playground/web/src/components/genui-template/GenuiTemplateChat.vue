@@ -1,20 +1,12 @@
 <script setup lang="ts">
-import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
-import type { Ref } from 'vue';
+import { ref, watch, computed, h, inject, onMounted, onUnmounted, provide, type Ref } from 'vue';
 import '@opentiny/tiny-robot/dist/style.css';
-import {
-  TrBubbleList,
-  TrSender,
-  TrBubbleProvider,
-  useTheme,
-  BubbleMarkdownContentRenderer,
-} from '@opentiny/tiny-robot';
-import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
+import { TrBubbleList, TrSender, TrBubbleProvider, useTheme } from '@opentiny/tiny-robot';
+import type { BubbleMessage, BubbleRoleConfig } from '@opentiny/tiny-robot';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import {  scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
 import type {
@@ -37,9 +29,10 @@ import {
 import { generateId } from '../../utils';
 import { useTemplateContext } from './composables';
 import AssistantFooter from './TemplateAssistantFooter.vue';
-import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
 import useIcon from '../../use-icon';
 import { t } from '../../i18n';
+import { templateContentRendererMatches, templateContentResolver } from './contentRendererMatches';
+import { TEMPLATE_CHAT_CONTEXT } from './templateChatContext';
 
 const { addIcons } = useIcon();
 addIcons(IconAi, IconUser, IconArrowDown);
@@ -71,56 +64,13 @@ watch(
   },
 );
 
-const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
+const messageManager = computed(() => conversation.messageManager ?? null);
+const messages = computed(() => (conversation.messages ?? []) as ChatMessage[]);
+const isProcessing = computed(() => messageManager.value?.isProcessing?.value ?? false);
 
-const messages = computed(() => messageManager.value?.messages.value ?? []);
-
-const generating = computed(() =>
-  messageManager.value
-    ? GeneratingStatus.includes(messageManager.value.messageState.status)
-    : false,
-);
-
-const messagesContainer: Ref<HTMLElement | undefined> = ref();
-
-const roles: Record<string, BubbleRoleConfig> = {
-  assistant: {
-    placement: 'start',
-    avatar: h(IconAi, { style: { fontSize: '32px' } }),
-    maxWidth: '100%',
-    customContentField: 'messages',
-    slots: {
-      trailer: (slotProps: { bubbleProps: any; index?: number }) => {
-        const chatMessage = slotProps.index !== undefined
-          ? messageManager.value?.messages.value[slotProps.index]
-          : undefined;
-        if (chatMessage && isManualSchemaSaveMessage(chatMessage)) {
-          return null;
-        }
-
-        const isFinished =
-          slotProps.bubbleProps.role !== 'assistant' ||
-          (slotProps.index !== undefined && slotProps.index !== messages.value.length - 1) ||
-          !generating.value;
-        return h(AssistantFooter, {
-          bubbleProps: slotProps.bubbleProps,
-          index: slotProps.index,
-          isFinished,
-          messageManager: messageManager.value!,
-          chatMessage: (messageManager.value?.messages.value[slotProps.index] || {}) as IChatMessage,
-          onRefresh: handleRefresh,
-          onCopy: handleCopy,
-        });
-      },
-    },
-  },
-  user: {
-    placement: 'end',
-    maxWidth: '90%',
-    avatar: h(IconUser, { style: { fontSize: '32px' } }),
-    customContentField: 'messages',
-  },
-};
+provide(TEMPLATE_CHAT_CONTEXT, {
+  prevSchema,
+});
 
 onMounted(() => {
   emitter.on('schema-json-changed', handleSchemaJsonChanged);
@@ -146,7 +96,7 @@ const handleRefresh = ({ index }: { index: number }) => {
   if (!messageManager.value) {
     return;
   }
-  const { messages, send } = messageManager.value;
+  const { messages: mgrMessages, send } = messageManager.value;
   const cardMessage = getCardMessageByIndex(index);
 
   prevSchema.value = cardMessage?.prevSchema ?? '';
@@ -159,7 +109,7 @@ const handleRefresh = ({ index }: { index: number }) => {
     let parsedSchema = null;
     try {
       parsedSchema = JSON.parse(prevSchema.value);
-    } catch (error) {
+    } catch {
       parsedSchema = null;
     }
     if (parsedSchema) {
@@ -169,9 +119,9 @@ const handleRefresh = ({ index }: { index: number }) => {
     }
   }
 
-  messages.value = messages.value.slice(0, index);
+  mgrMessages.value = mgrMessages.value.slice(0, index);
 
-  const lastUserMessage = getLastUserMessage(messages.value);
+  const lastUserMessage = getLastUserMessage(mgrMessages.value as ChatMessage[]);
   if (lastUserMessage && !lastUserMessage.messageId) {
     lastUserMessage.messageId = generateId();
   }
@@ -189,23 +139,35 @@ const handleCopy = async ({ index }: { index: number }) => {
   }
 };
 
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
-  mdConfig: { html: true },
-});
+const buildAssistantFooterProps = (slotProps: {
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+}) => {
+  const index = slotProps.messageIndexes[slotProps.messageIndexes.length - 1];
+  const chatMessage = messages.value[index];
+  if (!chatMessage || isManualSchemaSaveMessage(chatMessage)) {
+    return null;
+  }
+  const isFinished = index !== messages.value.length - 1 || !isProcessing.value;
+  return {
+    index,
+    bubbleProps: { role: 'assistant', ...chatMessage },
+    isFinished,
+    messageManager: messageManager.value!,
+    chatMessage: chatMessage as IChatMessage,
+  };
+};
 
-const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schema-manual') => (props: unknown) =>
-  h(TemplateSchemaMessageRenderer, {
-    itemProps: props,
-    type,
-    prevSchema: prevSchema.value,
-  });
-
-const messageRenderers = {
-  markdown: markdownRenderer,
-  'json-patch': createSchemaMessageRenderer('json-patch'),
-  'schema-card': createSchemaMessageRenderer('schema-card'),
-  'schema-manual': createSchemaMessageRenderer('schema-manual'),
+const roleConfigs: Record<string, BubbleRoleConfig> = {
+  assistant: {
+    placement: 'start',
+    avatar: h(IconAi, { style: { fontSize: '32px' } }),
+  },
+  user: {
+    placement: 'end',
+    avatar: h(IconUser, { style: { fontSize: '32px' } }),
+  },
 };
 
 const inputMessage = computed({
@@ -218,52 +180,37 @@ const inputMessage = computed({
 });
 
 if (props.messages?.length) {
-  messages.value.splice(0, messages.value.length, ...(props.messages as any));
+  messages.value.splice(0, messages.value.length, ...(props.messages as ChatMessage[]));
 }
 
+const messagesContainer: Ref<HTMLElement | undefined> = ref();
 const { scrollToBottom, autoScrollToBottom, isLastMessageInBottom } = scrollEnd(messagesContainer);
 const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
 const showMessages = computed(() => {
-  let list = messages.value;
+  const list = messages.value;
+  const lastMessage = list[list.length - 1] as (ChatMessage & { messages?: { type?: string }[] }) | undefined;
 
-  if (messageManager.value?.messageState.status === STATUS.PROCESSING) {
-    return [
-      ...list,
-      {
-        role: 'assistant',
-        content: t('loading.thinking'),
-        loading: true,
-      },
-    ];
+  if (!isProcessing.value || lastMessage?.role !== 'assistant') {
+    return list;
   }
 
-  const lastMessage = messages.value[messages.value.length - 1];
-
-  if (generating.value && lastMessage?.role === 'assistant') {
-    const existingMessages = Array.isArray((lastMessage as any)?.messages) ? (lastMessage as any).messages : [];
-    const hasLoadingText = existingMessages.some((msg: any) => msg.type === 'loading-text');
-
-    if (!hasLoadingText) {
-      return [
-        ...list.slice(0, -1),
+  const existingMessages = Array.isArray(lastMessage.messages) ? lastMessage.messages : [];
+  return [
+    ...list.slice(0, -1),
+    {
+      ...lastMessage,
+      messages: [
+        ...existingMessages,
         {
-          ...lastMessage,
-          messages: [
-            ...existingMessages,
-            {
-              type: 'loading-text',
-              emitter,
-              message: lastMessage,
-              showThinkingResult: false,
-            },
-          ],
+          type: 'loading-text',
+          emitter,
+          message: lastMessage,
+          showThinkingResult: false,
         },
-      ];
-    }
-  }
-
-  return list;
+      ],
+    },
+  ];
 });
 
 const clearInputMessage = () => {
@@ -271,7 +218,16 @@ const clearInputMessage = () => {
 };
 
 const handleSendMessage = async () => {
-  const messageContent = inputMessage.value;
+  const manager = messageManager.value;
+  if (!manager || isProcessing.value) {
+    return;
+  }
+
+  const messageContent = inputMessage.value?.trim();
+  if (!messageContent) {
+    return;
+  }
+
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
 
@@ -280,9 +236,8 @@ const handleSendMessage = async () => {
     content: messageContent,
     messageId: cardId,
   };
-  messages.value.push(userMessage);
 
-  if (messages.value.length === 1 && messages.value[0].role === 'user') {
+  if (manager.messages.value.length === 0) {
     const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
       conversation.updateConversationTitle(currentConversationId, messageContent.substring(0, 20));
@@ -290,8 +245,8 @@ const handleSendMessage = async () => {
   }
 
   prevSchema.value = JSON.stringify(schema.currentSchema);
-  messageManager.value?.send();
   clearInputMessage();
+  await manager.send(userMessage);
   scrollToBottom();
 };
 
@@ -320,6 +275,7 @@ const handleNotification = (event: INotificationPayload) => {
     ...(applyFailed || !preview ? {} : { schema: preview }),
     prevSchema: prevSchema.value || '',
   });
+  conversation.updateConversationLastSchema(schema.currentSchema);
 };
 
 watch(() => messages.value, throttledScrollToBottom, { deep: true });
@@ -334,15 +290,30 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }">
+  <div class="tg-chat-container" :class="{ dark: TinyGenuiConfig?.theme === 'dark' }">
     <div class="messages-container" ref="messagesContainer">
-      <tr-bubble-provider :content-renderers="messageRenderers">
-        <tr-bubble-list v-if="showMessages.length" :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
+      <tr-bubble-provider v-if="showMessages.length" :content-renderer-matches="templateContentRendererMatches">
+        <tr-bubble-list
+          :messages="showMessages"
+          :role-configs="roleConfigs"
+          :content-resolver="templateContentResolver"
+          content-render-mode="split"
+          auto-scroll
+        >
+          <template #after="slotProps">
+            <AssistantFooter
+              v-if="slotProps.role === 'assistant' && buildAssistantFooterProps(slotProps)"
+              v-bind="buildAssistantFooterProps(slotProps)!"
+              @refresh="handleRefresh"
+              @copy="handleCopy"
+            />
+          </template>
+        </tr-bubble-list>
       </tr-bubble-provider>
     </div>
     <div class="sender-container">
       <div
-        :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
+        :class="['scroll-to-bottom-button', { 'is-generating': isProcessing }]"
         v-show="!isLastMessageInBottom"
         @click="scrollToBottom"
       >
@@ -350,16 +321,15 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
-        :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
+        :placeholder="isProcessing ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
-        :loading="generating"
-        :showWordLimit="true"
-        :maxLength="20000"
+        :loading="isProcessing"
+        :show-word-limit="true"
+        :max-length="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
-        @cancel="() => messageManager?.abortRequest()"
-      >
-      </tr-sender>
+        @cancel="messageManager?.abortRequest()"
+      />
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>
     </div>
   </div>
@@ -381,6 +351,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   overflow: auto;
+
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
     --sender-bg: url('../../assets/images/sender-dark.svg') no-repeat center;
@@ -388,10 +359,6 @@ onUnmounted(() => {
     --generating-bg-before: linear-gradient(90deg, #262626, #808080);
     --generating-bg-after: #191919;
   }
-}
-
-.is-loading-in-top {
-  margin-top: -48px;
 }
 
 .messages-container {
@@ -407,62 +374,58 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 
-:deep(.tr-bubble.placement-start) {
+:deep(.tr-bubble[data-placement='start']) {
   .tr-bubble__content {
     padding: 0;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
   }
-}
 
-:deep(.tr-bubble.placement-start:has(.schema-version-card)),
-:deep(.tr-bubble.placement-end:has(.schema-version-card)) {
-  .tr-bubble__content {
+  .tr-bubble__box {
     padding: 0;
     background: transparent;
     border-radius: 0;
     box-shadow: none;
+    border: none;
+    overflow: visible;
   }
-}
 
-:deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-  > [type]:not([type='']):not([type='schema-card']):not([type='schema-manual']):not([type='loading-text']) {
-    display: var(--thinking-display, initial);
-  }
-}
-
-:deep(.tr-bubble__step-tool) {
-  & + .tr-bubble__step-tool {
-    margin-top: 16px;
-  }
-}
-
-:deep(.tr-bubble.placement-end) {
-  width: 100%;
-}
-
-:deep(.tr-bubble__content-wrapper) {
-  @avatar-and-gap-width: 56px;
-  max-width: calc(100% - @avatar-and-gap-width * 2);
-
-  .tr-bubble__content {
+  .tr-bubble__box:has([data-type='schema-card']) {
+    width: fit-content;
     max-width: 100%;
   }
+}
 
-  .tr-bubble__content-items {
-    overflow-x: auto;
+:deep(.tr-bubble[data-role='assistant']) {
+  --content-bg: var(--tr-container-bg-default, #fff);
+  --text-color: var(--tr-text-primary, #191919);
+}
+
+:deep(.tr-bubble[data-role='assistant'] [data-type='markdown']),
+:deep(.tr-bubble[data-role='assistant'] [data-type='reasoning']) {
+  display: var(--thinking-display, initial);
+}
+
+:deep(.tr-bubble[data-placement='end']) {
+  width: 100%;
+  --tr-bubble-box-padding: 16px 24px;
+  --tr-bubble-text-font-size: 16px;
+  --tr-bubble-box-shape-rounded-radius: 24px;
+}
+
+:deep(.tr-bubble__body) {
+  .tr-bubble__content {
+    @avatar-and-gap-width: 56px;
+    max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
+    overflow: visible;
   }
 }
 
-@media (max-width: 768px) {
-  :deep(.tr-bubble__content-wrapper) {
-    max-width: calc(100% - 12px);
-  }
-
-  :deep(.tr-bubble__content-wrapper .tr-bubble__content-items) {
-    overflow-x: hidden;
-  }
+:deep(.tr-bubble[data-placement='start'] .schema-render-container) {
+  width: fit-content;
+  background-color: var(--tr-container-bg-default, #fff);
+  border-radius: 24px;
 }
 
 .sender-container {
@@ -470,10 +433,6 @@ onUnmounted(() => {
   flex-shrink: 0;
   padding: 16px 0;
   background: var(--sender-bg);
-
-  .attachments-container {
-    padding: 0 20px;
-  }
 }
 
 .scroll-to-bottom-button {
@@ -497,12 +456,6 @@ onUnmounted(() => {
     height: 20px;
   }
 
-  &:hover {
-    box-shadow:
-      0px 10px 20px 0px #0000001a,
-      0px 0px 1px 0px #00000026;
-  }
-
   &.is-generating {
     border: none;
     background-color: transparent;
@@ -510,12 +463,7 @@ onUnmounted(() => {
     &::before {
       content: '';
       position: absolute;
-      top: -2px;
-      left: -2px;
-      right: -2px;
-      bottom: -2px;
-      width: calc(100% + 4px);
-      height: calc(100% + 4px);
+      inset: -2px;
       border-radius: 50%;
       background: var(--generating-bg-before);
       z-index: 0;
@@ -525,10 +473,7 @@ onUnmounted(() => {
     &::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       border-radius: 50%;
       background-color: var(--generating-bg-after);
       z-index: 1;
@@ -540,35 +485,24 @@ onUnmounted(() => {
   }
 }
 
-@keyframes rotate-border {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes text-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.tiny-sender {
-  width: 80%;
-  margin: 0 auto;
-}
-
 .footer-text {
   text-align: center;
   font-size: 12px;
   color: #999;
   margin-top: 16px;
+}
+
+.tr-sender {
+  width: 80%;
+  margin: 0 auto;
+}
+
+@keyframes rotate-border {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

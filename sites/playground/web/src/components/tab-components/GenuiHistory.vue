@@ -2,8 +2,9 @@
   <div class="genui-history">
     <history-transfer-toolbar
       v-model:selection-active="selectionActive"
-      :conversations="state.conversations"
+      :conversations="conversations"
       :selected-ids="selectedConversations"
+      :export-conversations="exportConversations"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"
       @batch-delete="handleBatchDelete"
@@ -12,7 +13,7 @@
       <tr-history
         class="tr-history-container"
         :data="groupedHistoryData"
-        :selected="state.currentId || undefined"
+        :selected="currentId || undefined"
         :show-rename-controls="isTouchDevice"
         :menu-items="historyMenuItems"
         :menu-list-gap="12"
@@ -35,9 +36,11 @@
 </template>
 
 <script setup lang="ts">
-import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
-import { type Conversation, type UseConversationReturn } from '@opentiny/tiny-robot-kit';
+import { TrHistory, useTouchDevice, type HistoryData, type HistoryItem } from '@opentiny/tiny-robot';
+import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import type { ExportConversationItem, GenuiConversationHandle, ImportConversationItem } from '@opentiny/genui-sdk-vue';
 import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
+import type { PersistedConversation } from '../../types/conversation';
 import { TinyCheckbox, TinyCheckboxGroup, TinyModal } from '@opentiny/vue';
 import { t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
@@ -56,58 +59,80 @@ watch(selectionActive, (active) => {
 });
 
 const props = defineProps<{
-  conversation: UseConversationReturn;
+  conversation: GenuiConversationHandle;
+  importConversations: (items: ImportConversationItem[]) => Promise<void>;
+  exportConversations: (ids?: string[]) => Promise<ExportConversationItem[] | undefined>;
 }>();
 
-const { state, switchConversation, deleteConversation, updateTitle, createConversation, saveConversations } =
-  props.conversation;
+const conversations = computed(() => props.conversation.conversations.value);
+const currentId = computed(() => props.conversation.activeConversationId.value);
 
-const groupedHistoryData = computed(() => groupByTimeBuckets(state.conversations));
+const groupedHistoryData = computed((): HistoryData<HistoryItem> =>
+  groupByTimeBuckets(
+    conversations.value.map((item) => ({
+      ...item,
+      title: item.title ?? t('conversation.newConversation'),
+    })),
+  ),
+);
 
 watch(
-  () => state.conversations.map((c) => c.id),
+  () => conversations.value.map((c) => c.id),
   () => {
-    const idSet = new Set(state.conversations.map((c) => c.id));
+    const idSet = new Set(conversations.value.map((c) => c.id));
     selectedConversations.value = selectedConversations.value.filter((id) => idSet.has(id));
   },
 );
 
-const handleImportConversations = (conversations: Conversation[]) => {
-  state.conversations.unshift(...conversations);
-  saveConversations();
+const handleImportConversations = async (items: PersistedConversation[]) => {
+  await props.importConversations(
+    items.map((item) => ({
+      id: item.id,
+      title: item.title,
+      messages: item.messages as ChatMessage[] | undefined,
+      metadata: item.metadata,
+    })),
+  );
 };
 
-const handleItemClick = (item: Conversation) => {
-  switchConversation(item.id);
+const handleItemClick = (item: HistoryItem) => {
+  void props.conversation.switchConversation(item.id);
 };
 
-const handleItemAction = (action: { id: string }, item: Conversation) => {
+const ensureActiveAfterDelete = async () => {
+  if (conversations.value.length === 0) {
+    props.conversation.createConversation({ title: t('conversation.newConversation') });
+    return;
+  }
+  if (!props.conversation.activeConversationId.value) {
+    await props.conversation.switchConversation(conversations.value[0].id);
+  }
+};
+
+const handleItemAction = async (action: { id: string }, item: HistoryItem) => {
   if (action.id === 'export') {
-    downloadConversations([item]);
+    const items = await props.exportConversations([item.id]);
+    if (items?.length) {
+      downloadConversations(items);
+    }
     return;
   }
 
   if (action.id === 'delete') {
-    deleteConversation(item.id);
-    saveConversations();
-  }
-
-  // 保证至少有一个会话
-  if (state.conversations.length === 0) {
-    createConversation();
-    saveConversations();
+    await props.conversation.deleteConversation(item.id);
+    await ensureActiveAfterDelete();
   }
 };
 
-const handleItemTitleChange = (title: string, item: Conversation) => {
-  updateTitle(item.id, title);
-  saveConversations();
+const handleItemTitleChange = (title: string, item: HistoryItem) => {
+  props.conversation.updateConversationTitle(item.id, title);
 };
 
-const handleBatchExport = () => {
-  const idSet = new Set(selectedConversations.value);
-  const items = state.conversations.filter((c) => idSet.has(c.id));
-  downloadConversations(items);
+const handleBatchExport = async () => {
+  const items = await props.exportConversations([...selectedConversations.value]);
+  if (items?.length) {
+    downloadConversations(items);
+  }
 };
 
 const handleBatchDelete = () => {
@@ -115,20 +140,18 @@ const handleBatchDelete = () => {
   if (ids.length === 0) {
     return;
   }
-  TinyModal.confirm(t('conversation.confirmBatchDelete', { count: ids.length }))
-    .then((type: 'confirm' | 'cancel') => {
+  TinyModal.confirm(t('history.confirmBatchDelete', { count: ids.length })).then(
+    async (type: 'confirm' | 'cancel') => {
       if (type === 'cancel') {
         return;
       }
       for (const id of ids) {
-        deleteConversation(id);
+        await props.conversation.deleteConversation(id);
       }
       selectedConversations.value = [];
-      if (state.conversations.length === 0) {
-        createConversation();
-      }
-      saveConversations();
-    });
+      await ensureActiveAfterDelete();
+    },
+  );
 };
 </script>
 

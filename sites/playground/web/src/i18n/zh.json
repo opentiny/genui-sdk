@@ -65,6 +65,7 @@
     "export": "导出",
     "exportAll": "导出全部记录",
     "exportSelected": "导出已选记录",
+    "confirmBatchDelete": "确定删除选中的 {count} 个会话？",
     "noExportable": "当前没有可导出的会话",
     "noImportable": "未找到可导入的会话",
     "importSuccess": "已导入 {count} 条会话",

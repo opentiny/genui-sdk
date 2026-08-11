@@ -31,7 +31,7 @@ const GenuiTemplateList = ENABLE_TEMPLATE
   : shallowRef(null);
 // 从上层注入共享的 playground 上下文（framework / 会话等）
 const playgroundContext = inject('playgroundContext');
-const { conversation } = playgroundContext;
+const { conversation, importConversations, exportConversations } = playgroundContext;
 
 const TinyIconPlus = iconPlus();
 const activeName = ref('model');
@@ -39,7 +39,12 @@ const activeName = ref('model');
 const { isMobile } = useIsMobile();
 
 const currentConversationTitle = computed(() => {
-  const current = conversation.value?.getCurrentConversation?.();
+  const kit = conversation.value;
+  if (!kit) {
+    return t('sidebar.newConversation');
+  }
+  const currentId = kit.activeConversationId.value;
+  const current = kit.conversations.value.find((item) => item.id === currentId);
   return current?.title || t('sidebar.newConversation');
 });
 
@@ -187,7 +192,12 @@ const updateCustomExamples = (list) => {
           <MaterialsTab :theme="theme" @update:theme="emit('update:theme', $event)" />
         </tiny-tab-item>
         <tiny-tab-item :title="t('sidebar.tabHistory')" name="history" class="history-tab">
-          <GenuiHistory v-if="conversation" :conversation="conversation" />
+          <GenuiHistory
+            v-if="conversation && importConversations && exportConversations"
+            :conversation="conversation"
+            :import-conversations="importConversations"
+            :export-conversations="exportConversations"
+          />
         </tiny-tab-item>
         <tiny-tab-item v-if="ENABLE_TEMPLATE && isTemplateInit" :title="t('sidebar.tabTemplate')" name="template">
           <component v-if="GenuiTemplateList" :is="GenuiTemplateList" />

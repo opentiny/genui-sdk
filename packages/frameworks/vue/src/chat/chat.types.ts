@@ -1,7 +1,7 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
-import type { Component } from 'vue';
+import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import type { Component, Ref } from 'vue';
 import type { IRendererSlots } from '../renderer';
-import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
 import type {
   INotificationPayload,
   IGenPromptComponent,
@@ -16,8 +16,12 @@ export interface ICustomActionItem extends IGenPromptAction {
 }
 
 export interface IRolesConfig {
-  user: Partial<BubbleRoleConfig>;
-  assistant: Partial<BubbleRoleConfig>;
+  user?: Partial<BubbleRoleConfig> & {
+    slots?: Record<string, Component | ((props: IBubbleSlotsProps) => import('vue').VNode | import('vue').VNode[])>;
+  };
+  assistant?: Partial<BubbleRoleConfig> & {
+    slots?: Record<string, Component | ((props: IBubbleSlotsProps) => import('vue').VNode | import('vue').VNode[])>;
+  };
 }
 
 
@@ -36,10 +40,33 @@ export interface IMessageItem {
   content: string;
   [customKey: string]: any;
 }
+
+export type UserTextItem = {
+  type: 'text';
+  content: string;
+};
+
+export type UserTemplateItem = {
+  type: 'template';
+  content: string;
+};
+
+export type UserItem = UserTextItem | UserTemplateItem;
 export interface IMessage {
   role: 'user' | 'assistant';
   content: string;
   messages?: IMessageItem[];
+}
+
+export interface IMessageManagerBridge {
+  messages: Ref<ChatMessage[]>;
+  isProcessing: Ref<boolean>;
+  inputMessage: Ref<string>;
+  requestState: Ref<string>;
+  send: (...messages: ChatMessage[]) => Promise<void>;
+  sendMessage: (content?: string, clearInput?: boolean) => Promise<void>;
+  abortRequest: () => void | Promise<void>;
+  addMessage: (message: ChatMessage | ChatMessage[]) => void;
 }
 
 // 有几个插槽，参数都为这个类型
@@ -47,7 +74,7 @@ export interface IBubbleSlotsProps {
   index: number;
   bubbleProps: BubbleProps;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageManager: IMessageManagerBridge;
   chatMessage: IChatMessage;
 }
 
@@ -95,7 +122,7 @@ export interface IChatProps {
   customExamples?: IGenPromptExample[];
   customActions?: ICustomActionItem[];
   rendererSlots?: IRendererSlots;
-  thinkComponent?: Component<BubbleProps>;
+  thinkComponent?: Component<IThinkComponentProps>;
   roles?: IRolesConfig;
   features?: ModelCapability;
   customFetch?: CustomFetch;
