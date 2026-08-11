@@ -44,7 +44,7 @@ const props = defineProps<{
 const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
-const { schema, conversation, versionControl, stream, emitter, actions } = useTemplateContext();
+const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -70,11 +70,6 @@ const isProcessing = computed(() => messageManager.value?.isProcessing?.value ??
 
 provide(TEMPLATE_CHAT_CONTEXT, {
   prevSchema,
-  errorMessagesMap,
-  allMessages: messages as Ref<BubbleMessage[]>,
-  onSchemaVersionToggle: (schemaValue: Record<string, unknown>, cardId: string) => {
-    actions.handleSchemaVersionToggle(schemaValue, cardId);
-  },
 });
 
 onMounted(() => {

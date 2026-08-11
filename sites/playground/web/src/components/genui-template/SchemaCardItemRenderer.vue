@@ -18,9 +18,6 @@ const itemProps = computed(() => content.value as Record<string, unknown>);
       :item-props="itemProps"
       type="schema-card"
       :prev-schema="templateContext.prevSchema.value"
-      :error-messages-map="templateContext.errorMessagesMap.value"
-      :messages="templateContext.allMessages.value"
-      @schema-version-toggle="templateContext.onSchemaVersionToggle"
     />
   </div>
 </template>

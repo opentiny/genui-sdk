@@ -68,23 +68,19 @@ onBeforeUnmount(() => {
 </template>
 <style scoped lang="less">
 .loading-wrapper {
-  width: fit-content;
   max-width: 100%;
   overflow: hidden;
   width: 100%;
   min-height: 45px;
-  position: relative;
 }
 .loading-container[type='loading-text'] {
-  position: absolute;
-  right: 0;
-  min-width: 100%;
   margin: 10px 0;
   color: #666;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   display: inline-block;
+  max-width: 100%;
 }
 
 @supports ((background-clip: text)) {
