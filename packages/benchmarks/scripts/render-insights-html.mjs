@@ -66,6 +66,42 @@ function hbarRows(categories, values, maxVal, suffix, barClass) {
     .join('\n');
 }
 
+/** Multi-series bars (one group per category; one row per series) — model-to-model scenario compare. */
+function multiHbarRows(categories, series, maxVal, suffix) {
+  const all = series.flatMap((s) =>
+    (s.values || []).map((v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0)),
+  );
+  const max = Math.max(maxVal, ...all, 0.0001);
+  return categories
+    .map((label, i) => {
+      const rows = series
+        .map((s, si) => {
+          const raw = s.values?.[i];
+          const v = typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+          const pct = v == null ? 0 : Math.max(0, Math.min(100, (v / max) * 100));
+          const tone = s.barClass || `m${si % 5}`;
+          return `<div class="dhbar-row"><span class="tag m${si % 5}" title="${esc(s.label)}">${esc(s.short || String(si + 1))}</span><div class="hbar-track"><div class="hbar-fill ${tone}" style="width:${pct.toFixed(1)}%"></div></div><span class="hbar-value">${v == null ? '—' : `${esc(String(v))}${esc(suffix)}`}</span></div>`;
+        })
+        .join('\n');
+      return `<div class="dhbar">
+  <div class="dhbar-label" title="${esc(label)}">${esc(label)}</div>
+  <div class="dhbar-bars">${rows}</div>
+</div>`;
+    })
+    .join('\n');
+}
+
+function shortModel(name) {
+  const s = String(name || '');
+  if (s.length <= 14) return s;
+  const parts = s.split(/[-_/]/).filter(Boolean);
+  if (parts.length >= 2) {
+    const tail = parts.slice(-2).join('-');
+    return tail.length <= 14 ? tail : tail.slice(0, 14);
+  }
+  return s.slice(0, 14);
+}
+
 function stackRows(categories, stacks) {
   const max = Math.max(...stacks.map((s) => s?.total || 0), 1);
   return categories
@@ -133,7 +169,7 @@ function configRows(config) {
 }
 
 function renderHtml(data) {
-  const { source, summary, chart, scenarios, failures, insights, config } = data;
+  const { source, summary, chart, scenarios, failures, insights, config, modelCompare } = data;
   const passPct = Math.round(summary.passRate * 100);
   const tone = passTone(summary.passRate);
   const multiModel = (source.models?.length || 0) > 1;
@@ -153,7 +189,17 @@ function renderHtml(data) {
       : `${summary.pass}/${summary.runs} runs passed (${passPct}%). Fix failing scenarios before optimizing latency or tokens.`;
 
   const showModelCol = multiModel || scenarios.some((s) => s.model && s.model !== primary);
-  const scenarioRows = scenarios
+  const modelOrder = multiModel
+    ? (modelCompare?.rows || []).map((r) => r.model).filter(Boolean)
+    : [];
+  const modelRank = new Map(modelOrder.map((m, i) => [m, i]));
+  const sortedScenarios = [...scenarios].sort((a, b) => {
+    const sc = String(a.scenario).localeCompare(String(b.scenario));
+    if (sc !== 0) return sc;
+    return (modelRank.get(a.model) ?? 99) - (modelRank.get(b.model) ?? 99);
+  });
+
+  const scenarioRows = sortedScenarios
     .map((s) => {
       const failed = s.schemaPassRate < 1;
       return `<tr class="${failed ? 'row-fail' : 'row-ok'}">
@@ -168,6 +214,167 @@ function renderHtml(data) {
 </tr>`;
     })
     .join('\n');
+
+  const mc = modelCompare && multiModel ? modelCompare : null;
+  const modelsForCompare = mc?.rows?.map((r) => r.model) || [];
+
+  /** Aggregate Model × metrics — same columns as Scenario × metrics */
+  const modelMetricRows = mc
+    ? mc.rows
+        .map((r) => {
+          const failed = r.passRatePct < 100;
+          return `<tr class="${failed ? 'row-fail' : 'row-ok'}">
+  <td>${esc(r.model)}</td>
+  <td class="num">${r.passRatePct}%</td>
+  <td class="num">${esc(fmtMs(r.avgTtftMs))}</td>
+  <td class="num">${esc(fmtMs(r.avgFirstObsMs))}</td>
+  <td class="num">${esc(fmtMs(r.avgTotalMs))}</td>
+  <td class="num">${r.avgTpotMs == null ? '—' : esc(String(r.avgTpotMs))}</td>
+  <td class="num">${esc(fmtTokens(r.avgTotalTokens))}</td>
+</tr>`;
+        })
+        .join('\n')
+    : '';
+
+  /** Scenario × models pivot: one row per scenario, Pass/Total/Tokens per model */
+  const scenarioNames = [
+    ...new Set(sortedScenarios.map((s) => s.scenario).filter(Boolean)),
+  ].sort((a, b) => a.localeCompare(b));
+  const byScenarioModel = new Map(
+    sortedScenarios.map((s) => [`${s.scenario}::${s.model}`, s]),
+  );
+
+  const pivotHead =
+    modelsForCompare.length > 0
+      ? `<tr>
+  <th rowspan="2">Scenario</th>
+  ${modelsForCompare.map((m) => `<th colspan="3" class="model-group">${esc(m)}</th>`).join('\n')}
+</tr>
+<tr>
+  ${modelsForCompare
+    .map(
+      () =>
+        `<th class="num">Pass</th><th class="num">Total</th><th class="num">Tokens</th>`,
+    )
+    .join('\n')}
+</tr>`
+      : '';
+
+  const pivotBody = scenarioNames
+    .map((scenario) => {
+      const cells = modelsForCompare
+        .map((model) => {
+          const s = byScenarioModel.get(`${scenario}::${model}`);
+          if (!s) {
+            return `<td class="num">—</td><td class="num">—</td><td class="num">—</td>`;
+          }
+          const failed = s.schemaPassRate < 1;
+          return `<td class="num ${failed ? 'cell-fail' : 'cell-ok'}">${Math.round(s.schemaPassRate * 100)}%</td>
+  <td class="num">${esc(fmtMs(s.avgTotalMs))}</td>
+  <td class="num">${esc(fmtTokens(s.avgTotalTokens))}</td>`;
+        })
+        .join('\n');
+      const anyFail = modelsForCompare.some((model) => {
+        const s = byScenarioModel.get(`${scenario}::${model}`);
+        return s && s.schemaPassRate < 1;
+      });
+      const allPass =
+        modelsForCompare.length > 0 &&
+        modelsForCompare.every((model) => {
+          const s = byScenarioModel.get(`${scenario}::${model}`);
+          return s && s.schemaPassRate >= 1;
+        });
+      const rowClass = allPass ? 'row-ok' : anyFail ? 'row-fail' : '';
+      return `<tr class="${rowClass}">
+  <td>${esc(scenario)}</td>
+  ${cells}
+</tr>`;
+    })
+    .join('\n');
+
+  const multiPassSeries =
+    modelsForCompare.length > 0
+      ? modelsForCompare.map((model, i) => ({
+          label: model,
+          short: shortModel(model),
+          barClass: `m${i % 5}`,
+          values: scenarioNames.map((sc) => {
+            const s = byScenarioModel.get(`${sc}::${model}`);
+            return s ? Math.round((s.schemaPassRate || 0) * 100) : 0;
+          }),
+        }))
+      : [];
+  const multiTotalSeries =
+    modelsForCompare.length > 0
+      ? modelsForCompare.map((model, i) => ({
+          label: model,
+          short: shortModel(model),
+          barClass: `m${i % 5}`,
+          values: scenarioNames.map((sc) => {
+            const s = byScenarioModel.get(`${sc}::${model}`);
+            return s?.avgTotalMs != null ? Math.round((s.avgTotalMs / 1000) * 10) / 10 : 0;
+          }),
+        }))
+      : [];
+
+  const modelCompareSection = mc
+    ? `<section>
+    <h2>Model × metrics</h2>
+    <p class="caption">HELM-style grid across models (same columns as Scenario × metrics). Ranked by schema pass rate, then lower avg total latency.</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th class="num">Pass</th>
+          <th class="num">TTFT</th>
+          <th class="num">FirstObs</th>
+          <th class="num">Total</th>
+          <th class="num">TPOT</th>
+          <th class="num">Tokens</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${modelMetricRows}
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Scenario × models</h2>
+    <p class="caption">Side-by-side model compare per scenario — Pass / Total / Tokens. Green/red on Pass cells.</p>
+    <div class="table-scroll">
+    <table class="pivot">
+      <thead>
+        ${pivotHead}
+      </thead>
+      <tbody>
+        ${pivotBody}
+      </tbody>
+    </table>
+    </div>
+    <div class="charts" style="margin-top:14px">
+      <div class="panel">
+        <h3>Schema pass rate by scenario (%)</h3>
+        <div class="legend">
+          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
+        </div>
+        ${multiHbarRows(scenarioNames, multiPassSeries, 100, '%')}
+      </div>
+      <div class="panel">
+        <h3>End-to-end latency by scenario (s)</h3>
+        <div class="legend">
+          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
+        </div>
+        ${multiHbarRows(
+          scenarioNames,
+          multiTotalSeries,
+          Math.max(...multiTotalSeries.flatMap((s) => s.values), 1),
+          's',
+        )}
+      </div>
+    </div>
+  </section>`
+    : '';
 
   const failureSection =
     failures.length === 0
@@ -344,6 +551,11 @@ function renderHtml(data) {
     .legend .l-ttft { background: var(--seg-ttft); }
     .legend .l-mid { background: var(--seg-mid); }
     .legend .l-rest { background: var(--seg-rest); }
+    .legend .l-m0 { background: #3dd6c6; }
+    .legend .l-m1 { background: #5ba4f5; }
+    .legend .l-m2 { background: #e8a54b; }
+    .legend .l-m3 { background: #c084fc; }
+    .legend .l-m4 { background: #ef6b6b; }
 
     .hbar {
       display: grid;
@@ -371,6 +583,11 @@ function renderHtml(data) {
     .hbar-fill.lat { background: var(--info); }
     .hbar-fill.tok { background: var(--accent); }
     .hbar-fill.ttft { background: var(--seg-ttft); }
+    .hbar-fill.m0 { background: #3dd6c6; }
+    .hbar-fill.m1 { background: #5ba4f5; }
+    .hbar-fill.m2 { background: #e8a54b; }
+    .hbar-fill.m3 { background: #c084fc; }
+    .hbar-fill.m4 { background: #ef6b6b; }
     .hbar-value {
       font-size: 13px;
       text-align: right;
@@ -378,6 +595,39 @@ function renderHtml(data) {
       color: var(--text);
       font-family: var(--mono);
     }
+    .dhbar { margin-bottom: 10px; }
+    .dhbar-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-family: var(--mono);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .dhbar-row {
+      display: grid;
+      grid-template-columns: 72px 1fr 52px;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 3px;
+    }
+    .tag {
+      font-size: 11px;
+      font-weight: 650;
+      color: var(--muted);
+      text-align: left;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: var(--mono);
+    }
+    .tag.m0 { color: #3dd6c6; }
+    .tag.m1 { color: #5ba4f5; }
+    .tag.m2 { color: #e8a54b; }
+    .tag.m3 { color: #c084fc; }
+    .tag.m4 { color: #ef6b6b; }
+
     .stack-track {
       display: flex;
       height: 12px;
@@ -391,6 +641,8 @@ function renderHtml(data) {
     .stack-track .seg.mid { background: var(--seg-mid); }
     .stack-track .seg.rest { background: var(--seg-rest); }
 
+    .table-scroll { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line); }
+    .table-scroll table { border: none; border-radius: 0; }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -406,8 +658,21 @@ function renderHtml(data) {
       font-size: 14px;
     }
     th { color: var(--muted); font-weight: 550; background: var(--panel-2); }
+    th.model-group {
+      text-align: center;
+      border-left: 1px solid var(--line);
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+    }
+    table.pivot th.num,
+    table.pivot td.num { border-left: 1px solid var(--line); }
+    table.pivot th.model-group:first-of-type,
+    table.pivot tbody td:nth-child(2) { border-left: 1px solid var(--line); }
     tr:last-child td { border-bottom: none; }
     td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; }
+    td.cell-ok { color: var(--success); }
+    td.cell-fail { color: var(--danger); }
     td.err { color: var(--danger); word-break: break-word; }
     tr.row-fail td:first-child::before,
     tr.row-ok td:first-child::before {
@@ -426,7 +691,7 @@ function renderHtml(data) {
 <main>
   <header class="hero">
     <h1>GenUI Bench <span>Report</span></h1>
-    <p class="lede">Schema protocol is the primary gate. Latency and tokens are efficiency context. Generated ${esc(generated)}${multiModel ? ` · charts for primary model ${esc(primary)}` : ''}.</p>
+    <p class="lede">Schema protocol is the primary gate. Latency and tokens are efficiency context. Generated ${esc(generated)}${multiModel ? ` · ${esc(String(source.models.length))} models` : ''}.</p>
   </header>
 
   <section aria-label="Run configuration">
@@ -476,9 +741,11 @@ function renderHtml(data) {
     </div>
   </section>
 
+  ${modelCompareSection}
+
   <section>
-    <h2>Quality × efficiency</h2>
-    <p class="caption">Pass rate and latency are shown separately (Artificial Analysis style) — never blended into one score.${multiModel ? ` Bars use primary model «${esc(primary)}»; full grid includes all models.` : ''}</p>
+    <h2>Quality × efficiency${multiModel ? ` · ${esc(primary)}` : ''}</h2>
+    <p class="caption">Pass rate and latency by scenario (Artificial Analysis style) — never blended into one score.${multiModel ? ` Primary model «${esc(primary)}»; cross-model view is under Scenario × models.` : ''}</p>
     <div class="charts">
       <div class="panel">
         <h3>Schema pass rate by scenario (%)</h3>
@@ -511,7 +778,7 @@ function renderHtml(data) {
 
   <section>
     <h2>Scenario × metrics</h2>
-    <p class="caption">HELM-style grid: quality (pass) plus efficiency. Means over repeat=${esc(cfg.repeat ?? source.repeat)}.</p>
+    <p class="caption">HELM-style grid: quality (pass) plus efficiency. Means over repeat=${esc(cfg.repeat ?? source.repeat)}.${multiModel ? ' Long form (one row per scenario × model); use Scenario × models above for side-by-side.' : ''}</p>
     <table>
       <thead>
         <tr>

@@ -107,11 +107,22 @@ function buildInsights(payload) {
   }
 
   if (models.length > 1) {
-    insights.push({
-      tone: 'info',
-      title: 'Multi-model run',
-      detail: `Compare models on schemaPassRate first, then avgTotalMs / tokens (Artificial Analysis style quality×efficiency).`,
-    });
+    const ranked = [...(payload.modelCompare?.rows || [])];
+    if (ranked.length >= 2) {
+      const best = ranked[0];
+      const worst = ranked[ranked.length - 1];
+      insights.push({
+        tone: 'info',
+        title: 'Model ranking (pass → latency)',
+        detail: `Best: ${best.model} (${best.passRatePct}% pass, ${round((best.avgTotalMs || 0) / 1000, 1)}s avg). Lowest ranked: ${worst.model} (${worst.passRatePct}% · ${round((worst.avgTotalMs || 0) / 1000, 1)}s). Compare pass rate first, then avgTotalMs / tokens.`,
+      });
+    } else {
+      insights.push({
+        tone: 'info',
+        title: 'Multi-model run',
+        detail: `Compare models on schemaPassRate first, then avgTotalMs / tokens (Artificial Analysis style quality×efficiency).`,
+      });
+    }
   }
 
   if (summary.avgTtftMs != null && summary.avgTotalMs != null && summary.avgTtftMs > 0) {
@@ -210,8 +221,12 @@ export function prepare(report, reportPath) {
     ),
   };
 
-  // Single-model chart series (first model if multi — agent may split later)
-  const primaryModel = models[0] || report.model || 'model';
+  // Prefer report.model as chart primary when present in the run
+  const primaryModel =
+    (report.model && models.includes(report.model) ? report.model : null) ||
+    models[0] ||
+    report.model ||
+    'model';
   const forPrimary = scenarioRows
     .filter((s) => s.model === primaryModel)
     .sort((a, b) => a.scenario.localeCompare(b.scenario));
@@ -243,6 +258,42 @@ export function prepare(report, reportPath) {
     latencySec: round((s.avgTotalMs || 0) / 1000, 1),
     tokens: s.avgTotalTokens,
   }));
+
+  /** Cross-model aggregates for comparison charts / ranking (empty when single model). */
+  const modelCompareRows = models.map((model) => {
+    const modelResults = results.filter((r) => r.model === model);
+    const runs = modelResults.length;
+    const pass = modelResults.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
+    return {
+      model,
+      runs,
+      pass,
+      passRatePct: runs ? round((pass / runs) * 100, 0) : 0,
+      avgTtftMs: round(avg(modelResults.map((r) => r.ttftMs)), 0),
+      avgTotalMs: round(avg(modelResults.map((r) => r.totalMs)), 0),
+      avgTpotMs: round(avg(modelResults.map((r) => r.tpotMs)), 2),
+      avgFirstObsMs: round(avg(modelResults.map((r) => r.firstObservableComponentMs)), 0),
+      avgTotalTokens: round(avg(modelResults.map((r) => r.totalTokens)), 0),
+    };
+  });
+  modelCompareRows.sort(
+    (a, b) =>
+      b.passRatePct - a.passRatePct ||
+      (a.avgTotalMs ?? Number.POSITIVE_INFINITY) - (b.avgTotalMs ?? Number.POSITIVE_INFINITY),
+  );
+  const modelCompare =
+    models.length > 1
+      ? {
+          rows: modelCompareRows,
+          chart: {
+            categories: modelCompareRows.map((r) => r.model),
+            passRatePct: modelCompareRows.map((r) => r.passRatePct),
+            totalSec: modelCompareRows.map((r) => round((r.avgTotalMs || 0) / 1000, 1)),
+            ttftSec: modelCompareRows.map((r) => round((r.avgTtftMs || 0) / 1000, 2)),
+            tokensK: modelCompareRows.map((r) => round((r.avgTotalTokens || 0) / 1000, 1)),
+          },
+        }
+      : null;
 
   const cfg = report.config && typeof report.config === 'object' ? report.config : {};
   const derivedScenarios = [...new Set(scenarioRows.map((s) => s.scenario))].sort();
@@ -283,6 +334,7 @@ export function prepare(report, reportPath) {
     failures,
     chart,
     tradeoff,
+    modelCompare,
     insights: [],
   };
   payload.insights = buildInsights(payload);
