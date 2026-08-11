@@ -7,6 +7,7 @@ import { printLlmBenchmarkResults } from './framework/index';
 import {
   computeTpotMs,
   extractSchemaJsonBlock,
+  describeMissingSchemaJsonFence,
   formatJudgeParseError,
   isJudgeTimeoutError,
   parseJudgeJson,
@@ -64,14 +65,21 @@ type SchemaJsonValidation = {
 
 /**
  * 校验 schemaJson：PatternExtractor 提取 → repairJson 解析 → genRootSchema(whiteList) 协议。
+ * @param schemaJsonText 已提取的块内容；null 表示未找到
+ * @param componentWhiteList materialsMeta.whiteList
+ * @param sourceOutput 原始模型输出；仅在提取失败时用于诊断文案
  */
-function validateSchemaJson(schemaJsonText: string | null, componentWhiteList?: string[]): SchemaJsonValidation {
+function validateSchemaJson(
+  schemaJsonText: string | null,
+  componentWhiteList?: string[],
+  sourceOutput?: string,
+): SchemaJsonValidation {
   if (!schemaJsonText) {
     return {
       isSchemaJsonBlockFound: false,
       isSchemaJsonValidJson: false,
       isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: 'schemaJson code block not found',
+      schemaValidationError: describeMissingSchemaJsonFence(sourceOutput ?? ''),
     };
   }
 
@@ -234,7 +242,7 @@ function toReportItem(
     sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
   );
   const schemaJsonText = extractSchemaJsonBlock(sample.output);
-  const validation = validateSchemaJson(schemaJsonText, materialsMeta.whiteList);
+  const validation = validateSchemaJson(schemaJsonText, materialsMeta.whiteList, sample.output);
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
   const tpotMs =
     typeof sample.metrics.tpotMs === 'number'
