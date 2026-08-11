@@ -858,6 +858,17 @@
           `<option value="${esc(dir)}" ${d.targetSampleRunDir === dir ? 'selected' : ''}>${esc(dir)}</option>`
         )).join('');
 
+      const judgeModelDefault = d.llmJudgeModel && meta.models.includes(d.llmJudgeModel)
+        ? d.llmJudgeModel
+        : '';
+      const judgeModelOptions = [
+        '<option value="">（复用跑测列表首项）</option>',
+        ...meta.models.map(
+          (m) =>
+            `<option value="${esc(m)}" ${m === judgeModelDefault ? 'selected' : ''}>${esc(m)}</option>`,
+        ),
+      ].join('');
+
       $('app').classList.remove('loading');
       $('app').innerHTML = `
         <div class="layout">
@@ -882,11 +893,6 @@
                   </div>
                   <label class="switch"><input type="checkbox" id="modelsFromMaas" ${d.modelsFromMaasManifest ? 'checked' : ''}/><span></span></label>
                 </div>
-                <div style="height:12px"></div>
-                <label class="field">
-                  <span class="lbl">主模型 id（报告 / Judge 默认）</span>
-                  <input type="text" id="primaryModel" value="${esc(d.model || '')}" placeholder="例如 DeepSeek-V3.2" />
-                </label>
               </section>
 
               <section class="section">
@@ -972,7 +978,10 @@
                 </div>
                 <div style="height:10px"></div>
                 <div class="grid-2">
-                  <label class="field"><span class="lbl">Judge 模型</span><input type="text" id="judgeModel" value="${esc(d.llmJudgeModel || '')}" placeholder="空则复用主模型" /></label>
+                  <label class="field">
+                    <span class="lbl">Judge 模型</span>
+                    <select id="judgeModel">${judgeModelOptions}</select>
+                  </label>
                   <label class="field"><span class="lbl">Judge system prompt</span><input type="text" id="judgeSystem" value="${esc(d.llmJudgeSystemPrompt || '')}" placeholder="空则用内置规则" /></label>
                 </div>
               </section>
@@ -1102,11 +1111,14 @@
 
     function collectPayload() {
       const fromMaas = $('modelsFromMaas')?.checked === true;
-      const models = fromMaas ? [] : [...state.selectedModels];
+      const catalog = state.meta?.models || [];
+      // 按清单顺序，避免 Set 插入顺序导致「首项」不稳定
+      const models = fromMaas ? [] : catalog.filter((m) => state.selectedModels.has(m));
       const scenarios = [...state.selectedScenarios];
-      const primary = ($('primaryModel')?.value || '').trim();
+      // 报告 primary / Judge 默认：跑测列表首项（全清单时由服务端解析后取首项）
+      const primary = models[0] || undefined;
       return {
-        model: primary || (models[0] || undefined),
+        model: primary,
         models: models.length ? models : undefined,
         modelsFromMaasManifest: fromMaas,
         framework: state.framework,
