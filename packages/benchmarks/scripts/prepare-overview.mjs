@@ -139,6 +139,148 @@ function buildInsights(payload) {
   return insights;
 }
 
+function stdev(values) {
+  const xs = values.filter((v) => typeof v === 'number' && Number.isFinite(v));
+  if (xs.length < 2) return null;
+  const m = xs.reduce((a, b) => a + b, 0) / xs.length;
+  const v = xs.reduce((a, b) => a + (b - m) ** 2, 0) / (xs.length - 1);
+  return Math.sqrt(v);
+}
+
+/**
+ * Five decision dimensions for the conclusions page.
+ * Protocol = release gate; quality is Judge-only (never conflated with pass rate).
+ */
+function buildDimensions(results, summary, scenarioRows, config) {
+  const n = results.length;
+  const blockFound = results.filter((r) => r.isSchemaJsonBlockFound).length;
+  const validJson = results.filter((r) => r.isSchemaJsonValidJson).length;
+  const protocolOk = results.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
+  const streamOk = results.filter((r) => !r.errorMessage).length;
+  const scenarioFullPass = scenarioRows.filter((s) => (s.schemaPassRate ?? 0) >= 1).length;
+  const scenarioFullPassRate = scenarioRows.length ? scenarioFullPass / scenarioRows.length : 0;
+  const totals = scenarioRows.map((s) => s.avgTotalMs).filter((v) => typeof v === 'number' && Number.isFinite(v));
+  const meanTotal = avg(totals);
+  const totalStdev = stdev(totals);
+  const latencyCv =
+    meanTotal && totalStdev != null && meanTotal > 0 ? round(totalStdev / meanTotal, 3) : null;
+
+  const withVol = scenarioRows.filter((s) => s.totalMsStdev != null);
+  const hasRepeatVolatility = withVol.length > 0;
+  const avgTotalCvRepeat =
+    hasRepeatVolatility
+      ? round(
+          avg(
+            withVol
+              .map((s) =>
+                s.avgTotalMs && s.avgTotalMs > 0 ? s.totalMsStdev / s.avgTotalMs : null,
+              )
+              .filter((v) => typeof v === 'number' && Number.isFinite(v)),
+          ),
+          3,
+        )
+      : null;
+
+  const judgeScores = results
+    .map((r) => r.llmJudgeScore)
+    .filter((s) => typeof s === 'number' && Number.isFinite(s));
+  const judgeErrors = results.filter((r) => r.llmJudgeError).length;
+  const judgeEnabled = Boolean(summary.judgeEnabled || config?.llmJudgeEnabled);
+  const avgTokens = n ? round(summary.totalTokens / n, 0) : null;
+
+  const protocolRate = n ? protocolOk / n : 0;
+  const streamOkRate = n ? streamOk / n : 0;
+  // Cross-scenario full-pass + stream health; when repeat≥3, also factor repeat CV (lower better).
+  let stabilityScore = streamOkRate * 0.35 + scenarioFullPassRate * 0.65;
+  if (avgTotalCvRepeat != null) {
+    const cvPenalty = Math.min(1, avgTotalCvRepeat);
+    stabilityScore = stabilityScore * 0.7 + (1 - cvPenalty) * 0.3;
+  }
+
+  return {
+    protocol: {
+      id: 'protocol',
+      label: '协议合规',
+      tone: protocolRate >= 1 ? 'success' : protocolRate >= 0.85 ? 'warning' : 'danger',
+      headline: n ? `${protocolOk}/${n}` : '—',
+      sub: n ? `${Math.round(protocolRate * 100)}% protocol` : '—',
+      detail: `block ${blockFound}/${n || 0} · json ${validJson}/${n || 0} · protocol ${protocolOk}/${n || 0}`,
+      blockFoundRate: n ? round(blockFound / n, 4) : 0,
+      validJsonRate: n ? round(validJson / n, 4) : 0,
+      protocolRate: round(protocolRate, 4),
+    },
+    stability: {
+      id: 'stability',
+      label: '生成稳定性',
+      tone:
+        stabilityScore >= 0.95 ? 'success' : stabilityScore >= 0.8 ? 'warning' : 'danger',
+      headline: `${Math.round(scenarioFullPassRate * 100)}%`,
+      sub: '场景满通',
+      detail: hasRepeatVolatility
+        ? `stream 正常 ${streamOk}/${n} · 场景满通 ${scenarioFullPass}/${scenarioRows.length} · repeat 波动 CV≈${avgTotalCvRepeat ?? '—'}`
+        : `stream 正常 ${streamOk}/${n} · 场景满通 ${scenarioFullPass}/${scenarioRows.length}${
+            (config?.repeat ?? 1) < 3 ? ' · repeat<3 无组内波动' : ''
+          }${latencyCv != null ? ` · 跨场景 latency CV ${latencyCv}` : ''}`,
+      streamOkRate: round(streamOkRate, 4),
+      scenarioFullPassRate: round(scenarioFullPassRate, 4),
+      latencyCvAcrossScenarios: latencyCv,
+      repeatLatencyCv: avgTotalCvRepeat,
+      hasRepeatVolatility,
+    },
+    performance: {
+      id: 'performance',
+      label: '性能',
+      tone: 'info',
+      headline: summary.avgTotalMs == null ? '—' : `${round(summary.avgTotalMs / 1000, 1)}s`,
+      sub: 'avg total',
+      detail: `TTFT ${summary.avgTtftMs ?? '—'}ms · firstObs ${summary.avgFirstObsMs ?? '—'}ms · TPOT ${summary.avgTpotMs ?? '—'} ms/tok`,
+      avgTtftMs: summary.avgTtftMs,
+      avgFirstObsMs: summary.avgFirstObsMs,
+      avgTotalMs: summary.avgTotalMs,
+      avgTpotMs: summary.avgTpotMs,
+    },
+    cost: {
+      id: 'cost',
+      label: '成本',
+      tone: 'info',
+      headline: avgTokens == null ? '—' : `${avgTokens}`,
+      sub: 'avg tokens / run',
+      detail: `合计 ${summary.totalTokens ?? 0} · wall ${summary.benchmarkTotalMs ?? '—'}ms`,
+      avgTokens,
+      totalTokens: summary.totalTokens,
+      wallMs: summary.benchmarkTotalMs,
+    },
+    quality: {
+      id: 'quality',
+      label: '质量',
+      tone: !judgeEnabled
+        ? 'neutral'
+        : judgeScores.length === 0
+          ? 'warning'
+          : summary.avgJudgeScore >= 7
+            ? 'success'
+            : summary.avgJudgeScore >= 5
+              ? 'warning'
+              : 'danger',
+      headline: !judgeEnabled
+        ? '未启用'
+        : summary.avgJudgeScore == null
+          ? '无分数'
+          : String(summary.avgJudgeScore),
+      sub: judgeEnabled ? `Judge ${judgeScores.length}/${n}` : 'LLM-as-Judge',
+      detail: !judgeEnabled
+        ? '开启 BENCH_LLM_JUDGE 后显示 1–10 分（与协议通过率分开）'
+        : `avg ${summary.avgJudgeScore ?? '—'} · scored ${judgeScores.length}/${n}${
+            judgeErrors ? ` · errors ${judgeErrors}` : ''
+          }`,
+      enabled: judgeEnabled,
+      avgJudgeScore: summary.avgJudgeScore,
+      scored: judgeScores.length,
+      judgeErrors,
+    },
+  };
+}
+
 export function prepare(report, reportPath) {
   const results = Array.isArray(report.results) ? report.results : [];
   const models = [
@@ -167,6 +309,15 @@ export function prepare(report, reportPath) {
           avgTpotMs: round(stats.avgTpotMs, 2),
           avgFirstObsMs: round(stats.avgFirstObservableComponentMs, 0),
           avgTotalTokens: round(stats.avgTotalTokens, 0),
+          ...(stats.volatility
+            ? {
+                ttftMsStdev: round(stats.volatility.ttftMsStdev, 0),
+                firstObsMsStdev: round(stats.volatility.firstObservableComponentMsStdev, 0),
+                totalMsStdev: round(stats.volatility.totalMsStdev, 0),
+                tpotMsStdev: round(stats.volatility.tpotMsStdev, 2),
+                totalTokensStdev: round(stats.volatility.totalTokensStdev, 0),
+              }
+            : {}),
         });
       }
     }
@@ -213,8 +364,10 @@ export function prepare(report, reportPath) {
     avgTpotMs: round(avg(results.map((r) => r.tpotMs)), 2),
     avgFirstObsMs: round(avg(results.map((r) => r.firstObservableComponentMs)), 0),
     totalTokens: results.reduce((s, r) => s + (r.totalTokens || 0), 0),
+    avgPromptTokens: round(avg(results.map((r) => r.promptTokens)), 0),
+    avgCompletionTokens: round(avg(results.map((r) => r.completionTokens)), 0),
     benchmarkTotalMs: report.benchmarkTotalMs ?? null,
-    judgeEnabled: Boolean(report.llmJudge?.enabled),
+    judgeEnabled: Boolean(report.llmJudge?.enabled || report.config?.llmJudgeEnabled),
     avgJudgeScore: round(
       avg(results.map((r) => r.llmJudgeScore).filter((s) => typeof s === 'number')),
       2,
@@ -264,6 +417,9 @@ export function prepare(report, reportPath) {
     const modelResults = results.filter((r) => r.model === model);
     const runs = modelResults.length;
     const pass = modelResults.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
+    const judgeScores = modelResults
+      .map((r) => r.llmJudgeScore)
+      .filter((s) => typeof s === 'number' && Number.isFinite(s));
     return {
       model,
       runs,
@@ -274,6 +430,8 @@ export function prepare(report, reportPath) {
       avgTpotMs: round(avg(modelResults.map((r) => r.tpotMs)), 2),
       avgFirstObsMs: round(avg(modelResults.map((r) => r.firstObservableComponentMs)), 0),
       avgTotalTokens: round(avg(modelResults.map((r) => r.totalTokens)), 0),
+      avgJudgeScore: round(avg(judgeScores), 2),
+      judgeScored: judgeScores.length,
     };
   });
   modelCompareRows.sort(
@@ -330,6 +488,7 @@ export function prepare(report, reportPath) {
     },
     config,
     summary,
+    dimensions: buildDimensions(results, summary, scenarioRows, config),
     scenarios: scenarioRows.sort((a, b) => a.scenario.localeCompare(b.scenario)),
     failures,
     chart,

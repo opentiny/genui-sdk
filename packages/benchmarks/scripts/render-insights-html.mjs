@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Write self-contained report.html (config strip + HELM-style visualizations).
+ * Write self-contained report.html (五维 conclusions + HELM-style tables).
  * No CDN. Used by runReport and skill wrappers.
  *
  * Usage:
@@ -39,8 +39,7 @@ function fmtTokens(n) {
 
 function fmtList(arr, empty = '—') {
   if (!Array.isArray(arr) || arr.length === 0) return empty;
-  if (arr.length <= 4) return arr.join(', ');
-  return `${arr.slice(0, 3).join(', ')} +${arr.length - 3}`;
+  return arr.join(', ');
 }
 
 function passTone(rate) {
@@ -149,27 +148,39 @@ function configRows(config) {
     : 'off';
 
   const rows = [
-    ['Run', config.runDir],
-    ['Framework', config.framework ?? '—'],
-    ['Materials', config.materialsVariant ?? '—'],
-    ['Models', fmtList(config.models)],
-    ['Scenarios', fmtList(config.scenarios)],
-    ['Prompt', promptLabel],
-    ['Repeat', config.repeat],
-    ['Concurrency', config.concurrency ?? '—'],
-    ['Stream timeout', timeout],
-    ['LLM Judge', judge],
+    ['Run', config.runDir, ''],
+    ['Framework', config.framework ?? '—', ''],
+    ['Materials', config.materialsVariant ?? '—', ''],
+    ['Models', fmtList(config.models), 'cfg-span'],
+    ['Scenarios', fmtList(config.scenarios), 'cfg-span'],
+    ['Prompt', promptLabel, ''],
+    ['Repeat', config.repeat, ''],
+    ['Concurrency', config.concurrency ?? '—', ''],
+    ['Stream timeout', timeout, ''],
+    ['LLM Judge', judge, ''],
   ];
 
   return rows
     .map(
-      ([k, v]) => `<div class="cfg-item"><dt>${esc(k)}</dt><dd title="${esc(v)}">${esc(v)}</dd></div>`,
+      ([k, v, cls]) =>
+        `<div class="cfg-item${cls ? ` ${cls}` : ''}"><dt>${esc(k)}</dt><dd title="${esc(v)}">${esc(v)}</dd></div>`,
     )
     .join('\n');
 }
 
+function dimCard(dim, href) {
+  if (!dim) return '';
+  return `<a class="dim ${esc(dim.tone || 'neutral')}" href="${esc(href)}">
+  <div class="dim-label">${esc(dim.label)}</div>
+  <div class="dim-value">${esc(dim.headline)}</div>
+  <div class="dim-sub">${esc(dim.sub)}</div>
+</a>`;
+}
+
 function renderHtml(data) {
-  const { source, summary, chart, scenarios, failures, insights, config, modelCompare } = data;
+  const { source, summary, chart, scenarios, failures, insights, config, modelCompare, dimensions } =
+    data;
+  const dims = dimensions || {};
   const passPct = Math.round(summary.passRate * 100);
   const tone = passTone(summary.passRate);
   const multiModel = (source.models?.length || 0) > 1;
@@ -179,14 +190,14 @@ function renderHtml(data) {
 
   const verdictTitle =
     summary.passRate >= 1
-      ? 'Schema protocol gate passed'
+      ? '协议门禁通过'
       : summary.passRate >= 0.85
-        ? 'Near-pass — protocol regressions remain'
-        : 'Schema protocol gate failing';
+        ? '接近通过 — 仍有协议回归'
+        : '协议门禁未通过';
   const verdictBody =
     summary.fail === 0
-      ? `All ${summary.runs} runs passed genRootSchema. Charts below are efficiency context — not a blended score.`
-      : `${summary.pass}/${summary.runs} runs passed (${passPct}%). Fix failing scenarios before optimizing latency or tokens.`;
+      ? `全部 ${summary.runs} 次运行通过 genRootSchema。下方五维分开看：协议是发布门禁，质量仅指 Judge，性能/成本不作合成总分。`
+      : `${summary.pass}/${summary.runs} 次通过（${passPct}%）。先修失败场景，再谈延迟与 token。`;
 
   const showModelCol = multiModel || scenarios.some((s) => s.model && s.model !== primary);
   const modelOrder = multiModel
@@ -198,6 +209,8 @@ function renderHtml(data) {
     if (sc !== 0) return sc;
     return (modelRank.get(a.model) ?? 99) - (modelRank.get(b.model) ?? 99);
   });
+
+  const fmtJudge = (v) => (v == null || !Number.isFinite(v) ? '—' : String(v));
 
   const scenarioRows = sortedScenarios
     .map((s) => {
@@ -211,6 +224,7 @@ function renderHtml(data) {
   <td class="num">${esc(fmtMs(s.avgTotalMs))}</td>
   <td class="num">${s.avgTpotMs == null ? '—' : esc(String(s.avgTpotMs))}</td>
   <td class="num">${esc(fmtTokens(s.avgTotalTokens))}</td>
+  <td class="num">${esc(fmtJudge(s.avgJudgeScore))}</td>
 </tr>`;
     })
     .join('\n');
@@ -218,7 +232,6 @@ function renderHtml(data) {
   const mc = modelCompare && multiModel ? modelCompare : null;
   const modelsForCompare = mc?.rows?.map((r) => r.model) || [];
 
-  /** Aggregate Model × metrics — same columns as Scenario × metrics */
   const modelMetricRows = mc
     ? mc.rows
         .map((r) => {
@@ -231,12 +244,12 @@ function renderHtml(data) {
   <td class="num">${esc(fmtMs(r.avgTotalMs))}</td>
   <td class="num">${r.avgTpotMs == null ? '—' : esc(String(r.avgTpotMs))}</td>
   <td class="num">${esc(fmtTokens(r.avgTotalTokens))}</td>
+  <td class="num">${esc(fmtJudge(r.avgJudgeScore))}</td>
 </tr>`;
         })
         .join('\n')
     : '';
 
-  /** Scenario × models pivot: one row per scenario, Pass/Total/Tokens per model */
   const scenarioNames = [
     ...new Set(sortedScenarios.map((s) => s.scenario).filter(Boolean)),
   ].sort((a, b) => a.localeCompare(b));
@@ -316,11 +329,25 @@ function renderHtml(data) {
           }),
         }))
       : [];
+  const multiTokenSeries =
+    modelsForCompare.length > 0
+      ? modelsForCompare.map((model, i) => ({
+          label: model,
+          short: shortModel(model),
+          barClass: `m${i % 5}`,
+          values: scenarioNames.map((sc) => {
+            const s = byScenarioModel.get(`${sc}::${model}`);
+            return s?.avgTotalTokens != null
+              ? Math.round((s.avgTotalTokens / 1000) * 10) / 10
+              : 0;
+          }),
+        }))
+      : [];
 
-  const modelCompareSection = mc
-    ? `<section>
-    <h2>Model × metrics</h2>
-    <p class="caption">HELM-style grid across models (same columns as Scenario × metrics). Ranked by schema pass rate, then lower avg total latency.</p>
+  const modelOverviewSection = mc
+    ? `<section id="sec-models">
+    <h2>模型总览</h2>
+    <p class="caption">跨模型汇总：Pass 优先，再看延迟与 token。Judge 列仅在启用评分时有值。</p>
     <table>
       <thead>
         <tr>
@@ -331,6 +358,7 @@ function renderHtml(data) {
           <th class="num">Total</th>
           <th class="num">TPOT</th>
           <th class="num">Tokens</th>
+          <th class="num">Judge</th>
         </tr>
       </thead>
       <tbody>
@@ -341,7 +369,7 @@ function renderHtml(data) {
 
   <section>
     <h2>Scenario × models</h2>
-    <p class="caption">Side-by-side model compare per scenario — Pass / Total / Tokens. Green/red on Pass cells.</p>
+    <p class="caption">同场景横向对比 — Pass / Total / Tokens。</p>
     <div class="table-scroll">
     <table class="pivot">
       <thead>
@@ -352,35 +380,14 @@ function renderHtml(data) {
       </tbody>
     </table>
     </div>
-    <div class="charts" style="margin-top:14px">
-      <div class="panel">
-        <h3>Schema pass rate by scenario (%)</h3>
-        <div class="legend">
-          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
-        </div>
-        ${multiHbarRows(scenarioNames, multiPassSeries, 100, '%')}
-      </div>
-      <div class="panel">
-        <h3>End-to-end latency by scenario (s)</h3>
-        <div class="legend">
-          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
-        </div>
-        ${multiHbarRows(
-          scenarioNames,
-          multiTotalSeries,
-          Math.max(...multiTotalSeries.flatMap((s) => s.values), 1),
-          's',
-        )}
-      </div>
-    </div>
   </section>`
     : '';
 
   const failureSection =
     failures.length === 0
       ? ''
-      : `<section>
-  <h2>Failures</h2>
+      : `<div class="failure-block">
+  <h3>Failures</h3>
   <p class="caption">${failures.length} run(s) failed schema protocol or recorded an error.</p>
   <table>
     <thead><tr><th>Scenario</th><th>Model</th><th>Variant</th><th>Error</th></tr></thead>
@@ -397,10 +404,10 @@ function renderHtml(data) {
         .join('\n')}
     </tbody>
   </table>
-</section>`;
+</div>`;
 
   const insightBlocks = (insights || [])
-    .slice(0, 4)
+    .slice(0, 5)
     .map(
       (ins) => `<div class="callout ${esc(ins.tone)}">
   <div class="callout-title">${esc(ins.title)}</div>
@@ -409,8 +416,114 @@ function renderHtml(data) {
     )
     .join('\n');
 
-  const firstObsVals = (chart.firstObsSec || []).map((v) => (v == null ? 0 : v));
   const stack = chart.latencyStack || [];
+  const stab = dims.stability || {};
+  const latencyCvLabel = stab.hasRepeatVolatility ? 'Latency CV (repeat)' : 'Latency CV (跨场景)';
+  const latencyCvValue =
+    stab.hasRepeatVolatility
+      ? stab.repeatLatencyCv == null
+        ? '—'
+        : String(stab.repeatLatencyCv)
+      : stab.latencyCvAcrossScenarios == null
+        ? '—'
+        : String(stab.latencyCvAcrossScenarios);
+
+  const protocolBars = multiModel
+    ? `<div class="legend">
+          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
+        </div>
+        ${multiHbarRows(scenarioNames, multiPassSeries, 100, '%')}`
+    : hbarRows([...chart.categories], [...chart.passRatePct], 100, '%', 'pass');
+
+  const performanceBody = multiModel
+    ? `<div class="panel wide">
+        <h3>End-to-end latency by scenario (s)</h3>
+        <div class="legend">
+          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
+        </div>
+        ${multiHbarRows(
+          scenarioNames,
+          multiTotalSeries,
+          Math.max(...multiTotalSeries.flatMap((s) => s.values), 1),
+          's',
+        )}
+      </div>`
+    : `<div class="panel">
+        <h3>End-to-end latency by scenario (s)</h3>
+        ${hbarRows([...chart.categories], [...chart.totalSec], Math.max(...(chart.totalSec || [1]), 1), 's', 'lat')}
+      </div>
+      <div class="panel">
+        <h3>Latency composition (TTFT → firstObs → remainder)</h3>
+        <div class="legend">
+          <span><i class="l-ttft"></i>TTFT</span>
+          <span><i class="l-mid"></i>to firstObs</span>
+          <span><i class="l-rest"></i>remainder</span>
+          <span>Bar length ∝ total e2e</span>
+        </div>
+        ${stackRows([...chart.categories], stack)}
+      </div>`;
+
+  const costBody = multiModel
+    ? `<div class="panel wide">
+        <h3>Tokens by scenario (k)</h3>
+        <div class="legend">
+          ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
+        </div>
+        ${multiHbarRows(
+          scenarioNames,
+          multiTokenSeries,
+          Math.max(...multiTokenSeries.flatMap((s) => s.values), 0.1),
+          'k',
+        )}
+      </div>`
+    : `<div class="panel wide">
+        <h3>Tokens by scenario (k)</h3>
+        ${hbarRows([...chart.categories], [...chart.tokensK], Math.max(...(chart.tokensK || [1]), 0.1), 'k', 'tok')}
+      </div>`;
+
+  const qualityDim = dims.quality || {};
+  const qualityBody = qualityDim.enabled
+    ? `<div class="kpis kpis-3">
+      <div class="kpi ${esc(qualityDim.tone || '')}">
+        <div class="label">Avg Judge</div>
+        <div class="value">${esc(qualityDim.avgJudgeScore == null ? '—' : String(qualityDim.avgJudgeScore))}</div>
+        <div class="sub">1–10 scale</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Coverage</div>
+        <div class="value">${esc(String(qualityDim.scored ?? 0))}/${esc(String(summary.runs || 0))}</div>
+        <div class="sub">scored runs</div>
+      </div>
+      <div class="kpi ${(qualityDim.judgeErrors || 0) > 0 ? 'danger' : ''}">
+        <div class="label">Judge errors</div>
+        <div class="value">${esc(String(qualityDim.judgeErrors ?? 0))}</div>
+        <div class="sub">llmJudgeError</div>
+      </div>
+    </div>
+    <p class="caption" style="margin-top:10px">${esc(qualityDim.detail || '')}</p>`
+    : `<div class="callout neutral">
+      <div class="callout-title">Judge 未启用</div>
+      <div class="callout-body">${esc(qualityDim.detail || '开启 BENCH_LLM_JUDGE 后显示 1–10 分。协议通过率 ≠ 质量。')}</div>
+    </div>`;
+
+  const navItems = [
+    ['#sec-config', '配置'],
+    ['#sec-verdict', '结论总览'],
+    ...(multiModel ? [['#sec-models', '模型总览']] : []),
+    ['#sec-protocol', '协议合规'],
+    ['#sec-stability', '生成稳定性'],
+    ['#sec-performance', '性能'],
+    ['#sec-cost', '成本'],
+    ['#sec-quality', '质量'],
+    ['#sec-detail', '明细'],
+    ...(insightBlocks ? [['#sec-highlights', 'Highlights']] : []),
+  ];
+  const sideNav = navItems
+    .map(
+      ([href, label], i) =>
+        `<a class="side-link${i === 0 ? ' is-active' : ''}" href="${href}" data-nav="${href.slice(1)}">${esc(label)}</a>`,
+    )
+    .join('\n');
 
   return `<!doctype html>
 <html lang="zh-CN">
@@ -437,17 +550,100 @@ function renderHtml(data) {
       --seg-rest: #3d4a5c;
       --font: "IBM Plex Sans", "PingFang SC", "Noto Sans SC", ui-sans-serif, sans-serif;
       --mono: "IBM Plex Mono", ui-monospace, monospace;
+      --side-w: 188px;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font: 16px/1.5 var(--font);
-      background:
-        radial-gradient(900px 420px at 8% -8%, rgba(61, 214, 198, 0.07), transparent 55%),
-        var(--bg);
+      background: var(--bg);
       color: var(--text);
     }
-    main { max-width: 1120px; margin: 0 auto; padding: 28px 20px 72px; }
+    .layout {
+      display: grid;
+      grid-template-columns: var(--side-w) minmax(0, 1fr);
+      gap: 0;
+      min-height: 100vh;
+      align-items: start;
+    }
+    .side-nav {
+      position: sticky;
+      top: 0;
+      align-self: start;
+      height: 100vh;
+      padding: 20px 12px 24px 16px;
+      border-right: 1px solid var(--line);
+      background: var(--panel-2);
+      overflow-y: auto;
+    }
+    .side-brand {
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--faint);
+      margin: 0 0 14px 8px;
+    }
+    .side-brand span { color: var(--accent); }
+    .side-link {
+      display: block;
+      padding: 8px 10px;
+      margin-bottom: 2px;
+      border-radius: 8px;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.3;
+      border-left: 2px solid transparent;
+    }
+    .side-link:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.03);
+    }
+    .side-link.is-active {
+      color: var(--text);
+      background: rgba(61, 214, 198, 0.08);
+      border-left-color: var(--accent);
+    }
+    main.content {
+      max-width: 1120px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 28px 28px 72px;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .side-nav {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        height: auto;
+        max-height: none;
+        padding: 10px 12px;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+      }
+      .side-brand { width: 100%; margin: 0 0 6px 4px; }
+      .side-link {
+        display: inline-block;
+        margin: 0;
+        padding: 6px 10px;
+        border-left: none;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 12px;
+      }
+      .side-link.is-active {
+        border-color: var(--accent);
+        background: rgba(61, 214, 198, 0.12);
+      }
+      main.content { padding: 20px 16px 56px; }
+    }
     header.hero { margin-bottom: 18px; }
     h1 {
       font-size: clamp(1.5rem, 2.6vw, 2rem);
@@ -456,8 +652,10 @@ function renderHtml(data) {
       letter-spacing: -0.03em;
     }
     h1 span { color: var(--accent); }
-    .lede { margin: 0; color: var(--muted); font-size: 1rem; max-width: 70ch; }
+    .lede { margin: 0; color: var(--muted); font-size: 1rem; max-width: 72ch; }
+    section[id] { scroll-margin-top: 16px; }
     h2 { font-size: 1.15rem; font-weight: 600; margin: 0 0 8px; letter-spacing: -0.01em; }
+    h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--text); }
     section { margin-top: 26px; }
     .caption { color: var(--muted); font-size: 14px; margin: -2px 0 12px; }
 
@@ -472,6 +670,8 @@ function renderHtml(data) {
     }
     @media (max-width: 900px) { .cfg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .cfg-item { min-width: 0; }
+    .cfg-item.cfg-span { grid-column: span 2; }
+    @media (max-width: 900px) { .cfg-item.cfg-span { grid-column: span 2; } }
     .cfg-item dt {
       font-size: 12px;
       text-transform: uppercase;
@@ -489,6 +689,12 @@ function renderHtml(data) {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+    .cfg-item.cfg-span dd {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      word-break: break-word;
+    }
 
     .callout {
       border: 1px solid var(--line);
@@ -505,12 +711,57 @@ function renderHtml(data) {
     .callout.info { border-left: 3px solid var(--info); }
     .callout.neutral { border-left: 3px solid var(--faint); }
 
+    .dims {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    @media (max-width: 900px) { .dims { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (max-width: 520px) { .dims { grid-template-columns: 1fr; } }
+    a.dim {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-height: 92px;
+      transition: border-color 0.15s ease;
+    }
+    a.dim:hover { border-color: var(--accent); }
+    .dim-label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .dim-value {
+      font-size: 1.45rem;
+      font-weight: 650;
+      margin-top: 6px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.02em;
+    }
+    .dim-sub { margin-top: 4px; font-size: 13px; color: var(--faint); font-family: var(--mono); }
+    .dim.success .dim-value { color: var(--success); }
+    .dim.warning .dim-value { color: var(--warning); }
+    .dim.danger .dim-value { color: var(--danger); }
+    .dim.info .dim-value { color: var(--info); }
+    .dim.neutral .dim-value { color: var(--muted); }
+
     .kpis {
       display: grid;
       grid-template-columns: repeat(6, minmax(0, 1fr));
       gap: 10px;
     }
-    @media (max-width: 900px) { .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .kpis-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    @media (max-width: 900px) {
+      .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .kpis-3 { grid-template-columns: 1fr; }
+    }
     @media (max-width: 520px) { .kpis, .charts { grid-template-columns: 1fr; } }
     .kpi {
       background: var(--panel);
@@ -539,7 +790,6 @@ function renderHtml(data) {
       min-height: 140px;
     }
     .panel.wide { grid-column: 1 / -1; }
-    .panel h3 { margin: 0 0 12px; font-size: 14px; font-weight: 600; color: var(--text); }
     .legend {
       display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px;
       font-size: 13px; color: var(--muted);
@@ -641,6 +891,7 @@ function renderHtml(data) {
     .stack-track .seg.mid { background: var(--seg-mid); }
     .stack-track .seg.rest { background: var(--seg-rest); }
 
+    .failure-block { margin-top: 16px; }
     .table-scroll { overflow-x: auto; border-radius: 10px; border: 1px solid var(--line); }
     .table-scroll table { border: none; border-radius: 0; }
     table {
@@ -670,7 +921,12 @@ function renderHtml(data) {
     table.pivot th.model-group:first-of-type,
     table.pivot tbody td:nth-child(2) { border-left: 1px solid var(--line); }
     tr:last-child td { border-bottom: none; }
-    td.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 13px; }
+    th.num, td.num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-family: var(--mono);
+      font-size: 13px;
+    }
     td.cell-ok { color: var(--success); }
     td.cell-fail { color: var(--danger); }
     td.err { color: var(--danger); word-break: break-word; }
@@ -688,97 +944,100 @@ function renderHtml(data) {
   </style>
 </head>
 <body>
-<main>
+<div class="layout">
+  <nav class="side-nav" aria-label="Sections">
+    <div class="side-brand">GenUI <span>Bench</span></div>
+    ${sideNav}
+  </nav>
+<main class="content">
   <header class="hero">
     <h1>GenUI Bench <span>Report</span></h1>
-    <p class="lede">Schema protocol is the primary gate. Latency and tokens are efficiency context. Generated ${esc(generated)}${multiModel ? ` · ${esc(String(source.models.length))} models` : ''}.</p>
+    <p class="lede">五维结论页：协议合规 · 生成稳定性 · 性能 · 成本 · 质量（Judge）。协议是发布门禁；质量不与 pass rate 混用。Generated ${esc(generated)}${multiModel ? ` · ${esc(String(source.models.length))} models` : ''}.</p>
   </header>
 
-  <section aria-label="Run configuration">
+  <section id="sec-config" aria-label="Run configuration">
     <h2>Configuration</h2>
-    <p class="caption">Major run settings captured in report.json (reproducibility / HELM-style transparency).</p>
+    <p class="caption">Major run settings captured in report.json（可复现 / HELM-style transparency）。</p>
     <dl class="cfg">
       ${configRows(cfg)}
     </dl>
   </section>
 
-  <section>
+  <section id="sec-verdict">
     <div class="callout ${esc(tone)}">
       <div class="callout-title">${esc(verdictTitle)}</div>
       <div class="callout-body">${esc(verdictBody)}</div>
     </div>
-    <div class="kpis">
-      <div class="kpi ${esc(tone)}">
-        <div class="label">Schema pass</div>
-        <div class="value">${summary.pass}/${summary.runs}</div>
-        <div class="sub">${passPct}%</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Avg TTFT</div>
-        <div class="value">${esc(fmtMs(summary.avgTtftMs))}</div>
-        <div class="sub">first token</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Avg firstObs</div>
-        <div class="value">${esc(fmtMs(summary.avgFirstObsMs))}</div>
-        <div class="sub">wrapper node</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Avg total</div>
-        <div class="value">${esc(fmtMs(summary.avgTotalMs))}</div>
-        <div class="sub">end-to-end</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Avg TPOT</div>
-        <div class="value">${summary.avgTpotMs == null ? '—' : esc(String(summary.avgTpotMs))}</div>
-        <div class="sub">ms / token</div>
-      </div>
-      <div class="kpi">
-        <div class="label">Tokens / wall</div>
-        <div class="value">${esc(fmtTokens(summary.totalTokens))}</div>
-        <div class="sub">${esc(fmtMs(summary.benchmarkTotalMs))} wall</div>
-      </div>
+    <div class="dims">
+      ${dimCard(dims.protocol, '#sec-protocol')}
+      ${dimCard(dims.stability, '#sec-stability')}
+      ${dimCard(dims.performance, '#sec-performance')}
+      ${dimCard(dims.cost, '#sec-cost')}
+      ${dimCard(dims.quality, '#sec-quality')}
     </div>
   </section>
 
-  ${modelCompareSection}
+  ${modelOverviewSection}
 
-  <section>
-    <h2>Quality × efficiency${multiModel ? ` · ${esc(primary)}` : ''}</h2>
-    <p class="caption">Pass rate and latency by scenario (Artificial Analysis style) — never blended into one score.${multiModel ? ` Primary model «${esc(primary)}»; cross-model view is under Scenario × models.` : ''}</p>
+  <section id="sec-protocol">
+    <h2>协议合规</h2>
+    <p class="caption">${esc(dims.protocol?.detail || 'Schema / protocol validity gate.')}</p>
     <div class="charts">
-      <div class="panel">
-        <h3>Schema pass rate by scenario (%)</h3>
-        ${hbarRows([...chart.categories], [...chart.passRatePct], 100, '%', 'pass')}
-      </div>
-      <div class="panel">
-        <h3>End-to-end latency by scenario (s)</h3>
-        ${hbarRows([...chart.categories], [...chart.totalSec], Math.max(...(chart.totalSec || [1]), 1), 's', 'lat')}
-      </div>
-      <div class="panel">
-        <h3>TTFT by scenario (s)</h3>
-        ${hbarRows([...chart.categories], [...chart.ttftSec], Math.max(...(chart.ttftSec || [1]), 0.01), 's', 'ttft')}
-      </div>
-      <div class="panel">
-        <h3>Tokens by scenario (k)</h3>
-        ${hbarRows([...chart.categories], [...chart.tokensK], Math.max(...(chart.tokensK || [1]), 0.1), 'k', 'tok')}
-      </div>
       <div class="panel wide">
-        <h3>Latency composition (TTFT → firstObs → remainder)</h3>
-        <div class="legend">
-          <span><i class="l-ttft"></i>TTFT</span>
-          <span><i class="l-mid"></i>to firstObs</span>
-          <span><i class="l-rest"></i>remainder</span>
-          <span>Bar length ∝ total e2e</span>
-        </div>
-        ${stackRows([...chart.categories], stack)}
+        <h3>Schema pass rate by scenario (%)</h3>
+        ${protocolBars}
+      </div>
+    </div>
+    ${failureSection}
+  </section>
+
+  <section id="sec-stability">
+    <h2>生成稳定性</h2>
+    <p class="caption">${esc(dims.stability?.detail || 'Stream health + scenario full-pass + latency CV.')}</p>
+    <div class="kpis kpis-3">
+      <div class="kpi ${esc(stab.tone || '')}">
+        <div class="label">场景满通</div>
+        <div class="value">${esc(stab.headline || '—')}</div>
+        <div class="sub">${esc(stab.sub || 'full-pass scenarios')}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Stream OK %</div>
+        <div class="value">${stab.streamOkRate == null ? '—' : `${Math.round(stab.streamOkRate * 100)}%`}</div>
+        <div class="sub">no errorMessage</div>
+      </div>
+      <div class="kpi">
+        <div class="label">${esc(latencyCvLabel)}</div>
+        <div class="value">${esc(latencyCvValue)}</div>
+        <div class="sub">lower is steadier</div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section id="sec-performance">
+    <h2>性能</h2>
+    <p class="caption">${esc(dims.performance?.detail || 'End-to-end latency context.')}</p>
+    <div class="charts">
+      ${performanceBody}
+    </div>
+  </section>
+
+  <section id="sec-cost">
+    <h2>成本</h2>
+    <p class="caption">${esc(dims.cost?.detail || 'Token usage as cost proxy.')}</p>
+    <div class="charts">
+      ${costBody}
+    </div>
+  </section>
+
+  <section id="sec-quality">
+    <h2>质量</h2>
+    <p class="caption">LLM-as-Judge only — never equate schema pass rate with quality.</p>
+    ${qualityBody}
+  </section>
+
+  <section id="sec-detail">
     <h2>Scenario × metrics</h2>
-    <p class="caption">HELM-style grid: quality (pass) plus efficiency. Means over repeat=${esc(cfg.repeat ?? source.repeat)}.${multiModel ? ' Long form (one row per scenario × model); use Scenario × models above for side-by-side.' : ''}</p>
+    <p class="caption">HELM-style grid：协议 Pass + 效率 + Judge（缺失显示 —）。Means over repeat=${esc(cfg.repeat ?? source.repeat)}.${multiModel ? ' 长表（scenario × model）；横向对比见模型总览。' : ''}</p>
     <table>
       <thead>
         <tr>
@@ -790,6 +1049,7 @@ function renderHtml(data) {
           <th class="num">Total</th>
           <th class="num">TPOT</th>
           <th class="num">Tokens</th>
+          <th class="num">Judge</th>
         </tr>
       </thead>
       <tbody>
@@ -800,20 +1060,49 @@ function renderHtml(data) {
 
   ${
     insightBlocks
-      ? `<section>
+      ? `<section id="sec-highlights">
     <h2>Highlights</h2>
-    <p class="caption">Auto-derived from the same numbers — secondary to the charts.</p>
+    <p class="caption">Auto-derived from the same numbers — secondary to the five dimensions.</p>
     ${insightBlocks}
   </section>`
       : ''
   }
 
-  ${failureSection}
-
   <footer>
-    Self-contained report.html (no CDN). Primary gate = schema protocol validity · source ${esc(path.basename(path.dirname(source.reportPath)) + '/report.json')}.
+    Self-contained report.html (no CDN). 五维：协议 / 稳定性 / 性能 / 成本 / 质量 · source ${esc(path.basename(path.dirname(source.reportPath)) + '/report.json')}.
   </footer>
 </main>
+</div>
+<script>
+(function () {
+  var links = Array.prototype.slice.call(document.querySelectorAll('.side-link[data-nav]'));
+  if (!links.length) return;
+  var ids = links.map(function (a) { return a.getAttribute('data-nav'); });
+  var sections = ids
+    .map(function (id) { return document.getElementById(id); })
+    .filter(Boolean);
+
+  function setActive(id) {
+    links.forEach(function (a) {
+      a.classList.toggle('is-active', a.getAttribute('data-nav') === id);
+    });
+  }
+
+  function onScroll() {
+    var y = window.scrollY || window.pageYOffset;
+    var offset = 80;
+    var current = sections[0] && sections[0].id;
+    for (var i = 0; i < sections.length; i++) {
+      var top = sections[i].getBoundingClientRect().top + y - offset;
+      if (y >= top) current = sections[i].id;
+    }
+    if (current) setActive(current);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
 </body>
 </html>
 `;
