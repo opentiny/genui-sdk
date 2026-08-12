@@ -42,12 +42,6 @@ function fmtList(arr, empty = '—') {
   return arr.join(', ');
 }
 
-function passTone(rate) {
-  if (rate >= 1) return 'success';
-  if (rate >= 0.85) return 'warning';
-  return 'danger';
-}
-
 function hbarRows(categories, values, maxVal, suffix, barClass) {
   const nums = values.map((v) => (typeof v === 'number' && Number.isFinite(v) ? v : 0));
   const max = Math.max(maxVal, ...nums, 0.0001);
@@ -147,25 +141,32 @@ function configRows(config) {
       : 'on'
     : 'off';
 
-  const rows = [
-    ['Run', config.runDir, ''],
-    ['Framework', config.framework ?? '—', ''],
-    ['Materials', config.materialsVariant ?? '—', ''],
-    ['Models', fmtList(config.models), 'cfg-span'],
-    ['Scenarios', fmtList(config.scenarios), 'cfg-span'],
-    ['Prompt', promptLabel, ''],
-    ['Repeat', config.repeat, ''],
-    ['Concurrency', config.concurrency ?? '—', ''],
-    ['Stream timeout', timeout, ''],
-    ['LLM Judge', judge, ''],
+  // 短字段在前；列表类（多值）整行放后，避免省略
+  const shortRows = [
+    ['Run', config.runDir ?? '—'],
+    ['Framework', config.framework ?? '—'],
+    ['Materials', config.materialsVariant ?? '—'],
+    ['Prompt', promptLabel],
+    ['Repeat', config.repeat],
+    ['Concurrency', config.concurrency ?? '—'],
+    ['Stream timeout', timeout],
+    ['LLM Judge', judge],
+  ];
+  const wideRows = [
+    ['Models', fmtList(config.models)],
+    ['Scenarios', fmtList(config.scenarios)],
   ];
 
-  return rows
-    .map(
-      ([k, v, cls]) =>
-        `<div class="cfg-item${cls ? ` ${cls}` : ''}"><dt>${esc(k)}</dt><dd title="${esc(v)}">${esc(v)}</dd></div>`,
-    )
-    .join('\n');
+  return [
+    ...shortRows.map(
+      ([k, v]) =>
+        `<div class="cfg-item"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`,
+    ),
+    ...wideRows.map(
+      ([k, v]) =>
+        `<div class="cfg-item cfg-wide"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`,
+    ),
+  ].join('\n');
 }
 
 function dimCard(dim, href) {
@@ -181,23 +182,13 @@ function renderHtml(data) {
   const { source, summary, chart, scenarios, failures, insights, config, modelCompare, dimensions } =
     data;
   const dims = dimensions || {};
-  const passPct = Math.round(summary.passRate * 100);
-  const tone = passTone(summary.passRate);
   const multiModel = (source.models?.length || 0) > 1;
   const primary = source.model;
-  const generated = source.generatedAt ?? '—';
   const cfg = config || {};
-
-  const verdictTitle =
-    summary.passRate >= 1
-      ? '协议门禁通过'
-      : summary.passRate >= 0.85
-        ? '接近通过 — 仍有协议回归'
-        : '协议门禁未通过';
-  const verdictBody =
-    summary.fail === 0
-      ? `全部 ${summary.runs} 次运行通过 genRootSchema。下方五维分开看：协议是发布门禁，质量仅指 Judge，性能/成本不作合成总分。`
-      : `${summary.pass}/${summary.runs} 次通过（${passPct}%）。先修失败场景，再谈延迟与 token。`;
+  const judgeEnabled = Boolean(
+    dims.quality?.enabled || cfg.llmJudgeEnabled || summary.judgeEnabled,
+  );
+  const pivotCols = judgeEnabled ? 4 : 3;
 
   const showModelCol = multiModel || scenarios.some((s) => s.model && s.model !== primary);
   const modelOrder = multiModel
@@ -224,7 +215,7 @@ function renderHtml(data) {
   <td class="num">${esc(fmtMs(s.avgTotalMs))}</td>
   <td class="num">${s.avgTpotMs == null ? '—' : esc(String(s.avgTpotMs))}</td>
   <td class="num">${esc(fmtTokens(s.avgTotalTokens))}</td>
-  <td class="num">${esc(fmtJudge(s.avgJudgeScore))}</td>
+  ${judgeEnabled ? `<td class="num">${esc(fmtJudge(s.avgJudgeScore))}</td>` : ''}
 </tr>`;
     })
     .join('\n');
@@ -244,7 +235,7 @@ function renderHtml(data) {
   <td class="num">${esc(fmtMs(r.avgTotalMs))}</td>
   <td class="num">${r.avgTpotMs == null ? '—' : esc(String(r.avgTpotMs))}</td>
   <td class="num">${esc(fmtTokens(r.avgTotalTokens))}</td>
-  <td class="num">${esc(fmtJudge(r.avgJudgeScore))}</td>
+  ${judgeEnabled ? `<td class="num">${esc(fmtJudge(r.avgJudgeScore))}</td>` : ''}
 </tr>`;
         })
         .join('\n')
@@ -260,31 +251,39 @@ function renderHtml(data) {
   const pivotHead =
     modelsForCompare.length > 0
       ? `<tr>
-  <th rowspan="2">Scenario</th>
-  ${modelsForCompare.map((m) => `<th colspan="3" class="model-group">${esc(m)}</th>`).join('\n')}
+  <th rowspan="2">场景</th>
+  ${modelsForCompare.map((m) => `<th colspan="${pivotCols}" class="model-group">${esc(m)}</th>`).join('\n')}
 </tr>
 <tr>
   ${modelsForCompare
     .map(
       () =>
-        `<th class="num">Pass</th><th class="num">Total</th><th class="num">Tokens</th>`,
+        judgeEnabled
+          ? `<th class="num">Pass</th><th class="num">Total</th><th class="num">Tokens</th><th class="num">Judge</th>`
+          : `<th class="num">Pass</th><th class="num">Total</th><th class="num">Tokens</th>`,
     )
     .join('\n')}
 </tr>`
       : '';
+
+  const emptyPivotCells = judgeEnabled
+    ? `<td class="num">—</td><td class="num">—</td><td class="num">—</td><td class="num">—</td>`
+    : `<td class="num">—</td><td class="num">—</td><td class="num">—</td>`;
 
   const pivotBody = scenarioNames
     .map((scenario) => {
       const cells = modelsForCompare
         .map((model) => {
           const s = byScenarioModel.get(`${scenario}::${model}`);
-          if (!s) {
-            return `<td class="num">—</td><td class="num">—</td><td class="num">—</td>`;
-          }
+          if (!s) return emptyPivotCells;
           const failed = s.schemaPassRate < 1;
-          return `<td class="num ${failed ? 'cell-fail' : 'cell-ok'}">${Math.round(s.schemaPassRate * 100)}%</td>
+          const base = `<td class="num ${failed ? 'cell-fail' : 'cell-ok'}">${Math.round(s.schemaPassRate * 100)}%</td>
   <td class="num">${esc(fmtMs(s.avgTotalMs))}</td>
   <td class="num">${esc(fmtTokens(s.avgTotalTokens))}</td>`;
+          return judgeEnabled
+            ? `${base}
+  <td class="num">${esc(fmtJudge(s.avgJudgeScore))}</td>`
+            : base;
         })
         .join('\n');
       const anyFail = modelsForCompare.some((model) => {
@@ -347,18 +346,18 @@ function renderHtml(data) {
   const modelOverviewSection = mc
     ? `<section id="sec-models">
     <h2>模型总览</h2>
-    <p class="caption">跨模型汇总：Pass 优先，再看延迟与 token。Judge 列仅在启用评分时有值。</p>
+    <p class="caption">跨模型汇总：优先看协议通过率，再比延迟与 token。${judgeEnabled ? '已启用 Judge，表中含平均分。' : ''}</p>
     <table>
       <thead>
         <tr>
-          <th>Model</th>
+          <th>模型</th>
           <th class="num">Pass</th>
           <th class="num">TTFT</th>
           <th class="num">FirstObs</th>
           <th class="num">Total</th>
           <th class="num">TPOT</th>
           <th class="num">Tokens</th>
-          <th class="num">Judge</th>
+          ${judgeEnabled ? '<th class="num">Judge</th>' : ''}
         </tr>
       </thead>
       <tbody>
@@ -368,8 +367,8 @@ function renderHtml(data) {
   </section>
 
   <section>
-    <h2>Scenario × models</h2>
-    <p class="caption">同场景横向对比 — Pass / Total / Tokens。</p>
+    <h2>场景 × 模型</h2>
+    <p class="caption">同场景横向对比：Pass（协议通过率）· Total（端到端总耗时 totalMs）· Tokens${judgeEnabled ? ' · Judge（1–10）' : ''}。</p>
     <div class="table-scroll">
     <table class="pivot">
       <thead>
@@ -387,10 +386,9 @@ function renderHtml(data) {
     failures.length === 0
       ? ''
       : `<div class="failure-block">
-  <h3>Failures</h3>
-  <p class="caption">${failures.length} run(s) failed schema protocol or recorded an error.</p>
+  <h3>失败明细</h3>
   <table>
-    <thead><tr><th>Scenario</th><th>Model</th><th>Variant</th><th>Error</th></tr></thead>
+    <thead><tr><th>场景</th><th>模型</th><th>变体</th><th>错误</th></tr></thead>
     <tbody>
       ${failures
         .map(
@@ -418,7 +416,8 @@ function renderHtml(data) {
 
   const stack = chart.latencyStack || [];
   const stab = dims.stability || {};
-  const latencyCvLabel = stab.hasRepeatVolatility ? 'Latency CV (repeat)' : 'Latency CV (跨场景)';
+  const notFullPass = Math.max(0, (stab.scenarioCount || 0) - (stab.scenarioFullPass || 0));
+  const latencyCvLabel = stab.hasRepeatVolatility ? '组内耗时 CV' : '场景间耗时 CV';
   const latencyCvValue =
     stab.hasRepeatVolatility
       ? stab.repeatLatencyCv == null
@@ -427,6 +426,32 @@ function renderHtml(data) {
       : stab.latencyCvAcrossScenarios == null
         ? '—'
         : String(stab.latencyCvAcrossScenarios);
+  const latencyCvSub = stab.hasRepeatVolatility
+    ? '同场景多次重复：标准差÷均值，越低越稳'
+    : (stab.repeat ?? 1) < 3
+      ? `repeat=${stab.repeat ?? 1}，此处为场景间离散度`
+      : '各场景平均总耗时：标准差÷均值';
+
+  const protocolCaption =
+    '下图按场景看协议通过率（是否通过 genRootSchema）。上方三格是校验漏斗：抽出代码块 → JSON 可解析 → 协议通过。';
+  const proto = dims.protocol || {};
+  const protocolKpis = `<div class="kpis kpis-3" style="margin-bottom:12px">
+      <div class="kpi">
+        <div class="label">抽出 schemaJson 块</div>
+        <div class="value">${esc(String(proto.blockFound ?? '—'))}/${esc(String(proto.runs ?? '—'))}</div>
+        <div class="sub">找到 schemaJson 代码块</div>
+      </div>
+      <div class="kpi">
+        <div class="label">JSON 可解析</div>
+        <div class="value">${esc(String(proto.validJson ?? '—'))}/${esc(String(proto.runs ?? '—'))}</div>
+        <div class="sub">块内容能 parse</div>
+      </div>
+      <div class="kpi ${esc(proto.tone || '')}">
+        <div class="label">协议通过</div>
+        <div class="value">${esc(String(proto.protocolOk ?? '—'))}/${esc(String(proto.runs ?? '—'))}</div>
+        <div class="sub">符合 genRootSchema</div>
+      </div>
+    </div>`;
 
   const protocolBars = multiModel
     ? `<div class="legend">
@@ -437,7 +462,8 @@ function renderHtml(data) {
 
   const performanceBody = multiModel
     ? `<div class="panel wide">
-        <h3>End-to-end latency by scenario (s)</h3>
+        <h3>端到端总耗时 totalMs（秒）· 按场景</h3>
+        <p class="caption" style="margin:0 0 10px">单次生成从发请求到流结束的总耗时（含首 token 与后续生成），不是 TTFT。</p>
         <div class="legend">
           ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
         </div>
@@ -449,23 +475,24 @@ function renderHtml(data) {
         )}
       </div>`
     : `<div class="panel">
-        <h3>End-to-end latency by scenario (s)</h3>
+        <h3>端到端总耗时 totalMs（秒）</h3>
+        <p class="caption" style="margin:0 0 10px">单次生成从发请求到流结束的总耗时。</p>
         ${hbarRows([...chart.categories], [...chart.totalSec], Math.max(...(chart.totalSec || [1]), 1), 's', 'lat')}
       </div>
       <div class="panel">
-        <h3>Latency composition (TTFT → firstObs → remainder)</h3>
+        <h3>耗时构成（TTFT → 首个可观测组件 → 剩余）</h3>
         <div class="legend">
           <span><i class="l-ttft"></i>TTFT</span>
-          <span><i class="l-mid"></i>to firstObs</span>
-          <span><i class="l-rest"></i>remainder</span>
-          <span>Bar length ∝ total e2e</span>
+          <span><i class="l-mid"></i>至 firstObs</span>
+          <span><i class="l-rest"></i>剩余</span>
+          <span>条长 ∝ 端到端总耗时</span>
         </div>
         ${stackRows([...chart.categories], stack)}
       </div>`;
 
   const costBody = multiModel
     ? `<div class="panel wide">
-        <h3>Tokens by scenario (k)</h3>
+        <h3>Tokens（千）· 按场景</h3>
         <div class="legend">
           ${modelsForCompare.map((m, i) => `<span><i class="l-m${i % 5}"></i>${esc(m)}</span>`).join('')}
         </div>
@@ -477,7 +504,7 @@ function renderHtml(data) {
         )}
       </div>`
     : `<div class="panel wide">
-        <h3>Tokens by scenario (k)</h3>
+        <h3>Tokens（千）· 按场景</h3>
         ${hbarRows([...chart.categories], [...chart.tokensK], Math.max(...(chart.tokensK || [1]), 0.1), 'k', 'tok')}
       </div>`;
 
@@ -485,22 +512,21 @@ function renderHtml(data) {
   const qualityBody = qualityDim.enabled
     ? `<div class="kpis kpis-3">
       <div class="kpi ${esc(qualityDim.tone || '')}">
-        <div class="label">Avg Judge</div>
+        <div class="label">平均 Judge</div>
         <div class="value">${esc(qualityDim.avgJudgeScore == null ? '—' : String(qualityDim.avgJudgeScore))}</div>
-        <div class="sub">1–10 scale</div>
+        <div class="sub">1–10 分</div>
       </div>
       <div class="kpi">
-        <div class="label">Coverage</div>
+        <div class="label">已评分</div>
         <div class="value">${esc(String(qualityDim.scored ?? 0))}/${esc(String(summary.runs || 0))}</div>
-        <div class="sub">scored runs</div>
+        <div class="sub">次运行</div>
       </div>
       <div class="kpi ${(qualityDim.judgeErrors || 0) > 0 ? 'danger' : ''}">
-        <div class="label">Judge errors</div>
+        <div class="label">评分失败</div>
         <div class="value">${esc(String(qualityDim.judgeErrors ?? 0))}</div>
         <div class="sub">llmJudgeError</div>
       </div>
-    </div>
-    <p class="caption" style="margin-top:10px">${esc(qualityDim.detail || '')}</p>`
+    </div>`
     : `<div class="callout neutral">
       <div class="callout-title">Judge 未启用</div>
       <div class="callout-body">${esc(qualityDim.detail || '开启 BENCH_LLM_JUDGE 后显示 1–10 分。协议通过率 ≠ 质量。')}</div>
@@ -508,7 +534,7 @@ function renderHtml(data) {
 
   const navItems = [
     ['#sec-config', '配置'],
-    ['#sec-verdict', '结论总览'],
+    ['#sec-verdict', '五维总览'],
     ...(multiModel ? [['#sec-models', '模型总览']] : []),
     ['#sec-protocol', '协议合规'],
     ['#sec-stability', '生成稳定性'],
@@ -516,7 +542,7 @@ function renderHtml(data) {
     ['#sec-cost', '成本'],
     ['#sec-quality', '质量'],
     ['#sec-detail', '明细'],
-    ...(insightBlocks ? [['#sec-highlights', 'Highlights']] : []),
+    ...(insightBlocks ? [['#sec-highlights', '要点']] : []),
   ];
   const sideNav = navItems
     .map(
@@ -661,8 +687,8 @@ function renderHtml(data) {
 
     .cfg {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 8px 12px;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px 14px;
       padding: 14px 16px;
       background: var(--panel);
       border: 1px solid var(--line);
@@ -670,8 +696,7 @@ function renderHtml(data) {
     }
     @media (max-width: 900px) { .cfg { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .cfg-item { min-width: 0; }
-    .cfg-item.cfg-span { grid-column: span 2; }
-    @media (max-width: 900px) { .cfg-item.cfg-span { grid-column: span 2; } }
+    .cfg-item.cfg-wide { grid-column: 1 / -1; }
     .cfg-item dt {
       font-size: 12px;
       text-transform: uppercase;
@@ -685,14 +710,6 @@ function renderHtml(data) {
       font-family: var(--mono);
       font-size: 14px;
       color: var(--text);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .cfg-item.cfg-span dd {
-      white-space: normal;
-      overflow: visible;
-      text-overflow: unset;
       word-break: break-word;
     }
 
@@ -952,22 +969,17 @@ function renderHtml(data) {
 <main class="content">
   <header class="hero">
     <h1>GenUI Bench <span>Report</span></h1>
-    <p class="lede">五维结论页：协议合规 · 生成稳定性 · 性能 · 成本 · 质量（Judge）。协议是发布门禁；质量不与 pass rate 混用。Generated ${esc(generated)}${multiModel ? ` · ${esc(String(source.models.length))} models` : ''}.</p>
   </header>
 
   <section id="sec-config" aria-label="Run configuration">
-    <h2>Configuration</h2>
-    <p class="caption">Major run settings captured in report.json（可复现 / HELM-style transparency）。</p>
+    <h2>配置</h2>
     <dl class="cfg">
       ${configRows(cfg)}
     </dl>
   </section>
 
   <section id="sec-verdict">
-    <div class="callout ${esc(tone)}">
-      <div class="callout-title">${esc(verdictTitle)}</div>
-      <div class="callout-body">${esc(verdictBody)}</div>
-    </div>
+    <p class="caption" style="margin-top:0">协议看能不能用；Judge 看好不好；性能和成本分开比，不合成一个总分。</p>
     <div class="dims">
       ${dimCard(dims.protocol, '#sec-protocol')}
       ${dimCard(dims.stability, '#sec-stability')}
@@ -981,10 +993,11 @@ function renderHtml(data) {
 
   <section id="sec-protocol">
     <h2>协议合规</h2>
-    <p class="caption">${esc(dims.protocol?.detail || 'Schema / protocol validity gate.')}</p>
+    <p class="caption">${esc(protocolCaption)}</p>
+    ${protocolKpis}
     <div class="charts">
       <div class="panel wide">
-        <h3>Schema pass rate by scenario (%)</h3>
+        <h3>各场景协议通过率（%）</h3>
         ${protocolBars}
       </div>
     </div>
@@ -993,29 +1006,28 @@ function renderHtml(data) {
 
   <section id="sec-stability">
     <h2>生成稳定性</h2>
-    <p class="caption">${esc(dims.stability?.detail || 'Stream health + scenario full-pass + latency CV.')}</p>
+    <p class="caption">${esc(dims.stability?.detail || '')}</p>
     <div class="kpis kpis-3">
       <div class="kpi ${esc(stab.tone || '')}">
-        <div class="label">场景满通</div>
+        <div class="label">全部通过</div>
         <div class="value">${esc(stab.headline || '—')}</div>
-        <div class="sub">${esc(stab.sub || 'full-pass scenarios')}</div>
+        <div class="sub">${esc(String(stab.scenarioFullPass ?? '—'))}/${esc(String(stab.scenarioCount ?? '—'))} 个场景×模型组合</div>
       </div>
-      <div class="kpi">
-        <div class="label">Stream OK %</div>
-        <div class="value">${stab.streamOkRate == null ? '—' : `${Math.round(stab.streamOkRate * 100)}%`}</div>
-        <div class="sub">no errorMessage</div>
+      <div class="kpi ${notFullPass > 0 ? 'warning' : 'success'}">
+        <div class="label">有失败</div>
+        <div class="value">${esc(String(notFullPass))}</div>
+        <div class="sub">至少一次协议没过的组合</div>
       </div>
       <div class="kpi">
         <div class="label">${esc(latencyCvLabel)}</div>
         <div class="value">${esc(latencyCvValue)}</div>
-        <div class="sub">lower is steadier</div>
+        <div class="sub">${esc(latencyCvSub)}</div>
       </div>
     </div>
   </section>
 
   <section id="sec-performance">
     <h2>性能</h2>
-    <p class="caption">${esc(dims.performance?.detail || 'End-to-end latency context.')}</p>
     <div class="charts">
       ${performanceBody}
     </div>
@@ -1023,7 +1035,7 @@ function renderHtml(data) {
 
   <section id="sec-cost">
     <h2>成本</h2>
-    <p class="caption">${esc(dims.cost?.detail || 'Token usage as cost proxy.')}</p>
+    <p class="caption">${esc(dims.cost?.detail || '')}</p>
     <div class="charts">
       ${costBody}
     </div>
@@ -1031,25 +1043,23 @@ function renderHtml(data) {
 
   <section id="sec-quality">
     <h2>质量</h2>
-    <p class="caption">LLM-as-Judge only — never equate schema pass rate with quality.</p>
     ${qualityBody}
   </section>
 
   <section id="sec-detail">
-    <h2>Scenario × metrics</h2>
-    <p class="caption">HELM-style grid：协议 Pass + 效率 + Judge（缺失显示 —）。Means over repeat=${esc(cfg.repeat ?? source.repeat)}.${multiModel ? ' 长表（scenario × model）；横向对比见模型总览。' : ''}</p>
+    <h2>场景明细</h2>
     <table>
       <thead>
         <tr>
-          <th>Scenario</th>
-          ${showModelCol ? '<th>Model</th>' : ''}
+          <th>场景</th>
+          ${showModelCol ? '<th>模型</th>' : ''}
           <th class="num">Pass</th>
           <th class="num">TTFT</th>
           <th class="num">FirstObs</th>
           <th class="num">Total</th>
           <th class="num">TPOT</th>
           <th class="num">Tokens</th>
-          <th class="num">Judge</th>
+          ${judgeEnabled ? '<th class="num">Judge</th>' : ''}
         </tr>
       </thead>
       <tbody>
@@ -1061,8 +1071,7 @@ function renderHtml(data) {
   ${
     insightBlocks
       ? `<section id="sec-highlights">
-    <h2>Highlights</h2>
-    <p class="caption">Auto-derived from the same numbers — secondary to the five dimensions.</p>
+    <h2>要点</h2>
     ${insightBlocks}
   </section>`
       : ''

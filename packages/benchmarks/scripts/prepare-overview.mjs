@@ -63,20 +63,20 @@ function buildInsights(payload) {
   if (passRate >= 1) {
     insights.push({
       tone: 'success',
-      title: 'Schema protocol gate passed',
-      detail: `All ${summary.runs} runs validated against genRootSchema.`,
+      title: '协议门禁全部通过',
+      detail: `全部 ${summary.runs} 次运行通过 genRootSchema 校验。`,
     });
   } else if (passRate >= 0.85) {
     insights.push({
       tone: 'warning',
-      title: 'Near-pass with protocol regressions',
-      detail: `${summary.fail} of ${summary.runs} runs failed schema validation (${Math.round(passRate * 100)}% pass).`,
+      title: '接近通过，仍有协议失败',
+      detail: `${summary.fail}/${summary.runs} 次未通过 schema 校验（通过率 ${Math.round(passRate * 100)}%）。`,
     });
   } else {
     insights.push({
       tone: 'danger',
-      title: 'Schema protocol gate failing',
-      detail: `Only ${summary.pass}/${summary.runs} runs passed (${Math.round(passRate * 100)}%). Treat as release blocker until fixed.`,
+      title: '协议门禁未通过',
+      detail: `仅 ${summary.pass}/${summary.runs} 次通过（${Math.round(passRate * 100)}%）。建议先修协议失败，再谈性能与成本。`,
     });
   }
 
@@ -85,7 +85,7 @@ function buildInsights(payload) {
   if (slowest.length) {
     insights.push({
       tone: 'info',
-      title: 'Latency hotspots (end-to-end)',
+      title: '端到端总耗时偏高的场景',
       detail: slowest
         .map((s) => `${s.scenario} ${round(s.avgTotalMs / 1000, 1)}s`)
         .join(' · '),
@@ -96,13 +96,13 @@ function buildInsights(payload) {
   if (failedScenarios.length) {
     const patterns = failures.map((f) => {
       const m = String(f.error || '').match(/must have required property '([^']+)'/);
-      return m ? `missing '${m[1]}'` : 'protocol/other';
+      return m ? `缺少字段 '${m[1]}'` : '协议/其它错误';
     });
     const uniq = [...new Set(patterns)];
     insights.push({
       tone: 'danger',
-      title: 'Failure pattern',
-      detail: `${failedScenarios.join(', ')} → ${uniq.join('; ')}. Prefer prompt/materials fixes over raising judge scores.`,
+      title: '失败模式',
+      detail: `${[...new Set(failedScenarios)].join('、')} → ${uniq.join('；')}。优先修 prompt/materials，不要用 Judge 分数掩盖协议失败。`,
     });
   }
 
@@ -113,14 +113,14 @@ function buildInsights(payload) {
       const worst = ranked[ranked.length - 1];
       insights.push({
         tone: 'info',
-        title: 'Model ranking (pass → latency)',
-        detail: `Best: ${best.model} (${best.passRatePct}% pass, ${round((best.avgTotalMs || 0) / 1000, 1)}s avg). Lowest ranked: ${worst.model} (${worst.passRatePct}% · ${round((worst.avgTotalMs || 0) / 1000, 1)}s). Compare pass rate first, then avgTotalMs / tokens.`,
+        title: '模型排序（先通过率，再耗时）',
+        detail: `最优：${best.model}（通过率 ${best.passRatePct}% · 平均 ${round((best.avgTotalMs || 0) / 1000, 1)}s）。靠后：${worst.model}（${worst.passRatePct}% · ${round((worst.avgTotalMs || 0) / 1000, 1)}s）。`,
       });
     } else {
       insights.push({
         tone: 'info',
-        title: 'Multi-model run',
-        detail: `Compare models on schemaPassRate first, then avgTotalMs / tokens (Artificial Analysis style quality×efficiency).`,
+        title: '多模型对比',
+        detail: '先看协议通过率，再比较平均总耗时与 token。',
       });
     }
   }
@@ -130,8 +130,8 @@ function buildInsights(payload) {
     if (ttftShare < 0.2) {
       insights.push({
         tone: 'neutral',
-        title: 'Cost dominated by generation length',
-        detail: `TTFT is ~${Math.round(ttftShare * 100)}% of total — optimize schema size / completion tokens more than first-token latency.`,
+        title: '耗时主要花在生成长度上',
+        detail: `首 token（TTFT）约占端到端 ${Math.round(ttftShare * 100)}% — 优化 schema 体积 / completion tokens 比优化首包更有效。`,
       });
     }
   }
@@ -204,7 +204,11 @@ function buildDimensions(results, summary, scenarioRows, config) {
       tone: protocolRate >= 1 ? 'success' : protocolRate >= 0.85 ? 'warning' : 'danger',
       headline: n ? `${protocolOk}/${n}` : '—',
       sub: n ? `${Math.round(protocolRate * 100)}% protocol` : '—',
-      detail: `block ${blockFound}/${n || 0} · json ${validJson}/${n || 0} · protocol ${protocolOk}/${n || 0}`,
+      detail: `三层校验通过数：抽出 schemaJson 代码块 ${blockFound}/${n || 0} · JSON 可解析 ${validJson}/${n || 0} · 符合 genRootSchema 协议 ${protocolOk}/${n || 0}`,
+      blockFound,
+      validJson,
+      protocolOk,
+      runs: n,
       blockFoundRate: n ? round(blockFound / n, 4) : 0,
       validJsonRate: n ? round(validJson / n, 4) : 0,
       protocolRate: round(protocolRate, 4),
@@ -215,25 +219,34 @@ function buildDimensions(results, summary, scenarioRows, config) {
       tone:
         stabilityScore >= 0.95 ? 'success' : stabilityScore >= 0.8 ? 'warning' : 'danger',
       headline: `${Math.round(scenarioFullPassRate * 100)}%`,
-      sub: '场景满通',
+      sub: '组合全部通过',
       detail: hasRepeatVolatility
-        ? `stream 正常 ${streamOk}/${n} · 场景满通 ${scenarioFullPass}/${scenarioRows.length} · repeat 波动 CV≈${avgTotalCvRepeat ?? '—'}`
-        : `stream 正常 ${streamOk}/${n} · 场景满通 ${scenarioFullPass}/${scenarioRows.length}${
-            (config?.repeat ?? 1) < 3 ? ' · repeat<3 无组内波动' : ''
-          }${latencyCv != null ? ` · 跨场景 latency CV ${latencyCv}` : ''}`,
+        ? `全部通过 ${scenarioFullPass}/${scenarioRows.length}（该场景每次重复都过协议）。组内耗时波动 CV≈${avgTotalCvRepeat ?? '—'}（同场景多次重复的标准差/均值，越低越稳）。`
+        : `全部通过 ${scenarioFullPass}/${scenarioRows.length}（该「场景×模型」组合都过协议）。${
+            (config?.repeat ?? 1) < 3
+              ? `本次只跑了 ${config?.repeat ?? 1} 次，看不出同场景反复跑的波动。`
+              : ''
+          }${
+            latencyCv != null
+              ? `场景间耗时差 CV=${latencyCv}（各场景平均总耗时的标准差÷均值；越大说明有的场景特别慢、有的特别快）。`
+              : ''
+          }`,
       streamOkRate: round(streamOkRate, 4),
+      scenarioFullPass: scenarioFullPass,
+      scenarioCount: scenarioRows.length,
       scenarioFullPassRate: round(scenarioFullPassRate, 4),
       latencyCvAcrossScenarios: latencyCv,
       repeatLatencyCv: avgTotalCvRepeat,
       hasRepeatVolatility,
+      repeat: config?.repeat ?? 1,
     },
     performance: {
       id: 'performance',
       label: '性能',
       tone: 'info',
       headline: summary.avgTotalMs == null ? '—' : `${round(summary.avgTotalMs / 1000, 1)}s`,
-      sub: 'avg total',
-      detail: `TTFT ${summary.avgTtftMs ?? '—'}ms · firstObs ${summary.avgFirstObsMs ?? '—'}ms · TPOT ${summary.avgTpotMs ?? '—'} ms/tok`,
+      sub: '平均端到端总耗时',
+      detail: `指标均为端到端：平均总耗时（totalMs） ${summary.avgTotalMs == null ? '—' : `${round(summary.avgTotalMs / 1000, 1)}s`} · 首 token TTFT ${summary.avgTtftMs ?? '—'}ms · 首个可观测组件 firstObs ${summary.avgFirstObsMs ?? '—'}ms · TPOT ${summary.avgTpotMs ?? '—'} ms/tok`,
       avgTtftMs: summary.avgTtftMs,
       avgFirstObsMs: summary.avgFirstObsMs,
       avgTotalMs: summary.avgTotalMs,
@@ -244,8 +257,10 @@ function buildDimensions(results, summary, scenarioRows, config) {
       label: '成本',
       tone: 'info',
       headline: avgTokens == null ? '—' : `${avgTokens}`,
-      sub: 'avg tokens / run',
-      detail: `合计 ${summary.totalTokens ?? 0} · wall ${summary.benchmarkTotalMs ?? '—'}ms`,
+      sub: '平均 tokens / 次',
+      detail: `合计 token ${summary.totalTokens ?? 0}；墙钟时间（整次跑测从开始到结束的真实耗时，含并发等待） ${
+        summary.benchmarkTotalMs == null ? '—' : fmtWall(summary.benchmarkTotalMs)
+      }`,
       avgTokens,
       totalTokens: summary.totalTokens,
       wallMs: summary.benchmarkTotalMs,
@@ -270,8 +285,8 @@ function buildDimensions(results, summary, scenarioRows, config) {
       sub: judgeEnabled ? `Judge ${judgeScores.length}/${n}` : 'LLM-as-Judge',
       detail: !judgeEnabled
         ? '开启 BENCH_LLM_JUDGE 后显示 1–10 分（与协议通过率分开）'
-        : `avg ${summary.avgJudgeScore ?? '—'} · scored ${judgeScores.length}/${n}${
-            judgeErrors ? ` · errors ${judgeErrors}` : ''
+        : `平均分 ${summary.avgJudgeScore ?? '—'} · 已评分 ${judgeScores.length}/${n}${
+            judgeErrors ? ` · 评分失败 ${judgeErrors}` : ''
           }`,
       enabled: judgeEnabled,
       avgJudgeScore: summary.avgJudgeScore,
@@ -279,6 +294,13 @@ function buildDimensions(results, summary, scenarioRows, config) {
       judgeErrors,
     },
   };
+}
+
+function fmtWall(ms) {
+  if (ms == null || !Number.isFinite(ms)) return '—';
+  if (ms >= 60_000) return `${(ms / 60_000).toFixed(1)} 分钟`;
+  if (ms >= 1000) return `${(ms / 1000).toFixed(1)} 秒`;
+  return `${Math.round(ms)} ms`;
 }
 
 export function prepare(report, reportPath) {
@@ -342,6 +364,22 @@ export function prepare(report, reportPath) {
         avgTotalTokens: round(avg(group.map((g) => g.totalTokens)), 0),
       });
     }
+  }
+
+  // Attach Judge averages (comparisonByScenario 不含 judge 字段)
+  const judgeByKey = new Map();
+  for (const r of results) {
+    const label =
+      (r.promptVariant ?? 'full') === 'plain' ? `${r.scenario}（纯文本）` : r.scenario;
+    const key = `${label}::${r.model}`;
+    if (!judgeByKey.has(key)) judgeByKey.set(key, []);
+    if (typeof r.llmJudgeScore === 'number' && Number.isFinite(r.llmJudgeScore)) {
+      judgeByKey.get(key).push(r.llmJudgeScore);
+    }
+  }
+  for (const row of scenarioRows) {
+    const scores = judgeByKey.get(`${row.scenario}::${row.model}`) || [];
+    row.avgJudgeScore = scores.length ? round(avg(scores), 2) : null;
   }
 
   const failures = results
