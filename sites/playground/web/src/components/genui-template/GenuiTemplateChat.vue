@@ -58,13 +58,9 @@ const {
 } = stream;
 
 watch(
-  () => TinyGenuiConfig?.value?.theme,
-  (theme) => {
-    if (theme === 'dark') {
-      setColorMode(theme);
-    } else {
-      setColorMode('light');
-    }
+  () => TinyGenuiConfig?.value?.colorScheme,
+  (colorScheme) => {
+    setColorMode(colorScheme === 'dark' ? 'dark' : 'light');
   },
   {
     immediate: true,
@@ -334,7 +330,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }">
+  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.colorScheme === 'dark' }">
     <div class="messages-container" ref="messagesContainer">
       <tr-bubble-provider :content-renderers="messageRenderers">
         <tr-bubble-list v-if="showMessages.length" :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
