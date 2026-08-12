@@ -154,6 +154,7 @@ const handleBatchDelete = () => {
       v-model:selection-active="selectionActive"
       :conversations="(conversations as PersistedConversation[])"
       :selected-ids="selectedTemplateIds"
+      :export-conversations="exportConversations"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"
       @batch-delete="handleBatchDelete"

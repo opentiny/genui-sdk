@@ -2,7 +2,7 @@
 import { ref, watch, computed, h, inject, onMounted, onUnmounted, provide, type Ref } from 'vue';
 import '@opentiny/tiny-robot/dist/style.css';
 import { TrBubbleList, TrSender, TrBubbleProvider, useTheme } from '@opentiny/tiny-robot';
-import type { BubbleMessage, BubbleRoleConfig } from '@opentiny/tiny-robot';
+import type { BubbleMessage, BubbleMessageGroup, BubbleRoleConfig } from '@opentiny/tiny-robot';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
@@ -170,6 +170,14 @@ const roleConfigs: Record<string, BubbleRoleConfig> = {
   },
 };
 
+const ungroupedMessageStrategy = (chatMessages: BubbleMessage[]): BubbleMessageGroup[] =>
+  chatMessages.map((message, index) => ({
+    role: message.role || 'assistant',
+    messages: [message],
+    messageIndexes: [index],
+    startIndex: index,
+  }));
+
 const inputMessage = computed({
   get: () => messageManager.value?.inputMessage.value ?? '',
   set: (v: string) => {
@@ -297,6 +305,7 @@ onUnmounted(() => {
           :messages="showMessages"
           :role-configs="roleConfigs"
           :content-resolver="templateContentResolver"
+          :group-strategy="ungroupedMessageStrategy"
           content-render-mode="split"
           auto-scroll
         >

@@ -113,6 +113,7 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
   };
 
   const importConversations = async (items: ImportConversationItem[]) => {
+    const previousActiveId = conversation.activeConversationId.value;
     for (const item of items) {
       const created = conversation.createConversation({
         id: item.id,
@@ -124,6 +125,9 @@ export function useGenuiConversation(options: UseGenuiConversationOptions) {
       if (engine && item.messages?.length) {
         engine.messages.value.splice(0, engine.messages.value.length, ...item.messages);
       }
+    }
+    if (previousActiveId) {
+      await conversation.switchConversation(previousActiveId);
     }
   };
 

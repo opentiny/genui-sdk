@@ -581,7 +581,6 @@ defineExpose({
   .tr-bubble__content {
     @avatar-and-gap-width: 56px;
     max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
-    overflow-x: auto;
   }
 }
 

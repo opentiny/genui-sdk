@@ -8,12 +8,13 @@ export const useInputMessage = (chatInstance: Ref<ComponentPublicInstance<typeof
       return;
     }
 
-    const unwatch = watch(
+    let unwatch: (() => void) | undefined;
+    unwatch = watch(
       () => chatInstance.value?.loading,
       (newValue) => {
         if (!newValue) {
           chatInstance.value?.setInputMessage(inputMessage);
-          unwatch();
+          unwatch?.();
         }
       },
       { immediate: true },

@@ -53,7 +53,7 @@ export function createChatResponseProvider() {
 }
 ```
 
-Schema 分片解析可放在 `onCompletionChunk`（与 `GenuiChat` 内部 `genuiStreamHandler` 思路一致）。完整解析逻辑见 SDK 源码 `chat/genuiStreamHandler.ts`；下方示例仅演示接入方式。
+Schema 分片解析可放在 `onCompletionChunk`（与 `GenuiChat` 内部的 `createGenuiStreamHandlerOptions` 思路一致）。建议直接复用 SDK 导出的 helper，而不是自行实现解析器。
 
 然后在组件中使用 `useConversation` + `GenuiRenderer`，并通过 `GenuiConfigProvider` 注入物料：
 
@@ -68,15 +68,27 @@ import { useConversation } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import '@opentiny/tiny-robot/dist/style.css';
 import type { IRendererProps } from '@opentiny/genui-sdk-vue';
+import { createGenuiStreamHandlerOptions } from '@opentiny/genui-sdk-vue';
 import { createChatResponseProvider } from './createChatResponseProvider';
 
 const inputMessage = ref('');
 
+const streamHandler = createGenuiStreamHandlerOptions({
+  getChatConfig: () => ({}),
+});
+
 const conversation = useConversation({
   useMessageOptions: {
     responseProvider: createChatResponseProvider(),
-    plugins: [{ name: 'thinking', disabled: true }],
-    // onCompletionChunk: genuiStreamHandler.onCompletionChunk, // 生产环境建议复用 SDK 实现
+    plugins: [
+      { name: 'thinking', disabled: true },
+      {
+        name: 'genui-stream-lifecycle',
+        onTurnEnd: (context) => streamHandler.onTurnEnd(context),
+        onError: (context) => streamHandler.onError(context),
+      },
+    ],
+    onCompletionChunk: streamHandler.onCompletionChunk,
   },
 });
 
@@ -89,12 +101,10 @@ const sendMessage = async (messageContent: string) => {
     return;
   }
 
-  engine.value.messages.value.push({
+  await engine.value.send({
     role: 'user',
     content: messageContent,
   } as ChatMessage);
-
-  await engine.value.send();
 };
 
 const abortRequest = () => {
@@ -110,7 +120,7 @@ const lastSchemaCardId = computed(() => {
   if (lastMsg?.role !== 'assistant') return null;
   const items = (lastMsg as ChatMessage & { messages?: { type?: string; id?: string }[] }).messages;
   if (!Array.isArray(items) || !items.length) return null;
-  const schemaCard = items.find((m) => m.type === 'schema-card');
+  const schemaCard = [...items].reverse().find((m) => m.type === 'schema-card');
   return schemaCard?.id || null;
 });
 

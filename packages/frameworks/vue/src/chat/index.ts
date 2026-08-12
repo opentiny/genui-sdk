@@ -1,3 +1,5 @@
+export { createGenuiStreamHandlerOptions } from './genuiStreamHandler.js';
+export type { GenuiStreamHandlerContext, GenuiChunkContext } from './genuiStreamHandler.js';
 export { default as GenuiChat } from './GenuiChat.vue';
 export * from './types.js';
 export { createGenuiResponseProvider } from './createGenuiResponseProvider.js';

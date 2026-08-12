@@ -53,7 +53,7 @@ export function createChatResponseProvider() {
 }
 ```
 
-Place schema chunk parsing in `onCompletionChunk` (same idea as `genuiStreamHandler` inside `GenuiChat`). See SDK source `chat/genuiStreamHandler.ts` for the full parser; the example below only shows wiring.
+Place schema chunk parsing in `onCompletionChunk` (same idea as `createGenuiStreamHandlerOptions` inside `GenuiChat`). Prefer reusing the SDK helper rather than reimplementing the parser.
 
 Then use `useConversation` + `GenuiRenderer` in your component, and inject materials via `GenuiConfigProvider`:
 
@@ -68,15 +68,27 @@ import { useConversation } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import '@opentiny/tiny-robot/dist/style.css';
 import type { IRendererProps } from '@opentiny/genui-sdk-vue';
+import { createGenuiStreamHandlerOptions } from '@opentiny/genui-sdk-vue';
 import { createChatResponseProvider } from './createChatResponseProvider';
 
 const inputMessage = ref('');
 
+const streamHandler = createGenuiStreamHandlerOptions({
+  getChatConfig: () => ({}),
+});
+
 const conversation = useConversation({
   useMessageOptions: {
     responseProvider: createChatResponseProvider(),
-    plugins: [{ name: 'thinking', disabled: true }],
-    // onCompletionChunk: genuiStreamHandler.onCompletionChunk, // reuse SDK impl in production
+    plugins: [
+      { name: 'thinking', disabled: true },
+      {
+        name: 'genui-stream-lifecycle',
+        onTurnEnd: (context) => streamHandler.onTurnEnd(context),
+        onError: (context) => streamHandler.onError(context),
+      },
+    ],
+    onCompletionChunk: streamHandler.onCompletionChunk,
   },
 });
 
@@ -89,12 +101,10 @@ const sendMessage = async (messageContent: string) => {
     return;
   }
 
-  engine.value.messages.value.push({
+  await engine.value.send({
     role: 'user',
     content: messageContent,
   } as ChatMessage);
-
-  await engine.value.send();
 };
 
 const abortRequest = () => {
@@ -110,7 +120,7 @@ const lastSchemaCardId = computed(() => {
   if (lastMsg?.role !== 'assistant') return null;
   const items = (lastMsg as ChatMessage & { messages?: { type?: string; id?: string }[] }).messages;
   if (!Array.isArray(items) || !items.length) return null;
-  const schemaCard = items.find((m) => m.type === 'schema-card');
+  const schemaCard = [...items].reverse().find((m) => m.type === 'schema-card');
   return schemaCard?.id || null;
 });
 

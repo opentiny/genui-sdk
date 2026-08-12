@@ -1,7 +1,7 @@
 import type { UserItem } from './chat.types';
 import { TinyNotify } from '@opentiny/vue';
 import { ref, type Ref } from 'vue';
-import { type FileMeta, processFiles, serializeFile } from './file-upload/file-utils';
+import { buildTemplateDataFromSubmitText, type FileMeta, processFiles, serializeFile } from './file-upload/file-utils';
 import type { ModelCapability } from './chat.types';
 import { useI18n } from './i18n';
 
@@ -50,12 +50,8 @@ const useFileUpload = () => {
     if (!files || files.length === 0) {
       return;
     }
-    if (!templateData.value.length) {
-      templateData.value.unshift({
-        type: 'text',
-        content: inputMessage,
-      });
-    }
+   
+    templateData.value = buildTemplateDataFromSubmitText(templateData.value, inputMessage);
 
     for (const file of files) {
       templateData.value.push({
