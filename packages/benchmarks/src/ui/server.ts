@@ -18,11 +18,12 @@ import { constraintLlmBenchmarkSampleCases } from '../samples/constraints';
 import { contextualA2uiLlmBenchmarkSampleCases } from '../samples/contextual-a2ui';
 import { contextualGenuiLlmBenchmarkSampleCases } from '../samples/contextual-genui';
 import { edgeLlmBenchmarkSampleCases } from '../samples/edge';
-import { listMaasManifestModelNames, resolveSamplesDir } from '../utils';
+import { listMaasManifestModelNames, resolveMaasModelsJsonPath, resolveSamplesDir } from '../utils';
 import { protocolFromOptions } from '../protocol';
 
 const uiDir = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(uiDir, 'public');
+const benchmarksPackageDir = path.resolve(uiDir, '..', '..');
 
 type RunState = 'idle' | 'running' | 'done' | 'error';
 
@@ -37,6 +38,8 @@ type ArtifactLinks = {
 type BenchUiMeta = {
   defaults: BenchUiFormPayload;
   models: string[];
+  /** 当前模型清单路径（相对 benchmarks 包根，否则绝对路径） */
+  modelsManifestPath?: string;
   scenarioGroups: Array<{ group: string; label: string; scenarios: string[] }>;
   /** 按协议的场景分组（UI 切换 protocol 时换 contextual 标签与列表） */
   scenarioGroupsByProtocol: {
@@ -212,7 +215,13 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
 
   const buildMeta = (): BenchUiMeta => {
     let models: string[] = [];
+    let modelsManifestPath: string | undefined;
     try {
+      const abs = resolveMaasModelsJsonPath();
+      const rel = path.relative(benchmarksPackageDir, abs);
+      modelsManifestPath = !rel.startsWith('..') && !path.isAbsolute(rel)
+        ? rel.split(path.sep).join('/')
+        : abs;
       models = listMaasManifestModelNames();
     } catch (err) {
       console.warn('[bench-ui] Failed to load model list:', err instanceof Error ? err.message : err);
@@ -222,6 +231,7 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
     return {
       defaults,
       models,
+      modelsManifestPath,
       scenarioGroups: scenarioGroups(protocol),
       scenarioGroupsByProtocol: {
         genui: scenarioGroups('genui'),

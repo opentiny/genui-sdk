@@ -890,7 +890,7 @@
       const modelChips = meta.models.map((m) => {
         const on = state.selectedModels.has(m);
         return `<button type="button" class="chip" data-model="${esc(m)}" aria-pressed="${on}">${esc(m)}</button>`;
-      }).join('') || '<span style="color:var(--faint);font-size:0.85rem">未找到模型清单，请检查 maas-models.json</span>';
+      }).join('') || `<span style="color:var(--faint);font-size:0.85rem">未找到模型清单，请检查 BENCH_MAAS_MODELS_PATH${meta.modelsManifestPath ? `（${esc(meta.modelsManifestPath)}）` : ''}</span>`;
 
       const scenarioHtml = renderScenarioHtml(state.protocol);
 
@@ -930,7 +930,7 @@
                 <div class="toggle-row">
                   <div class="meta">
                     <strong>使用清单全部模型</strong>
-                    <small>勾选后忽略上方选择，跑 maas-models.json 中全部模型</small>
+                    <small>勾选后忽略上方选择，跑清单全部模型（${esc(meta.modelsManifestPath || 'BENCH_MAAS_MODELS_PATH')}）</small>
                   </div>
                   <label class="switch"><input type="checkbox" id="modelsFromMaas" ${d.modelsFromMaasManifest ? 'checked' : ''}/><span></span></label>
                 </div>
