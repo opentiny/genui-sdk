@@ -20,6 +20,7 @@ import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
+import SchemaExportHeader from './components/SchemaExportHeader.vue';
 import { useInputMessage } from './hooks/use-input-message';
 import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
@@ -329,6 +330,10 @@ const updateCustomExamples = (list) => {
   customExamples.value = normalizeCustomExamples(list);
 };
 
+const rendererSlots = {
+  header: SchemaExportHeader,
+};
+
 watch(
   () => templateSchemaList.value,
   (newVal) => {
@@ -406,6 +411,7 @@ onUnmounted(() => {
             :features="modelFeatures"
             :custom-fetch="customFetch"
             :custom-examples="customExamples"
+            :renderer-slots="rendererSlots"
           >
             <template #empty>
               <div class="empty">
@@ -435,6 +441,79 @@ onUnmounted(() => {
   flex: 1;
   height: 100%;
   min-width: 0;
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 80%;
+  font-size: 32px;
+  font-weight: 600;
+
+  & > svg {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+:deep(.renderer-header) {
+  position: relative;
+
+  .schema-export-button {
+    position: absolute;
+    bottom: -48px;
+    right: 12px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    padding: 10px;
+    border: 0;
+    border-radius: 38px;
+    background: rgba(25, 25, 25, 0.08);
+    color: var(--tv-color-text, #191919);
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(-4px);
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .schema-export-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .schema-export-label {
+    font-size: 12px;
+    line-height: 1;
+    white-space: nowrap;
+    opacity: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: opacity 0.15s ease, max-width 0.2s ease;
+  }
+
+  .schema-export-button:hover {
+    gap: 6px;
+  }
+
+  .schema-export-button:hover .schema-export-label {
+    opacity: 1;
+    max-width: 80px;
+  }
+
+  .schema-export-button:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+:deep(.schema-render-container:hover .schema-export-button) {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
 }
 
 .empty {
