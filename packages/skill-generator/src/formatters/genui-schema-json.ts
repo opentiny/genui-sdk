@@ -1,23 +1,77 @@
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 import type { IPromptSectionMarker } from '../skill-generator.js';
 import { findSectionByTitle, sectionLink } from '../skill-generator.js';
 
-const GENERATED = 'generated';
+/** SKILL.md 正文生成时的目录上下文 */
+export interface ISkillBodyContext {
+  /** 当前写入的 skill 目录（用于「存在才出链」） */
+  skillDir: string;
+  /** genPrompt 章节子目录，默认 generated */
+  referenceSubdir?: string;
+}
 
 /**
  * 为 genui-schema-json skill 生成 Agent 友好正文。
- * 意图路由以手写文档为主，generated/ 仅作完整物料兜底。
+ * 意图路由优先手写文档；文件不存在时回退到 generated/（若已落盘）。
  *
  * @param sectionMarkers - 从 prompt 提取的章节标记
+ * @param context - skill 目录上下文
  * @returns SKILL.md 正文
  */
-export function buildGenuiSchemaSkillBody(sectionMarkers: IPromptSectionMarker[]): string {
+export function buildGenuiSchemaSkillBody(
+  sectionMarkers: IPromptSectionMarker[],
+  context: ISkillBodyContext,
+): string {
+  const subdir = context.referenceSubdir ?? 'generated';
   const generatedIndex = sectionMarkers
-    .map((marker) => `| ${marker.title} | ${sectionLink(marker, GENERATED)} |`)
+    .map((marker) => `| ${marker.title} | ${sectionLink(marker, subdir)} |`)
     .join('\n');
+
+  const rules = preferDoc(context, 'rules.md', 'rules.md', subdir);
+  const thisContext = preferDoc(context, 'this-context.md', 'this-context.md', subdir);
+  const examples = preferDoc(context, 'examples.md', 'examples.md', subdir);
+  const componentsIndex = linkIfExists(context, 'reference/components.md', 'components.md');
+  const componentsGenerated = linkIfExists(
+    context,
+    generatedPath(subdir, 'components.md'),
+    'generated/components.md',
+  );
+
+  const formRequired = joinLinks([
+    linkIfExists(context, 'reference/quick-ref.md', 'quick-ref.md'),
+    rules,
+    linkIfExists(context, 'reference/examples/login-form.md', 'login-form 示例'),
+  ]);
+  const formOptional = joinLinks([componentsIndex, componentsGenerated]);
+
+  const displayRequired = joinLinks([
+    rules,
+    linkIfExists(context, 'reference/common-mistakes.md', 'common-mistakes.md'),
+    examples,
+  ]);
+  const displayOptional = joinLinks([
+    linkIfExists(context, 'reference/components/data-display.md', 'data-display.md'),
+    linkIfExists(context, 'reference/components/charts.md', 'charts.md'),
+    componentsIndex,
+    componentsGenerated,
+  ]);
+
+  const editRequired = joinLinks([
+    rules,
+    linkIfExists(context, 'reference/editing.md', 'editing.md'),
+    thisContext,
+  ]);
+
+  const eventRequired = joinLinks([thisContext]);
+  const eventOptional = joinLinks([rules]);
 
   const hasActions = Boolean(findSectionByTitle(sectionMarkers, 'action'));
   const actionRow = hasActions
-    ? `| 调用 Action | [this-context.md](reference/this-context.md)、[generated/actions.md](reference/generated/actions.md) | [rules.md](reference/rules.md) |`
+    ? `| 调用 Action | ${joinLinks([
+        thisContext,
+        linkIfExists(context, generatedPath(subdir, 'actions.md'), 'generated/actions.md'),
+      ]) || '—'} | ${eventOptional || '—'} |`
     : '';
 
   return `# GenUI schemaJson 生成技能
@@ -36,17 +90,17 @@ export function buildGenuiSchemaSkillBody(sectionMarkers: IPromptSectionMarker[]
 
 ## 意图路由（按场景选读，不要全读）
 
-优先读手写文档；仅在需要完整 props / 全量示例时再读 \`reference/generated/\`。
+优先读手写文档；仅在需要完整 props / 全量示例时再读 \`reference/${subdir || 'generated'}/\`。链接仅包含当前 skill 目录中已存在的文件。
 
 | 用户意图 | 必读 | 选读 |
 |---------|------|------|
-| 新建表单 / 登录 / 注册 | [quick-ref.md](reference/quick-ref.md)、[rules.md](reference/rules.md)、[login-form 示例](reference/examples/login-form.md) | [forms.md](reference/components/forms.md)、[components.md](reference/components.md) |
-| 展示信息 / 表格 / 图表 | [rules.md](reference/rules.md)、[common-mistakes.md](reference/common-mistakes.md)、[examples.md](reference/examples.md) | [data-display.md](reference/components/data-display.md) 或 [charts.md](reference/components/charts.md) |
-| 修改已有卡片 | [rules.md](reference/rules.md)、[editing.md](reference/editing.md)、[this-context.md](reference/this-context.md) | 对话中的当前 schemaJson |
-| 编写事件 / JSFunction | [this-context.md](reference/this-context.md) | [rules.md](reference/rules.md) |
+| 新建表单 / 登录 / 注册 | ${formRequired || '—'} | ${formOptional || '—'} |
+| 展示信息 / 表格 / 图表 | ${displayRequired || '—'} | ${displayOptional || '—'} |
+| 修改已有卡片 | ${editRequired || '—'} | 对话中的当前 schemaJson |
+| 编写事件 / JSFunction | ${eventRequired || '—'} | ${eventOptional || '—'} |
 ${actionRow}
 
-组件白名单与分类索引：[components.md](reference/components.md)
+${componentsIndex ? `组件白名单索引：${componentsIndex}` : '组件白名单见下方完整物料。'}
 
 ## Page 根节点骨架
 
@@ -59,4 +113,34 @@ ${actionRow}
 | 章节 | 文件 |
 |------|------|
 ${generatedIndex}`;
+}
+
+function generatedPath(subdir: string, file: string): string {
+  return subdir ? `reference/${subdir}/${file}` : `reference/${file}`;
+}
+
+function linkIfExists(
+  context: ISkillBodyContext,
+  relPath: string,
+  label: string,
+): string | null {
+  if (!existsSync(join(context.skillDir, relPath))) return null;
+  return `[${label}](${relPath})`;
+}
+
+/** 手写优先；不存在则回退 generated/ 同名文件 */
+function preferDoc(
+  context: ISkillBodyContext,
+  handwrittenFile: string,
+  label: string,
+  subdir: string,
+): string | null {
+  return (
+    linkIfExists(context, `reference/${handwrittenFile}`, label) ??
+    linkIfExists(context, generatedPath(subdir, handwrittenFile), label)
+  );
+}
+
+function joinLinks(parts: Array<string | null | undefined>, sep = '、'): string {
+  return parts.filter((part): part is string => Boolean(part)).join(sep);
 }

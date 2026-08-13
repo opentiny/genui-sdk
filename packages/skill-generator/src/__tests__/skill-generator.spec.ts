@@ -1,9 +1,10 @@
-import { mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   assignReferenceFiles,
+  buildCategoryLinksSection,
   buildComponentsIndex,
   ensureSkillFrontmatter,
   extractComponentsWhitelist,
@@ -13,6 +14,7 @@ import {
   sectionLink,
   splitPromptSections,
   stripInjectedSkillPrefix,
+  syncComponentsIndex,
 } from '../skill-generator';
 
 const SAMPLE_PROMPT = `# 技能说明
@@ -97,7 +99,54 @@ describe('skill-generator', () => {
   it('extractComponentsWhitelist / buildComponentsIndex', () => {
     const detail = `## 可用组件\n\n必须使用以下支持的 componentName：\`A\`, \`B\`\n\n\`\`\`json\n[]\n\`\`\`\n`;
     expect(extractComponentsWhitelist(detail)).toBe('`A`, `B`');
-    expect(buildComponentsIndex('`A`, `B`')).toContain('generated/components.md');
+    const index = buildComponentsIndex('`A`, `B`');
+    expect(index).toContain('generated/components.md');
+    expect(index).not.toContain('components/basic.md');
+    expect(index).not.toContain('按类别查阅');
+  });
+
+  it('buildCategoryLinksSection 仅链已存在分类文件', () => {
+    const skillDir = mkdtempSync(join(tmpdir(), 'skill-category-'));
+    expect(buildCategoryLinksSection(skillDir)).toBe('');
+
+    mkdirSync(join(skillDir, 'reference', 'components'), { recursive: true });
+    writeFileSync(join(skillDir, 'reference', 'components', 'forms.md'), '# forms\n', 'utf8');
+    const section = buildCategoryLinksSection(skillDir);
+    expect(section).toContain('[表单组件](components/forms.md)');
+    expect(section).not.toContain('basic.md');
+  });
+
+  it('syncComponentsIndex 去掉不存在的分类死链', () => {
+    const skillDir = mkdtempSync(join(tmpdir(), 'skill-sync-'));
+    mkdirSync(join(skillDir, 'reference'), { recursive: true });
+    writeFileSync(
+      join(skillDir, 'reference', 'components.md'),
+      `## 可用组件
+
+必须使用以下支持的 componentName：\`Old\`
+
+> 白名单以本文件为准（由物料同步）。分类文档若名称不一致，以白名单为准。
+
+按类别查阅（见 SKILL.md 意图路由）：
+
+- [基础元素](components/basic.md)
+- [表单组件](components/forms.md)
+
+完整 props / events 见 [generated/components.md](generated/components.md)（按需再读）。
+`,
+      'utf8',
+    );
+
+    syncComponentsIndex(
+      skillDir,
+      '## 可用组件\n\n必须使用以下支持的 componentName：`A`, `B`\n',
+    );
+
+    const next = readFileSync(join(skillDir, 'reference', 'components.md'), 'utf8');
+    expect(next).toContain('`A`, `B`');
+    expect(next).not.toContain('components/basic.md');
+    expect(next).not.toContain('按类别查阅');
+    expect(next).toContain('generated/components.md');
   });
 
   it('stripInjectedSkillPrefix 剥离一级标题前缀', () => {

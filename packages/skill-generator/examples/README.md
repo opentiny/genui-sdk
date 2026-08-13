@@ -20,6 +20,7 @@ pnpm generate:skill
 - `skillDirs` → 仓库根 `skills/genui-schema-json`
 - `skillBodyFormatter` → Agent 友好正文（输出格式 + 意图路由）
 - `prune: true` → 仅清理 `reference/generated/` 中过期生成文件；手写文档（`quick-ref`、`components/`、`examples/` 等）不受影响
+- 意图路由按目标目录「存在才出链」；手写 `rules` / `examples` / `this-context` 缺失时回退 `generated/`
 
 `examples/skills/genui-schema-json/` 为无 formatter 的纯 genPrompt 落盘快照（文件名与 `SECTION_FILE_ALIASES` 一致），便于本地对照验证。
 

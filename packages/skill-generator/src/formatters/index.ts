@@ -1,8 +1,14 @@
 import type { IPromptSectionMarker } from '../skill-generator.js';
-import { buildGenuiSchemaSkillBody } from './genui-schema-json.js';
+import {
+  buildGenuiSchemaSkillBody,
+  type ISkillBodyContext,
+} from './genui-schema-json.js';
 
 /** SKILL.md 附加正文 formatter 函数签名 */
-export type SkillBodyFormatter = (sectionMarkers: IPromptSectionMarker[]) => string;
+export type SkillBodyFormatter = (
+  sectionMarkers: IPromptSectionMarker[],
+  context: ISkillBodyContext,
+) => string;
 
 /** 包内置 formatter 注册表 */
 export const SKILL_BODY_FORMATTERS: Record<string, SkillBodyFormatter> = {
@@ -26,3 +32,4 @@ export function resolveSkillBodyFormatter(name: string): SkillBodyFormatter {
 }
 
 export { buildGenuiSchemaSkillBody } from './genui-schema-json.js';
+export type { ISkillBodyContext } from './genui-schema-json.js';

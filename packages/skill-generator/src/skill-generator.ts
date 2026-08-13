@@ -68,8 +68,12 @@ export interface IGenerateSkillOptions {
   /**
    * 可选：生成 SKILL.md 正文（输出格式、意图路由等）。
    * 提供时不再把 skillPromptPrefix 写入 SKILL.md，仅将 ## 章节写入 reference/。
+   * 调用时传入 skillDir，用于按磁盘「存在才出链」。
    */
-  formatSkillBody?: (sectionMarkers: IPromptSectionMarker[]) => string;
+  formatSkillBody?: (
+    sectionMarkers: IPromptSectionMarker[],
+    context: { skillDir: string; referenceSubdir?: string },
+  ) => string;
   /**
    * genPrompt 章节写入的子目录（相对 reference/）。
    * 默认 `generated`，与手写文档隔离，避免覆盖 rules/examples 等。
@@ -77,7 +81,7 @@ export interface IGenerateSkillOptions {
    */
   referenceSubdir?: string;
   /**
-   * 是否将白名单同步到手写 `reference/components.md`（仅更新白名单行，保留分类链接）。
+   * 是否将白名单同步到手写 `reference/components.md`（更新白名单；分类链仅在文件存在时写出）。
    * 默认 true。
    */
   syncComponentsIndex?: boolean;
@@ -360,37 +364,56 @@ export function extractComponentsWhitelist(detail: string): string {
   return whitelistMatch?.[1]?.trim() ?? '';
 }
 
+/** 可选分类手写文档（仅当 `reference/components/<file>` 存在时出链） */
+export const COMPONENT_CATEGORY_DOCS = [
+  { file: 'basic.md', label: '基础元素' },
+  { file: 'layout.md', label: '布局组件' },
+  { file: 'forms.md', label: '表单组件' },
+  { file: 'data-display.md', label: '数据展示' },
+  { file: 'charts.md', label: '图表组件' },
+] as const;
+
+/**
+ * 根据磁盘上已有的分类文档生成「按类别查阅」段落；无文件则返回空串。
+ *
+ * @param skillDir - skill 目录
+ * @returns Markdown 段落（含前后换行）或空串
+ */
+export function buildCategoryLinksSection(skillDir: string): string {
+  const dir = join(skillDir, 'reference', 'components');
+  const links = COMPONENT_CATEGORY_DOCS.filter(({ file }) => existsSync(join(dir, file))).map(
+    ({ file, label }) => `- [${label}](components/${file})`,
+  );
+  if (links.length === 0) return '';
+  return `\n按类别查阅（见 SKILL.md 意图路由）：\n\n${links.join('\n')}\n`;
+}
+
 /**
  * 生成手写层 `components.md` 精简索引正文。
  *
  * @param whitelist - 白名单文本
  * @param detailRelPath - 完整详情相对路径
+ * @param categorySection - 可选分类链接段落（仅含已存在文件）
  * @returns Markdown
  */
 export function buildComponentsIndex(
   whitelist: string,
   detailRelPath = 'generated/components.md',
+  categorySection = '',
 ): string {
   return `## 可用组件
 
 必须使用以下支持的 componentName：${whitelist}
 
-> 白名单以本文件为准（由物料同步）。分类文档若名称不一致，以白名单为准。
-
-按类别查阅（见 SKILL.md 意图路由）：
-
-- [基础元素](components/basic.md)
-- [布局组件](components/layout.md)
-- [表单组件](components/forms.md)
-- [数据展示](components/data-display.md)
-- [图表组件](components/charts.md)
-
+> 白名单以本文件为准（由物料同步）。
+${categorySection}
 完整 props / events 见 [${detailRelPath}](${detailRelPath})（按需再读）。
 `;
 }
 
 /**
  * 将白名单同步到手写 `reference/components.md`：优先替换已有白名单行，否则整文件重写索引。
+ * 分类链接按磁盘存在情况重写，避免死链。
  *
  * @param skillDir - skill 目录
  * @param componentsDetail - 生成的完整组件章节
@@ -406,6 +429,7 @@ export function syncComponentsIndex(
 
   const indexPath = join(skillDir, 'reference', 'components.md');
   mkdirSync(join(skillDir, 'reference'), { recursive: true });
+  const categorySection = buildCategoryLinksSection(skillDir);
 
   if (existsSync(indexPath)) {
     const current = readFileSync(indexPath, 'utf8');
@@ -413,6 +437,10 @@ export function syncComponentsIndex(
       let next = current.replace(
         /必须使用以下支持的 componentName：[^\n]+/,
         `必须使用以下支持的 componentName：${whitelist}`,
+      );
+      next = next.replace(
+        /> 白名单以本文件为准（由物料同步）。[^\n]*/,
+        '> 白名单以本文件为准（由物料同步）。',
       );
       // 纠正历史详情链接（components-detail.md → generated/components.md）
       next = next.replace(
@@ -429,12 +457,24 @@ export function syncComponentsIndex(
           `完整 props / events 见 [${detailRelPath}](${detailRelPath})（按需再读）。`,
         );
       }
+      // 按磁盘重写分类段落（无文件则去掉，避免死链）
+      if (/按类别查阅/.test(next)) {
+        next = next.replace(/\n按类别查阅[\s\S]*?(?=\n完整 props)/, categorySection);
+      } else if (categorySection) {
+        next = next.replace(/(\n完整 props)/, `${categorySection}$1`);
+      }
+      // 折叠可能留下的多余空行
+      next = next.replace(/\n{3,}/g, '\n\n');
       writeFileSync(indexPath, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
       return;
     }
   }
 
-  writeFileSync(indexPath, buildComponentsIndex(whitelist, detailRelPath), 'utf8');
+  writeFileSync(
+    indexPath,
+    buildComponentsIndex(whitelist, detailRelPath, categorySection),
+    'utf8',
+  );
 }
 
 /**
@@ -479,41 +519,45 @@ export function writeReferenceFiles(
 /**
  * 将 skill 入口写入各 skill 目录的 SKILL.md。
  * 有 formatSkillBody 时以其为正文（Agent 友好）；否则写入 genPrompt 前缀。
+ * 每个目录单独生成正文，以便按该目录已有文件出链。
  *
  * @param skillDirs - skill 目录列表
  * @param skillPrefix - genPrompt 前缀
  * @param sectionMarkers - 章节标记（供 formatSkillBody 使用）
  * @param formatSkillBody - 可选，生成 Agent 友好正文
  * @param defaultFrontmatter - 默认 frontmatter
+ * @param referenceSubdir - 生成章节子目录
  */
 export function writeSkillEntry(
   skillDirs: string[],
   skillPrefix: string,
   sectionMarkers: IPromptSectionMarker[],
-  formatSkillBody?: (sectionMarkers: IPromptSectionMarker[]) => string,
+  formatSkillBody?: IGenerateSkillOptions['formatSkillBody'],
   defaultFrontmatter?: string,
+  referenceSubdir?: string,
 ): void {
   if (skillDirs.length === 0) {
     throw new Error('skillDirs 不能为空');
   }
 
   const frontmatter = ensureSkillFrontmatter(skillDirs[0], defaultFrontmatter);
-  const body = formatSkillBody
-    ? formatSkillBody(sectionMarkers)
-    : skillPrefix.endsWith('\n')
-      ? skillPrefix
-      : `${skillPrefix}\n`;
-  const content = `${frontmatter}${body.endsWith('\n') ? body : `${body}\n`}`;
+  const subdir = referenceSubdir ?? 'generated';
 
   for (const skillDir of skillDirs) {
     mkdirSync(skillDir, { recursive: true });
+    const body = formatSkillBody
+      ? formatSkillBody(sectionMarkers, { skillDir, referenceSubdir: subdir })
+      : skillPrefix.endsWith('\n')
+        ? skillPrefix
+        : `${skillPrefix}\n`;
+    const content = `${frontmatter}${body.endsWith('\n') ? body : `${body}\n`}`;
     writeFileSync(join(skillDir, 'SKILL.md'), content, 'utf8');
   }
 }
 
 /**
- * 根据 materialsMeta 生成 skill 文件：SKILL.md + reference/generated/。
- * 手写文档（quick-ref、editing、components/ 等）不被覆盖。
+ * 根据 materialsMeta 生成 skill 文件：先写 reference/generated/，再写 SKILL.md。
+ * 手写文档（quick-ref、editing、components/ 等）不被覆盖；意图路由仅链接已存在文件。
  *
  * @param framework - 框架名或框架配置
  * @param materialsMeta - 物料元信息
@@ -532,21 +576,25 @@ export function generateSkillFiles(
     options.promptOptions,
   );
 
+  const referenceSubdir = options.referenceSubdir ?? 'generated';
+
+  // 先落盘 generated/（及 components 白名单同步），再写 SKILL，便于「存在才出链」含 generated 回退
+  for (const skillDir of options.skillDirs) {
+    writeReferenceFiles(skillDir, sections, {
+      referenceSubdir,
+      prune: options.prune ?? true,
+      syncComponentsIndex: options.syncComponentsIndex ?? true,
+    });
+  }
+
   writeSkillEntry(
     options.skillDirs,
     skillPrefix,
     sectionMarkers,
     options.formatSkillBody,
     options.defaultFrontmatter,
+    referenceSubdir,
   );
-
-  for (const skillDir of options.skillDirs) {
-    writeReferenceFiles(skillDir, sections, {
-      referenceSubdir: options.referenceSubdir ?? 'generated',
-      prune: options.prune ?? true,
-      syncComponentsIndex: options.syncComponentsIndex ?? true,
-    });
-  }
 
   return {
     prompt,
