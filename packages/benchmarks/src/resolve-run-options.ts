@@ -1,6 +1,8 @@
-import type { LlmBenchmarkRunOptions } from './framework/index';
+import type { BenchProtocol, LlmBenchmarkRunOptions } from './framework/index';
 import { benchmarkConfig } from './benchmark.config';
+import { resolveBenchProtocol } from './protocol';
 import {
+  envBenchProtocol,
   envBool,
   envFramework,
   envMaterialsVariant,
@@ -15,6 +17,7 @@ export type BenchUiFormPayload = {
   model?: string;
   models?: string[];
   modelsFromMaasManifest?: boolean;
+  protocol?: BenchProtocol;
   framework?: 'Vue' | 'Angular';
   materialsVariant?: 'mini' | 'standard';
   scenarios?: string[];
@@ -44,6 +47,7 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
     model,
     models: configModels,
     modelsFromMaasManifest,
+    protocol: defaultProtocol,
     framework,
     materialsVariant: defaultMaterialsVariant,
     scenario,
@@ -83,6 +87,7 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
   return {
     ...(trimmedModel ? { model: trimmedModel } : {}),
     models: models && models.length > 0 ? models : undefined,
+    protocol: envBenchProtocol('BENCH_PROTOCOL', defaultProtocol ?? 'genui'),
     framework: envFramework('BENCH_FRAMEWORK', framework),
     materialsVariant: envMaterialsVariant('BENCH_MATERIALS_VARIANT', defaultMaterialsVariant),
     scenario: envString('BENCH_SCENARIO', scenario),
@@ -154,6 +159,7 @@ export function applyFormPayload(
     ...(model ? { model } : { model: undefined }),
     models: modelsResolved && modelsResolved.length > 0 ? modelsResolved : undefined,
     modelsFromMaasManifest: form.modelsFromMaasManifest ?? base.modelsFromMaasManifest,
+    protocol: resolveBenchProtocol(form.protocol, base.protocol ?? 'genui'),
     framework:
       form.framework === 'Vue' || form.framework === 'Angular' ? form.framework : base.framework,
     materialsVariant:
@@ -211,6 +217,7 @@ export function toFormDefaults(options: LlmBenchmarkRunOptions): BenchUiFormPayl
     model: options.model,
     models: options.models,
     modelsFromMaasManifest: options.modelsFromMaasManifest ?? false,
+    protocol: options.protocol ?? 'genui',
     framework: options.framework ?? 'Vue',
     materialsVariant: options.materialsVariant ?? 'standard',
     scenarios: options.scenarios,

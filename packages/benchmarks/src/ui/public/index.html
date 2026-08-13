@@ -617,6 +617,7 @@
       meta: null,
       selectedModels: new Set(),
       selectedScenarios: new Set(),
+      protocol: 'genui',
       framework: 'Vue',
       materialsVariant: 'standard',
       runState: 'idle',
@@ -806,9 +807,53 @@
       if (!el) return;
       const models = state.selectedModels.size;
       const scenarios = state.selectedScenarios.size;
-      const all = state.meta?.scenarioGroups?.reduce((n, g) => n + g.scenarios.length, 0) || 0;
+      const groups = scenarioGroupsFor(state.protocol);
+      const all = groups.reduce((n, g) => n + g.scenarios.length, 0) || 0;
       const scenLabel = scenarios === 0 ? `全部 ${all} 场景` : `${scenarios} 个场景`;
-      el.innerHTML = `将运行 <strong>${models || 0}</strong> 个模型 × <strong>${scenLabel}</strong>`;
+      el.innerHTML = `将运行 <strong>${models || 0}</strong> 个模型 × <strong>${scenLabel}</strong>（${state.protocol || 'genui'}）`;
+    }
+
+    function scenarioGroupsFor(protocol) {
+      const m = state.meta;
+      if (!m) return [];
+      const key = protocol === 'a2ui' ? 'a2ui' : 'genui';
+      return m.scenarioGroupsByProtocol?.[key] || m.scenarioGroups || [];
+    }
+
+    function renderScenarioHtml(protocol) {
+      return scenarioGroupsFor(protocol)
+        .map((g) => {
+          const checks = g.scenarios
+            .map((id) => {
+              const on = state.selectedScenarios.has(id);
+              return `<label class="check"><input type="checkbox" data-scenario="${esc(id)}" ${on ? 'checked' : ''}/><code>${esc(id)}</code></label>`;
+            })
+            .join('');
+          const emptyHint =
+            g.group === 'contextual' && g.scenarios.length === 0
+              ? `<div style="color:var(--faint);font-size:0.8rem;padding:4px 0">暂无场景（a2ui 请先跑 capture-a2ui-contextual.mts）</div>`
+              : '';
+          return `<details class="scenario-group" data-group="${esc(g.group)}" open>
+          <summary>${esc(g.label)} <span style="color:var(--faint);font-weight:500;font-size:0.75rem;font-family:var(--mono)">${g.scenarios.length}</span></summary>
+          <div class="scenario-grid">${checks || emptyHint}</div>
+        </details>`;
+        })
+        .join('');
+    }
+
+    /** 按当前 protocol 重绘场景列表（上下文 genui/a2ui 标签） */
+    function syncScenarioListForProtocol() {
+      const list = $('scenarioList');
+      if (!list) return;
+      const prev = new Set(state.selectedScenarios);
+      const protocol = state.protocol === 'a2ui' ? 'a2ui' : 'genui';
+      list.innerHTML = renderScenarioHtml(protocol);
+      const available = new Set(scenarioGroupsFor(protocol).flatMap((g) => g.scenarios));
+      state.selectedScenarios = new Set([...prev].filter((id) => available.has(id)));
+      list.querySelectorAll('input[data-scenario]').forEach((el) => {
+        el.checked = state.selectedScenarios.has(el.getAttribute('data-scenario'));
+      });
+      updateDockSummary();
     }
 
     function toggleChip(set, value, btn) {
@@ -825,6 +870,7 @@
     function render(meta) {
       state.meta = meta;
       const d = meta.defaults || {};
+      state.protocol = d.protocol === 'a2ui' ? 'a2ui' : 'genui';
       state.framework = d.framework || 'Vue';
       state.materialsVariant = d.materialsVariant || 'standard';
 
@@ -846,16 +892,7 @@
         return `<button type="button" class="chip" data-model="${esc(m)}" aria-pressed="${on}">${esc(m)}</button>`;
       }).join('') || '<span style="color:var(--faint);font-size:0.85rem">未找到模型清单，请检查 maas-models.json</span>';
 
-      const scenarioHtml = meta.scenarioGroups.map((g) => {
-        const checks = g.scenarios.map((id) => {
-          const on = state.selectedScenarios.has(id);
-          return `<label class="check"><input type="checkbox" data-scenario="${esc(id)}" ${on ? 'checked' : ''}/><code>${esc(id)}</code></label>`;
-        }).join('');
-        return `<details class="scenario-group" open>
-          <summary>${esc(g.label)} <span style="color:var(--faint);font-weight:500;font-size:0.75rem;font-family:var(--mono)">${g.scenarios.length}</span></summary>
-          <div class="scenario-grid">${checks}</div>
-        </details>`;
-      }).join('');
+      const scenarioHtml = renderScenarioHtml(state.protocol);
 
       const runDirOptions = ['<option value="">（新建时间戳目录）</option>']
         .concat((meta.existingRunDirs || []).map((dir) =>
@@ -900,6 +937,18 @@
               </section>
 
               <section class="section">
+                <h3 class="section-title">协议</h3>
+                <div class="field">
+                  <span class="lbl">BENCH_PROTOCOL</span>
+                  <div class="seg" id="protocolSeg">
+                    <button type="button" data-v="genui" aria-pressed="${state.protocol === 'genui'}">genui</button>
+                    <button type="button" data-v="a2ui" aria-pressed="${state.protocol === 'a2ui'}">a2ui</button>
+                  </div>
+                  <small class="hint">a2ui 使用 vendor 官方 schema；忽略 Framework / Materials。</small>
+                </div>
+              </section>
+
+              <section class="section" id="materialsSection">
                 <h3 class="section-title">物料 / 框架</h3>
                 <div class="grid-2">
                   <label class="field">
@@ -964,7 +1013,7 @@
 
               <section class="section">
                 <h3 class="section-title">Prompt 附加</h3>
-                <label class="field" style="margin-bottom:10px">
+                <label class="field" id="specificPromptField" style="margin-bottom:10px">
                   <span class="lbl">specificPrompt</span>
                   <textarea id="specificPrompt">${esc(d.specificPrompt || '')}</textarea>
                 </label>
@@ -1066,7 +1115,9 @@
         updateDockSummary();
       });
       $('scenAll')?.addEventListener('click', () => {
-        state.meta.scenarioGroups.forEach((g) => g.scenarios.forEach((id) => state.selectedScenarios.add(id)));
+        const groups = scenarioGroupsFor(state.protocol);
+        state.selectedScenarios.clear();
+        groups.forEach((g) => g.scenarios.forEach((id) => state.selectedScenarios.add(id)));
         document.querySelectorAll('#scenarioList input[data-scenario]').forEach((el) => { el.checked = true; });
         updateDockSummary();
       });
@@ -1089,20 +1140,48 @@
           });
         }
       };
+      const syncPromptFieldsForProtocol = () => {
+        const a2ui = state.protocol === 'a2ui';
+        const specific = $('specificPromptField');
+        if (specific) specific.hidden = a2ui;
+        const materials = $('materialsSection');
+        if (materials) materials.hidden = a2ui;
+      };
       const bindSeg = (id, key) => {
         $(id)?.addEventListener('click', (e) => {
           const btn = e.target.closest('button[data-v]');
           if (!btn || btn.disabled) return;
-          state[key] = btn.getAttribute('data-v');
+          e.preventDefault();
+          e.stopPropagation();
+          const next = btn.getAttribute('data-v');
+          if (!next) return;
+          state[key] = next;
           $(id).querySelectorAll('button').forEach((b) => {
             b.setAttribute('aria-pressed', String(b === btn));
           });
           if (key === 'framework') syncMiniAvailability();
+          if (key === 'protocol') syncScenarioListForProtocol();
         });
       };
       bindSeg('frameworkSeg', 'framework');
       bindSeg('variantSeg', 'materialsVariant');
+      // 协议按钮单独绑定（不用 bindSeg），避免与 label/委托冲突导致场景列表不刷新
+      $('protocolSeg')?.querySelectorAll('button[data-v]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const next = btn.getAttribute('data-v') === 'a2ui' ? 'a2ui' : 'genui';
+          state.protocol = next;
+          $('protocolSeg').querySelectorAll('button').forEach((b) => {
+            b.setAttribute('aria-pressed', String(b === btn));
+          });
+          syncScenarioListForProtocol();
+          syncPromptFieldsForProtocol();
+        });
+      });
       syncMiniAvailability();
+      syncScenarioListForProtocol();
+      syncPromptFieldsForProtocol();
 
       $('clearLog')?.addEventListener('click', () => { const p = $('log'); if (p) p.innerHTML = ''; });
       $('btnRun').onclick = startRun;
@@ -1125,6 +1204,7 @@
         model: primary,
         models: models.length ? models : undefined,
         modelsFromMaasManifest: fromMaas,
+        protocol: state.protocol,
         framework: state.framework,
         materialsVariant: state.materialsVariant,
         scenarios: scenarios.length ? scenarios : undefined,

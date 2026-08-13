@@ -1,122 +1,19 @@
 import fs from 'node:fs';
-import { genRootSchema, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { streamText } from 'ai';
-import type { ZodIssue } from 'zod';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions, LlmBenchmarkSample } from './framework/index';
 import { printLlmBenchmarkResults } from './framework/index';
+import { protocolFromOptions, validateProtocolOutput } from './protocol';
 import {
   computeTpotMs,
-  extractSchemaJsonBlock,
-  describeMissingSchemaJsonFence,
   formatJudgeParseError,
   isJudgeTimeoutError,
   parseJudgeJson,
   resolveAiSdkModelForBench,
-  resolveMaterialsMeta,
   resolvePrimaryBenchmarkModelId,
   resolveSamplesDir,
   resolveStreamTextUsage,
   benchStreamTextAbortSignal,
 } from './utils';
-
-/**
- * 递归展开 Zod issue，尽量定位到 union 分支内的最深层错误。
- */
-function flattenZodIssues(issues: readonly ZodIssue[]): ZodIssue[] {
-  const flattened: ZodIssue[] = [];
-  for (const issue of issues) {
-    if (issue.code === 'invalid_union') {
-      const unionErrors = (issue as ZodIssue & { unionErrors?: Array<{ issues: ZodIssue[] }> }).unionErrors ?? [];
-      if (unionErrors.length > 0) {
-        for (const unionError of unionErrors) {
-          flattened.push(...flattenZodIssues(unionError.issues));
-        }
-        continue;
-      }
-    }
-    flattened.push(issue);
-  }
-  return flattened;
-}
-
-/**
- * 选择最有定位价值的 issue：优先更深路径，其次非泛化报错文案。
- */
-function pickMostSpecificIssue(issues: readonly ZodIssue[]): ZodIssue | undefined {
-  const expanded = flattenZodIssues(issues);
-  if (expanded.length === 0) return undefined;
-  return expanded.slice().sort((a, b) => {
-    const pathScoreA = a.path.length * 100;
-    const pathScoreB = b.path.length * 100;
-    const msgScoreA = a.message === 'Invalid input' ? 0 : 10;
-    const msgScoreB = b.message === 'Invalid input' ? 0 : 10;
-    const codeScoreA = a.code === 'invalid_type' ? 5 : 0;
-    const codeScoreB = b.code === 'invalid_type' ? 5 : 0;
-    return pathScoreB + msgScoreB + codeScoreB - (pathScoreA + msgScoreA + codeScoreA);
-  })[0];
-}
-
-type SchemaJsonValidation = {
-  isSchemaJsonBlockFound: boolean;
-  isSchemaJsonValidJson: boolean;
-  isSchemaJsonValidAgainstProtocol: boolean;
-  schemaValidationError?: string;
-};
-
-/**
- * 校验 schemaJson：PatternExtractor 提取 → repairJson 解析 → genRootSchema(whiteList) 协议。
- * @param schemaJsonText 已提取的块内容；null 表示未找到
- * @param componentWhiteList materialsMeta.whiteList
- * @param sourceOutput 原始模型输出；仅在提取失败时用于诊断文案
- */
-function validateSchemaJson(
-  schemaJsonText: string | null,
-  componentWhiteList?: string[],
-  sourceOutput?: string,
-): SchemaJsonValidation {
-  if (!schemaJsonText) {
-    return {
-      isSchemaJsonBlockFound: false,
-      isSchemaJsonValidJson: false,
-      isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: describeMissingSchemaJsonFence(sourceOutput ?? ''),
-    };
-  }
-
-  const repaired = repairJson(schemaJsonText);
-  if (
-    repaired.state === RepairJsonState.INVALID_INPUT ||
-    repaired.state === RepairJsonState.FAILED ||
-    repaired.value === undefined
-  ) {
-    return {
-      isSchemaJsonBlockFound: true,
-      isSchemaJsonValidJson: false,
-      isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: `schema JSON repair/parse failed (state=${repaired.state})`,
-    };
-  }
-
-  const result = genRootSchema(componentWhiteList).safeParse(repaired.value);
-  if (result.success) {
-    return {
-      isSchemaJsonBlockFound: true,
-      isSchemaJsonValidJson: true,
-      isSchemaJsonValidAgainstProtocol: true,
-    };
-  }
-  const issue = pickMostSpecificIssue(result.error.issues);
-  const path = issue?.path?.length ? issue.path.join('.') : '(root)';
-  const message = issue
-    ? `[${issue.code}] ${issue.message}`
-    : `schema safeParse failed (issues=${result.error.issues.length})`;
-  return {
-    isSchemaJsonBlockFound: true,
-    isSchemaJsonValidJson: true,
-    isSchemaJsonValidAgainstProtocol: false,
-    schemaValidationError: `${path}: ${message}`,
-  };
-}
 
 type LlmJudgeResult = {
   score?: number;
@@ -136,13 +33,20 @@ type LlmJudgeResult = {
 async function judgeOneSample(sample: LlmBenchmarkSample, options: LlmBenchmarkRunOptions): Promise<LlmJudgeResult> {
   const judgeCfg = options.llmJudge;
   const modelId = judgeCfg?.model || resolvePrimaryBenchmarkModelId(options);
+  const protocol = sample.protocol ?? protocolFromOptions(options);
   const system =
     judgeCfg?.systemPrompt ??
-    `你是严格的前端代码评测员。请依据 schemaJson 格式规范，基于用户需求与模型输出从三个角度评估生成的UI代码是否具备完成目标任务的实际能力，并给出评分：
+    (protocol === 'a2ui'
+      ? `你是严格的前端评测员。请依据 A2UI（<a2ui-json> 消息与 Basic Catalog）规范，基于用户需求与模型输出从三个角度评估生成的 UI 是否具备完成目标任务的实际能力，并给出评分：
     1. 完整性:界面元素完整，无缺失或错误组件；
     2. 功能性:交互逻辑正常，按钮表单响应正确；
     3. 信息充分性:提供完成任务所需的全部关键信息。
-    只返回 JSON：{"score":1-10之间数字,"reason":"一句话原因"}。不要输出其它内容。`;
+    只返回 JSON：{"score":1-10之间数字,"reason":"一句话原因"}。不要输出其它内容。`
+      : `你是严格的前端代码评测员。请依据 schemaJson 格式规范，基于用户需求与模型输出从三个角度评估生成的UI代码是否具备完成目标任务的实际能力，并给出评分：
+    1. 完整性:界面元素完整，无缺失或错误组件；
+    2. 功能性:交互逻辑正常，按钮表单响应正确；
+    3. 信息充分性:提供完成任务所需的全部关键信息。
+    只返回 JSON：{"score":1-10之间数字,"reason":"一句话原因"}。不要输出其它内容。`);
   try {
     const requirementText = sample.messages?.length
       ? sample.messages.map((msg) => `[${msg.role}] ${msg.content}`).join('\n')
@@ -237,12 +141,11 @@ function toReportItem(
   judge?: LlmJudgeResult,
   options?: LlmBenchmarkRunOptions,
 ): LlmBenchmarkResultItem {
-  const materialsMeta = resolveMaterialsMeta(
-    sample.framework ?? options?.framework ?? 'Vue',
-    sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
-  );
-  const schemaJsonText = extractSchemaJsonBlock(sample.output);
-  const validation = validateSchemaJson(schemaJsonText, materialsMeta.whiteList, sample.output);
+  const protocol = sample.protocol ?? (options ? protocolFromOptions(options) : 'genui');
+  const validation = validateProtocolOutput(protocol, sample.output, {
+    framework: sample.framework ?? options?.framework ?? 'Vue',
+    materialsVariant: sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
+  });
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
   const tpotMs =
     typeof sample.metrics.tpotMs === 'number'

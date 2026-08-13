@@ -237,6 +237,7 @@ function writeBenchmarkArtifacts(
       /** 跑测主要配置（供 report.html 配置条展示；旧报告可能缺省） */
       config: {
         runDir: path.basename(path.resolve(outputDir)),
+        protocol: options.protocol ?? 'genui',
         framework: options.framework ?? 'Vue',
         materialsVariant: options.materialsVariant ?? 'standard',
         models: modelsInArtifact,

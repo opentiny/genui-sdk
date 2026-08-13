@@ -119,3 +119,20 @@ export function envMaterialsVariant(
   }
   return 'standard';
 }
+
+/**
+ * 读取协议：`genui` | `a2ui`（大小写不敏感）。
+ */
+export function envBenchProtocol(
+  key: string,
+  fallback: 'genui' | 'a2ui' | undefined,
+): 'genui' | 'a2ui' {
+  const v = process.env[key]?.trim().toLowerCase();
+  if (v === 'genui' || v === 'a2ui') {
+    return v;
+  }
+  if (fallback === 'genui' || fallback === 'a2ui') {
+    return fallback;
+  }
+  return 'genui';
+}

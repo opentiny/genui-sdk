@@ -14,11 +14,13 @@
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "ai": "^6.0.137",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "dotenv": "^17.2.3",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/node": "^25.5.0",
+    "@types/node": "^22.13.5",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

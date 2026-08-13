@@ -1,19 +1,40 @@
 # @opentiny/genui-sdk-benchmarks
 
-验证 **SDK 核心能力**（非演练场）：以 `@opentiny/genui-sdk-core` 的 `genPrompt` + materials 包 `materialsMeta` 生成 system，驱动大模型输出 **schemaJson**，再用 `genRootSchema()` 等协议校验。模型 Provider 仅作跑数基建。
+验证 **SDK / 协议核心能力**（非演练场）：
+
+- **GenUI（默认）**：`genPrompt` + materials `materialsMeta` → 模型输出 **schemaJson** → `genRootSchema()` 校验
+- **A2UI（可选）**：`BENCH_PROTOCOL=a2ui` → 官方风格 system + **`<a2ui-json>`** → AJV（vendor v0.9.1 schema）
+
+模型 Provider 仅作跑数基建。A2UI 方案见 [docs/a2ui.md](./docs/a2ui.md)；后续改动优先级见 [docs/improvement-suggestions.md](./docs/improvement-suggestions.md)。
 
 ## 关注指标
 
-- **schemaJson**：代码块是否存在、JSON 是否可解析、`genRootSchema()` 协议是否通过
+- **协议门禁**：协议块是否存在、JSON 是否可解析、协议 schema 是否通过（GenUI：`genRootSchema`；A2UI：AJV）
 - **TTFT**：首 Token 或首段 **reasoning-delta** 的延迟（以流中首次计入为准）
 - **总耗时**：端到端（`totalMs`）
 - **TPOT**：首 Token 之后平均每输出 Token 耗时（见下文公式）
 - **Token**：`promptTokens` / `completionTokens` / `totalTokens`
 - **LLM-as-a-Judge**（可选）：对输出质量打分 **1～10**，并给出简要原因
 
+## 多协议 / A2UI
+
+```bash
+# GenUI（默认）
+pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks:cli
+
+# A2UI 冒烟
+BENCH_PROTOCOL=a2ui BENCH_SCENARIOS=simple-form BENCH_REPEAT=1 \
+  pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks:cli
+```
+
+- Schema / rules：[`vendor/a2ui/`](./vendor/a2ui/)（升级见该目录 README）
+- 代码：`src/protocol/`（prompt / extract / validate / 分发）
+- contextual：`contextual-genui.ts` / `contextual-a2ui.ts`（同 id；a2ui 历史用 `scripts/capture-a2ui-contextual.mts` 从真实对话录制）
+- 报告：`config.protocol`；对照实验时两次运行只改 `BENCH_PROTOCOL`（详见 [docs/a2ui.md](./docs/a2ui.md)）
+
 ## 与 SDK 主包的关系
 
-对齐方式与 [core README](../core/README.md) / materials 包文档一致：
+对齐方式与 [core README](../core/README.md) / materials 包文档一致（**`protocol=genui`** 时）：
 
 ```ts
 import { genPrompt } from '@opentiny/genui-sdk-core';
@@ -24,18 +45,18 @@ const system = genPrompt('Vue', materialsMeta, tgCustomConfig);
 
 - **会随依赖自动跟上**：`genPrompt` 拼装逻辑、`materialsMeta` / `miniMaterialsMeta` 内容、`genRootSchema` 协议。
 - **升级 SDK 后**：重装 workspace 依赖并跑一次烟雾即可；无需与 playground 同步。
-- **`BENCH_MATERIALS_VARIANT`**：在 materials 包导出的 `materialsMeta`（standard）与 Vue `miniMaterialsMeta`（mini）之间选择，不是演练场配置。
-- **`specificPrompt` / `userAppendPrompt`**：基准侧可选附加约束（如要求 ````schemaJson```` 包裹），不属于 core API。
+- **`BENCH_MATERIALS_VARIANT`**：在 materials 包导出的 `materialsMeta`（standard）与 Vue `miniMaterialsMeta`（mini）之间选择，不是演练场配置。`a2ui` 模式下忽略。
+- **`specificPrompt` / `userAppendPrompt`**：基准侧可选附加约束（如要求 ````schemaJson```` 包裹），不属于 core API；`a2ui` 的 system 由协议层单独拼装。
 
 ### 核心能力覆盖（相对 `@opentiny/genui-sdk-core`）
 
 | Core 能力 | 基准用法 |
 |-----------|----------|
-| `genPrompt` + materials `materialsMeta` | 生成阶段 system（默认 full，非 plain） |
-| `PatternExtractor` / `SchemaJsonPattern` | 报告阶段提取 ```schemaJson``` |
+| `genPrompt` + materials `materialsMeta` | 生成阶段 system（默认 full，非 plain；`protocol=genui`） |
+| `PatternExtractor` / `SchemaJsonPattern` | 报告阶段提取 ```schemaJson```（`protocol=genui`） |
 | `repairJson` | 解析 schema 块（与渲染器路径一致） |
 | `genRootSchema(whiteList)` | 协议校验（whiteList 来自 materialsMeta） |
-| `wrapperComponent` | 首个可观测容器耗时（Vue `TinyCard` / Angular `TiCard`） |
+| `wrapperComponent` | 首个可观测容器耗时（Vue `TinyCard` / Angular `TiCard`；`protocol=genui`） |
 | `StreamPatternExtractor` / `DeltaPatcher` | **不在本基准范围**（流式增量 patch；由 core 单测覆盖） |
 | `buildMaterialDefaultValueMap` | **不在本基准范围**（渲染侧） |
 
@@ -65,11 +86,14 @@ pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks:cli
 ```text
 main.ts                      # 入口：默认 UI；--cli 时串行 generateSamples → runReport
 package.json                 # 脚本：benchmarks / benchmarks:cli
+docs/a2ui.md                 # A2UI 基准方案
+vendor/a2ui/                 # A2UI v0.9.1 schema / rules（BENCH_PROTOCOL=a2ui）
 src/
 ├── benchmark.config.ts      # 默认运行项；可被环境变量 BENCH_* 覆盖
 ├── resolve-run-options.ts   # 解析 BENCH_* + UI 表单合并
 ├── generate-samples.ts      # 在线生成样本并写入本次 run 目录
 ├── run-report.ts            # 读取样本、可选 Judge、汇总并写 report.json / report.html
+├── protocol/                # genui | a2ui 协议分发（prompt / extract / AJV）
 ├── ui/                      # 配置页：server.ts + public/index.html
 ├── framework/
 │   ├── types.ts             # LlmBenchmarkRunOptions、样本与结果类型
@@ -77,12 +101,13 @@ src/
 │   ├── reporter.ts          # 控制台表格与 Summary
 │   └── index.ts
 ├── samples/
-│   ├── index.ts             # coreLlmBenchmarkSampleCases（注册内置场景）
+│   ├── index.ts             # getLlmBenchmarkSampleCases(protocol)
 │   ├── basic.ts
 │   ├── complex.ts
 │   ├── edge.ts
 │   ├── constraints.ts
-│   └── contextual.ts
+│   ├── contextual-genui.ts  # GenUI 多轮真实对话
+│   └── contextual-a2ui.ts   # A2UI 多轮真实对话（capture 脚本录制）
 └── utils/
     ├── index.ts
     ├── env.ts               # BENCH_* 解析（含 envStreamTimeoutMs）
@@ -101,8 +126,10 @@ src/
     ├── resolve-materials-meta.ts
     └── number.ts
 ```
+系统提示词：
 
-系统提示词：`genPrompt(framework, materialsMeta|miniMaterialsMeta, tgCustomConfig)`（SDK 主路径），再按需拼接 `specificPrompt` / `userAppendPrompt`。
+- **genui**：`genPrompt(framework, materialsMeta|miniMaterialsMeta, tgCustomConfig)`，再按需拼接 `specificPrompt` / `userAppendPrompt`
+- **a2ui**：`buildA2uiSystemPrompt()`（官方 workflow + vendor schema）；见 `src/protocol/`
 
 ### `maas-models.json` 路径（`BENCH_MAAS_MODELS_PATH`）
 
@@ -129,7 +156,8 @@ src/
 | `BENCH_UI` | 为 `false` / `0` 时跳过配置页、直接 CLI 跑测；未设置时默认打开 UI（亦可用 `--cli` / `--no-ui`） |
 | `BENCH_MODEL` | 单模型 id；与 `BENCH_MODELS` / 配置里的 `models` **至少其一非空**即可；仅多模型时可不设此项 |
 | `BENCH_MODELS` | 逗号分隔多模型；非空时只跑列表内模型，报告也只统计这些模型 |
-| `BENCH_FRAMEWORK` | `Vue` 或 `Angular` |
+| `BENCH_PROTOCOL` | `genui`（默认）或 `a2ui`；见 [docs/a2ui.md](./docs/a2ui.md) |
+| `BENCH_FRAMEWORK` | `Vue` 或 `Angular`（`a2ui` 下忽略） |
 | `BENCH_MATERIALS_VARIANT` | `standard`（默认，`materialsMeta`）或 `mini`（Vue `miniMaterialsMeta`）。勿与样本的 `promptVariant`（full/plain）混淆 |
 | `BENCH_SCENARIO` | 单场景 id 过滤 |
 | `BENCH_SCENARIOS` | 逗号分隔多场景；**优先级高于** `BENCH_SCENARIO` |
@@ -176,9 +204,9 @@ BENCH_TARGET_SAMPLE_RUN_DIR=2026-05-09_09-52-03 pnpm --filter @opentiny/genui-sd
 
 ### 内置场景
 
-场景 id 与文案在 `src/samples/*.ts` 中维护，汇总为 **`coreLlmBenchmarkSampleCases`**，当前包含：
+场景 id 与文案在 `src/samples/*.ts` 中维护，经 **`getLlmBenchmarkSampleCases(protocol)`** 汇总（`coreLlmBenchmarkSampleCases` 仅为默认 genui 兼容导出），当前包含：
 
-- **basic**、**complex**、**edge**、**constraints**、**contextual**（见 `src/samples/index.ts` 的展开顺序）。
+- **basic**、**complex**、**edge**、**constraints**；**contextual** 按 `BENCH_PROTOCOL` 分支（`contextual-genui` / `contextual-a2ui`，见 `getLlmBenchmarkSampleCases`）。
 
 ### 多模型与报告过滤
 
@@ -217,11 +245,11 @@ pnpm benchmarks
 | `promptVariant` | `full` 或 `plain`（空 system 对照） |
 | `ttftMs` | 请求到首个 **text-delta** 或 **reasoning-delta** 的耗时 |
 | `totalMs` | 请求到流结束的耗时 |
-| `firstObservableComponentMs` | 输出中首次出现 `TinyCard` 的耗时（未出现则缺省） |
+| `firstObservableComponentMs` | genui：首次出现 `wrapperComponent`（如 TinyCard）；a2ui：首次出现 `"id": "root"`（未出现则缺省） |
 | `tpotMs` | TPOT（ms/token）：`(totalMs - ttftMs) / (completionTokens - 1)`；`completionTokens ≤ 1` 时省略 |
-| `isSchemaJsonBlockFound` | 是否解析到 ```schemaJson``` 代码块 |
-| `isSchemaJsonValidJson` | 块内是否为合法 JSON |
-| `isSchemaJsonValidAgainstProtocol` | 是否通过 `genRootSchema()` |
+| `isSchemaJsonBlockFound` | genui：抽到 \`\`\`schemaJson\`\`\`；a2ui：抽到 `<a2ui-json>`（字段名历史兼容） |
+| `isSchemaJsonValidJson` | 块内 JSON 可解析（genui 经 repairJson；a2ui 严格 parse） |
+| `isSchemaJsonValidAgainstProtocol` | genui：`genRootSchema`；a2ui：AJV server_to_client + catalog |
 | `schemaValidationError` | 校验失败时的说明 |
 | `promptTokens` / `completionTokens` / `totalTokens` | 模型 usage（报告不含缓存分项） |
 | `benchTotalTokens` | 生成 + Judge 合计 token（未开 Judge 或未返回 usage 时等于 `totalTokens`） |

@@ -1,4 +1,7 @@
 import type { IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
+import type { BenchProtocol } from '../protocol/types';
+
+export type { BenchProtocol };
 
 // 内置基准任务定义（id + messages），与落盘后的 {@link LlmBenchmarkSample} 区分
 export interface LlmBenchmarkSampleCase {
@@ -68,6 +71,11 @@ export interface LlmBenchmarkRunOptions {
   model?: string;
   /** 多模型对比：非空时按列表逐模型生成/过滤报告；与 `model` 可只配置其一或并存（并存时常用于指定主模型 + 多模型列表）。 */
   models?: string[];
+  /**
+   * 协议：`genui`（默认，schemaJson + genRootSchema）或 `a2ui`（`<a2ui-json>` + AJV）。
+   * 可用 `BENCH_PROTOCOL` 覆盖。`a2ui` 下忽略 framework / materialsVariant。
+   */
+  protocol?: BenchProtocol;
   // 决定 genPrompt 使用的物料包 materialsMeta（Vue / Angular）
   framework?: 'Vue' | 'Angular';
   /**
@@ -139,14 +147,15 @@ export interface LlmBenchmarkResultItem {
   // 自请求开始到首个可观测输出 token 的毫秒数；未观测到则缺省。
   ttftMs?: number;
   totalMs: number;
-  // 自请求开始到输出中首次出现 materialsMeta.wrapperComponent 节点的毫秒数；未出现则缺省。
+  // 自请求开始到输出中首次「可观测 UI」的毫秒数（genui：wrapperComponent；a2ui：`"id":"root"`）；未出现则缺省。
   firstObservableComponentMs?: number;
   // TPOT（Time Per Output Token），ms/token；completionTokens≤1 时无意义，省略
   tpotMs?: number;
-  /** 是否解析到 ```schemaJson``` 代码块 */
+  /** 是否抽到协议块（字段名历史兼容：genui=schemaJson 围栏；a2ui=`<a2ui-json>`） */
   isSchemaJsonBlockFound: boolean;
-  /** 块内字符串是否为合法 JSON */
+  /** 块内是否为合法 JSON（genui 可经 repairJson；a2ui 严格 parse） */
   isSchemaJsonValidJson: boolean;
+  /** 是否通过当前协议校验（genui=genRootSchema；a2ui=AJV） */
   isSchemaJsonValidAgainstProtocol: boolean;
   // schema 协议校验失败原因（如缺失字段路径）
   schemaValidationError?: string;
@@ -203,6 +212,8 @@ export interface LlmBenchmarkSample {
   promptVariant?: 'full' | 'plain';
   runIndex?: number;
   model: string;
+  /** 生成时协议；缺省时报告阶段回退到运行配置 */
+  protocol?: BenchProtocol;
   /** 生成时使用的框架；缺省时报告阶段回退到运行配置 */
   framework?: 'Vue' | 'Angular';
   /** 生成时使用的 materials 档位；缺省时报告阶段回退到运行配置 */
@@ -215,7 +226,7 @@ export interface LlmBenchmarkSample {
     ttftMs?: number;
     totalMs: number;
     /**
-     * 自请求开始到首次出现 `TinyCard` 的毫秒数（语义同 {@link LlmBenchmarkResultItem} 同名字段）。
+     * 自请求开始到首次可观测 UI 的毫秒数（语义同 {@link LlmBenchmarkResultItem} 同名字段）。
      * 旧版样本可能缺省；报告阶段按 0 处理。
      */
     firstObservableComponentMs?: number;

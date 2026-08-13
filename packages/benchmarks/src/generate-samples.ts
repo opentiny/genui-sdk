@@ -1,12 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { genPrompt } from '@opentiny/genui-sdk-core';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
-import { coreLlmBenchmarkSampleCases } from './samples';
+import { getLlmBenchmarkSampleCases } from './samples';
+import {
+  buildSystemPromptForProtocol,
+  hasFirstObservableForProtocol,
+  protocolFromOptions,
+  type BenchProtocol,
+} from './protocol';
 import {
   formatBeijingRunDirName,
   getSampleFilePath,
-  hasWrapperComponentDeclaration,
   resolveAiSdkModelForBench,
   resolveMaterialsMeta,
   resolveModelsForBench,
@@ -22,23 +26,7 @@ type IFrameworkKey = 'Vue' | 'Angular';
 type IMaterialsVariant = 'mini' | 'standard';
 
 /**
- * SDK 主路径 system：`genPrompt(framework, materialsMeta, tgCustomConfig)`；
- * 其后可选附加 bench 约束文案（非 SDK API）。
- */
-function buildSystemPrompt(
-  framework: IFrameworkKey,
-  materialsVariant: IMaterialsVariant,
-  promptConfig: LlmBenchmarkRunOptions['promptConfig'],
-) {
-  const { tgCustomConfig, specificPrompt, userAppendPrompt } = promptConfig;
-  const base = genPrompt(framework, resolveMaterialsMeta(framework, materialsVariant), tgCustomConfig);
-  return [base, specificPrompt, userAppendPrompt].filter((s) => s.trim().length > 0).join('\n');
-}
-/**
- * 根据 `scenarios` / `scenario` 过滤要生成样本的场景。
- * @param cases 内置样本场景列表
- * @param options 运行配置
- * @returns 过滤后的场景列表
+ * 根据 `scenarios` / `scenario` 过滤要生成样本的场景（已按协议选好 contextual 分支）。
  */
 function selectSampleCases(cases: LlmBenchmarkSampleCase[], options: LlmBenchmarkRunOptions) {
   const selectedIds = options.scenarios?.length
@@ -54,14 +42,6 @@ function selectSampleCases(cases: LlmBenchmarkSampleCase[], options: LlmBenchmar
 
 /**
  * 为单个场景调用模型并写入样本文件。
- * @param modelInstance 已初始化的模型实例
- * @param model 模型 id
- * @param sampleCase 单个基准场景
- * @param runIndex 当前重复序号（从 1 开始）
- * @param system system prompt（对照模式可为空字符串）
- * @param promptVariant 完整 system 或空 system 对照
- * @param streamTimeoutMs `streamText` 超时毫秒数；`undefined` 或 `≤0` 表示不启用
- * @returns 样本对象（包含指标与输出）
  */
 async function generateSingleSample(
   modelInstance: Awaited<ReturnType<typeof resolveAiSdkModelForBench>>,
@@ -74,10 +54,11 @@ async function generateSingleSample(
   wrapperComponent: string,
   framework: IFrameworkKey,
   materialsVariant: IMaterialsVariant,
+  protocol: BenchProtocol,
 ): Promise<LlmBenchmarkSample> {
   const start = Date.now();
   let firstTokenAt = 0;
-  let firstTinyCardAt = 0;
+  let firstObservableAt = 0;
   let output = '';
   let promptTokens = 0;
   let completionTokens = 0;
@@ -103,11 +84,11 @@ async function generateSingleSample(
         output += chunk.text;
         const now = Date.now();
         if (
-          !firstTinyCardAt &&
-          hasWrapperComponentDeclaration(output, wrapperComponent) &&
-          !hasWrapperComponentDeclaration(before, wrapperComponent)
+          !firstObservableAt &&
+          hasFirstObservableForProtocol(protocol, output, wrapperComponent) &&
+          !hasFirstObservableForProtocol(protocol, before, wrapperComponent)
         ) {
-          firstTinyCardAt = now;
+          firstObservableAt = now;
         }
       }
       if (chunk.type === 'finish') {
@@ -143,13 +124,14 @@ async function generateSingleSample(
   const totalMs = Date.now() - start;
   const ttftMs = firstTokenAt ? firstTokenAt - start : undefined;
   const tpotMs = ttftMs == null ? undefined : computeTpotMs(ttftMs, totalMs, completionTokens);
-  const firstObservableComponentMs = firstTinyCardAt ? firstTinyCardAt - start : undefined;
+  const firstObservableComponentMs = firstObservableAt ? firstObservableAt - start : undefined;
 
   return {
     scenario: sampleCase.id,
     promptVariant,
     runIndex,
     model,
+    protocol,
     framework,
     materialsVariant,
     messages: sampleCase.messages,
@@ -171,19 +153,18 @@ async function generateSingleSample(
 
 /**
  * 批量生成样本并落盘。
- * @param options 运行配置（模型/框架/场景/重复次数等）
- * @returns 本次生成的样本目录与写入的文件路径列表
  */
 export async function generateSamples(options: LlmBenchmarkRunOptions) {
   (globalThis as any).AI_SDK_LOG_WARNINGS = false;
+  const protocol = protocolFromOptions(options);
   const framework = options.framework ?? 'Vue';
   const materialsVariant = options.materialsVariant ?? 'standard';
   const materialsMetaForRun = resolveMaterialsMeta(framework, materialsVariant);
   const wrapperComponent = materialsMetaForRun.wrapperComponent ?? 'TinyCard';
-  const systemFull = buildSystemPrompt(framework, materialsVariant, options.promptConfig);
+  const systemFull = buildSystemPromptForProtocol(protocol, framework, materialsVariant, options.promptConfig);
   const plainOnly = options.compareEmptySystemPlainOnly === true;
   const compareBoth = options.compareEmptySystem === true && !plainOnly;
-  const selected = selectSampleCases(coreLlmBenchmarkSampleCases, options);
+  const selected = selectSampleCases(getLlmBenchmarkSampleCases(protocol), options);
   const repeat = Math.max(1, options.repeat ?? 1);
   const modelIds = resolveModelsForBench(options);
   if (selected.length === 0) {
@@ -194,7 +175,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   const totalJobs = selected.length * repeat * modelIds.length * variantsPerRun;
   let doneJobs = 0;
   console.log(
-    `[bench] Start generate samples: framework=${framework}, materialsVariant=${materialsVariant}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat}, plainOnly=${plainOnly}, compareFullPlusPlain=${compareBoth} (total jobs=${totalJobs})`,
+    `[bench] Start generate samples: protocol=${protocol}, framework=${framework}, materialsVariant=${materialsVariant}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat}, plainOnly=${plainOnly}, compareFullPlusPlain=${compareBoth} (total jobs=${totalJobs})`,
   );
 
   const samplesRootDir = resolveSamplesDir(options.samplesDir);
@@ -219,9 +200,8 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   }
 
   type Job = {
-    order: number; // 从 1 开始的总任务序号
+    order: number;
     modelId: string;
-    // 仅用于文件名的安全模型名（由 modelId slugify 得到）
     modelNameForFile: string;
     sampleCase: LlmBenchmarkSampleCase;
     runIndex: number;
@@ -325,9 +305,9 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
         wrapperComponent,
         framework,
         materialsVariant,
+        protocol,
       );
 
-      // 防御式：即使父目录没创建成功或 sampleFile 被拼成多级目录，也能避免 ENOENT。
       fs.mkdirSync(path.dirname(sampleFile), { recursive: true });
       fs.writeFileSync(sampleFile, JSON.stringify(sample, null, 2), 'utf-8');
 

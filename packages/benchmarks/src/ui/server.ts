@@ -15,9 +15,11 @@ import {
 import { basicLlmBenchmarkSampleCases } from '../samples/basic';
 import { complexLlmBenchmarkSampleCases } from '../samples/complex';
 import { constraintLlmBenchmarkSampleCases } from '../samples/constraints';
-import { contextualLlmBenchmarkSampleCases } from '../samples/contextual';
+import { contextualA2uiLlmBenchmarkSampleCases } from '../samples/contextual-a2ui';
+import { contextualGenuiLlmBenchmarkSampleCases } from '../samples/contextual-genui';
 import { edgeLlmBenchmarkSampleCases } from '../samples/edge';
 import { listMaasManifestModelNames, resolveSamplesDir } from '../utils';
+import { protocolFromOptions } from '../protocol';
 
 const uiDir = path.dirname(fileURLToPath(import.meta.url));
 const publicDir = path.join(uiDir, 'public');
@@ -36,11 +38,18 @@ type BenchUiMeta = {
   defaults: BenchUiFormPayload;
   models: string[];
   scenarioGroups: Array<{ group: string; label: string; scenarios: string[] }>;
+  /** 按协议的场景分组（UI 切换 protocol 时换 contextual 标签与列表） */
+  scenarioGroupsByProtocol: {
+    genui: Array<{ group: string; label: string; scenarios: string[] }>;
+    a2ui: Array<{ group: string; label: string; scenarios: string[] }>;
+  };
   existingRunDirs: string[];
   port: number;
 };
 
-function scenarioGroups() {
+function scenarioGroups(protocol: 'genui' | 'a2ui' = 'genui') {
+  const contextual =
+    protocol === 'a2ui' ? contextualA2uiLlmBenchmarkSampleCases : contextualGenuiLlmBenchmarkSampleCases;
   return [
     { group: 'basic', label: '基础', scenarios: basicLlmBenchmarkSampleCases.map((c) => c.id) },
     { group: 'complex', label: '复杂', scenarios: complexLlmBenchmarkSampleCases.map((c) => c.id) },
@@ -52,8 +61,8 @@ function scenarioGroups() {
     },
     {
       group: 'contextual',
-      label: '上下文',
-      scenarios: contextualLlmBenchmarkSampleCases.map((c) => c.id),
+      label: protocol === 'a2ui' ? '上下文 (a2ui)' : '上下文 (genui)',
+      scenarios: contextual.map((c) => c.id),
     },
   ];
 }
@@ -208,10 +217,16 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
     } catch (err) {
       console.warn('[bench-ui] Failed to load model list:', err instanceof Error ? err.message : err);
     }
+    const defaults = toFormDefaults(resolveRunOptions());
+    const protocol = protocolFromOptions({ protocol: defaults.protocol });
     return {
-      defaults: toFormDefaults(resolveRunOptions()),
+      defaults,
       models,
-      scenarioGroups: scenarioGroups(),
+      scenarioGroups: scenarioGroups(protocol),
+      scenarioGroupsByProtocol: {
+        genui: scenarioGroups('genui'),
+        a2ui: scenarioGroups('a2ui'),
+      },
       existingRunDirs: listExistingRunDirs(),
       port,
     };

@@ -10,6 +10,8 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   models: undefined,
   // 为 true 时默认用 maas-models.json 中全部模型名填满 models（显式 models / BENCH_MODELS 优先）
   modelsFromMaasManifest: false,
+  // 协议：genui（默认）| a2ui；可用 BENCH_PROTOCOL 覆盖
+  protocol: 'genui',
   // Prompt 生成使用的前端框架物料（影响系统提示词的配置）
   framework: 'Vue',
   // materials 包 meta：standard → materialsMeta；Vue mini → miniMaterialsMeta（BENCH_MATERIALS_VARIANT）
