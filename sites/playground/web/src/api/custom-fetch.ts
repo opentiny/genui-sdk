@@ -1,6 +1,6 @@
 import { modifyChatBody as continueGeneratingBodyModifier } from '../continue-writing';
 import type { OpenApiToolServiceConfig } from '../components/common.types';
-import { defaultComponentLib } from '../components/materials-tab';
+import { buildAntiContaminationRule, defaultComponentLib } from '../components/materials-tab';
 
 type MaterialsMetaVariantKey = 'mini' | 'standard';
 export interface IMcpServerConfig {
@@ -83,10 +83,11 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
     } = config;
 
     const fw = framework || 'Vue';
+    const resolvedComponentLib = componentLib || defaultComponentLib[fw] || 'TinyVue';
     const playgroundConfig = {
       mcpServers,
       framework: fw,
-      componentLib: componentLib || defaultComponentLib[fw] || 'TinyVue',
+      componentLib: resolvedComponentLib,
       promptList,
       model,
       temperature,
@@ -94,6 +95,7 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
       skills: skillsPayloadForChat(skills),
       promptVariant: promptVariant || 'standard',
       openApiTools: openApiTools.filter((tool) => tool.enabled !== false),
+      antiContaminationRule: buildAntiContaminationRule(resolvedComponentLib),
     };
 
     return fetch(url, {

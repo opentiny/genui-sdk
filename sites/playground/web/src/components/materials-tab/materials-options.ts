@@ -29,6 +29,10 @@ export const defaultComponentLib = {
   Angular: 'TinyNg',
 };
 
+export function buildAntiContaminationRule(componentLib: string): string {
+  return `本次对话当前使用的组件库是 ${componentLib}，历史消息中可能包含基于其他组件库生成的 schema，请以当前提供的可用组件列表为准，不要参考历史消息中的 componentName`;
+}
+
 export const materialThemeColorMap = {
   light: THEME_PREVIEW_COLOR_PRESETS.light,
   dark: THEME_PREVIEW_COLOR_PRESETS.dark,

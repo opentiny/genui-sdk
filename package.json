@@ -38,8 +38,5 @@
   "packageManager": "pnpm@10.12.1",
   "devDependencies": {
     "@babel/parser": "^7.28.3"
-  },
-  "dependencies": {
-    "pnpm": "^10.12.1"
   }
 }

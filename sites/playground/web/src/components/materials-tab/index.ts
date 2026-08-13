@@ -3,6 +3,7 @@ export {
   frameworkOptions,
   componentLibOptionsByFramework,
   defaultComponentLib,
+  buildAntiContaminationRule,
   materialThemeOptions,
   materialThemeColorMap,
   useMaterialsConfig,
