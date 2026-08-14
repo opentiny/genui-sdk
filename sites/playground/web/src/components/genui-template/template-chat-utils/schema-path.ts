@@ -63,7 +63,14 @@ export function getComponentItem(schema: any, componentPath: string, indexMode: 
   };
 }
 
-export function getPositionRelativePath(position: string, id: string, componentPath: string, fromPath: string) {
+export function getPositionRelativePath(
+  position: string,
+  _id: string,
+  componentPath: string,
+  fromPath: string,
+  adjustForSourceRemoval: boolean = true,
+  schema?: any,
+) {
   const idIndexToParentArray = componentPath.split('/');
   const idIndexToParent = idIndexToParentArray.pop()!;
   const prefix = idIndexToParentArray.join('/');
@@ -74,7 +81,9 @@ export function getPositionRelativePath(position: string, id: string, componentP
 
   const isSameParent = prefix === fromPrefix;
   const moveFromIndexLessThanIdIndex =
-    isSameParent && parseInt(fromIdIndexToParent, 10) < parseInt(idIndexToParent, 10);
+    adjustForSourceRemoval &&
+    isSameParent &&
+    parseInt(fromIdIndexToParent, 10) < parseInt(idIndexToParent, 10);
 
   if (position === 'before') {
     if (moveFromIndexLessThanIdIndex) {
@@ -87,7 +96,10 @@ export function getPositionRelativePath(position: string, id: string, componentP
     }
     return `../${parseInt(idIndexToParent, 10) + 1}`;
   } else if (position === 'inside') {
-    return `/children/${getComponentItem(componentPath, id).node?.children?.length || 0}`;
+    const childrenLen = schema
+      ? (getComponentItem(schema, componentPath).node?.children?.length ?? 0)
+      : 0;
+    return `/children/${childrenLen}`;
   }
 }
 
