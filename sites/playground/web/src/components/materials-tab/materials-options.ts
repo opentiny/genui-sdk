@@ -3,9 +3,9 @@ import { ref, readonly, type Ref } from 'vue';
 import { PlaygroundMode } from '../../constants';
 
 export const FRAMEWORK_OPTIONS = [
-  { name: 'Vue', icon: 'V' },
-  { name: 'Angular', icon: 'A' },
-] as const;
+  { name: 'Vue', textKey: 'materials.frameworkVue' },
+  { name: 'Angular', textKey: 'materials.frameworkAngular' },
+];
 
 export function getFrameworkOptions(mode: PlaygroundMode) {
   if (mode === PlaygroundMode.Builder) {
@@ -24,7 +24,7 @@ export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeDark', value: 'dark' },
   { textKey: 'materials.themeLite', value: 'lite' },
   { textKey: 'materials.themeAuto', value: 'auto' },
-] as const;
+];
 
 export const MATERIAL_THEME_COLOR_MAP = {
   light: THEME_PREVIEW_COLOR_PRESETS.light,

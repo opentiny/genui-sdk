@@ -1,15 +1,26 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
 import { inject, computed } from 'vue';
-import { ThemePreviewCard } from '../theme-preview';
 import { t } from '../../i18n';
 import { PlaygroundMode } from '../../constants';
 import {
   getFrameworkOptions,
   componentLibOptionsByFramework,
   MATERIAL_THEME_OPTIONS,
-  MATERIAL_THEME_COLOR_MAP,
 } from './materials-options';
+import vueIcon from '../../assets/images/vue.svg';
+import angularIcon from '../../assets/images/angular.svg';
+import themeLight from '../../assets/images/theme-light.png';
+import themeDark from '../../assets/images/theme-dark.png';
+import themeLite from '../../assets/images/theme-lite.png';
+import themeAuto from '../../assets/images/theme-auto.png';
+
+const themePreviewMap = {
+  light: themeLight,
+  dark: themeDark,
+  lite: themeLite,
+  auto: themeAuto,
+};
 
 const props = defineProps({
   theme: { type: String, default: 'light' },
@@ -20,6 +31,11 @@ const emit = defineEmits(['update:theme']);
 
 const { framework, componentLib, setFramework, setComponentLib } = inject('playgroundContext');
 const frameworkOptions = computed(() => getFrameworkOptions(props.currentMode));
+const frameworkIconMap = {
+  Vue: vueIcon,
+  Angular: angularIcon,
+};
+
 const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
 
 const componentLibModel = computed({
@@ -51,8 +67,10 @@ const handleSetFramework = (name) => {
         @keydown.enter="handleSetFramework(item.name)"
         @keydown.space.prevent="handleSetFramework(item.name)"
       >
-        <span class="framework-btn__icon">{{ item.icon }}</span>
-        <span class="framework-btn__name">{{ item.name }}</span>
+        <span class="framework-btn__icon">
+          <img :src="frameworkIconMap[item.name]" :alt="item.name" />
+        </span>
+        <span class="framework-btn__name">{{ t(item.textKey) }}</span>
       </div>
     </div>
 
@@ -78,7 +96,7 @@ const handleSetFramework = (name) => {
             @keydown.space.prevent="emit('update:theme', item.value)"
           >
             <tiny-checkbox v-if="theme === item.value" class="theme-card__check" :model-value="true" @click.stop />
-            <ThemePreviewCard :theme="item.value" :theme-colors="MATERIAL_THEME_COLOR_MAP[item.value]" />
+            <img class="theme-card__image" :src="themePreviewMap[item.value]" :alt="t(item.textKey)" />
           </div>
           <span class="theme-card__label" :class="{ 'theme-card__label--active': theme === item.value }">
             {{ t(item.textKey) }}
@@ -122,13 +140,17 @@ const handleSetFramework = (name) => {
   .framework-btn__icon {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
     font-weight: 600;
     font-size: 14px;
+  }
+
+  .framework-btn__icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .framework-btn__name {
@@ -138,17 +160,12 @@ const handleSetFramework = (name) => {
   }
 
   .framework-btn--active {
-    border-color: #191919;
+    border-color: rgba(20, 118, 255, 1);
     background: transparent;
   }
 
   .framework-btn--active .framework-btn__icon {
-    background: #1476ff;
     color: #fff;
-  }
-
-  .framework-btn--active .framework-btn__name {
-    color: #1476ff;
   }
 
   .library-radio-group {
@@ -189,7 +206,6 @@ const handleSetFramework = (name) => {
     box-sizing: border-box;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
-    padding: 8px 8px 0;
     cursor: pointer;
     user-select: none;
     overflow: hidden;
@@ -211,11 +227,24 @@ const handleSetFramework = (name) => {
     }
   }
 
+  .theme-card__image {
+    display: block;
+    width: 100%;
+    height: 96px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+
+  .theme-card-item:first-child .theme-card__image {
+    transform: scale(1.06);
+    transform-origin: center top;
+  }
+
   .theme-card__label {
     font-size: 12px;
     line-height: 1;
     color: #595959;
-    text-align: center;
+    padding-left: 8px;
   }
 
   .theme-card__label--active {
@@ -224,7 +253,7 @@ const handleSetFramework = (name) => {
   }
 
   .theme-card--active {
-    border-color: #191919;
+    border-color: rgba(20, 118, 255, 1);
   }
 }
 </style>
