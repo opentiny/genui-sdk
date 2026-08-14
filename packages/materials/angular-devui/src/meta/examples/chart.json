@@ -1,0 +1,24 @@
+{
+  "componentName": "Page",
+  "props": {
+    "style": "padding: 16px;"
+  },
+  "children": [
+    {
+      "componentName": "h3",
+      "children": "销售趋势"
+    },
+    {
+      "componentName": "DLineChart",
+      "props": {
+        "height": "320px",
+        "options": {
+          "tooltip": { "trigger": "axis" },
+          "xAxis": { "type": "category", "data": ["1月", "2月", "3月", "4月", "5月", "6月"] },
+          "yAxis": { "type": "value" },
+          "series": [{ "type": "line", "data": [120, 200, 150, 80, 70, 110] }]
+        }
+      }
+    }
+  ]
+}

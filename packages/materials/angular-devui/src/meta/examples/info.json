@@ -1,0 +1,80 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "h3",
+      "props": {
+        "style": "font-size: 14px;font-weight: bold;line-height:2;margin-bottom:20px;display:block;"
+      },
+      "children": "员工信息详情"
+    },
+    {
+      "componentName": "DCard",
+      "props": {
+        "style": "width: 374px;"
+      },
+      "children": [
+        {
+          "componentName": "DCardHeader",
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "员工信息"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; flex-direction: column; gap: 16px; padding: 20px;"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": { "style": "display: flex;" },
+              "children": [
+                {
+                  "componentName": "span",
+                  "props": { "style": "width: 80px; font-weight: bold;" },
+                  "children": "姓名"
+                },
+                { "componentName": "span", "children": "张三" }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": { "style": "display: flex;" },
+              "children": [
+                {
+                  "componentName": "span",
+                  "props": { "style": "width: 80px; font-weight: bold;" },
+                  "children": "电话"
+                },
+                { "componentName": "span", "children": "18856254558" }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": { "style": "display: flex;" },
+              "children": [
+                {
+                  "componentName": "span",
+                  "props": { "style": "width: 80px; font-weight: bold;" },
+                  "children": "入职日期"
+                },
+                {
+                  "componentName": "DDatePicker",
+                  "props": {
+                    "ngModel": "2023-01-01",
+                    "placeholder": "请选择日期",
+                    "format": "yyyy-MM-dd"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

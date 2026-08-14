@@ -1,0 +1,29 @@
+{
+  "componentName": "Page",
+  "props": {
+    "style": "padding: 16px;"
+  },
+  "children": [
+    {
+      "componentName": "h3",
+      "children": "员工列表"
+    },
+    {
+      "componentName": "DDataTable",
+      "props": {
+        "dataSource": [
+          { "name": "张三", "id": "10001", "sex": "男", "department": "HR" },
+          { "name": "李四", "id": "10002", "sex": "女", "department": "研发" }
+        ],
+        "scrollable": true,
+        "tableWidth": "100%"
+      },
+      "children": [
+        { "componentName": "DColumn", "props": { "field": "name", "header": "姓名", "width": "120px" } },
+        { "componentName": "DColumn", "props": { "field": "id", "header": "工号", "width": "100px" } },
+        { "componentName": "DColumn", "props": { "field": "sex", "header": "性别", "width": "80px" } },
+        { "componentName": "DColumn", "props": { "field": "department", "header": "部门" } }
+      ]
+    }
+  ]
+}

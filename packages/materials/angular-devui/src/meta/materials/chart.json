@@ -1,0 +1,299 @@
+{
+  "data": {
+    "framework": "Angular",
+    "materials": {
+      "components": [
+        {
+          "version": "1.0.0",
+          "name": { "zh_CN": "折线图" },
+          "component": "DLineChart",
+          "icon": "line",
+          "description": "基于 ECharts 的折线图，通过 options 配置图表",
+          "npm": {
+            "package": "@opentiny/genui-sdk-materials-angular-devui",
+            "exportName": "DLineChartComponent",
+            "destructuring": true
+          },
+          "group": "chart",
+          "category": "图表组件",
+          "configure": {
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础信息" },
+                "content": [
+                  {
+                    "property": "options",
+                    "required": true,
+                    "label": { "text": { "zh_CN": "图表配置" } },
+                    "description": { "zh_CN": "ECharts option，series.type 应为 line" },
+                    "widget": {
+                      "component": "NestedPropertyConfigurator",
+                      "props": { "type": "object", "language": "json" }
+                    },
+                    "properties": [
+                      {
+                        "label": { "zh_CN": "默认分组" },
+                        "content": [
+                          {
+                            "property": "xAxis",
+                            "label": { "text": { "zh_CN": "X 轴" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "yAxis",
+                            "label": { "text": { "zh_CN": "Y 轴" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "series",
+                            "required": true,
+                            "label": { "text": { "zh_CN": "系列" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "tooltip",
+                            "label": { "text": { "zh_CN": "提示框" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "legend",
+                            "label": { "text": { "zh_CN": "图例" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "property": "height",
+                    "type": "string",
+                    "defaultValue": "320px",
+                    "label": { "text": { "zh_CN": "高度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {}
+          }
+        },
+        {
+          "version": "1.0.0",
+          "name": { "zh_CN": "柱状图" },
+          "component": "DBarChart",
+          "icon": "histogram",
+          "description": "基于 ECharts 的柱状图，通过 options 配置图表",
+          "npm": {
+            "package": "@opentiny/genui-sdk-materials-angular-devui",
+            "exportName": "DBarChartComponent",
+            "destructuring": true
+          },
+          "group": "chart",
+          "category": "图表组件",
+          "configure": {
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础信息" },
+                "content": [
+                  {
+                    "property": "options",
+                    "required": true,
+                    "label": { "text": { "zh_CN": "图表配置" } },
+                    "description": { "zh_CN": "ECharts option，series.type 应为 bar" },
+                    "widget": {
+                      "component": "NestedPropertyConfigurator",
+                      "props": { "type": "object", "language": "json" }
+                    },
+                    "properties": [
+                      {
+                        "label": { "zh_CN": "默认分组" },
+                        "content": [
+                          {
+                            "property": "xAxis",
+                            "label": { "text": { "zh_CN": "X 轴" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "yAxis",
+                            "label": { "text": { "zh_CN": "Y 轴" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "series",
+                            "required": true,
+                            "label": { "text": { "zh_CN": "系列" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "tooltip",
+                            "label": { "text": { "zh_CN": "提示框" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "legend",
+                            "label": { "text": { "zh_CN": "图例" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "property": "height",
+                    "type": "string",
+                    "defaultValue": "320px",
+                    "label": { "text": { "zh_CN": "高度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {}
+          }
+        },
+        {
+          "version": "1.0.0",
+          "name": { "zh_CN": "饼图" },
+          "component": "DPieChart",
+          "icon": "pie",
+          "description": "基于 ECharts 的饼图，通过 options 配置图表",
+          "npm": {
+            "package": "@opentiny/genui-sdk-materials-angular-devui",
+            "exportName": "DPieChartComponent",
+            "destructuring": true
+          },
+          "group": "chart",
+          "category": "图表组件",
+          "configure": {
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础信息" },
+                "content": [
+                  {
+                    "property": "options",
+                    "required": true,
+                    "label": { "text": { "zh_CN": "图表配置" } },
+                    "description": { "zh_CN": "ECharts option，series.type 应为 pie" },
+                    "widget": {
+                      "component": "NestedPropertyConfigurator",
+                      "props": { "type": "object", "language": "json" }
+                    },
+                    "properties": [
+                      {
+                        "label": { "zh_CN": "默认分组" },
+                        "content": [
+                          {
+                            "property": "series",
+                            "required": true,
+                            "label": { "text": { "zh_CN": "系列" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "tooltip",
+                            "label": { "text": { "zh_CN": "提示框" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "legend",
+                            "label": { "text": { "zh_CN": "图例" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          },
+                          {
+                            "property": "title",
+                            "label": { "text": { "zh_CN": "标题" } },
+                            "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "property": "height",
+                    "type": "string",
+                    "defaultValue": "320px",
+                    "label": { "text": { "zh_CN": "高度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {}
+          }
+        }
+      ],
+      "snippets": [
+        {
+          "group": "Charts",
+          "label": { "zh_CN": "图表" },
+          "children": [
+            {
+              "name": { "zh_CN": "折线图" },
+              "snippetName": "DLineChart",
+              "schema": {
+                "componentName": "DLineChart",
+                "props": {
+                  "height": "320px",
+                  "options": {
+                    "tooltip": { "trigger": "axis" },
+                    "xAxis": { "type": "category", "data": ["1月", "2月", "3月", "4月", "5月", "6月"] },
+                    "yAxis": { "type": "value" },
+                    "series": [{ "type": "line", "data": [120, 200, 150, 80, 70, 110] }]
+                  }
+                }
+              }
+            },
+            {
+              "name": { "zh_CN": "柱状图" },
+              "snippetName": "DBarChart",
+              "schema": {
+                "componentName": "DBarChart",
+                "props": {
+                  "height": "320px",
+                  "options": {
+                    "tooltip": { "trigger": "axis" },
+                    "xAxis": { "type": "category", "data": ["1月", "2月", "3月", "4月", "5月", "6月"] },
+                    "yAxis": { "type": "value" },
+                    "series": [{ "type": "bar", "data": [120, 200, 150, 80, 70, 110] }]
+                  }
+                }
+              }
+            },
+            {
+              "name": { "zh_CN": "饼图" },
+              "snippetName": "DPieChart",
+              "schema": {
+                "componentName": "DPieChart",
+                "props": {
+                  "height": "320px",
+                  "options": {
+                    "tooltip": { "trigger": "item" },
+                    "series": [
+                      {
+                        "type": "pie",
+                        "radius": "60%",
+                        "data": [
+                          { "name": "直接访问", "value": 335 },
+                          { "name": "邮件营销", "value": 310 },
+                          { "name": "联盟广告", "value": 234 }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

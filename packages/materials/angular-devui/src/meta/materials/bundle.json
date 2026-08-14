@@ -1,0 +1,493 @@
+{
+  "data": {
+    "framework": "Angular",
+    "materials": {
+      "components": [
+        {
+          "version": "18.0.0",
+          "name": { "zh_CN": "卡片" },
+          "component": "DCard",
+          "icon": "card",
+          "description": "DevUI 卡片容器，用于聚合展示信息",
+          "doc_url": "https://devui.design/components/zh-cn/card/demo",
+          "npm": {
+            "package": "ng-devui",
+            "exportName": "CardComponent",
+            "destructuring": true
+          },
+          "group": "布局组件",
+          "category": "ng-devui",
+          "configure": {
+            "isContainer": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  {
+                    "property": "interactive",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "可交互" } },
+                    "description": { "zh_CN": "是否开启卡片交互态" },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": { "zh_CN": "默认插槽" },
+                "description": { "zh_CN": "卡片内容，可包含 DCardHeader 与正文" }
+              }
+            }
+          }
+        },
+        {
+          "version": "18.0.0",
+          "name": { "zh_CN": "卡片头部" },
+          "component": "DCardHeader",
+          "icon": "card",
+          "description": "DevUI 卡片头部区域",
+          "npm": {
+            "package": "ng-devui",
+            "exportName": "CardHeaderComponent",
+            "destructuring": true
+          },
+          "group": "布局组件",
+          "category": "ng-devui",
+          "configure": {
+            "isContainer": true,
+            "framework": "Angular",
+            "nestingRule": {
+              "parentWhitelist": ["DCard"]
+            }
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": { "zh_CN": "默认插槽" },
+                "description": { "zh_CN": "标题等内容" }
+              }
+            }
+          }
+        },
+        {
+          "version": "18.0.0",
+          "name": { "zh_CN": "日期选择器" },
+          "component": "DDatePicker",
+          "icon": "datepick",
+          "description": "DevUI DatepickerPro，用于选择日期或时间",
+          "doc_url": "https://devui.design/components/zh-cn/datepickerpro/demo",
+          "npm": {
+            "package": "ng-devui",
+            "exportName": "DatepickerProComponent",
+            "destructuring": true
+          },
+          "group": "表单组件",
+          "category": "ng-devui",
+          "configure": {
+            "isContainer": false,
+            "isPopper": true,
+            "framework": "Angular",
+            "shortcuts": {
+              "properties": ["ngModel", "placeholder", "format", "showTime"]
+            }
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  {
+                    "property": "ngModel",
+                    "type": "date",
+                    "required": true,
+                    "label": { "text": { "zh_CN": "绑定值" } },
+                    "description": { "zh_CN": "选中的日期" },
+                    "widget": { "component": "DateConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "placeholder",
+                    "type": "string",
+                    "defaultValue": "请选择日期",
+                    "label": { "text": { "zh_CN": "占位文本" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "format",
+                    "type": "string",
+                    "defaultValue": "yyyy-MM-dd",
+                    "label": { "text": { "zh_CN": "显示格式" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "showTime",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "显示时分秒" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "mode",
+                    "type": "string",
+                    "defaultValue": "date",
+                    "label": { "text": { "zh_CN": "选择类型" } },
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          { "label": "date", "value": "date" },
+                          { "label": "month", "value": "month" },
+                          { "label": "year", "value": "year" }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "禁用" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "allowClear",
+                    "type": "boolean",
+                    "defaultValue": true,
+                    "label": { "text": { "zh_CN": "允许清空" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "width",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "宽度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "confirmEvent": {
+                "label": { "zh_CN": "确认选择" },
+                "description": { "zh_CN": "用户确认选定日期时触发" },
+                "type": "event",
+                "functionInfo": {
+                  "params": [{ "name": "date", "type": "Date", "description": { "zh_CN": "选中日期" } }],
+                  "returns": {}
+                }
+              },
+              "dropdownToggle": {
+                "label": { "zh_CN": "面板开关" },
+                "description": { "zh_CN": "下拉面板打开或关闭时触发" },
+                "type": "event"
+              }
+            },
+            "slots": {}
+          }
+        },
+        {
+          "version": "18.0.0",
+          "name": { "zh_CN": "数据表格" },
+          "component": "DDataTable",
+          "icon": "table",
+          "description": "DevUI DataTable，用于展示结构化行列数据",
+          "doc_url": "https://devui.design/components/zh-cn/datatable/demo#basic-usage",
+          "npm": {
+            "package": "ng-devui",
+            "exportName": "DataTableComponent",
+            "destructuring": true
+          },
+          "group": "数据展示",
+          "category": "ng-devui",
+          "configure": {
+            "isContainer": true,
+            "framework": "Angular",
+            "nestingRule": {
+              "childWhitelist": ["DColumn"]
+            },
+            "shortcuts": {
+              "properties": ["dataSource", "scrollable", "striped", "fixHeader"]
+            }
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  {
+                    "property": "dataSource",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "label": { "text": { "zh_CN": "数据源" } },
+                    "description": { "zh_CN": "表格显示的数据数组" },
+                    "widget": { "component": "CodeConfigurator", "props": { "language": "json" } }
+                  },
+                  {
+                    "property": "scrollable",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "可滚动" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "fixHeader",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "固定表头" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "striped",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "斑马纹" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "checkable",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "可勾选" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "tableWidth",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "表格宽度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "tableHeight",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "表格高度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "maxHeight",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "最大高度" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "size",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "尺寸" } },
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          { "label": "sm", "value": "sm" },
+                          { "label": "md", "value": "md" },
+                          { "label": "lg", "value": "lg" }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "borderType",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "边框类型" } },
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          { "label": "default", "value": "" },
+                          { "label": "bordered", "value": "bordered" },
+                          { "label": "borderless", "value": "borderless" }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "headerBg",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "表头背景" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "rowClick": {
+                "label": { "zh_CN": "行点击" },
+                "type": "event"
+              },
+              "cellClick": {
+                "label": { "zh_CN": "单元格点击" },
+                "type": "event"
+              },
+              "rowCheckChange": {
+                "label": { "zh_CN": "行勾选变化" },
+                "type": "event"
+              },
+              "checkAllChange": {
+                "label": { "zh_CN": "全选变化" },
+                "type": "event"
+              },
+              "multiSortChange": {
+                "label": { "zh_CN": "排序变化" },
+                "type": "event"
+              }
+            },
+            "slots": {}
+          }
+        },
+        {
+          "version": "18.0.0",
+          "name": { "zh_CN": "表格列" },
+          "component": "DColumn",
+          "icon": "table",
+          "description": "DevUI DataTable 列定义",
+          "npm": {
+            "package": "ng-devui",
+            "exportName": "DataTableColumnTmplComponent",
+            "destructuring": true
+          },
+          "group": "数据展示",
+          "category": "ng-devui",
+          "configure": {
+            "isContainer": false,
+            "framework": "Angular",
+            "nestingRule": {
+              "parentWhitelist": ["DDataTable"]
+            },
+            "shortcuts": {
+              "properties": ["field", "header", "width"]
+            }
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": { "zh_CN": "基础属性" },
+                "content": [
+                  {
+                    "property": "field",
+                    "type": "string",
+                    "required": true,
+                    "label": { "text": { "zh_CN": "字段名" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "header",
+                    "type": "string",
+                    "required": true,
+                    "label": { "text": { "zh_CN": "列标题" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "width",
+                    "type": "string",
+                    "label": { "text": { "zh_CN": "列宽" } },
+                    "widget": { "component": "InputConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "fieldType",
+                    "type": "string",
+                    "defaultValue": "text",
+                    "label": { "text": { "zh_CN": "字段类型" } },
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          { "label": "text", "value": "text" },
+                          { "label": "number", "value": "number" },
+                          { "label": "date", "value": "date" }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "sortable",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "可排序" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  },
+                  {
+                    "property": "filterable",
+                    "type": "boolean",
+                    "defaultValue": false,
+                    "label": { "text": { "zh_CN": "可筛选" } },
+                    "widget": { "component": "CheckBoxConfigurator", "props": {} }
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        }
+      ],
+      "snippets": [
+        {
+          "group": "basic",
+          "label": { "zh_CN": "基础组件" },
+          "children": [
+            {
+              "name": { "zh_CN": "卡片" },
+              "snippetName": "DCard",
+              "schema": {
+                "componentName": "DCard",
+                "children": [
+                  {
+                    "componentName": "DCardHeader",
+                    "children": [{ "componentName": "h3", "children": "卡片标题" }]
+                  },
+                  {
+                    "componentName": "div",
+                    "props": { "style": "padding: 16px;" },
+                    "children": [{ "componentName": "Text", "props": { "text": "卡片内容" } }]
+                  }
+                ]
+              }
+            },
+            {
+              "name": { "zh_CN": "日期选择器" },
+              "snippetName": "DDatePicker",
+              "schema": {
+                "componentName": "DDatePicker",
+                "props": {
+                  "ngModel": "",
+                  "placeholder": "请选择日期",
+                  "format": "yyyy-MM-dd"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "group": "table",
+          "label": { "zh_CN": "表格" },
+          "children": [
+            {
+              "name": { "zh_CN": "基础表格" },
+              "snippetName": "DDataTable",
+              "schema": {
+                "componentName": "DDataTable",
+                "props": {
+                  "dataSource": [
+                    { "name": "张三", "id": "10001" },
+                    { "name": "李四", "id": "10002" }
+                  ],
+                  "scrollable": true
+                },
+                "children": [
+                  { "componentName": "DColumn", "props": { "field": "name", "header": "姓名", "width": "120px" } },
+                  { "componentName": "DColumn", "props": { "field": "id", "header": "工号", "width": "100px" } }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
