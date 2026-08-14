@@ -26,7 +26,9 @@
     "tabMaterials": "Materials",
     "tabTheme": "Theme",
     "tabHistory": "History",
-    "tabTemplate": "Templates (experimental)"
+    "tabTemplate": "Templates (experimental)",
+    "modeChat": "Chat",
+    "modeBuilder": "Builder"
   },
   "materials": {
     "framework": "Framework",

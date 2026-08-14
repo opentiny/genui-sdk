@@ -59,6 +59,7 @@
     "@opentiny/vue-form": "~3.28.0",
     "@opentiny/vue-form-item": "~3.28.0",
     "@opentiny/vue-grid": "~3.28.0",
+    "@opentiny/vue-icon": "~3.28.0",
     "@opentiny/vue-input": "~3.28.0",
     "@opentiny/vue-layout": "~3.28.0",
     "@opentiny/vue-numeric": "~3.28.0",

@@ -1,28 +1,36 @@
 import { THEME_PREVIEW_COLOR_PRESETS } from '../theme-preview';
 import { ref, readonly, type Ref } from 'vue';
-import vueIcon from '../../assets/images/vue.svg';
-import angularIcon from '../../assets/images/angular.svg';
-import themeLight from '../../assets/images/theme-light.png';
-import themeDark from '../../assets/images/theme-dark.png';
-import themeLite from '../../assets/images/theme-lite.png';
-import themeAuto from '../../assets/images/theme-auto.png';
+import { PlaygroundMode } from '../../constants';
 
-export const frameworkOptions = [
-  { name: 'Vue', icon: vueIcon, labelKey: 'materials.frameworkVue' },
-  { name: 'Angular', icon: angularIcon, labelKey: 'materials.frameworkAngular' },
-];
+export const FRAMEWORK_OPTIONS = [
+  { name: 'Vue', icon: 'V' },
+  { name: 'Angular', icon: 'A' },
+] as const;
+
+export function getFrameworkOptions(mode: PlaygroundMode) {
+  if (mode === PlaygroundMode.Builder) {
+    return FRAMEWORK_OPTIONS.filter((item) => item.name !== 'Angular');
+  }
+  return [...FRAMEWORK_OPTIONS];
+}
 
 export const componentLibOptionsByFramework = {
   Vue: ['TinyVue', 'Element'],
   Angular: ['TinyNg'],
 };
 
-export const materialThemeOptions = [
-  { textKey: 'materials.themeLight', value: 'light', preview: themeLight },
-  { textKey: 'materials.themeDark', value: 'dark', preview: themeDark },
-  { textKey: 'materials.themeLite', value: 'lite', preview: themeLite },
-  { textKey: 'materials.themeAuto', value: 'auto', preview: themeAuto },
-];
+export const MATERIAL_THEME_OPTIONS = [
+  { textKey: 'materials.themeLight', value: 'light' },
+  { textKey: 'materials.themeDark', value: 'dark' },
+  { textKey: 'materials.themeLite', value: 'lite' },
+  { textKey: 'materials.themeAuto', value: 'auto' },
+] as const;
+
+export const MATERIAL_THEME_COLOR_MAP = {
+  light: THEME_PREVIEW_COLOR_PRESETS.light,
+  dark: THEME_PREVIEW_COLOR_PRESETS.dark,
+  lite: THEME_PREVIEW_COLOR_PRESETS.lite,
+};
 
 export const defaultComponentLib = {
   Vue: 'TinyVue',
@@ -33,11 +41,6 @@ export function buildAntiContaminationRule(componentLib: string): string {
   return `本次对话当前使用的组件库是 ${componentLib}，历史消息中可能包含基于其他组件库生成的 schema，请以当前提供的可用组件列表为准，不要参考历史消息中的 componentName`;
 }
 
-export const materialThemeColorMap = {
-  light: THEME_PREVIEW_COLOR_PRESETS.light,
-  dark: THEME_PREVIEW_COLOR_PRESETS.dark,
-  lite: THEME_PREVIEW_COLOR_PRESETS.lite,
-};
 export interface MaterialsCache {
   framework?: unknown;
   componentLib?: unknown;

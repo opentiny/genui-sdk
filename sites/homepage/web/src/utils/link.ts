@@ -4,6 +4,7 @@ const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://p
 export const linkMap = {
   devDoc: `${DOCS_BASE}/guide/quick-start`,
   playground: PLAYGROUND_HREF,
+  playgroundBuilder: `${PLAYGROUND_HREF}/builder`,
   chatDoc: `${DOCS_BASE}/components/chat`,
   dcologicalCompatibility: `${DOCS_BASE}/examples/chat/custom-fetch`,
   defineTheme: `${DOCS_BASE}/examples/config-provider/theme`,
@@ -16,6 +17,7 @@ export const linkMap = {
 export enum LinkKey {
   DevDoc = 'devDoc',
   Playground = 'playground',
+  PlaygroundBuilder = 'playgroundBuilder',
   ChatDoc = 'chatDoc',
   DcologicalCompatibility = 'dcologicalCompatibility',
   DefineTheme = 'defineTheme',
@@ -26,5 +28,5 @@ export enum LinkKey {
 }
 
 export function openLink(key: keyof typeof linkMap) {
-  window.open(linkMap[key], '_blank');
+  window.open(linkMap[key], '_blank', 'noopener,noreferrer');
 }

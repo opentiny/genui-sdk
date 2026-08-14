@@ -26,7 +26,9 @@
     "tabMaterials": "物料",
     "tabTheme": "主题",
     "tabHistory": "历史会话",
-    "tabTemplate": "模板（实验特性）"
+    "tabTemplate": "模板（实验特性）",
+    "modeChat": "Chat",
+    "modeBuilder": "Builder"
   },
   "materials": {
     "framework": "框架",

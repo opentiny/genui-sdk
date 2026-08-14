@@ -1,21 +1,25 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
 import { inject, computed } from 'vue';
+import { ThemePreviewCard } from '../theme-preview';
 import { t } from '../../i18n';
+import { PlaygroundMode } from '../../constants';
 import {
-  frameworkOptions,
+  getFrameworkOptions,
   componentLibOptionsByFramework,
-  materialThemeOptions,
+  MATERIAL_THEME_OPTIONS,
+  MATERIAL_THEME_COLOR_MAP,
 } from './materials-options';
 
-defineProps({
+const props = defineProps({
   theme: { type: String, default: 'light' },
+  currentMode: { type: String, default: PlaygroundMode.Chat },
 });
 
 const emit = defineEmits(['update:theme']);
 
 const { framework, componentLib, setFramework, setComponentLib } = inject('playgroundContext');
-
+const frameworkOptions = computed(() => getFrameworkOptions(props.currentMode));
 const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
 
 const componentLibModel = computed({
@@ -27,7 +31,7 @@ const handleSetFramework = (name) => {
   setFramework(name);
   // Angular 不支持主题切换, 默认设置为 light 主题
   if (name === 'Angular') {
-    emit('update:theme', materialThemeOptions[0].value);
+    emit('update:theme', MATERIAL_THEME_OPTIONS[0].value);
   }
 };
 </script>
@@ -47,10 +51,8 @@ const handleSetFramework = (name) => {
         @keydown.enter="handleSetFramework(item.name)"
         @keydown.space.prevent="handleSetFramework(item.name)"
       >
-        <span class="framework-btn__icon">
-          <img class="framework-btn__img" :src="item.icon" alt="item.name">
-        </span>
-        <span class="framework-btn__name">{{ t(item.labelKey) }}</span>
+        <span class="framework-btn__icon">{{ item.icon }}</span>
+        <span class="framework-btn__name">{{ item.name }}</span>
       </div>
     </div>
 
@@ -64,7 +66,7 @@ const handleSetFramework = (name) => {
     <template v-if="framework === 'Vue'">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
-        <div v-for="item in materialThemeOptions" :key="item.value" class="theme-card-item">
+        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
           <div
             class="theme-card"
             :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"
@@ -76,7 +78,7 @@ const handleSetFramework = (name) => {
             @keydown.space.prevent="emit('update:theme', item.value)"
           >
             <tiny-checkbox v-if="theme === item.value" class="theme-card__check" :model-value="true" @click.stop />
-            <img class="theme-card__img" :src="item.preview" :alt="t(item.textKey)" />
+            <ThemePreviewCard :theme="item.value" :theme-colors="MATERIAL_THEME_COLOR_MAP[item.value]" />
           </div>
           <span class="theme-card__label" :class="{ 'theme-card__label--active': theme === item.value }">
             {{ t(item.textKey) }}
@@ -104,7 +106,7 @@ const handleSetFramework = (name) => {
   }
 
   .framework-btn {
-    flex: 1;
+    flex: 0 0 calc((100% - 12px) / 2);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -120,24 +122,33 @@ const handleSetFramework = (name) => {
   .framework-btn__icon {
     width: 28px;
     height: 28px;
+    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .framework-btn__img {
-    width: 100%;
-    height: 100%;
+    background: #f5f5f5;
+    font-weight: 600;
+    font-size: 14px;
   }
 
   .framework-btn__name {
     font-size: 12px;
     line-height: 1;
-    color: rgba(25, 25, 25, 1);
+    color: #595959;
   }
 
   .framework-btn--active {
-    border-color: rgba(20, 118, 255, 1);
+    border-color: #191919;
+    background: transparent;
+  }
+
+  .framework-btn--active .framework-btn__icon {
+    background: #1476ff;
+    color: #fff;
+  }
+
+  .framework-btn--active .framework-btn__name {
+    color: #1476ff;
   }
 
   .library-radio-group {
@@ -178,27 +189,10 @@ const handleSetFramework = (name) => {
     box-sizing: border-box;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
+    padding: 8px 8px 0;
     cursor: pointer;
     user-select: none;
     overflow: hidden;
-  }
-
-  .theme-card__img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .theme-card--light {
-    overflow: hidden;
-    .theme-card__img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transform: scale(1.06);
-      transform-origin: center;
-    }
   }
 
   .theme-card__check {
@@ -221,8 +215,7 @@ const handleSetFramework = (name) => {
     font-size: 12px;
     line-height: 1;
     color: #595959;
-    text-align: left;
-    padding-left: 8px;
+    text-align: center;
   }
 
   .theme-card__label--active {
@@ -231,7 +224,7 @@ const handleSetFramework = (name) => {
   }
 
   .theme-card--active {
-    border-color: rgba(20, 118, 255, 1);
+    border-color: #191919;
   }
 }
 </style>

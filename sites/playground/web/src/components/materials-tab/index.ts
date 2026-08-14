@@ -1,11 +1,12 @@
 export { default as MaterialsTab } from './MaterialsTab.vue';
 export {
-  frameworkOptions,
+  FRAMEWORK_OPTIONS,
+  getFrameworkOptions,
+  MATERIAL_THEME_OPTIONS,
+  MATERIAL_THEME_COLOR_MAP,
   componentLibOptionsByFramework,
   defaultComponentLib,
   buildAntiContaminationRule,
-  materialThemeOptions,
-  materialThemeColorMap,
   useMaterialsConfig,
   type MaterialsCache,
 } from './materials-options';
