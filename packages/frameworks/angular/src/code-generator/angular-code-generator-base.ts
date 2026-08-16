@@ -593,7 +593,14 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     const actionNames = new Set<string>();
     const schemaMethods = (schema as CardSchema & { methods?: Record<string, { value: string }> }).methods;
 
-    const template = this.generateTemplate(schema, schema.state as Record<string, any>, codegenMeta, true, actionNames, schemaMethods);
+    const template = this.generateTemplate(
+      schema,
+      schema.state as Record<string, any>, 
+      codegenMeta, 
+      true, 
+      actionNames, 
+      schemaMethods
+    );
     const stateFields = this.buildStateFields(schema, codegenMeta);
 
     const methods = this.buildMethods(schema, actionNames);
@@ -648,6 +655,41 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       classBody ? `  ${classBody}` : '',
       '}',
     ].join('\n');
+  }
+
+  protected buildJSFunctionExpression(value: string, actionNames?: Set<string>): string {
+    const info = this.getFunctionInfo(value);
+    if (!info) {
+      let result = this.replaceThis(value);
+      if (actionNames) {
+        result = this.transformCallActionCalls(result, actionNames);
+      }
+      return result;
+    }
+    const asyncPrefix = info.type ? `${info.type} ` : '';
+    let body = info.body;
+    if (actionNames) {
+      body = this.transformCallActionCalls(body, actionNames);
+    }
+    body = body.replace(/this\.props\./g, 'this.');
+    return `${asyncPrefix}(${info.params.join(',')}) => { ${body} }`;
+  }
+
+  protected transformCallActionCalls(code: string, actionNames: Set<string>): string {
+    return code.replace(
+      /this\.callAction\s*\(\s*['"]([^'"]+)['"]\s*(,\s*([^)]*))?\)/g,
+      (_, name: string, _commaAndArgs: string, args: string) => {
+        actionNames.add(name);
+        const prop = this.toCamelCase(name);
+        return args ? `this.${prop}.emit(${args.trim()})` : `this.${prop}.emit()`;
+      },
+    );
+  }
+
+  protected hoistPropToState(key: string, item: unknown, attrsArr: string[], state: Record<string, unknown>): void {
+    const valueKey = this.avoidDuplicateString(Object.keys(state), key);
+    state[valueKey] = item;
+    attrsArr.push(`[${key}]="state.${valueKey}"`);
   }
 
   override async generate({

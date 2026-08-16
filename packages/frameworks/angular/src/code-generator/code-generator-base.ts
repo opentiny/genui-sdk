@@ -6,17 +6,7 @@ import type {
   IFrameworkCodeGenerator,
   ICodeGeneratorResult,
 } from './types';
-/**
- * 框架无关的代码生成基类。
- * 负责 schema 解析、协议类型判断、函数分析、状态遍历等通用逻辑。
- * 子类（如 AngularCodeGeneratorBase）负责具体框架的模板语法和组件源码生成。
- */
-export abstract class CodeGeneratorBase
-  implements IFrameworkCodeGenerator<ICodeGeneratorParams, ICodeGeneratorResult> {
-
-  // ===================================================================
-  // 字符串工具
-  // ===================================================================
+export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICodeGeneratorParams, ICodeGeneratorResult> {
 
   protected replaceThis(value: string): string {
     return value.replace(/this\./g, '');
@@ -40,10 +30,6 @@ export abstract class CodeGeneratorBase
     return /^on([A-Z]\w*)/.test(key);
   }
 
-  // ===================================================================
-  // 协议类型判断
-  // ===================================================================
-
   protected resolvePropValueType(value: unknown): string {
     const builtInTypes = [JS_EXPRESSION, JS_FUNCTION, JS_I18N, JS_RESOURCE, JS_SLOT];
     if (value && typeof value === 'object' && 'type' in value) {
@@ -54,10 +40,6 @@ export abstract class CodeGeneratorBase
     }
     return 'literal';
   }
-
-  // ===================================================================
-  // 函数分析
-  // ===================================================================
 
   protected getFunctionInfo(fnStr: string): { type: string; params: string[]; body: string } | null {
     const fnRegexp = /(async)?.*?(\w+) *\(([\s\S]*?)\) *\{([\s\S]*)\}/;
@@ -75,10 +57,6 @@ export abstract class CodeGeneratorBase
     };
   }
 
-  /**
-   * 从函数体中提取引用模板变量的自由变量名（如 *ngFor / v-for 中的循环变量）。
-   * 通过排除关键字、内置对象、字符串和属性访问路径来识别。
-   */
   protected extractFreeVariables(body: string): string[] {
     let cleaned = body
       .replace(/this\.\w+/g, '')
@@ -104,47 +82,6 @@ export abstract class CodeGeneratorBase
     return [...new Set(identifiers.filter((id) => !keywords.has(id)))];
   }
 
-  // ===================================================================
-  // 代码转换
-  // ===================================================================
-
-  protected buildJSFunctionExpression(value: string, actionNames?: Set<string>): string {
-    const info = this.getFunctionInfo(value);
-    if (!info) {
-      let result = this.replaceThis(value);
-      if (actionNames) {
-        result = this.transformCallActionCalls(result, actionNames);
-      }
-      return result;
-    }
-    const asyncPrefix = info.type ? `${info.type} ` : '';
-    let body = info.body;
-    if (actionNames) {
-      body = this.transformCallActionCalls(body, actionNames);
-    }
-    body = body.replace(/this\.props\./g, 'this.');
-    return `${asyncPrefix}(${info.params.join(',')}) => { ${body} }`;
-  }
-
-  /**
-   * 将 this.callAction('name', payload) 替换为 this.name.emit(payload)，
-   * 同时收集 action 名称到 actionNames 集合中。
-   */
-  protected transformCallActionCalls(code: string, actionNames: Set<string>): string {
-    return code.replace(
-      /this\.callAction\s*\(\s*['"]([^'"]+)['"]\s*(,\s*([^)]*))?\)/g,
-      (_, name: string, _commaAndArgs: string, args: string) => {
-        actionNames.add(name);
-        const prop = this.toCamelCase(name);
-        return args ? `this.${prop}.emit(${args.trim()})` : `this.${prop}.emit()`;
-      },
-    );
-  }
-
-  // ===================================================================
-  // 状态管理
-  // ===================================================================
-
   protected createCodegenMeta(): ICodegenDescription {
     return {
       componentSet: new Set(),
@@ -153,16 +90,6 @@ export abstract class CodeGeneratorBase
       stateAccessors: [],
     };
   }
-
-  protected hoistPropToState(key: string, item: unknown, attrsArr: string[], state: Record<string, unknown>): void {
-    const valueKey = this.avoidDuplicateString(Object.keys(state), key);
-    state[valueKey] = item;
-    attrsArr.push(`[${key}]="state.${valueKey}"`);
-  }
-
-  // ===================================================================
-  // Schema 处理
-  // ===================================================================
 
   protected isEmptySlotNode(componentName: string | undefined, children: unknown): boolean {
     return (
@@ -190,10 +117,6 @@ export abstract class CodeGeneratorBase
     return origin as CardSchema;
   }
 
-  // ===================================================================
-  // 格式化
-  // ===================================================================
-
   protected async formatWithPrettier(source: string, prettierOpts: Record<string, unknown>): Promise<string> {
     try {
       const [{ format }, { default: htmlPlugin }, { default: babelPlugin }, { default: estreePlugin }] =
@@ -212,10 +135,6 @@ export abstract class CodeGeneratorBase
       return source;
     }
   }
-
-  // ===================================================================
-  // 公共入口（由子类实现）
-  // ===================================================================
 
   abstract generate(params: ICodeGeneratorParams): Promise<ICodeGeneratorResult>;
 }
