@@ -8,5 +8,10 @@ export {
   validateProtocolOutput,
 } from './resolve';
 export { buildA2uiSystemPrompt } from './a2ui/prompt';
-export { extractA2uiJsonBlock, describeMissingA2uiJsonBlock, hasA2uiFirstObservableMessage } from './a2ui/extract';
+export {
+  extractA2uiJsonBlock,
+  extractAllA2uiJsonBlocks,
+  describeMissingA2uiJsonBlock,
+  hasA2uiFirstObservableMessage,
+} from './a2ui/extract';
 export { validateA2uiOutput, normalizeA2uiMessages } from './a2ui/validate';

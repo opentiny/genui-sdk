@@ -3,18 +3,48 @@ import { A2UI_CLOSE_TAG, A2UI_OPEN_TAG } from './prompt';
 const OPEN_RE = /<a2ui-json>/i;
 const CLOSE_RE = /<\/a2ui-json>/i;
 
+export type ExtractA2uiJsonBlocksResult = {
+  /** 已完整闭合的块正文（trim 后；可能为空串） */
+  blocks: string[];
+  /** 在最后一个完整块之后仍有未闭合的 open tag */
+  unclosed: boolean;
+};
+
 /**
- * 从模型输出中提取首个 `<a2ui-json>...</a2ui-json>` 块正文。
+ * 提取输出中全部完整的 `<a2ui-json>...</a2ui-json>` 块（协议允许一块或多块）。
+ */
+export function extractAllA2uiJsonBlocks(content: string): ExtractA2uiJsonBlocksResult {
+  const blocks: string[] = [];
+  if (!content) return { blocks, unclosed: false };
+
+  let searchFrom = 0;
+  while (searchFrom < content.length) {
+    const slice = content.slice(searchFrom);
+    const openMatch = OPEN_RE.exec(slice);
+    if (!openMatch || openMatch.index == null) {
+      return { blocks, unclosed: false };
+    }
+    const openAbs = searchFrom + openMatch.index;
+    const afterOpen = content.slice(openAbs + openMatch[0].length);
+    const closeMatch = CLOSE_RE.exec(afterOpen);
+    if (!closeMatch || closeMatch.index == null) {
+      return { blocks, unclosed: true };
+    }
+    blocks.push(afterOpen.slice(0, closeMatch.index).trim());
+    searchFrom = openAbs + openMatch[0].length + closeMatch.index + closeMatch[0].length;
+  }
+  return { blocks, unclosed: false };
+}
+
+/**
+ * 提取首个完整 `<a2ui-json>` 块正文；无完整块时返回 null。
+ * @deprecated 新逻辑请用 {@link extractAllA2uiJsonBlocks}；保留给调试/兼容。
  */
 export function extractA2uiJsonBlock(content: string): string | null {
-  if (!content) return null;
-  const openMatch = OPEN_RE.exec(content);
-  if (!openMatch || openMatch.index == null) return null;
-  const afterOpen = content.slice(openMatch.index + openMatch[0].length);
-  const closeMatch = CLOSE_RE.exec(afterOpen);
-  if (!closeMatch || closeMatch.index == null) return null;
-  const body = afterOpen.slice(0, closeMatch.index).trim();
-  return body.length > 0 ? body : null;
+  const { blocks } = extractAllA2uiJsonBlocks(content);
+  if (blocks.length === 0) return null;
+  const first = blocks[0]!;
+  return first.length > 0 ? first : null;
 }
 
 /**
@@ -26,10 +56,12 @@ export function describeMissingA2uiJsonBlock(output: string): string {
     return `missing ${A2UI_OPEN_TAG}: model output is empty`;
   }
 
-  if (OPEN_RE.test(trimmed) && !CLOSE_RE.test(trimmed)) {
-    return `${A2UI_OPEN_TAG} found but ${A2UI_CLOSE_TAG} is missing or unclosed`;
+  const { blocks, unclosed } = extractAllA2uiJsonBlocks(trimmed);
+  if (unclosed) {
+    return `${A2UI_OPEN_TAG} found but ${A2UI_CLOSE_TAG} is missing or unclosed` +
+      (blocks.length ? ` (after ${blocks.length} complete block(s))` : '');
   }
-  if (OPEN_RE.test(trimmed) && CLOSE_RE.test(trimmed)) {
+  if (blocks.length > 0 && blocks.every((b) => b.length === 0)) {
     return `${A2UI_OPEN_TAG}…${A2UI_CLOSE_TAG} present but block body is empty`;
   }
 
@@ -42,7 +74,8 @@ export function describeMissingA2uiJsonBlock(output: string): string {
   if (
     /"createSurface"\s*:/.test(trimmed) ||
     /"updateComponents"\s*:/.test(trimmed) ||
-    /"updateDataModel"\s*:/.test(trimmed)
+    /"updateDataModel"\s*:/.test(trimmed) ||
+    /"deleteSurface"\s*:/.test(trimmed)
   ) {
     return `missing ${A2UI_OPEN_TAG}: output looks like raw A2UI JSON but is not wrapped in tags`;
   }

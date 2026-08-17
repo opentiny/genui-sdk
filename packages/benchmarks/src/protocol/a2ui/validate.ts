@@ -1,7 +1,7 @@
 import Ajv2020, { type ErrorObject, type ValidateFunction } from 'ajv/dist/2020.js';
 import addFormats from 'ajv-formats';
 import type { ProtocolValidationResult } from '../types';
-import { describeMissingA2uiJsonBlock, extractA2uiJsonBlock } from './extract';
+import { describeMissingA2uiJsonBlock, extractAllA2uiJsonBlocks } from './extract';
 import { A2UI_VENDOR_PATHS, readA2uiVendorJson } from './paths';
 
 type JsonSchema = Record<string, unknown>;
@@ -96,11 +96,12 @@ export function normalizeA2uiMessages(parsed: unknown): unknown[] | { error: str
 }
 
 /**
- * 提取 → JSON.parse → 逐条 AJV 校验 A2UI v0.9.1 envelope。
+ * 提取全部 `<a2ui-json>` 块 → 逐块 JSON.parse → 逐条 AJV 校验（与协议「one or more blocks」一致）。
  */
 export function validateA2uiOutput(sourceOutput: string): ProtocolValidationResult {
-  const block = extractA2uiJsonBlock(sourceOutput);
-  if (!block) {
+  const { blocks, unclosed } = extractAllA2uiJsonBlocks(sourceOutput);
+
+  if (blocks.length === 0) {
     return {
       isSchemaJsonBlockFound: false,
       isSchemaJsonValidJson: false,
@@ -109,41 +110,66 @@ export function validateA2uiOutput(sourceOutput: string): ProtocolValidationResu
     };
   }
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(block);
-  } catch (error) {
-    const detail = error instanceof Error ? error.message : String(error);
+  if (unclosed) {
     return {
       isSchemaJsonBlockFound: true,
       isSchemaJsonValidJson: false,
       isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: `A2UI JSON parse failed: ${detail}`,
-    };
-  }
-
-  const normalized = normalizeA2uiMessages(parsed);
-  if ('error' in normalized) {
-    return {
-      isSchemaJsonBlockFound: true,
-      isSchemaJsonValidJson: true,
-      isSchemaJsonValidAgainstProtocol: false,
-      schemaValidationError: normalized.error,
+      schemaValidationError: `unclosed <a2ui-json> after ${blocks.length} complete block(s)`,
     };
   }
 
   const validate = getA2uiMessageValidator();
-  for (let i = 0; i < normalized.length; i++) {
-    const msg = normalized[i];
-    const ok = validate(msg);
-    if (!ok) {
-      const detail = formatPrimaryAjvError(msg, validate.errors);
+  const multi = blocks.length > 1;
+
+  for (let b = 0; b < blocks.length; b++) {
+    const block = blocks[b]!;
+    const prefix = multi ? `block[${b}] ` : '';
+
+    if (!block) {
+      return {
+        isSchemaJsonBlockFound: true,
+        isSchemaJsonValidJson: false,
+        isSchemaJsonValidAgainstProtocol: false,
+        schemaValidationError: `${prefix}<a2ui-json> block body is empty`,
+      };
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(block);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      return {
+        isSchemaJsonBlockFound: true,
+        isSchemaJsonValidJson: false,
+        isSchemaJsonValidAgainstProtocol: false,
+        schemaValidationError: `${prefix}A2UI JSON parse failed: ${detail}`,
+      };
+    }
+
+    const normalized = normalizeA2uiMessages(parsed);
+    if ('error' in normalized) {
       return {
         isSchemaJsonBlockFound: true,
         isSchemaJsonValidJson: true,
         isSchemaJsonValidAgainstProtocol: false,
-        schemaValidationError: `messages[${i}] ${detail}`,
+        schemaValidationError: `${prefix}${normalized.error}`,
       };
+    }
+
+    for (let i = 0; i < normalized.length; i++) {
+      const msg = normalized[i];
+      const ok = validate(msg);
+      if (!ok) {
+        const detail = formatPrimaryAjvError(msg, validate.errors);
+        return {
+          isSchemaJsonBlockFound: true,
+          isSchemaJsonValidJson: true,
+          isSchemaJsonValidAgainstProtocol: false,
+          schemaValidationError: `${prefix}messages[${i}] ${detail}`,
+        };
+      }
     }
   }
 

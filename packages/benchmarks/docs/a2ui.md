@@ -72,13 +72,12 @@
 | 按场景裁剪 catalog / message 类型 | 先保证协议门禁可比；裁剪属后续优化 |
 | 与 GenUI 共用 `specificPrompt` | 两种围栏语义冲突 |
 | JSON `repairJson`（GenUI 有） | A2UI 官方契约偏严格 parse；对比时注意不对称 |
-| 合并校验多个 `<a2ui-json>` 块 | MVP 只取**首个**块；后续可改为全量/末个非空 |
 
 重录 contextual 时同一套 `buildA2uiSystemPrompt()`（见 `scripts/capture-a2ui-contextual.mts`），保证历史 assistant 与跑测 system 同源。
 
 #### 与校验 / 观测的衔接
 
-- 模型按 Workflow 产出 → 报告用 `extractA2uiJsonBlock` 抽 `<a2ui-json>` → AJV 校验消息 envelope
+- 模型按 Workflow 产出 → 报告用 `extractAllA2uiJsonBlocks` 抽**全部** `<a2ui-json>` → 逐块 parse + 逐条 AJV（与「one or more blocks」一致）
 - `firstObservableComponentMs`：流里首次 `"id": "root"`（见下节），与 Workflow 的 top-down 约定一致
 
 ### 三层协议门禁
