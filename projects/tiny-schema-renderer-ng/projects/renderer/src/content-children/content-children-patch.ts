@@ -2,6 +2,7 @@ import {
   QueryList,
   Type,
   signal,
+  ɵgetDirectives,
   ɵgetLContext as getLContext,
 } from '@angular/core';
 import { SIGNAL } from '@angular/core/primitives/signals';
@@ -271,6 +272,47 @@ function getExportAsNames(type: Type<any> | null | undefined): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Component + host directives on an outlet (Angular content queries can target either).
+ * Prefer live `ɵgetDirectives(hostEl)`; fall back to component instance + declared directive types.
+ */
+export function getOutletQueryCandidates(outlet: ComponentOutlet): object[] {
+  const seen = new Set<object>();
+  const result: object[] = [];
+  const add = (value: object | null | undefined) => {
+    if (value != null && !seen.has(value)) {
+      seen.add(value);
+      result.push(value);
+    }
+  };
+
+  const hostEl = outlet.componentRef?.location?.nativeElement;
+  if (hostEl != null) {
+    try {
+      for (const dir of ɵgetDirectives(hostEl)) {
+        add(dir as object);
+      }
+    } catch {
+      // Host may not be an Angular element yet.
+    }
+  }
+
+  add(outlet.componentInstance);
+
+  const injector = outlet.componentInjector ?? outlet.componentRef?.injector;
+  if (injector) {
+    for (const Dir of outlet.ngComponentOutletDirectives ?? []) {
+      try {
+        add(injector.get(Dir, null, { optional: true, self: true }) as object | null);
+      } catch {
+        // ignore
+      }
+    }
+  }
+
+  return result;
+}
+
 /** Local names that string predicates (`contentChild('x')`) can match on this outlet. */
 export function getContentOutletQueryNames(outlet: ComponentOutlet): string[] {
   const names = new Set<string>();
@@ -280,6 +322,16 @@ export function getContentOutletQueryNames(outlet: ComponentOutlet): string[] {
   }
   for (const name of getExportAsNames(outlet.ngComponentOutlet)) {
     names.add(name);
+  }
+  for (const Dir of outlet.ngComponentOutletDirectives ?? []) {
+    for (const name of getExportAsNames(Dir)) {
+      names.add(name);
+    }
+  }
+  for (const candidate of getOutletQueryCandidates(outlet)) {
+    for (const name of getExportAsNames(candidate.constructor as Type<any>)) {
+      names.add(name);
+    }
   }
   return [...names];
 }
@@ -292,39 +344,57 @@ function normalizePredicates(predicate: unknown): unknown[] {
   return Array.isArray(predicate) ? predicate : [predicate];
 }
 
-function matchesPredicate(
-  child: unknown,
-  predicate: unknown,
-  localNames: string[],
-): boolean {
+/**
+ * Pick the instance a content query should read from one child outlet
+ * (component or directive), following Angular selector / exportAs / refName rules.
+ */
+function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknown | undefined {
+  const candidates = getOutletQueryCandidates(outlet);
+  if (!candidates.length) {
+    return undefined;
+  }
+
   const predicates = normalizePredicates(predicate);
   if (!predicates.length) {
-    return true;
+    return outlet.componentInstance ?? candidates[0];
   }
-  return predicates.some((p) => {
+
+  for (const p of predicates) {
     if (typeof p === 'string') {
-      return localNames.includes(p);
+      // schema.refName ≈ template `#name` on the host → component instance
+      if (outletLocalRefs.get(outlet) === p) {
+        return outlet.componentInstance ?? candidates[0];
+      }
+      // exportAs on component or any host directive
+      for (const candidate of candidates) {
+        if (getExportAsNames(candidate.constructor as Type<any>).includes(p)) {
+          return candidate;
+        }
+      }
+      continue;
     }
     if (typeof p === 'function') {
-      return child instanceof (p as Type<unknown>);
+      const match = candidates.find((candidate) => candidate instanceof (p as Type<unknown>));
+      if (match) {
+        return match;
+      }
     }
-    return false;
-  });
+  }
+  return undefined;
 }
 
 export function resolvePatchResults(
   target: ContentQueryPatchTarget,
   childOutlets: ComponentOutlet[],
 ): unknown[] {
-  return childOutlets
-    .filter((outlet) => {
-      const instance = outlet.componentInstance;
-      if (instance == null) {
-        return false;
-      }
-      return matchesPredicate(instance, target.predicate, getContentOutletQueryNames(outlet));
-    })
-    .map((outlet) => outlet.componentInstance!);
+  const results: unknown[] = [];
+  for (const outlet of childOutlets) {
+    const match = pickMatchForOutlet(outlet, target.predicate);
+    if (match != null) {
+      results.push(match);
+    }
+  }
+  return results;
 }
 
 function sameQueryResults(a: unknown[], b: unknown[]): boolean {

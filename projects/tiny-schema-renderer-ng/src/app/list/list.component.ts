@@ -7,6 +7,7 @@ import {
   contentChildren,
 } from '@angular/core';
 import { ListItemComponent } from './list-item.component';
+import { ListItemMarkerDirective } from './list-item-marker.directive';
 
 /**
  * Demo material — normal pattern: bind QueryList / content queries in template.
@@ -23,6 +24,8 @@ import { ListItemComponent } from './list-item.component';
         <div>contentChildren() length: {{ signalItems().length }}</div>
         <div>contentChild() first: {{ signalFirst()?.label || '(none)' }}</div>
         <div>contentChild('listHeader'): {{ namedHeader()?.label || '(none)' }}</div>
+        <div>contentChildren(Marker) length: {{ markers().length }}</div>
+        <div>contentChild('listItemMarker'): {{ namedMarker() ? 'yes' : '(none)' }}</div>
       </div>
       <ul class="demo-list__body">
         <ng-content></ng-content>
@@ -61,4 +64,8 @@ export class ListComponent {
   readonly signalFirst = contentChild(ListItemComponent);
   /** String selector — matches schema child with `"refName": "listHeader"` (like `#listHeader`). */
   readonly namedHeader = contentChild<ListItemComponent>('listHeader');
+
+  /** Directive queries — matches host directives applied via schema.directives. */
+  readonly markers = contentChildren(ListItemMarkerDirective);
+  readonly namedMarker = contentChild<ListItemMarkerDirective>('listItemMarker');
 }

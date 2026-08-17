@@ -108,6 +108,11 @@
                 "value": "this.state.listItems"
               },
               "loopArgs": ["item", "index"],
+              "directives": [
+                {
+                  "directiveName": "ListItemMarker"
+                }
+              ],
               "props": {
                 "label": {
                   "type": "JSExpression",
@@ -115,12 +120,23 @@
                 }
               }
             },
-                        {
+            {
               "componentName": "ListItem",
               "refName": "listHeader",
               "props": {
                 "label": "命名头 (refName=listHeader)"
               }
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "label": "单度挂载指令"
+              },
+              "directives": [
+                {
+                  "directiveName": "ListItemMarker"
+                }
+              ]
             }
           ]
         },

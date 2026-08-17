@@ -24,6 +24,7 @@ export {
   discoverContentQueryTargets,
   getContentOutletLocalRef,
   getContentOutletQueryNames,
+  getOutletQueryCandidates,
   patchContentQuery,
   patchOutletContentQueries,
   setContentOutletLocalRef,
