@@ -178,24 +178,24 @@ export class RendererMain implements OnDestroy {
       this.pageOnUnmounted = onUnmountedFn;
       this.ngZone.run(() => {
         this.cdr.detectChanges();
-        this.refreshOutletTreeJson();
+        // this.refreshOutletTreeJson();
       });
     } catch (error) {
       console.error('RendererMain onMounted error:', error);
     }
   }
 
-  private refreshOutletTreeJson() {
-    if (!this.contentChildrenService) {
-      this.outletTreeJson = '';
-      return;
-    }
-    queueMicrotask(() => {
-      this.outletTreeJson = this.contentChildrenService!.serializeTreeJson();
-      console.log('[content-children]', this.contentChildrenService!.serializeTree());
-      this.cdr.detectChanges();
-    });
-  }
+  // private refreshOutletTreeJson() {
+  //   if (!this.contentChildrenService) {
+  //     this.outletTreeJson = '';
+  //     return;
+  //   }
+  //   queueMicrotask(() => {
+  //     this.outletTreeJson = this.contentChildrenService!.serializeTreeJson();
+  //     console.log('[content-children]', this.contentChildrenService!.serializeTree());
+  //     this.cdr.detectChanges();
+  //   });
+  // }
 
   logOutletTree() {
     console.log('[content-children]', this.contentChildrenService?.serializeTree());

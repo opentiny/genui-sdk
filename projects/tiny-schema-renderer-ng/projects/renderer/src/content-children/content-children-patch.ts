@@ -181,7 +181,7 @@ function findLQueries(lView: any): { queries: Array<{ queryList: QueryList<unkno
   return null;
 }
 
-function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: unknown } }> } | null {
+function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: unknown }; _declarationNodeIndex?: number }> } | null {
   const tView = lView?.[1];
   const queries = tView?.queries;
   if (!queries) {
@@ -195,6 +195,34 @@ function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: u
     return { queries };
   }
   return null;
+}
+
+/**
+ * Ivy: view queries are created with declarationNodeIndex -1; content queries use the host tNode index.
+ * Also tView.contentQueries lists content-query indices as [queryIndex, directiveIndex, ...].
+ * Patching ViewChild QueryLists (e.g. TiTabs #slider) wipes them and breaks slider position.
+ */
+function isContentQueryIndex(lView: any, queryIndex: number): boolean {
+  const tView = lView?.[1];
+  const contentQueries = tView?.contentQueries;
+  if (Array.isArray(contentQueries) && contentQueries.length) {
+    for (let i = 0; i < contentQueries.length; i += 2) {
+      if (contentQueries[i] === queryIndex) {
+        return true;
+      }
+    }
+    return false;
+  }
+  const tQueries = getTQueries(lView);
+  const tQuery =
+    typeof tView?.queries?.getByIndex === 'function'
+      ? tView.queries.getByIndex(queryIndex)
+      : tQueries?.queries?.[queryIndex];
+  if (tQuery == null) {
+    return false;
+  }
+  // View query: createTQuery(..., -1)
+  return tQuery._declarationNodeIndex !== -1;
 }
 
 /**
@@ -215,6 +243,7 @@ function inferFirstOnly(propertyName: string): boolean {
 /**
  * Discover content-query QueryLists on a component instance.
  * Prefers LView query metadata; falls back to enumerating instance QueryList / query-signal fields.
+ * Skips view queries (@ViewChild / viewChild) — only content queries are patched.
  */
 export function discoverContentQueryTargets(instance: object): ContentQueryPatchTarget[] {
   const targets: ContentQueryPatchTarget[] = [];
@@ -228,6 +257,9 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       const tQueries = getTQueries(lView);
       if (lQueries) {
         lQueries.queries.forEach((lQuery, index) => {
+          if (!isContentQueryIndex(lView, index)) {
+            return;
+          }
           const queryList = lQuery.queryList;
           if (!(queryList instanceof QueryList) || seen.has(queryList)) {
             return;
@@ -709,7 +741,8 @@ export function patchOutletContentQueries(
   if (syncHostSignalShims(parentInstance, childOutlets, parentOutlet)) {
     shimChanged = true;
   }
-  if (syncDecoratorContentChildFields(parentInstance, childInstances, projected)) {
+  bindDecoratorQueryPropertyNames(parentInstance, targets);
+  if (syncHostFieldsFromContentQueryTargets(parentInstance, targets)) {
     queryChanged = true;
   }
 
@@ -729,53 +762,61 @@ export function patchOutletContentQueries(
 }
 
 /**
- * Ivy stores @ContentChild as QueryList in LView, then writes `ctx.prop = queryList.first`.
- * After we reset the QueryList post-CD, mirror that write onto host fields.
- * @returns true if any host field changed
+ * Map decorator @ContentChild QueryLists (no propertyName yet) to host fields using the
+ * compiled `ɵcmp.contentQueries` update assignments (`ctx.firstItem = _t.first`).
+ * Only touches properties Angular itself writes — never guesses by field-name regex.
  */
-function syncDecoratorContentChildFields(
+function bindDecoratorQueryPropertyNames(
   instance: object,
-  childInstances: unknown[],
-  projected: ProjectedTemplateEntry[],
+  targets: ContentQueryPatchTarget[],
+): void {
+  const contentQueries = (instance.constructor as any)?.ɵcmp?.contentQueries;
+  if (typeof contentQueries !== 'function') {
+    return;
+  }
+  const src = Function.prototype.toString.call(contentQueries);
+  // `ctx.foo = _t.first` → @ContentChild
+  const firstProps = [...src.matchAll(/ctx\.([A-Za-z_][\w]*)\s*=\s*_t\.first/g)].map(
+    (m) => m[1],
+  );
+  if (!firstProps.length) {
+    return;
+  }
+  // LView order: signals (kind=signal) + ContentChildren (propertyName set, field is QueryList)
+  // + @ContentChild QueryLists (still propertyName null). Match the latter to firstProps in order.
+  const unboundChildQueries = targets.filter(
+    (t) => t.kind === 'query-list' && !t.propertyName,
+  );
+  for (let i = 0; i < firstProps.length && i < unboundChildQueries.length; i++) {
+    unboundChildQueries[i].propertyName = firstProps[i];
+    unboundChildQueries[i].firstOnly = true;
+  }
+}
+
+/**
+ * After QueryList.reset, Ivy would do `ctx.prop = queryList.first` when queryRefresh returns
+ * true. We clear dirty on reset, so mirror that write only for targets that are known content
+ * queries with a resolved propertyName.
+ */
+function syncHostFieldsFromContentQueryTargets(
+  instance: object,
+  targets: ContentQueryPatchTarget[],
 ): boolean {
   let changed = false;
-  for (const key of Object.keys(instance)) {
-    const value = (instance as any)[key];
-    if (value instanceof QueryList || typeof value === 'function') {
+  for (const target of targets) {
+    if (target.kind === 'signal' || !target.propertyName) {
       continue;
     }
-    // @ContentChild(TemplateRef) host field
-    if (
-      (value == null || value instanceof TemplateRef) &&
-      /template|TemplateRef/i.test(key) &&
-      projected.length
-    ) {
-      const next = projected[0].templateRef;
-      if (value !== next) {
-        (instance as any)[key] = next;
-        changed = true;
-      }
+    const prop = target.propertyName;
+    const current = (instance as any)[prop];
+    // @ContentChildren: host field IS the QueryList — already updated by reset().
+    if (current === target.queryList) {
       continue;
     }
-    if (!childInstances.length) {
-      continue;
-    }
-    const first = childInstances[0];
-    if (value == null) {
-      if (/Item$|Child$|^first[A-Z]/i.test(key)) {
-        (instance as any)[key] = first;
-        changed = true;
-      }
-      continue;
-    }
-    if (value instanceof TemplateRef) {
-      continue;
-    }
-    const matched = childInstances.find(
-      (child) => (child as any)?.constructor === (value as any)?.constructor,
-    );
-    if (matched && matched !== value) {
-      (instance as any)[key] = matched;
+    // @ContentChild: host field holds the single match (or null).
+    const next = target.queryList.toArray()[0] ?? null;
+    if (current !== next) {
+      (instance as any)[prop] = next;
       changed = true;
     }
   }
