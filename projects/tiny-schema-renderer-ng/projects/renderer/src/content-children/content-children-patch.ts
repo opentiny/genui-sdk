@@ -1,5 +1,6 @@
 import {
   QueryList,
+  TemplateRef,
   Type,
   signal,
   ɵgetDirectives,
@@ -46,6 +47,17 @@ const hostShimBindings = new WeakMap<
  */
 const outletLocalRefs = new WeakMap<ComponentOutlet, string>();
 
+/** Schema `NgTemplate` nodes → real TemplateRefs projected under a parent outlet. */
+export interface ProjectedTemplateEntry {
+  templateRef: TemplateRef<unknown>;
+  refName: string | null;
+}
+
+const projectedTemplatesByParent = new WeakMap<ComponentOutlet, ProjectedTemplateEntry[]>();
+
+/** Schema componentName for the NgTemplate bypass (not a material). */
+export const NG_TEMPLATE_SCHEMA_NAME = 'NgTemplate';
+
 /** Register a local template-ref name for an outlet (from schema.refName). */
 export function setContentOutletLocalRef(
   outlet: ComponentOutlet,
@@ -60,6 +72,43 @@ export function setContentOutletLocalRef(
 
 export function getContentOutletLocalRef(outlet: ComponentOutlet): string | null {
   return outletLocalRefs.get(outlet) ?? null;
+}
+
+export function registerProjectedTemplate(
+  parentOutlet: ComponentOutlet,
+  templateRef: TemplateRef<unknown>,
+  refName?: string | null,
+): void {
+  let list = projectedTemplatesByParent.get(parentOutlet);
+  if (!list) {
+    list = [];
+    projectedTemplatesByParent.set(parentOutlet, list);
+  }
+  const existing = list.find((e) => e.templateRef === templateRef);
+  const name = typeof refName === 'string' && refName.trim() ? refName.trim() : null;
+  if (existing) {
+    existing.refName = name;
+    return;
+  }
+  list.push({ templateRef, refName: name });
+}
+
+export function unregisterProjectedTemplate(
+  parentOutlet: ComponentOutlet,
+  templateRef: TemplateRef<unknown>,
+): void {
+  const list = projectedTemplatesByParent.get(parentOutlet);
+  if (!list?.length) {
+    return;
+  }
+  const index = list.findIndex((e) => e.templateRef === templateRef);
+  if (index >= 0) {
+    list.splice(index, 1);
+  }
+}
+
+export function getProjectedTemplates(parentOutlet: ComponentOutlet): ProjectedTemplateEntry[] {
+  return projectedTemplatesByParent.get(parentOutlet)?.slice() ?? [];
 }
 
 function rememberShimBinding(
@@ -344,6 +393,32 @@ function normalizePredicates(predicate: unknown): unknown[] {
   return Array.isArray(predicate) ? predicate : [predicate];
 }
 
+function isTemplateRefType(value: unknown): boolean {
+  return value === TemplateRef;
+}
+
+function predicatesWantTemplateRef(predicate: unknown): boolean {
+  return normalizePredicates(predicate).some(isTemplateRefType);
+}
+
+function compareDomNodes(a: Node | null | undefined, b: Node | null | undefined): number {
+  if (!a || !b || a === b) {
+    return 0;
+  }
+  const position = a.compareDocumentPosition(b);
+  if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+    return -1;
+  }
+  if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+    return 1;
+  }
+  return 0;
+}
+
+function getTemplateAnchorNode(templateRef: TemplateRef<unknown>): Node | null {
+  return (templateRef.elementRef?.nativeElement as Node | undefined) ?? null;
+}
+
 /**
  * Pick the instance a content query should read from one child outlet
  * (component or directive), following Angular selector / exportAs / refName rules.
@@ -359,7 +434,15 @@ function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknow
     return outlet.componentInstance ?? candidates[0];
   }
 
+  // TemplateRef is never an outlet host instance — handled via projected templates.
+  if (predicates.every(isTemplateRefType)) {
+    return undefined;
+  }
+
   for (const p of predicates) {
+    if (isTemplateRefType(p)) {
+      continue;
+    }
     if (typeof p === 'string') {
       // schema.refName ≈ template `#name` on the host → component instance
       if (outletLocalRefs.get(outlet) === p) {
@@ -383,17 +466,83 @@ function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknow
   return undefined;
 }
 
+function pickMatchForProjectedTemplate(
+  entry: ProjectedTemplateEntry,
+  predicate: unknown,
+): TemplateRef<unknown> | undefined {
+  const predicates = normalizePredicates(predicate);
+  if (!predicates.length) {
+    return undefined;
+  }
+  for (const p of predicates) {
+    if (isTemplateRefType(p)) {
+      return entry.templateRef;
+    }
+    if (typeof p === 'string' && entry.refName === p) {
+      return entry.templateRef;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolve content-query matches for one parent: child outlets + schema NgTemplate TemplateRefs,
+ * ordered by DOM position (same as Angular content order).
+ */
 export function resolvePatchResults(
   target: ContentQueryPatchTarget,
   childOutlets: ComponentOutlet[],
+  parentOutlet?: ComponentOutlet | null,
 ): unknown[] {
-  const results: unknown[] = [];
-  for (const outlet of childOutlets) {
-    const match = pickMatchForOutlet(outlet, target.predicate);
-    if (match != null) {
-      results.push(match);
+  type Entry =
+    | { kind: 'outlet'; outlet: ComponentOutlet; node: Node | null }
+    | { kind: 'template'; entry: ProjectedTemplateEntry; node: Node | null };
+
+  const entries: Entry[] = [
+    ...childOutlets.map((outlet) => ({
+      kind: 'outlet' as const,
+      outlet,
+      node: (outlet.componentRef?.location?.nativeElement as Node | undefined) ?? null,
+    })),
+  ];
+
+  if (parentOutlet) {
+    for (const entry of getProjectedTemplates(parentOutlet)) {
+      entries.push({
+        kind: 'template',
+        entry,
+        node: getTemplateAnchorNode(entry.templateRef),
+      });
     }
   }
+
+  entries.sort((a, b) => compareDomNodes(a.node, b.node));
+
+  const results: unknown[] = [];
+  for (const item of entries) {
+    if (item.kind === 'outlet') {
+      const match = pickMatchForOutlet(item.outlet, target.predicate);
+      if (match != null) {
+        results.push(match);
+      }
+    } else {
+      const match = pickMatchForProjectedTemplate(item.entry, target.predicate);
+      if (match != null) {
+        results.push(match);
+      }
+    }
+  }
+
+  // TemplateRef-only queries: if DOM anchors were not comparable yet, still return registrations.
+  if (!results.length && parentOutlet && predicatesWantTemplateRef(target.predicate)) {
+    for (const entry of getProjectedTemplates(parentOutlet)) {
+      const match = pickMatchForProjectedTemplate(entry, target.predicate);
+      if (match != null) {
+        results.push(match);
+      }
+    }
+  }
+
   return results;
 }
 
@@ -449,7 +598,11 @@ function installOrUpdateSignalShim(
 }
 
 /** Update all shims previously installed on this host (survives field replace). */
-function syncHostSignalShims(hostInstance: object, childOutlets: ComponentOutlet[]): boolean {
+function syncHostSignalShims(
+  hostInstance: object,
+  childOutlets: ComponentOutlet[],
+  parentOutlet: ComponentOutlet,
+): boolean {
   const bindings = hostShimBindings.get(hostInstance);
   if (!bindings?.length) {
     return false;
@@ -470,6 +623,7 @@ function syncHostSignalShims(hostInstance: object, childOutlets: ComponentOutlet
         predicate: binding.predicate,
       },
       childOutlets,
+      parentOutlet,
     );
     if (
       installOrUpdateSignalShim(
@@ -494,8 +648,9 @@ function syncHostSignalShims(hostInstance: object, childOutlets: ComponentOutlet
 export function patchContentQuery(
   target: ContentQueryPatchTarget,
   childOutlets: ComponentOutlet[],
+  parentOutlet: ComponentOutlet,
 ): boolean {
-  const results = resolvePatchResults(target, childOutlets);
+  const results = resolvePatchResults(target, childOutlets, parentOutlet);
   const prev = target.queryList.toArray();
   const changed = !sameQueryResults(prev, results);
 
@@ -539,21 +694,22 @@ export function patchOutletContentQueries(
   const childInstances = childOutlets
     .map((child) => child.componentInstance)
     .filter((instance): instance is object => instance != null);
+  const projected = getProjectedTemplates(parentOutlet);
 
-  const structureKey = `${childInstances.length}:${childrenStructureKey(childInstances)}`;
+  const structureKey = `${childInstances.length}:${childrenStructureKey(childInstances)}#tpl:${projected.length}:${projected.map((p) => p.refName ?? '').join(',')}`;
   const targets = discoverContentQueryTargets(parentInstance);
   let queryChanged = false;
   let shimChanged = false;
   for (const target of targets) {
-    if (patchContentQuery(target, childOutlets)) {
+    if (patchContentQuery(target, childOutlets, parentOutlet)) {
       queryChanged = true;
     }
   }
   // After first install, instance fields are plain signals — still update via registry.
-  if (syncHostSignalShims(parentInstance, childOutlets)) {
+  if (syncHostSignalShims(parentInstance, childOutlets, parentOutlet)) {
     shimChanged = true;
   }
-  if (syncDecoratorContentChildFields(parentInstance, childInstances)) {
+  if (syncDecoratorContentChildFields(parentInstance, childInstances, projected)) {
     queryChanged = true;
   }
 
@@ -577,22 +733,42 @@ export function patchOutletContentQueries(
  * After we reset the QueryList post-CD, mirror that write onto host fields.
  * @returns true if any host field changed
  */
-function syncDecoratorContentChildFields(instance: object, childInstances: unknown[]): boolean {
-  if (!childInstances.length) {
-    return false;
-  }
-  const first = childInstances[0];
+function syncDecoratorContentChildFields(
+  instance: object,
+  childInstances: unknown[],
+  projected: ProjectedTemplateEntry[],
+): boolean {
   let changed = false;
   for (const key of Object.keys(instance)) {
     const value = (instance as any)[key];
     if (value instanceof QueryList || typeof value === 'function') {
       continue;
     }
+    // @ContentChild(TemplateRef) host field
+    if (
+      (value == null || value instanceof TemplateRef) &&
+      /template|TemplateRef/i.test(key) &&
+      projected.length
+    ) {
+      const next = projected[0].templateRef;
+      if (value !== next) {
+        (instance as any)[key] = next;
+        changed = true;
+      }
+      continue;
+    }
+    if (!childInstances.length) {
+      continue;
+    }
+    const first = childInstances[0];
     if (value == null) {
       if (/Item$|Child$|^first[A-Z]/i.test(key)) {
         (instance as any)[key] = first;
         changed = true;
       }
+      continue;
+    }
+    if (value instanceof TemplateRef) {
       continue;
     }
     const matched = childInstances.find(

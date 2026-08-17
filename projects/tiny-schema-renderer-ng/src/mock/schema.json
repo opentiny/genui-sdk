@@ -122,6 +122,39 @@
             },
             {
               "componentName": "ListItem",
+              "props": {
+                "label": "自定义 TemplateRef"
+              },
+              "children": [
+                {
+                  "componentName": "NgTemplate",
+                  "children": [
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "style": "color: #2563eb; font-weight: 600;"
+                      },
+                      "children": "哈哈哈来自 contentChild(TemplateRef)"
+                    }
+                  ]
+                },
+                {
+                  "componentName": "NgTemplate",
+                  "refName": "itemBody",
+                  "children": [
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "style": "color: #2563eb; font-weight: 600;"
+                      },
+                      "children": "哈哈哈来自 contentChild('itemBody')"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "ListItem",
               "refName": "listHeader",
               "props": {
                 "label": "命名头 (refName=listHeader)"

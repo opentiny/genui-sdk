@@ -13,10 +13,17 @@ export {
   CONTENT_CHILDREN_TRACK_DIRECTIVES,
   ContentChildrenService,
   ContentChildrenTrackDirective,
+  NgSchemaTemplateDirective,
   CONTENT_CHILDREN_OUTLET,
+  NG_TEMPLATE_SCHEMA_NAME,
   getComponentOutletLabel,
   discoverContentQueryTargets,
   patchContentQuery,
   patchOutletContentQueries,
 } from './content-children';
-export type { OutletSnapshot, TreeNode, ContentQueryPatchTarget } from './content-children';
+export type {
+  OutletSnapshot,
+  TreeNode,
+  ContentQueryPatchTarget,
+  ProjectedTemplateEntry,
+} from './content-children';

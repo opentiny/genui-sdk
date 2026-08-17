@@ -27,50 +27,80 @@
     </ng-template>
   </ng-container>
   <ng-template #renderElement let-index="index" let-mergeScope="mergeScope">
-    <ng-template
-      [componentOutlet]="schema.componentName | getComponent"
-      [componentOutletNgModule]="schema.componentName | getModuleRef"
-      [componentOutletInjector]="injector"
-      [componentOutletProps]="context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName"
-      [componentOutletDirectives]="schema.directives | autoApplyDirectives: schema | getDirectives "
-      [componentOutletContent]="
-        {
-          children: schema.children,
-          scope: mergeScope,
-        } | embeddedView: childrenTemplate : viewContainerRef
-      "
-      [contentChildrenRef]="schema.refName"
-      attrAndEvent
-      [attrs]="
-        [
-          context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName | propsFilter: 'attributes' : (schema.componentName | getComponent),
-          internalAttributes
-        ] | mergeObject
-      "
-      [events]="
-        [
-          context | parseData: schema.props : mergeScope | propsFilter: 'events' : (schema.componentName | getComponent),
-        ] | mergeObject
-      "
-      #componentOutlet="componentOutlet"
-    ></ng-template>
+    <!-- NgTemplate is not a host material — only valid as projected content (see childrenTemplate). -->
+    <ng-container *ngIf="schema.componentName !== 'NgTemplate'">
+      <ng-template
+        [componentOutlet]="schema.componentName | getComponent"
+        [componentOutletNgModule]="schema.componentName | getModuleRef"
+        [componentOutletInjector]="injector"
+        [componentOutletProps]="context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName"
+        [componentOutletDirectives]="schema.directives | autoApplyDirectives: schema | getDirectives "
+        [componentOutletContent]="
+          {
+            children: schema.children,
+            scope: mergeScope,
+          } | embeddedView: childrenTemplate : viewContainerRef
+        "
+        [contentChildrenRef]="schema.refName"
+        attrAndEvent
+        [attrs]="
+          [
+            context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName | propsFilter: 'attributes' : (schema.componentName | getComponent),
+            internalAttributes
+          ] | mergeObject
+        "
+        [events]="
+          [
+            context | parseData: schema.props : mergeScope | propsFilter: 'events' : (schema.componentName | getComponent),
+          ] | mergeObject
+        "
+        #componentOutlet="componentOutlet"
+      ></ng-template>
 
-    <ng-template #childrenTemplate let-children="children" let-scope="scope">
-      <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
-        <ng-container *ngFor="let child of children">
-          <ng-template
-            rendererTemplate
-            [schema]="child"
-            [scope]="scope"
-            [parent]="schema"
-            [template]="template"
-            [injector]="componentOutlet.componentInjector"
-          ></ng-template>
+      <ng-template #childrenTemplate let-children="children" let-scope="scope">
+        <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
+          <ng-container *ngFor="let child of children">
+            <!--
+              A: schema NgTemplate → real <ng-template> in projectableNodes.
+              E: ngSchemaTemplate registers TemplateRef on parent ComponentOutlet for ContentChild(TemplateRef).
+            -->
+            <ng-container *ngIf="child.componentName === 'NgTemplate'; else normalChild">
+              <ng-template
+                ngSchemaTemplate
+                [ngSchemaTemplateParent]="componentOutlet"
+                [ngSchemaTemplateRefName]="child.refName"
+              >
+                <ng-container *ngIf="(child.children | isArray)">
+                  <ng-container *ngFor="let c of child.children">
+                    <ng-template
+                      rendererTemplate
+                      [schema]="c"
+                      [scope]="scope"
+                      [parent]="child"
+                      [template]="template"
+                      [injector]="componentOutlet.componentInjector"
+                    ></ng-template>
+                  </ng-container>
+                </ng-container>
+                <ng-container *ngIf="child.children | isString">{{ child.children }}</ng-container>
+              </ng-template>
+            </ng-container>
+            <ng-template #normalChild>
+              <ng-template
+                rendererTemplate
+                [schema]="child"
+                [scope]="scope"
+                [parent]="schema"
+                [template]="template"
+                [injector]="componentOutlet.componentInjector"
+              ></ng-template>
+            </ng-template>
+          </ng-container>
         </ng-container>
-      </ng-container>
-      <ng-container *ngIf="children | isString">
-        {{ children }}
-      </ng-container>
-    </ng-template>
+        <ng-container *ngIf="children | isString">
+          {{ children }}
+        </ng-container>
+      </ng-template>
+    </ng-container>
   </ng-template>
 </ng-template>
