@@ -242,7 +242,7 @@
       background: rgba(0, 0, 0, 0.18);
     }
     .toggle-row + .toggle-row { margin-top: 8px; }
-    .toggle-row .meta { display: grid; gap: 2px; }
+    .toggle-row .meta { display: grid; gap: 2px; min-width: 0; }
     .toggle-row .meta strong {
       font-size: 0.88rem;
       font-weight: 600;
@@ -251,6 +251,28 @@
     .toggle-row .meta small {
       color: var(--faint);
       font-size: 0.75rem;
+    }
+    .toggle-row .seg {
+      flex-shrink: 0;
+    }
+    .toggle-row .seg button {
+      padding: 6px 11px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+    @media (max-width: 640px) {
+      .toggle-row.plain-mode-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .toggle-row.plain-mode-row .seg {
+        display: flex;
+        width: 100%;
+      }
+      .toggle-row.plain-mode-row .seg button {
+        flex: 1;
+        text-align: center;
+      }
     }
     .switch {
       position: relative;
@@ -620,6 +642,8 @@
       protocol: 'genui',
       framework: 'Vue',
       materialsVariant: 'standard',
+      /** System 对照：full | both | plain */
+      plainMode: 'full',
       runState: 'idle',
     };
 
@@ -873,6 +897,11 @@
       state.protocol = d.protocol === 'a2ui' ? 'a2ui' : 'genui';
       state.framework = d.framework || 'Vue';
       state.materialsVariant = d.materialsVariant || 'standard';
+      state.plainMode = d.compareEmptySystemPlainOnly
+        ? 'plain'
+        : d.compareEmptySystem
+          ? 'both'
+          : 'full';
 
       const defaultModels = Array.isArray(d.models) && d.models.length
         ? d.models
@@ -993,13 +1022,16 @@
                   <div class="meta"><strong>跳过已存在样本</strong><small>续跑时默认开启</small></div>
                   <label class="switch"><input type="checkbox" id="skipExisting" ${d.skipExistingSampleFiles ? 'checked' : ''}/><span></span></label>
                 </div>
-                <div class="toggle-row">
-                  <div class="meta"><strong>额外生成 plain（空 system）</strong><small>与「仅 plain」互斥；full + plain</small></div>
-                  <label class="switch"><input type="checkbox" id="compareEmpty" ${d.compareEmptySystem && !d.compareEmptySystemPlainOnly ? 'checked' : ''}/><span></span></label>
-                </div>
-                <div class="toggle-row">
-                  <div class="meta"><strong>仅 plain</strong><small>与「额外 plain」互斥；不生成 full</small></div>
-                  <label class="switch"><input type="checkbox" id="plainOnly" ${d.compareEmptySystemPlainOnly ? 'checked' : ''}/><span></span></label>
+                <div class="toggle-row plain-mode-row">
+                  <div class="meta">
+                    <strong>System 对照</strong>
+                    <small>plain = 空 system，生成纯文本样本；full = 系统 + 纯文本</small>
+                  </div>
+                  <div class="seg" id="plainModeSeg">
+                    <button type="button" data-v="full" aria-pressed="${!d.compareEmptySystem && !d.compareEmptySystemPlainOnly}">仅 full</button>
+                    <button type="button" data-v="both" aria-pressed="${Boolean(d.compareEmptySystem && !d.compareEmptySystemPlainOnly)}">full + plain</button>
+                    <button type="button" data-v="plain" aria-pressed="${Boolean(d.compareEmptySystemPlainOnly)}">仅 plain</button>
+                  </div>
                 </div>
                 <div class="toggle-row">
                   <div class="meta"><strong>写出 Excel</strong><small>report_&lt;runDir&gt;.xlsx</small></div>
@@ -1090,13 +1122,19 @@
     }
 
     function bindFormEvents() {
-      const compareEmpty = $('compareEmpty');
-      const plainOnly = $('plainOnly');
-      compareEmpty?.addEventListener('change', () => {
-        if (compareEmpty.checked && plainOnly) plainOnly.checked = false;
-      });
-      plainOnly?.addEventListener('change', () => {
-        if (plainOnly.checked && compareEmpty) compareEmpty.checked = false;
+      // System 对照：三选一（仅 full / full+plain / 仅 plain）
+      state.plainMode = $('plainModeSeg')?.querySelector('button[aria-pressed="true"]')?.getAttribute('data-v') || 'full';
+      $('plainModeSeg')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('button[data-v]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const next = btn.getAttribute('data-v');
+        if (!next || !['full', 'both', 'plain'].includes(next)) return;
+        state.plainMode = next;
+        $('plainModeSeg').querySelectorAll('button').forEach((b) => {
+          b.setAttribute('aria-pressed', String(b === btn));
+        });
       });
 
       $('modelChips')?.addEventListener('click', (e) => {
@@ -1220,8 +1258,8 @@
         repeat: Number($('repeat')?.value || 1),
         concurrency: Number($('concurrency')?.value || 5),
         streamTimeoutMs: Number($('streamTimeoutMs')?.value || 0),
-        compareEmptySystem: $('compareEmpty')?.checked === true && $('plainOnly')?.checked !== true,
-        compareEmptySystemPlainOnly: $('plainOnly')?.checked === true,
+        compareEmptySystem: state.plainMode === 'both',
+        compareEmptySystemPlainOnly: state.plainMode === 'plain',
         targetSampleRunDir: ($('targetSampleRunDir')?.value || '').trim() || undefined,
         skipExistingSampleFiles: $('skipExisting')?.checked === true,
         specificPrompt: $('specificPrompt')?.value ?? '',
