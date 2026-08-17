@@ -133,7 +133,7 @@ UI 配置页提供 **protocol** 下拉，写入同字段。
 
 - `report.json` → `config.protocol`：`genui` \| `a2ui`
 - 样本 JSON 增加可选字段 `protocol`
-- 结论页 / insights 文案若仍写死 `genRootSchema`，以 `config.protocol` 为准解读；已知限制见下文「后续」
+- 结论页 / insights 用通用「协议块 → JSON → 协议通过」漏斗文案，并在配置区展示 `Protocol`
 
 ### 与 GenUI 对照实验
 
@@ -157,5 +157,4 @@ UI 配置页提供 **protocol** 下拉，写入同字段。
 ### 后续（本轮不做）
 
 - 同一次运行内 GenUI + A2UI 并行与并排对比页
-- insights HTML 全面去掉 GenUI 硬编码文案
 - vendor v1.0 / 注入官方 few-shot examples

@@ -144,6 +144,7 @@ function configRows(config) {
   // 短字段在前；列表类（多值）整行放后，避免省略
   const shortRows = [
     ['Run', config.runDir ?? '—'],
+    ['Protocol', config.protocol ?? 'genui'],
     ['Framework', config.framework ?? '—'],
     ['Materials', config.materialsVariant ?? '—'],
     ['Prompt', promptLabel],
@@ -432,24 +433,26 @@ function renderHtml(data) {
       ? `repeat=${stab.repeat ?? 1}，此处为场景间离散度`
       : '各场景平均总耗时：标准差÷均值';
 
-  const protocolCaption =
-    '下图按场景看协议通过率（是否通过 genRootSchema）。上方三格是校验漏斗：抽出代码块 → JSON 可解析 → 协议通过。';
   const proto = dims.protocol || {};
+  const gate = proto.gate || {};
+  const protocolCaption =
+    gate.funnelCaption ||
+    '下图按场景看协议通过率。上方三格是校验漏斗：抽出协议块 → JSON 可解析 → 协议通过。';
   const protocolKpis = `<div class="kpis kpis-3" style="margin-bottom:12px">
       <div class="kpi">
-        <div class="label">抽出 schemaJson 块</div>
+        <div class="label">${esc(gate.blockLabel || '抽出协议块')}</div>
         <div class="value">${esc(String(proto.blockFound ?? '—'))}/${esc(String(proto.runs ?? '—'))}</div>
-        <div class="sub">找到 schemaJson 代码块</div>
+        <div class="sub">${esc(gate.blockSub || '输出中的协议围栏 / 标签块')}</div>
       </div>
       <div class="kpi">
-        <div class="label">JSON 可解析</div>
+        <div class="label">${esc(gate.jsonLabel || 'JSON 可解析')}</div>
         <div class="value">${esc(String(proto.validJson ?? '—'))}/${esc(String(proto.runs ?? '—'))}</div>
-        <div class="sub">块内容能 parse</div>
+        <div class="sub">${esc(gate.jsonSub || '块内容能 parse')}</div>
       </div>
       <div class="kpi ${esc(proto.tone || '')}">
-        <div class="label">协议通过</div>
+        <div class="label">${esc(gate.passLabel || '协议通过')}</div>
         <div class="value">${esc(String(proto.protocolOk ?? '—'))}/${esc(String(proto.runs ?? '—'))}</div>
-        <div class="sub">符合 genRootSchema</div>
+        <div class="sub">${esc(gate.passSub || '符合当前协议 schema')}</div>
       </div>
     </div>`;
 

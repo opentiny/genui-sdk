@@ -52,25 +52,47 @@ function round(n, d = 1) {
 }
 
 /**
+ * 协议门禁文案：通用漏斗用语，避免写死 GenUI（schemaJson / genRootSchema）。
+ * 可选带协议名，便于对照实验。
+ */
+export function protocolGateCopy(protocol) {
+  const id = protocol === 'a2ui' || protocol === 'genui' ? protocol : null;
+  return {
+    id,
+    displayName: id ?? '—',
+    blockLabel: '抽出协议块',
+    blockSub: '输出中的协议围栏 / 标签块',
+    jsonLabel: 'JSON 可解析',
+    jsonSub: '块内容能 parse',
+    passLabel: '协议通过',
+    passSub: '符合当前协议 schema',
+    funnelCaption:
+      '下图按场景看协议通过率。上方三格是校验漏斗：抽出协议块 → JSON 可解析 → 协议通过。',
+    allPassDetail: (runs) => `全部 ${runs} 次运行通过协议校验${id ? `（${id}）` : ''}。`,
+  };
+}
+
+/**
  * Derive short actionable conclusions (HELM-style: quality + efficiency, not one score).
  */
 function buildInsights(payload) {
   const insights = [];
-  const { summary, scenarios, failures, source } = payload;
+  const { summary, scenarios, failures, source, config } = payload;
   const models = source?.models ?? [];
   const passRate = summary.runs ? summary.pass / summary.runs : 0;
+  const gate = protocolGateCopy(config?.protocol);
 
   if (passRate >= 1) {
     insights.push({
       tone: 'success',
       title: '协议门禁全部通过',
-      detail: `全部 ${summary.runs} 次运行通过 genRootSchema 校验。`,
+      detail: gate.allPassDetail(summary.runs),
     });
   } else if (passRate >= 0.85) {
     insights.push({
       tone: 'warning',
       title: '接近通过，仍有协议失败',
-      detail: `${summary.fail}/${summary.runs} 次未通过 schema 校验（通过率 ${Math.round(passRate * 100)}%）。`,
+      detail: `${summary.fail}/${summary.runs} 次未通过协议校验（通过率 ${Math.round(passRate * 100)}%）。`,
     });
   } else {
     insights.push({
@@ -102,7 +124,7 @@ function buildInsights(payload) {
     insights.push({
       tone: 'danger',
       title: '失败模式',
-      detail: `${[...new Set(failedScenarios)].join('、')} → ${uniq.join('；')}。优先修 prompt/materials，不要用 Judge 分数掩盖协议失败。`,
+      detail: `${[...new Set(failedScenarios)].join('、')} → ${uniq.join('；')}。优先修 prompt / 协议约束，不要用 Judge 分数掩盖协议失败。`,
     });
   }
 
@@ -131,7 +153,7 @@ function buildInsights(payload) {
       insights.push({
         tone: 'neutral',
         title: '耗时主要花在生成长度上',
-        detail: `首 token（TTFT）约占端到端 ${Math.round(ttftShare * 100)}% — 优化 schema 体积 / completion tokens 比优化首包更有效。`,
+        detail: `首 token（TTFT）约占端到端 ${Math.round(ttftShare * 100)}% — 优化输出体积 / completion tokens 比优化首包更有效。`,
       });
     }
   }
@@ -197,6 +219,8 @@ function buildDimensions(results, summary, scenarioRows, config) {
     stabilityScore = stabilityScore * 0.7 + (1 - cvPenalty) * 0.3;
   }
 
+  const gate = protocolGateCopy(config?.protocol);
+
   return {
     protocol: {
       id: 'protocol',
@@ -204,7 +228,7 @@ function buildDimensions(results, summary, scenarioRows, config) {
       tone: protocolRate >= 1 ? 'success' : protocolRate >= 0.85 ? 'warning' : 'danger',
       headline: n ? `${protocolOk}/${n}` : '—',
       sub: n ? `${Math.round(protocolRate * 100)}% protocol` : '—',
-      detail: `三层校验通过数：抽出 schemaJson 代码块 ${blockFound}/${n || 0} · JSON 可解析 ${validJson}/${n || 0} · 符合 genRootSchema 协议 ${protocolOk}/${n || 0}`,
+      detail: `三层校验通过数：抽出协议块 ${blockFound}/${n || 0} · JSON 可解析 ${validJson}/${n || 0} · 协议通过 ${protocolOk}/${n || 0}${gate.id ? `（${gate.id}）` : ''}`,
       blockFound,
       validJson,
       protocolOk,
@@ -212,6 +236,7 @@ function buildDimensions(results, summary, scenarioRows, config) {
       blockFoundRate: n ? round(blockFound / n, 4) : 0,
       validJsonRate: n ? round(validJson / n, 4) : 0,
       protocolRate: round(protocolRate, 4),
+      gate,
     },
     stability: {
       id: 'stability',
@@ -499,6 +524,7 @@ export function prepare(report, reportPath) {
 
   const config = {
     runDir: cfg.runDir ?? path.basename(path.dirname(reportPath)),
+    protocol: cfg.protocol === 'a2ui' || cfg.protocol === 'genui' ? cfg.protocol : 'genui',
     framework: cfg.framework ?? null,
     materialsVariant: cfg.materialsVariant ?? null,
     models: Array.isArray(cfg.models) && cfg.models.length ? cfg.models : models,
