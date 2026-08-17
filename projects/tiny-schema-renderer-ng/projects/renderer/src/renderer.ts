@@ -1,7 +1,7 @@
 import { Component, Input, SimpleChanges, Type, ViewContainerRef } from '@angular/core';
 import { parseData } from './parser/schema-parser';
 import { CommonModule } from '@angular/common';
-import { EmbeddedViewPipe } from './embedded-view.pipe';
+import { ProjectNgContentPipe } from './project-ng-content.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { RendererContextService } from './context.service';
 import { LoopScopePipe } from './loop-scope.pipe';
@@ -18,7 +18,7 @@ import { getComponent, getModuleRef } from './parser/material-getter';
   standalone: true,
   imports: [
     CommonModule,
-    EmbeddedViewPipe,
+    ProjectNgContentPipe,
     LoopScopePipe,
     AttrAndEventDirective,
     PropsFilterPipe,

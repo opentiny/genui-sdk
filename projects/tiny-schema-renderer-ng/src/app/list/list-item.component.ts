@@ -9,7 +9,7 @@ import { NgTemplateOutlet } from '@angular/common';
   template: `
     <li class="demo-list-item">
       @if (activeTemplate) {
-        <ng-container *ngTemplateOutlet="activeTemplate; context: templateContext"></ng-container>
+        <ng-container *ngTemplateOutlet="activeTemplate; context: { label: label }"></ng-container>
       } @else {
         <ng-content></ng-content>
         @if (label) {
@@ -40,10 +40,5 @@ export class ListItemComponent {
   /** Prefer named ref; fall back to @ContentChild(TemplateRef). */
   get activeTemplate(): TemplateRef<any> | undefined {
     return this.namedBody() ?? this.templateRef;
-  }
-
-  /** Avoid `{ ... }` object literal in @if template (ICU / EOF JIT parse error). */
-  get templateContext() {
-    return { label: this.label };
   }
 }

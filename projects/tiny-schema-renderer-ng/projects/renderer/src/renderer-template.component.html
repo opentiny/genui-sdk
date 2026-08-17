@@ -39,7 +39,7 @@
           {
             children: schema.children,
             scope: mergeScope,
-          } | embeddedView: childrenTemplate : viewContainerRef
+          } | projectNgContent: childrenTemplate : viewContainerRef : (schema.componentName | getComponent)
         "
         [contentChildrenRef]="schema.refName"
         attrAndEvent

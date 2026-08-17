@@ -27,6 +27,9 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
         <div>contentChildren(Marker) length: {{ markers().length }}</div>
         <div>contentChild('listItemMarker'): {{ namedMarker() ? 'yes' : '(none)' }}</div>
       </div>
+      <div class="demo-list__projected-header">
+        <ng-content select="[header]"></ng-content>
+      </div>
       <ul class="demo-list__body">
         <ng-content></ng-content>
       </ul>
@@ -48,6 +51,11 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
         display: grid;
         gap: 4px;
         font-size: 13px;
+      }
+      .demo-list__projected-header:not(:empty) {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #eff6ff;
       }
       .demo-list__body {
         margin: 0;

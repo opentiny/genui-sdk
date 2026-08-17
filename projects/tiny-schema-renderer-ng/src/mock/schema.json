@@ -157,7 +157,8 @@
               "componentName": "ListItem",
               "refName": "listHeader",
               "props": {
-                "label": "命名头 (refName=listHeader)"
+                "label": "命名头 (refName=listHeader)",
+                "header": true
               }
             },
             {

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 import { getComponent, getModuleRef } from './parser/material-getter';
 
-import { EmbeddedViewPipe } from './embedded-view.pipe';
+import { ProjectNgContentPipe } from './project-ng-content.pipe';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
@@ -70,7 +70,7 @@ export class IsStringPipe implements PipeTransform {
     IsStringPipe,
     GetComponentPipe,
     GetModuleRefPipe,
-    EmbeddedViewPipe,
+    ProjectNgContentPipe,
     LoopScopePipe,
     AttrAndEventDirective,
     PropsFilterPipe,
