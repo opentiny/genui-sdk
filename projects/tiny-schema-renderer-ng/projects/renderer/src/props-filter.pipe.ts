@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform, reflectComponentType, Type } from '@angular/core';
 import { onEventRegex, toNativeEventName, toOnEventName } from './parser/event-utils';
+import { isSchemaRefPropKey } from './schema-ref-binding';
 
 @Pipe({
   name: 'propsFilter',
@@ -16,7 +17,11 @@ export class PropsFilterPipe implements PipeTransform {
     }
     if (typeof component === 'string') {
       if (type === 'attributes') {
-        return this.objectFilterMapper(props || {}, ([key, _]) => !onEventRegex.test(key));
+        return this.objectFilterMapper(
+          props || {},
+          ([key, value]) =>
+            !isSchemaRefPropKey(key) && typeof value !== 'function' && !onEventRegex.test(key),
+        );
       }
       if (type === 'events') {
         return this.objectFilterMapper(props || {}, ([key, _]) => onEventRegex.test(key));
@@ -47,7 +52,9 @@ export class PropsFilterPipe implements PipeTransform {
     if (type === 'attributes') {
       return this.objectFilterMapper(
         props || {},
-        ([key, _]) =>
+        ([key, value]) =>
+          !isSchemaRefPropKey(key) &&
+          typeof value !== 'function' &&
           !onEventRegex.test(key) &&
           !componentType.inputs.some((input) => input.templateName === key),
       );

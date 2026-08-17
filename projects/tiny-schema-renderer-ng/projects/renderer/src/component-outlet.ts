@@ -17,6 +17,7 @@ import {
   Self,
 } from '@angular/core';
 import { toOnEventName } from './parser/event-utils';
+import { isSchemaRefPropKey, SchemaRefBinding } from './schema-ref-binding';
 
 /**
  * Instantiates a {@link /api/core/Component Component} type and inserts its Host View into the current View.
@@ -134,6 +135,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   }
 
   private bindProps: Record<string, any> = {};
+  private readonly schemaRef = new SchemaRefBinding();
 
   constructor(private _viewContainerRef: ViewContainerRef) {}
 
@@ -167,8 +169,12 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     if (changes['ngComponentOutletProps']) {
       this.bindProps = changes['ngComponentOutletProps'].currentValue ?? {};
       this._componentRef?.changeDetectorRef.markForCheck();
+      if (!this._needToReCreateComponentInstance(changes)) {
+        this.schemaRef.syncFromProps(this._componentRef, this.bindProps);
+      }
     }
     if (this._needToReCreateComponentInstance(changes)) {
+      this.schemaRef.clear();
       this._viewContainerRef.clear();
       this._componentRef = undefined;
       this._componentInjector = undefined;
@@ -204,12 +210,14 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           bindings: this.getComponentBindings(this.ngComponentOutlet),
         });
         this._componentInjector = this._componentRef.injector;
+        this.schemaRef.register(this._componentRef, this.bindProps);
       }
     }
   }
 
   /** @docs-private */
   ngOnDestroy() {
+    this.schemaRef.clear();
     this._moduleRef?.destroy();
   }
 
@@ -220,6 +228,9 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     const componentDef = (component as any)['ɵcmp']!;
     const bindings: Binding[] = [];
     Object.keys(componentDef.inputs).forEach((inputKey) => {
+      if (isSchemaRefPropKey(inputKey)) {
+        return;
+      }
       if (inputKey in this.bindProps) {
         bindings.push(inputBinding(inputKey, () => this.bindProps[inputKey]));
       }

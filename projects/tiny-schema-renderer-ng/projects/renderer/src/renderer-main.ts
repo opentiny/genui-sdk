@@ -55,6 +55,7 @@ export class RendererMain implements OnDestroy {
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
+  refs: Record<string, any> = {};
   cssScopeId: string = '';
   /** Debug snapshot — updated after CD so template binding stays stable (NG0100). */
   outletTreeJson = '';
@@ -78,6 +79,7 @@ export class RendererMain implements OnDestroy {
     this.el.nativeElement.setContext = (context: any) => this.contextService.setContext(context);
     this.el.nativeElement.getContext = () => this.contextService.getContext();
     this.el.nativeElement.setState = (state: any) => this._setState(state);
+    this.el.nativeElement.setRefs = (refs: any) => this.setRefs(refs);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -147,6 +149,21 @@ export class RendererMain implements OnDestroy {
     });
   }
 
+  public setRefs(refs: any) {
+    this._setRefs(refs);
+  }
+
+  private _setRefs(data: any, clear: boolean = false) {
+    clear && reset(this.refs);
+    if (!this.pageSchema.refs) {
+      this.pageSchema.refs = data;
+    }
+    Object.assign(this.refs, parseData(data, {}, this.contextService.getContext()) || {});
+    this.contextService.setContext({
+      refs: this.refs,
+    });
+  }
+
   private async setSchema(data: any) {
     if (!data || !Object.keys(data).length) {
       return;
@@ -154,11 +171,13 @@ export class RendererMain implements OnDestroy {
     const newSchema = JSON.parse(JSON.stringify(data));
     const context = {
       state: this.state,
+      refs: this.refs,
       cssScopeId: this.cssScopeId,
     };
     this.contextService.setContext(context, true);
     this.setMethods(newSchema.methods || {}, true);
     this._setState(newSchema.state || {}, true);
+    this._setRefs(newSchema.refs || {}, true);
 
     await this.invokePageOnUnmounted();
 
@@ -174,28 +193,16 @@ export class RendererMain implements OnDestroy {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     try {
-      await onMountedFn?.();
-      this.pageOnUnmounted = onUnmountedFn;
+      // Create outlets (and sync props.ref) before page onMounted so this.refs.* is ready.
       this.ngZone.run(() => {
         this.cdr.detectChanges();
-        // this.refreshOutletTreeJson();
       });
+      await onMountedFn?.();
+      this.pageOnUnmounted = onUnmountedFn;
     } catch (error) {
       console.error('RendererMain onMounted error:', error);
     }
   }
-
-  // private refreshOutletTreeJson() {
-  //   if (!this.contentChildrenService) {
-  //     this.outletTreeJson = '';
-  //     return;
-  //   }
-  //   queueMicrotask(() => {
-  //     this.outletTreeJson = this.contentChildrenService!.serializeTreeJson();
-  //     console.log('[content-children]', this.contentChildrenService!.serializeTree());
-  //     this.cdr.detectChanges();
-  //   });
-  // }
 
   logOutletTree() {
     console.log('[content-children]', this.contentChildrenService?.serializeTree());

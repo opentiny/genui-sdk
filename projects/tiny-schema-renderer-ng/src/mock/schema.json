@@ -90,6 +90,9 @@
       "value": "function removeFirstListItem() { this.state.listItems = this.state.listItems.slice(1) }"
     }
   },
+  "refs": {
+    "list": null
+  },
   "children": [
     {
       "componentName": "div",
@@ -99,7 +102,12 @@
       "children": [
         {
           "componentName": "List",
-          "props": {},
+          "props": {
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.list"
+            }
+          },
           "children": [
             {
               "componentName": "ListItem",
@@ -197,6 +205,18 @@
             }
           },
           "children": "去除第一项"
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "primary",
+            "style": "margin-top: 8px; margin-right: 8px;",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "() => { console.log(this.refs.list.getLabels()) }"
+            }
+          },
+          "children": "打印所有子选项"
         }
       ]
     },

@@ -76,4 +76,8 @@ export class ListComponent {
   /** Directive queries — matches host directives applied via schema.directives. */
   readonly markers = contentChildren(ListItemMarkerDirective);
   readonly namedMarker = contentChild<ListItemMarkerDirective>('listItemMarker');
+
+  public getLabels() {
+    return this.items.map(item => item.label);
+  }
 }
