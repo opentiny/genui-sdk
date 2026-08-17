@@ -1083,12 +1083,12 @@
                 <div class="toggle-row plain-mode-row">
                   <div class="meta">
                     <strong>System 对照</strong>
-                    <small>plain = 空 system，生成纯文本样本；full = 系统 + 纯文本</small>
+                    <small>plain = 空 system，生成纯文本</small>
                   </div>
                   <div class="seg" id="plainModeSeg">
-                    <button type="button" data-v="full" aria-pressed="${!d.compareEmptySystem && !d.compareEmptySystemPlainOnly}">仅 full</button>
-                    <button type="button" data-v="both" aria-pressed="${Boolean(d.compareEmptySystem && !d.compareEmptySystemPlainOnly)}">full + plain</button>
-                    <button type="button" data-v="plain" aria-pressed="${Boolean(d.compareEmptySystemPlainOnly)}">仅 plain</button>
+                    <button type="button" data-v="full" title="只生成带完整 system 的样本" aria-pressed="${!d.compareEmptySystem && !d.compareEmptySystemPlainOnly}">仅 full</button>
+                    <button type="button" data-v="both" title="同任务各写一份：有 system + 空 system" aria-pressed="${Boolean(d.compareEmptySystem && !d.compareEmptySystemPlainOnly)}">full + plain</button>
+                    <button type="button" data-v="plain" title="只生成空 system（*_plain.json）" aria-pressed="${Boolean(d.compareEmptySystemPlainOnly)}">仅 plain</button>
                   </div>
                 </div>
                 <div class="toggle-row">
