@@ -18,10 +18,6 @@ const standardRequiredCompleteFieldSelectors = [
 const plusRequiredCompleteFieldSelectors = [
   ...standardRequiredCompleteFieldSelectors,
   '[componentName=TinyCollapseItem] > props > name',
-  '[componentName=TinyCollapseItem] > props > title',
-  '[componentName=TinyTransfer] > props > data',
-  '[componentName=TinyCascader] > props > options',
-  '[componentName=TinySteps] > props > data',
 ];
 
 export const materials: IMaterials = {

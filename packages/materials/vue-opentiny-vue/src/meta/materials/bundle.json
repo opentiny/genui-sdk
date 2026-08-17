@@ -6613,6 +6613,7 @@
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
+                    "defaultValue": "",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {}
@@ -10322,6 +10323,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": [],
                     "widget": {
                       "component": "CodeConfigurator",
                       "props": {
@@ -10767,6 +10769,7 @@
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
+                    "defaultValue": [],
                     "widget": {
                       "component": "CodeConfigurator",
                       "props": {
