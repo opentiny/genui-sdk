@@ -37,21 +37,30 @@ const systemPrompt = genPrompt('Vue', materialsMeta, customConfig);
 
 `materialsMeta.wrapperComponent` defaults to `TinyCard`.
 
-Use `miniMaterials` / `miniMaterialsMeta` when you need a smaller component set (without charts).
+Use `miniMaterials` / `miniMaterialsMeta` for a smaller set (forms/tables, no charts).
+Use `plusMaterials` / `plusMaterialsMeta` for full business pages (tree, dialog, timeline, etc.).
 
 ## API
 
 | Export Path | Exports | Description |
 |-------------|---------|-------------|
-| `@opentiny/genui-sdk-materials-vue-opentiny-vue` | `materials`, `miniMaterials`, `materialsMeta`, `miniMaterialsMeta` | Unified entry |
-| `.../materials` | `materials`, `miniMaterials` | Inject into `ConfigProvider` for schema rendering |
-| `.../meta` | `materialsMeta`, `miniMaterialsMeta` | For `genPrompt()` / building the server system prompt |
+| `@opentiny/genui-sdk-materials-vue-opentiny-vue` | `materials`, `miniMaterials`, `plusMaterials`, `materialsMeta`, `miniMaterialsMeta`, `plusMaterialsMeta` | Unified entry |
+| `.../materials` | `materials`, `miniMaterials`, `plusMaterials` | Inject into `ConfigProvider` for schema rendering |
+| `.../meta` | `materialsMeta`, `miniMaterialsMeta`, `plusMaterialsMeta` | For `genPrompt()` / building the server system prompt |
 
-### `materials` / `miniMaterials`
+### Tiering
+
+| Tier | Positioning | Typical pages |
+|------|-------------|---------------|
+| Mini | Lightweight form / info blocks | Simple forms, card details |
+| Standard | Data display & analytics | List + pager, charts, tabbed detail |
+| Plus | Full business application pages | Admin, org/permission, approval, portal |
+
+### `materials` / `miniMaterials` / `plusMaterials`
 
 Component registry mapping OpenTiny Vue components, used by the renderer to resolve nodes by `componentName`.
 
-### `materialsMeta` / `miniMaterialsMeta`
+### `materialsMeta` / `miniMaterialsMeta` / `plusMaterialsMeta`
 
 Materials metadata, including:
 

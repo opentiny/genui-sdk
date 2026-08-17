@@ -1,7 +1,7 @@
 import { modifyChatBody as continueGeneratingBodyModifier } from '../continue-writing';
 import type { OpenApiToolServiceConfig } from '../components/common.types';
 
-type MaterialsMetaVariantKey = 'mini' | 'standard';
+type MaterialsMetaVariantKey = 'mini' | 'standard' | 'plus';
 export interface IMcpServerConfig {
   name: string;
   url: string;
