@@ -1033,6 +1033,9 @@ importers:
 
   sites/playground/web:
     dependencies:
+      '@opentiny/genui-sdk-angular':
+        specifier: workspace:*
+        version: link:../../../packages/frameworks/angular
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../../packages/core

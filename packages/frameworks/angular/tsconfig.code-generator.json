@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./code-generator",
+    "rootDir": "./src/code-generator",
+    "declaration": true,
+    "sourceMap": false
+  },
+  "include": ["src/code-generator/**/*.ts"],
+  "exclude": ["src/code-generator/__tests__/**"],
+  "references": []
+}

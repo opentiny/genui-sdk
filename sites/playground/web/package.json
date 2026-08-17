@@ -23,6 +23,7 @@
     "@opentiny/vue-theme": "~3.28.0",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
+    "@opentiny/genui-sdk-angular": "workspace:*",
     "ai": "6.0.116",
     "clipboard-copy": "^4.0.1",
     "monaco-editor-vue3": "^1.0.4",
