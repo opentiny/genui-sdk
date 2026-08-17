@@ -28,12 +28,15 @@ export class RendererDirective {
   }>;
 
   public internalAttributes: Record<string, any> = {};
-  private get templateContext(){
+  private get templateContext() {
     return this;
   }
   private viewRef: EmbeddedViewRef<any> | null = null;
 
-  constructor(public viewContainerRef: ViewContainerRef, public contextService: RendererContextService) {}
+  constructor(
+    public viewContainerRef: ViewContainerRef,
+    public contextService: RendererContextService,
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['schema']) {
@@ -41,7 +44,11 @@ export class RendererDirective {
         Object.assign(this.viewRef.context, this.templateContext);
         this.viewRef.detectChanges();
       } else {
-        this.viewRef = this.viewContainerRef.createEmbeddedView(this.template, this.templateContext);
+        this.viewRef = this.viewContainerRef.createEmbeddedView(
+          this.template,
+          this.templateContext,
+          this.injector ? { injector: this.injector } : undefined,
+        );
         this.viewRef.detectChanges();
       }
 
@@ -49,8 +56,7 @@ export class RendererDirective {
         [this.contextService.getContext()['cssScopeId']]: '',
         'data-id': this.schema['id'] || null,
         'data-tag': this.schema['componentName'],
-      }
+      };
     }
   }
 }
-

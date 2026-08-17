@@ -170,7 +170,10 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
       this._componentInjector = undefined;
 
       if (this.ngComponentOutlet) {
-        const injector = this.ngComponentOutletInjector || this._viewContainerRef.parentInjector;
+        // Prefer the host element injector so directives on this `[componentOutlet]`
+        // (e.g. optional content-children track) stay in the DI tree. The schema parent
+        // chain is established via createEmbeddedView({ injector }) on RendererDirective.
+        const injector = this._viewContainerRef.injector;
 
         if (this._needToReCreateNgModuleInstance(changes)) {
           this._moduleRef?.destroy();
@@ -178,7 +181,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           if (this.ngComponentOutletNgModule) {
             this._moduleRef = createNgModule(
               this.ngComponentOutletNgModule,
-              getParentInjector(injector),
+              getParentInjector(this.ngComponentOutletInjector || injector),
             );
           } else {
             this._moduleRef = undefined;

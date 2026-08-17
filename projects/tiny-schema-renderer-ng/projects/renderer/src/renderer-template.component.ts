@@ -14,6 +14,7 @@ import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
+import { CONTENT_CHILDREN_TRACK_DIRECTIVES } from './content-children';
 
 @Pipe({
   name: 'getModuleRef',
@@ -54,7 +55,7 @@ export class IsArrayPipe implements PipeTransform {
   standalone: true,
 })
 export class IsStringPipe implements PipeTransform {
-  transform(value: any): boolean { 
+  transform(value: any): boolean {
     return typeof value === 'string';
   }
 }
@@ -64,7 +65,7 @@ export class IsStringPipe implements PipeTransform {
   standalone: true,
   imports: [
     CommonModule,
-    RendererDirective,  
+    RendererDirective,
     IsArrayPipe,
     IsStringPipe,
     GetComponentPipe,
@@ -79,12 +80,14 @@ export class IsStringPipe implements PipeTransform {
     ApplyDefaultPropsPipe,
     MergeObjectPipe,
     AutoApplyDirectivesPipe,
+    // Optional plugin: no-ops unless ContentChildrenService is provided.
+    ...CONTENT_CHILDREN_TRACK_DIRECTIVES,
   ],
   templateUrl: './renderer-template.component.html',
   exportAs: 'rendererTemplate',
 })
 export class RendererTemplateComponent {
-  @ViewChild('rendererTemplate', {static: true})
+  @ViewChild('rendererTemplate', { static: true })
   public template!: TemplateRef<{
     schema: any;
     scope: any;

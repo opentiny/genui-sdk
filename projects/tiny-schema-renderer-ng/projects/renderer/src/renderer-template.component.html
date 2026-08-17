@@ -57,13 +57,13 @@
     <ng-template #childrenTemplate let-children="children" let-scope="scope">
       <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
         <ng-container *ngFor="let child of children">
-          <ng-template 
-              rendererTemplate
-              [schema]="child" 
-              [scope]="scope" 
-              [parent]="schema"
-              [template]="template"
-              [injector]="componentOutlet.componentInjector"
+          <ng-template
+            rendererTemplate
+            [schema]="child"
+            [scope]="scope"
+            [parent]="schema"
+            [template]="template"
+            [injector]="componentOutlet.componentInjector"
           ></ng-template>
         </ng-container>
       </ng-container>
@@ -73,5 +73,3 @@
     </ng-template>
   </ng-template>
 </ng-template>
-  
-  

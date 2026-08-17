@@ -17,17 +17,17 @@ import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading.component';
 import { RendererTemplateComponent } from './renderer-template.component';
 import { RendererDirective } from './renderer.directive';
+import { ContentChildrenService } from './content-children';
 
 function reset(obj: any) {
   Object.keys(obj).forEach((key) => delete obj[key]);
-};
+}
 
 @Component({
   selector: 'tiny-schema-renderer',
   standalone: true,
   imports: [
     CommonModule,
-    // Renderer,
     LoadingComponent,
     RendererTemplateComponent,
     RendererDirective,
@@ -35,7 +35,6 @@ function reset(obj: any) {
   providers: [RendererContextService],
   template: `
     <ng-container *ngIf="pageSchema.children?.length">
-      <!-- <schema-renderer [schema]="rootSchema" [parent]="pageSchema"></schema-renderer> -->
       <renderer-template #rendererTemplateComponent></renderer-template>
       <ng-template
         rendererTemplate
@@ -48,6 +47,7 @@ function reset(obj: any) {
     <ng-container *ngIf="!pageSchema.children?.length">
       <div loading></div>
     </ng-container>
+    <pre *ngIf="outletTreeJson" (click)="logOutletTree()">{{ outletTreeJson }}</pre>
   `,
 })
 export class RendererMain implements OnDestroy {
@@ -56,8 +56,11 @@ export class RendererMain implements OnDestroy {
   methods: any = {};
   state: any = {};
   cssScopeId: string = '';
+  /** Debug snapshot — updated after CD so template binding stays stable (NG0100). */
+  outletTreeJson = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
+  private readonly contentChildrenService = inject(ContentChildrenService, { optional: true });
 
   constructor(
     private contextService: RendererContextService,
@@ -73,7 +76,7 @@ export class RendererMain implements OnDestroy {
     // TODO：export这些方法到custom element的方式待优化
     this.el.nativeElement.detectChanges = () => this.detectChanges();
     this.el.nativeElement.setContext = (context: any) => this.contextService.setContext(context);
-    this.el.nativeElement.getContext = () => this.contextService.getContext()
+    this.el.nativeElement.getContext = () => this.contextService.getContext();
     this.el.nativeElement.setState = (state: any) => this._setState(state);
   }
 
@@ -173,10 +176,29 @@ export class RendererMain implements OnDestroy {
     try {
       await onMountedFn?.();
       this.pageOnUnmounted = onUnmountedFn;
-      this.ngZone.run(() => this.cdr.detectChanges());
+      this.ngZone.run(() => {
+        this.cdr.detectChanges();
+        this.refreshOutletTreeJson();
+      });
     } catch (error) {
       console.error('RendererMain onMounted error:', error);
     }
+  }
+
+  private refreshOutletTreeJson() {
+    if (!this.contentChildrenService) {
+      this.outletTreeJson = '';
+      return;
+    }
+    queueMicrotask(() => {
+      this.outletTreeJson = this.contentChildrenService!.serializeTreeJson();
+      console.log('[content-children]', this.contentChildrenService!.serializeTree());
+      this.cdr.detectChanges();
+    });
+  }
+
+  logOutletTree() {
+    console.log('[content-children]', this.contentChildrenService?.serializeTree());
   }
 
   public detectChanges() {
