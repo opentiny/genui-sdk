@@ -994,11 +994,11 @@
                   <label class="switch"><input type="checkbox" id="skipExisting" ${d.skipExistingSampleFiles ? 'checked' : ''}/><span></span></label>
                 </div>
                 <div class="toggle-row">
-                  <div class="meta"><strong>额外生成 plain（空 system）</strong><small>compareEmptySystem</small></div>
-                  <label class="switch"><input type="checkbox" id="compareEmpty" ${d.compareEmptySystem ? 'checked' : ''}/><span></span></label>
+                  <div class="meta"><strong>额外生成 plain（空 system）</strong><small>与「仅 plain」互斥；full + plain</small></div>
+                  <label class="switch"><input type="checkbox" id="compareEmpty" ${d.compareEmptySystem && !d.compareEmptySystemPlainOnly ? 'checked' : ''}/><span></span></label>
                 </div>
                 <div class="toggle-row">
-                  <div class="meta"><strong>仅 plain</strong><small>不生成 full system 样本</small></div>
+                  <div class="meta"><strong>仅 plain</strong><small>与「额外 plain」互斥；不生成 full</small></div>
                   <label class="switch"><input type="checkbox" id="plainOnly" ${d.compareEmptySystemPlainOnly ? 'checked' : ''}/><span></span></label>
                 </div>
                 <div class="toggle-row">
@@ -1090,6 +1090,15 @@
     }
 
     function bindFormEvents() {
+      const compareEmpty = $('compareEmpty');
+      const plainOnly = $('plainOnly');
+      compareEmpty?.addEventListener('change', () => {
+        if (compareEmpty.checked && plainOnly) plainOnly.checked = false;
+      });
+      plainOnly?.addEventListener('change', () => {
+        if (plainOnly.checked && compareEmpty) compareEmpty.checked = false;
+      });
+
       $('modelChips')?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-model]');
         if (!btn) return;
@@ -1211,7 +1220,7 @@
         repeat: Number($('repeat')?.value || 1),
         concurrency: Number($('concurrency')?.value || 5),
         streamTimeoutMs: Number($('streamTimeoutMs')?.value || 0),
-        compareEmptySystem: $('compareEmpty')?.checked === true,
+        compareEmptySystem: $('compareEmpty')?.checked === true && $('plainOnly')?.checked !== true,
         compareEmptySystemPlainOnly: $('plainOnly')?.checked === true,
         targetSampleRunDir: ($('targetSampleRunDir')?.value || '').trim() || undefined,
         skipExistingSampleFiles: $('skipExisting')?.checked === true,
