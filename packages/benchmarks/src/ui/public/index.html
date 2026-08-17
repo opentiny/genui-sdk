@@ -375,6 +375,29 @@
       border-radius: 50%;
       background: var(--accent);
       opacity: 0.7;
+      flex-shrink: 0;
+    }
+    .scenario-group .sg-title {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      min-width: 0;
+    }
+    .scenario-group .sg-count {
+      color: var(--faint);
+      font-weight: 500;
+      font-size: 0.75rem;
+      font-family: var(--mono);
+    }
+    .scenario-group .sg-actions {
+      margin-left: auto;
+      display: inline-flex;
+      gap: 4px;
+    }
+    .scenario-group .sg-actions .btn-ghost {
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      font-weight: 500;
     }
     .scenario-grid {
       display: grid;
@@ -833,7 +856,10 @@
       const scenarios = state.selectedScenarios.size;
       const groups = scenarioGroupsFor(state.protocol);
       const all = groups.reduce((n, g) => n + g.scenarios.length, 0) || 0;
-      const scenLabel = scenarios === 0 ? `全部 ${all} 场景` : `${scenarios} 个场景`;
+      const scenLabel =
+        scenarios === 0 || (all > 0 && scenarios === all)
+          ? `全部 ${all} 场景`
+          : `${scenarios} 个场景`;
       el.innerHTML = `将运行 <strong>${models || 0}</strong> 个模型 × <strong>${scenLabel}</strong>（${state.protocol || 'genui'}）`;
     }
 
@@ -842,6 +868,17 @@
       if (!m) return [];
       const key = protocol === 'a2ui' ? 'a2ui' : 'genui';
       return m.scenarioGroupsByProtocol?.[key] || m.scenarioGroups || [];
+    }
+
+    function syncGroupToggleLabels() {
+      document.querySelectorAll('#scenarioList .scenario-group').forEach((details) => {
+        const btn = details.querySelector('[data-group-toggle]');
+        if (!btn) return;
+        const group = btn.getAttribute('data-group-toggle');
+        const ids = scenarioGroupsFor(state.protocol).find((g) => g.group === group)?.scenarios || [];
+        const allOn = ids.length > 0 && ids.every((id) => state.selectedScenarios.has(id));
+        btn.textContent = allOn ? '取消' : '全选';
+      });
     }
 
     function renderScenarioHtml(protocol) {
@@ -857,8 +894,14 @@
             g.group === 'contextual' && g.scenarios.length === 0
               ? `<div style="color:var(--faint);font-size:0.8rem;padding:4px 0">暂无场景（a2ui 请先跑 capture-a2ui-contextual.mts）</div>`
               : '';
+          const allOn = g.scenarios.length > 0 && g.scenarios.every((id) => state.selectedScenarios.has(id));
           return `<details class="scenario-group" data-group="${esc(g.group)}" open>
-          <summary>${esc(g.label)} <span style="color:var(--faint);font-weight:500;font-size:0.75rem;font-family:var(--mono)">${g.scenarios.length}</span></summary>
+          <summary>
+            <span class="sg-title">${esc(g.label)} <span class="sg-count">${g.scenarios.length}</span></span>
+            ${g.scenarios.length
+              ? `<span class="sg-actions"><button type="button" class="btn-ghost" data-group-toggle="${esc(g.group)}">${allOn ? '取消' : '全选'}</button></span>`
+              : ''}
+          </summary>
           <div class="scenario-grid">${checks || emptyHint}</div>
         </details>`;
         })
@@ -871,12 +914,21 @@
       if (!list) return;
       const prev = new Set(state.selectedScenarios);
       const protocol = state.protocol === 'a2ui' ? 'a2ui' : 'genui';
+      const available = scenarioGroupsFor(protocol).flatMap((g) => g.scenarios);
+      const availableSet = new Set(available);
+      // 切换前已是「全选/跑全部」语义时，新协议也默认全选
+      const otherProtocol = protocol === 'a2ui' ? 'genui' : 'a2ui';
+      const otherIds = scenarioGroupsFor(otherProtocol).flatMap((g) => g.scenarios);
+      const wasFullOrEmpty =
+        prev.size === 0 || (otherIds.length > 0 && otherIds.every((id) => prev.has(id)));
+      state.selectedScenarios = wasFullOrEmpty
+        ? new Set(available)
+        : new Set([...prev].filter((id) => availableSet.has(id)));
       list.innerHTML = renderScenarioHtml(protocol);
-      const available = new Set(scenarioGroupsFor(protocol).flatMap((g) => g.scenarios));
-      state.selectedScenarios = new Set([...prev].filter((id) => available.has(id)));
       list.querySelectorAll('input[data-scenario]').forEach((el) => {
         el.checked = state.selectedScenarios.has(el.getAttribute('data-scenario'));
       });
+      syncGroupToggleLabels();
       updateDockSummary();
     }
 
@@ -915,6 +967,12 @@
 
       const defaultScenarios = Array.isArray(d.scenarios) ? d.scenarios : [];
       state.selectedScenarios = new Set(defaultScenarios);
+      // 未指定场景时默认全选（与「跑全部」一致，且勾选态可见）
+      if (state.selectedScenarios.size === 0) {
+        scenarioGroupsFor(state.protocol).forEach((g) =>
+          g.scenarios.forEach((id) => state.selectedScenarios.add(id)),
+        );
+      }
 
       const modelChips = meta.models.map((m) => {
         const on = state.selectedModels.has(m);
@@ -1001,7 +1059,7 @@
                 <h3 class="section-title">场景</h3>
                 <div class="toolbar">
                   <button type="button" class="btn-ghost" id="scenAll">全选</button>
-                  <button type="button" class="btn-ghost" id="scenClear">清空（= 跑全部）</button>
+                  <button type="button" class="btn-ghost" id="scenClear">清空</button>
                 </div>
                 <div id="scenarioList">${scenarioHtml}</div>
               </section>
@@ -1159,6 +1217,25 @@
         const id = input.getAttribute('data-scenario');
         if (input.checked) state.selectedScenarios.add(id);
         else state.selectedScenarios.delete(id);
+        syncGroupToggleLabels();
+        updateDockSummary();
+      });
+      $('scenarioList')?.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-group-toggle]');
+        if (!btn) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const group = btn.getAttribute('data-group-toggle');
+        const details = btn.closest('.scenario-group');
+        const ids = scenarioGroupsFor(state.protocol).find((g) => g.group === group)?.scenarios || [];
+        if (!ids.length) return;
+        const allOn = ids.every((id) => state.selectedScenarios.has(id));
+        if (allOn) ids.forEach((id) => state.selectedScenarios.delete(id));
+        else ids.forEach((id) => state.selectedScenarios.add(id));
+        details?.querySelectorAll('input[data-scenario]').forEach((el) => {
+          el.checked = state.selectedScenarios.has(el.getAttribute('data-scenario'));
+        });
+        syncGroupToggleLabels();
         updateDockSummary();
       });
       $('scenAll')?.addEventListener('click', () => {
@@ -1166,11 +1243,13 @@
         state.selectedScenarios.clear();
         groups.forEach((g) => g.scenarios.forEach((id) => state.selectedScenarios.add(id)));
         document.querySelectorAll('#scenarioList input[data-scenario]').forEach((el) => { el.checked = true; });
+        syncGroupToggleLabels();
         updateDockSummary();
       });
       $('scenClear')?.addEventListener('click', () => {
         state.selectedScenarios.clear();
         document.querySelectorAll('#scenarioList input[data-scenario]').forEach((el) => { el.checked = false; });
+        syncGroupToggleLabels();
         updateDockSummary();
       });
 
