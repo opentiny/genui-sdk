@@ -5,7 +5,7 @@ import { ContentChildrenTrackDirective } from './content-children-track.directiv
 /** Directives to import on `RendererTemplateComponent` (or a host that declares the shared template). */
 export const CONTENT_CHILDREN_TRACK_DIRECTIVES = [ContentChildrenTrackDirective] as const;
 
-/** Enable outlet-tree registry. Pair with importing {@link CONTENT_CHILDREN_TRACK_DIRECTIVES}. */
+/** Enable outlet-tree registry + ContentChildren QueryList/signal patch bridge. */
 export function provideContentChildren(): Provider[] {
   return [ContentChildrenService];
 }
@@ -20,3 +20,12 @@ export {
   ContentChildrenTrackDirective,
   CONTENT_CHILDREN_OUTLET,
 } from './content-children-track.directive';
+export {
+  discoverContentQueryTargets,
+  getContentOutletLocalRef,
+  getContentOutletQueryNames,
+  patchContentQuery,
+  patchOutletContentQueries,
+  setContentOutletLocalRef,
+} from './content-children-patch';
+export type { ContentQueryPatchTarget } from './content-children-patch';

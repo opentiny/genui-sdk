@@ -1,6 +1,16 @@
-import { Directive, InjectionToken, OnDestroy, OnInit, inject } from '@angular/core';
+import {
+  Directive,
+  InjectionToken,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
 import { ContentChildrenService } from './content-children.service';
+import { setContentOutletLocalRef } from './content-children-patch';
 
 /**
  * Provided on each `[componentOutlet]` host so descendants can resolve the parent outlet via DI.
@@ -12,7 +22,10 @@ export const CONTENT_CHILDREN_OUTLET = new InjectionToken<ComponentOutlet>('CONT
 /**
  * Optional plugin: attach to every `[componentOutlet]` when imported.
  * No-ops unless {@link ContentChildrenService} is provided by the host app.
- * Does not require extra template bindings.
+ *
+ * Bind `contentChildrenRef` from schema `refName` so `contentChild('xxx')` / `@ContentChild('xxx')`
+ * can resolve the same way `#xxx` does in static templates.
+ * (Schema `ref` is reserved for registering into `this.refs`.)
  */
 @Directive({
   selector: '[componentOutlet]',
@@ -25,16 +38,30 @@ export const CONTENT_CHILDREN_OUTLET = new InjectionToken<ComponentOutlet>('CONT
     },
   ],
 })
-export class ContentChildrenTrackDirective implements OnInit, OnDestroy {
+export class ContentChildrenTrackDirective implements OnInit, OnChanges, OnDestroy {
   private readonly registry = inject(ContentChildrenService, { optional: true });
   private readonly self = inject(ComponentOutlet);
   private readonly parent = inject(CONTENT_CHILDREN_OUTLET, { optional: true, skipSelf: true });
 
+  /**
+   * Local template-ref name for string content queries (`contentChild('name')`).
+   * Typically bound from schema: `[contentChildrenRef]="schema.refName"`.
+   */
+  @Input() contentChildrenRef: string | null | undefined;
+
   ngOnInit() {
     this.registry?.setContentOutletParent(this.self, this.parent ?? null);
+    setContentOutletLocalRef(this.self, this.contentChildrenRef);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['contentChildrenRef']) {
+      setContentOutletLocalRef(this.self, this.contentChildrenRef);
+    }
   }
 
   ngOnDestroy() {
+    setContentOutletLocalRef(this.self, null);
     this.registry?.removeContentOutlet(this.self);
   }
 }

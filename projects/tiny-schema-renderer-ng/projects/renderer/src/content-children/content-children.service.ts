@@ -1,5 +1,6 @@
-import { Injectable, Type } from '@angular/core';
+import { Injectable, Injector, Type, afterEveryRender, inject } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
+import { patchOutletContentQueries } from './content-children-patch';
 
 export interface TreeNode<T> {
   value: T;
@@ -26,9 +27,44 @@ export function getComponentOutletLabel(outlet: ComponentOutlet): string | null 
   return name && name !== 'componentType' ? name : null;
 }
 
+/**
+ * Content-query order must follow DOM / schema order, not Map insertion order.
+ * Loop items created after a later sibling (e.g. named header) would otherwise
+ * append after that sibling in the registry and break @ContentChild /.first.
+ */
+function compareOutletDomOrder(a: ComponentOutlet, b: ComponentOutlet): number {
+  const elA = a.componentRef?.location?.nativeElement as Node | undefined;
+  const elB = b.componentRef?.location?.nativeElement as Node | undefined;
+  if (!elA || !elB || elA === elB) {
+    return 0;
+  }
+  const position = elA.compareDocumentPosition(elB);
+  if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
+    return -1;
+  }
+  if (position & Node.DOCUMENT_POSITION_PRECEDING) {
+    return 1;
+  }
+  return 0;
+}
+
 @Injectable()
 export class ContentChildrenService {
   protected contentOutletParentMap = new Map<ComponentOutlet, ComponentOutlet | null>();
+  private readonly injector = inject(Injector);
+  private patchMicrotaskQueued = false;
+
+  constructor() {
+    // afterEveryRender runs inside synchronize, *before* checkNoChanges.
+    // Mutating QueryList / signals there causes NG0100; markForCheck there causes NG0103.
+    // Defer the entire patch until after the current tick (microtask).
+    afterEveryRender(
+      () => {
+        this.schedulePatchAllContentQueries();
+      },
+      { injector: this.injector },
+    );
+  }
 
   public get rootContentOutlet(): ComponentOutlet | null {
     return (
@@ -47,9 +83,9 @@ export class ContentChildrenService {
   }
 
   getContentOutletChildren(contentOutlet: ComponentOutlet): ComponentOutlet[] {
-    return Array.from(this.contentOutletParentMap.keys()).filter(
-      (key) => this.contentOutletParentMap.get(key) === contentOutlet,
-    );
+    return Array.from(this.contentOutletParentMap.keys())
+      .filter((key) => this.contentOutletParentMap.get(key) === contentOutlet)
+      .sort(compareOutletDomOrder);
   }
 
   getDescendants(contentOutlet: ComponentOutlet): ComponentOutlet[] {
@@ -93,5 +129,32 @@ export class ContentChildrenService {
 
   serializeTreeJson(space = 2): string {
     return JSON.stringify(this.serializeTree(), null, space);
+  }
+
+  private schedulePatchAllContentQueries(): void {
+    if (this.patchMicrotaskQueued) {
+      return;
+    }
+    this.patchMicrotaskQueued = true;
+    queueMicrotask(() => {
+      this.patchMicrotaskQueued = false;
+      this.patchAllContentQueries();
+    });
+  }
+
+  /**
+   * Walk outlet tree and patch each parent's ContentChildren / contentChildren() queries
+   * with direct child component instances from the schema tree.
+   * Call only after the CD tick (see schedulePatchAllContentQueries).
+   */
+  patchAllContentQueries(): boolean {
+    let changed = false;
+    for (const parent of this.contentOutletParentMap.keys()) {
+      const children = this.getContentOutletChildren(parent);
+      if (patchOutletContentQueries(parent, children)) {
+        changed = true;
+      }
+    }
+    return changed;
   }
 }

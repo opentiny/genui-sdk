@@ -44,6 +44,8 @@ import {
   TiUploadModule,
 } from '@opentiny/ng';
 import type { IRendererMaterials } from '../../../projects/renderer/src/renderer-materials';
+import { ListComponent } from '../list/list.component';
+import { ListItemComponent } from '../list/list-item.component';
 
 (TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 (TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
@@ -51,6 +53,8 @@ import type { IRendererMaterials } from '../../../projects/renderer/src/renderer
 (TiCheckboxComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 
 const components: Record<string, Type<any>> = {
+  List: ListComponent,
+  ListItem: ListItemComponent,
   TiButton: TiButtonComponent,
   TiSelect: TiSelectComponent,
   TiText: TiTextComponent,

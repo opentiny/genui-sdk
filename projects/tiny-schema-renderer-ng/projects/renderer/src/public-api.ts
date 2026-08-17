@@ -15,5 +15,8 @@ export {
   ContentChildrenTrackDirective,
   CONTENT_CHILDREN_OUTLET,
   getComponentOutletLabel,
+  discoverContentQueryTargets,
+  patchContentQuery,
+  patchOutletContentQueries,
 } from './content-children';
-export type { OutletSnapshot, TreeNode } from './content-children';
+export type { OutletSnapshot, TreeNode, ContentQueryPatchTarget } from './content-children';

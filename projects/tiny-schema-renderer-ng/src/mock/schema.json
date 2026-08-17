@@ -7,6 +7,11 @@
       "name": "张三"
     },
     "selectedHobbies": [],
+    "listItems": [
+      { "label": "第一项" },
+      { "label": "第二项" },
+      { "label": "第三项" }
+    ],
     "formData": {
       "name": "",
       "email": "",
@@ -75,9 +80,76 @@
     "handleSubmit": {
       "type": "JSFunction",
       "value": "function handleSubmit() { console.log('表单提交数据:', this.state.formData) }"
+    },
+    "appendListItem": {
+      "type": "JSFunction",
+      "value": "function appendListItem() { var n = this.state.listItems.length + 1; this.state.listItems = this.state.listItems.concat([{ label: '第' + n + '项' }]) }"
+    },
+    "removeFirstListItem": {
+      "type": "JSFunction",
+      "value": "function removeFirstListItem() { this.state.listItems = this.state.listItems.slice(1) }"
     }
   },
   "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "margin-bottom: 16px;"
+      },
+      "children": [
+        {
+          "componentName": "List",
+          "props": {},
+          "children": [
+            {
+              "componentName": "ListItem",
+              "loop": {
+                "type": "JSExpression",
+                "value": "this.state.listItems"
+              },
+              "loopArgs": ["item", "index"],
+              "props": {
+                "label": {
+                  "type": "JSExpression",
+                  "value": "item.label"
+                }
+              }
+            },
+                        {
+              "componentName": "ListItem",
+              "refName": "listHeader",
+              "props": {
+                "label": "命名头 (refName=listHeader)"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "primary",
+            "style": "margin-top: 8px; margin-right: 8px;",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.appendListItem"
+            }
+          },
+          "children": "在末尾增加一项"
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "danger",
+            "style": "margin-top: 8px;",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.removeFirstListItem"
+            }
+          },
+          "children": "去除第一项"
+        }
+      ]
+    },
     {
       "componentName": "div",
       "props": {},

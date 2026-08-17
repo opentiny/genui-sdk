@@ -124,6 +124,10 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     return this._componentRef?.instance ?? null;
   }
 
+  get componentRef(): ComponentRef<T> | undefined {
+    return this._componentRef;
+  }
+
   private _componentInjector: Injector | undefined = undefined;
   public get componentInjector(): Injector | undefined {
     return this._componentInjector;
