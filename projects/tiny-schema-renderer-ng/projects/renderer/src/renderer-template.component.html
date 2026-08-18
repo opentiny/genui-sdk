@@ -1,4 +1,4 @@
-<ng-template #rendererTemplate let-schema="schema" let-scope="scope" let-parent="parent" let-template="template" let-viewContainerRef="viewContainerRef" let-injector="injector" let-internalAttributes="internalAttributes">
+<ng-template #rendererTemplate let-schema="schema" let-scope="scope" let-parent="parent" let-template="template" let-viewContainerRef="viewContainerRef" let-injector="injector" let-internalAttributes="internalAttributes" let-contentChildrenIndex="contentChildrenIndex">
   <ng-container *ngIf="schema.condition ?? true">
     <ng-container *ngIf="(context | parseData: schema.loop : scope) | isArray; else singleTemplate">
       <ng-container *ngFor="let item of context | parseData: schema.loop : scope; let index = index">
@@ -41,7 +41,10 @@
             scope: mergeScope,
           } | projectNgContent: childrenTemplate : viewContainerRef : (schema.componentName | getComponent)
         "
-        [contentChildrenRef]="schema.refName"
+        [schemaRefScope]="mergeScope"
+        [schemaRefName]="schema.props?.refName"
+        [contentChildrenRef]="schema.props?.refName"
+        [contentChildrenIndex]="(contentChildrenIndex ?? 0) + (index ?? 0)"
         attrAndEvent
         [attrs]="
           [
@@ -57,18 +60,21 @@
         #componentOutlet="componentOutlet"
       ></ng-template>
 
-      <ng-template #childrenTemplate let-children="children" let-scope="scope">
+      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes">
         <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
-          <ng-container *ngFor="let child of children">
+          <ng-container *ngFor="let child of children; let childIndex = index">
             <!--
               A: schema NgTemplate → real <ng-template> in projectableNodes.
               E: ngSchemaTemplate registers TemplateRef on parent ComponentOutlet for ContentChild(TemplateRef).
+              Order key: original schema child index (via slotIndexes across ng-content slots) * SCHEMA_INDEX_STRIDE (10000)
+              so loop items expand in place and slot-projected items keep declaration order.
             -->
             <ng-container *ngIf="child.componentName === 'NgTemplate'; else normalChild">
               <ng-template
                 ngSchemaTemplate
                 [ngSchemaTemplateParent]="componentOutlet"
-                [ngSchemaTemplateRefName]="child.refName"
+                [ngSchemaTemplateRefName]="child.props?.refName"
+                [ngSchemaTemplateIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
               >
                 <ng-container *ngIf="(child.children | isArray)">
                   <ng-container *ngFor="let c of child.children">
@@ -93,6 +99,7 @@
                 [parent]="schema"
                 [template]="template"
                 [injector]="componentOutlet.componentInjector"
+                [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
               ></ng-template>
             </ng-template>
           </ng-container>

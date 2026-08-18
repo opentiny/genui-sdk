@@ -15,9 +15,10 @@ import {
   inputBinding,
   outputBinding,
   Self,
+  inject,
 } from '@angular/core';
 import { toOnEventName } from './parser/event-utils';
-import { isSchemaRefPropKey, SchemaRefBinding } from './schema-ref-binding';
+import { isSchemaRefPropKey, SCHEMA_REF_BRIDGE } from './schema-ref';
 
 /**
  * Instantiates a {@link /api/core/Component Component} type and inserts its Host View into the current View.
@@ -135,9 +136,14 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   }
 
   private bindProps: Record<string, any> = {};
-  private readonly schemaRef = new SchemaRefBinding();
+  private readonly injector = inject(Injector);
 
   constructor(private _viewContainerRef: ViewContainerRef) {}
+
+  private get schemaRefBridge() {
+    // Lazy: SchemaRefDirective ↔ ComponentOutlet would cycle if injected in field initializers.
+    return this.injector.get(SCHEMA_REF_BRIDGE, null, { optional: true });
+  }
 
   private _needToReCreateNgModuleInstance(changes: SimpleChanges): boolean {
     // Note: square brackets property accessor is safe for Closure compiler optimizations (the
@@ -169,12 +175,9 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     if (changes['ngComponentOutletProps']) {
       this.bindProps = changes['ngComponentOutletProps'].currentValue ?? {};
       this._componentRef?.changeDetectorRef.markForCheck();
-      if (!this._needToReCreateComponentInstance(changes)) {
-        this.schemaRef.syncFromProps(this._componentRef, this.bindProps);
-      }
     }
     if (this._needToReCreateComponentInstance(changes)) {
-      this.schemaRef.clear();
+      this.schemaRefBridge?.detach();
       this._viewContainerRef.clear();
       this._componentRef = undefined;
       this._componentInjector = undefined;
@@ -210,14 +213,14 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           bindings: this.getComponentBindings(this.ngComponentOutlet),
         });
         this._componentInjector = this._componentRef.injector;
-        this.schemaRef.register(this._componentRef, this.bindProps);
+        this.schemaRefBridge?.attach(this._componentRef);
       }
     }
   }
 
   /** @docs-private */
   ngOnDestroy() {
-    this.schemaRef.clear();
+    this.schemaRefBridge?.detach();
     this._moduleRef?.destroy();
   }
 
@@ -228,6 +231,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     const componentDef = (component as any)['ɵcmp']!;
     const bindings: Binding[] = [];
     Object.keys(componentDef.inputs).forEach((inputKey) => {
+      // props.ref / props.refName are schema wiring — never component @Input.
       if (isSchemaRefPropKey(inputKey)) {
         return;
       }

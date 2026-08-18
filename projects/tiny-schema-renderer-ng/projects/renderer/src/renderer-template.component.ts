@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 import { getComponent, getModuleRef } from './parser/material-getter';
 
-import { ProjectNgContentPipe } from './project-ng-content.pipe';
+import { ProjectNgContentPipe } from './ng-content';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
@@ -14,6 +14,7 @@ import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
+import { SchemaRefDirective } from './schema-ref';
 import { CONTENT_CHILDREN_TRACK_DIRECTIVES } from './content-children';
 
 @Pipe({
@@ -76,6 +77,7 @@ export class IsStringPipe implements PipeTransform {
     PropsFilterPipe,
     GetDirectivesPipe,
     ComponentOutlet,
+    SchemaRefDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,

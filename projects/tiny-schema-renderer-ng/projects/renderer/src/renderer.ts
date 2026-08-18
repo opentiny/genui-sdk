@@ -1,12 +1,13 @@
 import { Component, Input, SimpleChanges, Type, ViewContainerRef } from '@angular/core';
 import { parseData } from './parser/schema-parser';
 import { CommonModule } from '@angular/common';
-import { ProjectNgContentPipe } from './project-ng-content.pipe';
+import { ProjectNgContentPipe } from './ng-content';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { RendererContextService } from './context.service';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { PropsFilterPipe } from './props-filter.pipe';
 import { ComponentOutlet } from './component-outlet';
+import { SchemaRefDirective } from './schema-ref';
 import { GetDirectivesPipe } from './get-directive.pipe';
 import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { ParseDataPipe } from './parse-data.pipe';
@@ -24,6 +25,7 @@ import { getComponent, getModuleRef } from './parser/material-getter';
     PropsFilterPipe,
     GetDirectivesPipe,
     ComponentOutlet,
+    SchemaRefDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,

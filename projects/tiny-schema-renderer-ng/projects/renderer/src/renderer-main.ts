@@ -39,7 +39,7 @@ function reset(obj: any) {
       <ng-template
         rendererTemplate
         [schema]="rootSchema"
-        [scope]="{}"
+        [scope]="scope"
         [parent]="pageSchema"
         [template]="rendererTemplateComponent.template"
       ></ng-template>
@@ -56,6 +56,8 @@ export class RendererMain implements OnDestroy {
   methods: any = {};
   state: any = {};
   refs: Record<string, any> = {};
+  /** Page-level template scope — props.refName writes locals here (and into loop mergeScopes). */
+  scope: Record<string, any> = {};
   cssScopeId: string = '';
   /** Debug snapshot — updated after CD so template binding stays stable (NG0100). */
   outletTreeJson = '';
@@ -178,6 +180,7 @@ export class RendererMain implements OnDestroy {
     this.setMethods(newSchema.methods || {}, true);
     this._setState(newSchema.state || {}, true);
     this._setRefs(newSchema.refs || {}, true);
+    reset(this.scope);
 
     await this.invokePageOnUnmounted();
 

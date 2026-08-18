@@ -50,6 +50,7 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
   private slots: Node[][] = [];
   private selectors: string[] = ['*'];
   private bucketCache: any[] = [];
+  private indexCache: number[][] = [];
   private readonly emptyNodes: Node[][] = [[]];
   private multiEmptyNodes: Node[][] | null = null;
   private multiEmptySlotCount = 0;
@@ -91,7 +92,11 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     if (!this.viewRefs.length) {
       this.slots = [];
       for (let i = 0; i < selectors.length; i++) {
-        const slotContext = { ...context, children: buckets[i] };
+        const slotContext = {
+          ...context,
+          children: buckets[i],
+          slotIndexes: this.indexCache[i],
+        };
         const viewRef = viewContainerRef.createEmbeddedView(
           childrenTemplate,
           slotContext,
@@ -115,7 +120,11 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       if (sameBucketChildren(prevChildren, nextChildren) && prevScope === nextScope) {
         continue;
       }
-      Object.assign(viewRef.context, { ...context, children: nextChildren });
+      Object.assign(viewRef.context, {
+        ...context,
+        children: nextChildren,
+        slotIndexes: this.indexCache[i],
+      });
       // No detectChanges — let the attached view refresh on the normal CD pass.
     }
     return this.slots;
@@ -161,27 +170,37 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
 
   private buildStableBuckets(children: unknown, selectors: string[]): any[] {
     let next: any[];
+    let nextIndexes: number[][] = [];
     if (typeof children === 'string') {
       const starIndex = selectors.findIndex((s) => s === '*');
       const defaultIdx = starIndex >= 0 ? starIndex : Math.max(0, selectors.length - 1);
       next = selectors.map((_, i) => (i === defaultIdx ? children : []));
+      nextIndexes = selectors.map(() => []);
     } else if (Array.isArray(children) && children.length) {
-      next = classifySchemaChildrenByNgContentSelectors(children, selectors);
+      const classified = classifySchemaChildrenByNgContentSelectors(children, selectors);
+      next = classified.buckets;
+      nextIndexes = classified.originalIndexes;
     } else {
       next = selectors.map(() => []);
+      nextIndexes = selectors.map(() => []);
     }
 
     const stabilized: any[] = [];
+    const stabilizedIndexes: number[][] = [];
     for (let i = 0; i < next.length; i++) {
       const prev = this.bucketCache[i];
       if (sameBucketChildren(prev, next[i])) {
         stabilized[i] = prev;
+        stabilizedIndexes[i] = this.indexCache[i] ?? nextIndexes[i];
       } else {
         stabilized[i] = next[i];
+        stabilizedIndexes[i] = nextIndexes[i];
         this.bucketCache[i] = next[i];
+        this.indexCache[i] = nextIndexes[i];
       }
     }
     this.bucketCache.length = stabilized.length;
+    this.indexCache.length = stabilizedIndexes.length;
     return stabilized;
   }
 
@@ -196,6 +215,7 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     this.viewRefs = [];
     this.slots = [];
     this.bucketCache = [];
+    this.indexCache = [];
     this.singleSlotNodes = this.emptyNodes;
   }
 }

@@ -1,6 +1,6 @@
 import { Pipe, PipeTransform, reflectComponentType, Type } from '@angular/core';
 import { onEventRegex, toNativeEventName, toOnEventName } from './parser/event-utils';
-import { isSchemaRefPropKey } from './schema-ref-binding';
+import { isSchemaRefPropKey } from './schema-ref';
 
 @Pipe({
   name: 'propsFilter',

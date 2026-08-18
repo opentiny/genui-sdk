@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { TiDateModule } from '@opentiny/ng';
 import { RendererMain } from '../../projects/renderer/src/renderer-main';
 import { RENDERER_SETTINGS } from '../../projects/renderer/src/renderer-settings';
 import {
@@ -12,7 +13,7 @@ import { materials } from './materials';
   selector: 'app-root',
   templateUrl: './app.html',
   standalone: true,
-  imports: [RendererMain, FormsModule],
+  imports: [RendererMain, FormsModule, TiDateModule],
   providers: [
     {
       provide: RENDERER_SETTINGS,
@@ -24,6 +25,7 @@ import { materials } from './materials';
 })
 export class App {
   schema = signal<any>({});
+  today = new Date(2024, 0, 15);
   private readonly contentChildren = inject(ContentChildrenService, { optional: true });
 
   async ngOnInit() {

@@ -37,6 +37,8 @@
         scope: mergeScope,
       } | projectNgContent: childrenTemplate : viewContainerRef : component
     "
+    [schemaRefScope]="mergeScope"
+    [schemaRefName]="schema.props?.refName"
     attrAndEvent
     [attrs]="
       [

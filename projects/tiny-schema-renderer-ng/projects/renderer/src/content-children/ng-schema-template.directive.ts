@@ -32,15 +32,22 @@ export class NgSchemaTemplateDirective implements OnInit, OnChanges, OnDestroy {
    */
   @Input({ required: true }) ngSchemaTemplateParent!: ComponentOutlet;
 
-  /** Optional schema.refName — matches contentChild('name') returning this TemplateRef. */
+  /** Optional props.refName — matches contentChild('name') returning this TemplateRef. */
   @Input() ngSchemaTemplateRefName: string | null | undefined;
+
+  /** Schema declaration order key (childIndex * STRIDE) — interleaves with child outlets. */
+  @Input() ngSchemaTemplateIndex?: number;
 
   ngOnInit() {
     this.syncRegistration();
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['ngSchemaTemplateParent'] || changes['ngSchemaTemplateRefName']) {
+    if (
+      changes['ngSchemaTemplateParent'] ||
+      changes['ngSchemaTemplateRefName'] ||
+      changes['ngSchemaTemplateIndex']
+    ) {
       if (!changes['ngSchemaTemplateParent']?.firstChange) {
         const prevParent = changes['ngSchemaTemplateParent']?.previousValue as
           | ComponentOutlet
@@ -67,6 +74,7 @@ export class NgSchemaTemplateDirective implements OnInit, OnChanges, OnDestroy {
       this.ngSchemaTemplateParent,
       this.templateRef,
       this.ngSchemaTemplateRefName,
+      this.ngSchemaTemplateIndex,
     );
   }
 }

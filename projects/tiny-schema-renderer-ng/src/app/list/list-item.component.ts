@@ -32,7 +32,7 @@ export class ListItemComponent {
   /** Type selector — any projected TemplateRef (NgTemplate without preferring a name). */
   @ContentChild(TemplateRef) templateRef?: TemplateRef<any>;
 
-  /** String selector — matches schema NgTemplate with `"refName": "itemBody"`. */
+  /** String selector — matches schema NgTemplate with `"props": { "refName": "itemBody" }`. */
   readonly namedBody = contentChild<TemplateRef<any>>('itemBody');
 
   @Input() label = '';

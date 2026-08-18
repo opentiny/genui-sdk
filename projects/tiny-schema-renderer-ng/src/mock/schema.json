@@ -18,7 +18,10 @@
       "phone": "",
       "department": "",
       "position": "",
-      "joinDate": null,
+      "joinDate": {
+        "type": "JSExpression",
+        "value": "new Date(2024, 0, 15)"
+      },
       "description": "",
       "gender": "",
       "agreement": false,
@@ -75,7 +78,7 @@
   "methods": {
     "handleReset": {
       "type": "JSFunction",
-      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '', department: '', position: '', joinDate: null, description: '', gender: '', agreement: false, hobbies: [] } }"
+      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '', department: '', position: '', joinDate: new Date(2024, 0, 15), description: '', gender: '', agreement: false, hobbies: [] } }"
     },
     "handleSubmit": {
       "type": "JSFunction",
@@ -106,7 +109,8 @@
             "ref": {
               "type": "JSExpression",
               "value": "this.refs.list"
-            }
+            },
+            "refName": "listComponent"
           },
           "children": [
             {
@@ -148,7 +152,9 @@
                 },
                 {
                   "componentName": "NgTemplate",
-                  "refName": "itemBody",
+                  "props": {
+                    "refName": "itemBody"
+                  },
                   "children": [
                     {
                       "componentName": "span",
@@ -163,8 +169,8 @@
             },
             {
               "componentName": "ListItem",
-              "refName": "listHeader",
               "props": {
+                "refName": "listHeader",
                 "label": "命名头 (refName=listHeader)",
                 "header": true
               }
@@ -213,7 +219,7 @@
             "style": "margin-top: 8px; margin-right: 8px;",
             "onClick": {
               "type": "JSFunction",
-              "value": "() => { console.log(this.refs.list.getLabels()) }"
+              "value": "() => { console.log(this.refs.list.getLabels()); console.log(listComponent.getLabels()); }"
             }
           },
           "children": "打印所有子选项"

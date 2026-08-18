@@ -1,6 +1,9 @@
 import { Injectable, Injector, Type, afterEveryRender, inject } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
-import { patchOutletContentQueries } from './content-children-patch';
+import {
+  getContentOutletSchemaIndex,
+  patchOutletContentQueries,
+} from './content-children-patch';
 
 export interface TreeNode<T> {
   value: T;
@@ -28,24 +31,15 @@ export function getComponentOutletLabel(outlet: ComponentOutlet): string | null 
 }
 
 /**
- * Content-query order must follow DOM / schema order, not Map insertion order.
- * Loop items created after a later sibling (e.g. named header) would otherwise
- * append after that sibling in the registry and break @ContentChild /.first.
+ * Content-query order must follow schema declaration order, not Map insertion order.
+ * Loop items are registered after a later sibling (e.g. named header) and projection
+ * re-orders header slots first, so use the explicit schema order key when available.
  */
-function compareOutletDomOrder(a: ComponentOutlet, b: ComponentOutlet): number {
-  const elA = a.componentRef?.location?.nativeElement as Node | undefined;
-  const elB = b.componentRef?.location?.nativeElement as Node | undefined;
-  if (!elA || !elB || elA === elB) {
-    return 0;
-  }
-  const position = elA.compareDocumentPosition(elB);
-  if (position & Node.DOCUMENT_POSITION_FOLLOWING) {
-    return -1;
-  }
-  if (position & Node.DOCUMENT_POSITION_PRECEDING) {
-    return 1;
-  }
-  return 0;
+function compareOutletSchemaOrder(a: ComponentOutlet, b: ComponentOutlet): number {
+  return (
+    (getContentOutletSchemaIndex(a) ?? Number.MAX_SAFE_INTEGER) -
+    (getContentOutletSchemaIndex(b) ?? Number.MAX_SAFE_INTEGER)
+  );
 }
 
 @Injectable()
@@ -85,7 +79,7 @@ export class ContentChildrenService {
   getContentOutletChildren(contentOutlet: ComponentOutlet): ComponentOutlet[] {
     return Array.from(this.contentOutletParentMap.keys())
       .filter((key) => this.contentOutletParentMap.get(key) === contentOutlet)
-      .sort(compareOutletDomOrder);
+      .sort(compareOutletSchemaOrder);
   }
 
   getDescendants(contentOutlet: ComponentOutlet): ComponentOutlet[] {

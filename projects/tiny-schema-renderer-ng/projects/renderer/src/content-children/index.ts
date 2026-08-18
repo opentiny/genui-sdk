@@ -27,15 +27,18 @@ export {
 export { NgSchemaTemplateDirective } from './ng-schema-template.directive';
 export {
   NG_TEMPLATE_SCHEMA_NAME,
+  SCHEMA_INDEX_STRIDE,
   discoverContentQueryTargets,
   getContentOutletLocalRef,
   getContentOutletQueryNames,
+  getContentOutletSchemaIndex,
   getOutletQueryCandidates,
   getProjectedTemplates,
   patchContentQuery,
   patchOutletContentQueries,
   registerProjectedTemplate,
   setContentOutletLocalRef,
+  setContentOutletSchemaIndex,
   unregisterProjectedTemplate,
 } from './content-children-patch';
 export type { ContentQueryPatchTarget, ProjectedTemplateEntry } from './content-children-patch';

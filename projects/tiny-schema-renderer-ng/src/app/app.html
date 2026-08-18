@@ -1,4 +1,10 @@
 <tiny-schema-renderer [schema]="schema()"></tiny-schema-renderer>
 
+<div style="margin: 24px; padding: 12px; border: 1px dashed #999;">
+  <div>VANILLA ti-date (outside schema renderer):</div>
+  <ti-date id="vanilla-date" placeholder="vanilla date" [ngModel]="today"></ti-date>
+</div>
+
+
 <!-- <input id="text-focus" autofocus class="w-48" [(ngModel)]="inputValue" tiText />-->
 <!-- <ti-select id="select-basic" [options]="options" [ngModel]="selectValue" (ngModelChange)="log('ngModelChange', $event)" placeholder="请选择国家"> </ti-select>  -->

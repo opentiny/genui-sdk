@@ -26,6 +26,11 @@ export class RendererDirective {
     viewContainerRef: ViewContainerRef;
     injector: Injector | undefined;
   }>;
+  /**
+   * Schema declaration order key for the rendered node (childIndex * STRIDE + loopIndex).
+   * Exposed on the embedded-view context so descendant outlets register in schema order.
+   */
+  @Input() contentChildrenIndex?: number;
 
   public internalAttributes: Record<string, any> = {};
   private get templateContext() {

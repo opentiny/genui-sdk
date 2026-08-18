@@ -74,16 +74,20 @@ export function schemaChildMatchesSelector(schema: any, selector: string): boole
 /**
  * Assign each schema child to the first matching ng-content selector (Angular projection order).
  * `*` is the catch-all and is skipped until no earlier selector matches.
+ * Also returns, per slot, the original index of each child in `children` — lets content
+ * queries follow schema declaration order even when slots reorder children.
  */
 export function classifySchemaChildrenByNgContentSelectors(
   children: any[],
   selectors: string[],
-): any[][] {
+): { buckets: any[][]; originalIndexes: number[][] } {
   const list = Array.isArray(children) ? children : [];
   const buckets = selectors.map(() => [] as any[]);
+  const originalIndexes = selectors.map(() => [] as number[]);
   const starIndex = selectors.findIndex((s) => s === '*');
 
-  for (const child of list) {
+  for (let childIndex = 0; childIndex < list.length; childIndex++) {
+    const child = list[childIndex];
     let placed = false;
     for (let i = 0; i < selectors.length; i++) {
       const sel = selectors[i];
@@ -92,6 +96,7 @@ export function classifySchemaChildrenByNgContentSelectors(
       }
       if (schemaChildMatchesSelector(child, sel)) {
         buckets[i].push(child);
+        originalIndexes[i].push(childIndex);
         placed = true;
         break;
       }
@@ -99,10 +104,11 @@ export function classifySchemaChildrenByNgContentSelectors(
     if (!placed) {
       const idx = starIndex >= 0 ? starIndex : Math.max(0, selectors.length - 1);
       buckets[idx].push(child);
+      originalIndexes[idx].push(childIndex);
     }
   }
 
-  return buckets;
+  return { buckets, originalIndexes };
 }
 
 /** Partition already-rendered DOM nodes by Element.matches (scheme 3 runtime path). */

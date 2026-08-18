@@ -70,7 +70,7 @@ export class ListComponent {
 
   readonly signalItems = contentChildren(ListItemComponent);
   readonly signalFirst = contentChild(ListItemComponent);
-  /** String selector — matches schema child with `"refName": "listHeader"` (like `#listHeader`). */
+  /** String selector — matches schema child with `"props": { "refName": "listHeader" }` (like `#listHeader`). */
   readonly namedHeader = contentChild<ListItemComponent>('listHeader');
 
   /** Directive queries — matches host directives applied via schema.directives. */
