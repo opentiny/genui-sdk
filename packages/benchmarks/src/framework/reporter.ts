@@ -1,5 +1,5 @@
 import type { LlmBenchmarkResultItem } from './types';
-import { comparisonScenarioLabel, formatNumber } from '../utils';
+import { comparisonScenarioLabel, countsTowardProtocolGate, formatNumber, isPlainPromptVariant } from '../utils';
 
 function toDisplayNumber(value: number | undefined) {
   return typeof value === 'number' ? formatNumber(value, 2) : '';
@@ -26,7 +26,7 @@ export function printBenchmarkTable(results: LlmBenchmarkResultItem[]) {
       tinyCardMs: toDisplayNumber(item.firstObservableComponentMs),
       totalMs: formatNumber(item.totalMs, 2),
       tpotMsPerTok: item.tpotMs == null ? '' : formatNumber(item.tpotMs, 2),
-      validSchema: item.isSchemaJsonValidAgainstProtocol,
+      validSchema: isPlainPromptVariant(item) ? 'skipped' : item.isSchemaJsonValidAgainstProtocol,
       schemaError: item.schemaValidationError ?? '',
       promptTokens: item.promptTokens,
       completionTokens: item.completionTokens,
@@ -65,7 +65,8 @@ export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
     return;
   }
 
-  const successCount = results.filter((item) => item.isSchemaJsonValidAgainstProtocol).length;
+  const protocolRows = results.filter(countsTowardProtocolGate);
+  const successCount = protocolRows.filter((item) => item.isSchemaJsonValidAgainstProtocol).length;
   const avgTtft = averageDefined(results.map((item) => item.ttftMs));
   const avgFirstObs = averageDefined(results.map((item) => item.firstObservableComponentMs));
   const avgTotal = results.reduce((sum, item) => sum + item.totalMs, 0) / results.length;
@@ -82,7 +83,8 @@ export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
       scenarios: uniqueScenarioCount,
       models: uniqueModelCount,
       runs: results.length,
-      validSchema: `${successCount}/${results.length}`,
+      validSchema:
+        protocolRows.length === 0 ? 'N/A (plain)' : `${successCount}/${protocolRows.length}`,
       avgJudgeScore: avgJudgeScore == null ? 'N/A' : formatNumber(avgJudgeScore, 2),
       avgTtftMs: avgTtft == null ? 'N/A' : formatNumber(avgTtft, 2),
       avgTinyCardMs: avgFirstObs == null ? 'N/A' : formatNumber(avgFirstObs, 2),

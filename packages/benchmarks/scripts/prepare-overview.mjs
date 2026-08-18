@@ -14,6 +14,14 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+function isPlainPromptVariant(r) {
+  return (r?.promptVariant ?? 'full') === 'plain';
+}
+
+function countsTowardProtocolGate(r) {
+  return !isPlainPromptVariant(r);
+}
+
 export function findRepoRoot(start) {
   let dir = path.resolve(start);
   for (let i = 0; i < 12; i++) {
@@ -174,13 +182,17 @@ function stdev(values) {
  * Protocol = release gate; quality is Judge-only (never conflated with pass rate).
  */
 function buildDimensions(results, summary, scenarioRows, config) {
-  const n = results.length;
-  const blockFound = results.filter((r) => r.isSchemaJsonBlockFound).length;
-  const validJson = results.filter((r) => r.isSchemaJsonValidJson).length;
-  const protocolOk = results.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
+  const protocolResults = results.filter(countsTowardProtocolGate);
+  const n = protocolResults.length;
+  const blockFound = protocolResults.filter((r) => r.isSchemaJsonBlockFound).length;
+  const validJson = protocolResults.filter((r) => r.isSchemaJsonValidJson).length;
+  const protocolOk = protocolResults.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
   const streamOk = results.filter((r) => !r.errorMessage).length;
-  const scenarioFullPass = scenarioRows.filter((s) => (s.schemaPassRate ?? 0) >= 1).length;
-  const scenarioFullPassRate = scenarioRows.length ? scenarioFullPass / scenarioRows.length : 0;
+  const scenarioProtocolRows = scenarioRows.filter((s) => !String(s.scenario || '').includes('（纯文本）'));
+  const scenarioFullPass = scenarioProtocolRows.filter((s) => (s.schemaPassRate ?? 0) >= 1).length;
+  const scenarioFullPassRate = scenarioProtocolRows.length
+    ? scenarioFullPass / scenarioProtocolRows.length
+    : 1;
   const totals = scenarioRows.map((s) => s.avgTotalMs).filter((v) => typeof v === 'number' && Number.isFinite(v));
   const meanTotal = avg(totals);
   const totalStdev = stdev(totals);
@@ -208,10 +220,11 @@ function buildDimensions(results, summary, scenarioRows, config) {
     .filter((s) => typeof s === 'number' && Number.isFinite(s));
   const judgeErrors = results.filter((r) => r.llmJudgeError).length;
   const judgeEnabled = Boolean(summary.judgeEnabled || config?.llmJudgeEnabled);
-  const avgTokens = n ? round(summary.totalTokens / n, 0) : null;
+  const allN = results.length;
+  const avgTokens = allN ? round(summary.totalTokens / allN, 0) : null;
 
-  const protocolRate = n ? protocolOk / n : 0;
-  const streamOkRate = n ? streamOk / n : 0;
+  const protocolRate = n ? protocolOk / n : 1;
+  const streamOkRate = allN ? streamOk / allN : 0;
   // Cross-scenario full-pass + stream health; when repeat≥3, also factor repeat CV (lower better).
   let stabilityScore = streamOkRate * 0.35 + scenarioFullPassRate * 0.65;
   if (avgTotalCvRepeat != null) {
@@ -246,8 +259,8 @@ function buildDimensions(results, summary, scenarioRows, config) {
       headline: `${Math.round(scenarioFullPassRate * 100)}%`,
       sub: '组合全部通过',
       detail: hasRepeatVolatility
-        ? `全部通过 ${scenarioFullPass}/${scenarioRows.length}（该场景每次重复都过协议）。组内耗时波动 CV≈${avgTotalCvRepeat ?? '—'}（同场景多次重复的标准差/均值，越低越稳）。`
-        : `全部通过 ${scenarioFullPass}/${scenarioRows.length}（该「场景×模型」组合都过协议）。${
+        ? `全部通过 ${scenarioFullPass}/${scenarioProtocolRows.length}（该场景每次重复都过协议；纯文本对照已排除）。组内耗时波动 CV≈${avgTotalCvRepeat ?? '—'}（同场景多次重复的标准差/均值，越低越稳）。`
+        : `全部通过 ${scenarioFullPass}/${scenarioProtocolRows.length}（该「场景×模型」组合都过协议；纯文本对照已排除）。${
             (config?.repeat ?? 1) < 3
               ? `本次只跑了 ${config?.repeat ?? 1} 次，看不出同场景反复跑的波动。`
               : ''
@@ -258,7 +271,7 @@ function buildDimensions(results, summary, scenarioRows, config) {
           }`,
       streamOkRate: round(streamOkRate, 4),
       scenarioFullPass: scenarioFullPass,
-      scenarioCount: scenarioRows.length,
+      scenarioCount: scenarioProtocolRows.length,
       scenarioFullPassRate: round(scenarioFullPassRate, 4),
       latencyCvAcrossScenarios: latencyCv,
       repeatLatencyCv: avgTotalCvRepeat,
@@ -336,8 +349,9 @@ export function prepare(report, reportPath) {
     ),
   ];
 
-  const pass = results.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
-  const fail = results.length - pass;
+  const protocolResults = results.filter(countsTowardProtocolGate);
+  const pass = protocolResults.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
+  const fail = protocolResults.length - pass;
 
   const comparison = Array.isArray(report.comparisonByScenario) ? report.comparisonByScenario : [];
 
@@ -381,7 +395,11 @@ export function prepare(report, reportPath) {
         scenario,
         model,
         runs: group.length,
-        schemaPassRate: group.filter((g) => g.isSchemaJsonValidAgainstProtocol).length / group.length,
+        schemaPassRate: (() => {
+          const scored = group.filter(countsTowardProtocolGate);
+          if (scored.length === 0) return 1;
+          return scored.filter((g) => g.isSchemaJsonValidAgainstProtocol).length / scored.length;
+        })(),
         avgTtftMs: round(avg(group.map((g) => g.ttftMs)), 0),
         avgTotalMs: round(avg(group.map((g) => g.totalMs)), 0),
         avgTpotMs: round(avg(group.map((g) => g.tpotMs)), 2),
@@ -408,7 +426,12 @@ export function prepare(report, reportPath) {
   }
 
   const failures = results
-    .filter((r) => !r.isSchemaJsonValidAgainstProtocol || r.errorMessage)
+    .filter(
+      (r) =>
+        countsTowardProtocolGate(r)
+          ? !r.isSchemaJsonValidAgainstProtocol || r.errorMessage
+          : Boolean(r.errorMessage),
+    )
     .map((r) => ({
       scenario: r.scenario,
       model: r.model,
@@ -421,7 +444,8 @@ export function prepare(report, reportPath) {
     runs: results.length,
     pass,
     fail,
-    passRate: results.length ? round(pass / results.length, 4) : 0,
+    protocolRuns: protocolResults.length,
+    passRate: protocolResults.length ? round(pass / protocolResults.length, 4) : 1,
     avgTtftMs: round(avg(results.map((r) => r.ttftMs)), 0),
     avgTotalMs: round(avg(results.map((r) => r.totalMs)), 0),
     avgTpotMs: round(avg(results.map((r) => r.tpotMs)), 2),
@@ -478,8 +502,10 @@ export function prepare(report, reportPath) {
   /** Cross-model aggregates for comparison charts / ranking (empty when single model). */
   const modelCompareRows = models.map((model) => {
     const modelResults = results.filter((r) => r.model === model);
+    const protocolModelResults = modelResults.filter(countsTowardProtocolGate);
     const runs = modelResults.length;
-    const pass = modelResults.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
+    const protocolRuns = protocolModelResults.length;
+    const pass = protocolModelResults.filter((r) => r.isSchemaJsonValidAgainstProtocol).length;
     const judgeScores = modelResults
       .map((r) => r.llmJudgeScore)
       .filter((s) => typeof s === 'number' && Number.isFinite(s));
@@ -487,7 +513,7 @@ export function prepare(report, reportPath) {
       model,
       runs,
       pass,
-      passRatePct: runs ? round((pass / runs) * 100, 0) : 0,
+      passRatePct: protocolRuns ? round((pass / protocolRuns) * 100, 0) : 100,
       avgTtftMs: round(avg(modelResults.map((r) => r.ttftMs)), 0),
       avgTotalMs: round(avg(modelResults.map((r) => r.totalMs)), 0),
       avgTpotMs: round(avg(modelResults.map((r) => r.tpotMs)), 2),

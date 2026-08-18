@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import { streamText } from 'ai';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions, LlmBenchmarkSample } from './framework/index';
 import { printLlmBenchmarkResults } from './framework/index';
-import { protocolFromOptions, validateProtocolOutput } from './protocol';
 import {
   computeTpotMs,
   formatJudgeParseError,
   isJudgeTimeoutError,
+  isPlainPromptVariant,
   parseJudgeJson,
   resolveAiSdkModelForBench,
   resolvePrimaryBenchmarkModelId,
@@ -14,6 +14,7 @@ import {
   resolveStreamTextUsage,
   benchStreamTextAbortSignal,
 } from './utils';
+import { protocolFromOptions, validateProtocolOutput } from './protocol';
 
 type LlmJudgeResult = {
   score?: number;
@@ -142,10 +143,18 @@ function toReportItem(
   options?: LlmBenchmarkRunOptions,
 ): LlmBenchmarkResultItem {
   const protocol = sample.protocol ?? (options ? protocolFromOptions(options) : 'genui');
-  const validation = validateProtocolOutput(protocol, sample.output, {
-    framework: sample.framework ?? options?.framework ?? 'Vue',
-    materialsVariant: sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
-  });
+  // plain = 空 system 纯文本基线：无协议约束，跳过合规校验（与 Judge 一致）
+  const validation = isPlainPromptVariant(sample)
+    ? {
+        isSchemaJsonBlockFound: false,
+        isSchemaJsonValidJson: false,
+        isSchemaJsonValidAgainstProtocol: false,
+        schemaValidationError: 'skipped_plain',
+      }
+    : validateProtocolOutput(protocol, sample.output, {
+        framework: sample.framework ?? options?.framework ?? 'Vue',
+        materialsVariant: sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
+      });
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
   const tpotMs =
     typeof sample.metrics.tpotMs === 'number'
@@ -217,8 +226,8 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
       if (s !== 0) return s;
       const m = (a.model ?? '').localeCompare(b.model ?? '');
       if (m !== 0) return m;
-      const vA = (a.promptVariant ?? 'full') === 'plain' ? 1 : 0;
-      const vB = (b.promptVariant ?? 'full') === 'plain' ? 1 : 0;
+      const vA = isPlainPromptVariant(a) ? 1 : 0;
+      const vB = isPlainPromptVariant(b) ? 1 : 0;
       if (vA !== vB) return vA - vB;
       return (a.runIndex ?? 1) - (b.runIndex ?? 1);
     });
@@ -226,7 +235,7 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   const judgeEnabled = options.llmJudge?.enabled === true;
   const judgeResults: Array<LlmJudgeResult | undefined> = [];
   if (judgeEnabled) {
-    const toJudgeCount = parsedSamples.filter((s) => (s.promptVariant ?? 'full') !== 'plain').length;
+    const toJudgeCount = parsedSamples.filter((s) => !isPlainPromptVariant(s)).length;
     console.log(
       `[bench][judge] enabled, samples=${parsedSamples.length}, judgeCalls=${toJudgeCount}（纯文本样本跳过 Judge）`,
     );
@@ -237,7 +246,7 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
         const index = cursor++;
         if (index >= parsedSamples.length) return;
         const sample = parsedSamples[index];
-        if ((sample.promptVariant ?? 'full') === 'plain') {
+        if (isPlainPromptVariant(sample)) {
           judgeResults[index] = undefined;
           console.log(`[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} plain — skip Judge`);
           continue;
@@ -264,10 +273,11 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   if (results.length === 0) {
     throw new Error('No samples matched the current filter');
   }
-  const invalidSchemaRows = results.filter((item) => !item.isSchemaJsonValidAgainstProtocol);
+  const protocolRows = results.filter((item) => !isPlainPromptVariant(item));
+  const invalidSchemaRows = protocolRows.filter((item) => !item.isSchemaJsonValidAgainstProtocol);
   if (invalidSchemaRows.length > 0) {
     console.log(
-      `[bench] Schema validation failed: ${invalidSchemaRows.length}/${results.length}（详见 report.html）`,
+      `[bench] Schema validation failed: ${invalidSchemaRows.length}/${protocolRows.length}（详见 report.html；plain 已跳过协议校验）`,
     );
   }
   return await printLlmBenchmarkResults(results, options, parsedSamples);

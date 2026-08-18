@@ -13,6 +13,7 @@ import type {
 import {
   buildBenchmarkExcelDetailRows,
   comparisonScenarioLabel,
+  countsTowardProtocolGate,
   resolvePrimaryBenchmarkModelId,
   resolveSamplesDir,
   sampleStdev,
@@ -124,7 +125,12 @@ export function buildComparisonByScenario(
         avgTotalMs: mr.reduce((s, r) => s + r.totalMs, 0) / n,
         ...(tpotValues.length ? { avgTpotMs: tpotValues.reduce((s, v) => s + v, 0) / tpotValues.length } : {}),
         avgTotalTokens: mr.reduce((s, r) => s + r.totalTokens, 0) / n,
-        schemaPassRate: mr.filter((r) => r.isSchemaJsonValidAgainstProtocol).length / n,
+        // plain 不计入协议门禁；整组皆 plain 时视为无协议期望（vacuous 1）
+        schemaPassRate: (() => {
+          const scored = mr.filter(countsTowardProtocolGate);
+          if (scored.length === 0) return 1;
+          return scored.filter((r) => r.isSchemaJsonValidAgainstProtocol).length / scored.length;
+        })(),
         ...(volatility ? { volatility } : {}),
       };
     }

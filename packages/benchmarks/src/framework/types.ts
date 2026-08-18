@@ -155,9 +155,9 @@ export interface LlmBenchmarkResultItem {
   isSchemaJsonBlockFound: boolean;
   /** 块内是否为合法 JSON（genui 可经 repairJson；a2ui 严格 parse） */
   isSchemaJsonValidJson: boolean;
-  /** 是否通过当前协议校验（genui=genRootSchema；a2ui=AJV） */
+  /** 是否通过当前协议校验（genui=genRootSchema；a2ui=AJV）。plain 样本跳过校验，固定为 false 且 `schemaValidationError=skipped_plain`，不计入通过率 */
   isSchemaJsonValidAgainstProtocol: boolean;
-  // schema 协议校验失败原因（如缺失字段路径）
+  // schema 协议校验失败原因（如缺失字段路径；plain 为 `skipped_plain`）
   schemaValidationError?: string;
   promptTokens: number;
   completionTokens: number;

@@ -186,6 +186,7 @@ src/
 - **`compareEmptySystemPlainOnly === true`（仅 plain）**：每个任务只写 **空 system** 的 `*_plain.json`，不写 full。
 - **`compareEmptySystem === true` 且 plainOnly 为 false**：每个「模型 × 场景 × run」写 **full + plain** 各一份。
 - **二者均为 false（默认）**：只写 **full**（走 `genPrompt` 主路径）。
+- **报告阶段**：`plain` 样本**不跑**协议合规校验与 LLM Judge（明细里协议字段为 `skipped_plain`，不计入 `schemaPassRate`）。
 
 ## 中断后继续
 
@@ -249,7 +250,7 @@ pnpm benchmarks
 | `tpotMs` | TPOT（ms/token）：`(totalMs - ttftMs) / (completionTokens - 1)`；`completionTokens ≤ 1` 时省略 |
 | `isSchemaJsonBlockFound` | genui：抽到 \`\`\`schemaJson\`\`\`；a2ui：抽到 `<a2ui-json>`（字段名历史兼容） |
 | `isSchemaJsonValidJson` | 块内 JSON 可解析（genui 经 repairJson；a2ui 严格 parse） |
-| `isSchemaJsonValidAgainstProtocol` | genui：`genRootSchema`；a2ui：AJV server_to_client + catalog |
+| `isSchemaJsonValidAgainstProtocol` | genui：`genRootSchema`；a2ui：AJV server_to_client + catalog。**plain 跳过**，固定 `false` 且 `schemaValidationError=skipped_plain`（不计入通过率） |
 | `schemaValidationError` | 校验失败时的说明 |
 | `promptTokens` / `completionTokens` / `totalTokens` | 模型 usage（报告不含缓存分项） |
 | `benchTotalTokens` | 生成 + Judge 合计 token（未开 Judge 或未返回 usage 时等于 `totalTokens`） |
