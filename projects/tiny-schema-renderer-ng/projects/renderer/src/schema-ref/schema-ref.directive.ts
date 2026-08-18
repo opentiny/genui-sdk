@@ -4,21 +4,24 @@ import {
   Input,
   OnChanges,
   OnDestroy,
+  Optional,
+  Self,
   SimpleChanges,
-  inject,
 } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
-import { SchemaRefBinding } from './schema-ref-binding';
+import { SchemaRefBinding, getRefName } from './schema-ref-binding';
 import { SCHEMA_REF_BRIDGE, SchemaRefBridge } from './schema-ref-bridge';
 
 /**
- * Companion to `[componentOutlet]`: wires schema `props.ref` / `props.refName`.
+ * Companion to `[componentOutlet]`: owns schema `props.ref` / `props.refName` for
+ * component hosts. Ref value is the component instance (or nativeElement for
+ * native/dynamic tags). Template hosts are handled by {@link SchemaRefTemplateDirective}.
  *
- * Lifecycle comes from {@link SCHEMA_REF_BRIDGE} (outlet attach/detach) — not ngDoCheck and
- * not mirroring `componentOutletContent` (that churns every CD and caused infinite loops).
+ * Lifecycle comes from {@link SCHEMA_REF_BRIDGE} (outlet attach/detach); ref/refName
+ * are read from `outlet.ngComponentOutletProps`.
  *
  * - `props.ref` → page `this.refs`
- * - `props.refName` → `scope[refName] = instance`
+ * - `props.refName` → `scope[refName] = value`
  */
 @Directive({
   selector: '[componentOutlet]',
@@ -33,20 +36,23 @@ import { SCHEMA_REF_BRIDGE, SchemaRefBridge } from './schema-ref-bridge';
 export class SchemaRefDirective implements SchemaRefBridge, OnChanges, OnDestroy {
   /** Current render scope (page / loop mergeScope). */
   @Input('schemaRefScope') scope: Record<string, any> | null | undefined;
-  /** Schema `props.refName`. */
-  @Input('schemaRefName') refName: string | null | undefined;
 
-  private readonly outlet = inject(ComponentOutlet);
   private readonly binding = new SchemaRefBinding();
   private attachedRef: ComponentRef<any> | undefined;
+
+  constructor(
+    @Optional()
+    @Self()
+    private readonly outlet: ComponentOutlet | null,
+  ) {}
 
   attach(componentRef: ComponentRef<any>): void {
     this.binding.clear();
     this.attachedRef = componentRef;
-    const props = (this.outlet.ngComponentOutletProps ?? {}) as Record<string, any>;
+    const props = (this.outlet?.ngComponentOutletProps ?? {}) as Record<string, any>;
     this.binding.register(componentRef, props, {
       scope: this.scope,
-      refName: this.refName,
+      refName: getRefName(props),
     });
   }
 
@@ -56,22 +62,18 @@ export class SchemaRefDirective implements SchemaRefBridge, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Remount is handled by attach/detach. Here only refresh local #name when scope/name change.
-    if (!this.attachedRef) {
+    // Remount is handled by attach/detach — only refresh local #name here.
+    if (!this.attachedRef || !changes['scope']) {
       return;
     }
-    if (!changes['scope'] && !changes['refName']) {
-      return;
-    }
-    const name =
-      typeof this.refName === 'string' && this.refName.trim() ? this.refName.trim() : null;
-    if (!name && !changes['refName']) {
+    const props = (this.outlet?.ngComponentOutletProps ?? {}) as Record<string, any>;
+    if (!getRefName(props)) {
       // Looped outlets get a new mergeScope object every CD — ignore when unused.
       return;
     }
     this.binding.syncLocalRef(this.attachedRef, {
       scope: this.scope,
-      refName: this.refName,
+      refName: getRefName(props),
     });
   }
 

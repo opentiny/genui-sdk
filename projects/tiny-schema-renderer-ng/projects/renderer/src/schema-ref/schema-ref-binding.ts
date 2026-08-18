@@ -17,11 +17,16 @@ export function isSchemaRefPropKey(key: string): boolean {
   return key === 'ref' || key === 'refName';
 }
 
-/**
- * Resolve what to store in `this.refs` / local scope:
- * - HTML / dynamic tag / custom-element host → nativeElement
- * - material component → component instance
- */
+/** Extract `props.refName` from parsed schema props (plain string). */
+export function getRefName(props: Record<string, any> | null | undefined): string | null {
+  const name = props?.['refName'];
+  return typeof name === 'string' && name.trim() ? name.trim() : null;
+}
+
+  /**
+   * Resolve the value stored in `this.refs` / local scope:
+   * nativeElement for native/dynamic tags, component instance for materials.
+   */
 export function resolveSchemaRefValue(componentRef: ComponentRef<any>): unknown {
   if (componentRef.instance instanceof NativeElementComponent) {
     return componentRef.location.nativeElement;
@@ -38,11 +43,7 @@ function normalizeRefName(refName: string | null | undefined): string | null {
   return typeof refName === 'string' && refName.trim() ? refName.trim() : null;
 }
 
-/**
- * Owns register / clear / sync for:
- * - props.ref → page `this.refs` (Vue function-ref)
- * - props.refName → current scope variable (Angular `#name`)
- */
+/** Owns register / clear / sync for props.ref (this.refs) and props.refName (scope). */
 export class SchemaRefBinding {
   private activeFn: SchemaRefFn | undefined;
   private activeScope: Record<string, any> | null = null;
@@ -56,8 +57,15 @@ export class SchemaRefBinding {
     if (!componentRef) {
       return;
     }
-    const value = resolveSchemaRefValue(componentRef);
+    this.registerValue(resolveSchemaRefValue(componentRef), bindProps, local);
+  }
 
+  /** Register a ref value directly (instance / nativeElement / TemplateRef). */
+  registerValue(
+    value: unknown,
+    bindProps: Record<string, any>,
+    local?: SchemaLocalRefOptions,
+  ): void {
     const refFn = getSchemaRefFn(bindProps);
     this.activeFn = refFn;
     refFn?.(value);
@@ -73,11 +81,7 @@ export class SchemaRefBinding {
     this.clearLocalRef();
   }
 
-  /**
-   * When only props change: re-bind if the ref callback identity changed.
-   * parseData rebuilds the function each CD — re-assign without nulling to avoid
-   * clearing this.refs.* for one tick.
-   */
+  /** Re-bind when the ref callback identity changed (parseData rebuilds it each CD). */
   syncFromProps(
     componentRef: ComponentRef<any> | undefined,
     bindProps: Record<string, any>,
@@ -97,7 +101,7 @@ export class SchemaRefBinding {
     }
   }
 
-  /** When scope / refName inputs change without remounting the outlet. */
+  /** Refresh local #name when scope/refName change without remounting the outlet. */
   syncLocalRef(
     componentRef: ComponentRef<any> | undefined,
     local?: SchemaLocalRefOptions,

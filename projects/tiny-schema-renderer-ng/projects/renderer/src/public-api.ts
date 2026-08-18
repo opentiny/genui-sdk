@@ -13,7 +13,7 @@ export {
   CONTENT_CHILDREN_TRACK_DIRECTIVES,
   ContentChildrenService,
   ContentChildrenTrackDirective,
-  NgSchemaTemplateDirective,
+  ContentChildrenTrackTemplateDirective,
   CONTENT_CHILDREN_OUTLET,
   NG_TEMPLATE_SCHEMA_NAME,
   getComponentOutletLabel,
@@ -25,5 +25,7 @@ export type {
   OutletSnapshot,
   TreeNode,
   ContentQueryPatchTarget,
-  ProjectedTemplateEntry,
+  ContentRefEntry,
+  OutletContentRefEntry,
+  TemplateContentRefEntry,
 } from './content-children';

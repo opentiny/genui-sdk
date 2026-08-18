@@ -42,7 +42,6 @@
           } | projectNgContent: childrenTemplate : viewContainerRef : (schema.componentName | getComponent)
         "
         [schemaRefScope]="mergeScope"
-        [schemaRefName]="schema.props?.refName"
         [contentChildrenRef]="schema.props?.refName"
         [contentChildrenIndex]="(contentChildrenIndex ?? 0) + (index ?? 0)"
         attrAndEvent
@@ -63,18 +62,16 @@
       <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes">
         <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
           <ng-container *ngFor="let child of children; let childIndex = index">
-            <!--
-              A: schema NgTemplate → real <ng-template> in projectableNodes.
-              E: ngSchemaTemplate registers TemplateRef on parent ComponentOutlet for ContentChild(TemplateRef).
-              Order key: original schema child index (via slotIndexes across ng-content slots) * SCHEMA_INDEX_STRIDE (10000)
-              so loop items expand in place and slot-projected items keep declaration order.
-            -->
+            <!-- Schema NgTemplate → real <ng-template> in projectableNodes; ngSchemaTemplate registers it for ContentChild(TemplateRef).
+                 Order key (slotIndexes * SCHEMA_INDEX_STRIDE) keeps schema declaration order across slots/loops. -->
             <ng-container *ngIf="child.componentName === 'NgTemplate'; else normalChild">
               <ng-template
                 ngSchemaTemplate
-                [ngSchemaTemplateParent]="componentOutlet"
-                [ngSchemaTemplateRefName]="child.props?.refName"
-                [ngSchemaTemplateIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
+                [contentChildrenParent]="componentOutlet"
+                [contentChildrenRefName]="child.props?.refName"
+                [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
+                [schemaRefProps]="context | parseData: { ref: child.props?.ref, refName: child.props?.refName } : scope"
+                [schemaRefScope]="scope"
               >
                 <ng-container *ngIf="(child.children | isArray)">
                   <ng-container *ngFor="let c of child.children">

@@ -14,7 +14,7 @@ import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
-import { SchemaRefDirective } from './schema-ref';
+import { SchemaRefDirective, SchemaRefTemplateDirective } from './schema-ref';
 import { CONTENT_CHILDREN_TRACK_DIRECTIVES } from './content-children';
 
 @Pipe({
@@ -78,6 +78,7 @@ export class IsStringPipe implements PipeTransform {
     GetDirectivesPipe,
     ComponentOutlet,
     SchemaRefDirective,
+    SchemaRefTemplateDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,

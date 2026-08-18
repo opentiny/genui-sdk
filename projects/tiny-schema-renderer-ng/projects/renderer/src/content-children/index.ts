@@ -1,12 +1,12 @@
 import { EnvironmentProviders, makeEnvironmentProviders, Provider } from '@angular/core';
 import { ContentChildrenService } from './content-children.service';
 import { ContentChildrenTrackDirective } from './content-children-track.directive';
-import { NgSchemaTemplateDirective } from './ng-schema-template.directive';
+import { ContentChildrenTrackTemplateDirective } from './content-children-track-template.directive';
 
 /** Directives to import on `RendererTemplateComponent` (or a host that declares the shared template). */
 export const CONTENT_CHILDREN_TRACK_DIRECTIVES = [
   ContentChildrenTrackDirective,
-  NgSchemaTemplateDirective,
+  ContentChildrenTrackTemplateDirective,
 ] as const;
 
 /** Enable outlet-tree registry + ContentChildren QueryList/signal patch bridge. */
@@ -24,7 +24,7 @@ export {
   ContentChildrenTrackDirective,
   CONTENT_CHILDREN_OUTLET,
 } from './content-children-track.directive';
-export { NgSchemaTemplateDirective } from './ng-schema-template.directive';
+export { ContentChildrenTrackTemplateDirective } from './content-children-track-template.directive';
 export {
   NG_TEMPLATE_SCHEMA_NAME,
   SCHEMA_INDEX_STRIDE,
@@ -32,13 +32,17 @@ export {
   getContentOutletLocalRef,
   getContentOutletQueryNames,
   getContentOutletSchemaIndex,
+  getContentRefs,
   getOutletQueryCandidates,
-  getProjectedTemplates,
   patchContentQuery,
   patchOutletContentQueries,
-  registerProjectedTemplate,
-  setContentOutletLocalRef,
+  registerContentRef,
   setContentOutletSchemaIndex,
-  unregisterProjectedTemplate,
+  unregisterContentRef,
 } from './content-children-patch';
-export type { ContentQueryPatchTarget, ProjectedTemplateEntry } from './content-children-patch';
+export type {
+  ContentQueryPatchTarget,
+  ContentRefEntry,
+  OutletContentRefEntry,
+  TemplateContentRefEntry,
+} from './content-children-patch';

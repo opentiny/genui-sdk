@@ -29,7 +29,7 @@ export interface ContentQueryPatchTarget {
 /** Shim signals replacing material contentChild(ren)() fields (LView rematerialize would wipe QueryList-only patches). */
 const signalShims = new WeakMap<object, ReturnType<typeof signal<any>>>();
 
-/** Persist shim bindings per host — after field replace, discover no longer sees query signals. */
+/** Persist shim bindings per host — after field replace, discovery no longer sees query signals. */
 const hostShimBindings = new WeakMap<
   object,
   Array<{
@@ -40,35 +40,38 @@ const hostShimBindings = new WeakMap<
   }>
 >();
 
-/**
- * Schema `props.refName` (template-local name) per outlet — mirrors Angular `#name` for
- * `contentChild('name')` / `@ContentChild('name')` string selectors.
- * Schema `props.ref` is reserved for `this.refs` registration.
- */
-const outletLocalRefs = new WeakMap<ComponentOutlet, string>();
-
-/** Schema `NgTemplate` nodes → real TemplateRefs projected under a parent outlet. */
-export interface ProjectedTemplateEntry {
-  templateRef: TemplateRef<unknown>;
+/** Ref entry for a schema component child — value resolved lazily via {@link pickMatchForOutlet}. */
+export interface OutletContentRefEntry {
+  kind: 'outlet';
+  /** Schema `props.refName` (template-local name) or null when unnamed. */
   refName: string | null;
-  /**
-   * Schema declaration order key, same scale as outlet schema indexes
-   * (childIndex * {@link SCHEMA_INDEX_STRIDE} + loopIndex). Lets projected templates
-   * interleave with child outlets in schema order instead of projection/DOM order.
-   */
+  /** Schema declaration order key (`childIndex * {@link SCHEMA_INDEX_STRIDE} + loopIndex`). */
   index?: number;
+  /** The child component outlet. */
+  outlet: ComponentOutlet;
+}
+
+/** Ref entry for a schema NgTemplate child — the value is the TemplateRef itself. */
+export interface TemplateContentRefEntry {
+  kind: 'template';
+  /** Schema `props.refName` (template-local name) or null when unnamed. */
+  refName: string | null;
+  /** Schema declaration order key (`childIndex * {@link SCHEMA_INDEX_STRIDE} + loopIndex`). */
+  index?: number;
+  /** The projected TemplateRef. */
+  templateRef: TemplateRef<unknown>;
 }
 
 /**
- * Multiplier for the child-index part of a schema order key. Loop items expand
- * in place, so positions are `childIndex * STRIDE + loopIndex`.
+ * One ref entry under a parent outlet — unified source for content queries.
+ * `refName` mirrors Angular `#name` for string selectors; `props.ref` is not stored here.
  */
+export type ContentRefEntry = OutletContentRefEntry | TemplateContentRefEntry;
+
+/** Multiplier for the child-index part of a schema order key (`childIndex * STRIDE + loopIndex`). */
 export const SCHEMA_INDEX_STRIDE = 10000;
 
-/**
- * Schema declaration order key per outlet (childIndex * STRIDE + loopIndex),
- * set from the schema children iteration (see ContentChildrenTrackDirective).
- */
+/** Schema declaration order key per outlet (see {@link ContentChildrenTrackDirective}). */
 const outletSchemaIndex = new WeakMap<ComponentOutlet, number>();
 
 export function setContentOutletSchemaIndex(
@@ -86,66 +89,69 @@ export function getContentOutletSchemaIndex(outlet: ComponentOutlet): number | u
   return outletSchemaIndex.get(outlet);
 }
 
-const projectedTemplatesByParent = new WeakMap<ComponentOutlet, ProjectedTemplateEntry[]>();
+/** Unified per-parent registry: parent outlet → ordered ref entries (outlet + template). */
+const contentRefsByParent = new WeakMap<ComponentOutlet, ContentRefEntry[]>();
+
+/** Convenience index: outlet → its registered refName, keeping `getContentOutletQueryNames` O(1). */
+const outletLocalRefs = new WeakMap<ComponentOutlet, string>();
+
+function getRefEntryKey(entry: ContentRefEntry): ComponentOutlet | TemplateRef<unknown> | undefined {
+  return entry.kind === 'outlet' ? entry.outlet : entry.templateRef;
+}
+
+/** Register (or update) one ref entry under `parentOutlet` (component child or NgTemplate). */
+export function registerContentRef(parentOutlet: ComponentOutlet, entry: ContentRefEntry): void {
+  let list = contentRefsByParent.get(parentOutlet);
+  if (!list) {
+    list = [];
+    contentRefsByParent.set(parentOutlet, list);
+  }
+  const key = getRefEntryKey(entry);
+  const existing = key ? list.find((e) => getRefEntryKey(e) === key) : undefined;
+  const name = typeof entry.refName === 'string' && entry.refName.trim() ? entry.refName.trim() : null;
+  if (existing) {
+    existing.refName = name;
+    if (typeof entry.index === 'number') {
+      existing.index = entry.index;
+    }
+  } else {
+    list.push({ ...entry, refName: name });
+  }
+  if (entry.kind === 'outlet') {
+    if (name) {
+      outletLocalRefs.set(entry.outlet, name);
+    } else {
+      outletLocalRefs.delete(entry.outlet);
+    }
+  }
+}
+
+/** Remove a registered ref entry (by outlet or templateRef). */
+export function unregisterContentRef(parentOutlet: ComponentOutlet, entry: ContentRefEntry): void {
+  const list = contentRefsByParent.get(parentOutlet);
+  if (!list?.length) {
+    return;
+  }
+  const key = getRefEntryKey(entry);
+  const index = key ? list.findIndex((e) => getRefEntryKey(e) === key) : -1;
+  if (index >= 0) {
+    const [removed] = list.splice(index, 1);
+    if (removed.kind === 'outlet') {
+      outletLocalRefs.delete(removed.outlet);
+    }
+  }
+}
+
+/** Snapshot of all ref entries (component children + NgTemplates) under `parentOutlet`. */
+export function getContentRefs(parentOutlet: ComponentOutlet): ContentRefEntry[] {
+  return contentRefsByParent.get(parentOutlet)?.slice() ?? [];
+}
 
 /** Schema componentName for the NgTemplate bypass (not a material). */
 export const NG_TEMPLATE_SCHEMA_NAME = 'NgTemplate';
 
-/** Register a local template-ref name for an outlet (from props.refName). */
-export function setContentOutletLocalRef(
-  outlet: ComponentOutlet,
-  ref: string | null | undefined,
-): void {
-  if (typeof ref === 'string' && ref.trim()) {
-    outletLocalRefs.set(outlet, ref.trim());
-  } else {
-    outletLocalRefs.delete(outlet);
-  }
-}
-
 export function getContentOutletLocalRef(outlet: ComponentOutlet): string | null {
   return outletLocalRefs.get(outlet) ?? null;
-}
-
-export function registerProjectedTemplate(
-  parentOutlet: ComponentOutlet,
-  templateRef: TemplateRef<unknown>,
-  refName?: string | null,
-  index?: number,
-): void {
-  let list = projectedTemplatesByParent.get(parentOutlet);
-  if (!list) {
-    list = [];
-    projectedTemplatesByParent.set(parentOutlet, list);
-  }
-  const existing = list.find((e) => e.templateRef === templateRef);
-  const name = typeof refName === 'string' && refName.trim() ? refName.trim() : null;
-  if (existing) {
-    existing.refName = name;
-    if (typeof index === 'number') {
-      existing.index = index;
-    }
-    return;
-  }
-  list.push({ templateRef, refName: name, index });
-}
-
-export function unregisterProjectedTemplate(
-  parentOutlet: ComponentOutlet,
-  templateRef: TemplateRef<unknown>,
-): void {
-  const list = projectedTemplatesByParent.get(parentOutlet);
-  if (!list?.length) {
-    return;
-  }
-  const index = list.findIndex((e) => e.templateRef === templateRef);
-  if (index >= 0) {
-    list.splice(index, 1);
-  }
-}
-
-export function getProjectedTemplates(parentOutlet: ComponentOutlet): ProjectedTemplateEntry[] {
-  return projectedTemplatesByParent.get(parentOutlet)?.slice() ?? [];
 }
 
 function rememberShimBinding(
@@ -235,9 +241,8 @@ function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: u
 }
 
 /**
- * Ivy: view queries are created with declarationNodeIndex -1; content queries use the host tNode index.
- * Also tView.contentQueries lists content-query indices as [queryIndex, directiveIndex, ...].
- * Patching ViewChild QueryLists (e.g. TiTabs #slider) wipes them and breaks slider position.
+ * View queries use `declarationNodeIndex -1`; content queries use the host tNode index.
+ * Patching ViewChild QueryLists (e.g. TiTabs #slider) wipes them and breaks layout.
  */
 function isContentQueryIndex(lView: any, queryIndex: number): boolean {
   const tView = lView?.[1];
@@ -262,10 +267,7 @@ function isContentQueryIndex(lView: any, queryIndex: number): boolean {
   return tQuery._declarationNodeIndex !== -1;
 }
 
-/**
- * Infer contentChild vs contentChildren without reading the query signal.
- * Reading would call refreshSignalQuery → QueryList.reset(empty) and fight our patch.
- */
+/** Infer contentChild vs contentChildren without reading the signal (reading resets its QueryList). */
 function inferFirstOnly(propertyName: string): boolean {
   if (/children|items/i.test(propertyName)) {
     return false;
@@ -278,14 +280,10 @@ function inferFirstOnly(propertyName: string): boolean {
 }
 
 /**
- * Property names written or declared by the compiled viewQuery fn — @ViewChild/@ViewChildren
- * (update phase `ctx.foo = _t`) and viewChild()/viewChildren() signals (create phase
- * `ɵɵviewQuerySignal(ctx.foo, ...)`). Content patching must never touch them: wiping e.g.
- * TiDateComponent.dateEditComs resets its matches and breaks `focus()` on dropdown open.
- * Same source-parsing technique as {@link bindDecoratorQueryPropertyNames} for contentQueries.
- *
- * Content-query signal fields (`ɵɵcontentQuerySignal(dirIndex, ctx.foo, ...)`) live in the
- * contentQueries fn, never here, so they are patched as before.
+ * Property names declared by the compiled `viewQuery` fn — @ViewChild/@ViewChildren updates
+ * (`ctx.foo = _t`) and viewChild()/viewChildren() signals (`ɵɵviewQuerySignal(ctx.foo, ...)`).
+ * Content patching must skip these: wiping e.g. TiDateComponent.dateEditComs breaks `focus()`.
+ * Content-query signals live in the contentQueries fn, never here, so they stay patchable.
  */
 const viewQueryPropsByClass = new WeakMap<object, Set<string>>();
 
@@ -312,11 +310,7 @@ function getViewQueryPropertyNames(instance: object): Set<string> {
   return names;
 }
 
-/**
- * Discover content-query QueryLists on a component instance.
- * Prefers LView query metadata; falls back to enumerating instance QueryList / query-signal fields.
- * Skips view queries (@ViewChild / viewChild) — only content queries are patched.
- */
+/** Discover content-query QueryLists on a component; skips view queries. */
 export function discoverContentQueryTargets(instance: object): ContentQueryPatchTarget[] {
   const targets: ContentQueryPatchTarget[] = [];
   const seen = new Set<QueryList<unknown>>();
@@ -356,8 +350,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
   for (const key of Object.keys(instance as object)) {
     const value = (instance as any)[key];
     if (value instanceof QueryList) {
-      // @ViewChildren fields (compiled viewQuery assignments) are resolved by Angular —
-      // patching them wipes matches and breaks the component (e.g. TiDate.dateEditComs).
+      // @ViewChildren fields are resolved by Angular — patching wipes matches (e.g. TiDate.dateEditComs).
       if (viewQueryProps.has(key)) {
         continue;
       }
@@ -374,14 +367,14 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         propertyName: key,
         queryList: value,
         predicate: null,
-        // @ContentChild still uses QueryList; treat short name heuristic as firstOnly when patched via property
+        // @ContentChild still uses QueryList; treat short-name fields as firstOnly.
         firstOnly: /^(first|header|item|child|contentTemplate)/i.test(key) && !/s$/i.test(key),
         hostInstance: instance,
       });
     } else if (isQuerySignal(value)) {
       const node = (value as any)[SIGNAL];
-      // viewChild()/viewChildren() signals (declared in the compiled viewQuery fn) are
-      // resolved by Angular — never patch them. Content signals stay patchable.
+      // viewChild()/viewChildren() signals are resolved by Angular — never patch.
+      // Content signals stay patchable.
       if (viewQueryProps.has(key)) {
         continue;
       }
@@ -436,10 +429,7 @@ function getExportAsNames(type: Type<any> | null | undefined): string[] {
     .filter(Boolean);
 }
 
-/**
- * Component + host directives on an outlet (Angular content queries can target either).
- * Prefer live `ɵgetDirectives(hostEl)`; fall back to component instance + declared directive types.
- */
+/** Component + host directives on an outlet (content queries can target either). */
 export function getOutletQueryCandidates(outlet: ComponentOutlet): object[] {
   const seen = new Set<object>();
   const result: object[] = [];
@@ -516,11 +506,12 @@ function predicatesWantTemplateRef(predicate: unknown): boolean {
   return normalizePredicates(predicate).some(isTemplateRefType);
 }
 
-/**
- * Pick the instance a content query should read from one child outlet
- * (component or directive), following Angular selector / exportAs / refName rules.
- */
-function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknown | undefined {
+/** Pick the match for one child outlet per Angular selector / exportAs / refName rules. */
+function pickMatchForOutlet(
+  outlet: ComponentOutlet,
+  predicate: unknown,
+  refName: string | null,
+): unknown | undefined {
   const candidates = getOutletQueryCandidates(outlet);
   if (!candidates.length) {
     return undefined;
@@ -531,7 +522,7 @@ function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknow
     return outlet.componentInstance ?? candidates[0];
   }
 
-  // TemplateRef is never an outlet host instance — handled via projected templates.
+  // TemplateRef is never an outlet host instance — handled via template entries.
   if (predicates.every(isTemplateRefType)) {
     return undefined;
   }
@@ -542,7 +533,7 @@ function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknow
     }
     if (typeof p === 'string') {
       // props.refName ≈ template `#name` on the host → component instance
-      if (outletLocalRefs.get(outlet) === p) {
+      if (refName === p) {
         return outlet.componentInstance ?? candidates[0];
       }
       // exportAs on component or any host directive
@@ -563,8 +554,8 @@ function pickMatchForOutlet(outlet: ComponentOutlet, predicate: unknown): unknow
   return undefined;
 }
 
-function pickMatchForProjectedTemplate(
-  entry: ProjectedTemplateEntry,
+function pickMatchForTemplateEntry(
+  entry: TemplateContentRefEntry,
   predicate: unknown,
 ): TemplateRef<unknown> | undefined {
   const predicates = normalizePredicates(predicate);
@@ -582,54 +573,39 @@ function pickMatchForProjectedTemplate(
   return undefined;
 }
 
-/**
- * Resolve content-query matches for one parent: child outlets + schema NgTemplate TemplateRefs,
- * ordered by schema declaration order (childIndex * STRIDE + loopIndex), not projected DOM order.
- */
+/** Resolve query matches for one parent from the ref registry, in schema declaration order. */
 export function resolvePatchResults(
   target: ContentQueryPatchTarget,
-  childOutlets: ComponentOutlet[],
   parentOutlet?: ComponentOutlet | null,
 ): unknown[] {
-  type Entry =
-    | { kind: 'outlet'; outlet: ComponentOutlet }
-    | { kind: 'template'; entry: ProjectedTemplateEntry };
+  const entries = parentOutlet ? getContentRefs(parentOutlet) : [];
 
-  const entries: Entry[] = [
-    ...childOutlets.map((outlet) => ({ kind: 'outlet' as const, outlet })),
-  ];
-
-  if (parentOutlet) {
-    for (const entry of getProjectedTemplates(parentOutlet)) {
-      entries.push({ kind: 'template', entry });
-    }
-  }
-
-  const schemaIndex = (item: Entry): number =>
-    item.kind === 'outlet'
-      ? (getContentOutletSchemaIndex(item.outlet) ?? Number.MAX_SAFE_INTEGER)
-      : (item.entry.index ?? Number.MAX_SAFE_INTEGER);
-  entries.sort((a, b) => schemaIndex(a) - schemaIndex(b));
+  entries.sort(
+    (a, b) => (a.index ?? Number.MAX_SAFE_INTEGER) - (b.index ?? Number.MAX_SAFE_INTEGER),
+  );
 
   const results: unknown[] = [];
   for (const item of entries) {
     if (item.kind === 'outlet') {
-      const match = pickMatchForOutlet(item.outlet, target.predicate);
+      const match = pickMatchForOutlet(item.outlet, target.predicate, item.refName);
       if (match != null) {
         results.push(match);
       }
     } else {
-      const match = pickMatchForProjectedTemplate(item.entry, target.predicate);
+      const match = pickMatchForTemplateEntry(item, target.predicate);
       if (match != null) {
         results.push(match);
       }
     }
   }
 
-  // TemplateRef-only queries: if schema order was unavailable, still return registrations.
+  // TemplateRef-only queries: fall back to all template entries when nothing matched by name.
   if (!results.length && parentOutlet && predicatesWantTemplateRef(target.predicate)) {
-    for (const entry of getProjectedTemplates(parentOutlet)) {
-      const match = pickMatchForProjectedTemplate(entry, target.predicate);
+    for (const entry of getContentRefs(parentOutlet)) {
+      if (entry.kind !== 'template') {
+        continue;
+      }
+      const match = pickMatchForTemplateEntry(entry, target.predicate);
       if (match != null) {
         results.push(match);
       }
@@ -661,10 +637,7 @@ function childrenStructureKey(childInstances: unknown[]): string {
 /** Last structure key that already triggered a view refresh. */
 const lastScheduledStructureKey = new WeakMap<ComponentOutlet, string>();
 
-/**
- * Install/update signal shim.
- * Safe to call only outside ApplicationRef.synchronize / checkNoChanges (e.g. post-tick microtask).
- */
+/** Install/update signal shim. Safe only outside ApplicationRef.synchronize (post-tick microtask). */
 function installOrUpdateSignalShim(
   hostInstance: object,
   signalNode: object,
@@ -693,7 +666,6 @@ function installOrUpdateSignalShim(
 /** Update all shims previously installed on this host (survives field replace). */
 function syncHostSignalShims(
   hostInstance: object,
-  childOutlets: ComponentOutlet[],
   parentOutlet: ComponentOutlet,
 ): boolean {
   const bindings = hostShimBindings.get(hostInstance);
@@ -715,7 +687,6 @@ function syncHostSignalShims(
         queryList: null as any,
         predicate: binding.predicate,
       },
-      childOutlets,
       parentOutlet,
     );
     if (
@@ -734,22 +705,17 @@ function syncHostSignalShims(
   return changed;
 }
 
-/**
- * Patch one content query (QueryList only). Signal shims are synced via {@link syncHostSignalShims}.
- * @returns true if QueryList results changed
- */
+/** Patch one content query (QueryList only; signal shims synced via {@link syncHostSignalShims}). */
 export function patchContentQuery(
   target: ContentQueryPatchTarget,
-  childOutlets: ComponentOutlet[],
   parentOutlet: ComponentOutlet,
 ): boolean {
-  const results = resolvePatchResults(target, childOutlets, parentOutlet);
+  const results = resolvePatchResults(target, parentOutlet);
   const prev = target.queryList.toArray();
   const changed = !sameQueryResults(prev, results);
 
   if (changed) {
-    // reset() clears dirty so the next CD won't immediately wipe via ɵɵqueryRefresh.
-    // Skip notifyOnChanges — subscribers often markForCheck (NG0103 / extra ticks).
+    // reset() clears dirty so the next CD won't re-wipe via ɵɵqueryRefresh.
     target.queryList.reset(results);
   }
 
@@ -772,34 +738,32 @@ export function patchContentQuery(
 }
 
 /**
- * Patch content queries for one parent outlet.
- * Must run after the CD tick (including checkNoChanges) — not inside afterEveryRender (NG0100).
- * @returns true if queries changed and the view was marked for check
+ * Patch content queries for one parent outlet. Must run after the CD tick
+ * (not inside afterEveryRender — would throw NG0100).
  */
-export function patchOutletContentQueries(
-  parentOutlet: ComponentOutlet,
-  childOutlets: ComponentOutlet[],
-): boolean {
+export function patchOutletContentQueries(parentOutlet: ComponentOutlet): boolean {
   const parentInstance = parentOutlet.componentInstance;
   if (!parentInstance) {
     return false;
   }
-  const childInstances = childOutlets
-    .map((child) => child.componentInstance)
+  const refs = getContentRefs(parentOutlet);
+  const childInstances = refs
+    .filter((entry): entry is OutletContentRefEntry => entry.kind === 'outlet')
+    .map((entry) => entry.outlet.componentInstance)
     .filter((instance): instance is object => instance != null);
-  const projected = getProjectedTemplates(parentOutlet);
+  const projected = refs.filter((entry) => entry.kind === 'template');
 
   const structureKey = `${childInstances.length}:${childrenStructureKey(childInstances)}#tpl:${projected.length}:${projected.map((p) => p.refName ?? '').join(',')}`;
   const targets = discoverContentQueryTargets(parentInstance);
   let queryChanged = false;
   let shimChanged = false;
   for (const target of targets) {
-    if (patchContentQuery(target, childOutlets, parentOutlet)) {
+    if (patchContentQuery(target, parentOutlet)) {
       queryChanged = true;
     }
   }
   // After first install, instance fields are plain signals — still update via registry.
-  if (syncHostSignalShims(parentInstance, childOutlets, parentOutlet)) {
+  if (syncHostSignalShims(parentInstance, parentOutlet)) {
     shimChanged = true;
   }
   bindDecoratorQueryPropertyNames(parentInstance, targets);
@@ -811,8 +775,7 @@ export function patchOutletContentQueries(
     return false;
   }
 
-  // Re-filling QueryList after a wipe must not schedule another CD (would loop).
-  // Only refresh when schema child structure changed or shims need a new value.
+  // Only mark for check when the child structure changed or a shim needs a new value — else we'd loop.
   const structureChanged = lastScheduledStructureKey.get(parentOutlet) !== structureKey;
   if (!structureChanged && !shimChanged) {
     return false;
@@ -823,9 +786,8 @@ export function patchOutletContentQueries(
 }
 
 /**
- * Map decorator @ContentChild QueryLists (no propertyName yet) to host fields using the
+ * Map decorator @ContentChild QueryLists (propertyName still null) to host fields using the
  * compiled `ɵcmp.contentQueries` update assignments (`ctx.firstItem = _t.first`).
- * Only touches properties Angular itself writes — never guesses by field-name regex.
  */
 function bindDecoratorQueryPropertyNames(
   instance: object,
@@ -843,8 +805,8 @@ function bindDecoratorQueryPropertyNames(
   if (!firstProps.length) {
     return;
   }
-  // LView order: signals (kind=signal) + ContentChildren (propertyName set, field is QueryList)
-  // + @ContentChild QueryLists (still propertyName null). Match the latter to firstProps in order.
+  // LView order: content signals + ContentChildren (named) + @ContentChild QueryLists (unnamed).
+  // Match the unnamed QueryLists to the compiled `_t.first` props in order.
   const unboundChildQueries = targets.filter(
     (t) => t.kind === 'query-list' && !t.propertyName,
   );
@@ -855,9 +817,8 @@ function bindDecoratorQueryPropertyNames(
 }
 
 /**
- * After QueryList.reset, Ivy would do `ctx.prop = queryList.first` when queryRefresh returns
- * true. We clear dirty on reset, so mirror that write only for targets that are known content
- * queries with a resolved propertyName.
+ * QueryList.reset clears dirty, so Ivy's `ctx.prop = queryList.first` refresh never runs;
+ * mirror that write for known content queries with a resolved propertyName.
  */
 function syncHostFieldsFromContentQueryTargets(
   instance: object,

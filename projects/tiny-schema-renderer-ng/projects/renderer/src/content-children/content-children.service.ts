@@ -1,4 +1,4 @@
-import { Injectable, Injector, Type, afterEveryRender, inject } from '@angular/core';
+import { Injectable, Injector, Type, afterEveryRender } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
 import {
   getContentOutletSchemaIndex,
@@ -13,10 +13,7 @@ export interface TreeNode<T> {
 /** Plain tree for logging / `| json` (no Angular refs). */
 export type OutletSnapshot = TreeNode<string | null>;
 
-/**
- * Native tags are created via `nativeElementComponentFactory` as anonymous
- * `componentType` classes — prefer Angular selector over `Function.name`.
- */
+/** Native tags use anonymous `componentType` classes — prefer the Angular selector over `Function.name`. */
 export function getComponentOutletLabel(outlet: ComponentOutlet): string | null {
   const type = outlet.ngComponentOutlet as Type<any> | null;
   if (!type) {
@@ -30,11 +27,7 @@ export function getComponentOutletLabel(outlet: ComponentOutlet): string | null 
   return name && name !== 'componentType' ? name : null;
 }
 
-/**
- * Content-query order must follow schema declaration order, not Map insertion order.
- * Loop items are registered after a later sibling (e.g. named header) and projection
- * re-orders header slots first, so use the explicit schema order key when available.
- */
+/** Content-query order must follow schema declaration order, not projection/DOM order. */
 function compareOutletSchemaOrder(a: ComponentOutlet, b: ComponentOutlet): number {
   return (
     (getContentOutletSchemaIndex(a) ?? Number.MAX_SAFE_INTEGER) -
@@ -45,13 +38,11 @@ function compareOutletSchemaOrder(a: ComponentOutlet, b: ComponentOutlet): numbe
 @Injectable()
 export class ContentChildrenService {
   protected contentOutletParentMap = new Map<ComponentOutlet, ComponentOutlet | null>();
-  private readonly injector = inject(Injector);
   private patchMicrotaskQueued = false;
 
-  constructor() {
-    // afterEveryRender runs inside synchronize, *before* checkNoChanges.
-    // Mutating QueryList / signals there causes NG0100; markForCheck there causes NG0103.
-    // Defer the entire patch until after the current tick (microtask).
+  constructor(private readonly injector: Injector) {
+    // Mutating QueryList/signals or markForCheck inside afterEveryRender throws NG0100/NG0103 —
+    // defer the whole patch to a post-tick microtask.
     afterEveryRender(
       () => {
         this.schedulePatchAllContentQueries();
@@ -136,16 +127,11 @@ export class ContentChildrenService {
     });
   }
 
-  /**
-   * Walk outlet tree and patch each parent's ContentChildren / contentChildren() queries
-   * with direct child component instances from the schema tree.
-   * Call only after the CD tick (see schedulePatchAllContentQueries).
-   */
+  /** Walk the outlet tree and patch each parent's content queries with its schema children. */
   patchAllContentQueries(): boolean {
     let changed = false;
     for (const parent of this.contentOutletParentMap.keys()) {
-      const children = this.getContentOutletChildren(parent);
-      if (patchOutletContentQueries(parent, children)) {
+      if (patchOutletContentQueries(parent)) {
         changed = true;
       }
     }
