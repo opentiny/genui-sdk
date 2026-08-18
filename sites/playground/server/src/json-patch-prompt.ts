@@ -26,7 +26,7 @@ ${jsonPatchSchemaText}
 | op | id | 其它 |
 |----|-----|------|
 | add | **path 相对的锚点**（插 \`children\` → 共同父；改/增 props → 节点自身） | \`path\` 相对 \`id\`；末段 \`/-\` 可表数组末尾；禁止祖先 id + \`/children/.../props\` |
-| remove | **目标**节点自身 | 不要 path；不能用来删某个 prop 键 |
+| remove | **目标**节点自身 | 可选：省略 \`path\` 表示删除整个节点；\`path\` 表示删除该节点下的指定属性/数组项 (如 \`/props/text\`、\`/children/0\`)|
 | replace | **属性所属**节点自身 | \`path\` 通常 \`/props/...\`；禁止经 \`/children\` 够子组件 |
 | move / copy | **源**节点 | \`positionId\` + \`position\`(before\|after\|inside)；\`id\` ≠ \`positionId\`。copy 整树复制，新 id 由运行时生成 |
 
@@ -38,8 +38,10 @@ ${jsonPatchSchemaText}
 ## 正反例
 
 \`\`\`
-# remove：删组件只用目标自身 id
+# remove：删组件：用目标自身 id，或省略 path 删整个节点；提供 path 则删该节点下的指定属性/数组项
 ✅ {"op":"remove","id":"itemB"}
+✅ {"op":"remove","id":"itemB","path":"/props/text"}
+✅ {"op":"remove","id":"itemB","path":"/children/0"}
 ❌ {"op":"remove","id":"parent","path":"/children/1"}
 
 # replace：改属性 = 属性所属节点 id + /props/...
@@ -56,6 +58,7 @@ ${jsonPatchSchemaText}
 
 # add 兄弟：id=共同父；path=/children/<下标> 或 /-
 # 假设 parent.children=[itemA, itemC]，要在 itemA 后插入 itemB → 下标为 1
+# 关键：插入 children 的 value 必须是完整组件节点（含 componentName），且 id ≠ 锚点 id
 ✅ {"op":"add","id":"parent","path":"/children/1","value":{"componentName":"...","id":"itemB",...}}
 ✅ {"op":"add","id":"parent","path":"/children/-","value":{"componentName":"...","id":"itemB",...}}
    // /- = 插到 parent.children 末尾

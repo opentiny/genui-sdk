@@ -51,9 +51,7 @@ const relativeJsonPointerSchemaExisting = relativeJsonPointerBaseSchema
     (s) => !jsonPointerHasAppendSentinel(s),
     'Invalid JSON Pointer: "-" (array append) is only valid for op "add". Use a numeric index or property name.',
   )
-  .describe(
-    "Pointer relative to component `id` (e.g. '/props/text'). Do not use '/-' — that is only for op 'add'.",
-  );
+  .describe("Pointer relative to component `id` (e.g. '/props/text'). Do not use '/-' — that is only for op 'add'.");
 
 /**
  * 递归 JSON 值定义
@@ -88,38 +86,36 @@ const addOperation = z
 const removeOperation = z
   .object({
     op: z.literal('remove'),
-    id: z
-      .string()
-      .min(1)
-      .describe('Component id to remove (the node itself; no path).'),
+    id: z.string().min(1).describe('Component id of the target node.'),
+    path: relativeJsonPointerSchemaExisting
+      .optional()
+      .describe(
+        'Optional relative path. If omitted, removes the whole node; if provided, removes the value at the specified path (e.g. a prop).',
+      ),
   })
   .strict()
-  .describe('Removes the target component by id. Runtime path = id location.');
+  .describe('Removes the target component (no `path`) or a specific property/array item under it (with `path`).');
 
 const replaceOperation = z
   .object({
     op: z.literal('replace'),
-    id: z
-      .string()
-      .min(1)
-      .describe('Component id whose relative `path` value is replaced.'),
-    path: relativeJsonPointerSchemaExisting,
-    value: jsonPatchValueSchema.describe('The new value to replace the current one.'),
+    id: z.string().min(1).describe('Component id of the target node.'),
+    path: relativeJsonPointerSchemaExisting
+      .optional()
+      .describe(
+        'Optional relative path. If omitted, replaces the whole node; if provided, replaces the value at the specified path (e.g. a prop).',
+      ),
+    value: jsonPatchValueSchema.describe('The new value.'),
   })
   .strict()
-  .describe('Replaces a value at `path` relative to component `id`.');
+  .describe('Replaces the target node (no `path`) or a specific property/array item under it (with `path`) with the new value.');
 
-const movePositionSchema = z
-  .enum(['before', 'after', 'inside'])
-  .describe('Relative insertion position to positionId.');
+const movePositionSchema = z.enum(['before', 'after', 'inside']).describe('Relative insertion position to positionId.');
 
 const moveOperation = z
   .object({
     op: z.literal('move'),
-    id: z
-      .string()
-      .min(1)
-      .describe('Component id of the node being moved (source).'),
+    id: z.string().min(1).describe('Component id of the node being moved (source).'),
     positionId: z
       .string()
       .min(1)
@@ -128,16 +124,13 @@ const moveOperation = z
   })
   .strict()
   .describe(
-    "Moves component `id` relative to `positionId` by `position`. Runtime derives standard from/path; do not send from/path.",
+    'Moves component `id` relative to `positionId` by `position`. Runtime derives standard from/path; do not send from/path.',
   );
 
 const copyOperation = z
   .object({
     op: z.literal('copy'),
-    id: z
-      .string()
-      .min(1)
-      .describe('Component id of the node being copied (whole subtree).'),
+    id: z.string().min(1).describe('Component id of the node being copied (whole subtree).'),
     positionId: z
       .string()
       .min(1)
@@ -146,31 +139,19 @@ const copyOperation = z
   })
   .strict()
   .describe(
-    "Copies component `id` relative to `positionId` by `position` (same positioning as move). Runtime derives standard from/path and regenerates ids on the clone; do not send from/path.",
+    'Copies component `id` relative to `positionId` by `position` (same positioning as move). Runtime derives standard from/path and regenerates ids on the clone; do not send from/path.',
   );
 
 /**
  * 最终导出的「JSON Patch 风格」操作 Schema（RFC 6902 基础 + 组件定向扩展）
- * move/copy 的 id≠positionId 放在 union 上校验（discriminatedUnion 成员不能是 ZodEffects）
  */
-export const jsonPatchOperationSchema = z
-  .discriminatedUnion('op', [
-    addOperation,
-    removeOperation,
-    replaceOperation,
-    moveOperation,
-    copyOperation,
-  ])
-  .superRefine((op, ctx) => {
-    if ((op.op === 'move' || op.op === 'copy') && op.id === op.positionId) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          '`id` and `positionId` must differ; positionId is the destination anchor, not the source node.',
-        path: ['positionId'],
-      });
-    }
-  });
+export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
+  addOperation,
+  removeOperation,
+  replaceOperation,
+  moveOperation,
+  copyOperation,
+]);
 
 export const jsonPatchSchema = z
   .array(jsonPatchOperationSchema)
