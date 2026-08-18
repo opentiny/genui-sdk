@@ -10,12 +10,39 @@ export interface ThemeApplyContext {
   scopeId: string;
   rootEl?: HTMLElement | null;
   systemColorScheme: ThemeColorScheme;
+  colorScheme?: ThemeColorScheme;
 }
 
 export type ThemeDisposer = () => void;
 
+export interface ThemeApplyResult {
+  id: string;
+  dispose: ThemeDisposer;
+}
+
 export interface IMaterialsTheme {
   themes?: ThemeDescriptor[];
-  apply(theme: string, ctx: ThemeApplyContext): void | ThemeDisposer;
+  apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult;
   Root?: unknown;
+}
+
+export function lookupColorScheme(
+  themeId: string,
+  themes: ThemeDescriptor[] | undefined,
+  fallback: ThemeColorScheme,
+): ThemeColorScheme {
+  return themes?.find((item) => item.id === themeId)?.colorScheme ?? fallback;
+}
+
+export function resolveColorSchemeFromApplied(
+  results: { themes?: ThemeDescriptor[]; id: string }[],
+  fallback: ThemeColorScheme,
+): ThemeColorScheme {
+  for (const item of results) {
+    const scheme = item.themes?.find((theme) => theme.id === item.id)?.colorScheme;
+    if (scheme) {
+      return scheme;
+    }
+  }
+  return fallback;
 }

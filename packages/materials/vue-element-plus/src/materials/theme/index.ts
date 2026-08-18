@@ -1,9 +1,8 @@
 import {
   type IMaterialsTheme,
   type ThemeApplyContext,
-  type ThemeColorScheme,
+  type ThemeApplyResult,
   type ThemeDescriptor,
-  type ThemeDisposer,
 } from '@opentiny/genui-sdk-core';
 
 const themes: ThemeDescriptor[] = [
@@ -17,30 +16,34 @@ function getScopeElement(ctx: ThemeApplyContext) {
   return ctx.rootEl ?? (typeof document !== 'undefined' ? document.getElementById(ctx.scopeId) : null);
 }
 
-function resolveColorScheme(theme: string, systemColorScheme: ThemeColorScheme): ThemeColorScheme {
-  if (theme === 'auto') {
-    return systemColorScheme;
+function resolveThemeId(theme: string, ctx: ThemeApplyContext) {
+  if (themes.some((item) => item.id === theme)) {
+    return theme;
   }
-  return theme === 'dark' ? 'dark' : 'light';
+  return ctx.colorScheme ?? ctx.systemColorScheme;
 }
 
 export function createElementPlusMaterialsTheme(): IMaterialsTheme {
   return {
     themes,
-    apply(theme: string, ctx: ThemeApplyContext): ThemeDisposer {
+    apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
+      const id = resolveThemeId(theme, ctx);
       const el = getScopeElement(ctx);
       if (!el) {
-        return () => {};
+        return { id, dispose: () => {} };
       }
 
-      if (resolveColorScheme(theme, ctx.systemColorScheme) === 'dark') {
+      if (id === 'dark') {
         el.classList.add(DARK_CLASS);
       } else {
         el.classList.remove(DARK_CLASS);
       }
 
-      return () => {
-        el.classList.remove(DARK_CLASS);
+      return {
+        id,
+        dispose: () => {
+          el.classList.remove(DARK_CLASS);
+        },
       };
     },
   };

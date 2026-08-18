@@ -3,8 +3,9 @@ import { ThemeProvider } from '@opentiny/tiny-robot';
 import {
   type IMaterials,
   type IMaterialsTheme,
+  type ThemeApplyResult,
   type ThemeColorScheme,
-  type ThemeDisposer,
+  resolveColorSchemeFromApplied,
 } from '@opentiny/genui-sdk-core';
 import {
   watch,
@@ -50,12 +51,7 @@ const materialThemes = computed<IMaterialsTheme[]>(() => {
 
 const theme = computed(() => props.theme || 'light');
 
-const colorScheme = computed<ThemeColorScheme>(() => {
-  if (theme.value === 'auto') {
-    return mediaTheme.value;
-  }
-  return theme.value === 'dark' ? 'dark' : 'light';
-});
+const colorScheme = ref<ThemeColorScheme>('light');
 
 const genuiConfig = computed(() => ({
   colorScheme: colorScheme.value,
@@ -95,12 +91,12 @@ function resolveRootEl(value: unknown): HTMLElement | null {
   return el instanceof HTMLElement ? el : null;
 }
 
-let disposers: ThemeDisposer[] = [];
+let applied: ThemeApplyResult[] = [];
 
 function clearTheme() {
-  const pending = disposers;
-  disposers = [];
-  pending.forEach((dispose) => dispose());
+  const pending = applied;
+  applied = [];
+  pending.forEach((item) => item.dispose());
 }
 
 watch(
@@ -108,12 +104,23 @@ watch(
   ([apis, themeValue, systemColorScheme, scopeId, root]) => {
     clearTheme();
     const rootEl = resolveRootEl(root);
+    const claimedScheme = apis
+      .flatMap((api) => api.themes ?? [])
+      .find((item) => item.id === themeValue)?.colorScheme;
+    const next: { themes?: IMaterialsTheme['themes']; id: string }[] = [];
+
     for (const api of apis) {
-      const dispose = api.apply(themeValue, { scopeId, rootEl, systemColorScheme });
-      if (dispose) {
-        disposers.push(dispose);
-      }
+      const result = api.apply(themeValue, {
+        scopeId,
+        rootEl,
+        systemColorScheme,
+        colorScheme: claimedScheme,
+      });
+      applied.push(result);
+      next.push({ themes: api.themes, id: result.id });
     }
+
+    colorScheme.value = resolveColorSchemeFromApplied(next, systemColorScheme);
   },
   { immediate: true },
 );

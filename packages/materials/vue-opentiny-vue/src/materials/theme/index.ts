@@ -1,9 +1,8 @@
 import {
   type IMaterialsTheme,
   type ThemeApplyContext,
-  type ThemeColorScheme,
+  type ThemeApplyResult,
   type ThemeDescriptor,
-  type ThemeDisposer,
 } from '@opentiny/genui-sdk-core';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
 import { OpenTinyThemeRoot } from './ThemeRoot';
@@ -30,23 +29,26 @@ function buildThemeConfig(themeId: string, scopeId: string) {
   return { css: ' ' };
 }
 
-function resolveThemeId(theme: string, systemColorScheme: ThemeColorScheme) {
+function resolveThemeId(theme: string, ctx: ThemeApplyContext) {
   if (themes.some((item) => item.id === theme)) {
     return theme;
   }
-  return systemColorScheme === 'dark' ? 'dark' : 'light';
+  return ctx.colorScheme ?? ctx.systemColorScheme;
 }
 
 export function createOpenTinyMaterialsTheme(): IMaterialsTheme {
   return {
     themes,
     Root: OpenTinyThemeRoot,
-    apply(theme: string, ctx: ThemeApplyContext): ThemeDisposer {
-      const themeId = resolveThemeId(theme, ctx.systemColorScheme);
+    apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
+      const id = resolveThemeId(theme, ctx);
       const themeTool = new ThemeTool();
-      themeTool.changeTheme(buildThemeConfig(themeId, ctx.scopeId));
-      return () => {
-        themeTool.changeTheme({ css: ' ' });
+      themeTool.changeTheme(buildThemeConfig(id, ctx.scopeId));
+      return {
+        id,
+        dispose: () => {
+          themeTool.changeTheme({ css: ' ' });
+        },
       };
     },
   };
