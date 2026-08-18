@@ -41,7 +41,6 @@ ${jsonPatchSchemaText}
 # remove：删组件只用目标自身 id
 ✅ {"op":"remove","id":"itemB"}
 ❌ {"op":"remove","id":"parent","path":"/children/1"}
-   // 错因：remove 不能带 path；应直接用 itemB 的 id
 
 # replace：改属性 = 属性所属节点 id + /props/...
 ✅ {"op":"replace","id":"itemB","path":"/props/text","value":"你好"}
@@ -49,13 +48,11 @@ ${jsonPatchSchemaText}
 ❌ {"op":"replace","id":"parent","path":"/children/0/props/text","value":"你好"}
    // 错因：经 /children 改子节点；应改用该子节点自身 id + /props/text
 ❌ {"op":"replace","id":"2","path":"/name","value":"李四"}
-   // 错因："2" 若来自 props.data[].id 则是业务字段，不是组件节点 id
 
 # add 属性/数据：锚在拥有该 props 的节点上
 ✅ {"op":"add","id":"itemB","path":"/props/placeholder","value":"请输入"}
 ✅ {"op":"add","id":"grid1","path":"/props/data/-","value":{"name":"王五"}}
 ❌ {"op":"add","id":"parent","path":"/children/0/props/placeholder","value":"请输入"}
-   // 错因：同 replace，不要用父 id + /children/n/props
 
 # add 兄弟：id=共同父；path=/children/<下标> 或 /-
 # 假设 parent.children=[itemA, itemC]，要在 itemA 后插入 itemB → 下标为 1
@@ -83,7 +80,6 @@ ${jsonPatchSchemaText}
 ✅ {"op":"move","id":"itemD","positionId":"itemB","position":"before"}
 ✅ {"op":"copy","id":"itemB","positionId":"itemD","position":"after"}
 ❌ {"op":"move","id":"itemD","positionId":"itemD","position":"before"}
-   // 错因：id 与 positionId 不能相同
 \`\`\`
 
 ## 顺序
