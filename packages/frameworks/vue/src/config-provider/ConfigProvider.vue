@@ -3,8 +3,10 @@ import { ThemeProvider } from '@opentiny/tiny-robot';
 import {
   type IMaterials,
   type IMaterialsTheme,
+  type ThemeApplyContext,
   type ThemeApplyResult,
   type ThemeColorScheme,
+  type ThemeRootProps,
   resolveColorSchemeFromApplied,
 } from '@opentiny/genui-sdk-core';
 import {
@@ -12,6 +14,7 @@ import {
   provide,
   computed,
   ref,
+  shallowRef,
   onBeforeUnmount,
   defineComponent,
   h,
@@ -79,6 +82,8 @@ watch(
 );
 
 const rootRef = ref();
+const rootInstances = shallowRef<unknown[]>([]);
+const themeRootProps = ref<ThemeRootProps[]>([]);
 
 function resolveRootEl(value: unknown): HTMLElement | null {
   if (!value) {
@@ -91,6 +96,16 @@ function resolveRootEl(value: unknown): HTMLElement | null {
   return el instanceof HTMLElement ? el : null;
 }
 
+function setRootInstance(index: number, instance: unknown) {
+  const next = instance || undefined;
+  if (rootInstances.value[index] === next) {
+    return;
+  }
+  const arr = [...rootInstances.value];
+  arr[index] = next;
+  rootInstances.value = arr;
+}
+
 let applied: ThemeApplyResult[] = [];
 
 function clearTheme() {
@@ -100,26 +115,31 @@ function clearTheme() {
 }
 
 watch(
-  () => [materialThemes.value, theme.value, mediaTheme.value, props.id, rootRef.value] as const,
-  ([apis, themeValue, systemColorScheme, scopeId, root]) => {
+  () => [materialThemes.value, theme.value, mediaTheme.value, props.id, rootRef.value, rootInstances.value] as const,
+  ([apis, themeValue, systemColorScheme, scopeId, root, instances]) => {
     clearTheme();
     const rootEl = resolveRootEl(root);
     const claimedScheme = apis
       .flatMap((api) => api.themes ?? [])
       .find((item) => item.id === themeValue)?.colorScheme;
     const next: { themes?: IMaterialsTheme['themes']; id: string }[] = [];
+    const computedProps: ThemeRootProps[] = [];
 
-    for (const api of apis) {
-      const result = api.apply(themeValue, {
+    for (const [index, api] of apis.entries()) {
+      const ctx = {
         scopeId,
         rootEl,
         systemColorScheme,
         colorScheme: claimedScheme,
-      });
+        rootInstance: instances[index],
+      };
+      const result = api.apply(themeValue, ctx);
+      computedProps[index] = result.props ?? {};
       applied.push(result);
       next.push({ themes: api.themes, id: result.id });
     }
 
+    themeRootProps.value = computedProps;
     colorScheme.value = resolveColorSchemeFromApplied(next, systemColorScheme);
   },
   { immediate: true },
@@ -131,6 +151,8 @@ const ThemeRoots = defineComponent({
   name: 'ThemeRoots',
   props: {
     roots: { type: Array as PropType<Component[]>, required: true },
+    rootPropsList: { type: Array as PropType<ThemeRootProps[]>, required: true },
+    onRootInstance: { type: Function as PropType<(index: number, instance: unknown) => void>, required: true },
   },
   setup(props, { slots }) {
     return () => {
@@ -139,15 +161,23 @@ const ThemeRoots = defineComponent({
         return children;
       }
       return props.roots.reduceRight<VNode | VNode[]>(
-        (acc, root) => h(root, {}, () => acc),
+        (acc, root, index) =>
+          h(root, { ...(props.rootPropsList[index] ?? {}), ref: (el) => props.onRootInstance(index, el) }, () => acc),
         children,
       );
     };
   },
 });
 
-const themeRoots = computed(() =>
-  materialThemes.value.map((api) => api.Root).filter((root): root is Component => Boolean(root)),
+const PassthroughRoot = defineComponent({
+  name: 'PassthroughRoot',
+  setup(_, { slots }) {
+    return () => slots.default?.() ?? [];
+  },
+});
+
+const themeRoots = computed<Component[]>(() =>
+  materialThemes.value.map((api) => (api.Root ? (api.Root as Component) : PassthroughRoot)),
 );
 
 const robotProviderProps = computed(() => ({
@@ -159,7 +189,7 @@ const robotProviderProps = computed(() => ({
 <template>
   <div :id="props.id" class="tg-config-provider" ref="rootRef">
     <ThemeProvider v-bind="robotProviderProps">
-      <ThemeRoots :roots="themeRoots">
+      <ThemeRoots :roots="themeRoots" :root-props-list="themeRootProps" :on-root-instance="setRootInstance">
         <slot />
       </ThemeRoots>
     </ThemeProvider>

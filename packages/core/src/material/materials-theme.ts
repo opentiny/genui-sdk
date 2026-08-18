@@ -6,11 +6,14 @@ export interface ThemeDescriptor {
   colorScheme?: ThemeColorScheme;
 }
 
+export type ThemeRootProps = Record<string, unknown>;
+
 export interface ThemeApplyContext {
   scopeId: string;
   rootEl?: HTMLElement | null;
   systemColorScheme: ThemeColorScheme;
   colorScheme?: ThemeColorScheme;
+  rootInstance?: unknown;
 }
 
 export type ThemeDisposer = () => void;
@@ -18,6 +21,7 @@ export type ThemeDisposer = () => void;
 export interface ThemeApplyResult {
   id: string;
   dispose: ThemeDisposer;
+  props?: ThemeRootProps;
 }
 
 export interface IMaterialsTheme {

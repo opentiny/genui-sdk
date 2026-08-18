@@ -44,8 +44,19 @@ export function createOpenTinyMaterialsTheme(): IMaterialsTheme {
       const id = resolveThemeId(theme, ctx);
       const themeTool = new ThemeTool();
       themeTool.changeTheme(buildThemeConfig(id, ctx.scopeId));
+      // 通过 Root 实例句柄调用其暴露的方法
+      const instance = ctx.rootInstance as { setColorScheme?: (scheme: 'light' | 'dark') => void } | undefined;
+      instance?.setColorScheme?.(id === 'dark' ? 'dark' : 'light');
       return {
         id,
+        // 渲染后动态下发给 Root 组件的 props（TinyConfigProvider 对 theme 有响应式 watch）
+        props: {
+          theme: {
+            data: {
+              'tv-base-color-brand': id === 'dark' ? '#B3B3B3' : '#1476ff',
+            },
+          },
+        },
         dispose: () => {
           themeTool.changeTheme({ css: ' ' });
         },
