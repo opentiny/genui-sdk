@@ -67,18 +67,22 @@
             <ng-container *ngIf="child.componentName === 'NgTemplate'; else normalChild">
               <ng-template
                 ngSchemaTemplate
+                schemaTemplateContext
+                #templateCtx="schemaTemplateContext"
                 [contentChildrenParent]="componentOutlet"
                 [contentChildrenRefName]="child.props?.refName"
                 [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
                 [schemaRefProps]="context | parseData: { ref: child.props?.ref, refName: child.props?.refName } : scope"
                 [schemaRefScope]="scope"
+                [schemaTemplateLet]="context | parseData: child.props?.let : scope"
+                [schemaTemplateScope]="scope"
               >
                 <ng-container *ngIf="(child.children | isArray)">
                   <ng-container *ngFor="let c of child.children">
                     <ng-template
                       rendererTemplate
                       [schema]="c"
-                      [scope]="scope"
+                      [scope]="templateCtx.resolve()"
                       [parent]="child"
                       [template]="template"
                       [injector]="componentOutlet.componentInjector"

@@ -153,7 +153,11 @@
                 {
                   "componentName": "NgTemplate",
                   "props": {
-                    "refName": "itemBody"
+                    "refName": "itemBody",
+                    "let": {
+                      "labelFromScope": "label",
+                      "myContext": "$implicit"
+                    }
                   },
                   "children": [
                     {
@@ -162,6 +166,15 @@
                         "style": "color: #2563eb; font-weight: 600;"
                       },
                       "children": "哈哈哈来自 contentChild('itemBody')"
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "labelFromScope + myContext.hello"
+                        }
+                      }
                     }
                   ]
                 }

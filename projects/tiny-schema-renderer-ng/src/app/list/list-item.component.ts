@@ -9,7 +9,7 @@ import { NgTemplateOutlet } from '@angular/common';
   template: `
     <li class="demo-list-item">
       @if (activeTemplate) {
-        <ng-container *ngTemplateOutlet="activeTemplate; context: { label: label }"></ng-container>
+        <ng-container *ngTemplateOutlet="activeTemplate; context: { label: label, $implicit: { hello: 'world' } }"></ng-container>
       } @else {
         <ng-content></ng-content>
         @if (label) {
