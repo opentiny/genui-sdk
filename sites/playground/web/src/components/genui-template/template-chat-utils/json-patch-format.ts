@@ -1,7 +1,12 @@
 import * as jsonPatchFormatter from 'jsondiffpatch/formatters/jsonpatch';
 import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
 import { t } from '../../../i18n';
-import { findComponentPath, getPositionRelativePath, mergePath } from './schema-path';
+import {
+  findComponentPath,
+  getPositionRelativePath,
+  mergePath,
+  resolveJsonPointerAppendSentinel,
+} from './schema-path';
 import { generateIdForComponents } from './schema-id-generator';
 
 export type IFormattedJsonPatchOperation = JsonPatchOp & {
@@ -29,25 +34,47 @@ function resolvePositionedOp(
   templeSchema: any,
   item: IFormattedJsonPatchOperation,
   adjustForSourceRemoval: boolean,
-) {
+): boolean {
   const { id, position, positionId } = item;
   if (id) {
-    item.from = findComponentPath(templeSchema, id);
+    item.from = findComponentPath(templeSchema, id) ?? undefined;
   }
-  if (position && positionId && item.from) {
-    const positionPath = findComponentPath(templeSchema, positionId);
-    if (positionPath) {
-      const relativePath = getPositionRelativePath(
-        position,
-        positionId,
-        positionPath,
-        item.from,
-        adjustForSourceRemoval,
-        templeSchema,
-      );
-      item.relativePath = relativePath;
-      item.path = positionPath === '/' ? relativePath : mergePath(positionPath, relativePath!);
-    }
+  if (!item.from || !position || !positionId) {
+    return false;
+  }
+
+  const positionPath = findComponentPath(templeSchema, positionId);
+  if (!positionPath) {
+    return false;
+  }
+
+  const relativePath = getPositionRelativePath(
+    position,
+    positionId,
+    positionPath,
+    item.from,
+    adjustForSourceRemoval,
+    templeSchema,
+  );
+  if (!relativePath) {
+    return false;
+  }
+
+  item.relativePath = relativePath;
+  item.path = positionPath === '/' ? relativePath : mergePath(positionPath, relativePath);
+  return Boolean(item.path);
+}
+
+function finalizeAbsolutePath(templeSchema: any, item: IFormattedJsonPatchOperation): boolean {
+  if (typeof item.path !== 'string' || !item.path.startsWith('/')) {
+    return false;
+  }
+  try {
+    item.path = resolveJsonPointerAppendSentinel(templeSchema, item.path);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
   }
 }
 
@@ -67,15 +94,21 @@ export const formatJsonPatch = (
       return item;
     }
 
-    if (item.op === 'move') {
-      resolvePositionedOp(templeSchema, item, true);
-    } else if (item.op === 'copy') {
-      resolvePositionedOp(templeSchema, item, false);
+    if (item.op === 'move' || item.op === 'copy') {
+      if (!resolvePositionedOp(templeSchema, item, item.op === 'move')) {
+        item.idToPath = null;
+        return item;
+      }
     } else if (item.path) {
       item.relativePath = item.path;
       item.path = componentPath === '/' ? item.path : `${componentPath}${item.path}`;
     } else {
       item.path = componentPath;
+    }
+
+    if (!finalizeAbsolutePath(templeSchema, item)) {
+      item.idToPath = null;
+      return item;
     }
 
     jsonPatchFormatter.patch(templeSchema, [toStandardPatchOp(item)]);
@@ -97,7 +130,7 @@ export function applyJsonPatchOperations(
 
   try {
     const formatted = formatJsonPatch(baseline, operations);
-    if (formatted.some((op) => !op.idToPath)) {
+    if (formatted.some((op) => !op.idToPath || typeof op.path !== 'string')) {
       return null;
     }
 

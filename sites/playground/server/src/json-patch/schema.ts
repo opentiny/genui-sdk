@@ -35,7 +35,7 @@ const relativeJsonPointerBaseSchema = z
     'Invalid relative JSON Pointer. Must start with "/" and use ~0, ~1 for escaping.',
   );
 
-/** add：相对父节点；允许末段 `/-` 表示数组末尾追加 */
+/** add：相对锚点；允许末段 `/-` 表示数组末尾追加 */
 const relativeJsonPointerSchemaAdd = relativeJsonPointerBaseSchema
   .refine(
     (s) => !jsonPointerHasAppendSentinelNotOnlyAtEnd(s),
