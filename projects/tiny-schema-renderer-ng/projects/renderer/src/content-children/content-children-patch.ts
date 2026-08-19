@@ -371,6 +371,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
   }
 
   const viewQueryProps = getViewQueryPropertyNames(instance);
+  const shimBindings = hostShimBindings.get(instance);
   for (const key of Object.keys(instance as object)) {
     const value = (instance as any)[key];
     if (value instanceof QueryList) {
@@ -430,6 +431,31 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         descendants: !!((signalMeta?.flags ?? 0) & QUERY_FLAG_DESCENDANTS),
         hostInstance: instance,
       });
+    } else if (shimBindings) {
+      // Field was replaced by a plain readonly signal during a previous patch —
+      // recover its signal identity so bindDecoratorQueryPropertyNames doesn't
+      // mis-assign decorator field names to signal-backed QueryLists.
+      const binding = shimBindings.find((b) => b.propertyName === key);
+      if (!binding) {
+        continue;
+      }
+      const queryList = (binding.signalNode as any)?._queryList as
+        | QueryList<unknown>
+        | undefined;
+      if (!queryList || !seen.has(queryList)) {
+        continue;
+      }
+      const existing = targets.find((t) => t.queryList === queryList);
+      if (existing) {
+        existing.kind = 'signal';
+        existing.propertyName = key;
+        existing.signalNode = binding.signalNode;
+        existing.firstOnly = binding.firstOnly;
+        existing.hostInstance = instance;
+        if (existing.predicate == null && binding.predicate != null) {
+          existing.predicate = binding.predicate;
+        }
+      }
     }
   }
 

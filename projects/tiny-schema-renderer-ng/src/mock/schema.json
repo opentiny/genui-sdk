@@ -114,6 +114,27 @@
           },
           "children": [
             {
+              "componentName": "NgTemplate",
+              "props": {
+                "refName": "item",
+                "let": {
+                  "label": "label"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "style": "color: #2563eb; font-weight: 600; display: block;",
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "label + '来自 contentChild(TemplateRef)'"
+                    }
+                  }
+                }
+              ]
+            },
+            {
               "componentName": "ListItem",
               "loop": {
                 "type": "JSExpression",

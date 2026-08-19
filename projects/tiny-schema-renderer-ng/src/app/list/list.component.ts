@@ -9,7 +9,7 @@ import {
 } from '@angular/core';
 import { ListItemComponent } from './list-item.component';
 import { ListItemMarkerDirective } from './list-item-marker.directive';
-// import { NgTemplateOutlet } from '@angular/common';
+import { CommonModule } from '@angular/common';
 
 /**
  * Demo material — normal pattern: bind QueryList / content queries in template.
@@ -19,7 +19,7 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
   selector: 'app-list',
   standalone: true,
   imports: [
-    // NgTemplateOutlet
+    CommonModule
   ],
   template: `
     <div class="demo-list">
@@ -38,14 +38,14 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
       </div>
       <ul class="demo-list__body">
         <ng-content></ng-content>
-      </ul><!--
+      </ul>
       <ul class="demo-list__extraItems">
         @if (extraItemTemplate) {
           @for (item of data; track item.label) {
             <ng-container *ngTemplateOutlet="extraItemTemplate; context: { label: item.label }"></ng-container>
           }
         }
-      </ul>-->
+      </ul>
     </div>
   `,
   styles: [
@@ -80,7 +80,8 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
 export class ListComponent {
   @ContentChildren(ListItemComponent) items!: QueryList<ListItemComponent>;
   @ContentChild(ListItemComponent) firstItem?: ListItemComponent;
-  // @ContentChild('item') extraItemTemplate?: TemplateRef<any>;
+  @ContentChild('item') extraItemTemplate?: TemplateRef<any>;
+  @ContentChild('item2') extraItemTemplate2?: TemplateRef<any>;
   @ContentChildren(ListItemMarkerDirective, { descendants: true }) descendantMarkers?: QueryList<ListItemMarkerDirective>;
   data = [
     { label: 'item1' },
