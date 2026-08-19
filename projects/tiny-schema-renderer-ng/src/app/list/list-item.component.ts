@@ -8,8 +8,13 @@ import { NgTemplateOutlet } from '@angular/common';
   imports: [NgTemplateOutlet],
   template: `
     <li class="demo-list-item">
+      @if (namedHeader(); as header) {
+        <div class="demo-list-item__header">
+          <ng-container *ngTemplateOutlet="header; context: { label: label + ' (header)', $implicit: { hello: 'header' }, index: 100000 }"></ng-container>
+        </div>
+      }
       @if (activeTemplate) {
-        <ng-container *ngTemplateOutlet="activeTemplate; context: { label: label, $implicit: { hello: 'world' } }"></ng-container>
+        <ng-container *ngTemplateOutlet="activeTemplate; context: { label: label, $implicit: { hello: 'world' }, index: 100000 }"></ng-container>
       } @else {
         <ng-content></ng-content>
         @if (label) {
@@ -25,6 +30,12 @@ import { NgTemplateOutlet } from '@angular/common';
         border-bottom: 1px solid #e5e7eb;
         list-style: none;
       }
+      .demo-list-item__header {
+        border-bottom: 1px dashed #c7d2fe;
+        margin-bottom: 4px;
+        padding-bottom: 4px;
+        background: #eef2ff;
+      }
     `,
   ],
 })
@@ -34,6 +45,9 @@ export class ListItemComponent {
 
   /** String selector — matches schema NgTemplate with `"props": { "refName": "itemBody" }`. */
   readonly namedBody = contentChild<TemplateRef<any>>('itemBody');
+
+  /** String selector — matches schema NgTemplate with `"props": { "refName": "listHeaderSlot" }`. */
+  readonly namedHeader = contentChild<TemplateRef<any>>('listHeaderSlot');
 
   @Input() label = '';
 

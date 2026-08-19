@@ -3,11 +3,13 @@ import {
   ContentChild,
   ContentChildren,
   QueryList,
+  TemplateRef,
   contentChild,
   contentChildren,
 } from '@angular/core';
 import { ListItemComponent } from './list-item.component';
 import { ListItemMarkerDirective } from './list-item-marker.directive';
+// import { NgTemplateOutlet } from '@angular/common';
 
 /**
  * Demo material — normal pattern: bind QueryList / content queries in template.
@@ -16,6 +18,9 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
 @Component({
   selector: 'app-list',
   standalone: true,
+  imports: [
+    // NgTemplateOutlet
+  ],
   template: `
     <div class="demo-list">
       <div class="demo-list__header">
@@ -26,13 +31,21 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
         <div>contentChild('listHeader'): {{ namedHeader()?.label || '(none)' }}</div>
         <div>contentChildren(Marker) length: {{ markers().length }}</div>
         <div>contentChild('listItemMarker'): {{ namedMarker() ? 'yes' : '(none)' }}</div>
+        <div>descendantMarkers: {{ descendantMarkers?.length || '(none)' }}</div>
       </div>
       <div class="demo-list__projected-header">
         <ng-content select="[header]"></ng-content>
       </div>
       <ul class="demo-list__body">
         <ng-content></ng-content>
-      </ul>
+      </ul><!--
+      <ul class="demo-list__extraItems">
+        @if (extraItemTemplate) {
+          @for (item of data; track item.label) {
+            <ng-container *ngTemplateOutlet="extraItemTemplate; context: { label: item.label }"></ng-container>
+          }
+        }
+      </ul>-->
     </div>
   `,
   styles: [
@@ -67,6 +80,13 @@ import { ListItemMarkerDirective } from './list-item-marker.directive';
 export class ListComponent {
   @ContentChildren(ListItemComponent) items!: QueryList<ListItemComponent>;
   @ContentChild(ListItemComponent) firstItem?: ListItemComponent;
+  // @ContentChild('item') extraItemTemplate?: TemplateRef<any>;
+  @ContentChildren(ListItemMarkerDirective, { descendants: true }) descendantMarkers?: QueryList<ListItemMarkerDirective>;
+  data = [
+    { label: 'item1' },
+    { label: 'item2' },
+    { label: 'item3' },
+  ];
 
   readonly signalItems = contentChildren(ListItemComponent);
   readonly signalFirst = contentChild(ListItemComponent);

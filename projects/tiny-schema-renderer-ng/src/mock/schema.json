@@ -140,13 +140,17 @@
               "children": [
                 {
                   "componentName": "NgTemplate",
+                  "props": {
+                    "refName": "listHeaderSlot"
+                  },
                   "children": [
                     {
                       "componentName": "span",
                       "props": {
-                        "style": "color: #2563eb; font-weight: 600;"
+                        "refName": "headerSpan",
+                        "style": "color: #7c3aed; font-weight: 700;"
                       },
-                      "children": "哈哈哈来自 contentChild(TemplateRef)"
+                      "children": "HEADER SLOT"
                     }
                   ]
                 },
@@ -156,13 +160,15 @@
                     "refName": "itemBody",
                     "let": {
                       "labelFromScope": "label",
-                      "myContext": "$implicit"
+                      "myContext": "$implicit",
+                      "index": "index"
                     }
                   },
                   "children": [
                     {
                       "componentName": "span",
                       "props": {
+                        "refName": "spanElement",
                         "style": "color: #2563eb; font-weight: 600;"
                       },
                       "children": "哈哈哈来自 contentChild('itemBody')"
@@ -172,7 +178,11 @@
                       "props": {
                         "text": {
                           "type": "JSExpression",
-                          "value": "labelFromScope + myContext.hello"
+                          "value": "labelFromScope + myContext.hello + index"
+                        },
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "() => { console.log(spanElement, headerSpan) }"
                         }
                       }
                     }

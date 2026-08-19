@@ -246,6 +246,20 @@ function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: u
  */
 function isContentQueryIndex(lView: any, queryIndex: number): boolean {
   const tView = lView?.[1];
+  // tView.queries is indexed like LQueries.queries — prefer its declarationNodeIndex:
+  // content queries are created on the host tNode (index >= HEADER_OFFSET), view queries
+  // use -1. This handles components declaring several content queries (e.g. DataTable).
+  const tQueries = getTQueries(lView);
+  const tQuery =
+    typeof tView?.queries?.getByIndex === 'function'
+      ? tView.queries.getByIndex(queryIndex)
+      : tQueries?.queries?.[queryIndex];
+  if (tQuery != null && '_declarationNodeIndex' in tQuery) {
+    // View query: createTQuery(..., -1)
+    return tQuery._declarationNodeIndex !== -1;
+  }
+  // Fallback: tView.contentQueries lists [queryStartIdx, directiveIdx, ...] pairs —
+  // treat any queryIndex >= a listed start as content if no other signal is available.
   const contentQueries = tView?.contentQueries;
   if (Array.isArray(contentQueries) && contentQueries.length) {
     for (let i = 0; i < contentQueries.length; i += 2) {
@@ -253,18 +267,8 @@ function isContentQueryIndex(lView: any, queryIndex: number): boolean {
         return true;
       }
     }
-    return false;
   }
-  const tQueries = getTQueries(lView);
-  const tQuery =
-    typeof tView?.queries?.getByIndex === 'function'
-      ? tView.queries.getByIndex(queryIndex)
-      : tQueries?.queries?.[queryIndex];
-  if (tQuery == null) {
-    return false;
-  }
-  // View query: createTQuery(..., -1)
-  return tQuery._declarationNodeIndex !== -1;
+  return false;
 }
 
 /** Infer contentChild vs contentChildren without reading the signal (reading resets its QueryList). */
