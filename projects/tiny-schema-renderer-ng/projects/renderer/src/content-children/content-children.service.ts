@@ -131,7 +131,8 @@ export class ContentChildrenService {
   patchAllContentQueries(): boolean {
     let changed = false;
     for (const parent of this.contentOutletParentMap.keys()) {
-      if (patchOutletContentQueries(parent)) {
+      // descendants: true queries need refs from nested outlets too.
+      if (patchOutletContentQueries(parent, this.getDescendants(parent))) {
         changed = true;
       }
     }

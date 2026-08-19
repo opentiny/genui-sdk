@@ -184,7 +184,12 @@
                           "type": "JSExpression",
                           "value": "() => { console.log(spanElement, headerSpan) }"
                         }
-                      }
+                      },
+                      "directives": [
+                        {
+                          "directiveName": "ListItemMarker"
+                        }
+                      ]
                     }
                   ]
                 }

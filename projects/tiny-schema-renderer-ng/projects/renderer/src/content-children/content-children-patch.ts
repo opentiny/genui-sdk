@@ -12,6 +12,9 @@ import { ComponentOutlet } from '../component-outlet';
 /** Angular 20 LView header slot for LQueries (best-effort; falls back to shape scan). */
 const LVIEW_QUERIES_INDEX = 18;
 
+/** Angular `QueryFlags.descendants` (bit 0) — `contentChild(..., { descendants: true })`. */
+const QUERY_FLAG_DESCENDANTS = 1;
+
 export interface ContentQueryPatchTarget {
   kind: 'query-list' | 'signal';
   propertyName: string | null;
@@ -22,6 +25,8 @@ export interface ContentQueryPatchTarget {
   signalNode?: any;
   /** true for contentChild() / @ContentChild (single result). */
   firstOnly?: boolean;
+  /** true when the query declares `{ descendants: true }` — match nested content too. */
+  descendants?: boolean;
   /** Host component instance — needed to install signal shims. */
   hostInstance?: object;
 }
@@ -37,6 +42,7 @@ const hostShimBindings = new WeakMap<
     propertyName: string;
     firstOnly: boolean;
     predicate: unknown;
+    descendants: boolean;
   }>
 >();
 
@@ -160,6 +166,7 @@ function rememberShimBinding(
   propertyName: string,
   firstOnly: boolean,
   predicate: unknown,
+  descendants: boolean,
 ): void {
   let list = hostShimBindings.get(host);
   if (!list) {
@@ -171,9 +178,10 @@ function rememberShimBinding(
     existing.predicate = predicate ?? existing.predicate;
     existing.firstOnly = firstOnly;
     existing.propertyName = propertyName;
+    existing.descendants = descendants;
     return;
   }
-  list.push({ signalNode, propertyName, firstOnly, predicate });
+  list.push({ signalNode, propertyName, firstOnly, predicate, descendants });
 }
 
 function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
@@ -186,6 +194,13 @@ function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
 
 /** Read predicate from a bound query signal node (no signal read → no QueryList wipe). */
 function getPredicateFromSignalNode(node: any): unknown {
+  return getSignalQueryMetadata(node)?.predicate ?? null;
+}
+
+/** Read `{ predicate, flags }` from a bound query signal node, best-effort. */
+function getSignalQueryMetadata(
+  node: any,
+): { predicate: unknown; flags: number } | null {
   try {
     const lView = node?._lView;
     const queryIndex = node?._queryIndex;
@@ -197,10 +212,13 @@ function getPredicateFromSignalNode(node: any): unknown {
     if (!queries) {
       return null;
     }
-    if (typeof queries.getByIndex === 'function') {
-      return queries.getByIndex(queryIndex)?.metadata?.predicate ?? null;
-    }
-    return queries.queries?.[queryIndex]?.metadata?.predicate ?? null;
+    const tQuery =
+      typeof queries.getByIndex === 'function'
+        ? queries.getByIndex(queryIndex)
+        : queries.queries?.[queryIndex];
+    return tQuery?.metadata
+      ? { predicate: tQuery.metadata.predicate ?? null, flags: tQuery.metadata.flags ?? 0 }
+      : null;
   } catch {
     return null;
   }
@@ -224,7 +242,7 @@ function findLQueries(lView: any): { queries: Array<{ queryList: QueryList<unkno
   return null;
 }
 
-function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: unknown }; _declarationNodeIndex?: number }> } | null {
+function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: unknown; flags?: number }; _declarationNodeIndex?: number }> } | null {
   const tView = lView?.[1];
   const queries = tView?.queries;
   if (!queries) {
@@ -335,12 +353,14 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
             return;
           }
           seen.add(queryList);
-          const predicate = tQueries?.queries?.[index]?.metadata?.predicate ?? null;
+          const tQuery = tQueries?.queries?.[index];
+          const predicate = tQuery?.metadata?.predicate ?? null;
           targets.push({
             kind: 'query-list',
             propertyName: null,
             queryList,
             predicate,
+            descendants: !!((tQuery?.metadata?.flags ?? 0) & QUERY_FLAG_DESCENDANTS),
             hostInstance: instance,
           });
         });
@@ -384,7 +404,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       }
       const queryList = node._queryList as QueryList<unknown>;
       const firstOnly = inferFirstOnly(key);
-      const signalPredicate = getPredicateFromSignalNode(node);
+      const signalMeta = getSignalQueryMetadata(node);
       if (seen.has(queryList)) {
         const existing = targets.find((t) => t.queryList === queryList);
         if (existing) {
@@ -393,8 +413,8 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
           existing.signalNode = node;
           existing.firstOnly = firstOnly;
           existing.hostInstance = instance;
-          if (existing.predicate == null && signalPredicate != null) {
-            existing.predicate = signalPredicate;
+          if (existing.predicate == null && signalMeta?.predicate != null) {
+            existing.predicate = signalMeta.predicate;
           }
         }
         continue;
@@ -404,9 +424,10 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         kind: 'signal',
         propertyName: key,
         queryList,
-        predicate: signalPredicate,
+        predicate: signalMeta?.predicate ?? null,
         signalNode: node,
         firstOnly,
+        descendants: !!((signalMeta?.flags ?? 0) & QUERY_FLAG_DESCENDANTS),
         hostInstance: instance,
       });
     }
@@ -577,12 +598,36 @@ function pickMatchForTemplateEntry(
   return undefined;
 }
 
+/**
+ * All ref entries for one parent: its direct children, or — when the query declares
+ * `{ descendants: true }` — the direct children of every descendant outlet too
+ * (`descendantOutlets` provided by ContentChildrenService, pre-sorted in schema order).
+ */
+function collectRefsForTarget(
+  parentOutlet: ComponentOutlet | null | undefined,
+  target: ContentQueryPatchTarget,
+  descendantOutlets?: ComponentOutlet[] | null,
+): ContentRefEntry[] {
+  if (!parentOutlet) {
+    return [];
+  }
+  const refs = getContentRefs(parentOutlet);
+  if (!target.descendants) {
+    return refs;
+  }
+  for (const outlet of descendantOutlets ?? []) {
+    refs.push(...getContentRefs(outlet));
+  }
+  return refs;
+}
+
 /** Resolve query matches for one parent from the ref registry, in schema declaration order. */
 export function resolvePatchResults(
   target: ContentQueryPatchTarget,
   parentOutlet?: ComponentOutlet | null,
+  descendantOutlets?: ComponentOutlet[] | null,
 ): unknown[] {
-  const entries = parentOutlet ? getContentRefs(parentOutlet) : [];
+  const entries = collectRefsForTarget(parentOutlet, target, descendantOutlets);
 
   entries.sort(
     (a, b) => (a.index ?? Number.MAX_SAFE_INTEGER) - (b.index ?? Number.MAX_SAFE_INTEGER),
@@ -605,7 +650,7 @@ export function resolvePatchResults(
 
   // TemplateRef-only queries: fall back to all template entries when nothing matched by name.
   if (!results.length && parentOutlet && predicatesWantTemplateRef(target.predicate)) {
-    for (const entry of getContentRefs(parentOutlet)) {
+    for (const entry of entries) {
       if (entry.kind !== 'template') {
         continue;
       }
@@ -649,8 +694,9 @@ function installOrUpdateSignalShim(
   firstOnly: boolean,
   results: unknown[],
   predicate: unknown = null,
+  descendants = false,
 ): boolean {
-  rememberShimBinding(hostInstance, signalNode, propertyName, firstOnly, predicate);
+  rememberShimBinding(hostInstance, signalNode, propertyName, firstOnly, predicate, descendants);
   const nextValue = firstOnly ? results[0] ?? undefined : results;
   let shim = signalShims.get(signalNode);
   if (!shim) {
@@ -671,6 +717,7 @@ function installOrUpdateSignalShim(
 function syncHostSignalShims(
   hostInstance: object,
   parentOutlet: ComponentOutlet,
+  descendantOutlets?: ComponentOutlet[] | null,
 ): boolean {
   const bindings = hostShimBindings.get(hostInstance);
   if (!bindings?.length) {
@@ -690,8 +737,10 @@ function syncHostSignalShims(
         propertyName: binding.propertyName,
         queryList: null as any,
         predicate: binding.predicate,
+        descendants: binding.descendants,
       },
       parentOutlet,
+      descendantOutlets,
     );
     if (
       installOrUpdateSignalShim(
@@ -701,6 +750,7 @@ function syncHostSignalShims(
         binding.firstOnly,
         results,
         binding.predicate,
+        binding.descendants,
       )
     ) {
       changed = true;
@@ -713,8 +763,9 @@ function syncHostSignalShims(
 export function patchContentQuery(
   target: ContentQueryPatchTarget,
   parentOutlet: ComponentOutlet,
+  descendantOutlets?: ComponentOutlet[] | null,
 ): boolean {
-  const results = resolvePatchResults(target, parentOutlet);
+  const results = resolvePatchResults(target, parentOutlet, descendantOutlets);
   const prev = target.queryList.toArray();
   const changed = !sameQueryResults(prev, results);
 
@@ -735,6 +786,7 @@ export function patchContentQuery(
       target.propertyName,
       !!target.firstOnly,
       target.predicate,
+      !!target.descendants,
     );
   }
 
@@ -745,7 +797,10 @@ export function patchContentQuery(
  * Patch content queries for one parent outlet. Must run after the CD tick
  * (not inside afterEveryRender — would throw NG0100).
  */
-export function patchOutletContentQueries(parentOutlet: ComponentOutlet): boolean {
+export function patchOutletContentQueries(
+  parentOutlet: ComponentOutlet,
+  descendantOutlets?: ComponentOutlet[] | null,
+): boolean {
   const parentInstance = parentOutlet.componentInstance;
   if (!parentInstance) {
     return false;
@@ -762,12 +817,12 @@ export function patchOutletContentQueries(parentOutlet: ComponentOutlet): boolea
   let queryChanged = false;
   let shimChanged = false;
   for (const target of targets) {
-    if (patchContentQuery(target, parentOutlet)) {
+    if (patchContentQuery(target, parentOutlet, descendantOutlets)) {
       queryChanged = true;
     }
   }
   // After first install, instance fields are plain signals — still update via registry.
-  if (syncHostSignalShims(parentInstance, parentOutlet)) {
+  if (syncHostSignalShims(parentInstance, parentOutlet, descendantOutlets)) {
     shimChanged = true;
   }
   bindDecoratorQueryPropertyNames(parentInstance, targets);
