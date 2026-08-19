@@ -798,6 +798,7 @@ export function patchContentQuery(
   if (changed) {
     // reset() clears dirty so the next CD won't re-wipe via ɵɵqueryRefresh.
     target.queryList.reset(results);
+    target.queryList.notifyOnChanges();
   }
 
   if (
