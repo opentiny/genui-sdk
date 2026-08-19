@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
@@ -18,10 +19,10 @@ const {
   modelFeatures,
   customFetch,
   customExamples,
-  chat,
+  chat
 } = usePlaygroundViewContext();
 
-const materials = mergeMaterials(tinyMaterials, epMaterials);
+const materials = mergeMaterials(tinyMaterials, epMaterials)
 
 const setChatRef = (el) => {
   if (el) chat.value = el;
