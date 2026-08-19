@@ -255,6 +255,7 @@ const client = new AIClient({
 let conversation = useConversation({
   client,
   autoSave: false,
+  useStreamByDefault: props.stream ?? true,
   events: {
     onReceiveData(data, messages, preventDefault) {
       messages.value.push(data as any);
