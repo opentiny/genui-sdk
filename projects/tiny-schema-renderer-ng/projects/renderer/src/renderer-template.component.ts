@@ -16,7 +16,7 @@ import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
 import { SchemaRefDirective, SchemaRefTemplateDirective } from './schema-ref';
 import { SchemaTemplateContextDirective } from './schema-template-context.directive';
-import { CONTENT_CHILDREN_TRACK_DIRECTIVES } from './content-children';
+import { ContentChildrenTrackDirective, ContentChildrenTrackTemplateDirective } from './content-children';
 
 @Pipe({
   name: 'getModuleRef',
@@ -78,15 +78,15 @@ export class IsStringPipe implements PipeTransform {
     PropsFilterPipe,
     GetDirectivesPipe,
     ComponentOutlet,
+    ContentChildrenTrackDirective,
+    ContentChildrenTrackTemplateDirective,
     SchemaRefDirective,
     SchemaRefTemplateDirective,
     SchemaTemplateContextDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,
-    AutoApplyDirectivesPipe,
-    // Optional plugin: no-ops unless ContentChildrenService is provided.
-    ...CONTENT_CHILDREN_TRACK_DIRECTIVES,
+    AutoApplyDirectivesPipe,  
   ],
   templateUrl: './renderer-template.component.html',
   exportAs: 'rendererTemplate',

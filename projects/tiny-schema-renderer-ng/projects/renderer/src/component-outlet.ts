@@ -15,10 +15,11 @@ import {
   inputBinding,
   outputBinding,
   Self,
-  inject,
+  Inject,
+  Optional,
 } from '@angular/core';
 import { toOnEventName } from './parser/event-utils';
-import { isSchemaRefPropKey, SCHEMA_REF_BRIDGE } from './schema-ref';
+import { isSchemaRefPropKey, SCHEMA_REF_BRIDGE, SchemaRefBridge } from './schema-ref';
 
 /**
  * Instantiates a {@link /api/core/Component Component} type and inserts its Host View into the current View.
@@ -136,14 +137,11 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   }
 
   private bindProps: Record<string, any> = {};
-  private readonly injector = inject(Injector);
 
-  constructor(private _viewContainerRef: ViewContainerRef) {}
-
-  private get schemaRefBridge() {
-    // Lazy: SchemaRefDirective ↔ ComponentOutlet would cycle if injected in field initializers.
-    return this.injector.get(SCHEMA_REF_BRIDGE, null, { optional: true });
-  }
+  constructor(
+    private _viewContainerRef: ViewContainerRef,
+    @Optional() @Inject(SCHEMA_REF_BRIDGE) private schemaRefBridge?: SchemaRefBridge
+  ) {}
 
   private _needToReCreateNgModuleInstance(changes: SimpleChanges): boolean {
     // Note: square brackets property accessor is safe for Closure compiler optimizations (the

@@ -8,9 +8,6 @@ export * from './parser/material-getter';
 export { RENDERER_SETTINGS } from './renderer-settings';
 export type { IRendererSettings } from './renderer-settings';
 export {
-  provideContentChildren,
-  provideContentChildrenEnv,
-  CONTENT_CHILDREN_TRACK_DIRECTIVES,
   ContentChildrenService,
   ContentChildrenTrackDirective,
   ContentChildrenTrackTemplateDirective,
