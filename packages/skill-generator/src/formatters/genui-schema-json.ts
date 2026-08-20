@@ -24,6 +24,7 @@ export function buildGenuiSchemaSkillBody(
   context: ISkillBodyContext,
 ): string {
   const subdir = context.referenceSubdir ?? 'generated';
+  const generatedDirLabel = subdir ? `reference/${subdir}/` : 'reference/';
   const generatedIndex = sectionMarkers
     .map((marker) => `| ${marker.title} | ${sectionLink(marker, subdir)} |`)
     .join('\n');
@@ -32,11 +33,11 @@ export function buildGenuiSchemaSkillBody(
   const thisContext = preferDoc(context, 'this-context.md', 'this-context.md', subdir);
   const examples = preferDoc(context, 'examples.md', 'examples.md', subdir);
   const componentsIndex = linkIfExists(context, 'reference/components.md', 'components.md');
-  const componentsGenerated = linkIfExists(
-    context,
-    generatedPath(subdir, 'components.md'),
-    'generated/components.md',
-  );
+  const componentsDetailPath = generatedPath(subdir, 'components.md');
+  const componentsGenerated =
+    componentsDetailPath === 'reference/components.md'
+      ? null
+      : linkIfExists(context, componentsDetailPath, generatedLabel(subdir, 'components.md'));
 
   const formRequired = joinLinks([
     linkIfExists(context, 'reference/quick-ref.md', 'quick-ref.md'),
@@ -70,7 +71,11 @@ export function buildGenuiSchemaSkillBody(
   const actionRow = hasActions
     ? `| 调用 Action | ${joinLinks([
         thisContext,
-        linkIfExists(context, generatedPath(subdir, 'actions.md'), 'generated/actions.md'),
+        linkIfExists(
+          context,
+          generatedPath(subdir, 'actions.md'),
+          generatedLabel(subdir, 'actions.md'),
+        ),
       ]) || '—'} | ${eventOptional || '—'} |`
     : '';
 
@@ -90,7 +95,7 @@ export function buildGenuiSchemaSkillBody(
 
 ## 意图路由（按场景选读，不要全读）
 
-优先读手写文档；仅在需要完整 props / 全量示例时再读 \`reference/${subdir || 'generated'}/\`。链接仅包含当前 skill 目录中已存在的文件。
+优先读手写文档；仅在需要完整 props / 全量示例时再读 \`${generatedDirLabel}\`。链接仅包含当前 skill 目录中已存在的文件。
 
 | 用户意图 | 必读 | 选读 |
 |---------|------|------|
@@ -117,6 +122,10 @@ ${generatedIndex}`;
 
 function generatedPath(subdir: string, file: string): string {
   return subdir ? `reference/${subdir}/${file}` : `reference/${file}`;
+}
+
+function generatedLabel(subdir: string, file: string): string {
+  return subdir ? `${subdir}/${file}` : file;
 }
 
 function linkIfExists(

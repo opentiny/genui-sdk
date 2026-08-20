@@ -11,12 +11,12 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "generate:skill": "node dist/cli.js examples/genui-schema-json.config.json"
+    "generate:skill": "node dist/cli.js config.json"
   },
   "files": [
     "dist",
     "README.md",
-    "examples"
+    "config.json"
   ],
   "dependencies": {
     "@opentiny/genui-sdk-core": "workspace:*"

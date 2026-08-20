@@ -1,0 +1,40 @@
+{
+  "framework": "vue",
+  "materialsMetaModule": "../materials/vue-opentiny-vue/dist/meta.js",
+  "materialsMetaExport": "materialsMeta",
+  "skillDirs": ["./skills/genui-schema-json"],
+  "skillBodyFormatter": "genui-schema-json",
+  "referenceSubdir": "generated",
+  "syncComponentsIndex": true,
+  "prune": true,
+  "tgCustomConfig": {
+    "customComponents": [],
+    "customSnippets": [],
+    "customExamples": [],
+    "customActions": [
+      {
+        "name": "continueChat",
+        "description": "继续对话，用于表单的提交按钮等",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "对话消息，可以是按钮文本等，也可以是其他内容"
+            }
+          }
+        }
+      },
+      {
+        "name": "saveState",
+        "description": "保存状态，用于保存组件状态",
+        "parameters": {
+          "type": "null"
+        }
+      }
+    ]
+  },
+  "promptOptions": {
+    "isSkill": true
+  }
+}

@@ -1,20 +1,26 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
+import { buildGenuiSchemaSkillBody } from '../formatters';
 import {
   assignReferenceFiles,
+  assertWrittenPromptCoverage,
   buildCategoryLinksSection,
   buildComponentsIndex,
   ensureSkillFrontmatter,
   extractComponentsWhitelist,
   extractReferenceSections,
   extractSkillPrefix,
+  generateSkillFiles,
+  genSkillContent,
   headingToReferenceFile,
   sectionLink,
   splitPromptSections,
   stripInjectedSkillPrefix,
   syncComponentsIndex,
+  writeReferenceFiles,
+  writeSkillEntry,
 } from '../skill-generator';
 
 const SAMPLE_PROMPT = `# 技能说明
@@ -35,6 +41,20 @@ schema
 
 rules
 `;
+
+const tempDirs: string[] = [];
+
+function createTempDir(prefix: string): string {
+  const dir = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(dir);
+  return dir;
+}
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
 
 describe('skill-generator', () => {
   it('extractReferenceSections 从 prompt 提取章节并用英文文件名', () => {
@@ -106,7 +126,7 @@ describe('skill-generator', () => {
   });
 
   it('buildCategoryLinksSection 仅链已存在分类文件', () => {
-    const skillDir = mkdtempSync(join(tmpdir(), 'skill-category-'));
+    const skillDir = createTempDir('skill-category-');
     expect(buildCategoryLinksSection(skillDir)).toBe('');
 
     mkdirSync(join(skillDir, 'reference', 'components'), { recursive: true });
@@ -117,7 +137,7 @@ describe('skill-generator', () => {
   });
 
   it('syncComponentsIndex 去掉不存在的分类死链', () => {
-    const skillDir = mkdtempSync(join(tmpdir(), 'skill-sync-'));
+    const skillDir = createTempDir('skill-sync-');
     mkdirSync(join(skillDir, 'reference'), { recursive: true });
     writeFileSync(
       join(skillDir, 'reference', 'components.md'),
@@ -164,7 +184,7 @@ describe('skill-generator', () => {
   });
 
   it('ensureSkillFrontmatter 只读取 YAML frontmatter', () => {
-    const skillSourceDir = mkdtempSync(join(tmpdir(), 'skill-frontmatter-'));
+    const skillSourceDir = createTempDir('skill-frontmatter-');
     writeFileSync(
       join(skillSourceDir, 'SKILL.md'),
       `---
@@ -179,5 +199,144 @@ description: test
     const frontmatter = ensureSkillFrontmatter(skillSourceDir);
 
     expect(frontmatter).toMatch(/^---\nname: genui-schema-json[\s\S]*\n---\n+$/);
+  });
+
+  it('落盘后可从 SKILL 前缀和 reference 逐字还原 genPrompt', () => {
+    const skillDir = createTempDir('skill-coverage-');
+    const prompt = SAMPLE_PROMPT.trimEnd();
+    const markers = extractReferenceSections(prompt);
+    const prefix = extractSkillPrefix(prompt, markers);
+    const sections = splitPromptSections(prompt, markers);
+
+    writeReferenceFiles(skillDir, sections, { syncComponentsIndex: false });
+    writeSkillEntry(
+      [skillDir],
+      prefix,
+      markers,
+      () => '# 附加路由\n\n按需读取 reference。\n',
+    );
+
+    expect(() =>
+      assertWrittenPromptCoverage(skillDir, prompt, prefix, markers),
+    ).not.toThrow();
+    expect(readFileSync(join(skillDir, 'reference', 'generated', 'rules.md'), 'utf8'))
+      .toBe(sections['rules.md']);
+  });
+
+  it('reference 分片被修改后无法通过落盘一致性校验', () => {
+    const skillDir = createTempDir('skill-coverage-corrupt-');
+    const markers = extractReferenceSections(SAMPLE_PROMPT);
+    const prefix = extractSkillPrefix(SAMPLE_PROMPT, markers);
+    const sections = splitPromptSections(SAMPLE_PROMPT, markers);
+
+    writeReferenceFiles(skillDir, sections, { syncComponentsIndex: false });
+    writeSkillEntry([skillDir], prefix, markers);
+    writeFileSync(join(skillDir, 'reference', 'generated', 'rules.md'), 'corrupted', 'utf8');
+
+    expect(() =>
+      assertWrittenPromptCoverage(skillDir, SAMPLE_PROMPT, prefix, markers),
+    ).toThrow(/无法逐字还原 genPrompt/);
+  });
+
+  it('SKILL.md 原始前缀被修改后无法通过落盘一致性校验', () => {
+    const skillDir = createTempDir('skill-prefix-corrupt-');
+    const markers = extractReferenceSections(SAMPLE_PROMPT);
+    const prefix = extractSkillPrefix(SAMPLE_PROMPT, markers);
+    const sections = splitPromptSections(SAMPLE_PROMPT, markers);
+
+    writeReferenceFiles(skillDir, sections, { syncComponentsIndex: false });
+    writeSkillEntry([skillDir], prefix, markers);
+    const skillPath = join(skillDir, 'SKILL.md');
+    writeFileSync(skillPath, readFileSync(skillPath, 'utf8').replace('# 技能说明', '# 已损坏'), 'utf8');
+
+    expect(() =>
+      assertWrittenPromptCoverage(skillDir, SAMPLE_PROMPT, prefix, markers),
+    ).toThrow(/未完整保留 genPrompt 前缀/);
+  });
+
+  it('默认保留 genPrompt 的 JSON Schema，并将自定义 Action 写入独立章节', () => {
+    const generated = genSkillContent(
+      'vue',
+      { materials: [], examples: [], whiteList: [] },
+      {
+        customActions: [
+          {
+            name: 'continueChat',
+            description: '继续对话',
+            parameters: {
+              type: 'object',
+              properties: { message: { type: 'string' } },
+            },
+          },
+        ],
+      },
+    );
+
+    expect(generated.sectionMarkers.map(({ file }) => file)).toContain('json-schema.md');
+    expect(generated.sectionMarkers.map(({ file }) => file)).toContain('actions.md');
+    expect(generated.sections['actions.md']).toContain('continueChat');
+    expect(
+      generated.skillPrefix +
+        generated.sectionMarkers.map(({ file }) => generated.sections[file]).join(''),
+    ).toBe(generated.prompt);
+  });
+
+  it('referenceSubdir 为空时拒绝 prune，避免破坏 prompt 之外的手写文件', () => {
+    const skillDir = createTempDir('skill-root-prune-');
+    expect(() =>
+      writeReferenceFiles(skillDir, { 'rules.md': 'rules' }, { referenceSubdir: '' }),
+    ).toThrow(/不能启用 prune/);
+  });
+
+  it('generateSkillFiles 完整生成、复用 frontmatter，并只清理生成目录旧文件', () => {
+    const rootDir = createTempDir('skill-e2e-');
+    const firstSkillDir = join(rootDir, 'first');
+    const secondSkillDir = join(rootDir, 'second');
+    const frontmatter = `---\nname: e2e-skill\ndescription: end-to-end test\n---\n`;
+    mkdirSync(join(firstSkillDir, 'reference', 'generated'), { recursive: true });
+    mkdirSync(join(firstSkillDir, 'reference'), { recursive: true });
+    writeFileSync(join(firstSkillDir, 'SKILL.md'), frontmatter, 'utf8');
+    writeFileSync(join(firstSkillDir, 'reference', 'manual.md'), '# keep\n', 'utf8');
+    writeFileSync(join(firstSkillDir, 'reference', 'generated', 'stale.md'), '# stale\n', 'utf8');
+
+    const result = generateSkillFiles(
+      'vue',
+      { materials: [], examples: [], whiteList: [] },
+      {
+        skillDirs: [firstSkillDir, secondSkillDir],
+        formatSkillBody: buildGenuiSchemaSkillBody,
+        syncComponentsIndex: false,
+        tgCustomConfig: { customActions: [{ name: 'continueChat' }] },
+      },
+    );
+
+    expect(result.skillDirs).toEqual([firstSkillDir, secondSkillDir]);
+    expect(existsSync(join(firstSkillDir, 'reference', 'generated', 'stale.md'))).toBe(false);
+    expect(readFileSync(join(firstSkillDir, 'reference', 'manual.md'), 'utf8')).toBe('# keep\n');
+    expect(readFileSync(join(secondSkillDir, 'SKILL.md'), 'utf8')).toMatch(
+      /^---\nname: e2e-skill\ndescription: end-to-end test\n---\n/,
+    );
+    expect(existsSync(join(secondSkillDir, 'reference', 'generated', 'actions.md'))).toBe(true);
+
+    for (const skillDir of result.skillDirs) {
+      expect(() =>
+        assertWrittenPromptCoverage(
+          skillDir,
+          result.prompt,
+          result.skillPrefix,
+          result.sectionMarkers,
+        ),
+      ).not.toThrow();
+    }
+  });
+
+  it('ensureSkillFrontmatter 创建默认文件并拒绝非法 frontmatter', () => {
+    const missingDir = createTempDir('skill-frontmatter-create-');
+    const invalidDir = createTempDir('skill-frontmatter-invalid-');
+    writeFileSync(join(invalidDir, 'SKILL.md'), '# missing yaml\n', 'utf8');
+
+    expect(ensureSkillFrontmatter(missingDir)).toMatch(/^---\n/);
+    expect(existsSync(join(missingDir, 'SKILL.md'))).toBe(true);
+    expect(() => ensureSkillFrontmatter(invalidDir)).toThrow(/YAML frontmatter/);
   });
 });

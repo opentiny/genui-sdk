@@ -1,7 +1,7 @@
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
   buildGenuiSchemaSkillBody,
   resolveSkillBodyFormatter,
@@ -28,11 +28,30 @@ schema
 rules
 `;
 
-function seedGenerated(skillDir: string): void {
-  mkdirSync(join(skillDir, 'reference', 'generated'), { recursive: true });
-  writeFileSync(join(skillDir, 'reference', 'generated', 'components.md'), '# g\n', 'utf8');
-  writeFileSync(join(skillDir, 'reference', 'generated', 'rules.md'), '# r\n', 'utf8');
-  writeFileSync(join(skillDir, 'reference', 'components.md'), '# index\n', 'utf8');
+const tempDirs: string[] = [];
+
+function createTempDir(prefix: string): string {
+  const dir = mkdtempSync(join(tmpdir(), prefix));
+  tempDirs.push(dir);
+  return dir;
+}
+
+afterEach(() => {
+  for (const dir of tempDirs.splice(0)) {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+function seedGenerated(skillDir: string, subdir = 'generated'): void {
+  const generatedDir = subdir
+    ? join(skillDir, 'reference', subdir)
+    : join(skillDir, 'reference');
+  mkdirSync(generatedDir, { recursive: true });
+  writeFileSync(join(generatedDir, 'components.md'), '# g\n', 'utf8');
+  writeFileSync(join(generatedDir, 'rules.md'), '# r\n', 'utf8');
+  if (subdir) {
+    writeFileSync(join(skillDir, 'reference', 'components.md'), '# index\n', 'utf8');
+  }
 }
 
 function seedHandwritten(skillDir: string): void {
@@ -60,7 +79,7 @@ function seedHandwritten(skillDir: string): void {
 
 describe('formatters', () => {
   it('仅 generated 时不链缺失手写文档，回退 generated/rules', () => {
-    const skillDir = mkdtempSync(join(tmpdir(), 'skill-body-gen-'));
+    const skillDir = createTempDir('skill-body-gen-');
     seedGenerated(skillDir);
     const markers = extractReferenceSections(SAMPLE_PROMPT);
     const body = buildGenuiSchemaSkillBody(markers, { skillDir });
@@ -69,7 +88,6 @@ describe('formatters', () => {
     expect(body).not.toContain('reference/editing.md');
     expect(body).not.toContain('reference/examples/login-form.md');
     expect(body).not.toContain('reference/common-mistakes.md');
-    expect(body).toContain('[rules.md](reference/generated/rules.md)');
     expect(body).toContain('[components.md](reference/components.md)');
     expect(body).toContain('[generated/components.md](reference/generated/components.md)');
     expect(body).toContain('[rules.md](reference/generated/rules.md)');
@@ -78,7 +96,7 @@ describe('formatters', () => {
   });
 
   it('手写存在时优先手写路径，并链分类文档', () => {
-    const skillDir = mkdtempSync(join(tmpdir(), 'skill-body-hw-'));
+    const skillDir = createTempDir('skill-body-hw-');
     seedGenerated(skillDir);
     seedHandwritten(skillDir);
     const markers = extractReferenceSections(SAMPLE_PROMPT);
@@ -95,6 +113,39 @@ describe('formatters', () => {
     );
     expect(body).toContain('[data-display.md](reference/components/data-display.md)');
     expect(body).toContain('[charts.md](reference/components/charts.md)');
+  });
+
+  it('非默认 referenceSubdir 使用实际目录生成链接文字和读取提示', () => {
+    const skillDir = createTempDir('skill-body-custom-');
+    seedGenerated(skillDir, 'material-docs');
+    writeFileSync(join(skillDir, 'reference', 'material-docs', 'actions.md'), '# actions\n', 'utf8');
+    const markers = extractReferenceSections(`${SAMPLE_PROMPT}\n## Action 定义\n\nactions\n`);
+    const body = buildGenuiSchemaSkillBody(markers, {
+      skillDir,
+      referenceSubdir: 'material-docs',
+    });
+
+    expect(body).toContain(
+      '[material-docs/components.md](reference/material-docs/components.md)',
+    );
+    expect(body).toContain('[material-docs/actions.md](reference/material-docs/actions.md)');
+    expect(body).toContain('再读 `reference/material-docs/`');
+    expect(body).not.toContain('[generated/');
+  });
+
+  it('空 referenceSubdir 直接链接 reference，且不重复组件链接', () => {
+    const skillDir = createTempDir('skill-body-root-');
+    seedGenerated(skillDir, '');
+    const markers = extractReferenceSections(SAMPLE_PROMPT);
+    const body = buildGenuiSchemaSkillBody(markers, { skillDir, referenceSubdir: '' });
+
+    expect(body).toContain('[components.md](reference/components.md)');
+    expect(body).toContain('[rules.md](reference/rules.md)');
+    expect(body).toContain('再读 `reference/`');
+    expect(body).not.toContain('reference/generated/');
+    expect(body).not.toContain(
+      '[components.md](reference/components.md)、[components.md](reference/components.md)',
+    );
   });
 
   it('resolveSkillBodyFormatter 解析内置名称', () => {

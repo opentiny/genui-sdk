@@ -12,6 +12,7 @@ export default defineConfig({
   plugins: [
     dts({
       rollupTypes: true,
+      exclude: ['src/__tests__/**'],
     }),
   ],
   build: {

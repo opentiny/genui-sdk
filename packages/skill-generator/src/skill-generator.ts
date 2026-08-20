@@ -63,11 +63,11 @@ export interface IGenerateSkillOptions {
   skillDirs: string[];
   /** genPrompt 自定义配置 */
   tgCustomConfig?: IGenPromptCustomConfig;
-  /** 传给 genPrompt 的选项；默认 isSkill=true、includeJsonSchema=false（减小体积） */
+  /** 传给 genPrompt 的选项；默认仅设置 isSkill=true，其余沿用 genPrompt 默认值 */
   promptOptions?: IGenPromptOptions;
   /**
    * 可选：生成 SKILL.md 正文（输出格式、意图路由等）。
-   * 提供时不再把 skillPromptPrefix 写入 SKILL.md，仅将 ## 章节写入 reference/。
+   * formatter 内容追加在原始 skillPromptPrefix 后，不能替换 genPrompt 内容。
    * 调用时传入 skillDir，用于按磁盘「存在才出链」。
    */
   formatSkillBody?: (
@@ -109,7 +109,6 @@ description: >-
 
 const DEFAULT_PROMPT_OPTIONS: IGenPromptOptions = {
   isSkill: true,
-  includeJsonSchema: false,
 };
 
 /**
@@ -233,6 +232,42 @@ export function assertPromptCoverage(
 
   if (reconstructed !== prompt) {
     throw new Error('SKILL.md 前缀 + reference 拼接后与 genPrompt 输出不一致');
+  }
+}
+
+/**
+ * 从已生成的 SKILL.md 前缀与 reference 文件重组 genPrompt，并校验逐字一致。
+ * formatter 可以在原始前缀后追加路由说明，但不能替换或修改原始前缀。
+ */
+export function assertWrittenPromptCoverage(
+  skillDir: string,
+  prompt: string,
+  skillPrefix: string,
+  sectionMarkers: IPromptSectionMarker[],
+  referenceSubdir = 'generated',
+): void {
+  const skillSource = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
+  const frontmatter = skillSource.match(/^---[\s\S]*?---\n\n?/);
+  if (!frontmatter) {
+    throw new Error(`SKILL.md 格式无效，无法校验 genPrompt: ${skillDir}`);
+  }
+
+  const skillBody = skillSource.slice(frontmatter[0].length);
+  if (!skillBody.startsWith(skillPrefix)) {
+    throw new Error(`SKILL.md 未完整保留 genPrompt 前缀: ${skillDir}`);
+  }
+
+  const referenceDir = referenceSubdir
+    ? join(skillDir, 'reference', referenceSubdir)
+    : join(skillDir, 'reference');
+  const reconstructed =
+    skillPrefix +
+    sectionMarkers
+      .map(({ file }) => readFileSync(join(referenceDir, file), 'utf8'))
+      .join('');
+
+  if (reconstructed !== prompt) {
+    throw new Error(`生成文件无法逐字还原 genPrompt: ${skillDir}`);
   }
 }
 
@@ -493,6 +528,10 @@ export function writeReferenceFiles(
   const prune = options.prune ?? true;
   const shouldSyncIndex = options.syncComponentsIndex ?? true;
 
+  if (!referenceSubdir && prune) {
+    throw new Error('referenceSubdir 为空时不能启用 prune，以免删除手写 reference 文件');
+  }
+
   const referenceDir = join(skillDir, 'reference');
   const outputDir = referenceSubdir ? join(referenceDir, referenceSubdir) : referenceDir;
   mkdirSync(outputDir, { recursive: true });
@@ -501,13 +540,14 @@ export function writeReferenceFiles(
 
   for (const [file, content] of Object.entries(sections)) {
     if (!content) continue;
-    const normalized = content.endsWith('\n') ? content : `${content}\n`;
-    writeFileSync(join(outputDir, file), normalized, 'utf8');
+    // reference 是 genPrompt 的无损分片，禁止格式化或补换行。
+    writeFileSync(join(outputDir, file), content, 'utf8');
     written.push(file);
 
-    if (shouldSyncIndex && file === 'components.md') {
+    // 空子目录时详情与索引路径相同，不能用索引逻辑改写原始 prompt 分片。
+    if (shouldSyncIndex && referenceSubdir && file === 'components.md') {
       const detailRel = referenceSubdir ? `${referenceSubdir}/components.md` : 'components.md';
-      syncComponentsIndex(skillDir, normalized, detailRel);
+      syncComponentsIndex(skillDir, content, detailRel);
     }
   }
 
@@ -518,7 +558,7 @@ export function writeReferenceFiles(
 
 /**
  * 将 skill 入口写入各 skill 目录的 SKILL.md。
- * 有 formatSkillBody 时以其为正文（Agent 友好）；否则写入 genPrompt 前缀。
+ * 始终逐字保留 genPrompt 前缀；有 formatSkillBody 时在其后追加 Agent 友好路由。
  * 每个目录单独生成正文，以便按该目录已有文件出链。
  *
  * @param skillDirs - skill 目录列表
@@ -545,12 +585,14 @@ export function writeSkillEntry(
 
   for (const skillDir of skillDirs) {
     mkdirSync(skillDir, { recursive: true });
-    const body = formatSkillBody
-      ? formatSkillBody(sectionMarkers, { skillDir, referenceSubdir: subdir })
-      : skillPrefix.endsWith('\n')
-        ? skillPrefix
-        : `${skillPrefix}\n`;
-    const content = `${frontmatter}${body.endsWith('\n') ? body : `${body}\n`}`;
+    const formattedBody = formatSkillBody?.(sectionMarkers, {
+      skillDir,
+      referenceSubdir: subdir,
+    });
+    const body = formattedBody
+      ? `${skillPrefix}${skillPrefix.endsWith('\n') ? '' : '\n'}\n${formattedBody}`
+      : skillPrefix;
+    const content = `${frontmatter}${body}`;
     writeFileSync(join(skillDir, 'SKILL.md'), content, 'utf8');
   }
 }
@@ -595,6 +637,16 @@ export function generateSkillFiles(
     options.defaultFrontmatter,
     referenceSubdir,
   );
+
+  for (const skillDir of options.skillDirs) {
+    assertWrittenPromptCoverage(
+      skillDir,
+      prompt,
+      skillPrefix,
+      sectionMarkers,
+      referenceSubdir,
+    );
+  }
 
   return {
     prompt,
