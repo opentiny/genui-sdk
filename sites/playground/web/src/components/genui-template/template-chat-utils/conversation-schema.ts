@@ -1,6 +1,7 @@
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IJsonPatchMessageItem, ISchemaCardMessageItem, ISchemaManualMessageItem } from '../chat.types';
 import { formatDate } from '../../../utils';
+import { isContextCompressMessage } from './context-message';
 import { applyJsonPatchOperations } from './json-patch-format';
 import { getManualEdits, manualEditToCardSnapshot } from './manual-schema';
 
@@ -265,6 +266,9 @@ export function findSchemaCardByCardId(
 
   for (let i = messages.length - 1; i >= 0; i--) {
     const chatMessage = messages[i];
+    if (isContextCompressMessage(chatMessage)) {
+      continue;
+    }
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
@@ -293,6 +297,9 @@ export function findLatestPendingSchemaCard(
 
   for (let i = messages.length - 1; i >= 0; i--) {
     const chatMessage = messages[i];
+    if (isContextCompressMessage(chatMessage)) {
+      continue;
+    }
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
@@ -323,6 +330,9 @@ export function findLatestSchemaCardInConversation(
 
   for (let i = messages.length - 1; i >= 0; i--) {
     const chatMessage = messages[i];
+    if (isContextCompressMessage(chatMessage)) {
+      continue;
+    }
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
@@ -399,6 +409,7 @@ export function repairAllStalePendingSchemaCards(messages: ChatMessage[] | undef
   return updated;
 }
 
+/** 从会话消息中反向查找最近一条含 schema 的卡片（跳过 context-compress 等无卡片消息） */
 export function findLatestSchemaInConversation(
   messages: ChatMessage[] | undefined,
 ): ILatestSchemaInConversation | null {
@@ -408,6 +419,9 @@ export function findLatestSchemaInConversation(
 
   for (let i = messages.length - 1; i >= 0; i--) {
     const chatMessage = messages[i];
+    if (isContextCompressMessage(chatMessage)) {
+      continue;
+    }
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
