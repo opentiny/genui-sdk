@@ -241,7 +241,6 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     skills: playgroundConfig.skills || [],
     openApiTools: playgroundConfig.openApiTools || [],
     promptVariant: playgroundConfig.promptVariant,
-    antiContaminationRule: playgroundConfig.antiContaminationRule,
   };
 };
 
@@ -275,8 +274,8 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, componentLib, userAppendPrompt, agents, skills, openApiTools, promptVariant, antiContaminationRule } = playgroundConfig;
-    const materialConfig = { framework, promptVariant, componentLib, antiContaminationRule };
+    const { mcpServers, framework, componentLib, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
+    const materialConfig = { framework, promptVariant, componentLib };
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,

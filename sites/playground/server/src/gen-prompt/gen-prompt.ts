@@ -20,7 +20,6 @@ interface IPlaygroundMaterialConfig {
   framework: IFrameworkKey;
   promptVariant: IMaterialsMetaVariantKey | undefined;
   componentLib?: IComponentLibKey | string;
-  antiContaminationRule?: string;
 }
 
 const metaMap: IMetaMap = {
@@ -52,7 +51,7 @@ export function genPlaygroundPrompt(
   materialConfig: IPlaygroundMaterialConfig,
   tgCustomConfig?: IGenPromptCustomConfig,
 ) {
-  const { framework, promptVariant, componentLib, antiContaminationRule } = materialConfig;
+  const { framework, promptVariant, componentLib } = materialConfig;
   const variant = promptVariant || 'standard';
   const libKey = componentLib as IComponentLibKey;
 
@@ -62,10 +61,7 @@ export function genPlaygroundPrompt(
     tgCustomConfig,
     {
       ...(optionsMap[framework]?.[variant] ?? {}),
-      rules: [
-        ...(optionsMap[framework]?.[variant]?.rules ?? []),
-        ...(antiContaminationRule ? [antiContaminationRule] : []),
-      ],
+      rules: [...(optionsMap[framework]?.[variant]?.rules ?? [])],
     },
   );
 }

@@ -16,5 +16,4 @@ export interface IPlaygroundConfig {
   openApiTools?: OpenApiToolServiceConfig[];
   promptVariant?: IMaterialsMetaVariantKey;
   componentLib?: 'TinyVue' | 'Element' | 'TinyNg';
-  antiContaminationRule?: string;
 }

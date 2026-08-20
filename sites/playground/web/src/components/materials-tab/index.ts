@@ -6,7 +6,6 @@ export {
   MATERIAL_THEME_COLOR_MAP,
   componentLibOptionsByFramework,
   defaultComponentLib,
-  buildAntiContaminationRule,
   useMaterialsConfig,
   type MaterialsCache,
 } from './materials-options';

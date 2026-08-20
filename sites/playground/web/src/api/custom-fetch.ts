@@ -1,6 +1,6 @@
 import { modifyChatBody as continueGeneratingBodyModifier } from '../continue-writing';
 import type { OpenApiToolServiceConfig } from '../components/common.types';
-import { buildAntiContaminationRule, defaultComponentLib } from '../components/materials-tab';
+import { defaultComponentLib } from '../components/materials-tab';
 
 type MaterialsMetaVariantKey = 'mini' | 'standard';
 export interface IMcpServerConfig {
@@ -95,7 +95,6 @@ export const createCustomFetch = (getConfig: () => IPlaygroundConfig) => {
       skills: skillsPayloadForChat(skills),
       promptVariant: promptVariant || 'standard',
       openApiTools: openApiTools.filter((tool) => tool.enabled !== false),
-      antiContaminationRule: buildAntiContaminationRule(resolvedComponentLib),
     };
 
     return fetch(url, {
