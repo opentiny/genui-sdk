@@ -43,7 +43,10 @@ export const zhThemeConfig: DefaultTheme.Config = {
       },
       {
         text: 'Angular 组件文档',
-        items: [{ text: 'GenuiRenderer', link: '/components/angular/renderer' }],
+        items: [
+          { text: 'GenuiRenderer', link: '/components/angular/renderer' },
+          { text: 'GenuiConfigProvider', link: '/components/angular/config-provider' },
+        ],
       },
       {
         text: 'Server 库文档',
