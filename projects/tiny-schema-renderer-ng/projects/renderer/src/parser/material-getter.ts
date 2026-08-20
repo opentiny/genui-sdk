@@ -27,8 +27,6 @@ export const directiveMap: Record<string, Type<any>> = {
 (DefaultValueAccessor['ɵdir'] as any).standalone = true;
 (CheckboxControlValueAccessor['ɵdir'] as any).standalone = true;
 
-export const iconMap: Record<string, any> = {};
-
 export const customElements: Record<string, Type<any>> = {};
 
 export const getMaterials = (context: Record<PropertyKey, any> = {}): IRendererMaterials =>

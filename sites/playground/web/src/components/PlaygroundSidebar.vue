@@ -1,5 +1,5 @@
 <script setup>
-import { TinyTabs, TinyTabItem, TinyButtonGroup, TinyButton } from '@opentiny/vue';
+import { TinyTabs, TinyTabItem } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { ref, watch, computed, inject, defineAsyncComponent, shallowRef } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -7,10 +7,13 @@ import NewSvg from '../assets/images/new.svg?raw';
 import OpenSvg from '../assets/images/open.svg?raw';
 import CloseSvg from '../assets/images/close.svg?raw';
 import MenuSvg from '../assets/images/menu.svg?raw';
+import ModeChatSvg from '../assets/images/mode-chat.svg?raw';
+import ModeBuilderSvg from '../assets/images/mode-builder.svg?raw';
 import ModelConfig from './tab-components/ModelConfig.vue';
 import McpTools from './tab-components/mcpTools.vue';
 import GenuiHistory from './tab-components/GenuiHistory.vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
+import ModeSwitchSlider from './ModeSwitchSlider.vue';
 import { useIsMobile } from '../hooks';
 import useTemplate from './genui-template/useTemplate';
 import { MaterialsTab } from './materials-tab';
@@ -56,6 +59,11 @@ const showNewTaskButton = computed(() => currentMode.value === PlaygroundMode.Ch
 
 const showNewTemplateButton = computed(() => ENABLE_TEMPLATE && currentMode.value === PlaygroundMode.Builder);
 
+const modeOptions = computed(() => [
+  { value: PlaygroundMode.Chat, label: t('sidebar.modeChat'), icon: ModeChatSvg },
+  { value: PlaygroundMode.Builder, label: t('sidebar.modeBuilder'), icon: ModeBuilderSvg },
+]);
+
 watch(
   currentMode,
   (mode) => {
@@ -63,7 +71,7 @@ watch(
       activeName.value = 'model';
     }
     if (mode === PlaygroundMode.Builder && activeName.value === 'history') {
-      activeName.value = 'model';
+      activeName.value = ENABLE_TEMPLATE ? 'template' : 'model';
     }
     if (mode === PlaygroundMode.Builder && framework.value === 'Angular') {
       setFramework('Vue');
@@ -157,72 +165,59 @@ const updateCustomExamples = (list) => {
           <span v-if="expanded">GenUI</span>
         </div>
 
-        <div v-if="ENABLE_TEMPLATE && expanded" class="playground-sidebar__mode">
-          <tiny-button-group class="mode-button-group" :model-value="currentMode">
-            <tiny-button
-              class="mode-button"
-              :class="{ 'mode-button--active': currentMode === PlaygroundMode.Chat }"
-              :reset-time="0"
-              :value="PlaygroundMode.Chat"
-              @click="switchMode(PlaygroundMode.Chat)"
-            >
-              {{ t('sidebar.modeChat') }}
-            </tiny-button>
-            <tiny-button
-              class="mode-button"
-              :class="{ 'mode-button--active': currentMode === PlaygroundMode.Builder }"
-              :reset-time="0"
-              :value="PlaygroundMode.Builder"
-              @click="switchMode(PlaygroundMode.Builder)"
-            >
-              {{ t('sidebar.modeBuilder') }}
-            </tiny-button>
-          </tiny-button-group>
-        </div>
+        <div class="playground-sidebar__header-right">
+          <div v-if="ENABLE_TEMPLATE && expanded" class="playground-sidebar__mode">
+            <ModeSwitchSlider
+              :model-value="currentMode"
+              :options="modeOptions"
+              @update:model-value="switchMode"
+            />
+          </div>
 
-        <div class="playground-sidebar__actions">
-          <div class="playground-sidebar__actions-inner">
+          <div class="playground-sidebar__actions">
+            <div class="playground-sidebar__actions-inner">
+              <button
+                v-if="expanded"
+                type="button"
+                class="playground-sidebar__icon-btn"
+                :aria-label="isMobile ? t('sidebar.closeSidebar') : t('sidebar.collapseSidebar')"
+                :title="isMobile ? t('sidebar.close') : t('sidebar.collapseSidebar')"
+                @click="emit('update:expanded', false)"
+              >
+                <span class="svg-icon" :innerHTML="CloseSvg" />
+              </button>
+              <button
+                v-else
+                type="button"
+                class="playground-sidebar__icon-btn"
+                :aria-label="t('sidebar.expandSidebar')"
+                :title="t('sidebar.expand')"
+                @click="toggleExpanded"
+              >
+                <span class="svg-icon" :innerHTML="OpenSvg" />
+              </button>
+            </div>
             <button
-              v-if="expanded"
+              v-if="!expanded && !isMobile && showNewTaskButton"
               type="button"
               class="playground-sidebar__icon-btn"
-              :aria-label="isMobile ? t('sidebar.closeSidebar') : t('sidebar.collapseSidebar')"
-              :title="isMobile ? t('sidebar.close') : t('sidebar.collapseSidebar')"
-              @click="emit('update:expanded', false)"
+              :aria-label="t('sidebar.newTask')"
+              :title="t('sidebar.newTask')"
+              @click="handleNewTask"
             >
-              <span class="svg-icon" :innerHTML="CloseSvg" />
+              <span class="svg-icon" :innerHTML="NewSvg" />
             </button>
             <button
-              v-else
+              v-if="!expanded && !isMobile && showNewTemplateButton"
               type="button"
               class="playground-sidebar__icon-btn"
-              :aria-label="t('sidebar.expandSidebar')"
-              :title="t('sidebar.expand')"
-              @click="toggleExpanded"
+              :aria-label="t('template.new')"
+              :title="t('template.new')"
+              @click="handleNewTemplate"
             >
-              <span class="svg-icon" :innerHTML="OpenSvg" />
+              <span class="svg-icon" :innerHTML="NewSvg" />
             </button>
           </div>
-          <button
-            v-if="!expanded && !isMobile && showNewTaskButton"
-            type="button"
-            class="playground-sidebar__icon-btn"
-            :aria-label="t('sidebar.newTask')"
-            :title="t('sidebar.newTask')"
-            @click="handleNewTask"
-          >
-            <span class="svg-icon" :innerHTML="NewSvg" />
-          </button>
-          <button
-            v-if="!expanded && !isMobile && showNewTemplateButton"
-            type="button"
-            class="playground-sidebar__icon-btn"
-            :aria-label="t('template.new')"
-            :title="t('template.new')"
-            @click="handleNewTemplate"
-          >
-            <span class="svg-icon" :innerHTML="NewSvg" />
-          </button>
         </div>
       </header>
 
@@ -251,6 +246,9 @@ const updateCustomExamples = (list) => {
         v-model="activeName"
         v-show="expanded"
       >
+        <tiny-tab-item v-if="ENABLE_TEMPLATE && currentMode === PlaygroundMode.Builder" :title="t('sidebar.tabTemplate')" name="template">
+          <component v-if="GenuiTemplateList" :is="GenuiTemplateList" />
+        </tiny-tab-item>
         <tiny-tab-item :title="t('sidebar.tabModel')" name="model">
           <ModelConfig @createNewTemplate="handleCreateNewTemplate" @update-custom-examples="updateCustomExamples" />
         </tiny-tab-item>
@@ -262,9 +260,6 @@ const updateCustomExamples = (list) => {
         </tiny-tab-item>
         <tiny-tab-item v-if="currentMode === PlaygroundMode.Chat" :title="t('sidebar.tabHistory')" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
-        </tiny-tab-item>
-        <tiny-tab-item v-if="ENABLE_TEMPLATE && currentMode === PlaygroundMode.Builder" :title="t('sidebar.tabTemplate')" name="template">
-          <component v-if="GenuiTemplateList" :is="GenuiTemplateList" />
         </tiny-tab-item>
       </tiny-tabs>
 
@@ -341,62 +336,25 @@ const updateCustomExamples = (list) => {
     font-size: 16px;
   }
 
-  &__mode {
+  &__header-right {
+    margin-left: auto;
     display: flex;
+    align-items: center;
+    gap: 8px;
     min-width: 0;
   }
 
-  .mode-button-group {
-    border-radius: 382px;
-    width: fit-content;
-    height: 24px;
-    background-color: rgba(232, 238, 254, 1);
+  &__mode {
     display: flex;
-    align-items: center;
-    padding: 2px;
-
-    :deep(.tiny-group-item) {
-      display: flex;
-      align-items: center;
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      border: none;
-      background: transparent;
-    }
-
-    .mode-button {
-      height: 100%;
-      min-width: 0;
-      width: auto;
-      margin-left: 0;
-      padding: 0 8px;
-      border-radius: 382px;
-      border: none;
-      background-color: transparent;
-      font-size: 12px;
-      line-height: 1;
-      font-weight: 400;
-
-      :deep(button) {
-        min-width: 0;
-        padding: 0 8px;
-        height: 100%;
-      }
-
-      &--active {
-        background-color: #fff;
-        font-weight: 700;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-      }
-    }
+    min-width: 0;
+    flex-shrink: 0;
   }
 
   &__actions {
-    margin-left: auto;
     display: flex;
     flex-direction: column;
     gap: 20px;
+    flex-shrink: 0;
 
     &-inner {
       display: flex;

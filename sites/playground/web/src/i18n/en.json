@@ -26,9 +26,10 @@
     "tabMaterials": "Materials",
     "tabTheme": "Theme",
     "tabHistory": "History",
-    "tabTemplate": "Templates (experimental)",
+    "tabTemplate": "Applications",
     "modeChat": "Chat",
-    "modeBuilder": "Builder"
+    "modeBuilder": "Builder",
+    "mode": "Mode"
   },
   "materials": {
     "framework": "Framework",
@@ -91,10 +92,10 @@
   "template": {
     "selectTitle": "Select example templates",
     "cancel": "Cancel",
-    "createNew": "Create template",
+    "createNew": "Create application",
     "confirm": "OK",
-    "new": "New template",
-    "defaultTitle": "New template",
+    "new": "New application",
+    "defaultTitle": "New application",
     "confirmDeleteOne": "Delete this template?",
     "confirmBatchDelete": "Delete {count} selected template(s)?",
     "inputPlaceholder": "Describe what to build",
