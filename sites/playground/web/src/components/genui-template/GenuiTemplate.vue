@@ -89,7 +89,6 @@ const schemaEditor = computed({
   get() {
     // 写入编辑器的代码
     if (!currentPreviewSchema.value) {
-      schemaEditorVisible.value = false;
       return '{}';
     }
 
@@ -108,6 +107,14 @@ const schemaEditor = computed({
       console.error('schemaEditor set error ===>', error);
     }
   },
+});
+
+watch(currentPreviewSchema, (schema) => {
+  if (schema) {
+    return;
+  }
+  schemaEditorVisible.value = false;
+  mobileSchemaJsonEditorOpen.value = false;
 });
 
 const editorOptions = computed(() => ({
