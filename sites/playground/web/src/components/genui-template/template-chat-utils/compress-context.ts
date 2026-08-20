@@ -3,8 +3,19 @@ import { templateChat } from '../template-chat-api';
 import type { LLMConfig } from '../chat.types';
 import { isContextCompressMessage } from './context-message';
 
-const COMPRESS_PROMPT_PREFIX =
-  '请将以下对话历史压缩为一段简洁的中文摘要，保留用户意图、关键结论与界面/schema 相关变更。只输出摘要正文，不要使用代码块标记。\n\n';
+const COMPRESS_PROMPT_PREFIX = `请将以下对话历史压缩为可供后续模型继续工作的中文摘要。
+必须保留：
+1. 用户当前目标、明确需求和约束；
+2. 已确认的设计或实现决策，以及被否决的方案；
+3. 已完成的重要界面/Schema 变更及其原因；
+4. 尚未解决的问题和下一步工作；
+5. 后续对话中会用到的名称、ID 或关键值。
+
+当前 Schema 会由系统单独提供，不要复制完整 Schema，也不要虚构对话中没有的信息。
+使用“目标 / 已确认 / 已完成 / 待处理 / 关键上下文”几个简短小节；没有内容的小节可以省略。
+只输出摘要正文，不要使用代码块标记。
+
+`;
 
 export function serializeMessagesForCompress(messages: ChatMessage[]): string {
   return messages

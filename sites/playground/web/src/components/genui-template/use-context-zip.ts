@@ -4,7 +4,8 @@ import type { LLMConfig } from './chat.types';
 import {
   compressConversationHistory,
   createContextCompressMessage,
-  getMessagesForCompressRequest,
+  findLatestContextCompressIndex,
+  getContextCompressionPlan,
 } from './template-chat-utils';
 import { generateId } from '../../utils';
 
@@ -21,29 +22,29 @@ interface UseContextZipOptions {
 
 export function useContextZip(options: UseContextZipOptions) {
   const status = ref<ContextZipStatus>('idle');
-  const messageCountAtZip = ref(0);
   let abortController: AbortController | null = null;
+
+  const compressionPlan = computed(() => getContextCompressionPlan(options.messages.value));
+  const latestCompressIndex = computed(() => findLatestContextCompressIndex(options.messages.value));
 
   const dividerText = computed(() => {
     if (status.value === 'compressing') return '压缩会话中';
-    if (status.value === 'compressed') return '以上会话已压缩';
+    if (latestCompressIndex.value !== -1) return '以上会话已压缩';
     return '';
   });
 
   const isCompressing = computed(() => status.value === 'compressing');
-  const showDivider = computed(() => status.value !== 'idle');
+  const showDivider = computed(() => isCompressing.value || latestCompressIndex.value !== -1);
 
   const isButtonDisabled = computed(() => {
-    if (options.messages.value.length === 0) return true;
     if (isCompressing.value || options.generating.value) return true;
-    return status.value === 'compressed' && options.messages.value.length <= messageCountAtZip.value;
+    return compressionPlan.value === null;
   });
 
   const reset = () => {
     abortController?.abort();
     abortController = null;
     status.value = 'idle';
-    messageCountAtZip.value = 0;
   };
 
   watch(options.currentConversationId, reset);
@@ -51,6 +52,9 @@ export function useContextZip(options: UseContextZipOptions) {
 
   const compress = async () => {
     if (isButtonDisabled.value) return;
+
+    const plan = compressionPlan.value;
+    if (!plan) return;
 
     const { url, llmConfig, templateSchema } = options.getTemplateChatConfig();
     if (!url) {
@@ -66,15 +70,15 @@ export function useContextZip(options: UseContextZipOptions) {
     try {
       const summary = await compressConversationHistory({
         url,
-        messages: getMessagesForCompressRequest(options.messages.value),
+        messages: plan.messages,
         templateSchema,
         llmConfig,
         signal: controller.signal,
       });
 
-      options.messages.value.push(createContextCompressMessage(summary, generateId()));
+      // 摘要插入到被保留的最近消息之前；旧消息仍完整保存在会话中。
+      options.messages.value.splice(plan.insertIndex, 0, createContextCompressMessage(summary, generateId()));
       status.value = 'compressed';
-      messageCountAtZip.value = options.messages.value.length;
       options.saveConversations();
       options.scrollToBottom();
     } catch (error) {
@@ -95,6 +99,7 @@ export function useContextZip(options: UseContextZipOptions) {
     dividerText,
     isCompressing,
     showDivider,
+    latestCompressIndex,
     isButtonDisabled,
     reset,
     compress,

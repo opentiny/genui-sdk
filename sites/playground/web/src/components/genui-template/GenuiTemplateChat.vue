@@ -289,7 +289,15 @@ const contextZip = useContextZip({
   scrollToBottom,
 });
 
-const { isButtonDisabled, isCompressing, compress, showDivider, dividerText, reset: resetContextZip } = contextZip;
+const {
+  isButtonDisabled,
+  isCompressing,
+  compress,
+  showDivider,
+  dividerText,
+  latestCompressIndex,
+  reset: resetContextZip,
+} = contextZip;
 
 const toShowMessage = (message: ChatMessage): BubbleProps => {
   if (isContextCompressMessage(message)) {
@@ -299,7 +307,12 @@ const toShowMessage = (message: ChatMessage): BubbleProps => {
 };
 
 const showMessages = computed((): BubbleProps[] => {
-  let list = messages.value.map(toShowMessage);
+  let list = messages.value.map((message, index) => {
+    if (index === latestCompressIndex.value) {
+      return { role: 'zip', content: dividerText.value } as BubbleProps;
+    }
+    return toShowMessage(message);
+  });
 
   if (messageManager.value?.messageState.status === STATUS.PROCESSING) {
     return [
@@ -339,7 +352,7 @@ const showMessages = computed((): BubbleProps[] => {
     }
   }
 
-  if (showDivider.value) {
+  if (showDivider.value && isCompressing.value) {
     list = [...list, { role: 'zip', content: dividerText.value }];
   }
 
@@ -351,6 +364,8 @@ const clearInputMessage = () => {
 };
 
 const handleSendMessage = async () => {
+  if (isCompressing.value) return;
+
   const messageContent = inputMessage.value;
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
@@ -432,25 +447,22 @@ onUnmounted(() => {
       >
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <!-- 会话压缩和报错修复按钮 -->
+      <!-- 会话压缩按钮 -->
       <div class="sender-tool-buttons">
         <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
           会话压缩
         </TinyButton>
-        <TinyButton round class="fix-button">
-          报错修复
-        </TinyButton>
       </div>
       <tr-sender
         v-model="inputMessage"
-        :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
+        :placeholder="generating || isCompressing ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
-        :loading="generating"
+        :loading="generating || isCompressing"
         :showWordLimit="true"
         :maxLength="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
-        @cancel="() => messageManager?.abortRequest()"
+        @cancel="() => (isCompressing ? resetContextZip() : messageManager?.abortRequest())"
       >
       </tr-sender>
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>

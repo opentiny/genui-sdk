@@ -15,6 +15,13 @@ export type IContextCompressMessage = ChatMessage & {
 
 const CONTEXT_SUMMARY_PREFIX = '以下是此前对话的压缩摘要，请在此基础上继续：\n\n';
 
+/** 会话压缩配置；最近消息作为摘要之外的原文缓冲区保留
+ * 摘要是有损压缩，近期对话往往包含模型下一步最依赖的细节。经过摘要后，可能被简化或遗漏，需要保留原文缓冲区避免丢失重要信息。
+ * 默认保留 2 条最近消息（user+assistant）。 */
+export const CONTEXT_COMPRESSION_CONFIG = {
+  keepRecentMessages: 2,
+} as const;
+
 export function isContextCompressMessage(message: ChatMessage): boolean {
   return (message as { type?: string }).type === CONTEXT_COMPRESS_MESSAGE_TYPE;
 }
@@ -57,11 +64,58 @@ export function getVisibleChatMessages(messages: ChatMessage[]): ChatMessage[] {
   return messages.filter((m) => !isContextCompressMessage(m));
 }
 
-function findLatestContextCompressIndex(messages: ChatMessage[]): number {
+export function findLatestContextCompressIndex(messages: ChatMessage[]): number {
   for (let i = messages.length - 1; i >= 0; i--) {
     if (isContextCompressMessage(messages[i])) return i;
   }
   return -1;
+}
+
+export interface ContextCompressionPlan {
+  /** 需要交给模型生成新摘要的活动上下文 */
+  messages: ChatMessage[];
+  /** 新摘要在完整历史中的插入位置；原始消息不会被删除 */
+  insertIndex: number;
+}
+
+/**
+ * 构造滚动压缩计划：压缩旧上下文，同时保留最近若干条原始消息。
+ * 保留区尽量从 user 消息开始，避免拆开一轮 user -> assistant 对话。
+ */
+export function getContextCompressionPlan(
+  messages: ChatMessage[],
+  keepRecentMessages = CONTEXT_COMPRESSION_CONFIG.keepRecentMessages,
+): ContextCompressionPlan | null {
+  const latestCompressIndex = findLatestContextCompressIndex(messages);
+  const activeStart = latestCompressIndex === -1 ? 0 : latestCompressIndex;
+  const activeNormalIndexes: number[] = [];
+
+  for (let index = activeStart; index < messages.length; index++) {
+    if (!isContextCompressMessage(messages[index])) {
+      activeNormalIndexes.push(index);
+    }
+  }
+
+  if (activeNormalIndexes.length <= keepRecentMessages) {
+    return null;
+  }
+
+  const tentativeRetainedIndex = activeNormalIndexes.length - keepRecentMessages;
+  let retainedIndex = tentativeRetainedIndex;
+  while (retainedIndex > 0 && messages[activeNormalIndexes[retainedIndex]].role !== 'user') {
+    retainedIndex--;
+  }
+
+  const insertIndex = activeNormalIndexes[retainedIndex];
+  const messagesToCompress = messages
+    .slice(activeStart, insertIndex)
+    .filter((message, index, list) => !isContextCompressMessage(message) || index === 0);
+
+  if (!messagesToCompress.some((message) => !isContextCompressMessage(message))) {
+    return null;
+  }
+
+  return { messages: messagesToCompress, insertIndex };
 }
 
 /** 自最近一次压缩摘要起（含摘要）；无压缩时返回全部可见消息 */
@@ -94,11 +148,6 @@ export function getBackendChatMessages(messages: ChatMessage[]): ChatMessage[] {
   return getMessagesSinceLatestCompress(messages)
     .map(toBackendChatMessage)
     .filter((message): message is ChatMessage => message !== null);
-}
-
-/** 发起压缩时参与摘要的消息（保留原始结构供 serialize） */
-export function getMessagesForCompressRequest(messages: ChatMessage[]): ChatMessage[] {
-  return getMessagesSinceLatestCompress(messages);
 }
 
 /** 最后一条非压缩消息（流式 loading 等场景用） */
