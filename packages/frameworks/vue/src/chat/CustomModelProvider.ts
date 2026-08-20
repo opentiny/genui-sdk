@@ -131,31 +131,16 @@ export class CustomModelProvider extends BaseModelProvider {
   }
 
   /**
-   * 将 OpenAI 兼容的非流式响应（choices[0].message 完整消息）折叠成单个 IStreamData delta，
-   * 喂给与流式完全相同的 responseHandlers 管线，构建出 IChatMessage。
+   * 将 OpenAI 兼容的非流式响应（choices[0].message 完整消息）喂给与流式完全相同的
+   * responseHandlers 管线，构建出 IChatMessage。
+   *
+   * 不能把 content / reasoning_content / tool_calls / finish_reason+usage 塞进同一个
+   * delta：handlerChunk 的管线「命中即 break」（finish-info 排在最前，遇到
+   * finish_reason && usage 就短路），且一个 chunk 只能被首个命中处理器消费。因此按流式
+   * 顺序逐条拆分：推理 → 工具调用 → 工具结果 → 正文 → finish-info。
    */
   private buildChatMessageFromResponse(json: any, request: ChatCompletionRequest): IChatMessage {
     const message = json.choices?.[0]?.message ?? {};
-    const delta: IStreamDelta = {
-      content: message.content,
-      reasoning_content: message.reasoning_content,
-      tool_calls: message.tool_calls,
-      tool_calls_result: message.tool_calls_result,
-    };
-    const streamData: IStreamData = {
-      id: json.id,
-      object: 'chat.completion.chunk',
-      model: json.model,
-      created: json.created,
-      choices: [
-        {
-          index: 0,
-          delta,
-          finish_reason: json.choices?.[0]?.finish_reason ?? 'stop',
-        },
-      ],
-      usage: json.usage,
-    };
 
     const context: any = {};
     this.setupStreamContext(context, request);
@@ -168,7 +153,48 @@ export class CustomModelProvider extends BaseModelProvider {
       onDone: () => {},
       onError: () => {},
     });
-    this.handlerChunk(JSON.stringify(streamData), context);
+
+    const base = {
+      id: json.id,
+      object: 'chat.completion.chunk',
+      model: json.model,
+      created: json.created,
+    };
+
+    // 每种 delta 单独成 chunk（与流式一致），工具结果须在工具调用之后处理
+    const deltas: IStreamDelta[] = [];
+    if (message.reasoning_content) {
+      deltas.push({ reasoning_content: message.reasoning_content });
+    }
+    if (message.tool_calls?.length) {
+      deltas.push({ tool_calls: message.tool_calls });
+    }
+    if (message.tool_calls_result?.length) {
+      deltas.push({ tool_calls_result: message.tool_calls_result });
+    }
+    if (message.content) {
+      deltas.push({ content: message.content });
+    }
+    for (const delta of deltas) {
+      this.handlerChunk(
+        JSON.stringify({
+          ...base,
+          choices: [{ index: 0, delta, finish_reason: null }],
+        }),
+        context,
+      );
+    }
+
+    // finish-info：finish_reason + usage 单独成 chunk，避免打断内容/工具的匹配
+    this.handlerChunk(
+      JSON.stringify({
+        ...base,
+        choices: [{ index: 0, delta: {}, finish_reason: json.choices?.[0]?.finish_reason ?? 'stop' }],
+        usage: json.usage,
+      }),
+      context,
+    );
+
     this.handlerEnd(context);
 
     return chatMessage;
