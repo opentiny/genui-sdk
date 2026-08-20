@@ -32,7 +32,7 @@ function reset(obj: any) {
     RendererTemplateComponent,
     RendererDirective,
   ],
-  providers: [RendererContextService],
+  providers: [RendererContextService, ContentChildrenService],
   template: `
     <ng-container *ngIf="pageSchema.children?.length">
       <renderer-template #rendererTemplateComponent></renderer-template>
