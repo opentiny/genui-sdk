@@ -1,4 +1,5 @@
-import { getPartialStartRegString } from "./common";
+import { getPartialStartRegString } from './common';
+
 export class SchemaJsonPattern {
   protected startFlag: string = '```schemaJson';
   protected startRegex: RegExp = new RegExp(`${this.startFlag}`);
@@ -17,6 +18,6 @@ export class SchemaJsonPattern {
         full: this.endRegex,
         partial: this.partialEndRegex,
       },
-    }
+    };
   }
 }

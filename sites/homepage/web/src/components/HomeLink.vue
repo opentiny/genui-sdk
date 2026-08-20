@@ -24,10 +24,10 @@ const buttonSize = computed(() => {
         <div>{{ t('link.descriptionLine2') }}</div>
       </div>
       <div class="home-link-button-group">
-        <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+        <a :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button type="primary" :size="buttonSize" round>{{ t('link.tryNow') }}</tiny-button>
         </a>
-        <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
+        <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button :size="buttonSize" round ghost>{{ t('link.productDoc') }}</tiny-button>
         </a>
       </div>

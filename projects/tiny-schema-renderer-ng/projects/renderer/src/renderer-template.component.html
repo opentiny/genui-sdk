@@ -31,7 +31,7 @@
       [componentOutlet]="schema.componentName | getComponent"
       [componentOutletNgModule]="schema.componentName | getModuleRef"
       [componentOutletInjector]="injector"
-      [componentOutletProps]="context | parseData: schema.props : mergeScope"
+      [componentOutletProps]="context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName"
       [componentOutletDirectives]="schema.directives | autoApplyDirectives: schema | getDirectives "
       [componentOutletContent]="
         {
@@ -42,7 +42,7 @@
       attrAndEvent
       [attrs]="
         [
-          context | parseData: schema.props : mergeScope | propsFilter: 'attributes' : (schema.componentName | getComponent),
+          context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName | propsFilter: 'attributes' : (schema.componentName | getComponent),
           internalAttributes
         ] | mergeObject
       "

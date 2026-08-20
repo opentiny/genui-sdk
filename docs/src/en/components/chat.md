@@ -4,6 +4,33 @@
 
 When using only Chat, you can import it on demand from `@opentiny/genui-sdk-vue/chat`. See [Quick Start - Subpath Imports](../guide/quick-start#subpath-imports).
 
+## Compatibility Component: GenuiLegacyChat
+
+::: warning Materials configuration (since v1.3.0)
+`GenuiChat` has been refactored to decouple materials. The component no longer includes any UI materials; inject them via `GenuiConfigProvider`.
+
+For previous behavior, use `GenuiLegacyChat` (`@opentiny/genui-sdk-vue/legacy-chat`) instead.
+:::
+
+`GenuiLegacyChat` bundles OpenTiny default materials. Use it when migrating old projects that did not configure `GenuiConfigProvider`.
+
+```vue
+<template>
+  <GenuiChat ref="chatRef" url="https://your-chat-backend/api" />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiLegacyChat as GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
+
+function sendMessage() {
+  chatRef.value?.setInputMessage('Hello');
+}
+</script>
+```
+
 ## Props
 
 ### url

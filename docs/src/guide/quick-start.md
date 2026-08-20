@@ -15,46 +15,24 @@ npm create vue@latest genui-chat
 
 ## 安装依赖
 
-进入项目目录并安装 GenUI SDK：
+进入项目目录并安装 GenUI SDK 与官方物料包：
 ::: tabs
 == npm
 ```bash
 cd genui-chat
-npm install @opentiny/genui-sdk-vue
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 == pnpm
 ```bash
 cd genui-chat
-pnpm add @opentiny/genui-sdk-vue
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 == yarn
 ```bash
 cd genui-chat
-yarn add @opentiny/genui-sdk-vue
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue
 ```
 :::
-
-## 按需引入
-
-`@opentiny/genui-sdk-vue` 除主入口外，还提供按功能拆分的子路径导出。只需 Chat 或只需 Renderer 时，可从对应子路径引入，在构建工具对摇树不友好时，避免打入未使用的模块。
-
-| 子路径 | 适用场景 | 主要导出内容 |
-| --- | --- | --- |
-| `@opentiny/genui-sdk-vue/chat` | 仅需对话组件 | `GenuiChat` |
-| `@opentiny/genui-sdk-vue/renderer` | 仅需渲染器（自建对话 UI） | `GenuiRenderer` |
-| `@opentiny/genui-sdk-vue/config-provider` | 仅需主题/国际化容器 | `GenuiConfigProvider` |
-
-```ts
-// 仅使用 Chat
-import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
-
-// 仅使用 Renderer
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
-
-// Chat + 主题
-import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
-import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
-```
 
 ## 改造项目
 
@@ -73,15 +51,18 @@ createApp(App).mount('#app');
 
 ### 修改 `src/App.vue`
 
-使用 `GenuiChat` 组件：
+使用 `GenuiConfigProvider` 注入物料，并渲染 `GenuiChat`：
 
 ```vue
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 </script>
 
 <template>
-  <GenuiChat />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat />
+  </GenuiConfigProvider>
 </template>
 
 <style>
@@ -113,12 +94,13 @@ npm run dev
 
 ## 配置 GenuiChat
 
-你可以通过`url` 、 `model` 和 `temperature` 属性配置大模型参数：
+你可以通过 `url`、`model` 和 `temperature` 属性配置大模型参数：
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue'; // [!code ++]
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api'; // [!code ++]
 const model = ref('deepseek-v3.2'); // [!code ++]
@@ -126,31 +108,28 @@ const temperature = ref(0.7); // [!code ++]
 </script>
 
 <template>
-  <GenuiChat> <!-- [!code --]-->
-  <GenuiChat :url="url" :model="model" :temperature="temperature" />  <!-- [!code ++]-->
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat /> <!-- [!code --]-->
+    <GenuiChat :url="url" :model="model" :temperature="temperature" />  <!-- [!code ++]-->
+  </GenuiConfigProvider>
 </template>
 ```
 
-## 通过 GenuiConfigProvider 配置主题
+## 通过 GenuiConfigProvider 配置物料与主题
 
-你可以使用 `GenuiConfigProvider` 组件为 `GenuiChat` 配置主题。目前内置了三个主题。
-三个主题共四个选项：
+物料与主题都通过 `GenuiConfigProvider` 配置：`materials` 注入组件物料，`theme` 控制界面主题。
+
+内置主题选项：
 - `'dark'`：深色主题
 - `'lite'`：清新主题
-- `'light'`：浅色主题
+- `'light'`：浅色主题（默认）
 - `'auto'`：自动跟随浏览器
-
-默认值为 `'light'`。
-
-### 基础用法
-
-使用 `GenuiConfigProvider` 包裹 `GenuiChat` 组件：
 
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue'; // [!code --]
-import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue'; // [!code ++]
+import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
@@ -158,37 +137,30 @@ const temperature = ref(0.7);
 </script>
 
 <template>
-  <!-- [!code ++]-->
-  <GenuiConfigProvider theme="dark">
+  <GenuiConfigProvider theme="dark" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature" />
-    <!-- [!code ++]-->
   </GenuiConfigProvider>
 </template>
 ```
 
 ## 配置空插槽
 
-为了让界面在没有对话的时候更加美观和友好，可以通过`empty`插槽配置欢迎语或推荐场景。
+为了让界面在没有对话的时候更加美观和友好，可以通过 `empty` 插槽配置欢迎语或推荐场景。
 
 ```vue
 <template>
-  <GenuiConfigProvider theme="dark">
-    <!-- [!code --]-->
-    <GenuiChat :url="url" :model="model" :temperature="temperature" />
-    <!-- [!code ++]-->
-    <GenuiChat :url="url" :model="model" :temperature="temperature">    
-      <!-- [!code ++]-->
+  <GenuiConfigProvider theme="dark" :materials="materials">
+    <GenuiChat :url="url" :model="model" :temperature="temperature">
       <template #empty>
-        <!-- [!code ++]-->
         <div class="empty-text">欢迎使用生成式UI</div>
-      <!-- [!code ++]-->
       </template>
-    <!-- [!code ++]-->
     </GenuiChat>
   </GenuiConfigProvider>
 </template>
 ```
-添加样式
+
+添加样式：
+
 ```css
 .empty-text { /* [!code ++] */
   height: 100%; /* [!code ++] */
@@ -201,12 +173,11 @@ const temperature = ref(0.7);
 
 ### 完整示例
 
-结合配置和主题的完整示例：
-
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
 import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
@@ -215,8 +186,8 @@ const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
 </script>
 
 <template>
-  <GenuiConfigProvider :theme="theme">
-    <GenuiChat :url="url" :model="model" :temperature="temperature">    
+  <GenuiConfigProvider :theme="theme" :materials="materials">
+    <GenuiChat :url="url" :model="model" :temperature="temperature">
       <template #empty>
         <div class="empty-text">欢迎使用生成式UI</div>
       </template>
@@ -248,8 +219,32 @@ html {
 </style>
 ```
 
-完成以上步骤后，即可开始体验生成式 UI 了
+完成以上步骤后，即可开始体验生成式 UI 了。
+
 ![使用 Renderer 组件示例](../public/quick-start.png)
+
+## 按需引入
+
+`@opentiny/genui-sdk-vue` 除主入口外，还提供按功能拆分的子路径导出。只需 Chat 或只需 Renderer 时，可从对应子路径引入，在构建工具对摇树不友好时，避免打入未使用的模块。
+
+| 子路径 | 适用场景 | 主要导出内容 |
+| --- | --- | --- |
+| `@opentiny/genui-sdk-vue/chat` | 仅需对话组件 | `GenuiChat` |
+| `@opentiny/genui-sdk-vue/renderer` | 仅需渲染器（自建对话 UI） | `GenuiRenderer` |
+| `@opentiny/genui-sdk-vue/config-provider` | 主题/国际化/物料配置容器 | `GenuiConfigProvider` |
+
+```ts
+import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+// 仅使用 Renderer
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+```
+
+::: tip
+1.3.0 版本进行了物料解耦重构。若需使用内置 TinyVue 组件物料，可使用 `GenuiLegacyChat`，详见 [GenuiChat Legacy 兼容说明](../components/chat#兼容组件-genuilegacychat)。
+:::
 
 ## 其他相关文档
 

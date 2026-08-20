@@ -37,11 +37,13 @@ export const aboutThis = `
 \`\`\`
 
 **启用 params 时需注意：**
-- 函数第一个参数是 \`event\`，第二个参数才是 \`name\`。
+- \`params\` 是额外传递给函数的参数列表，在需要追加时才使用，不要滥用。
 - \`params\` 参数必须是一个字符串数组，每个字符串代表当前上下文 scope 变量名，不要传入 \`row.name\` 等表达式。
-- JSExpression 指向的函数第一个参数是 \`event\`，第二个参数才是用户指定的 \`params\`。
+- 添加 \`params\` 后，函数第一个参数对应原函数的第一个参数，例如原生事件的 \`event\`，第二个参数开始才是用户指定的 \`params\` 参数列表，本例中第二个参数才是 \`name\`。
 
-这两种方式都相当于执行了 \`this.hello(event, name)\`。
+这两种方式都相当于执行了 \`this.hello(event, name)\`
+
+**事件绑定更推荐使用 JSFunction 模式**
 
 ### this 不存在的属性
 

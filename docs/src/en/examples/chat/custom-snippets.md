@@ -28,11 +28,14 @@ The following example shows how to use `TinyTabs` and `TinyTabItem` to create a 
 
 ```vue {10-51}
 <template>
-  <GenuiChat :url="url" :customSnippets="customSnippets" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" :customSnippets="customSnippets" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 

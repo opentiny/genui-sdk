@@ -44,7 +44,6 @@ const updateField = (field: keyof typeof props.agentData, value: any) => {
 
 interface AgentCapabilityViewItem {
   title: string;
-  /** Card 为对象且含 description / summary 等时才有 */
   description?: string;
 }
 
@@ -58,7 +57,6 @@ function pickString(obj: Record<string, unknown>, keys: string[]): string | unde
   return undefined;
 }
 
-/** fallbackTitle：capabilities 为 Record 时传入外层 key，作为无 name/id 时的展示名 */
 function normalizeCapabilityEntry(item: unknown, fallbackTitle?: string): AgentCapabilityViewItem {
   if (typeof item === 'string') {
     return { title: item };
@@ -75,7 +73,6 @@ function normalizeCapabilityEntry(item: unknown, fallbackTitle?: string): AgentC
   return { title: String(item) };
 }
 
-/** string[] 多为技能 id，通常无单独描述；对象可带 description / summary 等 */
 const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
   const cap = props.agentCard?.capabilities;
   if (cap == null) {
@@ -97,6 +94,7 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
   }
   return [{ title: String(cap) }];
 });
+
 </script>
 
 <template>
@@ -113,7 +111,7 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
         <div class="agent-url-action-row">
           <tiny-input
             :model-value="agentData.agentCardUrl"
-            placeholder="http://localhost:3000/agent-card"
+            placeholder="https://example.com/.well-known/agent-card.json"
             @update:model-value="updateField('agentCardUrl', $event)"
           />
           <tiny-button type="primary" :loading="agentQueryLoading" @click="emit('queryAgentCard')">
@@ -281,17 +279,6 @@ const agentCapabilityItems = computed((): AgentCapabilityViewItem[] => {
       background: #fff2f0;
       font-family: inherit;
     }
-  }
-
-  &__auth {
-    padding-top: 4px;
-  }
-
-  &__auth-text {
-    display: block;
-    font-size: 12px;
-    line-height: 1.5;
-    color: #595959;
   }
 
   &__cap-list {

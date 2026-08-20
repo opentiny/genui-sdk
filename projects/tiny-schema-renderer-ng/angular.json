@@ -181,7 +181,10 @@
         "test": {
           "builder": "@angular/build:karma",
           "options": {
-            "tsConfig": "projects/renderer/tsconfig.spec.json"
+            "tsConfig": "projects/renderer/tsconfig.spec.json",
+            "include": [
+              "../__test__/**/*.spec.ts"
+            ]
           }
         }
       }

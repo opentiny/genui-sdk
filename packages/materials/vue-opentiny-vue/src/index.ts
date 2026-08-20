@@ -1,1 +1,2 @@
-export * from './render-config';
+export * from './meta';
+export * from './materials';

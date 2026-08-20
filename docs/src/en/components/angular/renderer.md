@@ -2,6 +2,40 @@
 
 `GenuiRenderer` is the core rendering component (Renderer) of GenUI SDK. It renders structured JSON Schema returned by large language models into interactive UI.
 
+::: warning Materials required
+`GenuiRenderer` does not include UI materials. Use it with `GenuiConfigProvider`'s `materials` prop. See [Installation](../../guide/angular/install#materials-configuration).
+
+For the previous out-of-the-box behavior, use `GenuiLegacyRenderer` instead. Its inputs and content projection are identical to `GenuiRenderer`.
+:::
+
+## Compatibility Component: GenuiLegacyRenderer
+
+`GenuiLegacyRenderer` bundles OpenTiny NG default materials. Use it when migrating old projects that did not configure `GenuiConfigProvider`. No extra materials package is required.
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiLegacyRenderer } from '@opentiny/genui-sdk-angular';
+
+@Component({
+  imports: [GenuiLegacyRenderer],
+  template: `
+    <genui-legacy-renderer [content]="schemaContent"></genui-legacy-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'TiButton',
+        props: { color: 'primary' },
+        children: [{ componentName: 'Text', props: { text: 'Submit' } }],
+      },
+    ],
+  };
+}
+```
+
 ## Input
 
 ### content

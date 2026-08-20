@@ -7,7 +7,8 @@ import minimist from 'minimist';
 import { useProviderModelMapperSync, initProviderModelMapperFromData } from './src/use-provider-mapper.js';
 import { loadProviderModelsDataFromFile, mergeProviderModelsData } from './src/provider-models-mapper.js';
 import { fetchOpenTinyProviderModelsData } from './src/opentiny-models.js';
-import { createChatGenui, checkMcpHandler } from './src/chat-genui.js';
+import { createChatGenui, checkOpenApiToolsHandler, checkMcpHandler } from './src/chat-genui.js';
+import { fetchAgentCardHandler } from './src/a2a-tools/index.js';
 import { createChatTemplate } from './src/chat-template.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +20,7 @@ const envFileName = mode ? `.env.${mode}` : '.env';
 const envPath = path.resolve(__dirname, envFileName);
 dotenv.config({ path: envPath });
 dotenv.config();
+
 const { chatGenuiHandler } = createChatGenui();
 const { chatTemplateHandler } = createChatTemplate();
 
@@ -100,9 +102,11 @@ const getModelsHandler = async (req: Request, res: Response) => {
 app.get('/get-models', getModelsHandler);
 app.post('/chat-genui', chatGenuiHandler);
 app.post('/check-mcp', checkMcpHandler);
+app.post('/check-openapi-tools', checkOpenApiToolsHandler);
+app.post('/fetch-agent-card', fetchAgentCardHandler);
 app.post('/chat-template', chatTemplateHandler);
 
-const port = process.env.PORT || 3008;
+const port = process.env.PORT || 3008
 
 // 启动时先做一次刷新，避免在首次请求前 mapper 为空
 updateProviderModels().finally(() => {

@@ -3,7 +3,6 @@ import type { Conversation } from '@opentiny/tiny-robot-kit';
 import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
 import { computed, ref, watch } from 'vue';
 import { TinyModal, TinyCheckboxGroup, TinyCheckbox } from '@opentiny/vue';
-import { iconPlus } from '@opentiny/vue-icon';
 import useTemplate from './useTemplate';
 import {
   HistoryTransferToolbar,
@@ -13,13 +12,17 @@ import {
 } from '../tab-components/history-transfer';
 import { t } from '../../i18n';
 
-const TinyIconPlus = iconPlus();
 const { isTouchDevice } = useTouchDevice();
 
 const emit = defineEmits(['switch-template']);
 
-const { templateConversationState, switchTemplate, deleteTemplate, updateTemplateTitle, createTemplate, conversation } =
-  useTemplate();
+const {
+  conversationKit,
+  templateConversationState,
+  updateTemplateTitle,
+  switchTemplate,
+  deleteTemplate,
+} = useTemplate();
 
 const selectedTemplateIds = ref<string[]>([]);
 const selectionActive = ref(false);
@@ -43,13 +46,14 @@ watch(
 );
 
 const handleImportConversations = (imported: Conversation[]) => {
-  if (!conversation) {
+  const kit = conversationKit.value;
+  if (!kit) {
     return;
   }
 
-  const reconciledImported = reconcileImportedConversationIds(conversation.state.conversations, imported);
-  conversation.state.conversations.unshift(...reconciledImported);
-  conversation.saveConversations();
+  const reconciledImported = reconcileImportedConversationIds(kit.state.conversations, imported);
+  kit.state.conversations.unshift(...reconciledImported);
+  kit.saveConversations();
 };
 
 const handleItemClick = (item: Conversation) => {
@@ -79,10 +83,6 @@ const handleItemTitleChange = (title: string, item: Conversation) => {
   updateTemplateTitle(item.id, title);
 };
 
-const handleAddItem = () => {
-  createTemplate();
-};
-
 const handleBatchExport = () => {
   const idSet = new Set(selectedTemplateIds.value);
   const items = conversations.value.filter((c) => idSet.has(c.id));
@@ -109,10 +109,6 @@ const handleBatchDelete = () => {
 
 <template>
   <div class="genui-template-list">
-    <button class="new-template-btn" type="button" @click="handleAddItem">
-      <TinyIconPlus :size="16" />
-      <span class="new-template-btn__text">{{ t('template.new') }}</span>
-    </button>
     <history-transfer-toolbar
       v-model:selection-active="selectionActive"
       :conversations="conversations"
@@ -152,37 +148,6 @@ const handleBatchDelete = () => {
   display: flex;
   flex-direction: column;
   gap: 12px;
-}
-
-.new-template-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  height: 36px;
-  border: 1px solid #c2c2c2;
-  border-radius: 10px;
-  cursor: pointer;
-  white-space: nowrap;
-  background: transparent;
-  appearance: none;
-  font: inherit;
-
-  &:focus-visible {
-    outline: 2px solid #1677ff;
-    outline-offset: 2px;
-  }
-
-  &__text {
-    font-size: 14px;
-    font-weight: 400;
-    line-height: 20px;
-  }
-
-  &:hover {
-    background: #0000000a;
-  }
 }
 
 .tr-history-container {

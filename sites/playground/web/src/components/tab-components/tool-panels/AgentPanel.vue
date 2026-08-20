@@ -20,6 +20,7 @@ const agentCard = ref(null);
 const agentCardStatus = ref('idle'); // idle | loading | success | error
 const agentCardError = ref('');
 const lastQueriedAgentCardUrl = ref('');
+const agentQueryController = ref(null);
 
 const agentData = ref({
   name: '',
@@ -46,7 +47,6 @@ function formatAgentCardErrorBody(rawText) {
       }
     }
   } catch {
-    /* 非 JSON，走下方原文 */
   }
   return truncateRaw(trimmed);
 }
@@ -63,6 +63,10 @@ const invalidateAgentCardForUrlChange = () => {
 };
 
 const closeAgentDialog = () => {
+  if (agentQueryController.value) {
+    agentQueryController.value.abort();
+    agentQueryController.value = null;
+  }
   showAgentFormDialog.value = false;
   agentData.value = {
     name: '',
@@ -126,22 +130,30 @@ const queryAgentCard = async () => {
   agentCardStatus.value = 'loading';
   agentCardError.value = '';
 
+  if (agentQueryController.value) {
+    agentQueryController.value.abort();
+  }
+  const controller = new AbortController();
+  agentQueryController.value = controller;
+
   try {
-    const res = await fetch(requestedUrl);
-    const rawText = await res.text();
+    const fetchAgentCardUrl = (import.meta.env.VITE_FETCH_AGENT_CARD_URL || '').trim();
+    if (!fetchAgentCardUrl) {
+      throw new Error(t('agent.fetchEnvNotConfigured'));
+    }
+    const res = await fetch(fetchAgentCardUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: requestedUrl }),
+      signal: controller.signal,
+    });
+    const data = await res.json();
     if (!res.ok) {
-      const body = rawText.trim();
-      const statusLine = `${res.status}${res.statusText ? ` ${res.statusText}` : ''}`.trim();
-      throw new Error(formatAgentCardErrorBody(body) || truncateRaw(statusLine));
+      throw new Error(data.message || t('agent.httpError', { status: res.status }));
     }
-    let card;
-    try {
-      card = rawText.trim() ? JSON.parse(rawText) : null;
-    } catch {
-      throw new Error(formatAgentCardErrorBody(rawText) || truncateRaw(rawText));
-    }
+    const card = data.data;
     if (!card || typeof card !== 'object') {
-      throw new Error(formatAgentCardErrorBody(rawText) || truncateRaw(rawText));
+      throw new Error(t('agent.invalidCardFormat'));
     }
     agentCard.value = card;
     agentData.value = {
@@ -152,12 +164,16 @@ const queryAgentCard = async () => {
     agentCardStatus.value = 'success';
     lastQueriedAgentCardUrl.value = requestedUrl;
   } catch (error) {
+    if (error?.name === 'AbortError') {
+      return;
+    }
     agentCardStatus.value = 'error';
     agentCardError.value = error?.message
       ? t('agent.fetchFailed', { message: error.message })
       : t('agent.fetchFailedGeneric');
   } finally {
     agentQueryLoading.value = false;
+    agentQueryController.value = null;
   }
 };
 
@@ -175,11 +191,7 @@ const confirmAgent = () => {
     return;
   }
 
-  if (
-    !agentCard.value ||
-    agentCardStatus.value !== 'success' ||
-    urlTrimmed !== lastQueriedAgentCardUrl.value
-  ) {
+  if (!agentCard.value || agentCardStatus.value !== 'success' || urlTrimmed !== lastQueriedAgentCardUrl.value) {
     TinyNotify({
       type: 'warning',
       message: t('agent.queryFirst'),
@@ -213,6 +225,10 @@ const confirmAgent = () => {
   const enabledValue = index > -1 ? (agents[index]?.enabled ?? true) : true;
   const nextAgent = {
     ...card,
+    api: {
+      ...(card.api || {}),
+      url: apiUrl,
+    },
     name: nameTrimmed,
     description: (description || '').trim() || card?.description || '',
     agentCardUrl: urlTrimmed,
@@ -241,14 +257,21 @@ const updateAgentEnabled = (agent, enabled) => {
       <tiny-button type="text" :icon="IconPlus" @click.stop="addAgent"> </tiny-button>
     </template>
     <div class="mcp-server-list" v-if="llmConfig.agents && llmConfig.agents.length > 0">
-      <div class="mcp-server-item" v-for="(agent, index) in llmConfig.agents || []" :key="agent.name">
+      <div class="mcp-server-item" v-for="(agent, index) in llmConfig.agents" :key="agent.name">
         <div class="mcp-server-item-header">
           <div class="mcp-server-item-name">{{ agent.name }}</div>
           <div>
-            <tiny-switch :model-value="agent.enabled" @update:model-value="updateAgentEnabled(agent, $event)"
-              class="mcp-server-item-enabled"></tiny-switch>
-            <tiny-popover trigger="hover" popper-class="mcp-server-item-actions-popover" :visible-arrow="false"
-              :append-to-body="false">
+            <tiny-switch
+              :model-value="agent.enabled"
+              @update:model-value="updateAgentEnabled(agent, $event)"
+              class="mcp-server-item-enabled"
+            ></tiny-switch>
+            <tiny-popover
+              trigger="hover"
+              popper-class="mcp-server-item-actions-popover"
+              :visible-arrow="false"
+              :append-to-body="true"
+            >
               <template #default>
                 <div class="mcp-server-item-actions">
                   <div @click="editAgent(agent, index)">
@@ -279,12 +302,25 @@ const updateAgentEnabled = (agent, enabled) => {
         </div>
       </div>
     </div>
-    <AgentDialog :visible="showAgentFormDialog" :agent-data="agentData" :agent-card="agentCard"
-      :agent-card-status="agentCardStatus" :agent-card-error="agentCardError" :agent-query-loading="agentQueryLoading"
-      :add-agent-loading="addAgentLoading"
-      @update:visible="(val) => { if (!val) closeAgentDialog(); else showAgentFormDialog = val; }"
-      @update:agentData="onUpdateAgentData" @queryAgentCard="queryAgentCard" @confirmAgent="confirmAgent" />
   </tiny-collapse-item>
+  <AgentDialog
+    :visible="showAgentFormDialog"
+    :agent-data="agentData"
+    :agent-card="agentCard"
+    :agent-card-status="agentCardStatus"
+    :agent-card-error="agentCardError"
+    :agent-query-loading="agentQueryLoading"
+    :add-agent-loading="addAgentLoading"
+    @update:visible="
+      (val) => {
+        if (!val) closeAgentDialog();
+        else showAgentFormDialog = val;
+      }
+    "
+    @update:agentData="onUpdateAgentData"
+    @queryAgentCard="queryAgentCard"
+    @confirmAgent="confirmAgent"
+  />
 </template>
 
 <style scoped lang="less">
@@ -366,7 +402,7 @@ const updateAgentEnabled = (agent, enabled) => {
 }
 
 .mcp-server-item-actions {
-  &>div {
+  & > div {
     display: flex;
     align-items: center;
     gap: 8px;

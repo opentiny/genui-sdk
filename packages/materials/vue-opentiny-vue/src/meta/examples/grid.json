@@ -1,0 +1,91 @@
+{
+  "componentName": "Page",
+  "css": ".page-base-style {padding: 24px;background: #FFFFFF;}.block-base-style {margin: 16px;}.component-base-style {margin: 8px;}",
+  "props": {
+    "className": "page-base-style"
+  },
+  "lifeCycles": {},
+  "children": [
+    {
+      "componentName": "TinyGrid",
+      "props": {
+        "columns": [
+          {
+            "type": "index",
+            "width": 60
+          },
+          {
+            "field": "name",
+            "title": "姓名"
+          },
+          {
+            "field": "id",
+            "title": "工号"
+          },
+          {
+            "field": "sex",
+            "title": "性别"
+          },
+          {
+            "field": "department",
+            "title": "部门"
+          },
+          {
+            "field": "protocolStart",
+            "title": "入职日期"
+          },
+          {
+            "field": "email",
+            "title": "邮箱"
+          },
+          {
+            "title": "操作",
+            "slots": {
+              "default": {
+                "type": "JSSlot",
+                "value": [
+                  {
+                    "componentName": "div",
+                    "id": "23324161",
+                    "children": [
+                      {
+                        "componentName": "TinyButton",
+                        "props": {
+                          "className": "component-base-style",
+                          "text": {
+                            "type": "JSExpression",
+                            "value": "`编辑${row.name}`"
+                          }
+                        },
+                        "children": [],
+                        "id": "24392624"
+                      }
+                    ]
+                  }
+                ],
+                "params": [
+                  "row"
+                ]
+              }
+            }
+          }
+        ],
+        "data": [
+          {
+            "name": "李四",
+            "id": "2",
+            "sex": "女",
+            "department": "技术部",
+            "protocolStart": "2019-05-15",
+            "email": "lisi@test.com"
+          }
+        ],
+        "className": "component-base-style"
+      }
+    }
+  ],
+  "dataSource": {
+    "list": []
+  },
+  "id": "body"
+}

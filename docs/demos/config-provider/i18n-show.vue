@@ -10,13 +10,14 @@
       </div>
     </header>
 
-    <GenuiConfigProvider :locale="currentLocale" :i18n="customI18n" id="i18n-chat">
+    <GenuiConfigProvider :materials="materials" :locale="currentLocale" :i18n="customI18n" id="i18n-chat">
       <GenuiChat :url="url" model="deepseek-v3.2" :messages="messages" />
     </GenuiConfigProvider>
   </div>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import type { I18nMessages } from '@opentiny/genui-sdk-vue';

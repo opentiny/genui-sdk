@@ -4,19 +4,19 @@
 
 ## 安装依赖
 
-进入项目目录并安装 GenUI SDK：
+进入项目目录并安装 GenUI SDK 与官方物料包：
 ::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-angular --force # 同步安装peerDependencies
+npm install @opentiny/genui-sdk-angular @opentiny/genui-sdk-materials-angular-opentiny-ng --force # 同步安装peerDependencies
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-angular @opentiny/ng-themes
+pnpm add @opentiny/genui-sdk-angular @opentiny/genui-sdk-materials-angular-opentiny-ng @opentiny/ng-themes
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-angular @opentiny/ng-themes
+yarn add @opentiny/genui-sdk-angular @opentiny/genui-sdk-materials-angular-opentiny-ng @opentiny/ng-themes
 ```
 :::
 
@@ -103,9 +103,36 @@ export const appConfig: ApplicationConfig = {
 
 ```
 
+## 物料配置
+
+`GenuiRenderer` 不再内置组件物料，需要通过 `GenuiConfigProvider` 的 `materials` 注入。这样可以将 SDK 核心与具体 UI 物料解耦，便于按需替换或扩展组件库。
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
+
+@Component({
+  imports: [GenuiConfigProvider, GenuiRenderer],
+  template: `
+    <genui-config-provider [materials]="materials">
+      <genui-renderer [content]="schema"></genui-renderer>
+    </genui-config-provider>
+  `,
+})
+export class GenuiExample {
+  materials = materials;
+  schema = '';
+}
+```
+
+::: tip GenuiLegacyRenderer
+若无需单独配置物料、需兼容旧版用法，见 [GenuiRenderer Legacy 兼容说明](../../components/angular/renderer#兼容组件-genuilegacyrenderer)。
+:::
+
 ## 下一步
 
-下一步即可使用 GenuiRenderer 对 生成式UI进行渲染， 清参考 [Renderer 使用指南](start-with-renderer)
+下一步即可使用 GenuiRenderer 对生成式 UI 进行渲染，请参考 [Renderer 使用指南](start-with-renderer)
 
 ## 其他相关文档
 

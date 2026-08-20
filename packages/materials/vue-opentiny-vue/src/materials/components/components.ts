@@ -3,12 +3,18 @@ import TinyButton from '@opentiny/vue-button';
 import TinyCard from '@opentiny/vue-card';
 import TinyCarousel from '@opentiny/vue-carousel';
 import TinyCarouselItem from '@opentiny/vue-carousel-item';
-import TinyChartBar from '@opentiny/vue-chart-bar';
-import TinyChartHistogram from '@opentiny/vue-chart-histogram';
-import TinyChartLine from '@opentiny/vue-chart-line';
-import TinyChartPie from '@opentiny/vue-chart-pie';
-import TinyChartRadar from '@opentiny/vue-chart-radar';
-import TinyChartRing from '@opentiny/vue-chart-ring';
+import TinyHuichartsBar from '@opentiny/vue-huicharts-bar';
+import TinyHuichartsFunnel from '@opentiny/vue-huicharts-funnel';
+import TinyHuichartsGauge from '@opentiny/vue-huicharts-gauge';
+import TinyHuichartsGraph from '@opentiny/vue-huicharts-graph';
+import TinyHuichartsHistogram from '@opentiny/vue-huicharts-histogram';
+import TinyHuichartsLine from '@opentiny/vue-huicharts-line';
+import TinyHuichartsPie from '@opentiny/vue-huicharts-pie';
+import TinyHuichartsProcess from '@opentiny/vue-huicharts-process';
+import TinyHuichartsRadar from '@opentiny/vue-huicharts-radar';
+import TinyHuichartsRing from '@opentiny/vue-huicharts-ring';
+import TinyHuichartsScatter from '@opentiny/vue-huicharts-scatter';
+import TinyHuichartsWaterfall from '@opentiny/vue-huicharts-waterfall';
 import TinyCheckbox from '@opentiny/vue-checkbox';
 import TinyCheckboxButton from '@opentiny/vue-checkbox-button';
 import TinyCheckboxGroup from '@opentiny/vue-checkbox-group';
@@ -31,43 +37,51 @@ import TinyTransfer from '@opentiny/vue-transfer';
 import TinyTree from '@opentiny/vue-tree';
 import TinySelect from '@opentiny/vue-select';
 
-import TinyTabsWrap from './TinyTabsWrap.vue';
+import TinyTabs from './TinyTabsWrap.vue';
+import TinyIcon from './TinyIcon.vue';
 
 export interface IComponents {
   [key: string]: Component;
 }
 
 export const components: IComponents = {
-  TinyCarouselItem: TinyCarouselItem,
-  TinyCarousel: TinyCarousel,
-  TinyRow: TinyRow,
-  TinyLayout: TinyLayout,
-  TinyForm: TinyForm,
-  TinyFormItem: TinyFormItem,
-  TinyCol: TinyCol,
-  TinyButton: TinyButton,
-  TinyInput: TinyInput,
-  TinyRadio: TinyRadio,
-  TinyRadioGroup: TinyRadioGroup,
-  TinySwitch: TinySwitch,
-  TinySearch: TinySearch,
-  TinyCheckbox: TinyCheckbox,
-  TinyCheckboxButton: TinyCheckboxButton,
-  TinyCheckboxGroup: TinyCheckboxGroup,
-  TinyTabItem: TinyTabItem,
-  TinyGrid: TinyGrid,
-  TinyCard: TinyCard,
-  TinyTree: TinyTree,
-  TinyDatePicker: TinyDatePicker,
-  TinyNumeric: TinyNumeric,
-  TinyPager: TinyPager,
-  TinyTransfer: TinyTransfer,
-  TinyChartPie: TinyChartPie,
-  TinyChartLine: TinyChartLine,
-  TinyChartHistogram: TinyChartHistogram,
-  TinyChartBar: TinyChartBar,
-  TinyChartRadar: TinyChartRadar,
-  TinyChartRing: TinyChartRing,
-  TinyTabs: TinyTabsWrap,
-  TinySelect: TinySelect,
+  TinyIcon,
+  TinyCarouselItem,
+  TinyCarousel,
+  TinyRow,
+  TinyLayout,
+  TinyForm,
+  TinyFormItem,
+  TinyCol,
+  TinyButton,
+  TinyInput,
+  TinyRadio,
+  TinyRadioGroup,
+  TinySwitch,
+  TinySearch,
+  TinyCheckbox,
+  TinyCheckboxButton,
+  TinyCheckboxGroup,
+  TinyTabItem,
+  TinyGrid,
+  TinyCard,
+  TinyTree,
+  TinyDatePicker,
+  TinyNumeric,
+  TinyPager,
+  TinyTransfer,
+  TinyHuichartsLine,
+  TinyHuichartsHistogram,
+  TinyHuichartsBar,
+  TinyHuichartsRadar,
+  TinyHuichartsRing,
+  TinyHuichartsPie,
+  TinyHuichartsFunnel,
+  TinyHuichartsScatter,
+  TinyHuichartsWaterfall,
+  TinyHuichartsGauge,
+  TinyHuichartsGraph,
+  TinyHuichartsProcess,
+  TinyTabs,
+  TinySelect,
 };

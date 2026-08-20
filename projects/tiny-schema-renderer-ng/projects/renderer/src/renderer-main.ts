@@ -1,7 +1,17 @@
-import { Component, ElementRef, Input, NgZone, SimpleChanges } from '@angular/core';
-// import { Renderer } from './renderer';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  NgZone,
+  OnDestroy,
+  SimpleChanges,
+} from '@angular/core';
+import { RENDERER_SETTINGS } from './renderer-settings';
 import { RendererContextService } from './context.service';
 import { parseData } from './parser/schema-parser';
+import { getPageLifeCycleFns } from './life-cycles';
 import { setPageCss } from './css/page-css';
 import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading.component';
@@ -40,18 +50,23 @@ function reset(obj: any) {
     </ng-container>
   `,
 })
-export class RendererMain {
+export class RendererMain implements OnDestroy {
   @Input() schema: any = {};
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
   cssScopeId: string = '';
+  private pageOnUnmounted: (() => void | Promise<void>) | null = null;
+  private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
+
   constructor(
     private contextService: RendererContextService,
     private el: ElementRef,
     private ngZone: NgZone,
+    private cdr: ChangeDetectorRef,
   ) {
     this.cssScopeId = `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+    this.contextService.setMaterials(this.rendererSettings?.materials ?? {});
   }
 
   ngAfterViewInit() {
@@ -65,6 +80,23 @@ export class RendererMain {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['schema']) {
       this.setSchema(changes['schema'].currentValue);
+    }
+  }
+
+  ngOnDestroy() {
+    void this.invokePageOnUnmounted();
+  }
+
+  private async invokePageOnUnmounted() {
+    const fn = this.pageOnUnmounted;
+    this.pageOnUnmounted = null;
+    if (typeof fn !== 'function') {
+      return;
+    }
+    try {
+      await fn();
+    } catch (error) {
+      console.error('RendererMain onUnmounted error:', error);
     }
   }
 
@@ -124,9 +156,27 @@ export class RendererMain {
     this.contextService.setContext(context, true);
     this.setMethods(newSchema.methods || {}, true);
     this._setState(newSchema.state || {}, true);
-    Object.assign(this.pageSchema, newSchema);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    await this.invokePageOnUnmounted();
+
+    const { onMounted: onMountedFn, onUnmounted: onUnmountedFn } = getPageLifeCycleFns(
+      newSchema.lifeCycles,
+      () => this.contextService.getContext(),
+    );
+
     setPageCss(newSchema.css || '', this.cssScopeId);
+    delete newSchema.lifeCycles;
+    Object.assign(this.pageSchema, newSchema);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    try {
+      await onMountedFn?.();
+      this.pageOnUnmounted = onUnmountedFn;
+      this.ngZone.run(() => this.cdr.detectChanges());
+    } catch (error) {
+      console.error('RendererMain onMounted error:', error);
+    }
   }
 
   public detectChanges() {

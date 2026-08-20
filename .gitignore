@@ -148,3 +148,13 @@ stats.html
 
 # GitHub Pages 本地合并输出
 _site/
+
+# AI platform skill projections.
+# SSOT lives in .agents/skills/ and should be committed.
+.claude/skills/
+.cursor/skills/
+.codex/skills/
+.gemini/skills/
+.hermes/skills/
+.openclaw/skills/
+.config/opencode/skills/

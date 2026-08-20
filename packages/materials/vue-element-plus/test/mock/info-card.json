@@ -1,0 +1,78 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "Text",
+      "props": {
+        "style": "font-size: 14px; font-weight: bold; line-height: 2; margin-bottom: 20px; display: block;",
+        "text": "员工信息详情"
+      }
+    },
+    {
+      "componentName": "ElCard",
+      "props": {
+        "header": "基本信息",
+        "shadow": "never",
+        "style": "max-width: 480px;"
+      },
+      "children": [
+        {
+          "componentName": "ElRow",
+          "props": { "gutter": 12 },
+          "children": [
+            {
+              "componentName": "ElCol",
+              "props": { "span": 6 },
+              "children": [{ "componentName": "Text", "props": { "text": "姓名" } }]
+            },
+            {
+              "componentName": "ElCol",
+              "props": { "span": 18 },
+              "children": [{ "componentName": "Text", "props": { "text": "张三" } }]
+            }
+          ]
+        },
+        {
+          "componentName": "ElDivider",
+          "props": {}
+        },
+        {
+          "componentName": "ElRow",
+          "props": { "gutter": 12 },
+          "children": [
+            {
+              "componentName": "ElCol",
+              "props": { "span": 6 },
+              "children": [{ "componentName": "Text", "props": { "text": "电话" } }]
+            },
+            {
+              "componentName": "ElCol",
+              "props": { "span": 18 },
+              "children": [{ "componentName": "Text", "props": { "text": "18856254558" } }]
+            }
+          ]
+        },
+        {
+          "componentName": "ElDivider",
+          "props": {}
+        },
+        {
+          "componentName": "ElRow",
+          "props": { "gutter": 12 },
+          "children": [
+            {
+              "componentName": "ElCol",
+              "props": { "span": 6 },
+              "children": [{ "componentName": "Text", "props": { "text": "部门" } }]
+            },
+            {
+              "componentName": "ElCol",
+              "props": { "span": 18 },
+              "children": [{ "componentName": "Text", "props": { "text": "技术部" } }]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

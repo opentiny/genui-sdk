@@ -1,0 +1,249 @@
+{
+  "state": {
+    "formData": {
+      "name": "张三",
+      "sex": "男",
+      "department": "HR",
+      "protocolStart": "2023-01-01",
+      "email": ""
+    }
+  },
+  "methods": {
+    "departChange": {
+      "type": "JSFunction",
+      "value": "function departChange(value) { console.log(value) }"
+    },
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function handleSubmit() { console.log(this.state.formData) }"
+    }
+  },
+  "componentName": "Page",
+  "props": {
+    "style": "width: 414px;"
+  },
+  "children": [
+    {
+      "componentName": "h3",
+      "props": {},
+      "children": "更新员工信息"
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "style": "display: flex; flex-direction: column; gap: 16px;"
+      },
+      "children": [
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; flex-direction: column; gap: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "label",
+              "props": {
+                "style": "font-weight: bold;"
+              },
+              "children": "姓名"
+            },
+            {
+              "componentName": "TiText",
+              "props": {
+                "placeholder": "请输入",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.name"
+                }
+              },
+              "directives": [
+                {
+                  "directiveName": "ngModel"
+                },
+                {
+                  "directiveName": "defaultValueAccessor"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; flex-direction: column; gap: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "label",
+              "props": {
+                "style": "font-weight: bold;"
+              },
+              "children": "工号"
+            },
+            {
+              "componentName": "TiText",
+              "props": {
+                "disabled": true,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.id"
+                }
+              },
+              "directives": [
+                {
+                  "directiveName": "ngModel"
+                },
+                {
+                  "directiveName": "defaultValueAccessor"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; flex-direction: column; gap: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "label",
+              "props": {
+                "style": "font-weight: bold;"
+              },
+              "children": "性别"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "style": "display: flex; gap: 16px;"
+              },
+              "children": [
+                {
+                  "componentName": "TiRadio",
+                  "props": {
+                    "value": "男",
+                    "label": "男"
+                  }
+                },
+                {
+                  "componentName": "TiRadio",
+                  "props": {
+                    "value": "女",
+                    "label": "女"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; flex-direction: column; gap: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "label",
+              "props": {
+                "style": "font-weight: bold;"
+              },
+              "children": "部门"
+            },
+            {
+              "componentName": "TiSelect",
+              "props": {
+                "placeholder": "请选择",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.department"
+                },
+                "options": [
+                  {
+                    "value": "HR",
+                    "label": "人事部"
+                  },
+                  {
+                    "value": "other",
+                    "label": "其他部门"
+                  }
+                ],
+                "ngModelChange": {
+                  "type": "JSExpression",
+                  "value": "this.departChange"
+                }
+              },
+              "directives": [
+                {
+                  "directiveName": "ngModel"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; flex-direction: column; gap: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "label",
+              "props": {
+                "style": "font-weight: bold;"
+              },
+              "children": "入职日期"
+            },
+            {
+              "componentName": "TiDate",
+              "props": {
+                "placeholder": "请选择日期",
+                "disabled": true,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.protocolStart"
+                },
+                "format": "yyyy-MM-dd"
+              },
+              "directives": [
+                {
+                  "directiveName": "ngModel"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; gap: 8px; margin-top: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "TiButton",
+              "props": {
+                "type": "primary",
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.handleSubmit"
+                }
+              },
+              "children": "确认"
+            },
+            {
+              "componentName": "TiButton",
+              "props": {
+                "type": "default"
+              },
+              "children": "取消"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

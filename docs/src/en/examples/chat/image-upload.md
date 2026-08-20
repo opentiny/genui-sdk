@@ -19,11 +19,14 @@ Set `supportImage.enabled` to `true` to enable and configure image upload:
 
 ```vue {10-16}
 <template>
-  <GenuiChat :url="url" :features="modelFeatures" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" :features="modelFeatures" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
 
@@ -46,7 +49,7 @@ After upload, the data structure follows the OpenAI-compatible format. The messa
 {
   "role": "user",
   "content": [
-    { "type": "image", "filename": "circle.png", "image": "data:image/png;base64,XXXXXXXXXXX" },
+    { "type": "image_url", "filename": "circle.png", "image_url": { "url": "data:image/png;base64,XXXXXXXXXXX" } },
     { "type": "text", "text": "Analyze this image" }
   ]
 }

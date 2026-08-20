@@ -1,8 +1,10 @@
 # GenuiConfigProvider Component
 
-`GenuiConfigProvider` provides theme capabilities for the renderer and scopes theme styles within a specific container.
+`GenuiConfigProvider` provides theme, i18n, and materials configuration for the renderer, and scopes theme styles within a specific container.
 
 When using only ConfigProvider, you can import it on demand from `@opentiny/genui-sdk-vue/config-provider`. See [Quick Start - Subpath Imports](../guide/quick-start#subpath-imports).
+
+When used with `GenuiRenderer` or `GenuiChat`, you typically need to inject component materials via the `materials` prop. See [Materials Configuration](../guide/quick-start#materials-configuration).
 
 ## Props
 
@@ -96,6 +98,29 @@ const customI18n: I18nMessages = {
 ```
 
 See [GenuiConfigProvider - i18n Configuration](../examples/config-provider/i18n) for detailed usage.
+
+### materials
+
+- **Type**: `IMaterials`
+- **Required**: No (required when using `GenuiRenderer` / `GenuiChat`)
+- **Description**: Component materials for the renderer. Usually pass materials from a materials package, e.g. the `materials` object from `@opentiny/genui-sdk-materials-vue-opentiny-vue`.
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+</script>
+```
 
 ## Slots
 

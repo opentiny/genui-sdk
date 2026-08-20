@@ -11,13 +11,20 @@ A Vue 3 component library for enhanced LLM display and interaction. Stream AI-ge
 
 ## Usage
 
+Install together with core and the Vue materials package (the renderer is bundled in the vue package):
+
+```bash
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-core @opentiny/genui-sdk-materials-vue-opentiny-vue
+```
+
 ```vue
 <script setup>
 import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 </script>
 
 <template>
-  <GenuiConfigProvider theme="dark">
+  <GenuiConfigProvider theme="dark" :materials="materials">
     <GenuiChat
       url="/api/chat"
       model="deepseek-chat"
@@ -25,6 +32,7 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
   </GenuiConfigProvider>
 </template>
 ```
+
 ## Documentation
 
 * [quick-start](https://docs.opentiny.design/genui-sdk/guide/quick-start)

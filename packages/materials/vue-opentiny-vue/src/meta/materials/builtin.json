@@ -1,0 +1,848 @@
+{
+  "data": {
+    "materials": {
+      "components": [
+        {
+          "icon": "slot",
+          "name": {
+            "zh_CN": "Slot"
+          },
+          "component": "Slot",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "collapse": {
+                  "number": 6,
+                  "text": {
+                    "zh_CN": "显示更多"
+                  }
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "type": "string",
+                    "label": {
+                      "text": {
+                        "zh_CN": "插槽名称"
+                      }
+                    },
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "params",
+                    "type": "string",
+                    "label": {
+                      "text": {
+                        "zh_CN": "作用域参数"
+                      }
+                    },
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {
+                        "language": "json",
+                        "tips": {
+                          "title": {
+                            "zh_CN": "提示：数据为数组类型"
+                          },
+                          "demo": {
+                            "zh_CN": "示例：\n[\n  {\n    \"name\": \"text\",\n    \"value\": {\n      \"type\": \"JSExpression\",\n      \"value\": \"this.state.greetingMessage\"\n    }\n  },\n  {\n    \"name\": \"count\",\n    \"value\": 1\n  }\n]"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+            },
+            "shortcuts": {
+              "properties": [
+              ]
+            },
+            "contentMenu": {
+              "actions": [
+              ]
+            }
+          },
+          "configure": {
+            "isContainer": true
+          }
+        },
+        {
+          "icon": "RouterView",
+          "name": {
+            "zh_CN": "RouterView"
+          },
+          "component": "RouterView",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "icon": "RouterLink",
+          "name": {
+            "zh_CN": "RouterLink"
+          },
+          "component": "RouterLink",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                  {
+                    "property": "to",
+                    "type": "String",
+                    "label": {
+                      "text": {
+                        "zh_CN": "跳转页面"
+                      }
+                    },
+                    "cols": 12,
+                    "widget": {
+                      "component": "RouterSelectConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "activeClass",
+                    "type": "String",
+                    "label": {
+                      "text": {
+                        "zh_CN": "激活样式类"
+                      }
+                    },
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "exactActiveClass",
+                    "type": "String",
+                    "label": {
+                      "text": {
+                        "zh_CN": "准确激活样式类"
+                      }
+                    },
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "configure": {
+            "loop": true,
+            "isContainer": true
+          }
+        },
+        {
+          "icon": "Collection",
+          "name": {
+            "zh_CN": "Collection"
+          },
+          "component": "Collection",
+          "schema": {
+            "slots": {
+            },
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "collapse": {
+                  "number": 6,
+                  "text": {
+                    "zh_CN": "显示更多"
+                  }
+                },
+                "content": [
+                  {
+                    "property": "condition",
+                    "type": "boolean",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否渲染"
+                      }
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "widget": {
+                      "component": "SwitchConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "style",
+                    "type": "string",
+                    "label": {
+                      "text": {
+                        "zh_CN": "样式"
+                      }
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "dataSource",
+                    "type": "string",
+                    "bindState": false,
+                    "label": {
+                      "text": {
+                        "zh_CN": "数据源"
+                      }
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "widget": {
+                      "component": "CollectionConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+            },
+            "shortcuts": {
+              "properties": [
+              ]
+            },
+            "contentMenu": {
+              "actions": [
+              ]
+            }
+          },
+          "configure": {
+            "isContainer": true
+          }
+        },
+        {
+          "icon": "Text",
+          "name": {
+            "zh_CN": "Text"
+          },
+          "component": "Text",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "collapse": {
+                  "number": 6,
+                  "text": {
+                    "zh_CN": "显示更多"
+                  }
+                },
+                "content": [
+                  {
+                    "property": "text",
+                    "type": "string",
+                    "label": {
+                      "text": {
+                        "zh_CN": "文本内容"
+                      }
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                        "type": "textarea",
+                        "autosize": true
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onClick": {
+                "label": {
+                  "zh_CN": "点击事件"
+                },
+                "description": {
+                  "zh_CN": "点击时触发的回调函数"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "shortcuts": {
+              "properties": [
+                "text"
+              ]
+            },
+            "contentMenu": {
+              "actions": [
+              ]
+            }
+          },
+          "configure": {
+            "loop": true
+          }
+        },
+        {
+          "icon": "icon",
+          "name": {
+            "zh_CN": "TinyIcon"
+          },
+          "component": "TinyIcon",
+          "container": false,
+          "description": "图标组件。可作独立节点：{\"componentName\":\"TinyIcon\",\"props\":{\"name\":\"IconDel\"}}。作为 TinyButton 的 icon 属性时必须使用 JSSlot：{\"icon\":{\"type\":\"JSSlot\",\"value\":[{\"componentName\":\"TinyIcon\",\"props\":{\"name\":\"IconDel\"}}]}}",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "collapse": {
+                  "number": 6,
+                  "text": {
+                    "zh_CN": "显示更多"
+                  }
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "type": "string",
+                    "bindState": true,
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标类型"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "图标名称，仅允许使用：IconSearch（放大镜，搜索）、IconDel（垃圾桶，删除）、IconDelete（叉号 X，删除/清除）、IconEdit（铅笔，编辑）、IconPlus（加号）、IconPlusCircle（圆圈加号，新增）、IconMinusCircle（圆圈减号，减少）、IconClose（关闭 X）、IconSuccess（成功勾选）、IconWarning（警告）、IconError（错误）、IconInfo（信息）、IconCheck（勾选）、IconYes（确认勾）、IconCalendar（日历）、IconUser（用户/人物）、IconSetting（设置/齿轮）、IconDownload（下载）、IconUpload（上传）、IconRefresh（刷新循环箭头）、IconArrowDown（向下箭头）、IconArrowLeft（向左箭头）、IconArrowRight（向右箭头）、IconArrowUp（向上箭头）、IconPopup（横向三点，更多操作）、IconHelpCircle（圆圈问号，帮助）、IconTime（时钟，时间）、IconCopy（重叠两页，复制）、IconSave（磁盘，保存）、IconFilter（漏斗，筛选）、IconClearFilter（清除筛选）、IconEyeopen（睁眼，可见）、IconEyeclose（闭眼，隐藏）、IconLock（锁，锁定）、IconUnlock（开锁，解锁）、IconLink（链条，链接）、IconAttachment（回形针，附件）、IconLoading（加载旋转）、IconStarO（空心星，收藏）、IconMail（信封，邮件）、IconPicture（图片/风景框）、IconFolder（文件夹）、IconExport（导出）、IconImport（导入）、IconSort（上下箭头，排序）、IconExpand（展开）、IconFullscreenLeft（对角外扩箭头，全屏）、IconMinscreenLeft（对角内收箭头，退出全屏）、IconShare（分享）、IconLocation（定位图钉）、IconMessageCircle（圆形消息气泡）、IconDocument（文档）、IconPublicHome（房屋轮廓，首页/主页）、IconText（带折角文档纸，文字内容）、IconTaskCooperation（三圆点三角网络，协作/任务协同）"
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "widget": {
+                      "component": "SelectIconConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onClick": {
+                "label": {
+                  "zh_CN": "点击事件"
+                },
+                "description": {
+                  "zh_CN": "点击时触发的回调函数"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "shortcuts": {
+              "properties": [
+                "name"
+              ]
+            },
+            "contentMenu": {
+              "actions": [
+              ]
+            }
+          },
+          "configure": {
+            "loop": true
+          }
+        },
+        {
+          "icon": "Image",
+          "name": {
+            "zh_CN": "Img"
+          },
+          "component": "Img",
+          "container": false,
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "collapse": {
+                  "number": 6,
+                  "text": {
+                    "zh_CN": "显示更多"
+                  }
+                },
+                "content": [
+                  {
+                    "property": "src",
+                    "type": "string",
+                    "bindState": true,
+                    "label": {
+                      "text": {
+                        "zh_CN": "src路径"
+                      }
+                    },
+                    "cols": 12,
+                    "rules": [
+                    ],
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onClick": {
+                "label": {
+                  "zh_CN": "点击事件"
+                },
+                "description": {
+                  "zh_CN": "点击时触发的回调函数"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                  ],
+                  "returns": {
+                  }
+                }
+              }
+            },
+            "shortcuts": {
+              "properties": [
+                "src"
+              ]
+            },
+            "contentMenu": {
+              "actions": [
+              ]
+            }
+          },
+          "configure": {
+            "loop": true
+          }
+        }
+      ],
+      "snippets": [
+        {
+          "group": "layout",
+          "label": {
+            "zh_CN": "布局与容器"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "盒子容器"
+              },
+              "screenshot": "",
+              "snippetName": "Box",
+              "icon": "Box",
+              "schema": {
+                "componentName": "div",
+                "props": {
+                }
+              }
+            }
+          ]
+        },
+        {
+          "group": "basic",
+          "label": {
+            "zh_CN": "基础元素"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "文本"
+              },
+              "screenshot": "",
+              "snippetName": "Text",
+              "icon": "Text",
+              "schema": {
+                "componentName": "Text",
+                "props": {
+                  "style": "display: inline-block;",
+                  "text": "您好！欢迎使用生成式UI。它将重塑大模型交互方式，打造极致顺滑的智能体验。"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "图标"
+              },
+              "screenshot": "",
+              "snippetName": "TinyIcon",
+              "icon": "icon",
+              "schema": {
+                "componentName": "TinyIcon",
+                "props": {
+                  "name": "IconDel"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "图片"
+              },
+              "screenshot": "",
+              "snippetName": "Img",
+              "icon": "Image",
+              "schema": {
+                "componentName": "Img",
+                "props": {
+                  "src": "https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/designer-default-icon.jpg"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "group": "advanced",
+          "label": {
+            "zh_CN": "高级元素"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "插槽"
+              },
+              "screenshot": "",
+              "snippetName": "Slot",
+              "icon": "slot",
+              "schema": {
+                "componentName": "Slot",
+                "props": {
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "路由视图"
+              },
+              "screenshot": "",
+              "snippetName": "RouterView",
+              "icon": "RouterView",
+              "schema": {
+                "componentName": "RouterView",
+                "props": {
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "路由链接"
+              },
+              "screenshot": "",
+              "snippetName": "RouterLink",
+              "icon": "RouterLink",
+              "schema": {
+                "componentName": "RouterLink",
+                "props": {
+                },
+                "children": [
+                  {
+                    "componentName": "Text",
+                    "props": {
+                      "text": "路由文本"
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "导航条"
+              },
+              "snippetName": "Navigation",
+              "icon": "navigation",
+              "schema": {
+                "componentName": "div",
+                "props": {
+                  "style": "text-align: center; padding: 8px 12px; box-shadow: 0 0 4px #0003;"
+                },
+                "children": [
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: inline-flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconPublicHome",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "首页"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: inline-flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconTaskCooperation",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "介绍"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: inline-flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconText",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "文档"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "纵向导航"
+              },
+              "snippetName": "NavigationV",
+              "icon": "NavigationV",
+              "schema": {
+                "componentName": "div",
+                "props": {
+                  "style": "padding: 8px 12px; border-right: 1px solid #0003;"
+                },
+                "children": [
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconPublicHome",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "首页"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconTaskCooperation",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "介绍"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconText",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "文档"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconText",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "文档"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "componentName": "RouterLink",
+                    "props": {
+                      "to": "",
+                      "style": "display: flex; gap: 8px; padding: 10px 20px; color: inherit; text-decoration: none;"
+                    },
+                    "children": [
+                      {
+                        "componentName": "TinyIcon",
+                        "props": {
+                          "name": "IconText",
+                          "style": "margin-top: 3px;"
+                        }
+                      },
+                      {
+                        "componentName": "Text",
+                        "props": {
+                          "text": "文档"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "数据源容器"
+              },
+              "screenshot": "",
+              "snippetName": "Collection",
+              "icon": "Collection",
+              "schema": {
+                "componentName": "Collection",
+                "props": {
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

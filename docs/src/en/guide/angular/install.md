@@ -4,20 +4,20 @@ This guide helps you install GenUI SDK for Angular quickly.
 
 ## Install dependencies
 
-Go to your project directory and install GenUI SDK:
+Go to your project directory and install GenUI SDK and the official materials package:
 
 ::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-angular --force # Installs peerDependencies as well
+npm install @opentiny/genui-sdk-angular @opentiny/genui-sdk-materials-angular-opentiny-ng --force # Installs peerDependencies as well
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-angular @opentiny/ng-themes
+pnpm add @opentiny/genui-sdk-angular @opentiny/genui-sdk-materials-angular-opentiny-ng @opentiny/ng-themes
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-angular @opentiny/ng-themes
+yarn add @opentiny/genui-sdk-angular @opentiny/genui-sdk-materials-angular-opentiny-ng @opentiny/ng-themes
 ```
 :::
 
@@ -105,6 +105,33 @@ export const appConfig: ApplicationConfig = {
 };
 
 ```
+
+## Materials configuration
+
+`GenuiRenderer` no longer ships built-in materials. Inject them via `GenuiConfigProvider`'s `materials` prop so the SDK core stays decoupled from a specific component library.
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
+
+@Component({
+  imports: [GenuiConfigProvider, GenuiRenderer],
+  template: `
+    <genui-config-provider [materials]="materials">
+      <genui-renderer [content]="schema"></genui-renderer>
+    </genui-config-provider>
+  `,
+})
+export class GenuiExample {
+  materials = materials;
+  schema = '';
+}
+```
+
+::: tip GenuiLegacyRenderer
+For drop-in compatibility without configuring materials, see [GenuiRenderer Legacy compatibility](../../components/angular/renderer#compatibility-component-genuilegacyrenderer).
+:::
 
 ## Next steps
 
