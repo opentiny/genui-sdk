@@ -276,6 +276,9 @@
     "model": "模型",
     "finishReason": "结束原因",
     "time": "时间",
+    "duration": "总消耗时长",
+    "ttfb": "首响应耗时",
+    "renderDuration": "渲染耗时",
     "promptTokens": "输入 Token",
     "completionTokens": "输出 Token",
     "totalTokens": "总计 Token"

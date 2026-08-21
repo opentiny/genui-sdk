@@ -202,6 +202,7 @@ const replaceHandlers = (handlers, nextHandlers, name) => {
 };
 
 const chat = ref(null);
+
 const conversation = computed(() => chat.value?.getConversation());
 watch(chat, (instance) => {
   if (instance) {
@@ -218,6 +219,33 @@ watch(chat, (instance) => {
       ...defaultResponseHandlers,
       getContinueGeneratingHandler(conversation.value.messageManager),
       locationPartialSchemaJson(),
+      {
+        name: 'chatTiming',
+        match: () => false,
+        handler: () => false,
+        beforeRequest: (context) => {
+          context.timing = { sentAt: Date.now() };
+        },
+        start: (context) => {
+          const timing = context.timing;
+          if (timing) {
+            timing.firstByteAt = Date.now();
+            timing.ttfb = timing.firstByteAt - timing.sentAt;
+          }
+        },
+        end: (context) => {
+          const timing = context.timing;
+          const finishInfo = context.chatMessage?.finishInfo;
+          if (!timing || !finishInfo) return;
+          const { firstByteAt, ttfb } = timing;
+          const renderEndAt = Date.now();
+          context.chatMessage.finishInfo = {
+            ...finishInfo,
+            ttfb,
+            renderDurationMs: firstByteAt != null ? renderEndAt - firstByteAt : undefined,
+          };
+        },
+      },
     ];
 
     insertHandlersAfterName(

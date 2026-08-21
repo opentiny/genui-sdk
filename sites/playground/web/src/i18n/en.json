@@ -276,6 +276,9 @@
     "model": "Model",
     "finishReason": "Finish reason",
     "time": "Time",
+    "duration": "Duration",
+    "ttfb": "First Response (TTFB)",
+    "renderDuration": "Render Duration",
     "promptTokens": "Prompt tokens",
     "completionTokens": "Completion tokens",
     "totalTokens": "Total tokens"
