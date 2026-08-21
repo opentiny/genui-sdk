@@ -35,6 +35,10 @@ export interface BenchmarkComparisonRow {
     string,
     {
       runs: number;
+      /** 原始行数；当存在失败请求时大于 runs。 */
+      totalRuns?: number;
+      /** 失败请求行数；失败请求保留在明细但不计入聚合均值。 */
+      failedRuns?: number;
       avgTtftMs?: number;
       /** 首个 TinyCard 节点出现耗时（ms）均值 */
       avgFirstObservableComponentMs?: number;
@@ -96,13 +100,17 @@ export function buildComparisonByScenario(
     const byModel: BenchmarkComparisonRow['byModel'] = {};
     for (const m of models) {
       const mr = rows.filter((r) => r.model === m);
-      const n = mr.length;
+      const successful = mr.filter((r) => r.requestFailed !== true);
+      const n = successful.length;
+      const totalRuns = mr.length;
       if (n === 0) continue;
-      const tpotValues = mr.map((r) => r.tpotMs).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
-      const ttftSeries = numberSeries(mr.map((r) => r.ttftMs));
-      const tinyCardSeries = numberSeries(mr.map((r) => r.firstObservableComponentMs));
-      const totalSeries = mr.map((r) => r.totalMs);
-      const tokenSeries = mr.map((r) => r.totalTokens);
+      const tpotValues = successful.map((r) => r.tpotMs).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+      const ttftSeries = numberSeries(successful.map((r) => r.ttftMs));
+      const tinyCardSeries = numberSeries(successful.map((r) => r.firstObservableComponentMs));
+      const totalSeries = successful.map((r) => r.totalMs);
+      const tokenSeries = successful.map((r) => r.totalTokens);
+      const avgTtft = average(ttftSeries);
+      const avgTinyCard = average(tinyCardSeries);
 
       const tpotStdev = tpotValues.length >= 3 ? sampleStdev(tpotValues) : undefined;
       const ttftStdev = ttftSeries.length >= 3 ? sampleStdev(ttftSeries) : undefined;
@@ -120,11 +128,12 @@ export function buildComparisonByScenario(
 
       byModel[m] = {
         runs: n,
-        ...(average(ttftSeries) != null ? { avgTtftMs: average(ttftSeries) } : {}),
-        ...(average(tinyCardSeries) != null ? { avgFirstObservableComponentMs: average(tinyCardSeries) } : {}),
-        avgTotalMs: mr.reduce((s, r) => s + r.totalMs, 0) / n,
+        ...(totalRuns !== n ? { totalRuns, failedRuns: totalRuns - n } : {}),
+        ...(avgTtft != null ? { avgTtftMs: avgTtft } : {}),
+        ...(avgTinyCard != null ? { avgFirstObservableComponentMs: avgTinyCard } : {}),
+        avgTotalMs: successful.reduce((s, r) => s + r.totalMs, 0) / n,
         ...(tpotValues.length ? { avgTpotMs: tpotValues.reduce((s, v) => s + v, 0) / tpotValues.length } : {}),
-        avgTotalTokens: mr.reduce((s, r) => s + r.totalTokens, 0) / n,
+        avgTotalTokens: successful.reduce((s, r) => s + r.totalTokens, 0) / n,
         // plain 不计入协议门禁；整组皆 plain 时视为无协议期望（vacuous 1）
         schemaPassRate: (() => {
           const scored = mr.filter(countsTowardProtocolGate);
@@ -185,6 +194,8 @@ function writeReportXlsx(
         scenario: row.scenario,
         model,
         runs: c.runs,
+        totalRuns: c.totalRuns ?? c.runs,
+        failedRuns: c.failedRuns ?? 0,
         avgTtftMs: c.avgTtftMs ?? '',
         avgFirstObservableComponentMs: c.avgFirstObservableComponentMs ?? '',
         avgTotalMs: c.avgTotalMs,

@@ -226,13 +226,13 @@ pnpm benchmarks
 ```
 
 
-流程：`generateSamples` 写入本次 `runDir` → `runReport` 将 `samplesDir` 设为该 `runDir`，只统计本次生成的样本。
+流程：`generateSamples` 写入本次 `runDir` → `runReport` 将 `samplesDir` 设为该 `runDir`，只统计本次生成的样本。单独调用 `runReport` 时也应传具体 run 目录；若传入 `reports/` 根目录且其中只有时间戳子目录，会直接报错并提示最新 run 路径，避免误以为空目录报告。
 
 ## 报告产物
 
 写入选定的输出目录（默认同本次样本目录）：
 
-- **`report.json`**：`model`、`models`、`repeat`、`benchmarkTotalMs`（自入口 `main` 起至写出报告的总耗时 ms，未计时时可能缺省）、`llmJudge`、`comparisonByScenario`（按场景 × 模型：`avgTtftMs`、`avgTotalMs`、`avgTpotMs?`、`avgTotalTokens`、`schemaPassRate` 等）、`generatedAt`、逐条 **`results`**
+- **`report.json`**：`model`、`models`、`repeat`、`benchmarkTotalMs`（自入口 `main` 起至写出报告的总耗时 ms，未计时时可能缺省）、`llmJudge`、`comparisonByScenario`（按场景 × 模型：`runs` 为成功请求数；存在失败时另有 `totalRuns` / `failedRuns`；均值与 `schemaPassRate` 默认排除失败请求）、`generatedAt`、逐条 **`results`**
 - **`report.html`**：按场景对比柱状图（含 TTFT、Total、TPOT、Token、Schema 通过率等）与单次运行明细图、明细表
 - **`report_<runDir>.xlsx`**（未关 `BENCH_WRITE_EXCEL` 时）：`runDir` 为输出目录文件夹名。含 **`明细`**：`model`、`scenario`、`runIndex`、`totalMs`、`tpsMs`（列名如此，数值为 **TPOT**，单位 ms/token）、`promptTokens`、`completionTokens`、`totalTokens`、`llmJudgeScore`、`llmJudgeReason`、`llmJudgeError`、`llmJudgeInputTokens`、`llmJudgeOutputTokens`、`errorMessage`、`promptVariant`、`generatedAt`；另含 **`按场景对比`**。「明细」仅指标与短文本列，**不含**模型原始输出 / schemaJson（完整内容见同目录 `report.json` 与样本 `*.json`）。开启 **`BENCH_LLM_JUDGE`** 且提供商在响应中返回 usage 时，`llmJudgeInputTokens` / `llmJudgeOutputTokens` 才有值；`report.json` 的 `results` 中对应字段为 `llmJudgePromptTokens` / `llmJudgeCompletionTokens` / `llmJudgeTotalTokens` 与 `benchTotalTokens` 等（与 Excel 列名以 JSON 为准）。
 
@@ -255,6 +255,7 @@ pnpm benchmarks
 | `promptTokens` / `completionTokens` / `totalTokens` | 模型 usage（报告不含缓存分项） |
 | `benchTotalTokens` | 生成 + Judge 合计 token（未开 Judge 或未返回 usage 时等于 `totalTokens`） |
 | `rawOutputChars` | 原始文本输出字符数 |
+| `requestFailed` | 生成请求失败标记；失败样本保留在明细中，但不计入聚合性能均值与协议通过率 |
 | `llmJudgeScore` | Judge 分数 **1～10**（启用且解析成功时） |
 | `llmJudgeReason` / `llmJudgeError` | Judge 原因或错误信息 |
 | `llmJudgePromptTokens` / `llmJudgeCompletionTokens` / `llmJudgeTotalTokens` | Judge 调用的 usage（启用报告阶段 Judge 且 API 返回时有效） |

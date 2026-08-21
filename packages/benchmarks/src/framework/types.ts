@@ -165,6 +165,8 @@ export interface LlmBenchmarkResultItem {
   /** 生成 + Judge 合计 token（计费口径；未开 Judge 或未返回 usage 时等于 totalTokens） */
   benchTotalTokens: number;
   rawOutputChars: number;
+  /** 生成请求是否失败；失败样本保留在明细中，但默认不计入聚合性能与协议通过率。 */
+  requestFailed?: boolean;
   // LLM-as-a-Judge 分数（1~10）
   llmJudgeScore?: number;
   // LLM-as-a-Judge 给出的简要原因

@@ -12,9 +12,9 @@ export function isPlainPromptVariant(
  * plain 无协议约束，与 Judge 一样跳过。
  */
 export function countsTowardProtocolGate(
-  r: Pick<LlmBenchmarkResultItem, 'promptVariant'> | { promptVariant?: string },
+  r: Pick<LlmBenchmarkResultItem, 'promptVariant' | 'requestFailed'> | { promptVariant?: string; requestFailed?: boolean },
 ): boolean {
-  return !isPlainPromptVariant(r);
+  return !isPlainPromptVariant(r) && r.requestFailed !== true;
 }
 
 /** 报告对比用场景标签：纯文本对照带「（纯文本）」后缀 */

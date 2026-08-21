@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import path from 'node:path';
 import { streamText } from 'ai';
 import type { LlmBenchmarkResultItem, LlmBenchmarkRunOptions, LlmBenchmarkSample } from './framework/index';
 import { printLlmBenchmarkResults } from './framework/index';
@@ -184,6 +185,7 @@ function toReportItem(
     totalTokens: sample.metrics.totalTokens,
     benchTotalTokens,
     rawOutputChars: sample.metrics.rawOutputChars,
+    ...(sample.metrics.errorMessage ? { requestFailed: true } : {}),
     llmJudgeScore: judge?.score,
     llmJudgeReason: judge?.reason,
     llmJudgeError: judge?.error,
@@ -203,6 +205,16 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   const baseDir = resolveSamplesDir(options.samplesDir);
   if (!fs.existsSync(baseDir)) {
     throw new Error(`Samples directory not found: ${baseDir}`);
+  }
+  const dirEntries = fs.readdirSync(baseDir, { withFileTypes: true });
+  const childRunDirs = dirEntries.filter((entry) => entry.isDirectory() && /^\d{4}-\d{2}-\d{2}_/.test(entry.name));
+  const hasTopLevelSamples = dirEntries.some((entry) => entry.isFile() && entry.name.endsWith('.json') && entry.name !== 'report.json');
+  if (!hasTopLevelSamples && childRunDirs.length > 0) {
+    const latest = childRunDirs.map((entry) => entry.name).sort().at(-1);
+    throw new Error(
+      `Samples directory appears to be a reports root, not a run directory: ${baseDir}. ` +
+        `Pass a concrete run directory such as ${path.join(baseDir, latest ?? '<runDir>')}.`,
+    );
   }
   const sampleFiles = fs
     .readdirSync(baseDir)
@@ -231,6 +243,19 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
       if (vA !== vB) return vA - vB;
       return (a.runIndex ?? 1) - (b.runIndex ?? 1);
     });
+
+  const mixedDimensions = new Set(
+    parsedSamples.map(
+      (sample) =>
+        `${sample.protocol ?? protocolFromOptions(options)}|${sample.framework ?? options.framework ?? 'Vue'}|${sample.materialsVariant ?? options.materialsVariant ?? 'standard'}`,
+    ),
+  );
+  if (mixedDimensions.size > 1) {
+    console.warn(
+      `[bench] Multiple protocol/framework/materials dimensions found in one report (${mixedDimensions.size}). ` +
+        'Avoid mixing unrelated runs in one directory; aggregate comparisons may be misleading.',
+    );
+  }
 
   const judgeEnabled = options.llmJudge?.enabled === true;
   const judgeResults: Array<LlmJudgeResult | undefined> = [];
@@ -273,8 +298,14 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   if (results.length === 0) {
     throw new Error('No samples matched the current filter');
   }
-  const protocolRows = results.filter((item) => !isPlainPromptVariant(item));
+  const protocolRows = results.filter((item) => !isPlainPromptVariant(item) && item.requestFailed !== true);
   const invalidSchemaRows = protocolRows.filter((item) => !item.isSchemaJsonValidAgainstProtocol);
+  const failedRequestRows = results.filter((item) => item.requestFailed === true);
+  if (failedRequestRows.length > 0) {
+    console.log(
+      `[bench] Request failed rows: ${failedRequestRows.length}/${results.length}（保留在明细中；聚合性能与协议通过率默认排除）`,
+    );
+  }
   if (invalidSchemaRows.length > 0) {
     console.log(
       `[bench] Schema validation failed: ${invalidSchemaRows.length}/${protocolRows.length}（详见 report.html；plain 已跳过协议校验）`,
