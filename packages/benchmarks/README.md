@@ -163,6 +163,8 @@ src/
 | `BENCH_SCENARIOS` | 逗号分隔多场景；**优先级高于** `BENCH_SCENARIO` |
 | `BENCH_REPEAT` | 每个「模型 × 场景」重复次数（正整数，默认取自 config） |
 | `BENCH_CONCURRENCY` | 生成阶段并发数（正整数，默认取自 config） |
+| `BENCH_MODEL_RATE_LIMIT` | 按模型限制请求速率的 JSON，如 `{"DeepSeek-V3.2":{"requests":5,"windowMs":60000}}`，表示该模型每 60 秒最多开始 5 次请求 |
+| `BENCH_RETRY_MAX_ATTEMPTS` | 生成请求最大尝试次数（含首次请求）；只对限流、超时和临时网络/服务错误重试，退避时间使用 config 默认值 |
 | `BENCH_STREAM_TIMEOUT_MS` | 单次 `streamText` 超时（毫秒）；默认 `600000`（10 分钟）；**`0`** 表示不启用超时（生成与 Judge 均适用） |
 | `BENCH_LLM_JUDGE` | 是否启用 Judge（覆盖 `benchmark.config` 中 `llmJudge.enabled`） |
 | `BENCH_LLM_JUDGE_MODEL` | Judge 使用的模型 id（空则复用主模型：显式 `model`，否则为 `models` 首项） |
@@ -178,6 +180,23 @@ src/
 | `BENCH_OUTPUT_DIR` | 报告输出目录（默认与本次 run 目录一致） |
 
 `src/benchmark.config.ts` 中对各配置项的默认值有更细的说明（含 `promptConfig`、`llmJudge`、`streamTimeoutMs`、`modelsFromMaasManifest`、`compareEmptySystem` / `compareEmptySystemPlainOnly` 等）。
+
+### 限流与续跑
+
+`BENCH_CONCURRENCY` 控制全局同时跑多少个生成任务；`BENCH_MODEL_RATE_LIMIT` 控制“同一模型在时间窗口内最多开始几次请求”，适合供应商给出的 `1 分钟 5 次` 这类限制。通常只需要在容易限流的模型上配置 `BENCH_MODEL_RATE_LIMIT`。
+
+生成阶段也内置了限流友好的重试：遇到 `429`、`rate limit`、超时、连接重置、`5xx` 等临时错误时，会按指数退避重试。重试等待不计入单次模型响应 `totalMs`，但会写入样本 metrics 和报告结果：`retryCount`、`retryWaitMs`、`lastRetryReason`、`rateLimited`。若最终仍失败，样本会保留 `errorMessage` / `requestFailed`，并默认排除在聚合均值和协议通过率之外。
+
+示例：全局并发 4，但把容易限流的模型限制为每分钟最多 5 次请求。
+
+```bash
+BENCH_CONCURRENCY=4 \
+BENCH_MODEL_RATE_LIMIT='{"DeepSeek-V3.2":{"requests":5,"windowMs":60000}}' \
+BENCH_RETRY_MAX_ATTEMPTS=5 \
+pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks:cli
+```
+
+若跑到一半被限流或中断，推荐配合 `BENCH_TARGET_SAMPLE_RUN_DIR` 和 `BENCH_SKIP_EXISTING_SAMPLES=true` 续跑，只补缺失样本。
 
 ### 默认「样本变体」行为（`benchmark.config.ts`）
 
@@ -256,6 +275,8 @@ pnpm benchmarks
 | `benchTotalTokens` | 生成 + Judge 合计 token（未开 Judge 或未返回 usage 时等于 `totalTokens`） |
 | `rawOutputChars` | 原始文本输出字符数 |
 | `requestFailed` | 生成请求失败标记；失败样本保留在明细中，但不计入聚合性能均值与协议通过率 |
+| `retryCount` / `retryWaitMs` | 生成请求重试次数与累计退避等待时间 |
+| `lastRetryReason` / `rateLimited` | 最近一次重试原因与是否命中过限流特征 |
 | `llmJudgeScore` | Judge 分数 **1～10**（启用且解析成功时） |
 | `llmJudgeReason` / `llmJudgeError` | Judge 原因或错误信息 |
 | `llmJudgePromptTokens` / `llmJudgeCompletionTokens` / `llmJudgeTotalTokens` | Judge 调用的 usage（启用报告阶段 Judge 且 API 返回时有效） |

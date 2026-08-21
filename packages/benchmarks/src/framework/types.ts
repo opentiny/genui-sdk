@@ -98,6 +98,19 @@ export interface LlmBenchmarkRunOptions {
   // 样本生成并发度（最小为 1）
   concurrency?: number;
   /**
+   * 按模型限制请求速率；key 为模型 id，value 表示一个滑动窗口内允许的请求数。
+   * 例如 `{ "DeepSeek-V3.2": { "requests": 5, "windowMs": 60000 } }`。
+   */
+  modelRateLimit?: Record<string, { requests: number; windowMs: number }>;
+  /** 生成请求重试配置；仅对限流、超时和临时网络/服务错误重试。 */
+  retry?: {
+    maxAttempts?: number;
+    /** 指数退避起始等待；高级配置，默认不需要改。 */
+    baseDelayMs?: number;
+    /** 指数退避最大等待；高级配置，默认不需要改。 */
+    maxDelayMs?: number;
+  };
+  /**
    * 单次 `streamText` 请求超时（毫秒），超时中止流并记入 `errorMessage`，避免挂死占满 worker。
    * 默认见 `benchmark.config`；可用 `BENCH_STREAM_TIMEOUT_MS` 覆盖，`0` 表示不限制。
    */
@@ -167,6 +180,10 @@ export interface LlmBenchmarkResultItem {
   rawOutputChars: number;
   /** 生成请求是否失败；失败样本保留在明细中，但默认不计入聚合性能与协议通过率。 */
   requestFailed?: boolean;
+  retryCount?: number;
+  retryWaitMs?: number;
+  lastRetryReason?: string;
+  rateLimited?: boolean;
   // LLM-as-a-Judge 分数（1~10）
   llmJudgeScore?: number;
   // LLM-as-a-Judge 给出的简要原因
@@ -202,6 +219,10 @@ export interface BenchmarkExcelDetailRow {
   /** Judge 请求输出 token（`LanguageModelUsage.outputTokens`） */
   llmJudgeOutputTokens: number | '';
   errorMessage: string;
+  retryCount: number | '';
+  retryWaitMs: number | '';
+  lastRetryReason: string;
+  rateLimited: boolean | '';
   /** 原始：对照变体 */
   promptVariant: string;
   /** 原始：样本生成时间 ISO 字符串 */
@@ -242,5 +263,9 @@ export interface LlmBenchmarkSample {
     promptCacheWriteTokens?: number;
     rawOutputChars: number;
     errorMessage?: string;
+    retryCount?: number;
+    retryWaitMs?: number;
+    lastRetryReason?: string;
+    rateLimited?: boolean;
   };
 }

@@ -30,6 +30,14 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   targetSampleRunDir: undefined,
   // 生成阶段并发度（最小为 1）；值越大请求并发越高
   concurrency: 5,
+  // 按模型覆盖请求速率：如 { 'DeepSeek-V3.2': { requests: 5, windowMs: 60000 } }
+  modelRateLimit: undefined,
+  // 限流/临时错误重试：maxAttempts 含首次请求；可用 BENCH_RETRY_* 覆盖
+  retry: {
+    maxAttempts: 3,
+    baseDelayMs: 2_000,
+    maxDelayMs: 30_000,
+  },
   // streamText 单次请求超时（毫秒）；可由 BENCH_STREAM_TIMEOUT_MS 覆盖；0=不限制
   streamTimeoutMs: 600_000,
   // 生成样本时的 prompt 组合配置（genPrompt + specificPrompt + userAppendPrompt）

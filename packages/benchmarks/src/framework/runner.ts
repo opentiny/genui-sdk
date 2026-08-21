@@ -262,6 +262,8 @@ function writeBenchmarkArtifacts(
         promptVariants: promptVariantsInRun,
         repeat: options.repeat ?? 1,
         concurrency: options.concurrency,
+        modelRateLimit: options.modelRateLimit,
+        retry: options.retry,
         streamTimeoutMs: options.streamTimeoutMs,
         compareEmptySystem: options.compareEmptySystem === true,
         compareEmptySystemPlainOnly: options.compareEmptySystemPlainOnly === true,

@@ -25,6 +25,10 @@ export function buildBenchmarkExcelDetailRows(
       llmJudgeInputTokens: r.llmJudgePromptTokens ?? '',
       llmJudgeOutputTokens: r.llmJudgeCompletionTokens ?? '',
       errorMessage: r.errorMessage ?? '',
+      retryCount: r.retryCount ?? '',
+      retryWaitMs: r.retryWaitMs ?? '',
+      lastRetryReason: r.lastRetryReason ?? '',
+      rateLimited: r.rateLimited ?? '',
       promptVariant: sample ? (sample.promptVariant ?? 'full') : (r.promptVariant ?? 'full'),
       generatedAt: sample?.generatedAt ?? '',
     };

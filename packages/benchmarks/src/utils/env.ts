@@ -67,6 +67,43 @@ export function envPositiveInt(key: string, fallback: number): number {
   return parsed;
 }
 
+export type EnvRateLimitConfig = Record<string, { requests: number; windowMs: number }>;
+
+/**
+ * 读取模型限速配置，如 `{"model-a":{"requests":5,"windowMs":60000}}`。
+ */
+export function envModelRateLimit(
+  key: string,
+  fallback?: EnvRateLimitConfig,
+): EnvRateLimitConfig | undefined {
+  const v = process.env[key];
+  if (v === undefined || v.trim() === '') {
+    return fallback;
+  }
+  try {
+    const parsed = JSON.parse(v) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return fallback;
+    }
+    const out: EnvRateLimitConfig = {};
+    for (const [rawKey, rawValue] of Object.entries(parsed)) {
+      const name = rawKey.trim();
+      if (!name || !rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) continue;
+      const cfg = rawValue as Record<string, unknown>;
+      const requests = Number(cfg.requests);
+      const windowMs = Number(cfg.windowMs);
+      if (!Number.isFinite(requests) || requests < 1 || !Number.isFinite(windowMs) || windowMs < 1) continue;
+      out[name] = {
+        requests: Math.floor(requests),
+        windowMs: Math.floor(windowMs),
+      };
+    }
+    return Object.keys(out).length > 0 ? out : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * 流式请求超时（毫秒），用于 `streamText({ abortSignal })`。
  * 未设置或空字符串：使用 `fallback`；`0`：不启用超时（返回 `undefined`）；非法值回退 `fallback`。

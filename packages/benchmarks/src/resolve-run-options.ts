@@ -6,6 +6,7 @@ import {
   envBool,
   envFramework,
   envMaterialsVariant,
+  envModelRateLimit,
   envPositiveInt,
   envStreamTimeoutMs,
   envString,
@@ -54,6 +55,8 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
     scenarios: defaultScenarios,
     repeat,
     concurrency: defaultConcurrency,
+    modelRateLimit,
+    retry,
     promptConfig,
     llmJudge,
     json,
@@ -73,6 +76,8 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
   const scenarios = envStringList('BENCH_SCENARIOS', defaultScenarios);
   const models = envStringList('BENCH_MODELS', defaultModelsFromManifest);
   const concurrency = envPositiveInt('BENCH_CONCURRENCY', defaultConcurrency ?? 2);
+  const modelRateLimitResolved = envModelRateLimit('BENCH_MODEL_RATE_LIMIT', modelRateLimit);
+  const retryMaxAttempts = envPositiveInt('BENCH_RETRY_MAX_ATTEMPTS', retry?.maxAttempts ?? 3);
   const judgeEnabled = envBool('BENCH_LLM_JUDGE', llmJudge?.enabled ?? false);
   const judgeModel = envString('BENCH_LLM_JUDGE_MODEL', llmJudge?.model);
   const compareEmptySystem = envBool('BENCH_COMPARE_EMPTY_SYSTEM', defaultCompareEmptySystem ?? false);
@@ -94,6 +99,12 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
     scenarios,
     repeat: envPositiveInt('BENCH_REPEAT', repeat ?? 1),
     concurrency,
+    modelRateLimit: modelRateLimitResolved,
+    retry: {
+      maxAttempts: retryMaxAttempts,
+      baseDelayMs: retry?.baseDelayMs,
+      maxDelayMs: retry?.maxDelayMs,
+    },
     streamTimeoutMs,
     promptConfig,
     compareEmptySystem,
