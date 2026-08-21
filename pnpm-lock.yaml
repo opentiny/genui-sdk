@@ -336,6 +336,9 @@ importers:
       '@opentiny/tiny-robot-svgs':
         specifier: 0.3.3
         version: 0.3.3(vue@3.5.26(typescript@5.9.3))
+      '@opentiny/tiny-schema-renderer':
+        specifier: workspace:*
+        version: link:../../../projects/tiny-schema-renderer
       '@opentiny/vue':
         specifier: ~3.28.0
         version: 3.28.0
@@ -355,9 +358,6 @@ importers:
         specifier: ^3.5.13
         version: 3.5.26(typescript@5.9.3)
     devDependencies:
-      '@opentiny/tiny-schema-renderer':
-        specifier: workspace:*
-        version: link:../../../projects/tiny-schema-renderer.worktrees/fix-base-renderer
       '@vitejs/plugin-vue':
         specifier: ^5.0.0
         version: 5.2.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))(vue@3.5.26(typescript@5.9.3))
@@ -811,64 +811,6 @@ importers:
       typescript:
         specifier: ~5.9.2
         version: 5.9.3
-
-  projects/tiny-schema-renderer.worktrees/fix-base-renderer:
-    dependencies:
-      '@babel/core':
-        specifier: 7.18.13
-        version: 7.18.13
-      '@opentiny/tiny-engine-builtin-component':
-        specifier: ^2.6.0
-        version: 2.9.0(@opentiny/vue-icon@3.28.3)(@opentiny/vue-renderless@3.30.0)(@opentiny/vue@3.28.0)(vite@5.4.21(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      '@vue/babel-plugin-jsx':
-        specifier: ^1.2.5
-        version: 1.5.0(@babel/core@7.18.13)
-      '@vue/shared':
-        specifier: ^3.3.4
-        version: 3.5.26
-      lodash:
-        specifier: 4.17.21
-        version: 4.17.21
-      postcss:
-        specifier: ^8.5.6
-        version: 8.5.6
-      postcss-selector-parser:
-        specifier: ^7.1.0
-        version: 7.1.0
-    devDependencies:
-      '@babel/standalone':
-        specifier: ^7.23.0
-        version: 7.28.5
-      '@opentiny/vue':
-        specifier: ^3.28.0
-        version: 3.28.0
-      '@opentiny/vue-huicharts':
-        specifier: ^3.28.0
-        version: 3.28.0(echarts@5.4.1)
-      '@opentiny/vue-icon':
-        specifier: ^3.28.0
-        version: 3.28.3
-      '@opentiny/vue-notify':
-        specifier: ^3.28.0
-        version: 3.28.0
-      '@vitejs/plugin-vue':
-        specifier: ^5.1.2
-        version: 5.2.4(vite@5.4.21(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      '@vitejs/plugin-vue-jsx':
-        specifier: ^4.0.1
-        version: 4.2.0(vite@5.4.21(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
-      eval5:
-        specifier: ^1.4.8
-        version: 1.4.8
-      rollup-plugin-visualizer:
-        specifier: 6.0.5
-        version: 6.0.5(rollup@4.54.0)
-      vite:
-        specifier: ^5.4.2
-        version: 5.4.21(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)
-      vue:
-        specifier: ^3.5.0
-        version: 3.5.26(typescript@5.9.3)
 
   sites/homepage/web:
     dependencies:
