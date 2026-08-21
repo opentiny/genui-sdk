@@ -7,6 +7,7 @@ import {
   Optional,
   Self,
   SimpleChanges,
+  forwardRef,
 } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
 import { SchemaRefBinding, getRefName } from './schema-ref-binding';
@@ -29,7 +30,7 @@ import { SCHEMA_REF_BRIDGE, SchemaRefBridge } from './schema-ref-bridge';
   providers: [
     {
       provide: SCHEMA_REF_BRIDGE,
-      useExisting: SchemaRefDirective,
+      useExisting: forwardRef(() => SchemaRefDirective),
     },
   ],
 })

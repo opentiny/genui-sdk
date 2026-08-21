@@ -137,11 +137,15 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   }
 
   private bindProps: Record<string, any> = {};
+  private get schemaRefBridge(): SchemaRefBridge | undefined {
+   // Lazy: SchemaRefDirective ↔ ComponentOutlet would cycle if injected in field initializers.
+    return this.injector?.get(SCHEMA_REF_BRIDGE, undefined);
+  }
 
   constructor(
     private _viewContainerRef: ViewContainerRef,
-    @Optional() @Inject(SCHEMA_REF_BRIDGE) private schemaRefBridge?: SchemaRefBridge
-  ) {}
+    @Inject(Injector) private injector?: Injector
+  ) { }
 
   private _needToReCreateNgModuleInstance(changes: SimpleChanges): boolean {
     // Note: square brackets property accessor is safe for Closure compiler optimizations (the
