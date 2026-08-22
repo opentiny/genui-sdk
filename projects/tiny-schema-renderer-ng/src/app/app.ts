@@ -1,6 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { TiDateModule } from '@opentiny/ng';
 import { RendererMain } from '../../projects/renderer/src/renderer-main';
 import { RENDERER_SETTINGS } from '../../projects/renderer/src/renderer-settings';
 import { ContentChildrenService } from '../../projects/renderer/src/content-children';
@@ -10,7 +8,7 @@ import { materials } from './materials';
   selector: 'app-root',
   templateUrl: './app.html',
   standalone: true,
-  imports: [RendererMain, FormsModule, TiDateModule],
+  imports: [RendererMain],
   providers: [
     {
       provide: RENDERER_SETTINGS,

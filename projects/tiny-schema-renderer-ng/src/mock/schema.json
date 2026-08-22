@@ -73,7 +73,16 @@
         "field": "email",
         "title": "邮箱"
       }
-    ]
+    ],
+    "templateDrivenForm": {
+      "username": "",
+      "email": "",
+      "age": 0,
+      "gender": "",
+      "city": "",
+      "bio": "",
+      "subscribe": false
+    }
   },
   "methods": {
     "handleReset": {
@@ -1071,6 +1080,218 @@
                   "children": "提交"
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "style": "padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 24px;"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": "模板驱动表单（原生元素 + autoApply 指令）"
+        },
+        {
+          "componentName": "form",
+          "props": {
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.tdForm"
+            },
+            "style": "display: flex; flex-direction: column; gap: 12px; max-width: 420px;"
+          },
+          "children": [
+            {
+              "componentName": "input",
+              "props": {
+                "type": "text",
+                "name": "username",
+                "placeholder": "用户名（required）",
+                "required": true,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.username"
+                }
+              }
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "email",
+                "name": "email",
+                "placeholder": "邮箱（email）",
+                "email": true,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.email"
+                }
+              }
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "number",
+                "name": "age",
+                "placeholder": "年龄（number）",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.age"
+                }
+              }
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "style": "display: flex; gap: 16px;"
+              },
+              "children": [
+                {
+                  "componentName": "label",
+                  "children": [
+                    {
+                      "componentName": "input",
+                      "props": {
+                        "type": "radio",
+                        "name": "gender",
+                        "value": "male",
+                        "ngModel": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.templateDrivenForm.gender"
+                        }
+                      }
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "男"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "label",
+                  "children": [
+                    {
+                      "componentName": "input",
+                      "props": {
+                        "type": "radio",
+                        "name": "gender",
+                        "value": "female",
+                        "ngModel": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.templateDrivenForm.gender"
+                        }
+                      }
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "女"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "select",
+              "props": {
+                "name": "city",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.city"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": ""
+                  },
+                  "children": "请选择城市"
+                },
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": "beijing"
+                  },
+                  "children": "北京"
+                },
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": "shanghai"
+                  },
+                  "children": "上海"
+                },
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": "shenzhen"
+                  },
+                  "children": "深圳"
+                }
+              ]
+            },
+            {
+              "componentName": "textarea",
+              "props": {
+                "name": "bio",
+                "placeholder": "个人简介（textarea）",
+                "rows": 3,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.bio"
+                }
+              }
+            },
+            {
+              "componentName": "label",
+              "children": [
+                {
+                  "componentName": "input",
+                  "props": {
+                    "type": "checkbox",
+                    "name": "subscribe",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.templateDrivenForm.subscribe"
+                    }
+                  }
+                },
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "订阅邮件"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "TiButton",
+              "props": {
+                "color": "primary",
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "function() { var status = {}; this.refs.tdForm.querySelectorAll('[name]').forEach(function (el) { status[el.name] = { value: el.value, valid: el.classList.contains('ng-valid'), invalid: el.classList.contains('ng-invalid'), touched: el.classList.contains('ng-touched'), dirty: el.classList.contains('ng-dirty') }; }); console.log('模板驱动表单校验结果:', status); console.log('模板驱动表单数据:', this.state.templateDrivenForm); }"
+                }
+              },
+              "children": "打印表单数据"
             }
           ]
         }
