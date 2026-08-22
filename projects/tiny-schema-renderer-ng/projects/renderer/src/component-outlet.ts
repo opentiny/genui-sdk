@@ -115,9 +115,11 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   @Input('componentOutletNgModule') ngComponentOutletNgModule?: Type<any>;
   @Input('componentOutletProps') ngComponentOutletProps?: Record<string, unknown>;
   @Input('componentOutletDirectives') ngComponentOutletDirectives?: Type<any>[] | undefined;
+  @Input('componentOutletDirectiveModules') ngComponentOutletDirectiveModules?: Type<any>[] | undefined;
 
   private _componentRef: ComponentRef<T> | undefined;
   private _moduleRef: NgModuleRef<any> | undefined;
+  private _directiveModuleRefs: NgModuleRef<any>[] = [];
 
   /**
    * Gets the instance of the currently-rendered component.
@@ -158,6 +160,10 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     return changes['ngComponentOutletDirectives'] !== undefined;
   }
 
+  private _needToReCreateDirectiveModulesInstance(changes: SimpleChanges): boolean {
+    return changes['ngComponentOutletDirectiveModules'] !== undefined;
+  }
+
   private _needToReCreateComponentInstance(changes: SimpleChanges): boolean {
     // Note: square brackets property accessor is safe for Closure compiler optimizations (the
     // `changes` argument of the `ngOnChanges` lifecycle hook retains the names of the fields that
@@ -168,7 +174,8 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
       changes['ngComponentOutletInjector'] !== undefined ||
       changes['ngComponentOutletEnvironmentInjector'] !== undefined ||
       this._needToReCreateNgModuleInstance(changes) ||
-      this._needToReCreateDirectivesInstance(changes)
+      this._needToReCreateDirectivesInstance(changes) ||
+      this._needToReCreateDirectiveModulesInstance(changes)
     );
   }
 
@@ -203,11 +210,15 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           }
         }
 
+        if (this._needToReCreateDirectiveModulesInstance(changes)) {
+          this._recreateDirectiveModules(injector);
+        }
+
         this._componentRef = this._viewContainerRef.createComponent(this.ngComponentOutlet, {
           injector,
-          ngModuleRef: this._moduleRef,
           projectableNodes: this.ngComponentOutletContent,
-          environmentInjector: this.ngComponentOutletEnvironmentInjector,
+          environmentInjector:
+            this.ngComponentOutletEnvironmentInjector ?? this._resolveEnvironmentInjector(),
           directives: (this.ngComponentOutletDirectives ?? []).map((directive) => ({
             type: directive,
             bindings: this.getDirectiveBindings(directive),
@@ -223,7 +234,37 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   /** @docs-private */
   ngOnDestroy() {
     this.schemaRefBridge?.detach();
+    this._directiveModuleRefs.forEach((ref) => ref.destroy());
+    this._directiveModuleRefs = [];
     this._moduleRef?.destroy();
+  }
+
+  /**
+   * 为每个非 standalone 指令创建其声明导出的 NgModule，链到组件模块（或应用模块）之上，
+   * 使指令的模块级 provider（如 TooltipModule 的 OverlayContainerRef）在 host directive 的
+   * DI 链中可见。
+   */
+  private _recreateDirectiveModules(injector: Injector) {
+    this._directiveModuleRefs.forEach((ref) => ref.destroy());
+    this._directiveModuleRefs = [];
+
+    let parent = this._moduleRef
+      ? this._moduleRef.injector
+      : getParentInjector(this.ngComponentOutletInjector || injector);
+
+    for (const module of this.ngComponentOutletDirectiveModules ?? []) {
+      const ref = createNgModule(module, parent);
+      this._directiveModuleRefs.push(ref);
+      parent = ref.injector;
+    }
+  }
+
+  private _resolveEnvironmentInjector(): EnvironmentInjector | undefined {
+    const top = this._directiveModuleRefs[this._directiveModuleRefs.length - 1];
+    if (top) {
+      return top.injector;
+    }
+    return this._moduleRef?.injector;
   }
 
   protected getComponentBindings(component: Type<any>) {

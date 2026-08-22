@@ -31,6 +31,7 @@
     [componentOutletNgModule]="moduleRef"
     [componentOutletProps]="context | parseData: props : mergeScope | applyDefaultProps: componentName"
     [componentOutletDirectives]="directives | autoApplyDirectives: schema | getDirectives "
+    [componentOutletDirectiveModules]="directives | autoApplyDirectives: schema | getDirectiveModules "
     [componentOutletContent]="
       {
         children: children,

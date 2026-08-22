@@ -7,7 +7,7 @@ import { ProjectNgContentPipe } from './ng-content';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
-import { GetDirectivesPipe } from './get-directive.pipe';
+import { GetDirectivesPipe, GetDirectiveModulesPipe } from './get-directive.pipe';
 import { ComponentOutlet } from './component-outlet';
 import { ParseDataPipe } from './parse-data.pipe';
 import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
@@ -77,6 +77,7 @@ export class IsStringPipe implements PipeTransform {
     AttrAndEventDirective,
     PropsFilterPipe,
     GetDirectivesPipe,
+    GetDirectiveModulesPipe,
     ComponentOutlet,
     ContentChildrenTrackDirective,
     ContentChildrenTrackTemplateDirective,

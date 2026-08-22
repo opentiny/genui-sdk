@@ -23,6 +23,9 @@ export const directiveMap: Record<string, Type<any>> = {
   log: LogDirective,
 };
 
+/** 非 standalone 指令 -> 其声明导出的 NgModule（用于创建模块提供 DI 依赖） */
+export const directiveModuleRef: Record<string, Type<any>> = {};
+
 (NgModel['ɵdir'] as any).standalone = true;
 (DefaultValueAccessor['ɵdir'] as any).standalone = true;
 (CheckboxControlValueAccessor['ɵdir'] as any).standalone = true;
@@ -58,6 +61,13 @@ export const getDirective = (
   context: Record<PropertyKey, any> = {},
 ): Type<any> | undefined => {
   return directiveMap[name] || getMaterials(context).directives?.[name];
+};
+
+export const getDirectiveModuleRef = (
+  name: string,
+  context: Record<PropertyKey, any> = {},
+): Type<any> | undefined => {
+  return directiveModuleRef[name] || getMaterials(context).directivesModuleMap?.[name];
 };
 
 export const createComponent = (component: string): Type<any> => {

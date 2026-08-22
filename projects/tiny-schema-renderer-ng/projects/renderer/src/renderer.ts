@@ -8,7 +8,7 @@ import { LoopScopePipe } from './loop-scope.pipe';
 import { PropsFilterPipe } from './props-filter.pipe';
 import { ComponentOutlet } from './component-outlet';
 import { SchemaRefDirective } from './schema-ref';
-import { GetDirectivesPipe } from './get-directive.pipe';
+import { GetDirectivesPipe, GetDirectiveModulesPipe } from './get-directive.pipe';
 import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { ParseDataPipe } from './parse-data.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
@@ -24,6 +24,7 @@ import { getComponent, getModuleRef } from './parser/material-getter';
     AttrAndEventDirective,
     PropsFilterPipe,
     GetDirectivesPipe,
+    GetDirectiveModulesPipe,
     ComponentOutlet,
     SchemaRefDirective,
     ParseDataPipe,

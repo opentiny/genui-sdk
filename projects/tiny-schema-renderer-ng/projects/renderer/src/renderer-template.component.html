@@ -35,6 +35,7 @@
         [componentOutletInjector]="injector"
         [componentOutletProps]="context | parseData: schema.props : mergeScope | applyDefaultProps: schema.componentName"
         [componentOutletDirectives]="schema.directives | autoApplyDirectives: schema | getDirectives "
+        [componentOutletDirectiveModules]="schema.directives | autoApplyDirectives: schema | getDirectiveModules "
         [componentOutletContent]="
           {
             children: schema.children,
