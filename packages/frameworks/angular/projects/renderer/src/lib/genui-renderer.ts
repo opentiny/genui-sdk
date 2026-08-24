@@ -5,6 +5,7 @@ import {
   RendererMain as Renderer,
   Mapper,
   directiveMap,
+  directiveModuleRef,
   ModuleRef,
   RENDERER_SETTINGS,
 } from '@opentiny/tiny-schema-renderer-ng';
@@ -55,6 +56,7 @@ export class GenuiRenderer implements OnInit {
   @Input() generating = false;
   @Input() content: string | object = '{}';
   @Input() customDirectives?: Record<string, Type<any>> = {};
+  @Input() customDirectivesModule?: Record<string, Type<any>> = {};
   @Input() customComponents?: Record<string, Type<any>> = {};
   @Input() customComponentsModule?: Record<string, Type<any>> = {};
   @Input() customActions?: Record<string, ICustomAction> = {};
@@ -102,6 +104,12 @@ export class GenuiRenderer implements OnInit {
       this.customDirectives = changes['customDirectives'].currentValue;
       if (this.customDirectives) {
         this.updateCustomDirectives(this.customDirectives);
+      }
+    }
+    if (changes['customDirectivesModule']) {
+      this.customDirectivesModule = changes['customDirectivesModule'].currentValue;
+      if (this.customDirectivesModule) {
+        this.updateCustomDirectivesModule(this.customDirectivesModule);
       }
     }
     if (changes['customComponents']) {
@@ -175,6 +183,12 @@ export class GenuiRenderer implements OnInit {
   protected updateCustomDirectives(customDirectives: Record<string, Type<any>>) {
     Object.keys(customDirectives).forEach(key => {
       directiveMap[key] = customDirectives[key];
+    });
+  }
+
+  protected updateCustomDirectivesModule(customDirectivesModule: Record<string, Type<any>>) {
+    Object.keys(customDirectivesModule).forEach(key => {
+      directiveModuleRef[key] = customDirectivesModule[key];
     });
   }
 
