@@ -71,6 +71,8 @@ PORT=3100
 - `API_KEY`: 你的认证 API 密钥
 - `PORT`: 服务器的端口号 (默认: 3100)
 
+> `model` 不在服务端 `.env` 中配置：服务器仅透传请求，`model` 由请求发起端在请求体中传入，须与 `BASE_URL` 对应提供商实际提供的模型名一致（如 `gpt-4`、`deepseek-v3.2`），否则上游会返回模型不存在的错误。
+
 ## 使用模式
 
 ### 模式 1: CLI 命令 (快速开始)
@@ -395,6 +397,9 @@ const requestParams = {
 
 ```typescript
 // ✅ 好 - 服务器处理 API 密钥
+// model 由请求发起端配置（服务器仅透传），建议从环境变量读取而非写死：
+const model = import.meta.env.VITE_MODEL || 'gpt-4'; // 例如 VITE_MODEL=deepseek-v3.2
+
 const response = await fetch('https://your-server.com/chat/completions', {
   method: 'POST',
   headers: {
@@ -402,7 +407,7 @@ const response = await fetch('https://your-server.com/chat/completions', {
   },
   body: JSON.stringify({
     messages: [...],
-    model: 'deepseek-v3.2',
+    model, // 须为 BASE_URL 提供商实际支持的模型名
     stream: true,
   }),
 });
