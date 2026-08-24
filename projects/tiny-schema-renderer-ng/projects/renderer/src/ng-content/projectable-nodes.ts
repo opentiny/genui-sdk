@@ -26,49 +26,86 @@ export function getSchemaAttributeMap(schema: any): Record<string, unknown> {
   return { ...nested, ...props };
 }
 
+/** Class tokens declared by the schema (props.class / props.className / attributes.class). */
+function getSchemaClassList(schema: any): string[] {
+  const attrs = getSchemaAttributeMap(schema);
+  const value = attrs['class'] ?? attrs['className'];
+  if (typeof value === 'string') {
+    return value.split(/\s+/).filter(Boolean);
+  }
+  if (Array.isArray(value)) {
+    return value.map(String);
+  }
+  return [];
+}
+
+/** Evaluate one `[attr]` / `[attr=value]` token against the schema attribute map. */
+function matchAttributeSelector(attrs: Record<string, unknown>, body: string): boolean {
+  const eq = body.indexOf('=');
+  const name = (eq === -1 ? body : body.slice(0, eq)).trim();
+  const expected =
+    eq === -1
+      ? undefined
+      : body
+          .slice(eq + 1)
+          .trim()
+          .replace(/^['"]|['"]$/g, '');
+  if (!(name in attrs)) {
+    return false;
+  }
+  const actual = attrs[name];
+  if (expected === undefined) {
+    // [header] — presence; treat false/null as absent
+    return actual !== false && actual != null;
+  }
+  return String(actual) === expected;
+}
+
 /**
  * Whether a schema child would match an ng-content `select` after attrs are written to the host.
- * Mirrors CSS attribute / tag selectors used by Angular projection (scheme 3).
+ * Mirrors the CSS selectors Angular projection supports: `*`, tag, `[attr]`, `[attr=value]`,
+ * `.class`, and compound forms (e.g. `app-list-item.active`, `[header][disabled]`), plus
+ * comma-separated selector lists.
  */
 export function schemaChildMatchesSelector(schema: any, selector: string): boolean {
-  if (!selector || selector === '*') {
+  const sel = selector.trim();
+  if (!sel || sel === '*') {
     return true;
   }
 
-  // Attribute selector: [header] | [header=value] | [header="value"]
-  const attrMatch = /^\[([^\]]+)\]$/.exec(selector.trim());
-  if (attrMatch) {
-    const body = attrMatch[1].trim();
-    const eq = body.indexOf('=');
-    const name = (eq === -1 ? body : body.slice(0, eq)).trim();
-    const expected =
-      eq === -1
-        ? undefined
-        : body
-            .slice(eq + 1)
-            .trim()
-            .replace(/^['"]|['"]$/g, '');
-    const attrs = getSchemaAttributeMap(schema);
-    if (!(name in attrs)) {
-      return false;
-    }
-    const actual = attrs[name];
-    if (expected === undefined) {
-      // [header] — presence; treat false/null as absent
-      return actual !== false && actual != null;
-    }
-    return String(actual) === expected;
+  // Selector list: "a, b, c"
+  if (sel.includes(',')) {
+    return sel.split(',').some((part) => schemaChildMatchesSelector(schema, part));
   }
 
-  // Simple tag selector (e.g. select="app-list-item")
-  if (/^[a-zA-Z][\w-]*$/.test(selector.trim())) {
-    const tag = selector.trim().toLowerCase();
-    const name = String(schema?.componentName ?? '').toLowerCase();
-    return name === tag;
-  }
+  const attrs = getSchemaAttributeMap(schema);
+  const tag = String(schema?.componentName ?? '').toLowerCase();
+  const classes = new Set(getSchemaClassList(schema));
 
-  // Class / complex selectors: best-effort via a temporary element when possible
-  return false;
+  // Tokenize a compound selector: tag | .class | [attr] | [attr=value] | :pseudo
+  const tokenRe = /\[[^\]]+\]|\.[\w-]+|[a-zA-Z][\w-]*|\*|:[\w-]+(?:\([^)]*\))?/g;
+  let token: RegExpExecArray | null;
+  let saw = false;
+  while ((token = tokenRe.exec(sel))) {
+    const t = token[0];
+    saw = true;
+    if (t.startsWith('[')) {
+      if (!matchAttributeSelector(attrs, t.slice(1, -1).trim())) {
+        return false;
+      }
+    } else if (t.startsWith('.')) {
+      if (!classes.has(t.slice(1))) {
+        return false;
+      }
+    } else if (t.startsWith(':')) {
+      // Pseudo-class/element — not meaningful against schema data; ignore.
+    } else if (t !== '*') {
+      if (tag !== t.toLowerCase()) {
+        return false;
+      }
+    }
+  }
+  return saw;
 }
 
 /**
