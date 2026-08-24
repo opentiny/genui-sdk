@@ -77,8 +77,6 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       return this.emptyNodesFor(selectors.length);
     }
 
-    const buckets = this.buildStableBuckets(children, selectors);
-
     if (
       this.viewRefs.length &&
       (this.selectors.length !== selectors.length ||
@@ -86,6 +84,8 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     ) {
       this.destroyViews();
     }
+
+    const buckets = this.buildStableBuckets(children, selectors);
 
     this.selectors = selectors;
 

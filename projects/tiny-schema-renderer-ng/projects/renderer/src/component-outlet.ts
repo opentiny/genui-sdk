@@ -210,7 +210,10 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           }
         }
 
-        if (this._needToReCreateDirectiveModulesInstance(changes)) {
+        if (
+          this._needToReCreateNgModuleInstance(changes) ||
+          this._needToReCreateDirectiveModulesInstance(changes)
+        ) {
           this._recreateDirectiveModules(injector);
         }
 

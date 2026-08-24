@@ -553,10 +553,6 @@ function isTemplateRefType(value: unknown): boolean {
   return value === TemplateRef;
 }
 
-function predicatesWantTemplateRef(predicate: unknown): boolean {
-  return normalizePredicates(predicate).some(isTemplateRefType);
-}
-
 /** Pick the match for one child outlet per Angular selector / exportAs / refName rules. */
 function pickMatchForOutlet(
   outlet: ComponentOutlet,
@@ -668,19 +664,6 @@ export function resolvePatchResults(
       }
     } else {
       const match = pickMatchForTemplateEntry(item, target.predicate);
-      if (match != null) {
-        results.push(match);
-      }
-    }
-  }
-
-  // TemplateRef-only queries: fall back to all template entries when nothing matched by name.
-  if (!results.length && parentOutlet && predicatesWantTemplateRef(target.predicate)) {
-    for (const entry of entries) {
-      if (entry.kind !== 'template') {
-        continue;
-      }
-      const match = pickMatchForTemplateEntry(entry, target.predicate);
       if (match != null) {
         results.push(match);
       }

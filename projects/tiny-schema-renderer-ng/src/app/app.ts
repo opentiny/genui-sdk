@@ -22,7 +22,7 @@ export class App {
   private readonly contentChildren = inject(ContentChildrenService, { optional: true });
 
   async ngOnInit() {
-    this.schema.set(await import('../mock/schema.json').then((m) => m));
+    this.schema.set((await import('../mock/schema.json')).default);
   }
 
   /** Dev helper — call from template/console if needed. */

@@ -74,10 +74,22 @@ export class ContentChildrenService {
   }
 
   getDescendants(contentOutlet: ComponentOutlet): ComponentOutlet[] {
-    return this.getContentOutletChildren(contentOutlet).flatMap((child) => [
-      child,
-      ...this.getDescendants(child),
-    ]);
+    return this.collectDescendants(contentOutlet, new Set());
+  }
+
+  private collectDescendants(
+    contentOutlet: ComponentOutlet,
+    visited: Set<ComponentOutlet>,
+  ): ComponentOutlet[] {
+    const result: ComponentOutlet[] = [];
+    for (const child of this.getContentOutletChildren(contentOutlet)) {
+      if (visited.has(child)) {
+        continue;
+      }
+      visited.add(child);
+      result.push(child, ...this.collectDescendants(child, visited));
+    }
+    return result;
   }
 
   removeContentOutlet(contentOutlet: ComponentOutlet) {
@@ -88,11 +100,19 @@ export class ContentChildrenService {
     if (!contentOutlet) {
       return null;
     }
+    return this.buildTree(contentOutlet, new Set());
+  }
+
+  private buildTree(
+    contentOutlet: ComponentOutlet,
+    visited: Set<ComponentOutlet>,
+  ): TreeNode<ComponentOutlet> {
+    visited.add(contentOutlet);
     return {
       value: contentOutlet,
-      children: this.getContentOutletChildren(contentOutlet).map(
-        (child) => this.getTree(child)!,
-      ),
+      children: this.getContentOutletChildren(contentOutlet)
+        .filter((child) => !visited.has(child))
+        .map((child) => this.buildTree(child, visited)),
     };
   }
 
@@ -100,11 +120,19 @@ export class ContentChildrenService {
     if (!contentOutlet) {
       return null;
     }
+    return this.buildSnapshot(contentOutlet, new Set());
+  }
+
+  private buildSnapshot(
+    contentOutlet: ComponentOutlet,
+    visited: Set<ComponentOutlet>,
+  ): OutletSnapshot {
+    visited.add(contentOutlet);
     return {
       value: getComponentOutletLabel(contentOutlet),
-      children: this.getContentOutletChildren(contentOutlet).map(
-        (child) => this.serializeOutlet(child)!,
-      ),
+      children: this.getContentOutletChildren(contentOutlet)
+        .filter((child) => !visited.has(child))
+        .map((child) => this.buildSnapshot(child, visited)),
     };
   }
 

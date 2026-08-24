@@ -67,6 +67,9 @@ export class SchemaRefBinding {
     local?: SchemaLocalRefOptions,
   ): void {
     const refFn = getSchemaRefFn(bindProps);
+    if (this.activeFn && this.activeFn !== refFn) {
+      this.activeFn(null);
+    }
     this.activeFn = refFn;
     refFn?.(value);
 
@@ -91,6 +94,9 @@ export class SchemaRefBinding {
       return;
     }
     if (componentRef && next) {
+      if (this.activeFn) {
+        this.activeFn(null);
+      }
       this.activeFn = next;
       next(resolveSchemaRefValue(componentRef));
       return;

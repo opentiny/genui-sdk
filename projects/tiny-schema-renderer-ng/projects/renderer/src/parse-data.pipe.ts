@@ -10,7 +10,13 @@ export class ParseDataPipe implements PipeTransform {
   private previousValue: any = undefined;
   transform(context: Record<string, any>, props: Record<string, any>, scope: Record<string, any>, ...args: any[]): any {
     const value = parseData(props, scope, context);  //TODO: 可以提前对比 props、context、scope是否有更新
-    if (value && typeof value === 'object' && this.previousValue !== undefined) {
+    if (
+      value !== null
+      && typeof value === 'object'
+      && this.previousValue !== undefined
+      && this.previousValue !== null
+      && typeof this.previousValue === 'object'
+    ) {
       Object.keys(value).forEach((key) => { // 如果新值与旧值等价，则维持指向稳定性
         if (_.isEqual(this.previousValue[key], value[key])) {
           value[key] = this.previousValue[key];
