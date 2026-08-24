@@ -47,7 +47,6 @@ function reset(obj: any) {
     <ng-container *ngIf="!pageSchema.children?.length">
       <div loading></div>
     </ng-container>
-    <pre *ngIf="outletTreeJson" (click)="logOutletTree()">{{ outletTreeJson }}</pre>
   `,
 })
 export class RendererMain implements OnDestroy {
@@ -59,11 +58,8 @@ export class RendererMain implements OnDestroy {
   /** Page-level template scope — props.refName writes locals here (and into loop mergeScopes). */
   scope: Record<string, any> = {};
   cssScopeId: string = '';
-  /** Debug snapshot — updated after CD so template binding stays stable (NG0100). */
-  outletTreeJson = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
-  private readonly contentChildrenService = inject(ContentChildrenService, { optional: true });
 
   constructor(
     private contextService: RendererContextService,
@@ -215,10 +211,6 @@ export class RendererMain implements OnDestroy {
     } catch (error) {
       console.error('RendererMain onMounted error:', error);
     }
-  }
-
-  logOutletTree() {
-    console.log('[content-children]', this.contentChildrenService?.serializeTree());
   }
 
   public detectChanges() {
