@@ -14,6 +14,8 @@ import {
   TiDateRangeModule,
   TiFormfieldComponent,
   TiFormfieldModule,
+  TiIconComponent,
+  TiIconModule,
   TiItemComponent,
   TiModalComponent,
   TiModalModule,
@@ -57,6 +59,7 @@ const components: Record<string, Type<any>> = {
   List: ListComponent,
   ListItem: ListItemComponent,
   TiButton: TiButtonComponent,
+  TiIcon: TiIconComponent,
   TiSelect: TiSelectComponent,
   TiText: TiTextComponent,
   TiTable: TiTableComponent,
@@ -83,6 +86,7 @@ const components: Record<string, Type<any>> = {
 
 const modules: Record<string, Type<any>> = {
   TiButton: TiButtonModule,
+  TiIcon: TiIconModule,
   TiSelect: TiSelectModule,
   TiText: TiTextModule,
   TiTable: TiTableModule,

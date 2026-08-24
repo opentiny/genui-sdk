@@ -63,8 +63,6 @@ export const directiveModuleRef: Record<string, Type<any>> = {
 (RequiredValidator['ɵdir'] as any).standalone = true;
 (EmailValidator['ɵdir'] as any).standalone = true;
 
-export const iconMap: Record<string, any> = {};
-
 export const customElements: Record<string, Type<any>> = {};
 
 export const getMaterials = (context: Record<PropertyKey, any> = {}): IRendererMaterials =>
