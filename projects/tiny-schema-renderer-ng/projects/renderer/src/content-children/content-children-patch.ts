@@ -9,7 +9,13 @@ import {
 import { SIGNAL } from '@angular/core/primitives/signals';
 import { ComponentOutlet } from '../component-outlet';
 
-/** Angular 20 LView header slot for LQueries (best-effort; falls back to shape scan). */
+/**
+ * Angular 20 LView header slot for LQueries. This is a private Ivy layout detail, NOT a stable
+ * API: it can move between Angular minor versions. It is only a fast path — `findLQueries`
+ * always falls back to a structural scan of the LView array (see below), so a moved slot degrades
+ * to the scan instead of failing. The renderer is currently built against `@angular/core@^20.3.0`
+ * (resolved to 20.3.x); when bumping Angular, re-verify this index against the `LView` layout.
+ */
 const LVIEW_QUERIES_INDEX = 18;
 
 /** Angular `QueryFlags.descendants` (bit 0) — `contentChild(..., { descendants: true })`. */
@@ -855,6 +861,36 @@ export function patchOutletContentQueries(
 }
 
 /**
+ * Compiled `ɵcmp.contentQueries` source is re-parsed per class to recover `@ContentChild` field
+ * names (`ctx.foo = _t.first`). Parsing `Function.prototype.toString` is fragile against
+ * minification (which can rename `ctx`/`_t`) and Angular codegen changes, but it is the only
+ * source of field→query cardinality (metadata holds predicate/flags, not the property name).
+ * Fail closed: when the regex matches nothing, `firstProps` is empty and the caller skips
+ * field-name binding entirely (queries simply remain unpatched). Results are cached per class
+ * because this runs after every render tick.
+ */
+const contentChildFirstPropsByClass = new WeakMap<object, string[]>();
+
+function getContentChildFirstProps(instance: object): string[] {
+  const ctor = instance.constructor as object;
+  const cached = contentChildFirstPropsByClass.get(ctor);
+  if (cached) {
+    return cached;
+  }
+  const firstProps: string[] = [];
+  const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
+  if (typeof contentQueries === 'function') {
+    const src = Function.prototype.toString.call(contentQueries);
+    // `ctx.foo = _t.first` → @ContentChild
+    for (const m of src.matchAll(/ctx\.([A-Za-z_][\w$]*)\s*=\s*_t\.first/g)) {
+      firstProps.push(m[1]);
+    }
+  }
+  contentChildFirstPropsByClass.set(ctor, firstProps);
+  return firstProps;
+}
+
+/**
  * Map decorator @ContentChild QueryLists (propertyName still null) to host fields using the
  * compiled `ɵcmp.contentQueries` update assignments (`ctx.firstItem = _t.first`).
  */
@@ -862,15 +898,7 @@ function bindDecoratorQueryPropertyNames(
   instance: object,
   targets: ContentQueryPatchTarget[],
 ): void {
-  const contentQueries = (instance.constructor as any)?.ɵcmp?.contentQueries;
-  if (typeof contentQueries !== 'function') {
-    return;
-  }
-  const src = Function.prototype.toString.call(contentQueries);
-  // `ctx.foo = _t.first` → @ContentChild
-  const firstProps = [...src.matchAll(/ctx\.([A-Za-z_][\w]*)\s*=\s*_t\.first/g)].map(
-    (m) => m[1],
-  );
+  const firstProps = getContentChildFirstProps(instance);
   if (!firstProps.length) {
     return;
   }

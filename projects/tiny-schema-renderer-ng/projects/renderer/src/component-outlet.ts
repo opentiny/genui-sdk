@@ -138,6 +138,9 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     return this._componentInjector;
   }
 
+  // Memoized DI parent; rebuilt only when ngComponentOutletInjector changes.
+  private _componentParentInjector: Injector | undefined = undefined;
+
   private bindProps: Record<string, any> = {};
   private get schemaRefBridge(): SchemaRefBridge | undefined {
    // Lazy: SchemaRefDirective ↔ ComponentOutlet would cycle if injected in field initializers.
@@ -191,11 +194,15 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
       this._componentRef = undefined;
       this._componentInjector = undefined;
 
+      if (changes['ngComponentOutletInjector']) {
+        this._componentParentInjector = undefined;
+      }
+
       if (this.ngComponentOutlet) {
-        // Prefer the host element injector so directives on this `[componentOutlet]`
-        // (e.g. optional content-children track) stay in the DI tree. The schema parent
-        // chain is established via createEmbeddedView({ injector }) on RendererDirective.
-        const injector = this._viewContainerRef.injector;
+        // Parent the component on the caller injector, else the anchor's parent injector
+        // (mirrors NgComponentOutlet), so the created component stays a sibling of the anchor
+        // and [componentOutlet] host directives stay invisible to @Self/@Host.
+        const injector = this.ngComponentOutletInjector ?? this._viewContainerRef.parentInjector;
 
         if (this._needToReCreateNgModuleInstance(changes)) {
           this._moduleRef?.destroy();
@@ -203,7 +210,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           if (this.ngComponentOutletNgModule) {
             this._moduleRef = createNgModule(
               this.ngComponentOutletNgModule,
-              getParentInjector(this.ngComponentOutletInjector || injector),
+              getParentInjector(injector),
             );
           } else {
             this._moduleRef = undefined;
@@ -218,7 +225,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
         }
 
         this._componentRef = this._viewContainerRef.createComponent(this.ngComponentOutlet, {
-          injector,
+          injector: this.resolveComponentInjector(injector),
           projectableNodes: this.ngComponentOutletContent,
           environmentInjector:
             this.ngComponentOutletEnvironmentInjector ?? this._resolveEnvironmentInjector(),
@@ -253,13 +260,29 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
 
     let parent = this._moduleRef
       ? this._moduleRef.injector
-      : getParentInjector(this.ngComponentOutletInjector || injector);
+      : getParentInjector(injector);
 
     for (const module of this.ngComponentOutletDirectiveModules ?? []) {
       const ref = createNgModule(module, parent);
       this._directiveModuleRefs.push(ref);
       parent = ref.injector;
     }
+  }
+
+  /**
+   * Component DI parent (memoized). Parent on `parent`, but re-provide `ComponentOutlet` as
+   * `this` so descendant outlets' `@SkipSelf() ComponentOutlet` resolves the parent outlet —
+   * otherwise switching to parentInjector drops the anchor node injector that hosts it.
+   */
+  private resolveComponentInjector(parent: Injector): Injector {
+    if (this._componentParentInjector) {
+      return this._componentParentInjector;
+    }
+    this._componentParentInjector = Injector.create({
+      parent,
+      providers: [{ provide: ComponentOutlet, useValue: this }],
+    });
+    return this._componentParentInjector;
   }
 
   private _resolveEnvironmentInjector(): EnvironmentInjector | undefined {
