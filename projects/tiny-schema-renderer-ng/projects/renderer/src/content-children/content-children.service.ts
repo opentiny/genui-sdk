@@ -158,10 +158,42 @@ export class ContentChildrenService {
 
   /** Walk the outlet tree and patch each parent's content queries with its schema children. */
   patchAllContentQueries(): boolean {
+    // Build the child-list index once per patch pass, then traverse it, instead of
+    // rescanning `contentOutletParentMap` per descendant per outlet (superlinear before).
+    const childrenByParent = new Map<ComponentOutlet | null, ComponentOutlet[]>();
+    for (const [outlet, parent] of this.contentOutletParentMap) {
+      const list = childrenByParent.get(parent);
+      if (list) {
+        list.push(outlet);
+      } else {
+        childrenByParent.set(parent, [outlet]);
+      }
+    }
+    for (const list of childrenByParent.values()) {
+      list.sort(compareOutletSchemaOrder);
+    }
+
+    const descendantsOf = (outlet: ComponentOutlet): ComponentOutlet[] => {
+      const result: ComponentOutlet[] = [];
+      const seen = new Set<ComponentOutlet>([outlet]);
+      const visit = (o: ComponentOutlet): void => {
+        for (const child of childrenByParent.get(o) ?? []) {
+          if (seen.has(child)) {
+            continue;
+          }
+          seen.add(child);
+          result.push(child);
+          visit(child);
+        }
+      };
+      visit(outlet);
+      return result;
+    };
+
     let changed = false;
     for (const parent of this.contentOutletParentMap.keys()) {
       // descendants: true queries need refs from nested outlets too.
-      if (patchOutletContentQueries(parent, this.getDescendants(parent))) {
+      if (patchOutletContentQueries(parent, descendantsOf(parent))) {
         changed = true;
       }
     }
