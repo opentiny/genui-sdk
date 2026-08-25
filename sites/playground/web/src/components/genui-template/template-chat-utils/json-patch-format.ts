@@ -24,6 +24,26 @@ function toStandardPatchOp(item: IFormattedJsonPatchOperation): JsonPatchOp {
   return standardOp as JsonPatchOp;
 }
 
+function replaceObjectRoot(target: Record<string, unknown>, value: unknown): void {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('root replace value must be an object');
+  }
+
+  Object.keys(target).forEach((key) => {
+    delete target[key];
+  });
+  Object.assign(target, clonePlainJson(value as Record<string, unknown>));
+}
+
+function applyStandardPatchOp(target: Record<string, unknown>, operation: JsonPatchOp): void {
+  if (operation.op === 'replace' && operation.path === '') {
+    replaceObjectRoot(target, operation.value);
+    return;
+  }
+
+  jsonPatchFormatter.patch(target, [operation]);
+}
+
 export function clonePlainJson<T>(value: T | null | undefined): T | null {
   if (value === undefined || value === null) {
     return null;
@@ -71,7 +91,7 @@ function resolvePositionedOp(
 }
 
 function finalizeAbsolutePath(templeSchema: any, item: IFormattedJsonPatchOperation): boolean {
-  if (typeof item.path !== 'string' || !item.path.startsWith('/')) {
+  if (typeof item.path !== 'string' || (item.path !== '' && !item.path.startsWith('/'))) {
     return false;
   }
   try {
@@ -133,6 +153,8 @@ export const formatJsonPatch = (
     } else if (item.path) {
       item.relativePath = item.path;
       item.path = componentPath === '/' ? item.path : `${componentPath}${item.path}`;
+    } else if (item.op === 'replace' && componentPath === '/') {
+      item.path = '';
     } else {
       item.path = componentPath;
     }
@@ -142,7 +164,7 @@ export const formatJsonPatch = (
       return item;
     }
 
-    jsonPatchFormatter.patch(templeSchema, [toStandardPatchOp(item)]);
+    applyStandardPatchOp(templeSchema, toStandardPatchOp(item));
     if (!regenerateCopiedNodeIds(templeSchema, item)) {
       item.idToPath = null;
     }
@@ -170,7 +192,7 @@ export function applyJsonPatchOperations(
     if (!target) {
       return null;
     }
-    jsonPatchFormatter.patch(target, standardOperations);
+    standardOperations.forEach((operation) => applyStandardPatchOp(target, operation));
     if (standardOperations.some((op) => op.op === 'copy')) {
       generateIdForComponents(target);
     }
