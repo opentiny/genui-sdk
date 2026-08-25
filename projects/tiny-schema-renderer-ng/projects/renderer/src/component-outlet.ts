@@ -265,7 +265,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
 
     let parent = this._moduleRef
       ? this._moduleRef.injector
-      : getParentInjector(injector);
+      : (this.ngComponentOutletEnvironmentInjector ?? getParentInjector(injector));
 
     for (const module of this.ngComponentOutletDirectiveModules ?? []) {
       const ref = createNgModule(module, parent);
@@ -344,6 +344,6 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
 }
 // Helper function that returns an Injector instance of a parent NgModule.
 function getParentInjector(injector: Injector): Injector {
-  const parentNgModule = injector.get(NgModuleRef);
-  return parentNgModule.injector;
+  const parentNgModule = injector.get(NgModuleRef, null);
+  return parentNgModule ? parentNgModule.injector : injector;
 }
