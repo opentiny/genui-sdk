@@ -519,7 +519,7 @@ defineExpose({
         v-model:template-data="templateData"
         @update:template-data="handleTemplateDataUpdate"
         :showWordLimit="true"
-        :maxLength="1000"
+        :maxLength="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="abortRequest"

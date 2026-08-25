@@ -18,7 +18,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "CarouselItem",
+            "exportName": "TinyCarouselItem",
             "destructuring": true
           },
           "group": "component",
@@ -149,7 +149,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Carousel",
+            "exportName": "TinyCarousel",
             "destructuring": true
           },
           "group": "component",
@@ -1744,7 +1744,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "ButtonGroup",
+            "exportName": "TinyButtonGroup",
             "destructuring": true
           },
           "group": "component",
@@ -1900,7 +1900,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Row",
+            "exportName": "TinyRow",
             "destructuring": true
           },
           "group": "component",
@@ -2048,8 +2048,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Layout",
-            "version": "3.20.0",
+            "exportName": "TinyLayout",
             "destructuring": true
           },
           "group": "component",
@@ -2159,7 +2158,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Form",
+            "exportName": "TinyForm",
             "destructuring": true
           },
           "group": "component",
@@ -2502,7 +2501,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "FormItem",
+            "exportName": "TinyFormItem",
             "destructuring": true
           },
           "group": "component",
@@ -2631,7 +2630,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Col",
+            "exportName": "TinyCol",
             "destructuring": true
           },
           "group": "component",
@@ -2907,7 +2906,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Button",
+            "exportName": "TinyButton",
             "destructuring": true
           },
           "group": "component",
@@ -3050,6 +3049,24 @@
                     },
                     "description": {
                       "zh_CN": "设置不同的主题样式"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "icon",
+                    "type": "object",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标"
+                      }
+                    },
+                    "cols": 12,
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "按钮图标，必须使用 JSSlot 包裹 TinyIcon。正确示例：{\"type\":\"JSSlot\",\"value\":[{\"componentName\":\"TinyIcon\",\"props\":{\"name\":\"IconSearch\"}}]}。禁止直接传组件对象或使用 JSExpression。"
                     },
                     "labelPosition": "left"
                   }
@@ -3242,7 +3259,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Input",
+            "exportName": "TinyInput",
             "destructuring": true
           },
           "group": "component",
@@ -3643,7 +3660,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Radio",
+            "exportName": "TinyRadio",
             "destructuring": true
           },
           "group": "component",
@@ -3874,6 +3891,9 @@
           "keywords": "",
           "dev_mode": "proCode",
           "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinyRadioGroup",
+            "destructuring": true
           },
           "group": "component",
           "configure": {
@@ -4076,7 +4096,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Select",
+            "exportName": "TinySelect",
             "destructuring": true
           },
           "group": "component",
@@ -4479,7 +4499,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Switch",
+            "exportName": "TinySwitch",
             "destructuring": true
           },
           "group": "component",
@@ -4673,7 +4693,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Search",
+            "exportName": "TinySearch",
             "destructuring": true
           },
           "group": "component",
@@ -4940,7 +4960,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Checkbox",
+            "exportName": "TinyCheckbox",
             "destructuring": true
           },
           "group": "component",
@@ -5193,7 +5213,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "CheckboxButton",
+            "exportName": "TinyCheckboxButton",
             "destructuring": true
           },
           "group": "component",
@@ -5375,7 +5395,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "CheckboxGroup",
+            "exportName": "TinyCheckboxGroup",
             "destructuring": true
           },
           "group": "component",
@@ -5572,7 +5592,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "DialogBox",
+            "exportName": "TinyDialogBox",
             "destructuring": true
           },
           "group": "component",
@@ -5845,7 +5865,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Tabs",
+            "exportName": "TinyTabs",
             "destructuring": true
           },
           "group": "component",
@@ -6095,7 +6115,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "TabItem",
+            "exportName": "TinyTabItem",
             "destructuring": true
           },
           "group": "component",
@@ -6202,7 +6222,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Breadcrumb",
+            "exportName": "TinyBreadcrumb",
             "destructuring": true
           },
           "group": "component",
@@ -6338,7 +6358,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "BreadcrumbItem",
+            "exportName": "TinyBreadcrumbItem",
             "destructuring": true
           },
           "group": "component",
@@ -6425,7 +6445,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Collapse",
+            "exportName": "TinyCollapse",
             "destructuring": true
           },
           "group": "component",
@@ -6546,7 +6566,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "CollapseItem",
+            "exportName": "TinyCollapseItem",
             "destructuring": true
           },
           "group": "component",
@@ -6655,7 +6675,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Grid",
+            "exportName": "TinyGrid",
             "destructuring": true
           },
           "group": "component",
@@ -7561,7 +7581,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Pager",
+            "exportName": "TinyPager",
             "destructuring": true
           },
           "group": "component",
@@ -7785,7 +7805,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Popeditor",
+            "exportName": "TinyPopeditor",
             "destructuring": true
           },
           "group": "component",
@@ -8158,7 +8178,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Tree",
+            "exportName": "TinyTree",
             "destructuring": true
           },
           "group": "component",
@@ -8474,7 +8494,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "TimeLine",
+            "exportName": "TinyTimeLine",
             "destructuring": true
           },
           "group": "component",
@@ -8627,7 +8647,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Tooltip",
+            "exportName": "TinyTooltip",
             "destructuring": true
           },
           "group": "component",
@@ -8843,7 +8863,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Popover",
+            "exportName": "TinyPopover",
             "destructuring": true
           },
           "group": "component",
@@ -9332,6 +9352,9 @@
           "keywords": "",
           "dev_mode": "proCode",
           "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinyCard",
+            "destructuring": true
           },
           "group": "component",
           "configure": {
@@ -9422,7 +9445,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "DatePicker",
+            "exportName": "TinyDatePicker",
             "destructuring": true
           },
           "group": "component",
@@ -9824,7 +9847,7 @@
           "devMode": "proCode",
           "npm": {
             "package": "@opentiny/vue",
-            "exportName": "Numeric",
+            "exportName": "TinyNumeric",
             "destructuring": true
           },
           "group": "component",

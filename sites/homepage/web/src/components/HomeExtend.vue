@@ -278,8 +278,9 @@ onUnmounted(() => {
         </div>
         <a
           class="home-extend-schema-header-subtitle is-link"
-          :href="linkMap[LinkKey.Playground] + inputMessage"
+          :href="linkMap[LinkKey.PlaygroundBuilder] + inputMessage"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <span>{{ t('extend.tryPlayground') }}</span>
           <tiny-icon-arrow-right />

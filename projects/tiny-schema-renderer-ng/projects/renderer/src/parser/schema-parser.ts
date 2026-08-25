@@ -1,4 +1,4 @@
-import { getComponent, iconMap } from './material-getter';
+import { getComponent } from './material-getter';
 import { newFn } from './parser-utils';
 // import { renderDefault } from '../renderer';
 import { Notify } from './notify';
@@ -174,7 +174,6 @@ export const parseLoopArgs = (_loop: any) => {
   }
   return undefined;
 };
-export const getIcon = (name: string) => iconMap[name]?.() || '';
 const parseObjectData = (data: any, scope: any, ctx: any) => {
   if (!data) {
     return data;
@@ -185,10 +184,6 @@ const parseObjectData = (data: any, scope: any, ctx: any) => {
     return parseData(data.defaultValue, scope, ctx);
   }
 
-  // 解析通过属性传递icon图标组件
-  if (data.componentName === 'Icon') {
-    return getIcon(data.props.name);
-  }
   const res: Record<string, any> = {};
   Object.entries(data).forEach(([key, value]) => {
     // 如果是插槽则需要进行特殊处理
