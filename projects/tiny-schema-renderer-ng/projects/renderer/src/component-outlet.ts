@@ -237,6 +237,11 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
         });
         this._componentInjector = this._componentRef.injector;
         this.schemaRefBridge?.attach(this._componentRef);
+      } else {
+        this._directiveModuleRefs.forEach((ref) => ref.destroy());
+        this._directiveModuleRefs = [];
+        this._moduleRef?.destroy();
+        this._moduleRef = undefined;
       }
     }
   }

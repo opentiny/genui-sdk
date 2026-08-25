@@ -115,15 +115,21 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       }
       const prevChildren = viewRef.context?.children;
       const prevScope = viewRef.context?.scope;
+      const prevSlotIndexes = viewRef.context?.slotIndexes;
       const nextChildren = buckets[i];
       const nextScope = context['scope'];
-      if (sameBucketChildren(prevChildren, nextChildren) && prevScope === nextScope) {
+      const nextSlotIndexes = this.indexCache[i];
+      if (
+        sameBucketChildren(prevChildren, nextChildren) &&
+        sameBucketChildren(prevSlotIndexes, nextSlotIndexes) &&
+        prevScope === nextScope
+      ) {
         continue;
       }
       Object.assign(viewRef.context, {
         ...context,
         children: nextChildren,
-        slotIndexes: this.indexCache[i],
+        slotIndexes: nextSlotIndexes,
       });
       // No detectChanges — let the attached view refresh on the normal CD pass.
     }
@@ -186,21 +192,19 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     }
 
     const stabilized: any[] = [];
-    const stabilizedIndexes: number[][] = [];
     for (let i = 0; i < next.length; i++) {
-      const prev = this.bucketCache[i];
-      if (sameBucketChildren(prev, next[i])) {
-        stabilized[i] = prev;
-        stabilizedIndexes[i] = this.indexCache[i] ?? nextIndexes[i];
+      // Keep bucket identity stable to avoid view churn, but always refresh the slot
+      // indexes — a sibling-slot insert shifts every slot's global child index.
+      if (sameBucketChildren(this.bucketCache[i], next[i])) {
+        stabilized[i] = this.bucketCache[i];
       } else {
         stabilized[i] = next[i];
-        stabilizedIndexes[i] = nextIndexes[i];
         this.bucketCache[i] = next[i];
-        this.indexCache[i] = nextIndexes[i];
       }
+      this.indexCache[i] = nextIndexes[i];
     }
     this.bucketCache.length = stabilized.length;
-    this.indexCache.length = stabilizedIndexes.length;
+    this.indexCache.length = next.length;
     return stabilized;
   }
 

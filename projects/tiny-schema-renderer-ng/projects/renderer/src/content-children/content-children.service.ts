@@ -74,7 +74,8 @@ export class ContentChildrenService {
   }
 
   getDescendants(contentOutlet: ComponentOutlet): ComponentOutlet[] {
-    return this.collectDescendants(contentOutlet, new Set());
+    // Seed the root so a self/ancestor cycle (A→A or A→B→A) can't return the root itself.
+    return this.collectDescendants(contentOutlet, new Set([contentOutlet]));
   }
 
   private collectDescendants(
