@@ -81,7 +81,7 @@ const handleSetFramework = (name) => {
       </tiny-radio-group>
     </div>
 
-    <template v-if="framework === 'Vue'">
+    <template v-if="framework === 'Vue' && componentLib === 'TinyVue'">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
         <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
