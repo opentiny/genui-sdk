@@ -39,6 +39,40 @@ function getSchemaClassList(schema: any): string[] {
   return [];
 }
 
+/** Split a selector list on top-level commas (ignores commas inside `()` / `[]`). */
+function splitSelectorList(selector: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let current = '';
+  for (const ch of selector) {
+    if (ch === '(' || ch === '[') {
+      depth++;
+    } else if (ch === ')' || ch === ']') {
+      depth--;
+    }
+    if (ch === ',' && depth === 0) {
+      parts.push(current.trim());
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+  parts.push(current.trim());
+  return parts.filter(Boolean);
+}
+
+/** True when `selector` contains a pseudo-class other than a supported `:not(...)`. */
+function hasUnsupportedPseudo(selector: string): boolean {
+  const pseudoRe = /:[\w-]+(?:\([^)]*\))?/g;
+  let m: RegExpExecArray | null;
+  while ((m = pseudoRe.exec(selector))) {
+    if (!/^:not\(/i.test(m[0])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Evaluate one `[attr]` / `[attr=value]` token against the schema attribute map. */
 function matchAttributeSelector(attrs: Record<string, unknown>, body: string): boolean {
   const eq = body.indexOf('=');
@@ -75,7 +109,7 @@ export function schemaChildMatchesSelector(schema: any, selector: string): boole
 
   // Selector list: "a, b, c"
   if (sel.includes(',')) {
-    return sel.split(',').some((part) => schemaChildMatchesSelector(schema, part));
+    return splitSelectorList(sel).some((part) => schemaChildMatchesSelector(schema, part));
   }
 
   const attrs = getSchemaAttributeMap(schema);
@@ -98,7 +132,19 @@ export function schemaChildMatchesSelector(schema: any, selector: string): boole
         return false;
       }
     } else if (t.startsWith(':')) {
-      // Pseudo-class/element — not meaningful against schema data; ignore.
+      const not = /^:not\(([\s\S]*)\)$/i.exec(t);
+      if (not) {
+        const inner = not[1].trim();
+        // Unsupported nested selector / pseudo (e.g. `:not(:hover)`) — reject the whole selector.
+        if (!inner || hasUnsupportedPseudo(inner)) {
+          return false;
+        }
+        // `:not(X)` matches when X does not match.
+        if (schemaChildMatchesSelector(schema, inner)) {
+          return false;
+        }
+      }
+      // Other pseudo-classes/elements are outside the supported contract — ignore.
     } else if (t !== '*') {
       if (tag !== t.toLowerCase()) {
         return false;
