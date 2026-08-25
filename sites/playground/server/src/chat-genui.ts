@@ -275,7 +275,7 @@ export function createChatGenui() {
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
     const { mcpServers, framework, componentLib, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
-    const materialConfig = { framework, promptVariant, componentLib };
+    const materialConfig = { promptVariant, componentLib };
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -322,7 +322,7 @@ export function createChatGenui() {
       model,
       temperature,
       system:
-        genPlaygroundPrompt(materialConfig, tgCustomConfig) +
+        genPlaygroundPrompt(framework, materialConfig, tgCustomConfig) +
         '\n' +
         specificPrompt +
         '\n' +

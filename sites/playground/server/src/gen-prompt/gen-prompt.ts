@@ -9,7 +9,7 @@ import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
-type IComponentLibKey = 'TinyVue' | 'Element' | 'TinyNg';
+type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
 type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
@@ -17,7 +17,6 @@ type IMetaMap = Partial<Record<IFrameworkKey, ILibMap<IMaterialsMeta>>>;
 type IOptionsMap = Partial<Record<IFrameworkKey, IVariantMap<IGenPromptOptions>>>;
 
 interface IPlaygroundMaterialConfig {
-  framework: IFrameworkKey;
   promptVariant: IMaterialsMetaVariantKey | undefined;
   componentLib?: IComponentLibKey | string;
 }
@@ -28,7 +27,7 @@ const metaMap: IMetaMap = {
       mini: miniMaterialsMeta,
       standard: materialsMeta,
     },
-    Element: {
+    ElementPlus: {
       mini: epMaterialsMeta,
       standard: epMaterialsMeta,
     },
@@ -48,10 +47,11 @@ const optionsMap: IOptionsMap = {
 };
 
 export function genPlaygroundPrompt(
+  framework: IFrameworkKey,
   materialConfig: IPlaygroundMaterialConfig,
   tgCustomConfig?: IGenPromptCustomConfig,
 ) {
-  const { framework, promptVariant, componentLib } = materialConfig;
+  const { promptVariant, componentLib } = materialConfig;
   const variant = promptVariant || 'standard';
   const libKey = componentLib as IComponentLibKey;
 

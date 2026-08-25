@@ -99,7 +99,7 @@ export const createChatTemplate = () => {
       const openApiBuiltTools = await buildOpenApiTools(openApiTools);
       const tools = { ...openApiBuiltTools, ...mcpTools };
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt({framework, promptVariant, componentLib}, tgCustomConfig)}
+      const systemPrompt = `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;
