@@ -23,6 +23,22 @@ function validateOperation(operation: any): boolean {
     return false;
   }
 
+  if (
+    operation.op === 'replace' &&
+    operation.path === undefined &&
+    (
+      !operation.value ||
+      typeof operation.value !== 'object' ||
+      Array.isArray(operation.value) ||
+      typeof operation.value.componentName !== 'string' ||
+      operation.value.componentName.length === 0 ||
+      typeof operation.value.id !== 'string' ||
+      operation.value.id.length === 0
+    )
+  ) {
+    return false;
+  }
+
   return true;
 }
 

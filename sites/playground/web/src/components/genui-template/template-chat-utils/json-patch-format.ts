@@ -3,6 +3,7 @@ import type { JsonPatchOp } from 'jsondiffpatch/formatters/jsonpatch-apply';
 import { t } from '../../../i18n';
 import {
   findComponentPath,
+  getComponentItem,
   getPositionRelativePath,
   mergePath,
   resolveJsonPointerAppendSentinel,
@@ -82,6 +83,32 @@ function finalizeAbsolutePath(templeSchema: any, item: IFormattedJsonPatchOperat
   }
 }
 
+function regenerateCopiedNodeIds(templeSchema: any, item: IFormattedJsonPatchOperation): boolean {
+  if (item.op !== 'copy' || typeof item.path !== 'string') {
+    return true;
+  }
+
+  const copiedNode = getComponentItem(templeSchema, item.path).node;
+  if (!copiedNode) {
+    return false;
+  }
+
+  const resetIds = (node: any) => {
+    if (!node || typeof node !== 'object') {
+      return;
+    }
+
+    delete node.id;
+    if (Array.isArray(node.children)) {
+      node.children.forEach(resetIds);
+    }
+  };
+
+  resetIds(copiedNode);
+  generateIdForComponents(copiedNode);
+  return true;
+}
+
 export const formatJsonPatch = (
   currentSchema: any,
   value: any[],
@@ -116,6 +143,9 @@ export const formatJsonPatch = (
     }
 
     jsonPatchFormatter.patch(templeSchema, [toStandardPatchOp(item)]);
+    if (!regenerateCopiedNodeIds(templeSchema, item)) {
+      item.idToPath = null;
+    }
 
     return item;
   });

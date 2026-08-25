@@ -166,7 +166,8 @@ export function getPositionRelativePath(
     }
     return `../${anchorIndex + 1}`;
   } else if (position === 'inside') {
-    const children = schema ? getComponentItem(schema, componentPath).node?.children : [];
+    const anchorNode = componentPath === '/' ? schema : getComponentItem(schema, componentPath).node;
+    const children = anchorNode?.children;
     if (!Array.isArray(children)) {
       return undefined;
     }
