@@ -19,6 +19,10 @@ function validateOperation(operation: any): boolean {
     return false;
   }
 
+  if ((operation.op === 'move' || operation.op === 'copy') && operation.id === operation.positionId) {
+    return false;
+  }
+
   return true;
 }
 

@@ -5,7 +5,7 @@ import { z } from 'zod';
  * 运行时再合成绝对 path，落到标准 RFC 6902。
  */
 
-/** 解码 JSON Pointer 各段（处理 ~0 / ~1） */
+/** 解码 JSON Pointer 各段（处理 ~0 / ~1）；server schema 的相对 path 校验不接受根 pointer `/`。 */
 function decodePointerSegments(pointer: string): string[] {
   if (pointer === '') return [];
   return pointer
@@ -62,6 +62,13 @@ const jsonPatchValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonPatchValueSchema), z.record(jsonPatchValueSchema)]),
 );
 
+const componentNodeValueSchema = z
+  .object({
+    componentName: z.string().min(1),
+    id: z.string().min(1),
+  })
+  .passthrough();
+
 /**
  * JSON Patch 操作集：RFC 6902 语法 + 组件 id 定位扩展。
  * copy 与 move 同形（整节点 + positionId/position）；不包含 test。
@@ -108,6 +115,20 @@ const replaceOperation = z
     value: jsonPatchValueSchema.describe('The new value.'),
   })
   .strict()
+  .superRefine((operation, ctx) => {
+    if (operation.path !== undefined) {
+      return;
+    }
+
+    const componentResult = componentNodeValueSchema.safeParse(operation.value);
+    if (!componentResult.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['value'],
+        message: 'Whole-node replace requires value to be a component node with componentName and id.',
+      });
+    }
+  })
   .describe('Replaces the target node (no `path`) or a specific property/array item under it (with `path`) with the new value.');
 
 const movePositionSchema = z.enum(['before', 'after', 'inside']).describe('Relative insertion position to positionId.');
@@ -123,6 +144,10 @@ const moveOperation = z
     position: movePositionSchema,
   })
   .strict()
+  .refine((operation) => operation.id !== operation.positionId, {
+    message: '`id` and `positionId` must differ for move.',
+    path: ['positionId'],
+  })
   .describe(
     'Moves component `id` relative to `positionId` by `position`. Runtime derives standard from/path; do not send from/path.',
   );
@@ -138,6 +163,10 @@ const copyOperation = z
     position: movePositionSchema,
   })
   .strict()
+  .refine((operation) => operation.id !== operation.positionId, {
+    message: '`id` and `positionId` must differ for copy.',
+    path: ['positionId'],
+  })
   .describe(
     'Copies component `id` relative to `positionId` by `position` (same positioning as move). Runtime derives standard from/path and regenerates ids on the clone; do not send from/path.',
   );
@@ -145,7 +174,7 @@ const copyOperation = z
 /**
  * 最终导出的「JSON Patch 风格」操作 Schema（RFC 6902 基础 + 组件定向扩展）
  */
-export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
+export const jsonPatchOperationSchema = z.union([
   addOperation,
   removeOperation,
   replaceOperation,

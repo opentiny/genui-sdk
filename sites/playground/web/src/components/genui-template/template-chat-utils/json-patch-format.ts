@@ -36,6 +36,10 @@ function resolvePositionedOp(
   adjustForSourceRemoval: boolean,
 ): boolean {
   const { id, position, positionId } = item;
+  if (!id || id === positionId) {
+    return false;
+  }
+
   if (id) {
     item.from = findComponentPath(templeSchema, id) ?? undefined;
   }
@@ -112,9 +116,6 @@ export const formatJsonPatch = (
     }
 
     jsonPatchFormatter.patch(templeSchema, [toStandardPatchOp(item)]);
-    if (item.op === 'copy') {
-      generateIdForComponents(templeSchema);
-    }
 
     return item;
   });
