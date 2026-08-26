@@ -23,7 +23,7 @@ const {
 } = usePlaygroundViewContext();
 
 const setChatRef = (el) => {
-  if (el) chat.value = el;
+  chat.value = el || null;
 };
 
 const rendererSlots = {
