@@ -2,48 +2,49 @@ import {
   type IMaterialsTheme,
   type ThemeApplyContext,
   type ThemeApplyResult,
+  type ThemeColorScheme,
   type ThemeDescriptor,
 } from '@opentiny/genui-sdk-core';
+import { defineComponent, h, ref } from 'vue';
+
+const darkFlag = ref(false);
+
+const ElementPlusThemeRoot = defineComponent({
+  name: 'ElementPlusThemeRoot',
+  setup(_, { slots }) {
+    return () =>
+      h('div', { class: { dark: darkFlag.value }, style: { height: '100%' } }, slots.default?.());
+  },
+});
 
 const themes: ThemeDescriptor[] = [
-  { id: 'light', label: '浅色', colorScheme: 'light' },
-  { id: 'dark', label: '深色', colorScheme: 'dark' },
+  { id: 'light', colorScheme: 'light' },
+  { id: 'dark', colorScheme: 'dark' },
 ];
 
-const DARK_CLASS = 'dark';
-
-function getScopeElement(ctx: ThemeApplyContext) {
-  return ctx.rootEl ?? (typeof document !== 'undefined' ? document.getElementById(ctx.scopeId) : null);
-}
-
-function resolveThemeId(theme: string, ctx: ThemeApplyContext) {
-  if (themes.some((item) => item.id === theme)) {
-    return theme;
-  }
-  return ctx.colorScheme ?? ctx.systemColorScheme;
+function resolveDescriptor(
+  theme: string,
+  systemColorScheme: ThemeColorScheme,
+): ThemeDescriptor {
+  return (
+    themes.find((item) => item.id === theme) ?? {
+      id: systemColorScheme,
+      colorScheme: systemColorScheme,
+    }
+  );
 }
 
 export function createElementPlusMaterialsTheme(): IMaterialsTheme {
   return {
     themes,
     apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
-      const id = resolveThemeId(theme, ctx);
-      const el = getScopeElement(ctx);
-      if (!el) {
-        return { id, dispose: () => {} };
-      }
-
-      if (id === 'dark') {
-        el.classList.add(DARK_CLASS);
-      } else {
-        el.classList.remove(DARK_CLASS);
-      }
-
+      const descriptor = resolveDescriptor(theme, ctx.systemColorScheme);
+      // dark 状态写入模块级 ref，Root 渲染时按需打 class（副作用收拢在 Root，apply 无 DOM 副作用）
+      darkFlag.value = descriptor.colorScheme === 'dark';
       return {
-        id,
-        dispose: () => {
-          el.classList.remove(DARK_CLASS);
-        },
+        descriptor,
+        Root: ElementPlusThemeRoot,
+        dispose: () => {},
       };
     },
   };

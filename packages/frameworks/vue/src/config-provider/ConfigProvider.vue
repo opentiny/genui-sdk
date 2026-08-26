@@ -3,11 +3,8 @@ import { ThemeProvider } from '@opentiny/tiny-robot';
 import {
   type IMaterials,
   type IMaterialsTheme,
-  type ThemeApplyContext,
   type ThemeApplyResult,
   type ThemeColorScheme,
-  type ThemeRootProps,
-  resolveColorSchemeFromApplied,
 } from '@opentiny/genui-sdk-core';
 import {
   watch,
@@ -81,30 +78,23 @@ watch(
   { immediate: true },
 );
 
-const rootRef = ref();
-const rootInstances = shallowRef<unknown[]>([]);
-const themeRootProps = ref<ThemeRootProps[]>([]);
+const ThemeRoots = defineComponent({
+  name: 'ThemeRoots',
+  props: {
+    roots: { type: Array as PropType<Component[]>, required: true },
+  },
+  setup(props, { slots }) {
+    return () => {
+      const children = slots.default?.() ?? [];
+      return props.roots.reduceRight<VNode | VNode[]>(
+        (acc, root) => h(root, {}, () => acc),
+        children,
+      );
+    };
+  },
+});
 
-function resolveRootEl(value: unknown): HTMLElement | null {
-  if (!value) {
-    return null;
-  }
-  if (value instanceof HTMLElement) {
-    return value;
-  }
-  const el = (value as { $el?: unknown }).$el;
-  return el instanceof HTMLElement ? el : null;
-}
-
-function setRootInstance(index: number, instance: unknown) {
-  const next = instance || undefined;
-  if (rootInstances.value[index] === next) {
-    return;
-  }
-  const arr = [...rootInstances.value];
-  arr[index] = next;
-  rootInstances.value = arr;
-}
+const themeRoots = shallowRef<Component[]>([]);
 
 let applied: ThemeApplyResult[] = [];
 
@@ -115,70 +105,32 @@ function clearTheme() {
 }
 
 watch(
-  () => [materialThemes.value, theme.value, mediaTheme.value, props.id, rootRef.value, rootInstances.value] as const,
-  ([apis, themeValue, systemColorScheme, scopeId, root, instances]) => {
+  () => [materialThemes.value, theme.value, mediaTheme.value, props.id] as const,
+  ([apis, themeValue, systemColorScheme]) => {
     clearTheme();
-    const rootEl = resolveRootEl(root);
-    const claimedScheme = apis
-      .flatMap((api) => api.themes ?? [])
-      .find((item) => item.id === themeValue)?.colorScheme;
-    const next: { themes?: IMaterialsTheme['themes']; id: string }[] = [];
-    const computedProps: ThemeRootProps[] = [];
+    // 原始 theme（含 auto）原样下发，物料用 ctx.systemColorScheme 自行解析
+    const results: ThemeApplyResult[] = [];
+    const roots: Component[] = [];
 
-    for (const [index, api] of apis.entries()) {
-      const ctx = {
-        scopeId,
-        rootEl,
-        systemColorScheme,
-        colorScheme: claimedScheme,
-        rootInstance: instances[index],
-      };
-      const result = api.apply(themeValue, ctx);
-      computedProps[index] = result.props ?? {};
+    for (const api of apis) {
+      const result = api.apply(themeValue, { systemColorScheme });
+      if (result.Root) {
+        roots.push(result.Root as Component);
+      }
+      results.push(result);
       applied.push(result);
-      next.push({ themes: api.themes, id: result.id });
     }
 
-    themeRootProps.value = computedProps;
-    colorScheme.value = resolveColorSchemeFromApplied(next, systemColorScheme);
+    themeRoots.value = roots;
+    // 取第一个声明了 colorScheme 的落地结果（first-wins），否则跟随系统
+    colorScheme.value =
+      results.find((result) => result.descriptor.colorScheme)?.descriptor.colorScheme ??
+      systemColorScheme;
   },
   { immediate: true },
 );
 
 onBeforeUnmount(clearTheme);
-
-const ThemeRoots = defineComponent({
-  name: 'ThemeRoots',
-  props: {
-    roots: { type: Array as PropType<Component[]>, required: true },
-    rootPropsList: { type: Array as PropType<ThemeRootProps[]>, required: true },
-    onRootInstance: { type: Function as PropType<(index: number, instance: unknown) => void>, required: true },
-  },
-  setup(props, { slots }) {
-    return () => {
-      const children = slots.default?.() ?? [];
-      if (!props.roots.length) {
-        return children;
-      }
-      return props.roots.reduceRight<VNode | VNode[]>(
-        (acc, root, index) =>
-          h(root, { ...(props.rootPropsList[index] ?? {}), ref: (el) => props.onRootInstance(index, el) }, () => acc),
-        children,
-      );
-    };
-  },
-});
-
-const PassthroughRoot = defineComponent({
-  name: 'PassthroughRoot',
-  setup(_, { slots }) {
-    return () => slots.default?.() ?? [];
-  },
-});
-
-const themeRoots = computed<Component[]>(() =>
-  materialThemes.value.map((api) => (api.Root ? (api.Root as Component) : PassthroughRoot)),
-);
 
 const robotProviderProps = computed(() => ({
   colorMode: colorScheme.value,
@@ -187,9 +139,9 @@ const robotProviderProps = computed(() => ({
 </script>
 
 <template>
-  <div :id="props.id" class="tg-config-provider" ref="rootRef">
+  <div :id="props.id" class="tg-config-provider">
     <ThemeProvider v-bind="robotProviderProps">
-      <ThemeRoots :roots="themeRoots" :root-props-list="themeRootProps" :on-root-instance="setRootInstance">
+      <ThemeRoots :roots="themeRoots">
         <slot />
       </ThemeRoots>
     </ThemeProvider>

@@ -2,64 +2,55 @@ import {
   type IMaterialsTheme,
   type ThemeApplyContext,
   type ThemeApplyResult,
+  type ThemeColorScheme,
   type ThemeDescriptor,
 } from '@opentiny/genui-sdk-core';
-import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { OpenTinyThemeRoot } from './ThemeRoot';
+import { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
+import { OpenTinyThemeRoot, setOpenTinyThemeState } from './ThemeRoot';
 
 const themes: ThemeDescriptor[] = [
-  { id: 'light', label: '浅色', colorScheme: 'light' },
-  { id: 'dark', label: '深色', colorScheme: 'dark' },
-  { id: 'lite', label: '清新', colorScheme: 'light' },
+  { id: 'light', colorScheme: 'light' },
+  { id: 'dark', colorScheme: 'dark' },
+  { id: 'lite', colorScheme: 'light' },
 ];
 
-function transformTheme(themeConfig: { css?: string }, scopeId: string) {
-  const next = structuredClone(themeConfig) as { css: string };
-  next.css = (next.css || '').split(':host').join(`#${scopeId}`).split(':root').join(`#${scopeId}`);
-  return next;
+function resolveDescriptor(
+  theme: string,
+  systemColorScheme: ThemeColorScheme,
+): ThemeDescriptor {
+  return (
+    themes.find((item) => item.id === theme) ?? {
+      id: systemColorScheme,
+      colorScheme: systemColorScheme,
+    }
+  );
 }
 
-function buildThemeConfig(themeId: string, scopeId: string) {
+// 只取 css 部分（data 品牌色由 Root 按 colorScheme 自行生成），作用域改写由 Root 完成
+function buildThemeConfig(themeId: string): { css: string } {
   if (themeId === 'dark') {
-    return transformTheme(tinyDarkTheme, scopeId);
+    return { css: tinyDarkTheme.css };
   }
   if (themeId === 'lite') {
-    return transformTheme(tinyOldTheme, scopeId);
+    return { css: tinyOldTheme.css };
   }
   return { css: ' ' };
-}
-
-function resolveThemeId(theme: string, ctx: ThemeApplyContext) {
-  if (themes.some((item) => item.id === theme)) {
-    return theme;
-  }
-  return ctx.colorScheme ?? ctx.systemColorScheme;
 }
 
 export function createOpenTinyMaterialsTheme(): IMaterialsTheme {
   return {
     themes,
-    Root: OpenTinyThemeRoot,
     apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
-      const id = resolveThemeId(theme, ctx);
-      const themeTool = new ThemeTool();
-      themeTool.changeTheme(buildThemeConfig(id, ctx.scopeId));
-      // 通过 Root 实例句柄调用其暴露的方法
-      const instance = ctx.rootInstance as { setColorScheme?: (scheme: 'light' | 'dark') => void } | undefined;
-      instance?.setColorScheme?.(id === 'dark' ? 'dark' : 'light');
+      const descriptor = resolveDescriptor(theme, ctx.systemColorScheme);
+      // 主题数据喂给 Root（模块级状态），Root 内部响应式注入/清理，apply 无副作用
+      setOpenTinyThemeState({
+        themeConfig: buildThemeConfig(descriptor.id),
+        colorScheme: descriptor.colorScheme ?? 'light',
+      });
       return {
-        id,
-        // 渲染后动态下发给 Root 组件的 props（TinyConfigProvider 对 theme 有响应式 watch）
-        props: {
-          theme: {
-            data: {
-              'tv-base-color-brand': id === 'dark' ? '#B3B3B3' : '#1476ff',
-            },
-          },
-        },
-        dispose: () => {
-          themeTool.changeTheme({ css: ' ' });
-        },
+        descriptor,
+        Root: OpenTinyThemeRoot,
+        dispose: () => {},
       };
     },
   };
