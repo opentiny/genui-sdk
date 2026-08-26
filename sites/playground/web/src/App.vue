@@ -380,7 +380,7 @@ onUnmounted(() => {
       @update-custom-examples="updateCustomExamples"
     >
       <router-view v-slot="{ Component }">
-        <keep-alive>
+        <keep-alive :include="['BuilderView']">
           <component :is="Component" />
         </keep-alive>
       </router-view>

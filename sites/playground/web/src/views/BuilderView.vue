@@ -3,6 +3,8 @@ import { defineAsyncComponent } from 'vue';
 import PlaygroundViewShell from './PlaygroundViewShell.vue';
 import { usePlaygroundViewContext } from './usePlaygroundViewContext';
 
+defineOptions({ name: 'BuilderView' });
+
 const GenuiTemplate = defineAsyncComponent(() => import('../components/genui-template/GenuiTemplate.vue'));
 
 const { theme, llmConfig, chatConfig } = usePlaygroundViewContext();

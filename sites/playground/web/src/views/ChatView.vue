@@ -7,6 +7,8 @@ import { locale, t } from '../i18n';
 import PlaygroundViewShell from './PlaygroundViewShell.vue';
 import { usePlaygroundViewContext } from './usePlaygroundViewContext';
 
+defineOptions({ name: 'ChatView' });
+
 const {
   theme,
   llmConfig,
