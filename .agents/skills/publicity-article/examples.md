@@ -11,7 +11,7 @@
 1. `这次更新太良心！GenUI SDK v1.2.0 轻量化 + 稳流式 + 超强 Playground`
 2. `GenUI SDK v1.2.0：按需引入、流式更稳，Playground 全面升级`
 
-```markdown
+````markdown
 ## 前言
 
 GenUI SDK 是 OpenTiny 团队基于生成式 UI 理念打造的解决方案……
@@ -69,7 +69,7 @@ import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer'
 
 ## 关于 OpenTiny NEXT
 ……
-```
+````
 
 ## 示例 B：体验 + 稳定性文（对齐 v1.1.0）
 

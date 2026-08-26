@@ -16,15 +16,14 @@ description: >-
 
 分工：本文件只写**流程**；文风、固定文案、各章节写法与禁忌以 [style-guide.md](style-guide.md) 为唯一事实源；成稿骨架见 [examples.md](examples.md)。三者内容不互相重复。
 
-```
 进度：
+
 - [ ] 1. 确认版本与素材，筛选有价值变更
 - [ ] 2. 核实代码事实（包名 / 导出 / 子路径 / API 签名）
 - [ ] 3. 提炼主题方向
 - [ ] 4. 拟定标题与导语
 - [ ] 5. 撰写全文并写入 publicity-article.md
 - [ ] 6. 终稿自检 + 输出配图清单
-```
 
 ## Step 1：确认版本与素材
 
@@ -57,7 +56,7 @@ cat packages/materials/vue-element-plus/package.json   # 看 exports map
 两条红线：
 
 1. 未在源码确认的 API / 包名 / 子路径**不得写入代码示例**，改为文字描述或标「以实际版本为准」
-2. **未发布 / 未合并的能力不写**。「已发布」要能在 npm 查到（`npm view <pkg> version`）；仓库里只有构建产物、查无源码与发包记录的，一律不提
+2. **未发布 / 未合并的能力不写**。「已发布」要能按目标版本在 npm 查到：`npm view <pkg>@<target-version> version`（不带版本号会默认取 `latest`，可能落后于目标版本），并核对目标版本的 `exports` / 包内文件确认确实发布了该能力；仓库里只有构建产物、查无源码与发包记录的，一律不提
 
 ## Step 3：提炼主题方向
 
@@ -99,7 +98,7 @@ cat packages/materials/vue-element-plus/package.json   # 看 exports map
 
 分寸感：面向接入方的章节（Core、物料、渲染器）可以贴 API 与代码；面向体验方的章节（Playground 等）只讲「有什么特性、怎么用」，不讲实现机制与内部命名。
 
-成稿写入仓库根目录 `publicity-article.md`（覆盖同名文件；用户的修改意见同步回写）。
+成稿写入仓库根目录 `publicity-article.md`：文件不存在时新建；已存在时（可能是上次草稿或用户改过）先读一遍，把用户手写/手改过的内容并入新稿，**未经用户确认不得整体覆盖**；用户提出的修改意见在后续迭代中同步回写。
 
 ## Step 6：终稿自检与交付
 
