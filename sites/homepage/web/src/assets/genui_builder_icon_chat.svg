@@ -1,0 +1,11 @@
+<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none">
+  <rect width="32" height="32" rx="8" fill="url(#builder_chat_grad)"/>
+  <path d="M8.5 10.5C8.5 9.67 9.17 9 10 9H14.5C14.78 9 15.04 9.11 15.23 9.3L16.7 10.77C16.89 10.96 17.15 11.07 17.43 11.07H22C22.83 11.07 23.5 11.74 23.5 12.57V20.5C23.5 21.33 22.83 22 22 22H10C9.17 22 8.5 21.33 8.5 20.5V10.5Z" stroke="#fff" stroke-width="1.2" fill="none"/>
+  <path d="M12 15.5L14 17.5L20 11.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <linearGradient id="builder_chat_grad" x1="16" y1="0" x2="16" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1476FF"/>
+      <stop offset="1" stop-color="#4191FA"/>
+    </linearGradient>
+  </defs>
+</svg>

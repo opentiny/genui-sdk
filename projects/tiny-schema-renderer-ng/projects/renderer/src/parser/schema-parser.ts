@@ -1,4 +1,4 @@
-import { getComponent, iconMap } from './material-getter';
+import { getComponent } from './material-getter';
 import { newFn } from './parser-utils';
 // import { renderDefault } from '../renderer';
 import { Notify } from './notify';
@@ -99,6 +99,45 @@ const parseFunctionString = (fnStr: string) => {
   return null;
 };
 
+export const generateFn = (innerFn: Function, context: any) => {
+  return (...args: any[]) => {
+    let result: any = null;
+    try {
+      result = innerFn.call(context, ...args);
+    } catch (error) {
+      Notify(
+        {
+          type: 'warning',
+          title: `函数:${innerFn.name}执行报错`,
+          message: (error as Error)?.message || `函数:${innerFn.name}执行报错，请检查语法`,
+        },
+        context,
+      );
+    }
+
+    if (typeof result?.then === 'function') {
+      result = new Promise((resolve) => {
+        result.then(resolve).catch((error: Error) => {
+          Notify(
+            {
+              type: 'warning',
+              title: '异步函数执行报错',
+              message: error?.message || '异步函数执行报错，请检查语法',
+            },
+            context,
+          );
+          resolve({
+            result: [{}],
+            page: { total: 1 },
+          });
+        });
+      });
+    }
+
+    return result;
+  };
+};
+
 // 解析JSX字符串为可执行函数
 const parseJSXFunction = (data: any, ctx: any) => {
   try {
@@ -115,7 +154,7 @@ const parseJSXFunction = (data: any, ctx: any) => {
       type: 'warning',
       title: '函数声明解析报错',
       message: (error as Error)?.message || '函数声明解析报错，请检查语法',
-    });
+    }, ctx);
 
     return newFn();
   }
@@ -133,11 +172,23 @@ const parseJSFunction = (data: any, scope: any, ctx: any) => {
     if (!isFunctionString(data.value)) {
       return;
     }
-
-    return newFn('$scope', `with($scope || {}) { return (${data.value}).bind(this) }`).call(ctx, {
-      ...scope,
-    });
+    if (typeof scope === 'object' && Object.keys(scope).length > 0) {
+      return generateFn(
+        parseExpression(
+          {
+            type: JS_EXPRESSION,
+            value: data.value,
+          },
+          scope,
+          ctx,
+        ).bind(ctx),
+        ctx,
+      );
+    }
+    const innerFn = newFn(`return ${data.value}`).bind(ctx)();
+    return generateFn(innerFn, ctx);
   } catch (error) {
+    console.error(error);
     return parseJSXFunction(data, ctx);
   }
 };
@@ -174,7 +225,6 @@ export const parseLoopArgs = (_loop: any) => {
   }
   return undefined;
 };
-export const getIcon = (name: string) => iconMap[name]?.() || '';
 const parseObjectData = (data: any, scope: any, ctx: any) => {
   if (!data) {
     return data;
@@ -185,10 +235,6 @@ const parseObjectData = (data: any, scope: any, ctx: any) => {
     return parseData(data.defaultValue, scope, ctx);
   }
 
-  // 解析通过属性传递icon图标组件
-  if (data.componentName === 'Icon') {
-    return getIcon(data.props.name);
-  }
   const res: Record<string, any> = {};
   Object.entries(data).forEach(([key, value]) => {
     // 如果是插槽则需要进行特殊处理
