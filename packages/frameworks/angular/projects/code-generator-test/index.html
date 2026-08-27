@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Angular 出码测试工具</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="header">
+        <h1>Angular 出码测试工具</h1>
+        <p>粘贴 schema JSON → 执行出码 → 查看生成的 Angular 组件代码</p>
+      </header>
+      <main class="main">
+        <section class="panel input-panel">
+          <div class="panel-head">
+            <span class="panel-title">Schema JSON</span>
+            <div class="toolbar">
+              <button id="load-demo-btn" type="button">载入示例</button>
+              <button id="clear-btn" type="button">清空</button>
+            </div>
+          </div>
+          <textarea
+            id="schema-input"
+            spellcheck="false"
+            placeholder="在此粘贴 schema JSON（例如从对话卡片复制的内容）…&#10;&#10;或点击「载入示例」"
+          ></textarea>
+          <button id="run-btn" type="button" class="run-btn">执行出码</button>
+        </section>
+        <section class="panel result-panel">
+          <div class="panel-head">
+            <span class="panel-title">出码结果</span>
+            <button id="copy-btn" type="button">复制</button>
+          </div>
+          <pre id="result-code" class="code">暂无结果</pre>
+          <div id="status" class="status"></div>
+          <pre id="errors" class="errors"></pre>
+        </section>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
