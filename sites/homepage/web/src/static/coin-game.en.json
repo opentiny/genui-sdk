@@ -15,7 +15,7 @@
   "methods": {
     "simulateAll": {
       "type": "JSFunction",
-      "value": "function() { this.resetGame(); if (this.state.winAmount <= 0 && this.state.loseAmount <= 0) { this.state.gameOver = true; return; } while (!this.state.gameOver) { const opponentWins = Math.random() < (1 - Math.pow(0.5, this.state.tossCount)); if (opponentWins) { this.state.myMoney -= this.state.winAmount; this.state.opponentMoney += this.state.winAmount; } else { this.state.myMoney += this.state.loseAmount; this.state.opponentMoney -= this.state.loseAmount; } this.state.rounds += 1; this.state.history.push({ round: this.state.rounds, result: opponentWins ? '对手胜' : '你胜', myMoney: this.state.myMoney, opponentMoney: this.state.opponentMoney }); this.state.chartData.push({ round: this.state.rounds, myMoney: this.state.myMoney, opponentMoney: this.state.opponentMoney }); if (this.state.myMoney <= 0) { this.state.gameOver = true; this.state.loser = '你'; } else if (this.state.opponentMoney <= 0) { this.state.gameOver = true; this.state.loser = '对手'; } } }"
+      "value": "function() { this.resetGame(); if (this.state.winAmount <= 0 && this.state.loseAmount <= 0) { this.state.gameOver = true; return; } while (!this.state.gameOver) { const opponentWins = Math.random() < (1 - Math.pow(0.5, this.state.tossCount)); if (opponentWins) { this.state.myMoney -= this.state.winAmount; this.state.opponentMoney += this.state.winAmount; } else { this.state.myMoney += this.state.loseAmount; this.state.opponentMoney -= this.state.loseAmount; } this.state.rounds += 1; this.state.history.push({ round: this.state.rounds, result: opponentWins ? 'Opponent wins' : 'You win', myMoney: this.state.myMoney, opponentMoney: this.state.opponentMoney }); this.state.chartData.push({ round: this.state.rounds, myMoney: this.state.myMoney, opponentMoney: this.state.opponentMoney }); if (this.state.myMoney <= 0) { this.state.gameOver = true; this.state.loser = 'You'; } else if (this.state.opponentMoney <= 0) { this.state.gameOver = true; this.state.loser = 'Opponent'; } } }"
     },
     "resetGame": {
       "type": "JSFunction",
@@ -28,11 +28,11 @@
       "children": [
         {
           "componentName": "h2",
-          "children": "硬币游戏模拟 - 可配置参数"
+          "children": "Coin Game Simulator - Configurable Parameters"
         },
         {
           "componentName": "p",
-          "children": "规则：对手抛N次硬币，至少一次正面向上则对手胜，对手胜得X元；否则你胜，对手输Y元。双方各100元，看谁先输光。"
+          "children": "Rules: The opponent tosses N coins; if at least one lands heads, the opponent wins X yuan; otherwise you win and the opponent pays you Y yuan. Both start with 100 yuan. See who goes broke first."
         },
         {
           "componentName": "TinyForm",
@@ -44,7 +44,7 @@
             {
               "componentName": "TinyFormItem",
               "props": {
-                "label": "对手胜得金额"
+                "label": "Opponent win amount"
               },
               "children": [
                 {
@@ -64,7 +64,7 @@
             {
               "componentName": "TinyFormItem",
               "props": {
-                "label": "对手输赔金额"
+                "label": "Opponent lose amount"
               },
               "children": [
                 {
@@ -84,7 +84,7 @@
             {
               "componentName": "TinyFormItem",
               "props": {
-                "label": "连续抛硬币次数"
+                "label": "Coins tossed in a row"
               },
               "children": [
                 {
@@ -112,7 +112,7 @@
             {
               "componentName": "TinyCard",
               "props": {
-                "title": "你的资金"
+                "title": "Your funds"
               },
               "children": [
                 {
@@ -120,7 +120,7 @@
                   "props": {
                     "text": {
                       "type": "JSExpression",
-                      "value": "this.state.myMoney + ' 元'"
+                      "value": "this.state.myMoney + ' yuan'"
                     },
                     "style": "font-size: 24px; font-weight: bold;"
                   }
@@ -130,7 +130,7 @@
             {
               "componentName": "TinyCard",
               "props": {
-                "title": "对手资金"
+                "title": "Opponent funds"
               },
               "children": [
                 {
@@ -138,7 +138,7 @@
                   "props": {
                     "text": {
                       "type": "JSExpression",
-                      "value": "this.state.opponentMoney + ' 元'"
+                      "value": "this.state.opponentMoney + ' yuan'"
                     },
                     "style": "font-size: 24px; font-weight: bold;"
                   }
@@ -156,7 +156,7 @@
             {
               "componentName": "TinyButton",
               "props": {
-                "text": "一次性模拟至破产",
+                "text": "Simulate until broke",
                 "type": "primary",
                 "onClick": {
                   "type": "JSFunction",
@@ -167,7 +167,7 @@
             {
               "componentName": "TinyButton",
               "props": {
-                "text": "重置游戏",
+                "text": "Reset game",
                 "type": "default",
                 "style": "margin-left: 10px;",
                 "onClick": {
@@ -192,7 +192,7 @@
               "componentName": "h3",
               "children": {
                 "type": "JSExpression",
-                "value": "'游戏结束！' + this.state.loser + ' 先输光了！共进行了 ' + this.state.rounds + ' 局'"
+                "value": "'Game over! ' + this.state.loser + ' went broke first! Rounds played: ' + this.state.rounds"
               }
             }
           ]
@@ -219,7 +219,7 @@
                 "data": "round"
               },
               "yAxis": {
-                "name": "资金(元)"
+                "name": "Funds (yuan)"
               }
             }
           }

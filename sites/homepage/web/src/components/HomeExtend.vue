@@ -12,6 +12,7 @@ import caculatorJson from '@/static/caculator.json';
 import todoJson from '@/static/todo.json';
 import todoJsonEn from '@/static/todo.en.json';
 import coinGameJson from '@/static/coin-game.json';
+import coinGameJsonEn from '@/static/coin-game.en.json';
 import { t, locale } from '@/i18n';
 
 const TinyIconArrowRight = IconArrowRight();
@@ -64,7 +65,7 @@ const getJsonData = (type: string) => {
     return caculatorJson;
   }
   if (type === 'coin') {
-    return coinGameJson;
+    return locale.value === 'en_US' ? coinGameJsonEn : coinGameJson;
   }
   return locale.value === 'en_US' ? todoJsonEn : todoJson;
 };
