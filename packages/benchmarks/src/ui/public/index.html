@@ -665,6 +665,8 @@
       protocol: 'genui',
       framework: 'Vue',
       materialsVariant: 'standard',
+      /** 配置页预设：quick | full | custom */
+      profile: 'custom',
       /** System 对照：full | both | plain */
       plainMode: 'full',
       runState: 'idle',
@@ -870,6 +872,50 @@
       return m.scenarioGroupsByProtocol?.[key] || m.scenarioGroups || [];
     }
 
+    const quickScenarioIds = [
+      'simple-form',
+      'dashboard-card',
+      'table-and-filter',
+      'form-validation',
+      'permission-ui',
+      'chart-dashboard-combo',
+    ];
+
+    function syncProfileButtons() {
+      $('profileSeg')?.querySelectorAll('button[data-profile]').forEach((button) => {
+        button.setAttribute('aria-pressed', String(button.getAttribute('data-profile') === state.profile));
+      });
+    }
+
+    function selectScenarios(ids) {
+      const available = new Set(scenarioGroupsFor(state.protocol).flatMap((group) => group.scenarios));
+      state.selectedScenarios = new Set(ids.filter((id) => available.has(id)));
+      const list = $('scenarioList');
+      if (list) {
+        list.innerHTML = renderScenarioHtml(state.protocol);
+        list.querySelectorAll('input[data-scenario]').forEach((input) => {
+          input.checked = state.selectedScenarios.has(input.getAttribute('data-scenario'));
+        });
+      }
+      syncGroupToggleLabels();
+      updateDockSummary();
+    }
+
+    function applyUiProfile(profile) {
+      state.profile = profile;
+      if (profile === 'quick') {
+        selectScenarios(quickScenarioIds);
+        $('repeat').value = '1';
+        $('concurrency').value = '2';
+        $('judgeEnabled').checked = false;
+      } else if (profile === 'full') {
+        selectScenarios(scenarioGroupsFor(state.protocol).flatMap((group) => group.scenarios));
+        $('repeat').value = '5';
+        $('concurrency').value = '1';
+      }
+      syncProfileButtons();
+    }
+
     function syncGroupToggleLabels() {
       document.querySelectorAll('#scenarioList .scenario-group').forEach((details) => {
         const btn = details.querySelector('[data-group-toggle]');
@@ -1006,6 +1052,15 @@
               <span class="hint">port ${meta.port}</span>
             </div>
             <div class="card-bd">
+              <section class="section">
+                <h3 class="section-title">评测预设</h3>
+                <div class="seg" id="profileSeg">
+                  <button type="button" data-profile="quick" aria-pressed="false" title="6 个代表场景，快速验证协议链路">快速检查</button>
+                  <button type="button" data-profile="full" aria-pressed="false" title="全部场景，适合稳定对比与发版确认">完整评测</button>
+                  <button type="button" data-profile="custom" aria-pressed="true" title="保留当前手工配置">自定义</button>
+                </div>
+              </section>
+
               <section class="section">
                 <h3 class="section-title">模型</h3>
                 <div class="toolbar">
@@ -1182,6 +1237,25 @@
     function bindFormEvents() {
       // System 对照：三选一（仅 full / full+plain / 仅 plain）
       state.plainMode = $('plainModeSeg')?.querySelector('button[aria-pressed="true"]')?.getAttribute('data-v') || 'full';
+
+      $('profileSeg')?.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-profile]');
+        if (!button) return;
+        applyUiProfile(button.getAttribute('data-profile'));
+      });
+
+      $('app')?.addEventListener('click', (event) => {
+        if (event.target.closest('#profileSeg')) return;
+        if (event.target.closest('button, input, select, textarea')) {
+          state.profile = 'custom';
+          syncProfileButtons();
+        }
+      }, true);
+      $('app')?.addEventListener('input', (event) => {
+        if (event.target.closest('#profileSeg')) return;
+        state.profile = 'custom';
+        syncProfileButtons();
+      });
       $('plainModeSeg')?.addEventListener('click', (e) => {
         const btn = e.target.closest('button[data-v]');
         if (!btn) return;
