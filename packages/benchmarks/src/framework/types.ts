@@ -1,5 +1,7 @@
 import type { IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import type { BenchProtocol } from '../protocol/types';
+import type { BenchmarkFailureTag } from '../utils/health';
+import type { BenchmarkSuite } from '../suites';
 
 export type { BenchProtocol };
 
@@ -64,6 +66,8 @@ export type LlmBenchmarkJudgeConfig = {
 };
 
 export interface LlmBenchmarkRunOptions {
+  /** 固化运行语义的预设套件。显式 BENCH_* 配置优先于套件值。 */
+  suite?: BenchmarkSuite;
   /**
    * 单模型 id，或与 `models` 并存时作为「主模型」元数据（报告、Judge 默认、HTML 展示等）。
    * 可与 `models` 同时省略其一：至少须提供 **非空的 `models`** 或 **非空的 `model`**；入口会在生成前校验。
@@ -119,6 +123,8 @@ export interface LlmBenchmarkRunOptions {
   promptConfig: LlmBenchmarkPromptConfig;
   // 报告阶段是否启用 LLM-as-a-Judge 质量评估
   llmJudge?: LlmBenchmarkJudgeConfig;
+  /** 任一端到端协议失败时将进程退出码设为 1。 */
+  failOnProtocol?: boolean;
   /**
    * 是否额外生成对照样本：`system` 为空，仅 user messages（纯文本输出），与完整 system 并列落盘。
    */
@@ -148,6 +154,8 @@ export interface LlmBenchmarkRunOptions {
   // 本次 benchmark 入口开始时间戳（ms）。
   // 若提供，报告阶段会计算「从开始执行到报告输出」总耗时。
   benchmarkStartedAtMs?: number;
+  /** 生成阶段计算的运行元数据；报告阶段原样写入 report.json。 */
+  runMetadata?: Record<string, unknown>;
 }
 
 export interface LlmBenchmarkResultItem {
@@ -157,7 +165,11 @@ export interface LlmBenchmarkResultItem {
   runIndex?: number;
   // 样本生成时使用的模型 id（如 deepseek-chat）
   model?: string;
-  // 自请求开始到首个可观测输出 token 的毫秒数；未观测到则缺省。
+  /** 首个流式 chunk（text 或 reasoning）耗时。旧字段 `ttftMs` 兼容映射到此口径。 */
+  firstChunkMs?: number;
+  /** 首个用户可见 text chunk 耗时。 */
+  firstTextMs?: number;
+  // 自请求开始到首个可观测输出 token 的毫秒数；未观测到则缺省。历史兼容字段。
   ttftMs?: number;
   totalMs: number;
   // 自请求开始到输出中首次「可观测 UI」的毫秒数（genui：wrapperComponent；a2ui：`"id":"root"`）；未出现则缺省。
@@ -180,8 +192,10 @@ export interface LlmBenchmarkResultItem {
   rawOutputChars: number;
   /** 生成请求是否失败；失败样本保留在明细中，但默认不计入聚合性能与协议通过率。 */
   requestFailed?: boolean;
+  failureTag?: BenchmarkFailureTag;
   retryCount?: number;
   retryWaitMs?: number;
+  rateLimitQueueWaitMs?: number;
   lastRetryReason?: string;
   rateLimited?: boolean;
   // LLM-as-a-Judge 分数（1~10）
@@ -205,6 +219,7 @@ export interface BenchmarkExcelDetailRow {
   model: string;
   scenario: string;
   runIndex: number;
+  failureTag: BenchmarkFailureTag | '';
   totalMs: number;
   /** 对应指标 TPOT（ms/token）；无则空单元格 */
   tpsMs: number | '';
@@ -221,6 +236,7 @@ export interface BenchmarkExcelDetailRow {
   errorMessage: string;
   retryCount: number | '';
   retryWaitMs: number | '';
+  rateLimitQueueWaitMs: number | '';
   lastRetryReason: string;
   rateLimited: boolean | '';
   /** 原始：对照变体 */
@@ -246,6 +262,8 @@ export interface LlmBenchmarkSample {
   generatedAt: string;
   metrics: {
     /** 自请求开始到首 token 的毫秒数；未观测到则缺省。 */
+    firstChunkMs?: number;
+    firstTextMs?: number;
     ttftMs?: number;
     totalMs: number;
     /**
@@ -265,6 +283,7 @@ export interface LlmBenchmarkSample {
     errorMessage?: string;
     retryCount?: number;
     retryWaitMs?: number;
+    rateLimitQueueWaitMs?: number;
     lastRetryReason?: string;
     rateLimited?: boolean;
   };

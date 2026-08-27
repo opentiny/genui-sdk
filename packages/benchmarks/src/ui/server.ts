@@ -261,6 +261,7 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
         ...options,
         benchmarkStartedAtMs,
         samplesDir: gen.samplesDir,
+        runMetadata: gen.runMetadata,
       });
       runState = 'done';
       const links = buildArtifactLinks(gen.samplesDir);

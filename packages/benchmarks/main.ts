@@ -32,6 +32,7 @@ async function runCli() {
     ...options,
     benchmarkStartedAtMs,
     samplesDir: gen.samplesDir,
+    runMetadata: gen.runMetadata,
   });
 }
 

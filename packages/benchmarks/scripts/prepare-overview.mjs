@@ -19,7 +19,7 @@ function isPlainPromptVariant(r) {
 }
 
 function countsTowardProtocolGate(r) {
-  return !isPlainPromptVariant(r);
+  return !isPlainPromptVariant(r) && r?.requestFailed !== true;
 }
 
 export function findRepoRoot(start) {
@@ -57,6 +57,21 @@ function round(n, d = 1) {
   if (n == null || !Number.isFinite(n)) return null;
   const p = 10 ** d;
   return Math.round(n * p) / p;
+}
+
+function pickDist(stats, d = 0) {
+  if (!stats || typeof stats !== 'object') return null;
+  return {
+    count: stats.count ?? null,
+    median: round(stats.median, d),
+    p90: round(stats.p90, d),
+    p95: round(stats.p95, d),
+    mean: round(stats.mean, d),
+    min: round(stats.min, d),
+    max: round(stats.max, d),
+    stdev: round(stats.stdev, d),
+    cv: round(stats.coefficientOfVariation, 3),
+  };
 }
 
 /**
@@ -364,12 +379,22 @@ export function prepare(report, reportPath) {
           scenario: row.scenario,
           model,
           runs: stats.runs ?? 1,
+          totalRuns: stats.totalRuns ?? stats.runs ?? 1,
+          failedRuns: stats.failedRuns ?? 0,
           schemaPassRate: stats.schemaPassRate ?? 0,
           avgTtftMs: round(stats.avgTtftMs, 0),
+          avgFirstChunkMs: round(stats.avgFirstChunkMs ?? stats.avgTtftMs, 0),
+          avgFirstTextMs: round(stats.avgFirstTextMs ?? stats.avgTtftMs, 0),
           avgTotalMs: round(stats.avgTotalMs, 0),
           avgTpotMs: round(stats.avgTpotMs, 2),
           avgFirstObsMs: round(stats.avgFirstObservableComponentMs, 0),
           avgTotalTokens: round(stats.avgTotalTokens, 0),
+          distributions: stats.distributions ?? null,
+          medianTotalMs: round(stats.distributions?.totalMs?.median, 0),
+          p95TotalMs: round(stats.distributions?.totalMs?.p95, 0),
+          medianFirstTextMs: round(stats.distributions?.firstTextMs?.median, 0),
+          medianFirstObsMs: round(stats.distributions?.firstObservableComponentMs?.median, 0),
+          medianTokens: round(stats.distributions?.totalTokens?.median, 0),
           ...(stats.volatility
             ? {
                 ttftMsStdev: round(stats.volatility.ttftMsStdev, 0),
@@ -401,6 +426,8 @@ export function prepare(report, reportPath) {
           return scored.filter((g) => g.isSchemaJsonValidAgainstProtocol).length / scored.length;
         })(),
         avgTtftMs: round(avg(group.map((g) => g.ttftMs)), 0),
+        avgFirstChunkMs: round(avg(group.map((g) => g.firstChunkMs ?? g.ttftMs)), 0),
+        avgFirstTextMs: round(avg(group.map((g) => g.firstTextMs ?? g.ttftMs)), 0),
         avgTotalMs: round(avg(group.map((g) => g.totalMs)), 0),
         avgTpotMs: round(avg(group.map((g) => g.tpotMs)), 2),
         avgFirstObsMs: round(avg(group.map((g) => g.firstObservableComponentMs)), 0),
@@ -447,6 +474,8 @@ export function prepare(report, reportPath) {
     protocolRuns: protocolResults.length,
     passRate: protocolResults.length ? round(pass / protocolResults.length, 4) : 1,
     avgTtftMs: round(avg(results.map((r) => r.ttftMs)), 0),
+    avgFirstChunkMs: round(avg(results.map((r) => r.firstChunkMs ?? r.ttftMs)), 0),
+    avgFirstTextMs: round(avg(results.map((r) => r.firstTextMs ?? r.ttftMs)), 0),
     avgTotalMs: round(avg(results.map((r) => r.totalMs)), 0),
     avgTpotMs: round(avg(results.map((r) => r.tpotMs)), 2),
     avgFirstObsMs: round(avg(results.map((r) => r.firstObservableComponentMs)), 0),
@@ -460,6 +489,19 @@ export function prepare(report, reportPath) {
       2,
     ),
   };
+
+  const runSummary = report.runSummary && typeof report.runSummary === 'object'
+    ? {
+        ...report.runSummary,
+        distributions: {
+          firstChunkMs: pickDist(report.runSummary.distributions?.firstChunkMs, 0),
+          firstTextMs: pickDist(report.runSummary.distributions?.firstTextMs, 0),
+          totalMs: pickDist(report.runSummary.distributions?.totalMs, 0),
+          totalTokens: pickDist(report.runSummary.distributions?.totalTokens, 0),
+        },
+      }
+    : null;
+  const runMetadata = report.runMetadata && typeof report.runMetadata === 'object' ? report.runMetadata : null;
 
   // Prefer report.model as chart primary when present in the run
   const primaryModel =
@@ -515,6 +557,7 @@ export function prepare(report, reportPath) {
       pass,
       passRatePct: protocolRuns ? round((pass / protocolRuns) * 100, 0) : 100,
       avgTtftMs: round(avg(modelResults.map((r) => r.ttftMs)), 0),
+      avgFirstTextMs: round(avg(modelResults.map((r) => r.firstTextMs ?? r.ttftMs)), 0),
       avgTotalMs: round(avg(modelResults.map((r) => r.totalMs)), 0),
       avgTpotMs: round(avg(modelResults.map((r) => r.tpotMs)), 2),
       avgFirstObsMs: round(avg(modelResults.map((r) => r.firstObservableComponentMs)), 0),
@@ -578,6 +621,8 @@ export function prepare(report, reportPath) {
     },
     config,
     summary,
+    runSummary,
+    runMetadata,
     dimensions: buildDimensions(results, summary, scenarioRows, config),
     scenarios: scenarioRows.sort((a, b) => a.scenario.localeCompare(b.scenario)),
     failures,

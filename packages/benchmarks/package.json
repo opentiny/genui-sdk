@@ -6,7 +6,12 @@
   "scripts": {
     "benchmarks": "tsx ./main.ts",
     "benchmarks:cli": "tsx ./main.ts --cli",
-    "benchmarks:ui": "tsx ./main.ts"
+    "benchmarks:ui": "tsx ./main.ts",
+    "benchmarks:smoke": "BENCH_SUITE=smoke BENCH_UI=false tsx ./main.ts --cli",
+    "benchmarks:nightly": "BENCH_SUITE=nightly BENCH_UI=false tsx ./main.ts --cli",
+    "benchmarks:release": "BENCH_SUITE=release BENCH_UI=false tsx ./main.ts --cli",
+    "benchmarks:diff": "node ./scripts/diff-reports.mjs",
+    "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@ai-sdk/deepseek": "^1.0.7",

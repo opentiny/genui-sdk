@@ -16,8 +16,11 @@ import {
   countsTowardProtocolGate,
   resolvePrimaryBenchmarkModelId,
   resolveSamplesDir,
+  distributionStats,
   sampleStdev,
+  buildBenchmarkHealthSummary,
 } from '../utils';
+import type { DistributionStats } from '../utils';
 
 /** repeat ≥ 3 且该场景×模型下 n ≥ 3 时写入：与均值同量纲的样本标准差（波动）。 */
 export interface BenchmarkComparisonVolatility {
@@ -40,6 +43,8 @@ export interface BenchmarkComparisonRow {
       /** 失败请求行数；失败请求保留在明细但不计入聚合均值。 */
       failedRuns?: number;
       avgTtftMs?: number;
+      avgFirstChunkMs?: number;
+      avgFirstTextMs?: number;
       /** 首个 TinyCard 节点出现耗时（ms）均值 */
       avgFirstObservableComponentMs?: number;
       avgTotalMs: number;
@@ -47,6 +52,14 @@ export interface BenchmarkComparisonRow {
       avgTpotMs?: number;
       avgTotalTokens: number;
       schemaPassRate: number;
+      distributions?: {
+        firstChunkMs?: DistributionStats;
+        firstTextMs?: DistributionStats;
+        firstObservableComponentMs?: DistributionStats;
+        totalMs?: DistributionStats;
+        tpotMs?: DistributionStats;
+        totalTokens?: DistributionStats;
+      };
       /** 配置 repeat ≥ 3 且本组 runs ≥ 3 时附带 */
       volatility?: BenchmarkComparisonVolatility;
     }
@@ -70,6 +83,11 @@ function numberSeries(values: Array<number | undefined>) {
 function average(values: number[]) {
   if (values.length === 0) return undefined;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
+}
+
+function optionalDistribution(values: number[]) {
+  const stats = distributionStats(values);
+  return stats;
 }
 
 /**
@@ -106,11 +124,29 @@ export function buildComparisonByScenario(
       if (n === 0) continue;
       const tpotValues = successful.map((r) => r.tpotMs).filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
       const ttftSeries = numberSeries(successful.map((r) => r.ttftMs));
+      const firstChunkSeries = numberSeries(successful.map((r) => r.firstChunkMs ?? r.ttftMs));
+      const firstTextSeries = numberSeries(successful.map((r) => r.firstTextMs ?? r.ttftMs));
       const tinyCardSeries = numberSeries(successful.map((r) => r.firstObservableComponentMs));
       const totalSeries = successful.map((r) => r.totalMs);
       const tokenSeries = successful.map((r) => r.totalTokens);
       const avgTtft = average(ttftSeries);
+      const avgFirstChunk = average(firstChunkSeries);
+      const avgFirstText = average(firstTextSeries);
       const avgTinyCard = average(tinyCardSeries);
+      const firstChunkDist = optionalDistribution(firstChunkSeries);
+      const firstTextDist = optionalDistribution(firstTextSeries);
+      const tinyCardDist = optionalDistribution(tinyCardSeries);
+      const totalDist = optionalDistribution(totalSeries);
+      const tpotDist = optionalDistribution(tpotValues);
+      const tokenDist = optionalDistribution(tokenSeries);
+      const distributions = {
+        ...(firstChunkDist ? { firstChunkMs: firstChunkDist } : {}),
+        ...(firstTextDist ? { firstTextMs: firstTextDist } : {}),
+        ...(tinyCardDist ? { firstObservableComponentMs: tinyCardDist } : {}),
+        ...(totalDist ? { totalMs: totalDist } : {}),
+        ...(tpotDist ? { tpotMs: tpotDist } : {}),
+        ...(tokenDist ? { totalTokens: tokenDist } : {}),
+      };
 
       const tpotStdev = tpotValues.length >= 3 ? sampleStdev(tpotValues) : undefined;
       const ttftStdev = ttftSeries.length >= 3 ? sampleStdev(ttftSeries) : undefined;
@@ -130,6 +166,8 @@ export function buildComparisonByScenario(
         runs: n,
         ...(totalRuns !== n ? { totalRuns, failedRuns: totalRuns - n } : {}),
         ...(avgTtft != null ? { avgTtftMs: avgTtft } : {}),
+        ...(avgFirstChunk != null ? { avgFirstChunkMs: avgFirstChunk } : {}),
+        ...(avgFirstText != null ? { avgFirstTextMs: avgFirstText } : {}),
         ...(avgTinyCard != null ? { avgFirstObservableComponentMs: avgTinyCard } : {}),
         avgTotalMs: successful.reduce((s, r) => s + r.totalMs, 0) / n,
         ...(tpotValues.length ? { avgTpotMs: tpotValues.reduce((s, v) => s + v, 0) / tpotValues.length } : {}),
@@ -140,6 +178,7 @@ export function buildComparisonByScenario(
           if (scored.length === 0) return 1;
           return scored.filter((r) => r.isSchemaJsonValidAgainstProtocol).length / scored.length;
         })(),
+        ...(Object.keys(distributions).length > 0 ? { distributions } : {}),
         ...(volatility ? { volatility } : {}),
       };
     }
@@ -197,6 +236,8 @@ function writeReportXlsx(
         totalRuns: c.totalRuns ?? c.runs,
         failedRuns: c.failedRuns ?? 0,
         avgTtftMs: c.avgTtftMs ?? '',
+        avgFirstChunkMs: c.avgFirstChunkMs ?? '',
+        avgFirstTextMs: c.avgFirstTextMs ?? '',
         avgFirstObservableComponentMs: c.avgFirstObservableComponentMs ?? '',
         avgTotalMs: c.avgTotalMs,
         avgTpotMs: c.avgTpotMs ?? '',
@@ -235,6 +276,8 @@ function writeBenchmarkArtifacts(
   const modelsInArtifact = modelList.length > 0 ? modelList : [primaryModelId];
   const benchmarkTotalMs =
     typeof options.benchmarkStartedAtMs === 'number' ? Math.max(0, Date.now() - options.benchmarkStartedAtMs) : undefined;
+  const runSummary = buildRunSummary(results);
+  const healthSummary = buildBenchmarkHealthSummary(results);
 
   const jsonPath = path.resolve(outputDir, 'report.json');
   const htmlPath = path.resolve(outputDir, 'report.html');
@@ -251,9 +294,11 @@ function writeBenchmarkArtifacts(
       repeat: options.repeat ?? 1,
       benchmarkTotalMs,
       llmJudge: options.llmJudge,
+      runMetadata: options.runMetadata,
       /** 跑测主要配置（供 report.html 配置条展示；旧报告可能缺省） */
       config: {
         runDir: path.basename(path.resolve(outputDir)),
+        suite: options.suite,
         protocol: options.protocol ?? 'genui',
         framework: options.framework ?? 'Vue',
         materialsVariant: options.materialsVariant ?? 'standard',
@@ -269,8 +314,11 @@ function writeBenchmarkArtifacts(
         compareEmptySystemPlainOnly: options.compareEmptySystemPlainOnly === true,
         llmJudgeEnabled: options.llmJudge?.enabled === true,
         llmJudgeModel: options.llmJudge?.model,
+        failOnProtocol: options.failOnProtocol === true,
       },
       comparisonByScenario,
+      runSummary,
+      healthSummary,
       generatedAt: new Date().toISOString(),
       results,
     },
@@ -300,6 +348,40 @@ function writeBenchmarkArtifacts(
   if (writeExcel && xlsxPath) {
     console.log(`- XLSX: ${xlsxPath}`);
   }
+}
+
+function buildRunSummary(results: LlmBenchmarkResultItem[]) {
+  const successful = results.filter((result) => result.requestFailed !== true);
+  const retryRows = results.filter((result) => (result.retryCount ?? 0) > 0);
+  const rateLimitedRows = results.filter((result) => result.rateLimited === true);
+  const firstChunkSeries = successful
+    .map((result) => result.firstChunkMs ?? result.ttftMs)
+    .filter((value): value is number => typeof value === 'number');
+  const firstTextSeries = successful
+    .map((result) => result.firstTextMs ?? result.ttftMs)
+    .filter((value): value is number => typeof value === 'number');
+  const totalSeries = successful.map((result) => result.totalMs);
+  const tokenSeries = successful.map((result) => result.totalTokens);
+  const firstChunkDist = optionalDistribution(firstChunkSeries);
+  const firstTextDist = optionalDistribution(firstTextSeries);
+  const totalDist = optionalDistribution(totalSeries);
+  const tokenDist = optionalDistribution(tokenSeries);
+  return {
+    totalRows: results.length,
+    successfulRows: successful.length,
+    failedRows: results.length - successful.length,
+    retryRows: retryRows.length,
+    rateLimitedRows: rateLimitedRows.length,
+    totalRetryCount: results.reduce((sum, result) => sum + (result.retryCount ?? 0), 0),
+    totalRetryWaitMs: results.reduce((sum, result) => sum + (result.retryWaitMs ?? 0), 0),
+    totalRateLimitQueueWaitMs: results.reduce((sum, result) => sum + (result.rateLimitQueueWaitMs ?? 0), 0),
+    distributions: {
+      ...(firstChunkDist ? { firstChunkMs: firstChunkDist } : {}),
+      ...(firstTextDist ? { firstTextMs: firstTextDist } : {}),
+      ...(totalDist ? { totalMs: totalDist } : {}),
+      ...(tokenDist ? { totalTokens: tokenDist } : {}),
+    },
+  };
 }
 
 /**

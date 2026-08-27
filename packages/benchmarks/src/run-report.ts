@@ -14,6 +14,9 @@ import {
   resolveSamplesDir,
   resolveStreamTextUsage,
   benchStreamTextAbortSignal,
+  buildBenchmarkReportMetadata,
+  classifyBenchmarkFailure,
+  buildBenchmarkHealthSummary,
 } from './utils';
 import { protocolFromOptions, validateProtocolOutput } from './protocol';
 
@@ -157,19 +160,25 @@ function toReportItem(
         materialsVariant: sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
       });
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
+  const firstChunkMs =
+    typeof sample.metrics.firstChunkMs === 'number' ? sample.metrics.firstChunkMs : ttftMs;
+  const firstTextMs =
+    typeof sample.metrics.firstTextMs === 'number' ? sample.metrics.firstTextMs : ttftMs;
   const tpotMs =
     typeof sample.metrics.tpotMs === 'number'
       ? sample.metrics.tpotMs
-      : ttftMs == null
+      : firstTextMs == null
         ? undefined
-        : computeTpotMs(ttftMs, sample.metrics.totalMs, sample.metrics.completionTokens);
+        : computeTpotMs(firstTextMs, sample.metrics.totalMs, sample.metrics.completionTokens);
   const judgeTotal = judge?.totalTokens ?? 0;
   const benchTotalTokens = sample.metrics.totalTokens + judgeTotal;
-  return {
+  const item: LlmBenchmarkResultItem = {
     scenario: sample.scenario,
     promptVariant: sample.promptVariant ?? 'full',
     runIndex: sample.runIndex,
     model: sample.model,
+    ...(firstChunkMs != null ? { firstChunkMs } : {}),
+    ...(firstTextMs != null ? { firstTextMs } : {}),
     ...(ttftMs != null ? { ttftMs } : {}),
     totalMs: sample.metrics.totalMs,
     ...(typeof sample.metrics.firstObservableComponentMs === 'number'
@@ -188,6 +197,9 @@ function toReportItem(
     ...(sample.metrics.errorMessage ? { requestFailed: true } : {}),
     ...(typeof sample.metrics.retryCount === 'number' ? { retryCount: sample.metrics.retryCount } : {}),
     ...(typeof sample.metrics.retryWaitMs === 'number' ? { retryWaitMs: sample.metrics.retryWaitMs } : {}),
+    ...(typeof sample.metrics.rateLimitQueueWaitMs === 'number'
+      ? { rateLimitQueueWaitMs: sample.metrics.rateLimitQueueWaitMs }
+      : {}),
     ...(sample.metrics.lastRetryReason ? { lastRetryReason: sample.metrics.lastRetryReason } : {}),
     ...(sample.metrics.rateLimited === true ? { rateLimited: true } : {}),
     llmJudgeScore: judge?.score,
@@ -198,6 +210,8 @@ function toReportItem(
     ...(typeof judge?.totalTokens === 'number' ? { llmJudgeTotalTokens: judge.totalTokens } : {}),
     errorMessage: sample.metrics.errorMessage,
   };
+  item.failureTag = isPlainPromptVariant(item) ? undefined : classifyBenchmarkFailure(item);
+  return item;
 }
 
 /**
@@ -298,6 +312,9 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   const results: LlmBenchmarkResultItem[] = parsedSamples.map((sample, index) =>
     toReportItem(sample, judgeEnabled ? judgeResults[index] : undefined, options),
   );
+  if (!options.runMetadata) {
+    options.runMetadata = buildBenchmarkReportMetadata(options, parsedSamples);
+  }
 
   if (results.length === 0) {
     throw new Error('No samples matched the current filter');
@@ -313,6 +330,14 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   if (invalidSchemaRows.length > 0) {
     console.log(
       `[bench] Schema validation failed: ${invalidSchemaRows.length}/${protocolRows.length}（详见 report.html；plain 已跳过协议校验）`,
+    );
+  }
+  const health = buildBenchmarkHealthSummary(results);
+  if (options.failOnProtocol && health.endToEndSuccessRate < 1) {
+    process.exitCode = 1;
+    console.error(
+      `[bench][gate] failed: endToEndSuccessRate=${health.endToEndSuccessRate.toFixed(4)} ` +
+        `(${health.protocolPassedRows}/${health.protocolRows})`,
     );
   }
   return await printLlmBenchmarkResults(results, options, parsedSamples);

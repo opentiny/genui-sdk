@@ -180,7 +180,7 @@ function dimCard(dim, href) {
 }
 
 function renderHtml(data) {
-  const { source, summary, chart, scenarios, failures, insights, config, modelCompare, dimensions } =
+  const { source, summary, runSummary, runMetadata, chart, scenarios, failures, insights, config, modelCompare, dimensions } =
     data;
   const dims = dimensions || {};
   const multiModel = (source.models?.length || 0) > 1;
@@ -203,6 +203,75 @@ function renderHtml(data) {
   });
 
   const fmtJudge = (v) => (v == null || !Number.isFinite(v) ? '—' : String(v));
+  const shortHash = (v) => {
+    const s = String(v || '');
+    return s ? s.slice(0, 12) : '—';
+  };
+  const dist = runSummary?.distributions || {};
+  const healthTone = (runSummary?.failedRows || 0) > 0
+    ? 'danger'
+    : (runSummary?.retryRows || 0) > 0 || (runSummary?.rateLimitedRows || 0) > 0
+      ? 'warning'
+      : 'success';
+
+  const healthSection = runSummary
+    ? `<section id="sec-health">
+    <h2>Run Health</h2>
+    <p class="caption">先看这组数字：失败、重试和限流会影响报告可信度；主动限速等待不计入模型响应 totalMs。</p>
+    <div class="kpis">
+      <div class="kpi ${healthTone}">
+        <div class="label">Failed</div>
+        <div class="value">${esc(String(runSummary.failedRows ?? 0))}</div>
+        <div class="sub">${esc(String(runSummary.successfulRows ?? 0))}/${esc(String(runSummary.totalRows ?? summary.runs))} success</div>
+      </div>
+      <div class="kpi ${(runSummary.retryRows || 0) > 0 ? 'warning' : ''}">
+        <div class="label">Retry rows</div>
+        <div class="value">${esc(String(runSummary.retryRows ?? 0))}</div>
+        <div class="sub">${esc(String(runSummary.totalRetryCount ?? 0))} retries</div>
+      </div>
+      <div class="kpi ${(runSummary.rateLimitedRows || 0) > 0 ? 'warning' : ''}">
+        <div class="label">Rate limited</div>
+        <div class="value">${esc(String(runSummary.rateLimitedRows ?? 0))}</div>
+        <div class="sub">${esc(fmtMs(runSummary.totalRateLimitQueueWaitMs ?? 0))} queued</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Total median</div>
+        <div class="value">${esc(fmtMs(dist.totalMs?.median))}</div>
+        <div class="sub">p95 ${esc(fmtMs(dist.totalMs?.p95))}</div>
+      </div>
+      <div class="kpi">
+        <div class="label">First text</div>
+        <div class="value">${esc(fmtMs(dist.firstTextMs?.median))}</div>
+        <div class="sub">median visible token</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Retry wait</div>
+        <div class="value">${esc(fmtMs(runSummary.totalRetryWaitMs ?? 0))}</div>
+        <div class="sub">excluded from totalMs</div>
+      </div>
+    </div>
+  </section>`
+    : '';
+
+  const metadata = runMetadata || {};
+  const hashes = metadata.hashes || {};
+  const git = metadata.git || {};
+  const reproSection = runMetadata
+    ? `<section id="sec-repro">
+    <h2>可复现性</h2>
+    <p class="caption">用于判断两份报告是否真的可比；hash 不同通常表示 prompt、样本集或物料发生了变化。</p>
+    <dl class="cfg">
+      <div class="cfg-item"><dt>Commit</dt><dd>${esc(shortHash(git.commit))}${git.dirty ? ' dirty' : ''}</dd></div>
+      <div class="cfg-item"><dt>Branch</dt><dd>${esc(git.branch || '—')}</dd></div>
+      <div class="cfg-item"><dt>Node</dt><dd>${esc(metadata.node || '—')}</dd></div>
+      <div class="cfg-item"><dt>Bench pkg</dt><dd>${esc(metadata.packageVersions?.benchmarks || '—')}</dd></div>
+      <div class="cfg-item"><dt>Prompt hash</dt><dd>${esc(shortHash(hashes.prompt))}</dd></div>
+      <div class="cfg-item"><dt>Sample hash</dt><dd>${esc(shortHash(hashes.sampleSet))}</dd></div>
+      <div class="cfg-item"><dt>Materials hash</dt><dd>${esc(shortHash(hashes.materialsMeta))}</dd></div>
+      <div class="cfg-item"><dt>Samples</dt><dd>${esc(String(metadata.sampleManifest?.length ?? '—'))}</dd></div>
+    </dl>
+  </section>`
+    : '';
 
   const scenarioRows = sortedScenarios
     .map((s) => {
@@ -211,11 +280,13 @@ function renderHtml(data) {
   <td>${esc(s.scenario)}</td>
   ${showModelCol ? `<td>${esc(s.model)}</td>` : ''}
   <td class="num">${Math.round(s.schemaPassRate * 100)}%</td>
-  <td class="num">${esc(fmtMs(s.avgTtftMs))}</td>
-  <td class="num">${esc(fmtMs(s.avgFirstObsMs))}</td>
-  <td class="num">${esc(fmtMs(s.avgTotalMs))}</td>
+  <td class="num">${esc(fmtMs(s.medianFirstTextMs ?? s.avgFirstTextMs ?? s.avgTtftMs))}</td>
+  <td class="num">${esc(fmtMs(s.medianFirstObsMs ?? s.avgFirstObsMs))}</td>
+  <td class="num">${esc(fmtMs(s.medianTotalMs ?? s.avgTotalMs))}</td>
+  <td class="num">${esc(fmtMs(s.p95TotalMs))}</td>
   <td class="num">${s.avgTpotMs == null ? '—' : esc(String(s.avgTpotMs))}</td>
-  <td class="num">${esc(fmtTokens(s.avgTotalTokens))}</td>
+  <td class="num">${esc(fmtTokens(s.medianTokens ?? s.avgTotalTokens))}</td>
+  <td class="num">${esc(String(s.failedRuns ?? 0))}/${esc(String(s.totalRuns ?? s.runs ?? 0))}</td>
   ${judgeEnabled ? `<td class="num">${esc(fmtJudge(s.avgJudgeScore))}</td>` : ''}
 </tr>`;
     })
@@ -537,6 +608,8 @@ function renderHtml(data) {
 
   const navItems = [
     ['#sec-config', '配置'],
+    ...(runSummary ? [['#sec-health', '健康']] : []),
+    ...(runMetadata ? [['#sec-repro', '复现']] : []),
     ['#sec-verdict', '五维总览'],
     ...(multiModel ? [['#sec-models', '模型总览']] : []),
     ['#sec-protocol', '协议合规'],
@@ -981,6 +1054,10 @@ function renderHtml(data) {
     </dl>
   </section>
 
+  ${healthSection}
+
+  ${reproSection}
+
   <section id="sec-verdict">
     <p class="caption" style="margin-top:0">协议看能不能用；Judge 看好不好；性能和成本分开比，不合成一个总分。</p>
     <div class="dims">
@@ -1057,11 +1134,13 @@ function renderHtml(data) {
           <th>场景</th>
           ${showModelCol ? '<th>模型</th>' : ''}
           <th class="num">Pass</th>
-          <th class="num">TTFT</th>
+          <th class="num">FirstText</th>
           <th class="num">FirstObs</th>
-          <th class="num">Total</th>
+          <th class="num">Total median</th>
+          <th class="num">Total p95</th>
           <th class="num">TPOT</th>
           <th class="num">Tokens</th>
+          <th class="num">Failed</th>
           ${judgeEnabled ? '<th class="num">Judge</th>' : ''}
         </tr>
       </thead>

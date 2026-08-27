@@ -18,6 +18,7 @@ import {
   resolveStreamTextUsage,
   benchStreamTextAbortSignal,
   slugifyModelForFilename,
+  buildBenchmarkRunMetadata,
 } from './utils';
 import { computeTpotMs } from './utils';
 import { streamText } from 'ai';
@@ -34,6 +35,8 @@ type SampleAttemptResult = {
   totalTokens: number;
   rawOutputChars: number;
   totalMs: number;
+  firstChunkMs?: number;
+  firstTextMs?: number;
   ttftMs?: number;
   tpotMs?: number;
   firstObservableComponentMs?: number;
@@ -148,6 +151,7 @@ async function runSampleAttempt(
 ): Promise<SampleAttemptResult> {
   const start = Date.now();
   let firstTokenAt = 0;
+  let firstTextAt = 0;
   let firstObservableAt = 0;
   let output = '';
   let promptTokens = 0;
@@ -169,6 +173,9 @@ async function runSampleAttempt(
       if (chunk.type === 'text-delta' && chunk.text) {
         if (!firstTokenAt) {
           firstTokenAt = Date.now();
+        }
+        if (!firstTextAt) {
+          firstTextAt = Date.now();
         }
         const before = output;
         output += chunk.text;
@@ -212,12 +219,16 @@ async function runSampleAttempt(
   }
 
   const totalMs = Date.now() - start;
-  const ttftMs = firstTokenAt ? firstTokenAt - start : undefined;
-  const tpotMs = ttftMs == null ? undefined : computeTpotMs(ttftMs, totalMs, completionTokens);
+  const firstChunkMs = firstTokenAt ? firstTokenAt - start : undefined;
+  const firstTextMs = firstTextAt ? firstTextAt - start : undefined;
+  const ttftMs = firstChunkMs;
+  const tpotMs = firstTextMs == null ? undefined : computeTpotMs(firstTextMs, totalMs, completionTokens);
   const firstObservableComponentMs = firstObservableAt ? firstObservableAt - start : undefined;
 
   return {
     output,
+    ...(firstChunkMs != null ? { firstChunkMs } : {}),
+    ...(firstTextMs != null ? { firstTextMs } : {}),
     ...(ttftMs != null ? { ttftMs } : {}),
     totalMs,
     ...(firstObservableComponentMs != null ? { firstObservableComponentMs } : {}),
@@ -292,6 +303,7 @@ async function generateSingleSample(
   materialsVariant: IMaterialsVariant,
   protocol: BenchProtocol,
   retry: RetryConfig,
+  rateLimitQueueWaitMs: number,
 ): Promise<LlmBenchmarkSample> {
   const result = await runSampleAttemptWithRetry(
     modelInstance,
@@ -317,6 +329,8 @@ async function generateSingleSample(
     generatedAt: new Date().toISOString(),
     metrics: {
       ...(result.ttftMs != null ? { ttftMs: result.ttftMs } : {}),
+      ...(result.firstChunkMs != null ? { firstChunkMs: result.firstChunkMs } : {}),
+      ...(result.firstTextMs != null ? { firstTextMs: result.firstTextMs } : {}),
       totalMs: result.totalMs,
       ...(result.firstObservableComponentMs != null
         ? { firstObservableComponentMs: result.firstObservableComponentMs }
@@ -329,6 +343,7 @@ async function generateSingleSample(
       ...(result.errorMessage ? { errorMessage: result.errorMessage } : {}),
       ...(result.retryCount > 0 ? { retryCount: result.retryCount } : {}),
       ...(result.retryWaitMs > 0 ? { retryWaitMs: result.retryWaitMs } : {}),
+      ...(rateLimitQueueWaitMs > 0 ? { rateLimitQueueWaitMs } : {}),
       ...(result.lastRetryReason ? { lastRetryReason: result.lastRetryReason } : {}),
       ...(result.rateLimited ? { rateLimited: true } : {}),
     },
@@ -361,6 +376,11 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   console.log(
     `[bench] Start generate samples: protocol=${protocol}, framework=${framework}, materialsVariant=${materialsVariant}, models=${modelIds.length}, scenarios=${selected.length}, repeat=${repeat}, plainOnly=${plainOnly}, compareFullPlusPlain=${compareBoth} (total jobs=${totalJobs})`,
   );
+  const runMetadata = buildBenchmarkRunMetadata(options, {
+    systemPrompt: systemFull,
+    sampleCases: selected,
+    materialsMeta: materialsMetaForRun,
+  });
 
   const samplesRootDir = resolveSamplesDir(options.samplesDir);
   const runDir = options.targetSampleRunDir
@@ -487,8 +507,10 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
       }
 
       const rateLimiter = modelRateLimiterByModelId.get(job.modelId);
+      let rateLimitQueueWaitMs = 0;
       if (rateLimiter) {
         const waitedMs = await rateLimiter.waitTurn();
+        rateLimitQueueWaitMs = waitedMs;
         if (waitedMs > 0) {
           console.log(`[bench][rate-limit] model=${job.modelId}, waited=${waitedMs}ms`);
         }
@@ -507,6 +529,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
         materialsVariant,
         protocol,
         retry,
+        rateLimitQueueWaitMs,
       );
 
       fs.mkdirSync(path.dirname(sampleFile), { recursive: true });
@@ -525,5 +548,6 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   return {
     samplesDir: runDir,
     files,
+    runMetadata,
   };
 }

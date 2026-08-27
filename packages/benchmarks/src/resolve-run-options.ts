@@ -1,6 +1,7 @@
 import type { BenchProtocol, LlmBenchmarkRunOptions } from './framework/index';
 import { benchmarkConfig } from './benchmark.config';
 import { resolveBenchProtocol } from './protocol';
+import { benchmarkSuitePresets, resolveBenchmarkSuite } from './suites';
 import {
   envBenchProtocol,
   envBool,
@@ -44,6 +45,8 @@ export type BenchUiFormPayload = {
  * 运行选项：以 `benchmark.config.ts` 为基准，`.env` 中 `BENCH_*` 覆盖对应项。
  */
 export function resolveRunOptions(): LlmBenchmarkRunOptions {
+  const suite = resolveBenchmarkSuite(envString('BENCH_SUITE', benchmarkConfig.suite));
+  const config = suite ? { ...benchmarkConfig, ...benchmarkSuitePresets[suite] } : benchmarkConfig;
   const {
     model,
     models: configModels,
@@ -66,7 +69,8 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
     compareEmptySystemPlainOnly: defaultPlainOnly,
     targetSampleRunDir: defaultTargetRunDir,
     writeExcel: defaultWriteExcel,
-  } = benchmarkConfig;
+    failOnProtocol,
+  } = config;
   const defaultModelsFromManifest =
     configModels && configModels.length > 0
       ? configModels
@@ -88,8 +92,9 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
   const modelRaw = envString('BENCH_MODEL', model);
   const trimmedModel =
     modelRaw === undefined || modelRaw === '' ? undefined : modelRaw.trim() || undefined;
-  const streamTimeoutMs = envStreamTimeoutMs('BENCH_STREAM_TIMEOUT_MS', benchmarkConfig.streamTimeoutMs);
+  const streamTimeoutMs = envStreamTimeoutMs('BENCH_STREAM_TIMEOUT_MS', config.streamTimeoutMs);
   return {
+    ...(suite ? { suite } : {}),
     ...(trimmedModel ? { model: trimmedModel } : {}),
     models: models && models.length > 0 ? models : undefined,
     protocol: envBenchProtocol('BENCH_PROTOCOL', defaultProtocol ?? 'genui'),
@@ -116,6 +121,7 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
       model: judgeModel,
       systemPrompt: llmJudge?.systemPrompt,
     },
+    failOnProtocol: envBool('BENCH_FAIL_ON_PROTOCOL', failOnProtocol ?? false),
     json: envBool('BENCH_JSON', json ?? false),
     writeExcel: envBool('BENCH_WRITE_EXCEL', defaultWriteExcel ?? true),
     samplesDir: envString('BENCH_SAMPLES_DIR', samplesDir),
