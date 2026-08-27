@@ -50,8 +50,10 @@ const inputMessage = computed(
   () => `?input-message=${messageContentMap[extendSelect.value as keyof typeof messageContentMap]}`,
 );
 
-/** 已开始回放流程（生成中 / 准备中 / 暂停待续）时固定在右下角；仅待播放或重播待命时居中 */
-const streamControlsDocked = computed(() => generating.value || preparingPlayback.value || !streamCompleted.value);
+/** 首次播放按钮居中展示；生成中 / 暂停 / 播放过后的重放均固定右下角，避免遮挡内容 */
+const streamControlsDocked = computed(
+  () => generating.value || preparingPlayback.value || !streamCompleted.value || hasPlayedOnce.value,
+);
 
 const userBubbleContent = computed(
   () => bubbleContentMap[extendSelect.value as keyof typeof bubbleContentMap],
