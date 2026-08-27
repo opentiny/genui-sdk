@@ -5,15 +5,37 @@ import type {
   ICodegenDescription,
   ICodePanel,
   IAngularLibraryConfig,
+  IAngularCodeGeneratorOptions,
   ICodeGeneratorResult,
 } from './types';
 import { capitalize, hyphenate, toEventKey, unwrapExpression } from './utils';
 import { CodeGeneratorBase } from './code-generator-base';
 
+/** Angular 出码默认 prettier 参数(parser 为 typescript;模板部分单独用 parser 'angular') */
+const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
+  semi: false,
+  singleQuote: true,
+  printWidth: 120,
+  trailingComma: 'none',
+  endOfLine: 'auto',
+  tabWidth: 2,
+  parser: 'typescript',
+  htmlWhitespaceSensitivity: 'ignore',
+};
+
 export class AngularCodeGeneratorBase extends CodeGeneratorBase {
 
-  constructor(protected readonly config: IAngularLibraryConfig) {
+  private readonly prettierOpts: Record<string, unknown>;
+
+  constructor(
+    protected readonly config: IAngularLibraryConfig,
+    private readonly generatorOptions: IAngularCodeGeneratorOptions = {},
+  ) {
     super();
+    this.prettierOpts = {
+      ...DEFAULT_PRETTIER_OPTS,
+      ...(generatorOptions.prettierOpts ?? {}),
+    };
   }
 
   protected templateActionNames: Set<string> = new Set();
@@ -782,7 +804,61 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     attrsArr.push(`[${key}]="${fieldName}"`);
   }
 
-  override async generate({ pageInfo }: ICodeGeneratorParams): Promise<ICodeGeneratorResult> {
+  /**
+   * 用 prettier 格式化生成出的 .component.ts。Angular 出码产物是单个 TS 文件,
+   * inline template 是 backtick 字符串字面量,typescript parser 不会格式化其内部,
+   * 故采用两段式:
+   *   1. 抽出 template 内容,以 parser 'angular'(prettier html 插件提供)格式化;
+   *   2. 把格式化后的模板按 6 空格缩进嵌回,再整体以 parser 'typescript' 格式化。
+   * 任一步失败都回退返回原始 source(与 Vue 出码行为一致)。
+   */
+  protected async formatWithPrettier(source: string, prettierOpts: Record<string, unknown>): Promise<string> {
+    try {
+      const [
+        { format },
+        { default: htmlPlugin },
+        { default: typescriptPlugin },
+        { default: estreePlugin },
+      ] = await Promise.all([
+        import('prettier/standalone'),
+        import('prettier/plugins/html'),
+        import('prettier/plugins/typescript'),
+        import('prettier/plugins/estree'),
+      ]);
+
+      // 1) 抽出并格式化 inline template
+      let formatted = source;
+      const templateMatch = source.match(/template: `([\s\S]*?)`,/);
+      if (templateMatch) {
+        const formattedTemplate = await format(templateMatch[1], {
+          ...prettierOpts,
+          parser: 'angular',
+          plugins: [htmlPlugin],
+        });
+        // 模板内容从第 0 列开始,嵌回时每行补 6 空格与 template: 对齐
+        const indentedTemplate = formattedTemplate
+          .trimEnd()
+          .split('\n')
+          .map((line: string) => `      ${line}`)
+          .join('\n');
+        formatted = source.replace(
+          /template: `([\s\S]*?)`,/,
+          `template: \`\n${indentedTemplate}\n  \`,`,
+        );
+      }
+
+      // 2) 整体格式化外层 TS 结构
+      return await format(formatted, {
+        ...prettierOpts,
+        parser: 'typescript',
+        plugins: [typescriptPlugin, estreePlugin],
+      });
+    } catch {
+      return source;
+    }
+  }
+
+  override async generate({ pageInfo, formatWithPrettier = true }: ICodeGeneratorParams): Promise<ICodeGeneratorResult> {
     const { schema: originSchema, name = 'SchemaCard' } = pageInfo;
 
     const schema = JSON.parse(JSON.stringify(this.normalizeIncomingSchema(originSchema))) as CardSchema;
@@ -794,9 +870,13 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       panelName,
       panelValue: angularCode,
       panelType: 'angular',
+      prettierOpts: { ...this.prettierOpts },
       type: 'page',
     };
     const result: ICodeGeneratorResult = { ...panel, errors: compileErrors };
+    if (formatWithPrettier) {
+      result.panelValue = await this.formatWithPrettier(result.panelValue, result.prettierOpts);
+    }
     return result;
   }
 }

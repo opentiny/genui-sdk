@@ -43,6 +43,8 @@ export interface ICodePanel {
   panelName: string;
   panelValue: string;
   panelType: CodegenFramework;
+  /** prettier 格式化参数(与 Vue 出码一致,透出给下游面板使用) */
+  prettierOpts: Record<string, unknown>;
   type: 'page';
 }
 
@@ -51,6 +53,8 @@ export interface ICodeGeneratorParams {
     schema: CardSchema | string;
     name?: string;
   };
+  /** 是否用 prettier 格式化最终产物,默认 true(不传即输出规整代码);需原始输出时显式传 false */
+  formatWithPrettier?: boolean;
 }
 
 export interface IScriptSetupBuildContext {
@@ -96,4 +100,10 @@ export type ICodeGeneratorResult = ICodePanel & { errors: { message: string }[] 
 
 export interface IVueCodeGeneratorOptions {
   enableCompileValidation?: boolean;
+}
+
+/** Angular 出码选项——与 Vue 出码的 IVueCodeGeneratorOptions 对齐 */
+export interface IAngularCodeGeneratorOptions {
+  /** prettier 格式化参数,覆盖默认值;仅 formatWithPrettier 开启时生效 */
+  prettierOpts?: Record<string, unknown>;
 }
