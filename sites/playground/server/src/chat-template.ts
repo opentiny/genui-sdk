@@ -7,14 +7,38 @@ import { streamText, stepCountIs } from 'ai';
 import getRawBody from 'raw-body';
 import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-completions';
 import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
+import {
+  buildAgentTools,
+  isAllowedAgentUrl,
+  isPlaygroundDevelopment,
+  resolveAgentApiUrl,
+} from './a2a-tools/index.js';
+import type { PlaygroundAgentConfig } from './a2a-tools/index.js';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { buildOpenApiTools } from './openapi-tools/index.js';
+import { buildSkillTools } from './skills/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
+
+function filterAllowedPlaygroundAgents(rawAgents: PlaygroundAgentConfig[] = []): PlaygroundAgentConfig[] {
+  const agents: PlaygroundAgentConfig[] = [];
+
+  for (const agent of rawAgents) {
+    const url = resolveAgentApiUrl(agent);
+    if (!url) {
+      continue;
+    }
+    if (isPlaygroundDevelopment || isAllowedAgentUrl(url)) {
+      agents.push(agent);
+    }
+  }
+
+  return agents;
+}
 
 const getPlaygroundConfig = (playgroundStr: string) => {
   let playgroundConfig: IPlaygroundConfig = {
@@ -24,6 +48,8 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     model: '',
     temperature: 0.3,
     agents: [],
+    skills: [],
+    openApiTools: [],
   };
 
   try {
@@ -38,6 +64,8 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    agents: filterAllowedPlaygroundAgents(playgroundConfig.agents || []),
+    skills: playgroundConfig.skills || [],
     openApiTools: playgroundConfig.openApiTools || [],
     promptVariant: playgroundConfig.promptVariant,
   };
@@ -80,12 +108,13 @@ export const createChatTemplate = () => {
       }
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
-      const { mcpServers, framework, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
+      const { mcpServers, framework, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
         temperature: playgroundConfig.temperature,
         mcpServers,
+        skills,
       };
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
@@ -95,12 +124,30 @@ export const createChatTemplate = () => {
         abort.signal,
       );
       const openApiBuiltTools = await buildOpenApiTools(openApiTools);
-      const tools = { ...openApiBuiltTools, ...mcpTools };
+      const agentTools = buildAgentTools(agents, abort.signal);
+      const { tools: skillTools, systemPrompt: skillPrompt } = buildSkillTools(skills);
+      const duplicateToolNames = new Set<string>();
+      const seenToolNames = new Set<string>();
+      for (const name of [
+        ...Object.keys(openApiBuiltTools),
+        ...Object.keys(mcpTools),
+        ...Object.keys(agentTools),
+        ...Object.keys(skillTools),
+      ]) {
+        if (seenToolNames.has(name)) duplicateToolNames.add(name);
+        seenToolNames.add(name);
+      }
+      if (duplicateToolNames.size) {
+        console.warn(`Duplicate tool names detected: ${[...duplicateToolNames].join(', ')}`);
+      }
+      const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools };
       const maxSteps = 30;
       const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
-      ${customSystemPrompt}`;
+      ${customSystemPrompt}
+      ${userAppendPrompt}
+      ${skillPrompt}`;
 
       const messages = normalizeMessagesForAiSdk(body.messages);
       if (body.templateSchema) {

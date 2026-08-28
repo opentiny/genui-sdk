@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { genNodeSchema } from '@opentiny/genui-sdk-core';
 
 /**
  * 领域扩展形态：LLM 用 `id` 锚定组件节点，`path` 为相对该节点的 RFC 6901 Pointer；
@@ -23,6 +24,12 @@ function jsonPointerHasAppendSentinel(pointer: string): boolean {
 function jsonPointerHasAppendSentinelNotOnlyAtEnd(pointer: string): boolean {
   const segments = decodePointerSegments(pointer);
   return segments.slice(0, -1).some((segment) => segment === '-');
+}
+
+/** 是否是向当前锚点 children 数组插入一个完整组件节点 */
+function isDirectChildrenInsertionPointer(pointer: string): boolean {
+  const segments = decodePointerSegments(pointer);
+  return segments.length === 2 && segments[0] === 'children' && (segments[1] === '-' || /^\d+$/.test(segments[1]));
 }
 
 /**
@@ -62,12 +69,9 @@ const jsonPatchValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonPatchValueSchema), z.record(jsonPatchValueSchema)]),
 );
 
-const componentNodeValueSchema = z
-  .object({
-    componentName: z.string().min(1),
-    id: z.string().min(1),
-  })
-  .passthrough();
+const componentNodeValueSchema = genNodeSchema()
+  .and(z.object({ id: z.string().min(1).describe('Required component id for patch targeting.') }))
+  .describe('Complete component node value. Used when adding to /children/<index|-> or replacing a whole node.');
 
 /**
  * JSON Patch 操作集：RFC 6902 语法 + 组件 id 定位扩展。
@@ -83,9 +87,25 @@ const addOperation = z
         'Anchor component id: parent when inserting into /children; the node itself when adding under /props. `path` is relative to this node — do not use an ancestor id with /children/.../props.',
       ),
     path: relativeJsonPointerSchemaAdd,
-    value: jsonPatchValueSchema.describe('The value to add at the specified relative path.'),
+    value: jsonPatchValueSchema.describe(
+      'The value to add at the specified relative path. When path is /children/<index> or /children/-, this must be a complete schema component node with componentName and id.',
+    ),
   })
   .strict()
+  .superRefine((operation, ctx) => {
+    if (!isDirectChildrenInsertionPointer(operation.path)) {
+      return;
+    }
+
+    const componentResult = componentNodeValueSchema.safeParse(operation.value);
+    if (!componentResult.success) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['value'],
+        message: 'Adding to /children/<index|-> requires value to be a complete component node with componentName and id.',
+      });
+    }
+  })
   .describe(
     'Adds a value under the component identified by `id` (relative `path`). For child props, use the child node id + /props/..., not parent + /children/n/props.',
   );

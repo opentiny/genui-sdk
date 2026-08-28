@@ -12,6 +12,8 @@ export const generateJsonPatchPrompt =
 
 基于 RFC 6902 扩展：用组件节点 \`id\` 锚定；\`path\` 为相对该节点的 Pointer，运行时再展开为绝对 path。支持 \`add\` / \`remove\` / \`replace\` / \`move\` / \`copy\`（无 \`test\`）。
 
+组件选择、props、事件、JSExpression / JSFunction、布局与样式等规则，继续遵循前置 schemaJson 生成提示词中的组件库与自定义配置；本增量模式只改变输出载体：不要输出完整 \`\`\`schemaJson\`\`\`，只输出 \`\`\`jsonPatch\`\`\`。
+
 \`\`\`json
 ${jsonPatchSchemaText}
 \`\`\`
