@@ -20,7 +20,7 @@ afterEach(() => {
 });
 
 describe('cli', () => {
-  it('loadSkillGenerateConfig 解析相对路径', () => {
+  it('loadSkillGenerateConfig 解析真实配置及相对路径', () => {
     const configPath = new URL('../../config.json', import.meta.url);
     const { config, configDir } = loadSkillGenerateConfig(fileURLToPath(configPath));
 
@@ -30,17 +30,6 @@ describe('cli', () => {
       resolve(configDir, 'skills/genui-schema-json'),
     );
     expect(config.framework).toBe('vue');
-    expect(config.tgCustomConfig?.customActions?.map(({ name }) => name)).toEqual([
-      'continueChat',
-      'saveState',
-    ]);
-  });
-
-  it('真实配置显式透传 Playground 内置 Action', () => {
-    const configPath = new URL('../../config.json', import.meta.url);
-    const { config } = loadSkillGenerateConfig(fileURLToPath(configPath));
-
-    expect(config.tgCustomConfig?.customActions).toHaveLength(2);
     expect(config.tgCustomConfig?.customActions?.map(({ name }) => name)).toEqual([
       'continueChat',
       'saveState',

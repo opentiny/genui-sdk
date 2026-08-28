@@ -19,9 +19,6 @@ import { genPrompt } from '@opentiny/genui-sdk-core';
 /** 匹配 prompt 顶层二级标题（行首 `## `，不含 `###`） */
 const PROMPT_SECTION_HEADING_RE = /^## .+$/gm;
 
-/** 匹配 SKILL.md 中由 genPrompt 注入的一级标题前缀 */
-const SKILL_INJECTED_PREFIX_RE = /^# .+[\s\S]*?(?=\n## )/;
-
 /**
  * 中文章节标题 → 英文 reference 文件名（写入 referenceSubdir 下）
  */
@@ -106,10 +103,6 @@ description: >-
   cards, schemaJson, login forms, tables, UI layouts, or OpenTiny components.
 ---
 `;
-
-const DEFAULT_PROMPT_OPTIONS: IGenPromptOptions = {
-  isSkill: true,
-};
 
 const COMPONENTS_INDEX_START = '<!-- genui-skill-generator:start -->';
 const COMPONENTS_INDEX_END = '<!-- genui-skill-generator:end -->';
@@ -388,7 +381,6 @@ export function genSkillContent(
   promptOptions?: IGenPromptOptions,
 ): IGenSkillContent {
   const options: IGenPromptOptions = {
-    ...DEFAULT_PROMPT_OPTIONS,
     ...promptOptions,
     isSkill: promptOptions?.isSkill ?? true,
   };
@@ -428,17 +420,6 @@ export function ensureSkillFrontmatter(
   }
 
   return match[0].endsWith('\n') ? match[0] : `${match[0]}\n`;
-}
-
-/**
- * 从 SKILL.md 正文中剥离 genPrompt 注入的一级标题前缀，保留模板正文。
- *
- * @param content - frontmatter 之后的正文
- * @returns 模板正文
- */
-export function stripInjectedSkillPrefix(content: string): string {
-  const stripped = content.replace(SKILL_INJECTED_PREFIX_RE, '').replace(/^\n+/, '');
-  return stripped.trimEnd();
 }
 
 /**
@@ -663,8 +644,7 @@ export function writeReferenceFiles(
 
     // 空子目录时详情与索引路径相同，不能用索引逻辑改写原始 prompt 分片。
     if (shouldSyncIndex && referenceSubdir && file === 'components.md') {
-      const detailRel = referenceSubdir ? `${referenceSubdir}/components.md` : 'components.md';
-      syncComponentsIndex(skillDir, content, detailRel);
+      syncComponentsIndex(skillDir, content, `${referenceSubdir}/components.md`);
     }
   }
 

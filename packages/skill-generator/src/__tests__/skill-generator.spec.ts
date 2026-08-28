@@ -18,7 +18,6 @@ import {
   normalizeReferenceSubdir,
   sectionLink,
   splitPromptSections,
-  stripInjectedSkillPrefix,
   syncComponentsIndex,
   writeReferenceFiles,
   writeSkillEntry,
@@ -225,20 +224,6 @@ describe('skill-generator', () => {
         '## 可用组件\n\n必须使用以下支持的 componentName：`A`\n',
       ),
     ).toThrow(/受管区块标记无效/);
-  });
-
-  it('stripInjectedSkillPrefix 剥离一级标题前缀', () => {
-    const content = `# 技能说明
-
-说明文字
-
-## 意图路由
-
-表格
-`;
-    expect(stripInjectedSkillPrefix(content)).toBe(`## 意图路由
-
-表格`);
   });
 
   it('ensureSkillFrontmatter 只读取 YAML frontmatter', () => {
