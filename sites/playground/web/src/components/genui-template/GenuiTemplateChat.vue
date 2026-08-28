@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
+import { useRoute } from 'vue-router';
 import '@opentiny/tiny-robot/dist/style.css';
 import {
   TrBubbleList,
@@ -48,6 +49,7 @@ const props = defineProps<{
   messages?: IMessage[];
 }>();
 
+const route = useRoute();
 const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
@@ -72,6 +74,26 @@ watch(
 );
 
 const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
+
+let inputMessageFromQueryApplied = false;
+watch(
+  () => ({
+    queryMessage: route.query['input-message'],
+    manager: messageManager.value,
+    loading: conversation.templateConversationState?.loading,
+  }),
+  ({ queryMessage, manager, loading }) => {
+    if (inputMessageFromQueryApplied) {
+      return;
+    }
+    if (typeof queryMessage !== 'string' || !queryMessage || !manager || loading) {
+      return;
+    }
+    manager.inputMessage.value = queryMessage;
+    inputMessageFromQueryApplied = true;
+  },
+  { immediate: true },
+);
 
 const messages = computed(() => messageManager.value?.messages.value ?? []);
 
@@ -336,9 +358,13 @@ onUnmounted(() => {
 <template>
   <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }">
     <div class="messages-container" ref="messagesContainer">
-      <tr-bubble-provider :content-renderers="messageRenderers">
-        <tr-bubble-list v-if="showMessages.length" :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
+      <tr-bubble-provider v-if="showMessages.length" :content-renderers="messageRenderers">
+        <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
+      <div v-else class="empty">
+        <IconAi />
+        <span>{{ t('app.emptyTitle') }}</span>
+      </div>
     </div>
     <div class="sender-container">
       <div
@@ -354,7 +380,7 @@ onUnmounted(() => {
         :clearable="true"
         :loading="generating"
         :showWordLimit="true"
-        :maxLength="5000"
+        :maxLength="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="() => messageManager?.abortRequest()"
@@ -400,6 +426,32 @@ onUnmounted(() => {
 
   &::-webkit-scrollbar {
     width: 10px;
+  }
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 80%;
+  font-size: 32px;
+  font-weight: 600;
+
+  & > svg {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 768px) {
+  .empty {
+    font-size: 24px;
+
+    & > svg {
+      width: 48px;
+      height: 48px;
+    }
   }
 }
 

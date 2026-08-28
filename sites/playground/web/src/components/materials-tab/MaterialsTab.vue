@@ -1,23 +1,26 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
-import { ref, inject } from 'vue';
+import { ref, inject, computed } from 'vue';
 import { ThemePreviewCard } from '../theme-preview';
 import { t } from '../../i18n';
+import { PlaygroundMode } from '../../constants';
 import {
-  FRAMEWORK_OPTIONS,
+  getFrameworkOptions,
   COMPONENT_LIB_OPTIONS,
   MATERIAL_THEME_OPTIONS,
   MATERIAL_THEME_COLOR_MAP,
 } from './materials-options';
 
-defineProps({
+const props = defineProps({
   theme: { type: String, default: 'light' },
+  currentMode: { type: String, default: PlaygroundMode.Chat },
 });
 
 const emit = defineEmits(['update:theme']);
 
 const { framework } = inject('playgroundContext');
 const componentLib = ref('TinyVue');
+const frameworkOptions = computed(() => getFrameworkOptions(props.currentMode));
 
 const setFramework = (name) => {
   framework.value = name;
@@ -33,7 +36,7 @@ const setFramework = (name) => {
     <div class="config-title">{{ t('materials.framework') }}</div>
     <div class="framework-group">
       <div
-        v-for="item in FRAMEWORK_OPTIONS"
+        v-for="item in frameworkOptions"
         :key="item.name"
         class="framework-btn"
         :class="{ 'framework-btn--active': framework === item.name }"

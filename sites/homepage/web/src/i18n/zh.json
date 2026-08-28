@@ -31,6 +31,23 @@
     "stream": {
       "title": "界面混排与流式渲染",
       "subtitle": "生成式UI无侵入接入，支持混排，并实现UI流式渲染，界面无需漫长等待生成"
+    },
+    "builder": {
+      "title": "构建器模式：基于对话的流式增量界面构建与迭代",
+      "badge": "实验特性",
+      "tryNow": "立即体验",
+      "feature1": {
+        "title": "对话即编辑",
+        "description": "自然语言描述改动，AI 精准生成 Schema Diff，告别全量重生成"
+      },
+      "feature2": {
+        "title": "版本可追溯",
+        "description": "每次修改生成独立版本卡片，支持随时预览、回滚或应用历史状态"
+      },
+      "feature3": {
+        "title": "所见即所得",
+        "description": "右侧实时预览，支持查看和编辑底层 JSON Schema"
+      }
     }
   },
   "extend": {
@@ -100,7 +117,7 @@
     }
   },
   "link": {
-    "title": "即刻体验OpenTiny生成式UI",
+    "title": "更多探索 构建器模式",
     "description": "增强大模型对话显示与交互，打造极致顺滑的智能体验",
     "descriptionLine1": "增强大模型对话显示与交互",
     "descriptionLine2": "打造极致顺滑的智能体验",

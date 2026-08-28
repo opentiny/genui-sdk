@@ -1,10 +1,18 @@
 import { THEME_PREVIEW_COLOR_PRESETS } from '../theme-preview';
+import { PlaygroundMode } from '../../constants';
 
 export const FRAMEWORK_OPTIONS = [
   { name: 'Vue', icon: 'V' },
   { name: 'Angular', icon: 'A' },
   { name: 'React', icon: 'R', alpha: true },
 ] as const;
+
+export function getFrameworkOptions(mode: PlaygroundMode) {
+  if (mode === PlaygroundMode.Builder) {
+    return FRAMEWORK_OPTIONS.filter((item) => item.name !== 'Angular');
+  }
+  return [...FRAMEWORK_OPTIONS];
+}
 
 export const COMPONENT_LIB_OPTIONS = ['TinyVue', 'ElementUI'] as const;
 

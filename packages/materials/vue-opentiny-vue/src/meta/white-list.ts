@@ -17,6 +17,7 @@ export const miniWhiteList = [
   'Img',
   'Slot',
   'Text',
+  'TinyIcon',
   'TinyForm',
   'TinyFormItem',
   'TinyButton',
