@@ -139,7 +139,7 @@ const createNewTemplate = () => {
     />
   </template>
   <div class="config-title prompt-title">
-    <span>{{ t('model.prompt') }}</span>
+    <span>{{ t('model.additionalPrompt') }}</span>
     <span>
       <tiny-button type="text" :icon="IconPlus" @click="showAddPromptBox = true"> </tiny-button>
     </span>

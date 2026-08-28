@@ -1,10 +1,10 @@
 const DOCS_BASE = import.meta.env.VITE_GENUI_DOCS_BASE || 'https://docs.opentiny.design/genui-sdk';
-const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://playground.opentiny.design/genui-sdk';
+const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://opentiny.github.io/genui-sdk/playground/';
 
 export const linkMap = {
   devDoc: `${DOCS_BASE}/guide/quick-start`,
-  playground: PLAYGROUND_HREF,
-  playgroundBuilder: `${PLAYGROUND_HREF}/builder`,
+  playground: `${PLAYGROUND_HREF}#/chat`,
+  playgroundBuilder: `${PLAYGROUND_HREF}#/builder`,
   chatDoc: `${DOCS_BASE}/components/chat`,
   dcologicalCompatibility: `${DOCS_BASE}/examples/chat/custom-fetch`,
   defineTheme: `${DOCS_BASE}/examples/config-provider/theme`,

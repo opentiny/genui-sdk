@@ -8,12 +8,6 @@ export interface IBubbleSlotsProps {
   chatMessage: IChatMessage;
 }
 
-export interface IRendererSlotsProps {
-  schema: any;
-  isError: boolean;
-  isFinished: boolean;
-}
-
 export interface INotificationEventEmitter {
   on(eventName: 'notification', callback: (payload: any) => void, once?: boolean): void;
   off(eventName: 'notification', callback: (payload: any) => void): void;
