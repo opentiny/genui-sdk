@@ -132,7 +132,7 @@
 
 | Suite | models | scenarios | repeat | concurrency | Judge | 门禁 |
 |-------|--------|-----------|--------|-------------|-------|------|
-| **smoke** | 仅 config 主模型（如 `DeepSeek-V3.2`） | `simple-form`, `dashboard-card`, `table-and-filter`, `form-validation`, `permission-ui`, `chart-dashboard-combo`（6 个，覆盖表单/卡片/表/校验/权限/图表） | 1 | 2 | off | 协议通过率 **100%** 否则 exit≠0（可选 flag） |
+| **smoke** | 仅 config 主模型（如 `DeepSeek-V4-Flash`） | `simple-form`, `dashboard-card`, `table-and-filter`, `form-validation`, `permission-ui`, `chart-dashboard-combo`（6 个，覆盖表单/卡片/表/校验/权限/图表） | 1 | 2 | off | 协议通过率 **100%** 否则 exit≠0（可选 flag） |
 | **nightly** | 主模型 | **全部**场景 | 3 | 2～5 | off 或 on | 默认只出报告；可选 `BENCH_FAIL_ON_PROTOCOL=true` |
 | **release** | `BENCH_MODELS` 或清单子集 | 全部 | 5 | 1（体感）或 2 | **on** + 固定 Judge | 协议门禁 + 报告；选型看 p95/tokens/Judge |
 

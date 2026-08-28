@@ -29,6 +29,28 @@ type LlmJudgeResult = {
   totalTokens?: number;
 };
 
+function validateSampleProtocol(sample: LlmBenchmarkSample, options?: LlmBenchmarkRunOptions) {
+  if (isPlainPromptVariant(sample)) {
+    return {
+      isSchemaJsonBlockFound: false,
+      isSchemaJsonValidJson: false,
+      isSchemaJsonValidAgainstProtocol: false,
+      schemaValidationError: 'skipped_plain',
+    };
+  }
+  const protocol = sample.protocol ?? (options ? protocolFromOptions(options) : 'genui');
+  return validateProtocolOutput(protocol, sample.output, {
+    framework: sample.framework ?? options?.framework ?? 'Vue',
+    materialsVariant: sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
+  });
+}
+
+/** Judge 只评价请求成功且协议校验通过的结构化输出。 */
+export function shouldJudgeSample(sample: LlmBenchmarkSample, options?: LlmBenchmarkRunOptions): boolean {
+  if (isPlainPromptVariant(sample) || sample.metrics.errorMessage) return false;
+  return validateSampleProtocol(sample, options).isSchemaJsonValidAgainstProtocol === true;
+}
+
 /**
  * 使用 LLM-as-a-Judge 对单条样本做质量评估。
  * 错误信息带前缀便于区分：`judge_timeout` / `judge_empty_output` / `judge_non_json` /
@@ -146,19 +168,7 @@ function toReportItem(
   judge?: LlmJudgeResult,
   options?: LlmBenchmarkRunOptions,
 ): LlmBenchmarkResultItem {
-  const protocol = sample.protocol ?? (options ? protocolFromOptions(options) : 'genui');
-  // plain = 空 system 纯文本基线：无协议约束，跳过合规校验（与 Judge 一致）
-  const validation = isPlainPromptVariant(sample)
-    ? {
-        isSchemaJsonBlockFound: false,
-        isSchemaJsonValidJson: false,
-        isSchemaJsonValidAgainstProtocol: false,
-        schemaValidationError: 'skipped_plain',
-      }
-    : validateProtocolOutput(protocol, sample.output, {
-        framework: sample.framework ?? options?.framework ?? 'Vue',
-        materialsVariant: sample.materialsVariant ?? options?.materialsVariant ?? 'standard',
-      });
+  const validation = validateSampleProtocol(sample, options);
   const ttftMs = typeof sample.metrics.ttftMs === 'number' ? sample.metrics.ttftMs : undefined;
   const firstChunkMs =
     typeof sample.metrics.firstChunkMs === 'number' ? sample.metrics.firstChunkMs : ttftMs;
@@ -278,9 +288,10 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
   const judgeEnabled = options.llmJudge?.enabled === true;
   const judgeResults: Array<LlmJudgeResult | undefined> = [];
   if (judgeEnabled) {
-    const toJudgeCount = parsedSamples.filter((s) => !isPlainPromptVariant(s)).length;
+    const judgeEligibility = parsedSamples.map((sample) => shouldJudgeSample(sample, options));
+    const toJudgeCount = judgeEligibility.filter(Boolean).length;
     console.log(
-      `[bench][judge] enabled, samples=${parsedSamples.length}, judgeCalls=${toJudgeCount}（纯文本样本跳过 Judge）`,
+      `[bench][judge] enabled, samples=${parsedSamples.length}, judgeCalls=${toJudgeCount}（请求失败、plain、协议校验失败均跳过）`,
     );
     const concurrency = Math.max(1, options.concurrency ?? 2);
     let cursor = 0;
@@ -289,9 +300,16 @@ export async function runReport(options: LlmBenchmarkRunOptions) {
         const index = cursor++;
         if (index >= parsedSamples.length) return;
         const sample = parsedSamples[index];
-        if (isPlainPromptVariant(sample)) {
+        if (!judgeEligibility[index]) {
           judgeResults[index] = undefined;
-          console.log(`[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} plain — skip Judge`);
+          const reason = sample.metrics.errorMessage
+            ? 'request_failed'
+            : isPlainPromptVariant(sample)
+              ? 'plain'
+              : 'protocol_invalid';
+          console.log(
+            `[bench][judge] ${index + 1}/${parsedSamples.length} ${sample.scenario} ${reason} — skip Judge`,
+          );
           continue;
         }
         const judged = await judgeOneSample(sample, options);

@@ -71,10 +71,14 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
     writeExcel: defaultWriteExcel,
     failOnProtocol,
   } = config;
+  const modelsFromManifestResolved =
+    !(configModels && configModels.length > 0) &&
+    !process.env.BENCH_MODELS?.trim() &&
+    (modelsFromMaasManifest || envBool('BENCH_MODELS_FROM_MAAS', false));
   const defaultModelsFromManifest =
     configModels && configModels.length > 0
       ? configModels
-      : modelsFromMaasManifest || envBool('BENCH_MODELS_FROM_MAAS', false)
+      : modelsFromManifestResolved
         ? listMaasManifestModelNames()
         : undefined;
   const scenarios = envStringList('BENCH_SCENARIOS', defaultScenarios);
@@ -97,6 +101,7 @@ export function resolveRunOptions(): LlmBenchmarkRunOptions {
     ...(suite ? { suite } : {}),
     ...(trimmedModel ? { model: trimmedModel } : {}),
     models: models && models.length > 0 ? models : undefined,
+    modelsFromMaasManifest: modelsFromManifestResolved,
     protocol: envBenchProtocol('BENCH_PROTOCOL', defaultProtocol ?? 'genui'),
     framework: envFramework('BENCH_FRAMEWORK', framework),
     materialsVariant: envMaterialsVariant('BENCH_MATERIALS_VARIANT', defaultMaterialsVariant),

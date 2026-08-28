@@ -64,6 +64,64 @@ pnpm --filter @opentiny/genui-sdk-benchmarks benchmarks:cli
 
 预设只负责填写表单，选择后仍可修改任意配置；手工修改后页面会自动标记为“自定义”。快速检查只用于冒烟，不能据此得出稳定的性能结论。
 
+## 模型清单与选择优先级
+
+模型清单和运行模型是两个概念：
+
+- `maas-models.json` 提供配置页的候选模型、模型对应的 Provider 配置，以及“使用清单全部模型”的数据来源。
+- `model` / `models` 决定一次评测最终执行哪些模型。非空 `models` 始终优先于单个 `model`。
+
+模型清单路径按以下顺序确定：
+
+```text
+BENCH_MAAS_MODELS_PATH
+> sites/playground/server/maas-models.json
+```
+
+配置页只展示清单中各 Provider 的 `models[].name`。自定义模型如果不在清单中，不会出现在配置页候选项；需要先将其加入清单，或者使用 CLI，并确保模型 Provider 能被正确解析。
+
+### CLI 模型优先级
+
+直接运行 CLI 时，最终执行模型按以下顺序确定：
+
+```text
+BENCH_MODELS
+> benchmark.config.ts / BENCH_SUITE 中的非空 models
+> BENCH_MODELS_FROM_MAAS=true 或 modelsFromMaasManifest=true 时的清单全部模型
+> BENCH_MODEL
+> benchmark.config.ts / BENCH_SUITE 中的 model
+```
+
+`BENCH_MODELS` 是逗号分隔的模型 ID。最终列表会 trim、保序去重；如果多模型列表和单模型同时存在，生成阶段使用多模型列表。
+
+### 配置页模型优先级
+
+配置页打开时，`BENCH_*`、套件和 `benchmark.config.ts` 只负责提供表单默认值；点击“启动测试”后，以当前表单为准：
+
+```text
+“使用清单全部模型”开启：清单全部模型
+“使用清单全部模型”关闭：页面选中的模型
+```
+
+因此总体配置覆盖关系是：
+
+```text
+配置页表单（仅 UI 运行）
+> 显式 BENCH_* 环境变量
+> BENCH_SUITE 预设
+> benchmark.config.ts
+```
+
+报告主模型优先取显式 `model`，否则取 `models` 第一项。Judge 显式设置 `BENCH_LLM_JUDGE_MODEL` 或在配置页选择 Judge 模型时使用该模型；未设置时复用报告主模型。
+
+使用清单全部模型前建议先确认任务量：
+
+```text
+生成任务数 = 模型数 × 场景数 × repeat × prompt 变体数
+```
+
+其中 `full + plain` 有两个 prompt 变体。完整清单配合全场景和较高 repeat 会显著增加耗时和调用费用，日常链路验证优先使用“快速检查”。
+
 ## 自动化套件
 
 CLI 保留三个固定套件，用于 CI 和定时任务：

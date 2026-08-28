@@ -607,10 +607,8 @@ function renderHtml(data) {
     </div>`;
 
   const navItems = [
-    ['#sec-config', '配置'],
+    ['#sec-verdict', '结论'],
     ...(runSummary ? [['#sec-health', '健康']] : []),
-    ...(runMetadata ? [['#sec-repro', '复现']] : []),
-    ['#sec-verdict', '五维总览'],
     ...(multiModel ? [['#sec-models', '模型总览']] : []),
     ['#sec-protocol', '协议合规'],
     ['#sec-stability', '生成稳定性'],
@@ -619,6 +617,8 @@ function renderHtml(data) {
     ['#sec-quality', '质量'],
     ['#sec-detail', '明细'],
     ...(insightBlocks ? [['#sec-highlights', '要点']] : []),
+    ['#sec-config', '配置'],
+    ...(runMetadata ? [['#sec-repro', '复现']] : []),
   ];
   const sideNav = navItems
     .map(
@@ -708,6 +708,14 @@ function renderHtml(data) {
       background: rgba(61, 214, 198, 0.08);
       border-left-color: var(--accent);
     }
+    .side-nav-meta {
+      margin: 18px 8px 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--faint);
+      font: 11px/1.5 var(--mono);
+      word-break: break-word;
+    }
     main.content {
       max-width: 1120px;
       width: 100%;
@@ -746,7 +754,11 @@ function renderHtml(data) {
       }
       main.content { padding: 20px 16px 56px; }
     }
-    header.hero { margin-bottom: 18px; }
+    header.hero {
+      margin-bottom: 22px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+    }
     h1 {
       font-size: clamp(1.5rem, 2.6vw, 2rem);
       font-weight: 650;
@@ -1002,6 +1014,8 @@ function renderHtml(data) {
       font-size: 14px;
     }
     th { color: var(--muted); font-weight: 550; background: var(--panel-2); }
+    thead th { position: sticky; top: 0; z-index: 2; }
+    tbody tr:hover td { background: rgba(255,255,255,0.025); }
     th.model-group {
       text-align: center;
       border-left: 1px solid var(--line);
@@ -1041,25 +1055,17 @@ function renderHtml(data) {
   <nav class="side-nav" aria-label="Sections">
     <div class="side-brand">GenUI <span>Bench</span></div>
     ${sideNav}
+    <div class="side-nav-meta">${esc(primary)}<br>${esc(String(summary.runs || 0))} runs</div>
   </nav>
 <main class="content">
   <header class="hero">
     <h1>GenUI Bench <span>Report</span></h1>
+    <p class="lede">${esc(primary)} · ${esc(String(summary.runs || 0))} runs · 先看结论与失败项，再进入性能、成本和明细。</p>
   </header>
 
-  <section id="sec-config" aria-label="Run configuration">
-    <h2>配置</h2>
-    <dl class="cfg">
-      ${configRows(cfg)}
-    </dl>
-  </section>
-
-  ${healthSection}
-
-  ${reproSection}
-
   <section id="sec-verdict">
-    <p class="caption" style="margin-top:0">协议看能不能用；Judge 看好不好；性能和成本分开比，不合成一个总分。</p>
+    <h2>评测结论</h2>
+    <p class="caption">协议看能不能用；Judge 看好不好；性能和成本分开比较，不合成总分。</p>
     <div class="dims">
       ${dimCard(dims.protocol, '#sec-protocol')}
       ${dimCard(dims.stability, '#sec-stability')}
@@ -1068,6 +1074,8 @@ function renderHtml(data) {
       ${dimCard(dims.quality, '#sec-quality')}
     </div>
   </section>
+
+  ${healthSection}
 
   ${modelOverviewSection}
 
@@ -1158,6 +1166,15 @@ function renderHtml(data) {
   </section>`
       : ''
   }
+
+  <section id="sec-config" aria-label="Run configuration">
+    <h2>运行配置</h2>
+    <dl class="cfg">
+      ${configRows(cfg)}
+    </dl>
+  </section>
+
+  ${reproSection}
 
   <footer>
     Self-contained report.html (no CDN). 五维：协议 / 稳定性 / 性能 / 成本 / 质量 · source ${esc(path.basename(path.dirname(source.reportPath)) + '/report.json')}.

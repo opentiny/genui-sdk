@@ -38,6 +38,7 @@ type ArtifactLinks = {
 type BenchUiMeta = {
   defaults: BenchUiFormPayload;
   models: string[];
+  modelConfigSource: string;
   /** 当前模型清单路径（相对 benchmarks 包根，否则绝对路径） */
   modelsManifestPath?: string;
   scenarioGroups: Array<{ group: string; label: string; scenarios: string[] }>;
@@ -227,10 +228,18 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
       console.warn('[bench-ui] Failed to load model list:', err instanceof Error ? err.message : err);
     }
     const defaults = toFormDefaults(resolveRunOptions());
+    const modelConfigSource = process.env.BENCH_MODELS?.trim()
+      ? 'BENCH_MODELS'
+      : defaults.modelsFromMaasManifest
+        ? 'MaaS 模型清单'
+        : process.env.BENCH_MODEL?.trim()
+          ? 'BENCH_MODEL'
+          : 'benchmark.config.ts';
     const protocol = protocolFromOptions({ protocol: defaults.protocol });
     return {
       defaults,
       models,
+      modelConfigSource,
       modelsManifestPath,
       scenarioGroups: scenarioGroups(protocol),
       scenarioGroupsByProtocol: {

@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GenUI Bench — Launch</title>
+  <link rel="icon" href="data:," />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -23,7 +24,7 @@
       --warn: #e8a54b;
       --danger: #ef6b6b;
       --ok: #6bcf8e;
-      --radius: 12px;
+      --radius: 8px;
       --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
       --font: "DM Sans", ui-sans-serif, sans-serif;
       --mono: "JetBrains Mono", ui-monospace, monospace;
@@ -31,7 +32,7 @@
 
     * { box-sizing: border-box; }
     html {
-      font-size: 20px; /* 相对浏览器默认 16px 约放大两级；rem 控件随根字号缩放 */
+      font-size: 16px;
     }
     html, body { height: 100%; }
     body {
@@ -39,15 +40,12 @@
       font-family: var(--font);
       font-size: 1rem;
       color: var(--text);
-      background:
-        radial-gradient(1200px 600px at 10% -10%, rgba(61, 214, 198, 0.09), transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, rgba(232, 165, 75, 0.06), transparent 50%),
-        var(--bg);
+      background: var(--bg);
       line-height: 1.5;
     }
 
     .shell {
-      max-width: 1120px;
+      max-width: 1360px;
       margin: 0 auto;
       padding: 28px 20px 120px;
     }
@@ -55,8 +53,8 @@
     header.hero {
       display: grid;
       gap: 10px;
-      margin-bottom: 28px;
-      padding-bottom: 22px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
       border-bottom: 1px solid var(--line-soft);
     }
     .brand {
@@ -100,17 +98,17 @@
     }
     @media (min-width: 960px) {
       .layout {
-        grid-template-columns: 1.35fr 0.9fr;
+        grid-template-columns: minmax(620px, 1.55fr) minmax(340px, 0.8fr);
         align-items: start;
       }
       .log-column { position: sticky; top: 16px; }
     }
 
     .card {
-      background: linear-gradient(180deg, var(--bg-elev), var(--bg-panel));
+      background: var(--bg-elev);
       border: 1px solid var(--line);
       border-radius: var(--radius);
-      box-shadow: var(--shadow);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
       overflow: hidden;
     }
     .card-hd {
@@ -334,6 +332,23 @@
       color: var(--accent);
     }
     .chip:hover { border-color: rgba(61, 214, 198, 0.35); }
+    .chip:disabled { cursor: not-allowed; opacity: 0.42; }
+
+    .model-picker[aria-disabled="true"] {
+      opacity: 0.48;
+    }
+    .inline-note {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+    .inline-note strong { color: var(--text); font-weight: 600; }
+    .inline-note.warning {
+      padding: 8px 10px;
+      border-left: 3px solid var(--warn);
+      background: rgba(232, 165, 75, 0.08);
+      color: #f0c27a;
+    }
 
     .toolbar {
       display: flex;
@@ -562,7 +577,7 @@
       padding: 14px 20px;
     }
     .dock-inner {
-      max-width: 1120px;
+      max-width: 1360px;
       margin: 0 auto;
       display: flex;
       align-items: center;
@@ -590,7 +605,7 @@
     .btn:active { transform: translateY(1px); }
     .btn:disabled { opacity: 0.45; cursor: not-allowed; }
     .btn-primary {
-      background: linear-gradient(180deg, #4ae0d0, var(--accent-strong));
+      background: var(--accent);
       color: #04201c;
       box-shadow: 0 8px 24px rgba(61, 214, 198, 0.25);
     }
@@ -669,6 +684,7 @@
       profile: 'custom',
       /** System 对照：full | both | plain */
       plainMode: 'full',
+      modelsFromManifest: false,
       runState: 'idle',
     };
 
@@ -854,7 +870,9 @@
     function updateDockSummary() {
       const el = $('dockSummary');
       if (!el) return;
-      const models = state.selectedModels.size;
+      const models = $('modelsFromMaas')?.checked
+        ? state.meta?.models?.length || 0
+        : state.selectedModels.size;
       const scenarios = state.selectedScenarios.size;
       const groups = scenarioGroupsFor(state.protocol);
       const all = groups.reduce((n, g) => n + g.scenarios.length, 0) || 0;
@@ -862,7 +880,11 @@
         scenarios === 0 || (all > 0 && scenarios === all)
           ? `全部 ${all} 场景`
           : `${scenarios} 个场景`;
-      el.innerHTML = `将运行 <strong>${models || 0}</strong> 个模型 × <strong>${scenLabel}</strong>（${state.protocol || 'genui'}）`;
+      const repeat = Math.max(1, Number($('repeat')?.value) || 1);
+      const variants = state.plainMode === 'both' ? 2 : 1;
+      const effectiveScenarios = scenarios || all;
+      const jobs = models * effectiveScenarios * repeat * variants;
+      el.innerHTML = `<strong>${jobs}</strong> 个生成任务 · ${models || 0} 模型 × ${scenLabel} × ${repeat} 次${variants > 1 ? ' × 2 变体' : ''} · ${state.protocol || 'genui'}`;
     }
 
     function scenarioGroupsFor(protocol) {
@@ -914,6 +936,7 @@
         $('concurrency').value = '1';
       }
       syncProfileButtons();
+      updateDockSummary();
     }
 
     function syncGroupToggleLabels() {
@@ -989,12 +1012,30 @@
       updateDockSummary();
     }
 
+    function syncModelSelectionMode() {
+      const useManifest = $('modelsFromMaas')?.checked === true;
+      state.modelsFromManifest = useManifest;
+      const picker = $('modelPicker');
+      picker?.setAttribute('aria-disabled', String(useManifest));
+      picker?.querySelectorAll('button').forEach((button) => {
+        button.disabled = useManifest;
+      });
+      const hint = $('modelsFromMaasHint');
+      if (hint) {
+        hint.textContent = useManifest
+          ? `已启用，将运行清单中的全部 ${state.meta?.models?.length || 0} 个模型`
+          : `开启后运行清单全部模型（${state.meta?.modelsManifestPath || 'BENCH_MAAS_MODELS_PATH'}）`;
+      }
+      updateDockSummary();
+    }
+
     function render(meta) {
       state.meta = meta;
       const d = meta.defaults || {};
       state.protocol = d.protocol === 'a2ui' ? 'a2ui' : 'genui';
       state.framework = d.framework || 'Vue';
       state.materialsVariant = d.materialsVariant || 'standard';
+      state.modelsFromManifest = d.modelsFromMaasManifest === true;
       state.plainMode = d.compareEmptySystemPlainOnly
         ? 'plain'
         : d.compareEmptySystem
@@ -1010,6 +1051,10 @@
       if (state.selectedModels.size === 0 && d.model) {
         state.selectedModels.add(d.model);
       }
+      const unavailableDefaults = defaultModels.filter((m) => !meta.models.includes(m));
+      const unavailableModelWarning = unavailableDefaults.length
+        ? `<p class="inline-note warning">默认模型不在当前清单中：${unavailableDefaults.map(esc).join('、')}。请更新模型清单后再启动。</p>`
+        : '';
 
       const defaultScenarios = Array.isArray(d.scenarios) ? d.scenarios : [];
       state.selectedScenarios = new Set(defaultScenarios);
@@ -1063,18 +1108,22 @@
 
               <section class="section">
                 <h3 class="section-title">模型</h3>
-                <div class="toolbar">
-                  <button type="button" class="btn-ghost" id="modelsAll">全选</button>
-                  <button type="button" class="btn-ghost" id="modelsClear">清空</button>
+                <p class="inline-note">默认来源：<strong>${esc(meta.modelConfigSource || 'benchmark.config.ts')}</strong> · 当前清单 ${meta.models.length} 个模型</p>
+                ${unavailableModelWarning}
+                <div class="model-picker" id="modelPicker" aria-disabled="${state.modelsFromManifest}">
+                  <div class="toolbar">
+                    <button type="button" class="btn-ghost" id="modelsAll">全选</button>
+                    <button type="button" class="btn-ghost" id="modelsClear">清空</button>
+                  </div>
+                  <div class="chips" id="modelChips">${modelChips}</div>
                 </div>
-                <div class="chips" id="modelChips">${modelChips}</div>
                 <div style="height:12px"></div>
                 <div class="toggle-row">
                   <div class="meta">
                     <strong>使用清单全部模型</strong>
-                    <small>勾选后忽略上方选择，跑清单全部模型（${esc(meta.modelsManifestPath || 'BENCH_MAAS_MODELS_PATH')}）</small>
+                    <small id="modelsFromMaasHint">${state.modelsFromManifest ? `已启用，将运行清单中的全部 ${meta.models.length} 个模型` : `开启后运行清单全部模型（${esc(meta.modelsManifestPath || 'BENCH_MAAS_MODELS_PATH')}）`}</small>
                   </div>
-                  <label class="switch"><input type="checkbox" id="modelsFromMaas" ${d.modelsFromMaasManifest ? 'checked' : ''}/><span></span></label>
+                  <label class="switch"><input type="checkbox" id="modelsFromMaas" ${state.modelsFromManifest ? 'checked' : ''}/><span></span></label>
                 </div>
               </section>
 
@@ -1229,6 +1278,7 @@
 
       $('dock').hidden = false;
       bindFormEvents();
+      syncModelSelectionMode();
       updateDockSummary();
       connectLogs();
       pollStatus();
@@ -1267,7 +1317,10 @@
         $('plainModeSeg').querySelectorAll('button').forEach((b) => {
           b.setAttribute('aria-pressed', String(b === btn));
         });
+        updateDockSummary();
       });
+
+      $('modelsFromMaas')?.addEventListener('change', syncModelSelectionMode);
 
       $('modelChips')?.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-model]');
@@ -1382,6 +1435,7 @@
       syncMiniAvailability();
       syncScenarioListForProtocol();
       syncPromptFieldsForProtocol();
+      $('repeat')?.addEventListener('input', updateDockSummary);
 
       $('clearLog')?.addEventListener('click', () => { const p = $('log'); if (p) p.innerHTML = ''; });
       $('btnRun').onclick = startRun;
