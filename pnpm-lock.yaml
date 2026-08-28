@@ -348,6 +348,15 @@ importers:
       '@opentiny/vue-theme':
         specifier: ~3.28.0
         version: 3.28.0
+      '@vue/compiler-sfc':
+        specifier: ^3.5.13
+        version: 3.5.26
+      '@vue/shared':
+        specifier: ^3.5.13
+        version: 3.5.26
+      prettier:
+        specifier: ^3.5.0
+        version: 3.8.2
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -690,9 +699,6 @@ importers:
       '@opentiny/vue-icon':
         specifier: ^3.28.0
         version: 3.28.3
-      '@opentiny/vue-notify':
-        specifier: ^3.28.0
-        version: 3.28.0
       '@vitejs/plugin-vue':
         specifier: ^5.1.2
         version: 5.2.4(vite@5.4.21(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1))(vue@3.5.26(typescript@5.9.3))
@@ -8544,6 +8550,11 @@ packages:
   prepend-http@2.0.0:
     resolution: {integrity: sha512-ravE6m9Atw9Z/jjttRUZ+clIXogdghyZAuWJ3qEzjT+jI/dL1ifAqhZeC5VHzQp1MSt1+jxKkFNemj/iO7tVUA==}
     engines: {node: '>=4'}
+
+  prettier@3.8.2:
+    resolution: {integrity: sha512-8c3mgTe0ASwWAJK+78dpviD+A8EqhndQPUBpNUIPt6+xWlIigCwfN01lWr9MAede4uqXGTEKeQWTvzb3vjia0Q==}
+    engines: {node: '>=14'}
+    hasBin: true
 
   proc-log@5.0.0:
     resolution: {integrity: sha512-Azwzvl90HaF0aCz1JrDdXQykFakSSNPaPoiZ9fm5qJIMHioDZEi7OAdRwSm6rSoPtY3Qutnm3L7ogmg3dc+wbQ==}
@@ -19452,6 +19463,8 @@ snapshots:
   prepend-http@1.0.4: {}
 
   prepend-http@2.0.0: {}
+
+  prettier@3.8.2: {}
 
   proc-log@5.0.0: {}
 

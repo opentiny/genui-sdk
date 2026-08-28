@@ -278,7 +278,7 @@ onUnmounted(() => {
         </div>
         <a
           class="home-extend-schema-header-subtitle is-link"
-          :href="linkMap[LinkKey.PlaygroundBuilder] + inputMessage"
+          :href="linkMap[LinkKey.Playground] + inputMessage"
           target="_blank"
           rel="noopener noreferrer"
         >

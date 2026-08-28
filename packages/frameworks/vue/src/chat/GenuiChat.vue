@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import '@opentiny/tiny-robot/dist/style.css';
-import {
-  TrBubbleList,
-  TrSender,
-  TrBubbleProvider,
-  BubbleMarkdownContentRenderer,
-} from '@opentiny/tiny-robot';
+import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
 import { AIClient, GeneratingStatus, STATUS, type ChatMessage } from '@opentiny/tiny-robot-kit';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type {
@@ -95,7 +90,12 @@ const wrapSlots = (slots: any) => {
       });
       const slotFn = toSlotFunction(slots[key]);
       if (slotFn) {
-        return slotFn({ ...props, isFinished: isFinished.value, messageManager: messageManager.value, chatMessage: messageManager.value.messages.value[props.index] });
+        return slotFn({
+          ...props,
+          isFinished: isFinished.value,
+          messageManager: messageManager.value,
+          chatMessage: messageManager.value.messages.value[props.index],
+        });
       }
       return null;
     };
@@ -174,28 +174,31 @@ const lastSchemaCardId = computed(() => {
   return items[items.length - 1].id;
 });
 
+const customComponentsMap = computed(() => {
+  const map: Record<string, Component> = {};
+  props.customComponents?.forEach((item) => {
+    if (item.ref && item.component) {
+      map[item.component] = item.ref;
+    }
+  });
+  return map;
+});
+
+const customActionsMap = computed(() => {
+  const map: Record<string, ICustomActionItem> = {};
+  props.customActions?.forEach((action) => {
+    if (action.name) {
+      map[action.name] = action;
+    }
+  });
+  return map;
+});
+
 const messageRenderers = {
   'custom-text': (props: BubbleCommonProps & { content: string }) =>
     h('span', { class: 'tr-bubble__body-text' }, props.content),
   'schema-card': (schemaCardProps: IRendererProps) => {
-    const customComponentsMap: Record<string, Component> = {};
-    if (props.customComponents) {
-      props.customComponents.forEach((item) => {
-        if (item.ref && item.component) {
-          customComponentsMap[item.component] = item.ref;
-        }
-      });
-    }
-
-    // 将 customActions 数组转换为对象格式
-    const customActionsMap: Record<string, ICustomActionItem> = {};
-    if (props.customActions) {
-      props.customActions.forEach((action) => {
-        if (action.name) {
-          customActionsMap[action.name] = action;
-        }
-      });
-    }
+    const isGenerating = lastSchemaCardId.value === schemaCardProps.id && generating.value;
 
     return h(
       'div',
@@ -205,10 +208,10 @@ const messageRenderers = {
         {
           ...schemaCardProps,
           requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
-          generating: lastSchemaCardId.value === schemaCardProps.id ? generating.value : false,
-          customComponents: customComponentsMap,
+          generating: isGenerating,
+          customComponents: customComponentsMap.value,
           customActions: {
-            ...customActionsMap,
+            ...customActionsMap.value,
             continueChat: continueChatAction,
             saveState: saveStateAction,
           },
@@ -230,7 +233,6 @@ const messageRenderers = {
 };
 
 const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
-
 
 const customModelProvider = new CustomModelProvider({
   getChatOptions: () => ({
@@ -298,7 +300,7 @@ const inputMessage = computed({
 
 const setInputMessage = (message: string) => {
   inputMessage.value = message;
-}
+};
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -552,6 +554,7 @@ defineExpose({
   display: flex;
   flex-direction: column;
   overflow: auto;
+
   &.dark {
     --ti-gen-chat-container-bg-color: #191919;
     --sender-bg: url('./assets/sender-dark.svg') no-repeat center;
@@ -564,6 +567,7 @@ defineExpose({
 .is-loading-in-top {
   margin-top: -48px;
 }
+
 .messages-container {
   flex: 1;
   overflow: auto;
@@ -588,6 +592,7 @@ defineExpose({
     display: var(--thinking-display, initial);
   }
 }
+
 :deep(.tr-bubble__step-tool) {
   & + .tr-bubble__step-tool {
     margin-top: 16px;
@@ -597,27 +602,32 @@ defineExpose({
 :deep(.tr-bubble.placement-end) {
   width: 100%;
 }
+
 :deep(.tr-bubble__content-wrapper) {
   @avatar-and-gap-width: 56px;
   // TODO: 后续规范变量名，在对外暴露
-  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width ,@avatar-and-gap-width) * 2);
+  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, @avatar-and-gap-width) * 2);
 
   .tr-bubble__content {
     max-width: 100%;
   }
+
   .tr-bubble__content-items {
     overflow-x: auto;
   }
 }
+
 .sender-container {
   position: relative;
   flex-shrink: 0;
   padding: 16px 0;
   background: var(--sender-bg);
+
   .attachments-container {
     padding: 0 20px;
   }
 }
+
 .scroll-to-bottom-button {
   position: absolute;
   left: 50%;
@@ -633,13 +643,16 @@ defineExpose({
   cursor: pointer;
   border: 1px solid var(--sender-border-color);
   z-index: 1000;
+
   & > svg {
     width: 20px;
     height: 20px;
   }
 
   &:hover {
-    box-shadow: 0px 10px 20px 0px #0000001a, 0px 0px 1px 0px #00000026;
+    box-shadow:
+      0px 10px 20px 0px #0000001a,
+      0px 0px 1px 0px #00000026;
   }
 
   &.is-generating {
@@ -678,6 +691,7 @@ defineExpose({
     }
   }
 }
+
 .footer-text {
   font-size: 12px;
   color: #999;
@@ -696,6 +710,7 @@ defineExpose({
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }

@@ -47,7 +47,10 @@ export const enThemeConfig: DefaultTheme.Config = {
       },
       {
         text: 'Angular Components',
-        items: [{ text: 'GenuiRenderer', link: '/en/components/angular/renderer' }],
+        items: [
+          { text: 'GenuiRenderer', link: '/en/components/angular/renderer' },
+          { text: 'GenuiConfigProvider', link: '/en/components/angular/config-provider' },
+        ],
       },
       {
         text: 'Server',
