@@ -1,14 +1,14 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { jsonPatchSchema } from './json-patch/schema.js';
+import { genJsonPatchSchema } from './json-patch/schema.js';
 
-const jsonPatchSchemaAsJsonSchema = zodToJsonSchema(jsonPatchSchema, {
-  name: 'JsonPatchOperations',
-  nameStrategy: 'title',
-});
-const jsonPatchSchemaText = JSON.stringify(jsonPatchSchemaAsJsonSchema, null, 2);
+export function generateJsonPatchPrompt(componentWhiteList?: string[]) {
+  const jsonPatchSchemaAsJsonSchema = zodToJsonSchema(genJsonPatchSchema(componentWhiteList), {
+    name: 'JsonPatchOperations',
+    nameStrategy: 'title',
+  });
+  const jsonPatchSchemaText = JSON.stringify(jsonPatchSchemaAsJsonSchema, null, 2);
 
-export const generateJsonPatchPrompt =
-  () => `根据当前 JSON schema 与修改指令，生成 JSON PATCH 操作数组，用 \`\`\`jsonPatch\`\`\` 包裹。顶层必须是数组，按顺序应用。
+  return `根据当前 JSON schema 与修改指令，生成 JSON PATCH 操作数组，用 \`\`\`jsonPatch\`\`\` 包裹。顶层必须是数组，按顺序应用。
 
 基于 RFC 6902 扩展：用组件节点 \`id\` 锚定；\`path\` 为相对该节点的 Pointer，运行时再展开为绝对 path。支持 \`add\` / \`remove\` / \`replace\` / \`move\` / \`copy\`（无 \`test\`）。
 
@@ -109,3 +109,4 @@ ${jsonPatchSchemaText}
 ]
 \`\`\`
 `;
+}

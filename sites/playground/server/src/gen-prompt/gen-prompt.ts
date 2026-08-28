@@ -27,8 +27,26 @@ const metaMap: IMetaMap = {
 const optionsMap: IOptionsMap = {
   Vue: {
     mini: { includeJsonSchema: false, includeSnippets: false },
-  }
+  },
 };
+
+function getPlaygroundMaterialsMeta(
+  framework: IFrameworkKey,
+  promptVariant: IMaterialsMetaVariantKey | undefined,
+) {
+  return metaMap[framework]?.[promptVariant] ?? materialsMeta;
+}
+
+export function getPlaygroundComponentWhiteList(
+  framework: IFrameworkKey,
+  promptVariant: IMaterialsMetaVariantKey | undefined,
+  tgCustomConfig?: IGenPromptCustomConfig,
+) {
+  const meta = getPlaygroundMaterialsMeta(framework, promptVariant);
+  const customComponents = tgCustomConfig?.customComponents || [];
+  const customWhiteList = customComponents.map((component) => component.component);
+  return [...new Set([...meta.whiteList, ...customWhiteList])];
+}
 
 export function genPlaygroundPrompt(
   framework: IFrameworkKey,
@@ -37,7 +55,7 @@ export function genPlaygroundPrompt(
 ) {
   return genPrompt(
     framework,
-    metaMap[framework]?.[promptVariant] ?? materialsMeta,
+    getPlaygroundMaterialsMeta(framework, promptVariant),
     tgCustomConfig,
     optionsMap[framework]?.[promptVariant] ?? {},
   );

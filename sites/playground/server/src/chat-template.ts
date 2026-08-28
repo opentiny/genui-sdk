@@ -17,7 +17,7 @@ import type { PlaygroundAgentConfig } from './a2a-tools/index.js';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { buildOpenApiTools } from './openapi-tools/index.js';
 import { buildSkillTools } from './skills/index.js';
-import { genPlaygroundPrompt } from './gen-prompt/index.js';
+import { genPlaygroundPrompt, getPlaygroundComponentWhiteList } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
@@ -142,8 +142,9 @@ export const createChatTemplate = () => {
       }
       const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools };
       const maxSteps = 30;
+      const componentWhiteList = getPlaygroundComponentWhiteList(framework, promptVariant, tgCustomConfig);
       const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig)}
-      ${body.templateSchema ? generateJsonPatchPrompt() : ''}
+      ${body.templateSchema ? generateJsonPatchPrompt(componentWhiteList) : ''}
       ${specificPrompt}
       ${customSystemPrompt}
       ${userAppendPrompt}
