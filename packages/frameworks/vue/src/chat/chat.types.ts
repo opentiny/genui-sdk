@@ -87,7 +87,6 @@ export interface IChatProps {
   url?: string;
   model?: string;
   temperature?: number;
-  /** 是否使用流式响应，默认 true；设为 false 走非流式（一次返回完整 JSON） */
   stream?: boolean;
   messages?: IMessage[];
   chatConfig?: IChatConfig;

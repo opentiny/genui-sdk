@@ -128,8 +128,6 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
 
     chatOnReceiveData(response);
 
-    // 非流式响应一次性返回，收到后即完成，需置 FINISHED 结束生成态
-    // （与流式 onDone 的行为对齐，并触发 onFinish 回调）
     const onFinish = options.events?.onFinish;
     let defaultPrevented = false;
     if (onFinish) {

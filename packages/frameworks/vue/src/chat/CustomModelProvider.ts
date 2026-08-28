@@ -81,15 +81,6 @@ export class CustomModelProvider extends BaseModelProvider {
     });
   }
 
-  /**
-   * 非流式聊天：一次请求拿到完整响应后，复用流式的 responseHandlers 管线
-   * 构建出与 chatStream 对齐的 IChatMessage，再包装成 ChatCompletionResponse。
-   *
-   * 返回对象除契约字段外，额外挂载 role / content / messages / finishInfo，
-   * 与 chatStream 推给渲染层的消息结构一致（GenuiChat 会把返回值整体入列并按 messages 渲染）。
-   * 构建过程中 handlerEnd 等会触发 notification 事件，此时无监听者（loading 组件尚未挂载），
-   * 属无害的空发。
-   */
   async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     let response: Response;
     try {
@@ -99,6 +90,7 @@ export class CustomModelProvider extends BaseModelProvider {
     }
     const json = await response.json();
 
+    // 将非流式伪装成流式
     const chatMessage = this.buildChatMessageFromResponse(json, request);
 
     const choice = json.choices?.[0] ?? {};
@@ -122,7 +114,6 @@ export class CustomModelProvider extends BaseModelProvider {
         },
       ],
       usage: json.usage,
-      // 渲染相关字段：与 chatStream 推送的 IChatMessage 对齐
       role: chatMessage.role,
       content: chatMessage.content,
       messages: chatMessage.messages,
@@ -130,15 +121,6 @@ export class CustomModelProvider extends BaseModelProvider {
     } as ChatCompletionResponse & IChatMessage;
   }
 
-  /**
-   * 将 OpenAI 兼容的非流式响应（choices[0].message 完整消息）喂给与流式完全相同的
-   * responseHandlers 管线，构建出 IChatMessage。
-   *
-   * 不能把 content / reasoning_content / tool_calls / finish_reason+usage 塞进同一个
-   * delta：handlerChunk 的管线「命中即 break」（finish-info 排在最前，遇到
-   * finish_reason && usage 就短路），且一个 chunk 只能被首个命中处理器消费。因此按流式
-   * 顺序逐条拆分：推理 → 工具调用 → 工具结果 → 正文 → finish-info。
-   */
   private buildChatMessageFromResponse(json: any, request: ChatCompletionRequest): IChatMessage {
     const message = json.choices?.[0]?.message ?? {};
 
@@ -161,7 +143,6 @@ export class CustomModelProvider extends BaseModelProvider {
       created: json.created,
     };
 
-    // 每种 delta 单独成 chunk（与流式一致），工具结果须在工具调用之后处理
     const deltas: IStreamDelta[] = [];
     if (message.reasoning_content) {
       deltas.push({ reasoning_content: message.reasoning_content });
@@ -185,7 +166,6 @@ export class CustomModelProvider extends BaseModelProvider {
       );
     }
 
-    // finish-info：finish_reason + usage 单独成 chunk，避免打断内容/工具的匹配
     this.handlerChunk(
       JSON.stringify({
         ...base,
