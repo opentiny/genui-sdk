@@ -140,7 +140,7 @@ const temperature = ref(0.7);
 </script>
 
 <template>
-  <GenuiConfigProvider theme="dark" :materials="materials">
+  <GenuiConfigProvider theme="light" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature" />
   </GenuiConfigProvider>
 </template>
@@ -152,7 +152,7 @@ Use the `empty` slot for welcome text or suggested prompts when there is no conv
 
 ```vue
 <template>
-  <GenuiConfigProvider theme="dark" :materials="materials">
+  <GenuiConfigProvider theme="light" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature">
       <template #empty>
         <div class="empty-text">Welcome to Generative UI</div>
@@ -185,7 +185,7 @@ import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materi
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
 const temperature = ref(0.7);
-const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
+const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('light');
 </script>
 
 <template>

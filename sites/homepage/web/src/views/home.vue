@@ -13,6 +13,7 @@ import { useMobile } from '@/composables/useMobile';
 import HomeAbility from '@/components/HomeAbility.vue';
 import HomeGuide from '@/components/HomeGuide.vue';
 import HomeFeature from '@/components/HomeFeature.vue';
+import HomeBuilderContent from '@/components/HomeBuilderContent.vue';
 import HomeLink from '@/components/HomeLink.vue';
 import HomeExtend from '@/components/HomeExtend.vue';
 import HomeMcpToolMobile from '@/components/HomeMcpToolMobile.vue';
@@ -64,13 +65,13 @@ const buttonSize = computed(() => {
         <div class="home-core-subtitle">{{ t('hero.subtitle') }}</div>
         <div class="home-core-decsription">{{ t('hero.description') }}</div>
         <div class="operation-button-group">
-          <a :href="linkMap[LinkKey.DevDoc]" target="_blank" class="btn-link">
+          <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
             <tiny-button :reset-time="0" round type="primary" :size="buttonSize">{{ t('hero.devDoc') }}</tiny-button>
           </a>
-          <a :href="linkMap[LinkKey.Playground]" target="_blank" class="btn-link">
+          <a :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
             <tiny-button :reset-time="0" round ghost :size="buttonSize">{{ t('hero.playground') }}</tiny-button>
           </a>
-          <a href="https://github.com/opentiny/genui-sdk" target="_blank" class="btn-link">
+          <a href="https://github.com/opentiny/genui-sdk" target="_blank" rel="noopener noreferrer" class="btn-link">
             <tiny-button :reset-time="0" round ghost :size="buttonSize">{{ t('hero.github') }}</tiny-button>
           </a>
         </div>
@@ -152,6 +153,7 @@ const buttonSize = computed(() => {
 
     <home-guide></home-guide>
     <home-feature></home-feature>
+    <home-builder-content />
     <home-link></home-link>
   </div>
 </template>

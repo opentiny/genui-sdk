@@ -2,11 +2,15 @@
 import { TinyConfigProvider } from '@opentiny/vue';
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { watch, provide, computed, onMounted, ref } from 'vue';
+import { watch, provide, computed, onMounted, ref, inject } from 'vue';
 import type { IMaterials } from '@opentiny/genui-sdk-core';
+import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
 import { useMediaTheme } from './use-media-theme';
+import type { NotifyHandler } from './notify.types';
+
+export type { NotifyHandler };
 
 export interface ConfigProviderProps {
   theme?: 'light' | 'dark' | 'lite' | 'auto';
@@ -14,6 +18,7 @@ export interface ConfigProviderProps {
   locale?: string;
   i18n?: I18nMessages;
   materials?: IMaterials;
+  notify?: NotifyHandler;
 }
 
 interface IRobotProviderProps {
@@ -70,6 +75,19 @@ provide(
   GENUI_MATERIALS,
   internalMaterials,
 );
+
+const parentRendererSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
+const rendererSettings = {
+  ...(parentRendererSettings && typeof parentRendererSettings === 'object' ? parentRendererSettings : {}),
+};
+watch(
+  () => props.notify,
+  (notify) => {
+    rendererSettings.notify = notify ?? parentRendererSettings?.notify;
+  },
+  { immediate: true },
+);
+provide(RENDERER_SETTINGS_KEY, rendererSettings);
 
 watch(
   () => [props.locale, props.i18n] as const,

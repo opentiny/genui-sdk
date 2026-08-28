@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { TinyButton, TinyButtonGroup, TinyTooltip } from '@opentiny/vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import { IconArrowRight, IconPause, IconRefresh, IconStartCircle } from '@opentiny/vue-icon';
 import { LinkKey, linkMap } from '@/utils/link';
@@ -10,6 +11,8 @@ import { splitJsonIntoChunks } from '@/utils/jsonUtil';
 import caculatorJson from '@/static/caculator.json';
 import todoJson from '@/static/todo.json';
 import todoJsonEn from '@/static/todo.en.json';
+import coinGameJson from '@/static/coin-game.json';
+import coinGameJsonEn from '@/static/coin-game.en.json';
 import { t, locale } from '@/i18n';
 
 const TinyIconArrowRight = IconArrowRight();
@@ -37,17 +40,21 @@ let revealCardOnFirstChunk = false;
 const messageContentMap = {
   element: t('extend.prompt.element'),
   page: t('extend.prompt.page'),
+  coin: t('extend.prompt.coin'),
 };
 const bubbleContentMap = {
   element: t('extend.prompt.elementBubble'),
   page: t('extend.prompt.pageBubble'),
+  coin: t('extend.prompt.coinBubble'),
 };
 const inputMessage = computed(
   () => `?input-message=${messageContentMap[extendSelect.value as keyof typeof messageContentMap]}`,
 );
 
-/** 已开始回放流程（生成中 / 准备中 / 暂停待续）时固定在右下角；仅待播放或重播待命时居中 */
-const streamControlsDocked = computed(() => generating.value || preparingPlayback.value || !streamCompleted.value);
+/** 首次播放按钮居中展示；生成中 / 暂停 / 播放过后的重放均固定右下角，避免遮挡内容 */
+const streamControlsDocked = computed(
+  () => generating.value || preparingPlayback.value || !streamCompleted.value || hasPlayedOnce.value,
+);
 
 const userBubbleContent = computed(
   () => bubbleContentMap[extendSelect.value as keyof typeof bubbleContentMap],
@@ -56,6 +63,9 @@ const userBubbleContent = computed(
 const getJsonData = (type: string) => {
   if (type === 'element') {
     return caculatorJson;
+  }
+  if (type === 'coin') {
+    return locale.value === 'en_US' ? coinGameJsonEn : coinGameJson;
   }
   return locale.value === 'en_US' ? todoJsonEn : todoJson;
 };
@@ -227,7 +237,7 @@ const handleCornerReplay = () => {
 };
 
 watch(isMobile, (mobile) => {
-  if (mobile && extendSelect.value === 'page') {
+  if (mobile && (extendSelect.value === 'page' || extendSelect.value === 'coin')) {
     handleExtendClick('element');
   }
 });
@@ -268,6 +278,16 @@ onUnmounted(() => {
       >
         {{ t('extend.todoApp') }}
       </tiny-button>
+      <tiny-button
+        v-if="!isMobile"
+        class="extend-button extend-button-element-3"
+        :reset-time="0"
+        :class="{ 'extend-button-element-active': extendSelect === 'coin' }"
+        value="coin"
+        @click="handleExtendClick('coin')"
+      >
+        {{ t('extend.coinGame') }}
+      </tiny-button>
     </tiny-button-group>
     <div class="home-extend-schema">
       <div class="home-extend-schema-header">
@@ -280,6 +300,7 @@ onUnmounted(() => {
           class="home-extend-schema-header-subtitle is-link"
           :href="linkMap[LinkKey.Playground] + inputMessage"
           target="_blank"
+          rel="noopener noreferrer"
         >
           <span>{{ t('extend.tryPlayground') }}</span>
           <tiny-icon-arrow-right />
@@ -309,13 +330,15 @@ onUnmounted(() => {
                   class="home-extend-render-area"
                   :class="{ 'is-visible': cardVisible, 'no-exit': suppressExitAnimation }"
                 >
-                  <GenuiRenderer
-                    :key="rendererKey"
-                    class="home-extend-schema-renderer"
-                    :content="message?.content || ''"
-                    :generating="generating"
-                    :customActions="customActions"
-                  />
+                  <GenuiConfigProvider :materials="materials">
+                    <GenuiRenderer
+                      :key="rendererKey"
+                      class="home-extend-schema-renderer"
+                      :content="message?.content || ''"
+                      :generating="generating"
+                      :customActions="customActions"
+                    />
+                  </GenuiConfigProvider>
                 </div>
               </div>
             </div>
@@ -644,11 +667,15 @@ onUnmounted(() => {
     font-size: 16px;
 
     &-element-1 {
-      border-radius: 382px;
+      border-radius: 382px 0 0 382px;
     }
 
     &-element-2 {
-      border-radius: 382px;
+      border-radius: 0;
+    }
+
+    &-element-3 {
+      border-radius: 0 382px 382px 0;
     }
 
     &-element-active {
