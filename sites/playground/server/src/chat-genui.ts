@@ -31,10 +31,6 @@ type StreamTextOptions = Parameters<typeof streamText>[0];
 
 const BUSY_ERROR_MESSAGE = '算力繁忙，请切换其他模型或稍后重试';
 
-/**
- * 将 AI SDK generateText 的返回结果转换成 OpenAI 兼容的非流式响应（object: "chat.completion"）。
- * 多步（工具调用）场景下按 steps 顺序拼接各步的 text / reasoningText，并归并 toolCalls / toolResults。
- */
 function buildCompletionFromGenerateText(result: GenerateTextResult<any, any>): any {
   const message: any = { role: 'assistant', content: '' };
   const reasoningParts: string[] = [];
@@ -324,7 +320,6 @@ export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
     const abort = new AbortController();
     const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
-    // OpenAI 兼容：请求带 stream:false 时向 AI 发非流式请求，并返回 chat.completion JSON；缺省仍走流式
     const isStreaming = body.stream !== false;
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
@@ -467,16 +462,14 @@ export function createChatGenui() {
       }
     });
 
-    // 非流式：向 AI 发送 stream:false 的非流式请求，把 generateText 的完整结果转成
-    // OpenAI 兼容的 chat.completion JSON 一次性返回（不走 SSE）
     if (!isStreaming) {
       const generateOptions = {
-        model: model!, // 与流式路径一致：generateLlmConfig 必带 model，运行时不会为 undefined
+        model: model!,
         temperature,
         system: options.system,
         messages: options.messages,
         abortSignal: abort.signal,
-        tools: tools as ToolSet, // 显式化 tools，避免 generateText 泛型从联合类型推断出不合法的 TOOLS
+        tools: tools as ToolSet,
         toolChoice: 'auto' as const,
         stopWhen: stepCountIs(maxSteps),
         ...(providerOptions ? { providerOptions } : {}),
