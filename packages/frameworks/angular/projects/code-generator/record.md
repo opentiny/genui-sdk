@@ -1,3 +1,6 @@
+启动测试界面
+pnpm dev:angular-test
+
 1、<ti-pagination>组件，ai输出的schema json中包含属性"total"，而TinyNg的ti-pagination支持的是"totalNumber"属性，而不是"total"
 {
    "componentName": "TinyPagination",

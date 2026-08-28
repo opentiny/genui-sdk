@@ -2,7 +2,7 @@ import type { NodeSchema, CardSchema } from '@opentiny/genui-sdk-core';
 import { JS_EXPRESSION } from '../constants';
 import type { ICodeGeneratorParams, ICodegenDescription, IAngularLibraryConfig, ICodeGeneratorResult } from '../types';
 import { AngularCodeGeneratorBase } from '../angular-code-generator-base';
-import { componentSelector, moduleRefMap, componentExtraSelector } from './tinyng-map';
+import { componentSelector, moduleRefMap, componentExtraSelector, libraryComponents } from './tinyng-map';
 
 const TINYNG_CONFIG: IAngularLibraryConfig = {
   componentSelector,
@@ -17,6 +17,11 @@ const TINYNG_CONFIG: IAngularLibraryConfig = {
 export class TinyNGCodeGenerator extends AngularCodeGeneratorBase {
   constructor() {
     super(TINYNG_CONFIG);
+  }
+
+  /** 组件库识别:用物料包全量组件集合(含 TiIcon 等,比 config.componentSelector 更全) */
+  protected override getLibraryComponentNames(): Set<string> {
+    return libraryComponents;
   }
 
   protected override processLibrarySpecificProp(

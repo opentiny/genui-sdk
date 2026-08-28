@@ -1,5 +1,5 @@
 import type { CardSchema, NodeSchema } from '@opentiny/genui-sdk-core';
-import { JS_EXPRESSION, JS_FUNCTION, JS_SLOT, UNWRAP_QUOTES } from './constants';
+import { HTML_TAGS, JS_EXPRESSION, JS_FUNCTION, JS_SLOT, UNWRAP_QUOTES } from './constants';
 import type {
   ICodeGeneratorParams,
   ICodegenDescription,
@@ -53,6 +53,26 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
 
   protected resolveExtraDirective(componentName: string): string | undefined {
     return this.config.componentExtraSelector?.[componentName];
+  }
+
+  /** 组件库识别:递归收集 schema 中出现的全部组件名(含原生 HTML 标签与 Text 等特殊节点) */
+  protected collectSchemaComponentNames(schema: CardSchema): Set<string> {
+    const names = new Set<string>();
+    const walk = (node: unknown) => {
+      if (!node || typeof node !== 'object') return;
+      const item = node as NodeSchema;
+      if (item.componentName) names.add(item.componentName);
+      const children = item.children;
+      if (Array.isArray(children)) children.forEach((child) => walk(child));
+      else walk(children);
+    };
+    walk(schema);
+    return names;
+  }
+
+  /** 当前组件库拥有的组件名集合,用于识别 schema 是否使用该库;子类可覆盖(如从物料包全量组件推导) */
+  protected getLibraryComponentNames(): Set<string> {
+    return new Set(Object.keys(this.config.componentSelector));
   }
 
   protected processLibrarySpecificProp(
@@ -865,6 +885,18 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     const angularCode = this.buildAngularComponentSource({ schema, name });
     const panelName = `${hyphenate(name)}.component.ts`;
     const compileErrors: { message: string }[] = [];
+
+    // 组件库识别:校验 schema 用到的组件是否都属于当前组件库(排除原生 HTML 标签与特殊节点)
+    const usedComponents = this.collectSchemaComponentNames(schema);
+    const knownComponents = this.getLibraryComponentNames();
+    const unknownComponents = [...usedComponents].filter(
+      (c) => !HTML_TAGS.has(c) && !['Text', 'Page', 'SchemaCard'].includes(c) && !knownComponents.has(c),
+    );
+    if (unknownComponents.length) {
+      compileErrors.push({
+        message: `组件库识别:以下组件不属于当前组件库,请检查 schema:${unknownComponents.join(', ')}`,
+      });
+    }
 
     const panel: ICodePanel = {
       panelName,
