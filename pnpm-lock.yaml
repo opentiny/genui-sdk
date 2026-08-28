@@ -945,6 +945,9 @@ importers:
       '@opentiny/genui-sdk-materials-angular-opentiny-ng':
         specifier: workspace:*
         version: link:../../../packages/materials/angular-opentiny-ng
+      '@opentiny/genui-sdk-materials-vue-element-plus':
+        specifier: workspace:*
+        version: link:../../../packages/materials/vue-element-plus
       '@opentiny/genui-sdk-materials-vue-opentiny-vue':
         specifier: workspace:*
         version: link:../../../packages/materials/vue-opentiny-vue
@@ -1036,6 +1039,9 @@ importers:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../../packages/core
+      '@opentiny/genui-sdk-materials-vue-element-plus':
+        specifier: workspace:*
+        version: link:../../../packages/materials/vue-element-plus
       '@opentiny/genui-sdk-materials-vue-opentiny-vue':
         specifier: workspace:*
         version: link:../../../packages/materials/vue-opentiny-vue
@@ -1058,13 +1064,13 @@ importers:
         specifier: ^3.28.0
         version: 3.28.0
       '@opentiny/vue-icon':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.3
       '@opentiny/vue-renderless':
-        specifier: ~3.28.2
+        specifier: ^3.28.2
         version: 3.28.2(patch_hash=eb3ac6e181df6a7b1b1d12df90f8c6775eeab5e34da8d6c96016768645b502fd)
       '@opentiny/vue-theme':
-        specifier: ~3.28.0
+        specifier: ^3.28.0
         version: 3.28.0
       ai:
         specifier: 6.0.116
@@ -1072,6 +1078,9 @@ importers:
       clipboard-copy:
         specifier: ^4.0.1
         version: 4.0.1
+      element-plus:
+        specifier: ^2.14.0
+        version: 2.14.0(vue@3.5.26(typescript@5.9.3))
       monaco-editor-vue3:
         specifier: ^1.0.4
         version: 1.0.5(monaco-editor@0.55.1)(vue@3.5.26(typescript@5.9.3))
