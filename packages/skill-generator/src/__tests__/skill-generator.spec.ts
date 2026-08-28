@@ -15,6 +15,7 @@ import {
   generateSkillFiles,
   genSkillContent,
   headingToReferenceFile,
+  normalizeReferenceSubdir,
   sectionLink,
   splitPromptSections,
   stripInjectedSkillPrefix,
@@ -108,6 +109,21 @@ describe('skill-generator', () => {
     expect(headingToReferenceFile('## 卡片示例')).toBe('examples.md');
     expect(headingToReferenceFile('## this 上下文声明')).toBe('this-context.md');
     expect(headingToReferenceFile('## 可用组件')).toBe('components.md');
+  });
+
+  it('headingToReferenceFile 拒绝不安全的 Markdown 文件名', () => {
+    expect(() => headingToReferenceFile('## ../..')).toThrow(/reference 文件名不安全/);
+    expect(() => headingToReferenceFile('## ../规则')).toThrow(/reference 文件名不安全/);
+  });
+
+  it('normalizeReferenceSubdir 拒绝逃逸 reference 的路径', () => {
+    expect(normalizeReferenceSubdir('material-docs')).toBe('material-docs');
+    expect(normalizeReferenceSubdir('nested/generated')).toBe('nested/generated');
+    expect(normalizeReferenceSubdir('.')).toBe('');
+    expect(() => normalizeReferenceSubdir('/tmp/generated')).toThrow(/相对路径/);
+    expect(() => normalizeReferenceSubdir('C:\\tmp\\generated')).toThrow(/相对路径/);
+    expect(() => normalizeReferenceSubdir('generated/..')).toThrow(/不安全路径片段/);
+    expect(() => normalizeReferenceSubdir('../generated')).toThrow(/不安全路径片段/);
   });
 
   it('sectionLink 支持 generated 子目录', () => {
@@ -286,6 +302,16 @@ description: test
     expect(() =>
       writeReferenceFiles(skillDir, { 'rules.md': 'rules' }, { referenceSubdir: '' }),
     ).toThrow(/不能启用 prune/);
+    expect(() =>
+      writeReferenceFiles(skillDir, { 'rules.md': 'rules' }, { referenceSubdir: '.' }),
+    ).toThrow(/不能启用 prune/);
+  });
+
+  it('writeReferenceFiles 拒绝不安全的章节文件名', () => {
+    const skillDir = createTempDir('skill-unsafe-file-');
+    expect(() =>
+      writeReferenceFiles(skillDir, { '../rules.md': 'rules' }, { prune: false }),
+    ).toThrow(/reference 文件名不安全/);
   });
 
   it('generateSkillFiles 完整生成、复用 frontmatter，并只清理生成目录旧文件', () => {

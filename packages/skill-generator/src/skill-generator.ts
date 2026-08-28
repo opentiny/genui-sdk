@@ -6,7 +6,7 @@ import {
   unlinkSync,
   writeFileSync,
 } from 'node:fs';
-import { join } from 'node:path';
+import { isAbsolute, join, posix } from 'node:path';
 import type {
   IGenPromptCustomConfig,
   IGenPromptFramework,
@@ -111,6 +111,55 @@ const DEFAULT_PROMPT_OPTIONS: IGenPromptOptions = {
   isSkill: true,
 };
 
+function hasWindowsDrivePrefix(pathname: string): boolean {
+  return /^[a-zA-Z]:[\\/]/.test(pathname);
+}
+
+function assertSafeReferenceFile(file: string): void {
+  if (
+    !file ||
+    isAbsolute(file) ||
+    hasWindowsDrivePrefix(file) ||
+    file.includes('/') ||
+    file.includes('\\') ||
+    file === '.' ||
+    file === '..' ||
+    !file.endsWith('.md')
+  ) {
+    throw new Error(`reference 文件名不安全: ${file}`);
+  }
+}
+
+/**
+ * 规范化 reference 子目录，确保它不会逃出 skillDir/reference。
+ *
+ * @param referenceSubdir - 相对 reference/ 的子目录；空值表示直接写入 reference/
+ * @returns 规范化后的安全子目录
+ */
+export function normalizeReferenceSubdir(referenceSubdir = 'generated'): string {
+  if (!referenceSubdir) return '';
+  if (isAbsolute(referenceSubdir) || hasWindowsDrivePrefix(referenceSubdir)) {
+    throw new Error(`referenceSubdir 必须是相对路径: ${referenceSubdir}`);
+  }
+
+  const slashPath = referenceSubdir.replace(/\\/g, '/');
+  if (slashPath === '.') return '';
+  const rawSegments = slashPath.split('/');
+  if (rawSegments.some((segment) => !segment || segment === '.' || segment === '..')) {
+    throw new Error(`referenceSubdir 包含不安全路径片段: ${referenceSubdir}`);
+  }
+
+  const normalized = posix.normalize(slashPath);
+  if (normalized === '.') return '';
+
+  const segments = normalized.split('/');
+  if (segments.some((segment) => !segment || segment === '.' || segment === '..')) {
+    throw new Error(`referenceSubdir 包含不安全路径片段: ${referenceSubdir}`);
+  }
+
+  return normalized;
+}
+
 /**
  * 将章节标题转为 reference 文件名。
  * 优先使用 SECTION_FILE_ALIASES；否则含英文时提取英文片段；纯中文则去空白。
@@ -121,7 +170,10 @@ const DEFAULT_PROMPT_OPTIONS: IGenPromptOptions = {
 export function headingToReferenceFile(heading: string): string {
   const title = heading.replace(/^##\s+/, '').trim();
   const aliased = SECTION_FILE_ALIASES[title] ?? SECTION_FILE_ALIASES[title.replace(/\s+/g, '')];
-  if (aliased) return aliased;
+  if (aliased) {
+    assertSafeReferenceFile(aliased);
+    return aliased;
+  }
 
   const asciiWords = title.match(/[a-zA-Z][a-zA-Z0-9]*/g);
 
@@ -129,10 +181,14 @@ export function headingToReferenceFile(heading: string): string {
     const slug = asciiWords
       .map((word) => word.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase())
       .join('-');
-    return `${slug}.md`;
+    const file = `${slug}.md`;
+    assertSafeReferenceFile(file);
+    return file;
   }
 
-  return `${title.replace(/\s+/g, '')}.md`;
+  const file = `${title.replace(/\s+/g, '')}.md`;
+  assertSafeReferenceFile(file);
+  return file;
 }
 
 /**
@@ -257,13 +313,17 @@ export function assertWrittenPromptCoverage(
     throw new Error(`SKILL.md 未完整保留 genPrompt 前缀: ${skillDir}`);
   }
 
-  const referenceDir = referenceSubdir
-    ? join(skillDir, 'reference', referenceSubdir)
+  const safeReferenceSubdir = normalizeReferenceSubdir(referenceSubdir);
+  const referenceDir = safeReferenceSubdir
+    ? join(skillDir, 'reference', safeReferenceSubdir)
     : join(skillDir, 'reference');
   const reconstructed =
     skillPrefix +
     sectionMarkers
-      .map(({ file }) => readFileSync(join(referenceDir, file), 'utf8'))
+      .map(({ file }) => {
+        assertSafeReferenceFile(file);
+        return readFileSync(join(referenceDir, file), 'utf8');
+      })
       .join('');
 
   if (reconstructed !== prompt) {
@@ -296,7 +356,9 @@ export function findSectionByTitle(
  */
 export function sectionLink(marker?: IPromptSectionMarker, referenceSubdir = ''): string {
   if (!marker) return '';
-  const rel = referenceSubdir ? `${referenceSubdir}/${marker.file}` : marker.file;
+  assertSafeReferenceFile(marker.file);
+  const safeReferenceSubdir = normalizeReferenceSubdir(referenceSubdir);
+  const rel = safeReferenceSubdir ? `${safeReferenceSubdir}/${marker.file}` : marker.file;
   return `[${marker.file}](reference/${rel})`;
 }
 
@@ -524,7 +586,7 @@ export function writeReferenceFiles(
   sections: SkillSections,
   options: { referenceSubdir?: string; prune?: boolean; syncComponentsIndex?: boolean } = {},
 ): void {
-  const referenceSubdir = options.referenceSubdir ?? 'generated';
+  const referenceSubdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
   const prune = options.prune ?? true;
   const shouldSyncIndex = options.syncComponentsIndex ?? true;
 
@@ -540,6 +602,7 @@ export function writeReferenceFiles(
 
   for (const [file, content] of Object.entries(sections)) {
     if (!content) continue;
+    assertSafeReferenceFile(file);
     // reference 是 genPrompt 的无损分片，禁止格式化或补换行。
     writeFileSync(join(outputDir, file), content, 'utf8');
     written.push(file);
@@ -581,7 +644,7 @@ export function writeSkillEntry(
   }
 
   const frontmatter = ensureSkillFrontmatter(skillDirs[0], defaultFrontmatter);
-  const subdir = referenceSubdir ?? 'generated';
+  const subdir = normalizeReferenceSubdir(referenceSubdir ?? 'generated');
 
   for (const skillDir of skillDirs) {
     mkdirSync(skillDir, { recursive: true });
@@ -618,7 +681,7 @@ export function generateSkillFiles(
     options.promptOptions,
   );
 
-  const referenceSubdir = options.referenceSubdir ?? 'generated';
+  const referenceSubdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
 
   // 先落盘 generated/（及 components 白名单同步），再写 SKILL，便于「存在才出链」含 generated 回退
   for (const skillDir of options.skillDirs) {

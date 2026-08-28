@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type { IPromptSectionMarker } from '../skill-generator.js';
-import { findSectionByTitle, sectionLink } from '../skill-generator.js';
+import { findSectionByTitle, normalizeReferenceSubdir, sectionLink } from '../skill-generator.js';
 
 /** SKILL.md 正文生成时的目录上下文 */
 export interface ISkillBodyContext {
@@ -23,7 +23,7 @@ export function buildGenuiSchemaSkillBody(
   sectionMarkers: IPromptSectionMarker[],
   context: ISkillBodyContext,
 ): string {
-  const subdir = context.referenceSubdir ?? 'generated';
+  const subdir = normalizeReferenceSubdir(context.referenceSubdir ?? 'generated');
   const generatedDirLabel = subdir ? `reference/${subdir}/` : 'reference/';
   const generatedIndex = sectionMarkers
     .map((marker) => `| ${marker.title} | ${sectionLink(marker, subdir)} |`)
