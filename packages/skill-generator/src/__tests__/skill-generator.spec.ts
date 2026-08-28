@@ -114,6 +114,8 @@ describe('skill-generator', () => {
   it('headingToReferenceFile 拒绝不安全的 Markdown 文件名', () => {
     expect(() => headingToReferenceFile('## ../..')).toThrow(/reference 文件名不安全/);
     expect(() => headingToReferenceFile('## ../规则')).toThrow(/reference 文件名不安全/);
+    expect(() => headingToReferenceFile('## 规则:说明')).toThrow(/reference 文件名不安全/);
+    expect(() => headingToReferenceFile('## CON')).toThrow(/reference 文件名不安全/);
   });
 
   it('normalizeReferenceSubdir 拒绝逃逸 reference 的路径', () => {
@@ -183,6 +185,46 @@ describe('skill-generator', () => {
     expect(next).not.toContain('components/basic.md');
     expect(next).not.toContain('按类别查阅');
     expect(next).toContain('generated/components.md');
+  });
+
+  it('syncComponentsIndex 使用受管区块保留格式不同的手写内容', () => {
+    const skillDir = createTempDir('skill-sync-managed-');
+    mkdirSync(join(skillDir, 'reference'), { recursive: true });
+    const indexPath = join(skillDir, 'reference', 'components.md');
+    writeFileSync(indexPath, '# 我的组件说明\n\n这里是手写内容。\n', 'utf8');
+
+    syncComponentsIndex(
+      skillDir,
+      '## 可用组件\n\n必须使用以下支持的 componentName：`A`, `B`\n',
+    );
+    syncComponentsIndex(
+      skillDir,
+      '## 可用组件\n\n必须使用以下支持的 componentName：`C`\n',
+    );
+
+    const next = readFileSync(indexPath, 'utf8');
+    expect(next).toContain('# 我的组件说明\n\n这里是手写内容。');
+    expect(next).toContain('<!-- genui-skill-generator:start -->');
+    expect(next).toContain('`C`');
+    expect(next).not.toContain('`A`, `B`');
+    expect(next.match(/genui-skill-generator:start/g)).toHaveLength(1);
+  });
+
+  it('syncComponentsIndex 拒绝损坏的受管区块，避免覆盖范围不明确', () => {
+    const skillDir = createTempDir('skill-sync-invalid-managed-');
+    mkdirSync(join(skillDir, 'reference'), { recursive: true });
+    writeFileSync(
+      join(skillDir, 'reference', 'components.md'),
+      '# 手写内容\n\n<!-- genui-skill-generator:start -->\n',
+      'utf8',
+    );
+
+    expect(() =>
+      syncComponentsIndex(
+        skillDir,
+        '## 可用组件\n\n必须使用以下支持的 componentName：`A`\n',
+      ),
+    ).toThrow(/受管区块标记无效/);
   });
 
   it('stripInjectedSkillPrefix 剥离一级标题前缀', () => {

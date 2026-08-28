@@ -111,11 +111,17 @@ const DEFAULT_PROMPT_OPTIONS: IGenPromptOptions = {
   isSkill: true,
 };
 
+const COMPONENTS_INDEX_START = '<!-- genui-skill-generator:start -->';
+const COMPONENTS_INDEX_END = '<!-- genui-skill-generator:end -->';
+const WINDOWS_RESERVED_NAME_RE = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i;
+
 function hasWindowsDrivePrefix(pathname: string): boolean {
   return /^[a-zA-Z]:[\\/]/.test(pathname);
 }
 
 function assertSafeReferenceFile(file: string): void {
+  const stem = file.endsWith('.md') ? file.slice(0, -3) : file;
+  const windowsDeviceName = stem.split('.')[0];
   if (
     !file ||
     isAbsolute(file) ||
@@ -124,7 +130,11 @@ function assertSafeReferenceFile(file: string): void {
     file.includes('\\') ||
     file === '.' ||
     file === '..' ||
-    !file.endsWith('.md')
+    !file.endsWith('.md') ||
+    /[<>:"|?*\u0000-\u001f]/.test(file) ||
+    stem.trimEnd() !== stem ||
+    stem.endsWith('.') ||
+    WINDOWS_RESERVED_NAME_RE.test(windowsDeviceName)
   ) {
     throw new Error(`reference 文件名不安全: ${file}`);
   }
@@ -508,8 +518,21 @@ ${categorySection}
 `;
 }
 
+function buildManagedComponentsIndex(
+  whitelist: string,
+  detailRelPath: string,
+  categorySection: string,
+): string {
+  return `${COMPONENTS_INDEX_START}\n${buildComponentsIndex(
+    whitelist,
+    detailRelPath,
+    categorySection,
+  ).trimEnd()}\n${COMPONENTS_INDEX_END}`;
+}
+
 /**
- * 将白名单同步到手写 `reference/components.md`：优先替换已有白名单行，否则整文件重写索引。
+ * 将白名单同步到手写 `reference/components.md`：兼容更新旧白名单行，其他情况使用受管区块。
+ * 受管区块之外的手写内容保持不变；标记损坏时拒绝写入。
  * 分类链接按磁盘存在情况重写，避免死链。
  *
  * @param skillDir - skill 目录
@@ -530,6 +553,28 @@ export function syncComponentsIndex(
 
   if (existsSync(indexPath)) {
     const current = readFileSync(indexPath, 'utf8');
+    const managedStart = current.indexOf(COMPONENTS_INDEX_START);
+    const managedEnd = current.indexOf(COMPONENTS_INDEX_END);
+    const hasManagedMarker = managedStart >= 0 || managedEnd >= 0;
+    const hasDuplicateMarker =
+      current.indexOf(COMPONENTS_INDEX_START, managedStart + 1) >= 0 ||
+      current.indexOf(COMPONENTS_INDEX_END, managedEnd + 1) >= 0;
+    if (
+      hasManagedMarker &&
+      (managedStart < 0 || managedEnd < managedStart || hasDuplicateMarker)
+    ) {
+      throw new Error(`components.md 受管区块标记无效: ${indexPath}`);
+    }
+    if (managedStart >= 0 && managedEnd > managedStart) {
+      const next = `${current.slice(0, managedStart)}${buildManagedComponentsIndex(
+        whitelist,
+        detailRelPath,
+        categorySection,
+      )}${current.slice(managedEnd + COMPONENTS_INDEX_END.length)}`;
+      writeFileSync(indexPath, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
+      return;
+    }
+
     if (/必须使用以下支持的 componentName：/.test(current)) {
       let next = current.replace(
         /必须使用以下支持的 componentName：[^\n]+/,
@@ -565,11 +610,20 @@ export function syncComponentsIndex(
       writeFileSync(indexPath, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
       return;
     }
+
+    const separator = current.endsWith('\n\n') ? '' : current.endsWith('\n') ? '\n' : '\n\n';
+    const next = `${current}${separator}${buildManagedComponentsIndex(
+      whitelist,
+      detailRelPath,
+      categorySection,
+    )}\n`;
+    writeFileSync(indexPath, next, 'utf8');
+    return;
   }
 
   writeFileSync(
     indexPath,
-    buildComponentsIndex(whitelist, detailRelPath, categorySection),
+    `${buildManagedComponentsIndex(whitelist, detailRelPath, categorySection)}\n`,
     'utf8',
   );
 }
