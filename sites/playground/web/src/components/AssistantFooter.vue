@@ -13,7 +13,7 @@ import { t } from '../i18n';
 const props = defineProps<IBubbleSlotsProps>();
 
 const vAutoTip = AutoTip;
-const genuiConfig: any = inject(GENUI_CONFIG, null);
+const genuiConfig: any = inject(GENUI_CONFIG);
 
 const tooltipEffect = computed(() => {
   return genuiConfig?.value?.colorScheme === 'dark' ? 'dark' : 'light';

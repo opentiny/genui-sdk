@@ -12,7 +12,7 @@ import { t } from '../i18n';
 
 const props = defineProps<IBubbleSlotsProps>();
 const generating = computed(() => GeneratingStatus.includes(props.messageManager?.messageState.status));
-const genuiConfig: any = inject(GENUI_CONFIG, null);
+const genuiConfig: any = inject(GENUI_CONFIG);
 
 const tooltipEffect = computed(() => {
   return genuiConfig?.value?.colorScheme === 'dark' ? 'dark' : 'light';
