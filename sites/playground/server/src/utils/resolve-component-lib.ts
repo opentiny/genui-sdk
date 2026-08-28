@@ -1,6 +1,6 @@
 import type { IFrameworkKey } from '../types/playground-config.js';
 
-export type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg' | (string & {});
+export type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg' | string;
 
 const DEFAULT_COMPONENT_LIB: Record<string, IComponentLibKey> = {
   Vue: 'TinyVue',
