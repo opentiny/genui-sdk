@@ -1,4 +1,0 @@
-interface:
-  display_name: "Benchmark 报告汇总"
-  short_description: "汇总 GenUI Benchmark 报告、失败原因与回归结论"
-  default_prompt: "使用 $benchmark-report-summary 汇总最新一次 Benchmark 报告。"
