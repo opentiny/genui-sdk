@@ -383,7 +383,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     componentName?: string,
     schemaMethods?: Record<string, { value: string }>,
   ): void {
-    Object.entries(props).forEach(([rawKey, rawItem]) => {
+    Object.entries(props).forEach(([rawKey, rawValue]) => {
       let key = rawKey === 'className' ? 'class' : rawKey;
       const cfg = this.resolveConfig(componentName ?? ''); // 组件所属库配置(黑名单/重命名按库生效)
 
@@ -397,22 +397,22 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       }
 
       // 特殊属性处理
-      if (this.processLibrarySpecificProp(componentName ?? '', key, rawItem, props, attrsArr, description, state, schemaMethods)) {
+      if (this.processLibrarySpecificProp(componentName ?? '', key, rawValue, props, attrsArr, description, state, schemaMethods)) {
         return;
       }
 
       // === Common Angular logic below ===
 
       if (key === 'slot') { // 处理 当前组件投放到父组件的哪个插槽
-        const slotAttr = this.handleSlotBinding(rawItem as Record<string, unknown> | string);
+        const slotAttr = this.handleSlotBinding(rawValue as Record<string, unknown> | string);
         if (slotAttr) {
           attrsArr.push(slotAttr);
         }
         return;
       }
 
-      const item = rawItem as { type?: string; value?: string; model?: { prop?: string }; params?: string[] };
-      const propType = this.resolvePropValueType(rawItem); // 'JSExpression' 'JSFunction' 'JSSlot'
+      const item = rawValue as { type?: string; value?: string; model?: { prop?: string }; params?: string[] };
+      const propType = this.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction' 'JSSlot'
 
       if (this.isOnEventKey(key)) {
         const eventBinding = this.handleEventBinding(key, item, description, schemaMethods);
@@ -423,12 +423,12 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       }
 
       if (propType === 'literal') {
-        this.handleLiteralBinding(key, rawItem, attrsArr, description, state);
+        this.handleLiteralBinding(key, rawValue, attrsArr, description, state);
         return;
       }
 
       if (propType === JS_FUNCTION) {
-        this.hoistPropToState(key, rawItem, attrsArr, state);
+        this.hoistPropToState(key, rawValue, attrsArr, state);
         return;
       }
 
