@@ -324,25 +324,24 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
 
       const body = this.cleanThisInClassBody(fnInfo.body);
 
-      // Vue 对齐：函数声明的形参名不再被当作自由变量重复注入
-      const declaredParams = fnInfo.params; // declaredParams[0] =
-      const freeVars = this.extractFreeVariables(body).filter((v) => !declaredParams.includes(v)); // 循环变量作为参数
-      const extendParams = item.params ?? [];
+      const declaredParams = fnInfo.params; // 声明形参
+      const freeVars = this.extractFreeVariables(body).filter((v) => !declaredParams.includes(v)); // 模板自由变量 （循环变量作为参数）
+      const extendParams = item.params ?? []; // 额外参数
 
-      // 方法形参 = 声明形参 + 模板自由变量 + 额外参数(去重,声明形参优先)
+      // 方法形参 = 声明形参 + 模板自由变量 + 额外参数
       const sigParams = [...new Set([...declaredParams, ...freeVars, ...extendParams])];
-      // 模板调用：声明了形参时，第一个声明形参由 $event 填充（对齐 Vue 自动传事件参数）
+      // 模板调用：声明了形参时，第一个声明形参由 $event 填充
       const templateArgs = [...new Set([...(declaredParams.length > 0 ? ['$event'] : []), ...freeVars, ...extendParams])];
 
-      const returnType = fnInfo.type ? 'Promise<void>' : 'void';
       const asyncPrefix = fnInfo.type ? `${fnInfo.type} ` : '';
-      // 形参声明为可选，容忍多声明形参时模板侧实参不足
+
       const paramsWithTypes = sigParams.length > 0
         ? sigParams.map((v) => `${v}?: any`).join(', ')
         : '';
+
       const methodSignature = paramsWithTypes
-        ? `${asyncPrefix}${methodName}(${paramsWithTypes}): ${returnType}`
-        : `${asyncPrefix}${methodName}(): ${returnType}`;
+        ? `${asyncPrefix}${methodName}(${paramsWithTypes})`
+        : `${asyncPrefix}${methodName}()`;
       description.templateGeneratedMethods.push(`${methodSignature} { ${body} }`);
 
       const callArgs = templateArgs.join(', ');
@@ -363,16 +362,8 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       }
       return `(${eventKey})="${eventHandler}()"`;
     }
-    // eventHandler应该是带括号的调用
+    // eventHandler是带括号的调用
     return `(${eventKey})="${eventHandler}"`;
-  }
-
-  protected handleSlotBinding(item: Record<string, unknown> | string): string {
-    const { name } = (item as { name?: string }) ?? {};
-    const slotName = name || (typeof item === 'string' ? item : 'default');
-    // Angular 内容投影：具名插槽通过属性选择器匹配 <ng-content select="[slotName]">。
-    // 默认插槽无需标记，返回空字符串。
-    return slotName === 'default' ? '' : slotName;
   }
 
   protected handleBinding(
@@ -385,13 +376,17 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
   ): void {
     Object.entries(props).forEach(([rawKey, rawValue]) => {
       let key = rawKey === 'className' ? 'class' : rawKey;
-      const cfg = this.resolveConfig(componentName ?? ''); // 组件所属库配置(黑名单/重命名按库生效)
 
-      if (cfg.propBlacklist?.[componentName ?? '']?.includes(key)) { // 有时候ai会输出一些组件不存在的属性，把它们列在黑名单里
+      // 组件所属库配置(黑名单/重命名按库生效)
+      const cfg = this.resolveConfig(componentName ?? ''); 
+
+      // 有时候ai会输出一些组件不存在的属性，把它们列在黑名单里
+      if (cfg.propBlacklist?.[componentName ?? '']?.includes(key)) { 
         return;
       }
 
-      const rename = cfg.propRename?.[componentName ?? '']?.[key]; // ai输出的属性名合组件合法属性名不同 就要rename
+      // ai输出的属性名和组件合法属性名不同 就要rename
+      const rename = cfg.propRename?.[componentName ?? '']?.[key]; 
       if (rename) {
         key = rename;
       }
@@ -402,14 +397,6 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       }
 
       // === Common Angular logic below ===
-
-      if (key === 'slot') { // 处理 当前组件投放到父组件的哪个插槽
-        const slotAttr = this.handleSlotBinding(rawValue as Record<string, unknown> | string);
-        if (slotAttr) {
-          attrsArr.push(slotAttr);
-        }
-        return;
-      }
 
       const item = rawValue as { type?: string; value?: string; model?: { prop?: string }; params?: string[] };
       const propType = this.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction' 'JSSlot'
@@ -833,8 +820,8 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
         ? key.slice(asyncPrefix.length)
         : key;
       const body = this.cleanThisInClassBody(info.body);
-      const returnType = info.type ? 'Promise<void>' : 'void';
-      return `${asyncPrefix}${methodName}(${info.params.join(', ')}): ${returnType} { ${body} }`;
+      // 返回类型省略，由 TS 从函数体推断（methods 可能被模板/事件消费返回值）
+      return `${asyncPrefix}${methodName}(${info.params.join(', ')}) { ${body} }`;
     });
     return methodLines.join('\n\n  ');
   }
