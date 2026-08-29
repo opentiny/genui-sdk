@@ -3072,6 +3072,24 @@
                       "zh_CN": "设置不同的主题样式"
                     },
                     "labelPosition": "left"
+                  },
+                  {
+                    "property": "icon",
+                    "type": "object",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标"
+                      }
+                    },
+                    "cols": 12,
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "按钮图标，必须使用 JSSlot 包裹 TinyIcon。正确示例：{\"type\":\"JSSlot\",\"value\":[{\"componentName\":\"TinyIcon\",\"props\":{\"name\":\"IconSearch\"}}]}。禁止直接传组件对象或使用 JSExpression。"
+                    },
+                    "labelPosition": "left"
                   }
                 ]
               },

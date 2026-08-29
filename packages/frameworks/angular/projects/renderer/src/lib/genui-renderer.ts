@@ -38,7 +38,7 @@ const errorSchema = {
     RendererSettingsService,
     {
       provide: RENDERER_SETTINGS,
-      useFactory: (rss: RendererSettingsService) => rss.getSettings(),
+      useFactory: (rss: RendererSettingsService) => rss.settings,
       deps: [RendererSettingsService],
     },
   ],
@@ -64,6 +64,8 @@ export class GenuiRenderer implements OnInit {
   protected deltaPatcher: DeltaPatcher | null = null;
   protected schema: any = {};
   protected updateContextAndStateTimer: any | null = null;
+
+  constructor(private readonly rendererSettingsService: RendererSettingsService) {}
 
   get displaySchema() {
     if (this.isError) {
@@ -161,6 +163,8 @@ export class GenuiRenderer implements OnInit {
   }
 
   updateContextAndState() {
+    this.rendererSettingsService.syncFromParent();
+    this.instance?.setNotify(this.rendererSettingsService.settings.notify);
     this.instance?.setContext({
       callAction: this.callAction.bind(this),
     });

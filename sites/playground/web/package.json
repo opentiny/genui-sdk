@@ -28,7 +28,8 @@
     "schema-renderer-ng-adpater": "workspace:*",
     "uuid": "11.1.0",
     "vite-commit-hash-plugin": "workspace:*",
-    "vue": "^3.5.18"
+    "vue": "^3.5.18",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.1",

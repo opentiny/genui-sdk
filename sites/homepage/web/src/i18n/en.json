@@ -31,6 +31,23 @@
     "stream": {
       "title": "Mixed layout & streaming render",
       "subtitle": "Non-intrusive GenUI integration with mixed layout and streaming UI rendering—no long waits for the interface"
+    },
+    "builder": {
+      "title": "Builder mode: dialogue-driven streaming incremental UI construction",
+      "badge": "Experimental",
+      "tryNow": "Try now",
+      "feature1": {
+        "title": "Dialogue as editing",
+        "description": "Describe changes in natural language; AI generates precise Schema Diff—no full regeneration"
+      },
+      "feature2": {
+        "title": "Traceable versions",
+        "description": "Each change creates a version card—preview, rollback, or apply historical states anytime"
+      },
+      "feature3": {
+        "title": "What you see is what you get",
+        "description": "Real-time preview on the right with view and edit of the underlying JSON Schema"
+      }
     }
   },
   "extend": {
@@ -100,7 +117,7 @@
     }
   },
   "link": {
-    "title": "Try OpenTiny GenUI now",
+    "title": "Explore More: Builder Mode",
     "description": "Enhance LLM conversation display and interaction for a seamless intelligent experience",
     "descriptionLine1": "Enhance LLM conversation display and interaction",
     "descriptionLine2": "for a seamless intelligent experience",

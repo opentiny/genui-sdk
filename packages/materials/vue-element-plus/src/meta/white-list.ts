@@ -1,4 +1,5 @@
 export const whiteList = [
+  'ElIconSvg',
   'ElInput',
   'ElDatePicker',
   'ElButton',
@@ -35,6 +36,5 @@ export const whiteList = [
   'Slot',
   'Template',
   'Text',
-  'Icon',
   'Img',
 ];

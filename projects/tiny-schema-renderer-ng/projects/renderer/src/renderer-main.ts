@@ -8,7 +8,6 @@ import {
   OnDestroy,
   SimpleChanges,
 } from '@angular/core';
-import { RENDERER_SETTINGS } from './renderer-settings';
 import { RendererContextService } from './context.service';
 import { parseData } from './parser/schema-parser';
 import { getPageLifeCycleFns } from './life-cycles';
@@ -17,6 +16,7 @@ import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading.component';
 import { RendererTemplateComponent } from './renderer-template.component';
 import { RendererDirective } from './renderer.directive';
+import { RENDERER_SETTINGS, type NotifyHandler } from './renderer-settings';
 
 function reset(obj: any) {
   Object.keys(obj).forEach((key) => delete obj[key]);
@@ -66,7 +66,12 @@ export class RendererMain implements OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {
     this.cssScopeId = `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+    this.applyRendererSettings();
+  }
+
+  private applyRendererSettings() {
     this.contextService.setMaterials(this.rendererSettings?.materials ?? {});
+    this.contextService.setNotify(this.rendererSettings?.notify);
   }
 
   ngAfterViewInit() {
@@ -115,6 +120,10 @@ export class RendererMain implements OnDestroy {
     return this.contextService.getContext();
   }
 
+  public setNotify(notify?: NotifyHandler) {
+    this.contextService.setNotify(notify ?? this.rendererSettings?.notify);
+  }
+
   private setMethods(data: any, clear: boolean = false) {
     clear && reset(this.methods);
     // 这里有些方法在画布还是有执行的必要的，比如说表格的renderer和formatText方法，包括一些自定义渲染函数
@@ -154,6 +163,7 @@ export class RendererMain implements OnDestroy {
       cssScopeId: this.cssScopeId,
     };
     this.contextService.setContext(context, true);
+    this.applyRendererSettings();
     this.setMethods(newSchema.methods || {}, true);
     this._setState(newSchema.state || {}, true);
 
