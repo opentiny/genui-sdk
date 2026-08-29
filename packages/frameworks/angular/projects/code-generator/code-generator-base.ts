@@ -88,6 +88,10 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       iconComponents: { componentNames: [], exportNames: [] }, // 纯预留
       internalTypes: new Set(), // JS_EXPRESSION / JS_FUNCTION / JS_SLOT， 决定内联还是提升
       stateAccessors: [],
+      slotTemplates: [],
+      slotFields: [],
+      templateGeneratedMethods: [],
+      templateMethodCounter: 0,
     };
   }
 

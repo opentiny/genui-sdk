@@ -1,4 +1,8 @@
-import type { CardSchema } from '@opentiny/genui-sdk-core';
+import type { CardSchema, NodeSchema } from '@opentiny/genui-sdk-core';
+import type { AngularPropAdapter } from './libraries/prop-adapter';
+
+/** 组件库标识:单个库名,或按注册顺序激活的库名数组(多库混合出码时用数组) */
+export type AngularLibraryRef = string | string[];
 
 export interface IComponentMapItem {
   componentName: string;
@@ -35,8 +39,12 @@ export interface ICodegenDescription {
   iconComponents: { componentNames: string[]; exportNames: string[] };
   internalTypes: Set<string>;
   stateAccessors: IStateAccessorDefinition[];
-  slotTemplates?: ICodegenSlotTemplate[];
-  slotFields?: ICodegenSlotField[];
+  slotTemplates: ICodegenSlotTemplate[];
+  slotFields: ICodegenSlotField[];
+  /** 事件绑定自动生成的组件类方法(如 __handle1),随元数据走,避免实例字段需手动重置 */
+  templateGeneratedMethods: string[];
+  /** 自动生成方法计数,保证每次出码从 0 开始 */
+  templateMethodCounter: number;
 }
 
 export interface ICodePanel {
@@ -76,8 +84,9 @@ export interface IFrameworkCodeGenerator<TParams, TResult> {
 }
 
 /**
- * Angular 组件库配置——用于 AngularCodeGeneratorBase 子类注入组件库专属信息。
- * 不同的 Angular 组件库（TinyNG、Angular Material、PrimeNG 等）只需提供不同的配置对象即可。
+ * Angular 组件库配置——组件库专属信息以纯配置/策略注入,而非子类覆盖。
+ * 不同组件库（TinyNG、Angular Material、PrimeNG 等）各提供一份配置对象,
+ * 注册到 AngularCodeGeneratorBase.libraries 类内注册表,由该类直接实例化。
  */
 export interface IAngularLibraryConfig {
   /** 组件名 → HTML 标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' } */
@@ -94,6 +103,17 @@ export interface IAngularLibraryConfig {
   propBlacklist?: Record<string, string[]>;
   /** 组件级 prop 键名重命名。如 { TiPagination: { total: 'totalNumber' } } */
   propRename?: Record<string, Record<string, string>>;
+  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。如 TinyNG 的 TiPagination/TiTable 特判 */
+  propAdapters?: AngularPropAdapter[];
+  /** 组件库全部组件名集合,供「组件库识别」比对 schema;缺省取 componentSelector 的键 */
+  libraryComponents?: Set<string>;
+  /** 组件库专属 state 预处理(遍历/序列化前),如 TinyNG 的 TiTable srcData.state 缺省字段补全 */
+  transformState?: (state: Record<string, unknown>) => void;
+  /** 组件库专属 children 变换(子节点渲染前),如 TinyNG 的 TiFormField 子节点统一包装为 TiItem */
+  transformChildren?: (
+    componentName: string,
+    children: NodeSchema[] | NodeSchema | string | undefined,
+  ) => NodeSchema[] | NodeSchema | string | undefined;
 }
 
 export type ICodeGeneratorResult = ICodePanel & { errors: { message: string }[] };
@@ -106,4 +126,10 @@ export interface IVueCodeGeneratorOptions {
 export interface IAngularCodeGeneratorOptions {
   /** prettier 格式化参数,覆盖默认值;仅 formatWithPrettier 开启时生效 */
   prettierOpts?: Record<string, unknown>;
+}
+
+/** Angular 类体段落定义——buildAngularComponentSource 按定义顺序拼接组件类成员 */
+export interface IAngularClassSectionDefinition {
+  id: string;
+  build: () => string;
 }

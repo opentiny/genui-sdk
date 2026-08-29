@@ -1,5 +1,15 @@
-启动测试界面
+# TinyNG 组件特判记录
+
+本文记录 TinyNG 出码时对特定组件做特殊处理的原因与对应实现:
+- `total` → `totalNumber`:`propRename`(见 [config.ts](config.ts))
+- TiTable `srcData.state` 补全:`transformState`(见 [config.ts](config.ts))
+- JSSlot 列渲染:slot 模板机制(见 angular-code-generator-base.ts)
+- 其余 prop 特判:`propAdapters`(见 [prop-adapters.ts](prop-adapters.ts))
+
+启动测试界面:
+```
 pnpm dev:angular-test
+```
 
 1、<ti-pagination>组件，ai输出的schema json中包含属性"total"，而TinyNg的ti-pagination支持的是"totalNumber"属性，而不是"total"
 {

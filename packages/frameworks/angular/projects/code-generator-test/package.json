@@ -8,11 +8,7 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "prettier": "^3.4.0"
-  },
   "devDependencies": {
-    "@types/node": "^26.2.0",
     "typescript": "^5.9.3",
     "vite": "^7.1.2"
   }
