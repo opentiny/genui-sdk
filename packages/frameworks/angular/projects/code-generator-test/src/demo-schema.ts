@@ -1,4 +1,4 @@
-// 示例 schema：Page + TiCard 员工信息表（与 code-generator __tests__/generate.spec.ts 一致）
+// 示例 schema：Page + TiCard 员工信息表
 export const DEMO_SCHEMA = {
   componentName: 'Page',
   state: {
