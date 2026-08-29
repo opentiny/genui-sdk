@@ -20,8 +20,15 @@ description: >-
 
 ## 前置检查
 
-1. **版本号**：用户提供（如 `1.3.0` / `v1.3.0`），去前导 `v`；须为非空 semver。`opentiny.design` 不写版本，只共用 `COMMIT`。
-2. **鉴权**：`gh auth status`；未登录则提示 `gh auth login` 或提供对两仓有写权限的 token。
+1. **依赖**：需要 `gh`（GitHub CLI）、`jq`（解析 API 输出）、`npm`（docs 查 npm 最新版本用）。先检查：
+   ```bash
+   command -v gh >/dev/null || { echo "gh 未安装，请先安装：brew install gh" >&2; exit 1; }
+   command -v jq >/dev/null || { echo "jq 未安装，请先安装：brew install jq" >&2; exit 1; }
+   command -v npm >/dev/null || { echo "npm 未安装，请先安装 Node.js（含 npm）" >&2; exit 1; }
+   ```
+   缺失时给安装指引（macOS：`brew install gh jq`；npm 随 Node.js 一起安装），**不要**当作未登录去提示 `gh auth login`。
+2. **版本号**：用户提供（如 `1.3.0` / `v1.3.0`），去前导 `v`；须为非空 semver。`opentiny.design` 不写版本，只共用 `COMMIT`。
+3. **鉴权**：`gh auth status`；未登录则提示 `gh auth login` 或提供对两仓有写权限的 token。
 
 ```text
 COMMIT = 用户指定，否则 opentiny/genui-sdk 远程 main tip
@@ -81,6 +88,7 @@ BRANCH="deploy/update-genui-${version}"
 
 | 情况 | 处理 |
 |------|------|
+| gh / jq / npm 未安装 | 按前置检查安装（macOS：`brew install gh jq`；npm 随 Node.js），**不要**当作未登录 |
 | 未登录 / 无权限 | `gh auth login` 或提供覆盖两仓的 token |
 | 分支已存在 / 改 PR | 以分支 tip 为 parent 追加 commit，无 force PATCH |
 | 用户指定了 commit | 两仓都用该 commit |
