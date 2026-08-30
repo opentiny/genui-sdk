@@ -4,21 +4,11 @@ import { IconDownload } from '@opentiny/vue-icon';
 import { useExportVueCode } from '../hooks/use-generate-vue-code';
 import { useGenerateAngularCode } from '../hooks/use-generate-angular-code';
 
-/**
- * 卡片「导出源码」按钮,同时服务 Vue / Angular 两种卡片:
- * - Vue 卡片(默认 framework="vue"):作为 rendererSlots.header 使用,
- *   经 slot scope 收到 schema/isError/isFinished,前端调 Vue 出码;
- * - Angular 卡片(framework="angular"):由 message-renderer-angular 作为渲染包装引用,
- *   通过 slot 投影卡片本体、组件根 wrapper 承担 hover 作用域,出码用 content/generating 调 Angular 出码。
- */
 const props = withDefaults(
   defineProps<
     Partial<IRendererSlotsProps> & {
-      /** 卡片渲染来源:'vue' 走 rendererSlots.header,'angular' 走自定义 renderer 包装 */
       framework?: 'vue' | 'angular';
-      /** Angular 卡片的 schema(JSON 字符串或对象),来自 schemaCardProps.content */
       content?: string | object;
-      /** Angular 卡片是否仍在生成(生成中不显示按钮) */
       generating?: boolean;
     }
   >(),
@@ -31,10 +21,10 @@ const TinyIconDownload = IconDownload();
 
 const isAngular = props.framework === 'angular';
 
-/** Angular:卡片完成(generating=false)即显示;Vue:isFinished 且无错误才显示 */
-const shouldShowExport = isAngular
-  ? !props.generating
-  : Boolean(props.isFinished && !props.isError);
+
+const generating = isAngular ? (props.generating ?? false) : !props.isFinished;
+
+const shouldShowExport = !generating && (isAngular || !props.isError);
 
 const handleExport = () => {
   if (isAngular) {
@@ -93,7 +83,6 @@ const handleExport = () => {
   transition: opacity 0.15s ease, max-width 0.2s ease;
 }
 
-/* Angular 包装:组件作为渲染包装,根承担定位与 hover 作用域 */
 .angular-card-wrapper {
   position: relative;
 }
@@ -105,7 +94,6 @@ const handleExport = () => {
   z-index: 20;
 }
 
-/* 两级 hover:进入卡片显示图标,进入图标展开文字(Vue 卡片由 App.vue 提供同规则) */
 .angular-card-wrapper:hover .schema-export-button {
   opacity: 1;
   transform: translateY(0);
