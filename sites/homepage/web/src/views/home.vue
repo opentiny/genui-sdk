@@ -316,7 +316,7 @@ const buttonSize = computed(() => {
     display: flex;
     padding: 16px;
     border-radius: 24px;
-    background-image: url('@/assets/genui_ability_bg_2.svg');
+    background-image: url('@/assets/genui_ability_bg_2.png');
     background-size: cover;
 
     img {
@@ -628,6 +628,11 @@ const buttonSize = computed(() => {
 .cover-image {
   border-radius: 28px;
   cursor: pointer;
+}
+
+#genui-action-vedio {
+  border-radius: 16px;
+  box-shadow: 0 0 0 10px rgb(255, 255, 255, 1), 0 0 20px 0 rgba(0, 0, 0, 0.2);
 }
 
 @keyframes slideUpFromBottom {
