@@ -38,6 +38,10 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 Use `miniMaterials` / `plusMaterials` as needed, e.g. for the Plus tier:
 
+```typescript
+import { plusMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+```
+
 ```vue
 <GenuiConfigProvider :materials="plusMaterials">
   <GenuiChat />
