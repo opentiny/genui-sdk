@@ -27,7 +27,7 @@ description: >-
    command -v npm >/dev/null || { echo "npm 未安装，请先安装 Node.js（含 npm）" >&2; exit 1; }
    ```
    缺失时给安装指引（macOS：`brew install gh jq`；npm 随 Node.js 一起安装），**不要**当作未登录去提示 `gh auth login`。
-2. **版本号**：用户提供（如 `1.3.0` / `v1.3.0`），去前导 `v`；须为非空 semver。`opentiny.design` 不写版本，只共用 `COMMIT`。
+2. **版本号**：用户提供（如 `1.3.0` / `v1.3.0`），去前导 `v`；须为非空 semver（含预发布/构建号），非法值直接退出。`opentiny.design` 不写版本，只共用 `COMMIT`。
 3. **鉴权**：`gh auth status`；未登录则提示 `gh auth login` 或提供对两仓有写权限的 token。
 
 ```text
@@ -51,7 +51,7 @@ BRANCH = deploy/update-genui-{version}
 
 ```bash
 version="${version#v}"
-if [ -z "${version}" ] || ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+if [ -z "${version}" ] || ! [[ "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?(\+[0-9A-Za-z.-]+)?$ ]]; then
   echo "version required (semver, e.g. 1.3.0)" >&2
   exit 1
 fi
@@ -59,13 +59,20 @@ fi
 if [ -n "${USER_COMMIT}" ]; then
   COMMIT="${USER_COMMIT}"
 else
-  COMMIT=$(gh api repos/opentiny/genui-sdk/git/ref/heads/main --jq .object.sha)
+  COMMIT=$(gh api repos/opentiny/genui-sdk/git/ref/heads/main --jq .object.sha) || {
+    echo "获取 genui-sdk main tip 失败，请检查网络与鉴权" >&2
+    exit 1
+  }
+fi
+if ! [[ "${COMMIT}" =~ ^[0-9a-fA-F]{40}$ ]]; then
+  echo "COMMIT 无效：需为 40 位 hex SHA，当前为 ${COMMIT}" >&2
+  exit 1
 fi
 BRANCH="deploy/update-genui-${version}"
 ```
 
 - `version`：用户输入并去前导 `v`；用于分支名与 PR 文案；docs 里各 genui 依赖分别取各自 npm 最新正式版（见 docs.md）
-- `COMMIT`：优先用户指定；否则 `main` tip；**两仓共用**；勿再用 tag 覆盖用户指定的 commit
+- `COMMIT`：优先用户指定；否则 `main` tip；**两仓共用**；解析失败或非 40 位 hex SHA 直接退出；勿再用 tag 覆盖用户指定的 commit
 
 ### Step 2–4
 

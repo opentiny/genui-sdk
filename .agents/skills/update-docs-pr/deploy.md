@@ -21,7 +21,12 @@ deploy_repo() {
   local repo="$1" workflow="$2" pre_sleep="$3" preview="$4"
   local head run run_id
   echo "== 部署 ${repo} =="
-  [ -n "${pre_sleep}" ] && sleep "${pre_sleep}"
+  if [ -n "${pre_sleep}" ]; then
+    sleep "${pre_sleep}" || {
+      echo "${repo}: sleep 失败" >&2
+      return 1
+    }
+  fi
   head=$(gh api "repos/${repo}/git/ref/heads/${BRANCH}" --jq .object.sha) || {
     echo "${repo}: 无法获取分支 ${BRANCH} 的 tip SHA" >&2
     return 1
@@ -38,10 +43,19 @@ deploy_repo() {
       --commit "${head}" \
       --limit 1 \
       --json databaseId,url \
-      --jq '.[0] // empty')
-    run_id=$(echo "${run}" | jq -r '.databaseId // empty')
+      --jq '.[0] // empty') || {
+      echo "${repo}: gh run list 失败" >&2
+      return 1
+    }
+    run_id=$(echo "${run}" | jq -r '.databaseId // empty') || {
+      echo "${repo}: 解析 run 信息失败" >&2
+      return 1
+    }
     [ -n "${run_id}" ] && break
-    sleep 2
+    sleep 2 || {
+      echo "${repo}: sleep 失败" >&2
+      return 1
+    }
   done
   if [ -z "${run_id}" ]; then
     echo "${repo}: 未找到刚 dispatch 的 run" >&2
