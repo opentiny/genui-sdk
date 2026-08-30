@@ -1,8 +1,16 @@
+import { fileURLToPath, URL } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tsconfigPaths from 'vite-jsconfig-paths';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteGitCommitHashPlugin } from 'vite-commit-hash-plugin';
+
+// Angular 出码器源码(无 npm 产物,直接引用 workspace 源码):
+// 导出按钮在前端调用它的 generateCode,需要在 dev(tsconfigPaths 解析 paths)与
+// 生产 build(resolve.alias)两条链路下都能命中。
+const ANGULAR_CODE_GENERATOR_ALIAS = fileURLToPath(
+  new URL('../../../packages/frameworks/angular/projects/code-generator/index.ts', import.meta.url),
+);
 
 /** 单独拆包的依赖（chunk 名），其余 node_modules 进 vendor；@opentiny/vue* 统一为 opentiny-vue */
 const VENDOR_CHUNKS = new Set([
@@ -58,6 +66,11 @@ export default defineConfig(({ command }) => {
   return {
     envDir: './env',
     plugins,
+    resolve: {
+      alias: {
+        '@opentiny/genui-angular-code-generator': ANGULAR_CODE_GENERATOR_ALIAS,
+      },
+    },
     optimizeDeps: {
       exclude: ['monaco-editor', 'monaco-editor-vue3'],
     },

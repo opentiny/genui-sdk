@@ -32,6 +32,9 @@
       ],
       "@opentiny/genui-sdk-materials-angular-opentiny-ng/meta": [
         "../../../packages/materials/angular-opentiny-ng/src/meta/index.ts"
+      ],
+      "@opentiny/genui-angular-code-generator": [
+        "../../../packages/frameworks/angular/projects/code-generator/index.ts"
       ]
     }
   },
