@@ -279,16 +279,15 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     }
 
     if (item && typeof item === 'object') {
-      // 以临时 internalTypes 集合遍历该字面量,避免类型标志借道写入共享元数据;遍历结束自动恢复外层集合
       const localInternalTypes = this.withLocalInternalTypes(description, (localTypes) => {
         this.traverseState(item as Record<string, unknown>, description, state);
         return localTypes;
       });
 
-      if (localInternalTypes.has('JSFunction') || localInternalTypes.has('JSSlot')) { // 将函数提升到state中， JSSlot是什么
+      if (localInternalTypes.has('JSFunction') || localInternalTypes.has('JSSlot')) {
         if (localInternalTypes.has('JSSlot')) {
-          // 含作用域插槽:render 引用 ng-template 的 TemplateRef,类字段初始化时机太早,
-          // 必须提升为组件类字段,由 ngOnInit 组装(现有 hoistPropToState 的目标 state 是类字段,此时 this.slotN 还是 undefined)
+          // 含作用域插槽: 引用 ng-template 的 TemplateRef,类字段初始化时机太早,
+          // 提升为组件类字段,由 ngOnInit 组装(现有 hoistPropToState 的目标 state 是类字段,此时 this.slotN 还是 undefined)
           this.hoistPropToTemplateField(key, item, attrsArr, description);
         } else {
           this.hoistPropToState(key, item, attrsArr, state);
@@ -409,7 +408,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
         return;
       }
 
-      if (propType === 'literal') {
+      if (propType === 'literal') { // 字面量类型属性值
         this.handleLiteralBinding(key, rawValue, attrsArr, description, state);
         return;
       }
@@ -475,7 +474,6 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     }
 
     if (condition) {
-      // Angular 模板没有 JSX 的表达式容器 { cond && ... },条件渲染用 *ngIf 结构指令
       const conditionValue =
         (condition as { type?: string; value?: string }).type
           ? this.cleanThisInTemplate((condition as { value?: string }).value ?? '') || condition
@@ -596,7 +594,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     });
   }
 
-  /** Text 文本节点生成:有 style 时包一层 <span>,无 style 时保持纯插值(如表格单元格文本) */
+  /** Text 文本节点生成:有 style 时包一层 <span>,无 style 时保持纯插值 */
   protected generateTextNode(props: Record<string, unknown>): string {
     const interpolation = this.buildTextInterpolation(props['text']);
     const style = props['style'];
@@ -835,7 +833,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
   }): string {
     const codegenMeta = this.createCodegenMeta();
     const schemaMethods = (schema as CardSchema & { methods?: Record<string, { value: string }> }).methods;
-    // 与 Vue 出码一致：整体检测 schema 是否使用 callAction，命中则保留调用并注入占位实现
+
     const needsCallAction = /\bthis\.callAction\b/.test(JSON.stringify(schema));
 
     // 1) 模板:主模板 + 收集到的 JSSlot → ng-template 片段(Angular 编译器可正常编译其内容)
@@ -848,8 +846,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     );
     const finalTemplate = `${template}${this.buildSlotTemplates(codegenMeta)}`;
 
-    // 2) 类体各段落,顺序与原实现一致:先快照 ViewChild/slotField 声明,再遍历 state。
-    //    buildStateFields 遍历 schema.state 可能向 slotTemplates 追加 JSSlot,故必须在其后判断 hasSlot。
+    // 2)
     const viewChildDecls = this.buildViewChildDecls(codegenMeta);
     const slotFieldDecls = this.buildSlotFieldDecls(codegenMeta);
     const stateFields = this.buildStateFields(schema, codegenMeta);
@@ -862,7 +859,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     const hasSlot = codegenMeta.slotTemplates.length > 0;
     const { importStatements, moduleNames } = this.buildImports(codegenMeta, false, hasLifecycle, hasSlot);
 
-    // 4) 按段落定义顺序拼装类体(与 Vue 出码的段落化方式一致,每段一个构建方法)
+    // 4) 按段落定义顺序拼装类体
     const sections: IAngularClassSectionDefinition[] = [
       { id: 'viewChildDecls', build: () => viewChildDecls },
       { id: 'state', build: () => stateFields },
@@ -879,6 +876,8 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     const ngImports = ['CommonModule', 'FormsModule', ...moduleNames].join(', ');
     const implementsClause = hasLifecycle ? ' implements OnInit' : '';
 
+    const stylesContent = (schema.css ?? '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+
     return [
       importStatements,
       '',
@@ -887,7 +886,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
       '  standalone: true,',
       `  imports: [${ngImports}],`,
       `  template: \`${finalTemplate}\`,`,
-      '  styles: [``],',
+      `  styles: [\`${stylesContent}\`],`,
       '})',
       `export class ${className}Component${implementsClause} {`,
       classBody ? `  ${classBody}` : '',
@@ -971,12 +970,6 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     attrsArr.push(`[${key}]="state.${valueKey}"`);
   }
 
-  /**
-   * 含 JSSlot 的属性提升:属性值提升为组件类字段(而非 state 字段)。
-   * 因为属性值里的 render 是对 ng-template 的 TemplateRef 引用(this.slotN),
-   * 而类字段初始化器执行时 ViewChild 尚未解析,必须延迟到 ngOnInit 组装。
-   * 由 buildAngularComponentSource 生成组装逻辑。
-   */
   protected hoistPropToTemplateField(
     key: string,
     item: unknown,
@@ -988,14 +981,6 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     attrsArr.push(`[${key}]="${fieldName}"`);
   }
 
-  /**
-   * 用 prettier 格式化生成出的 .component.ts。Angular 出码产物是单个 TS 文件,
-   * inline template 是 backtick 字符串字面量,typescript parser 不会格式化其内部,
-   * 故采用两段式:
-   *   1. 抽出 template 内容,以 parser 'angular'(prettier html 插件提供)格式化;
-   *   2. 把格式化后的模板按 6 空格缩进嵌回,再整体以 parser 'typescript' 格式化。
-   * 任一步失败都回退返回原始 source(与 Vue 出码行为一致)。
-   */
   protected async formatWithPrettier(source: string, prettierOpts: Record<string, unknown>): Promise<string> {
     try {
       const [
@@ -1019,7 +1004,6 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
           parser: 'angular',
           plugins: [htmlPlugin],
         });
-        // 模板内容从第 0 列开始,嵌回时每行补 6 空格与 template: 对齐
         const indentedTemplate = formattedTemplate
           .trimEnd()
           .split('\n')
@@ -1050,7 +1034,7 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
     const panelName = `${hyphenate(name)}.component.ts`;
     const compileErrors: { message: string }[] = [];
 
-    // 组件库识别:校验 schema 用到的组件是否都属于当前组件库(排除原生 HTML 标签与特殊节点)
+    // 组件库识别:校验 schema 用到的组件是否都属于当前物料
     const usedComponents = this.collectSchemaComponentNames(schema);
     const knownComponents = this.getLibraryComponentNames();
     const unknownComponents = [...usedComponents].filter(
