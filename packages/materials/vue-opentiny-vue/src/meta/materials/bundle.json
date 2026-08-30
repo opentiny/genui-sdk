@@ -10629,7 +10629,7 @@
                     "widget": {
                       "component": "CodeConfigurator",
                       "props": {
-                        "language": "json"
+                        "dataType": "JSFunction"
                       }
                     },
                     "description": {
@@ -10893,7 +10893,7 @@
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
-                    "defaultValue": " /",
+                    "defaultValue": "/",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {}
@@ -12858,10 +12858,10 @@
         {
           "name": "TinyVue组件库",
           "package": "@opentiny/vue",
-          "version": "3.20.0",
+          "version": "3.28.0",
           "destructuring": true,
-          "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/~3.20/files/dist3/tiny-vue-pc.mjs",
-          "css": "https://registry.npmmirror.com/@opentiny/vue-theme/~3.20/files/index.css"
+          "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/~3.28/files/dist3/tiny-vue-pc.mjs",
+          "css": "https://registry.npmmirror.com/@opentiny/vue-theme/~3.28/files/index.css"
         },
         {
           "name": "element-plus组件库",

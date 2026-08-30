@@ -36,6 +36,14 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 </GenuiConfigProvider>
 ```
 
+Use `miniMaterials` / `plusMaterials` as needed, e.g. for the Plus tier:
+
+```vue
+<GenuiConfigProvider :materials="plusMaterials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
 ## materialsMeta / miniMaterialsMeta / plusMaterialsMeta
 
 - **Type**: `IMaterialsMeta`
@@ -46,4 +54,13 @@ import { genPrompt } from '@opentiny/genui-sdk-core';
 import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 const systemPrompt = genPrompt('Vue', materialsMeta);
+```
+
+For the Plus tier:
+
+```typescript
+import { genPrompt } from '@opentiny/genui-sdk-core';
+import { plusMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+
+const systemPrompt = genPrompt('Vue', plusMaterialsMeta);
 ```

@@ -18,6 +18,7 @@ const standardRequiredCompleteFieldSelectors = [
 const plusRequiredCompleteFieldSelectors = [
   ...standardRequiredCompleteFieldSelectors,
   '[componentName=TinyCollapseItem] > props > name',
+  '[componentName=TinyAutocomplete] > props > fetchSuggestions',
 ];
 
 export const materials: IMaterials = {

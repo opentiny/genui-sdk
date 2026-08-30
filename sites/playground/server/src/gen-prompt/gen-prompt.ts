@@ -55,10 +55,11 @@ export function genPlaygroundPrompt(
   const { promptVariant, componentLib } = materialConfig;
   const variant = promptVariant || 'standard';
   const libKey = componentLib as IComponentLibKey;
+  const meta = metaMap[framework]?.[libKey]?.[variant] ?? metaMap[framework]?.[libKey]?.standard;
 
   return genPrompt(
     framework,
-    metaMap[framework]?.[libKey]?.[variant] ?? materialsMeta,
+    meta ?? materialsMeta,
     tgCustomConfig,
     {
       ...(optionsMap[framework]?.[variant] ?? {}),

@@ -40,6 +40,25 @@ const systemPrompt = genPrompt('Vue', materialsMeta, customConfig);
 Use `miniMaterials` / `miniMaterialsMeta` for a smaller set (forms/tables, no charts).
 Use `plusMaterials` / `plusMaterialsMeta` for full business pages (tree, dialog, timeline, etc.).
 
+For Plus tier, import the `plus` entries instead:
+
+```ts
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
+import { plusMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { genPrompt } from '@opentiny/genui-sdk-core';
+import { plusMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+```
+
+```vue
+<GenuiConfigProvider :materials="plusMaterials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
+```ts
+const systemPrompt = genPrompt('Vue', plusMaterialsMeta, customConfig);
+```
+
 ## API
 
 | Export Path | Exports | Description |
