@@ -131,6 +131,97 @@ describe('setSchema', () => {
     expect(page.getContext().state?.tableData).toEqual([{ id: '001' }]);
     expect(notifyCount).toBeGreaterThan(notifyAfterInit);
   });
+
+  it('updates after await without method or event wrapper notifications', async () => {
+    const page = createPageContext();
+    setSchema(
+      {
+        state: { loading: true, result: null },
+        methods: {
+          load: {
+            type: 'JSFunction',
+            value: "async function() { await Promise.resolve(); this.state.loading = false; this.state.result = 'done'; }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      page,
+    );
+
+    let notifyCount = 0;
+    page.subscribe(() => notifyCount++);
+    await (page.getContext().load as () => Promise<void>)();
+
+    expect(page.getContext().state).toEqual({ loading: false, result: 'done' });
+    expect(notifyCount).toBe(2);
+  });
+
+  it('updates from a timer callback after the method has returned', async () => {
+    const page = createPageContext();
+    setSchema(
+      {
+        state: { ready: false },
+        methods: {
+          start: {
+            type: 'JSFunction',
+            value:
+              "function() { return new Promise((resolve) => setTimeout(() => { this.state.ready = true; resolve(); }, 0)); }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      page,
+    );
+
+    await (page.getContext().start as () => Promise<void>)();
+
+    expect(page.getContext().state).toEqual({ ready: true });
+  });
+
+  it('does not notify for a method that does not change state', () => {
+    const page = createPageContext();
+    setSchema(
+      {
+        methods: {
+          readOnly: { type: 'JSFunction', value: "function() { return 'ok'; }" },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      page,
+    );
+
+    let notifyCount = 0;
+    page.subscribe(() => notifyCount++);
+
+    expect((page.getContext().readOnly as () => string)()).toBe('ok');
+    expect(notifyCount).toBe(0);
+  });
+
+  it('compiles update, delete, Object.assign and array mutation writes', () => {
+    const page = createPageContext();
+    setSchema(
+      {
+        state: { count: 1, form: { name: 'Ada' }, items: ['a', 'b'], obsolete: true },
+        methods: {
+          update: {
+            type: 'JSFunction',
+            value:
+              "function() { this.state.count++; Object.assign(this.state.form, { name: 'Grace' }); this.state.items.push('c'); delete this.state.obsolete; }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      page,
+    );
+
+    (page.getContext().update as () => void)();
+
+    expect(page.getContext().state).toEqual({ count: 2, form: { name: 'Grace' }, items: ['a', 'b', 'c'] });
+  });
 });
 
 describe('parseData onClick with methods', () => {

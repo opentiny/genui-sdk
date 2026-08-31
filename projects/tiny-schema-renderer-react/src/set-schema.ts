@@ -24,9 +24,7 @@ export function setMethods(data: Record<string, unknown> = {}, page: PageContext
             if (typeof parsed !== 'function') {
               return undefined;
             }
-            const result = parsed.call(page.getContext(), ...args);
-            page.getContext().__pageNotify?.();
-            return result;
+            return parsed.call(page.getContext(), ...args);
           },
         ];
       }),

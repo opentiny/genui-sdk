@@ -1,6 +1,7 @@
 import { getCustomSettings, DEFAULT_RENDERER_SETTINGS } from './use-custom-setting';
 import { getRuntimeCtx } from './context-runtime';
 import type { PageContextValue } from './parse-data';
+import { transformStateMutations } from './transform-state-mutations';
 
 const JS_EXPRESSION = 'JSExpression';
 
@@ -21,6 +22,7 @@ export function parseExpression(
     if (isJsx && getCustomSettings().transformJSX) {
       expression = getCustomSettings().transformJSX!(data.value);
     }
+    expression = transformStateMutations(expression);
     let params: Record<string, unknown> = {};
     if (data.params?.length) {
       params = data.params.reduce<Record<string, unknown>>((acc, paramName) => {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { PageContextValue } from './engine';
 import type { PageContextApi } from './use-context';
 
@@ -18,5 +18,7 @@ export function usePageContext(): PageContextValue {
   if (!page) {
     throw new Error('usePageContext must be used within SchemaRenderer');
   }
-  return useSyncExternalStore(page.subscribe, page.getContext, page.getContext);
+  const [context, setContext] = useState<PageContextValue>(() => page.getContext());
+  useEffect(() => page.subscribe(() => setContext(page.getContext())), [page]);
+  return context;
 }

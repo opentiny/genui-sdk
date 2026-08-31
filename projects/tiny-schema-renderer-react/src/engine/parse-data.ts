@@ -1,13 +1,16 @@
 import { getRuntimeCtx } from './context-runtime';
 import { parseExpression, isJSExpression, newFn } from './parse-expression';
+import { transformStateMutations } from './transform-state-mutations';
 
 export type PageContextValue = Record<string, unknown> & {
   state?: Record<string, unknown>;
   refs?: Record<string, unknown>;
   cssScopeId?: string;
   callAction?: (name: string, params?: unknown) => unknown;
-  __pageNotify?: () => void;
   __getContext?: () => PageContextValue;
+  setState?: (updater: (state: Record<string, unknown>) => Record<string, unknown>) => void;
+  setIn?: (source: unknown, path: readonly unknown[], updater: unknown | ((prev: unknown) => unknown)) => unknown;
+  __rejectStateMutationDuringRender?: () => undefined;
 };
 
 const JS_EXPRESSION = 'JSExpression';
@@ -66,7 +69,7 @@ function parseJSFunction(data: { type: string; value: string }, scope: Record<st
         ctx,
       );
     }
-    const innerFn = newFn(`return ${data.value}`).bind(ctx)() as (...args: unknown[]) => unknown;
+    const innerFn = newFn(`return ${transformStateMutations(data.value)}`).bind(ctx)() as (...args: unknown[]) => unknown;
     return generateFn(innerFn, ctx);
   } catch (error) {
     console.warn('JSFunction parse error:', error);
@@ -101,25 +104,10 @@ function parseObjectData(data: Record<string, unknown>, scope: Record<string, un
     }
   });
 
-  Object.entries(res).forEach(([key, value]) => {
-    if (!key.startsWith('on') || typeof value !== 'function') return;
-    const fn = value as (...args: unknown[]) => unknown;
-    res[key] = (...args: unknown[]) => {
-      const result = fn(...args);
-      getRuntimeCtx(ctx).__pageNotify?.();
-      return result;
-    };
-  });
-
   const refEntry = entries.find(([key, value]) => key === 'ref' && isJSExpression(value));
   if (refEntry) {
     const refExpr = refEntry[1] as { value: string };
     res.ref = parseData({ type: JS_FUNCTION, value: `(instance) => { ${refExpr.value} = instance }` }, scope, ctx);
-  }
-
-  if ('className' in res) {
-    res.className = res.className;
-    if (!res.class) res.class = res.className;
   }
 
   return res;

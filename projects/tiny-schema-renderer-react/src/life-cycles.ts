@@ -25,13 +25,6 @@ function parseLifeCycleFn(source: unknown, getContext: () => PageContextValue): 
   }
 }
 
-function withMountedNotify(fn: LifeCycleFn, getContext: () => PageContextValue): LifeCycleFn {
-  return async () => {
-    await fn();
-    getContext().__pageNotify?.();
-  };
-}
-
 export function getPageLifeCycleFns(
   lifeCycles: LifeCycles | null | undefined,
   getContext: () => PageContextValue,
@@ -41,7 +34,7 @@ export function getPageLifeCycleFns(
   const onUnmounted = parseLifeCycleFn(cycles.onUnmounted, getContext);
 
   return {
-    onMounted: onMounted ? withMountedNotify(onMounted, getContext) : null,
+    onMounted,
     onUnmounted,
   };
 }
