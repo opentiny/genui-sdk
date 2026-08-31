@@ -67,6 +67,43 @@ export function envPositiveInt(key: string, fallback: number): number {
   return parsed;
 }
 
+export type EnvRateLimitConfig = Record<string, { requests: number; windowMs: number }>;
+
+/**
+ * 读取模型限速配置，如 `{"model-a":{"requests":5,"windowMs":60000}}`。
+ */
+export function envModelRateLimit(
+  key: string,
+  fallback?: EnvRateLimitConfig,
+): EnvRateLimitConfig | undefined {
+  const v = process.env[key];
+  if (v === undefined || v.trim() === '') {
+    return fallback;
+  }
+  try {
+    const parsed = JSON.parse(v) as unknown;
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return fallback;
+    }
+    const out: EnvRateLimitConfig = {};
+    for (const [rawKey, rawValue] of Object.entries(parsed)) {
+      const name = rawKey.trim();
+      if (!name || !rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) continue;
+      const cfg = rawValue as Record<string, unknown>;
+      const requests = Number(cfg.requests);
+      const windowMs = Number(cfg.windowMs);
+      if (!Number.isFinite(requests) || requests < 1 || !Number.isFinite(windowMs) || windowMs < 1) continue;
+      out[name] = {
+        requests: Math.floor(requests),
+        windowMs: Math.floor(windowMs),
+      };
+    }
+    return Object.keys(out).length > 0 ? out : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 /**
  * 流式请求超时（毫秒），用于 `streamText({ abortSignal })`。
  * 未设置或空字符串：使用 `fallback`；`0`：不启用超时（返回 `undefined`）；非法值回退 `fallback`。
@@ -101,4 +138,38 @@ export function envFramework(key: string, fallback: 'Vue' | 'Angular' | undefine
     return fallback;
   }
   return 'Vue';
+}
+
+/**
+ * 读取物料档位：`standard` → materialsMeta；`mini` → miniMaterialsMeta（Vue materials 包导出）。
+ */
+export function envMaterialsVariant(
+  key: string,
+  fallback: 'mini' | 'standard' | undefined,
+): 'mini' | 'standard' {
+  const v = process.env[key]?.trim().toLowerCase();
+  if (v === 'mini' || v === 'standard') {
+    return v;
+  }
+  if (fallback === 'mini' || fallback === 'standard') {
+    return fallback;
+  }
+  return 'standard';
+}
+
+/**
+ * 读取协议：`genui` | `a2ui`（大小写不敏感）。
+ */
+export function envBenchProtocol(
+  key: string,
+  fallback: 'genui' | 'a2ui' | undefined,
+): 'genui' | 'a2ui' {
+  const v = process.env[key]?.trim().toLowerCase();
+  if (v === 'genui' || v === 'a2ui') {
+    return v;
+  }
+  if (fallback === 'genui' || fallback === 'a2ui') {
+    return fallback;
+  }
+  return 'genui';
 }
