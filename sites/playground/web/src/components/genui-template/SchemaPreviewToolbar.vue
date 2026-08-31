@@ -2,6 +2,8 @@
 import { TinyButton } from '@opentiny/vue';
 import { iconClose, iconTime } from '@opentiny/vue-icon';
 import { useTemplateContext } from './composables';
+import InspectModeIcon from './InspectModeIcon.vue';
+import { useSchemaDevMode } from './useSchemaDevMode';
 import viewSchemaIcon from '../../assets/images/view-schema.svg';
 import { t } from '../../i18n';
 
@@ -12,6 +14,7 @@ withDefaults(defineProps<{
 const TinyCloseIcon = iconClose();
 const TinyIconTime = iconTime();
 const { versionControl, ui, actions } = useTemplateContext();
+const { isDevMode } = useSchemaDevMode();
 </script>
 
 <template>
@@ -29,6 +32,16 @@ const { versionControl, ui, actions } = useTemplateContext();
           {{ t('templateEditor.returnLatest') }}
         </tiny-button>
       </template>
+      <tiny-button
+        type="text"
+        class="genui-schema-toolbar-close-btn"
+        :class="{ 'is-active': isDevMode }"
+        :aria-label="t('templateEditor.devMode')"
+        :title="t('templateEditor.devMode')"
+        @click="isDevMode = !isDevMode"
+      >
+        <InspectModeIcon />
+      </tiny-button>
       <tiny-button
         type="text"
         class="genui-schema-toolbar-close-btn"

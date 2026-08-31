@@ -14,7 +14,7 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleProps, BubbleRoleConfig } from '@opentiny/tiny-robot';
+import type { BubbleProps, BubbleRoleConfig, UserItem } from '@opentiny/tiny-robot';
 import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
@@ -39,6 +39,10 @@ import {
   setJsonPatchApplyResult,
 } from './template-chat-utils';
 import { generateId } from '../../utils';
+import { useSchemaDevModeOptional } from './useSchemaDevMode';
+import { getComposerContent, segmentsToPlainText } from './schema-composer';
+import type { SelectedSchemaNode } from './schema-node-selection';
+import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
 import { useContextZip } from './use-context-zip';
 import AssistantFooter from './TemplateAssistantFooter.vue';
@@ -58,6 +62,9 @@ const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
+const schemaDevMode = useSchemaDevModeOptional();
+const templateData = ref<UserItem[]>([]);
+const selectedNodeMap = new Map<string, SelectedSchemaNode>();
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -254,6 +261,16 @@ const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schem
 
 const messageRenderers = {
   markdown: markdownRenderer,
+  'template-user': (props: {
+    segments?: import('./schema-composer').ComposerSegment[];
+    content?: string;
+    selectedNodes?: { id: string; componentName: string }[];
+  }) =>
+    h(TemplateUserMessageRenderer, {
+      segments: props.segments,
+      content: props.content,
+      selectedNodes: props.selectedNodes,
+    }),
   'json-patch': createSchemaMessageRenderer('json-patch'),
   'schema-card': createSchemaMessageRenderer('schema-card'),
   'schema-manual': createSchemaMessageRenderer('schema-manual'),
@@ -267,6 +284,46 @@ const inputMessage = computed({
     }
   },
 });
+
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  if (!templateData.value.length) {
+    templateData.value = [{ type: 'text', content: inputMessage.value }];
+  }
+  const id = generateId();
+  selectedNodeMap.set(id, node);
+  templateData.value = [...templateData.value, { type: 'template', content: node.componentName, id }];
+};
+
+const syncSelectedNodes = (value: UserItem[]) => {
+  const nextMap = new Map<string, SelectedSchemaNode>();
+  for (const item of value) {
+    if (item.type !== 'template') {
+      continue;
+    }
+    if (item.id && selectedNodeMap.has(item.id)) {
+      nextMap.set(item.id, selectedNodeMap.get(item.id)!);
+      continue;
+    }
+    for (const [id, candidate] of selectedNodeMap) {
+      if (!nextMap.has(id) && candidate.componentName === item.content) {
+        nextMap.set(item.id || id, candidate);
+        break;
+      }
+    }
+  }
+  selectedNodeMap.clear();
+  nextMap.forEach((node, id) => selectedNodeMap.set(id, node));
+};
+
+const handleTemplateDataUpdate = (value: UserItem[]) => {
+  syncSelectedNodes(value);
+  templateData.value = value;
+};
+
+const clearComposer = () => {
+  templateData.value = [];
+  selectedNodeMap.clear();
+};
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -361,6 +418,7 @@ const showMessages = computed((): BubbleProps[] => {
 
 const clearInputMessage = () => {
   inputMessage.value = '';
+  clearComposer();
 };
 
 const handleSendMessage = async () => {
@@ -369,6 +427,41 @@ const handleSendMessage = async () => {
   const messageContent = inputMessage.value;
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
+
+  const snapshot = templateData.value.slice();
+  const hasTags = snapshot.some((item) => item.type === 'template');
+
+  if (hasTags) {
+    const composer = getComposerContent(snapshot, selectedNodeMap);
+    if (composer.isEmpty) {
+      return;
+    }
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: composer.apiContent,
+      messageId: cardId,
+      messages: [
+        {
+          type: 'template-user',
+          segments: composer.segments,
+        },
+      ],
+    };
+    messages.value.push(userMessage);
+
+    if (messages.value.length === 1 && messages.value[0].role === 'user') {
+      const currentConversationId = conversation.templateConversationState?.currentId;
+      if (currentConversationId) {
+        conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
+      }
+    }
+
+    prevSchema.value = JSON.stringify(schema.currentSchema);
+    messageManager.value?.send();
+    clearInputMessage();
+    scrollToBottom();
+    return;
+  }
 
   const userMessage: ChatMessage = {
     role: 'user',
@@ -421,10 +514,16 @@ watch(() => messages.value, throttledScrollToBottom, { deep: true });
 
 onMounted(() => {
   emitter.on('notification', handleNotification);
+  schemaDevMode?.registerComposer({
+    insertTag: insertComposerTag,
+    getContent: () => getComposerContent(templateData.value, selectedNodeMap),
+    clear: clearComposer,
+  });
 });
 
 onUnmounted(() => {
   emitter.off('notification', handleNotification);
+  schemaDevMode?.registerComposer(null);
 });
 </script>
 
@@ -455,11 +554,13 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
+        :template-data="templateData"
         :placeholder="generating || isCompressing ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating || isCompressing"
         :showWordLimit="true"
         :maxLength="20000"
+        @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="() => (isCompressing ? resetContextZip() : messageManager?.abortRequest())"

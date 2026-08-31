@@ -1,5 +1,6 @@
 
 import type { IStreamDelta } from '@opentiny/genui-sdk-core';
+import type { ComposerSegment } from './schema-composer';
 
 export interface LLMConfig {
   model: string;
@@ -67,6 +68,13 @@ export interface IMarkdownMessageItem {
   cardId: string;
 }
 
+export interface ITemplateUserMessageItem {
+  type: 'template-user';
+  segments: ComposerSegment[];
+  content?: string;
+  selectedNodes?: { id: string; componentName: string }[];
+}
+
 export interface ICustomMessageItem {
   type: string;
   content: any;
@@ -78,6 +86,7 @@ export type IMessageItem =
   | IJsonPatchMessageItem
   | ISchemaCardMessageItem
   | ISchemaManualMessageItem
+  | ITemplateUserMessageItem
   | ICustomMessageItem;
 
 export interface IChatMessage {
