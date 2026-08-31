@@ -1,14 +1,14 @@
-import type { IMaterials } from './materials';
-import type { IMaterialsTheme } from './materials-theme';
+import type { IMaterials, MergedMaterials } from './materials';
+import type { MaterialsThemeFactory } from './materials-theme';
 
-const KNOWN_KEYS = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'theme'];
+const KNOWN_KEYS = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'createTheme'];
 
-export function mergeMaterials(...sources: (IMaterials | undefined)[]): IMaterials {
+export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
   const requiredCompleteFieldSelectors: string[] = [];
   const defaultPropsMap: Record<string, any> = {};
-  const themes: IMaterialsTheme[] = [];
-  const seenThemes = new Set<IMaterialsTheme>();
+  const themes: MaterialsThemeFactory[] = [];
+  const seenThemes = new Set<MaterialsThemeFactory>();
   const extra: Record<string, unknown> = {};
 
   for (const src of sources) {
@@ -22,14 +22,9 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): IMateria
       }
     }
     Object.assign(defaultPropsMap, src.defaultPropsMap ?? {});
-    if (src.theme) {
-      const arr = Array.isArray(src.theme) ? src.theme : [src.theme];
-      for (const theme of arr) {
-        if (theme && !seenThemes.has(theme)) {
-          seenThemes.add(theme);
-          themes.push(theme);
-        }
-      }
+    if (src.createTheme && !seenThemes.has(src.createTheme)) {
+      seenThemes.add(src.createTheme);
+      themes.push(src.createTheme);
     }
     for (const key of Object.keys(src)) {
       if (!KNOWN_KEYS.includes(key)) {
@@ -38,17 +33,15 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): IMateria
     }
   }
 
-  const merged: IMaterials = {
+  const merged: MergedMaterials = {
     components,
     requiredCompleteFieldSelectors,
     defaultPropsMap,
     ...extra,
   };
 
-  if (themes.length === 1) {
-    merged.theme = themes[0];
-  } else if (themes.length > 1) {
-    merged.theme = themes;
+  if (themes.length > 0) {
+    merged.createTheme = themes;
   }
 
   return merged;

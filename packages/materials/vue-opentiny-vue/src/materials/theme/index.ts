@@ -6,7 +6,8 @@ import {
   type ThemeDescriptor,
 } from '@opentiny/genui-sdk-core';
 import { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { OpenTinyThemeRoot, setOpenTinyThemeState } from './ThemeRoot';
+import { shallowRef } from 'vue';
+import { createOpenTinyThemeRoot, type OpenTinyThemeState } from './ThemeRoot';
 
 const themes: ThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
@@ -38,20 +39,23 @@ function buildThemeConfig(themeId: string): { css: string } {
 }
 
 export function createOpenTinyMaterialsTheme(): IMaterialsTheme {
+  // 每个实例独立的状态与 Root（工厂每被调用一次即得到一套，供单个使用方独占）
+  const state = shallowRef<OpenTinyThemeState>({
+    themeConfig: { css: ' ' },
+    colorScheme: 'light',
+  });
+  const Root = createOpenTinyThemeRoot(state);
+
   return {
     themes,
     apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
       const descriptor = resolveDescriptor(theme, ctx.systemColorScheme);
-      // 主题数据喂给 Root（模块级状态），Root 内部响应式注入/清理，apply 无副作用
-      setOpenTinyThemeState({
+      // 只更新本实例状态，Root 类型保持不变，避免子树重挂载
+      state.value = {
         themeConfig: buildThemeConfig(descriptor.id),
         colorScheme: descriptor.colorScheme ?? 'light',
-      });
-      return {
-        descriptor,
-        Root: OpenTinyThemeRoot,
-        dispose: () => {},
       };
+      return { descriptor, Root, dispose: () => {} };
     },
   };
 }

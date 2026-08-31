@@ -17,18 +17,18 @@ const standardRequiredCompleteFieldSelectors = [
   '[componentName^=TinyHuicharts] > props > options > theme',
 ];
 
-const theme = createOpenTinyMaterialsTheme();
+const createTheme = createOpenTinyMaterialsTheme;
 
 export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors: standardRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
-  theme,
+  createTheme,
 };
 
 export const miniMaterials: IMaterials = {
   components,
   requiredCompleteFieldSelectors: baseRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(miniMaterialsMeta),
-  theme,
+  createTheme,
 };

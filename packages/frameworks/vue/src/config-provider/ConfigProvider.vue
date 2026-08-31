@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import {
-  type IMaterials,
   type IMaterialsTheme,
+  type MaterialsThemeFactory,
+  type MergedMaterials,
   type ThemeApplyResult,
   type ThemeColorScheme,
 } from '@opentiny/genui-sdk-core';
@@ -33,7 +34,7 @@ export interface ConfigProviderProps {
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
-  materials?: IMaterials;
+  materials?: MergedMaterials;
   notify?: NotifyHandler;
 }
 
@@ -47,12 +48,30 @@ provide(GENUI_I18N, i18n);
 
 const { theme: mediaTheme } = useMediaTheme();
 
-const materialThemes = computed<IMaterialsTheme[]>(() => {
-  const theme = props.materials?.theme;
-  if (!theme) {
+const themeFactories = computed<MaterialsThemeFactory[]>(() => {
+  const createTheme = props.materials?.createTheme;
+  if (!createTheme) {
     return [];
   }
-  return Array.isArray(theme) ? theme : [theme];
+  return Array.isArray(createTheme) ? createTheme : [createTheme];
+});
+
+const themeInstances = new Map<MaterialsThemeFactory, IMaterialsTheme>();
+const materialThemes = computed<IMaterialsTheme[]>(() => {
+  const factories = themeFactories.value;
+  for (const key of themeInstances.keys()) {
+    if (!factories.includes(key)) {
+      themeInstances.delete(key);
+    }
+  }
+  return factories.map((factory) => {
+    let instance = themeInstances.get(factory);
+    if (!instance) {
+      instance = factory();
+      themeInstances.set(factory, instance);
+    }
+    return instance;
+  });
 });
 
 const theme = computed(() => props.theme || 'light');
@@ -127,7 +146,6 @@ watch(
   () => [materialThemes.value, theme.value, mediaTheme.value, props.id] as const,
   ([apis, themeValue, systemColorScheme]) => {
     clearTheme();
-    // 原始 theme（含 auto）原样下发，物料用 ctx.systemColorScheme 自行解析
     const results: ThemeApplyResult[] = [];
     const roots: Component[] = [];
 
@@ -141,15 +159,21 @@ watch(
     }
 
     themeRoots.value = roots;
-    // 取第一个声明了 colorScheme 的落地结果（first-wins），否则跟随系统
     colorScheme.value =
       results.find((result) => result.descriptor.colorScheme)?.descriptor.colorScheme ??
-      systemColorScheme;
+      (themeValue === 'auto'
+        ? systemColorScheme
+        : themeValue === 'dark'
+          ? 'dark'
+          : 'light');
   },
   { immediate: true },
 );
 
-onBeforeUnmount(clearTheme);
+onBeforeUnmount(() => {
+  clearTheme();
+  themeInstances.clear();
+});
 
 const robotProviderProps = computed(() => ({
   colorMode: colorScheme.value,

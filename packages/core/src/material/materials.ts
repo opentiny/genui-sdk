@@ -1,4 +1,4 @@
-import type { IMaterialsTheme } from './materials-theme';
+import type { MaterialsThemeFactory } from './materials-theme';
 
 export type IMaterialComponent = unknown;
 
@@ -8,6 +8,10 @@ export interface IMaterials {
   components?: IMaterialsMap;
   requiredCompleteFieldSelectors?: string[];
   defaultPropsMap?: Record<string, any>;
-  theme?: IMaterialsTheme | IMaterialsTheme[];
+  createTheme?: MaterialsThemeFactory;
   [key: string]: any;
 }
+
+export type MergedMaterials = Omit<IMaterials, 'createTheme'> & {
+  createTheme?: MaterialsThemeFactory | MaterialsThemeFactory[];
+};

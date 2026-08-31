@@ -9,5 +9,5 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors: standardRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
-  theme: createElementPlusMaterialsTheme(),
+  createTheme: createElementPlusMaterialsTheme,
 };

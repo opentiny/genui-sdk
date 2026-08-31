@@ -21,3 +21,5 @@ export interface IMaterialsTheme {
   themes?: ThemeDescriptor[];
   apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult;
 }
+
+export type MaterialsThemeFactory = () => IMaterialsTheme;
