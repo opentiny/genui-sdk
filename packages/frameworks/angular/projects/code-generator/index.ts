@@ -1,0 +1,9 @@
+import { AngularCodeGenerator } from './angular-code-generator';
+
+export * from './types';
+export * from './libraries';
+export { AngularCodeGenerator } from './angular-code-generator';
+export { CodeGeneratorBase } from './code-generator-base';
+
+/** 默认(opentiny-ng)出码入口——入口本体定义在 AngularCodeGenerator 类内,此处仅透出保持唯一 API */
+export const generateCode = AngularCodeGenerator.generateCode;

@@ -35,9 +35,9 @@
     "postcss-selector-parser": "^7.1.0"
   },
   "dependencies": {
-    "tslib": "^2.3.0",
     "@opentiny/genui-sdk-core": "workspace:*",
-    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*"
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
+    "tslib": "^2.3.0"
   },
   "sideEffects": false
 }
