@@ -5,9 +5,8 @@ import {
   type ThemeColorScheme,
   type ThemeDescriptor,
 } from '@opentiny/genui-sdk-core';
-import { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { shallowRef } from 'vue';
-import { createOpenTinyThemeRoot, type OpenTinyThemeState } from './ThemeRoot';
+import { defineComponent, h, ref } from 'vue';
+import ThemeRoot from './ThemeRoot.vue';
 
 const themes: ThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
@@ -27,35 +26,27 @@ function resolveDescriptor(
   );
 }
 
-// 只取 css 部分（data 品牌色由 Root 按 colorScheme 自行生成），作用域改写由 Root 完成
-function buildThemeConfig(themeId: string): { css: string } {
-  if (themeId === 'dark') {
-    return { css: tinyDarkTheme.css };
-  }
-  if (themeId === 'lite') {
-    return { css: tinyOldTheme.css };
-  }
-  return { css: ' ' };
-}
-
 export function createTheme(): IMaterialsTheme {
-  // 每个实例独立的状态与 Root（工厂每被调用一次即得到一套，供单个使用方独占）
-  const state = shallowRef<OpenTinyThemeState>({
-    themeConfig: { css: ' ' },
-    colorScheme: 'light',
+  // 框架渲染 Root 时不传 props，主题通过闭包 ref 传入，Root 类型保持不变避免子树重挂载
+  const theme = ref('light');
+  const Root = defineComponent({
+    name: 'OpenTinyThemeRoot',
+    inheritAttrs: false,
+    setup(_, { attrs, slots }) {
+      return () => h(ThemeRoot, { theme: theme.value, ...attrs }, slots);
+    },
   });
-  const Root = createOpenTinyThemeRoot(state);
 
   return {
     themes,
-    apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
-      const descriptor = resolveDescriptor(theme, ctx.systemColorScheme);
-      // 只更新本实例状态，Root 类型保持不变，避免子树重挂载
-      state.value = {
-        themeConfig: buildThemeConfig(descriptor.id),
-        colorScheme: descriptor.colorScheme ?? 'light',
+    apply(themeValue: string, ctx: ThemeApplyContext): ThemeApplyResult {
+      const descriptor = resolveDescriptor(themeValue, ctx.systemColorScheme);
+      theme.value = descriptor.id;
+      return {
+        descriptor,
+        Root,
+        dispose: () => {},
       };
-      return { descriptor, Root, dispose: () => {} };
     },
   };
 }
