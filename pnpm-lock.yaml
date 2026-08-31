@@ -471,7 +471,19 @@ importers:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../core
+      '@opentiny/vue-autocomplete':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-breadcrumb':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-breadcrumb-item':
+        specifier: ~3.28.0
+        version: 3.28.0
       '@opentiny/vue-button':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-button-group':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-card':
@@ -481,6 +493,9 @@ importers:
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-carousel-item':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-cascader':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-checkbox':
@@ -495,7 +510,19 @@ importers:
       '@opentiny/vue-col':
         specifier: ~3.28.0
         version: 3.28.0
+      '@opentiny/vue-collapse':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-collapse-item':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-color-picker':
+        specifier: ~3.28.0
+        version: 3.28.0
       '@opentiny/vue-date-picker':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-dialog-box':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-form':
@@ -549,6 +576,9 @@ importers:
       '@opentiny/vue-input':
         specifier: ~3.28.0
         version: 3.28.0
+      '@opentiny/vue-ip-address':
+        specifier: ~3.28.0
+        version: 3.28.0
       '@opentiny/vue-layout':
         specifier: ~3.28.0
         version: 3.28.0
@@ -556,6 +586,12 @@ importers:
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-pager':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-popeditor':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-popover':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-radio':
@@ -573,6 +609,9 @@ importers:
       '@opentiny/vue-select':
         specifier: ~3.28.0
         version: 3.28.0
+      '@opentiny/vue-steps':
+        specifier: ~3.28.0
+        version: 3.28.0
       '@opentiny/vue-switch':
         specifier: ~3.28.0
         version: 3.28.0
@@ -580,6 +619,12 @@ importers:
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-tabs':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-time-line':
+        specifier: ~3.28.0
+        version: 3.28.0
+      '@opentiny/vue-tooltip':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-transfer':
