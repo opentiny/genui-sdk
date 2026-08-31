@@ -489,26 +489,25 @@ function renderHtml(data) {
   const stack = chart.latencyStack || [];
   const stab = dims.stability || {};
   const notFullPass = Math.max(0, (stab.scenarioCount || 0) - (stab.scenarioFullPass || 0));
-  const latencyCvLabel = stab.hasRepeatVolatility ? '组内耗时 CV' : '场景间耗时 CV';
-  const latencyCvValue =
-    stab.hasRepeatVolatility
-      ? stab.repeatLatencyCv == null
-        ? '—'
-        : String(stab.repeatLatencyCv)
-      : stab.latencyCvAcrossScenarios == null
-        ? '—'
-        : String(stab.latencyCvAcrossScenarios);
-  const latencyCvSub = stab.hasRepeatVolatility
-    ? '同场景多次重复：标准差÷均值，越低越稳'
-    : (stab.repeat ?? 1) < 3
-      ? `repeat=${stab.repeat ?? 1}，此处为场景间离散度`
-      : '各场景平均总耗时：标准差÷均值';
+  const stabilityRows = Array.isArray(stab.rows) ? stab.rows : [];
+  const stabilityDetailRows = stabilityRows
+    .map(
+      (row) => `<tr>
+        <td>${esc(row.scenario)}</td>
+        <td>${esc(row.model)}</td>
+        <td>${esc(String(row.runs ?? '—'))}</td>
+        <td>${esc(row.schemaPassRate == null ? '—' : `${Math.round(row.schemaPassRate * 100)}%`)}</td>
+        <td>${esc(row.avgTotalMs == null ? '—' : `${Number(row.avgTotalMs / 1000).toFixed(2)}s`)}</td>
+        <td>${esc(row.latencyCv == null ? '—' : String(row.latencyCv))}</td>
+      </tr>`,
+    )
+    .join('');
 
   const proto = dims.protocol || {};
   const gate = proto.gate || {};
   const protocolCaption =
     gate.funnelCaption ||
-    '下图按场景看协议通过率。上方三格是校验漏斗：抽出协议块 → JSON 可解析 → 协议通过。';
+    '下图按场景看协议通过率。下方三格是校验漏斗：抽出协议块 → JSON 可解析 → 协议通过。';
   const protocolKpis = `<div class="kpis kpis-3" style="margin-bottom:12px">
       <div class="kpi">
         <div class="label">${esc(gate.blockLabel || '抽出协议块')}</div>
@@ -1107,9 +1106,19 @@ function renderHtml(data) {
         <div class="sub">至少一次协议没过的组合</div>
       </div>
       <div class="kpi">
-        <div class="label">${esc(latencyCvLabel)}</div>
-        <div class="value">${esc(latencyCvValue)}</div>
-        <div class="sub">${esc(latencyCvSub)}</div>
+        <div class="label">重复次数</div>
+        <div class="value">${esc(String(stab.repeat ?? 1))}</div>
+        <div class="sub">同场景重复运行；建议至少 3 次</div>
+      </div>
+    </div>
+    <div class="panel wide" style="margin-top:12px">
+      <h3>分场景稳定性明细</h3>
+      <p class="caption">CV 为同一“场景×模型”多次运行总耗时的标准差÷均值；样本不足时不计算。</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>场景</th><th>模型</th><th>运行次数</th><th>协议通过率</th><th>平均总耗时</th><th>耗时 CV</th></tr></thead>
+          <tbody>${stabilityDetailRows || '<tr><td colspan="6">暂无数据</td></tr>'}</tbody>
+        </table>
       </div>
     </div>
   </section>

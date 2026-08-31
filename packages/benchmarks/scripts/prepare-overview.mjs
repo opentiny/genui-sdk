@@ -90,7 +90,7 @@ export function protocolGateCopy(protocol) {
     passLabel: '协议通过',
     passSub: '符合当前协议 schema',
     funnelCaption:
-      '下图按场景看协议通过率。上方三格是校验漏斗：抽出协议块 → JSON 可解析 → 协议通过。',
+      '下图按场景看协议通过率。下方三格是校验漏斗：抽出协议块 → JSON 可解析 → 协议通过。',
     allPassDetail: (runs) => `全部 ${runs} 次运行通过协议校验${id ? `（${id}）` : ''}。`,
   };
 }
@@ -184,14 +184,6 @@ function buildInsights(payload) {
   return insights;
 }
 
-function stdev(values) {
-  const xs = values.filter((v) => typeof v === 'number' && Number.isFinite(v));
-  if (xs.length < 2) return null;
-  const m = xs.reduce((a, b) => a + b, 0) / xs.length;
-  const v = xs.reduce((a, b) => a + (b - m) ** 2, 0) / (xs.length - 1);
-  return Math.sqrt(v);
-}
-
 /**
  * Five decision dimensions for the conclusions page.
  * Protocol = release gate; quality is Judge-only (never conflated with pass rate).
@@ -208,12 +200,6 @@ function buildDimensions(results, summary, scenarioRows, config) {
   const scenarioFullPassRate = scenarioProtocolRows.length
     ? scenarioFullPass / scenarioProtocolRows.length
     : 1;
-  const totals = scenarioRows.map((s) => s.avgTotalMs).filter((v) => typeof v === 'number' && Number.isFinite(v));
-  const meanTotal = avg(totals);
-  const totalStdev = stdev(totals);
-  const latencyCv =
-    meanTotal && totalStdev != null && meanTotal > 0 ? round(totalStdev / meanTotal, 3) : null;
-
   const withVol = scenarioRows.filter((s) => s.totalMsStdev != null);
   const hasRepeatVolatility = withVol.length > 0;
   const avgTotalCvRepeat =
@@ -279,19 +265,25 @@ function buildDimensions(results, summary, scenarioRows, config) {
             (config?.repeat ?? 1) < 3
               ? `本次只跑了 ${config?.repeat ?? 1} 次，看不出同场景反复跑的波动。`
               : ''
-          }${
-            latencyCv != null
-              ? `场景间耗时差 CV=${latencyCv}（各场景平均总耗时的标准差÷均值；越大说明有的场景特别慢、有的特别快）。`
-              : ''
-          }`,
+          }分场景明细中的 CV 仅在同一组合有足够重复样本时计算。`,
       streamOkRate: round(streamOkRate, 4),
       scenarioFullPass: scenarioFullPass,
       scenarioCount: scenarioProtocolRows.length,
       scenarioFullPassRate: round(scenarioFullPassRate, 4),
-      latencyCvAcrossScenarios: latencyCv,
       repeatLatencyCv: avgTotalCvRepeat,
       hasRepeatVolatility,
       repeat: config?.repeat ?? 1,
+      rows: scenarioProtocolRows.map((row) => ({
+        scenario: row.scenario,
+        model: row.model,
+        runs: row.totalRuns ?? row.runs ?? 0,
+        schemaPassRate: round(row.schemaPassRate ?? 0, 4),
+        avgTotalMs: row.avgTotalMs,
+        latencyCv:
+          row.totalMsStdev != null && row.avgTotalMs > 0
+            ? round(row.totalMsStdev / row.avgTotalMs, 3)
+            : null,
+      })),
     },
     performance: {
       id: 'performance',
