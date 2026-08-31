@@ -90,7 +90,7 @@ const handleExport = () => {
 
 .angular-card-wrapper .schema-export-button {
   position: absolute;
-  top: 28px;
+  top: 16px;
   right: 16px;
   z-index: 20;
 }
