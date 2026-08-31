@@ -35,9 +35,8 @@
   },
   "dependencies": {
     "@opentiny/genui-sdk-core": "workspace:*",
-    "@opentiny/vue-autocomplete": "~3.28.0",
-    "@opentiny/vue-breadcrumb": "~3.28.0",
-    "@opentiny/vue-breadcrumb-item": "~3.28.0",
+    "@opentiny/vue-theme": "~3.28.0",
+    "@opentiny/vue-config-provider": "~3.28.0",
     "@opentiny/vue-button": "~3.28.0",
     "@opentiny/vue-button-group": "~3.28.0",
     "@opentiny/vue-card": "~3.28.0",

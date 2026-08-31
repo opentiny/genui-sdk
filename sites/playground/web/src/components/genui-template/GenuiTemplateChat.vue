@@ -50,7 +50,7 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
+const TinyGenuiConfig: any = inject(GENUI_CONFIG);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
@@ -60,13 +60,9 @@ const {
 } = stream;
 
 watch(
-  () => TinyGenuiConfig?.value?.theme,
-  (theme) => {
-    if (theme === 'dark') {
-      setColorMode(theme);
-    } else {
-      setColorMode('light');
-    }
+  () => TinyGenuiConfig?.value?.colorScheme,
+  (colorScheme) => {
+    setColorMode(colorScheme === 'dark' ? 'dark' : 'light');
   },
   {
     immediate: true,
@@ -356,7 +352,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }">
+  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.colorScheme === 'dark' }">
     <div class="messages-container" ref="messagesContainer">
       <tr-bubble-provider v-if="showMessages.length" :content-renderers="messageRenderers">
         <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>

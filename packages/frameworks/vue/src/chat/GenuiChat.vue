@@ -10,7 +10,7 @@ import type {
   UserItem,
   UserTextItem,
 } from '@opentiny/tiny-robot';
-import { ref, watch, computed, h, inject, provide } from 'vue';
+import { ref, watch, computed, h, inject } from 'vue';
 import type { Ref, Component } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
 import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
@@ -37,7 +37,7 @@ import { IResponseHandler, defaultResponseHandlers } from './response-handler';
 
 const props = defineProps<IChatProps>();
 
-const genuiConfig: any = inject(GENUI_CONFIG, null);
+const genuiConfig = inject(GENUI_CONFIG);
 const { t } = useI18n();
 
 const isAllowFiles = computed(() => {
@@ -484,7 +484,7 @@ defineExpose({
 <template>
   <div
     class="tg-chat-container"
-    :class="{ 'dark': genuiConfig?.theme === 'dark' }"
+    :class="{ 'dark': genuiConfig?.colorScheme === 'dark' }"
     :style="!props.chatConfig?.showThinkingResult ? { '--thinking-display': 'none' } : {}"
   >
     <div

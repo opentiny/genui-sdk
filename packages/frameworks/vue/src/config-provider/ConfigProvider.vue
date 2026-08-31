@@ -1,9 +1,25 @@
 <script setup lang="ts">
-import { TinyConfigProvider } from '@opentiny/vue';
 import { ThemeProvider } from '@opentiny/tiny-robot';
-import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { watch, provide, computed, onMounted, ref, inject } from 'vue';
-import type { IMaterials } from '@opentiny/genui-sdk-core';
+import {
+  type IMaterials,
+  type IMaterialsTheme,
+  type ThemeApplyResult,
+  type ThemeColorScheme,
+} from '@opentiny/genui-sdk-core';
+import {
+  watch,
+  provide,
+  inject,
+  computed,
+  ref,
+  shallowRef,
+  onBeforeUnmount,
+  defineComponent,
+  h,
+  type Component,
+  type PropType,
+  type VNode,
+} from 'vue';
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
@@ -13,17 +29,12 @@ import type { NotifyHandler } from './notify.types';
 export type { NotifyHandler };
 
 export interface ConfigProviderProps {
-  theme?: 'light' | 'dark' | 'lite' | 'auto';
+  theme?: string;
   id?: string;
   locale?: string;
   i18n?: I18nMessages;
   materials?: IMaterials;
   notify?: NotifyHandler;
-}
-
-interface IRobotProviderProps {
-  colorMode: 'dark' | 'light';
-  targetElement?: string;
 }
 
 const props = withDefaults(defineProps<ConfigProviderProps>(), {
@@ -34,35 +45,24 @@ const props = withDefaults(defineProps<ConfigProviderProps>(), {
 const i18n = useI18n();
 provide(GENUI_I18N, i18n);
 
-const transformTheme = (themeConfig: any) => {
-  const newThemeConfig = structuredClone(themeConfig);
-  newThemeConfig.css = newThemeConfig.css.replaceAll(':host', `#${props.id}`).replaceAll(':root', `#${props.id}`);
-  return newThemeConfig;
-};
-
-const themeMap: Record<string, any> = {
-  dark: transformTheme(tinyDarkTheme),
-  lite: transformTheme(tinyOldTheme),
-  light: { css: ' ' },
-};
-
-const themeTool = new ThemeTool();
-
 const { theme: mediaTheme } = useMediaTheme();
 
-const actualTheme = computed(() => {
-  if (props.theme === 'auto') {
-    return mediaTheme.value;
+const materialThemes = computed<IMaterialsTheme[]>(() => {
+  const theme = props.materials?.theme;
+  if (!theme) {
+    return [];
   }
-  return props.theme;
+  return Array.isArray(theme) ? theme : [theme];
 });
 
-const genuiConfig = computed(() => {
-  return {
-    theme: actualTheme.value,
-    id: props.id,
-  };
-});
+const theme = computed(() => props.theme || 'light');
+
+const colorScheme = ref<ThemeColorScheme>('light');
+
+const genuiConfig = computed(() => ({
+  colorScheme: colorScheme.value,
+  id: props.id,
+}));
 
 provide(GENUI_CONFIG, genuiConfig);
 
@@ -71,10 +71,7 @@ watch(() => props.materials, (newVal) => {
   Object.assign(internalMaterials, newVal);
 }, { immediate: true });
 
-provide(
-  GENUI_MATERIALS,
-  internalMaterials,
-);
+provide(GENUI_MATERIALS, internalMaterials);
 
 const parentRendererSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
 const rendererSettings = {
@@ -100,39 +97,74 @@ watch(
   { immediate: true },
 );
 
+const ThemeRoots = defineComponent({
+  name: 'ThemeRoots',
+  props: {
+    roots: { type: Array as PropType<Component[]>, required: true },
+  },
+  setup(props, { slots }) {
+    return () => {
+      const children = slots.default?.() ?? [];
+      return props.roots.reduceRight<VNode | VNode[]>(
+        (acc, root) => h(root, {}, () => acc),
+        children,
+      );
+    };
+  },
+});
+
+const themeRoots = shallowRef<Component[]>([]);
+
+let applied: ThemeApplyResult[] = [];
+
+function clearTheme() {
+  const pending = applied;
+  applied = [];
+  pending.forEach((item) => item.dispose());
+}
+
 watch(
-  () => actualTheme.value,
-  (newVal) => {
-    const themeConfig = themeMap[newVal] || themeMap.light;
-    themeTool.changeTheme(themeConfig);
+  () => [materialThemes.value, theme.value, mediaTheme.value, props.id] as const,
+  ([apis, themeValue, systemColorScheme]) => {
+    clearTheme();
+    // 原始 theme（含 auto）原样下发，物料用 ctx.systemColorScheme 自行解析
+    const results: ThemeApplyResult[] = [];
+    const roots: Component[] = [];
+
+    for (const api of apis) {
+      const result = api.apply(themeValue, { systemColorScheme });
+      if (result.Root) {
+        roots.push(result.Root as Component);
+      }
+      results.push(result);
+      applied.push(result);
+    }
+
+    themeRoots.value = roots;
+    // 取第一个声明了 colorScheme 的落地结果（first-wins），否则跟随系统
+    colorScheme.value =
+      results.find((result) => result.descriptor.colorScheme)?.descriptor.colorScheme ??
+      systemColorScheme;
   },
-  {
-    immediate: true,
-  },
+  { immediate: true },
 );
 
-const providerRef = ref();
-onMounted(() => {
-  providerRef.value?.$el.classList.remove('tiny-config-provider');
-});
+onBeforeUnmount(clearTheme);
 
-const robotProviderProps = computed(() => {
-  const providerProps: IRobotProviderProps = {
-    colorMode: actualTheme.value === 'dark' ? 'dark' : 'light',
-  };
-  if (genuiConfig?.value?.id) {
-    providerProps.targetElement = '#' + genuiConfig.value.id;
-  }
-  return providerProps;
-});
+const robotProviderProps = computed(() => ({
+  colorMode: colorScheme.value,
+  targetElement: `#${props.id}`,
+}));
 </script>
 
 <template>
-  <TinyConfigProvider ref="providerRef" class="tg-config-provider" :id="props.id">
+  <div :id="props.id" class="tg-config-provider">
     <ThemeProvider v-bind="robotProviderProps">
-      <slot />
+      <ThemeRoots :roots="themeRoots">
+        <slot />
+      </ThemeRoots>
     </ThemeProvider>
-  </TinyConfigProvider>
+  </div>
 </template>
 
 <style scoped>

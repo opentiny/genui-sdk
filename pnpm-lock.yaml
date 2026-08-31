@@ -504,13 +504,7 @@ importers:
       '@opentiny/vue-col':
         specifier: ~3.28.0
         version: 3.28.0
-      '@opentiny/vue-collapse':
-        specifier: ~3.28.0
-        version: 3.28.0
-      '@opentiny/vue-collapse-item':
-        specifier: ~3.28.0
-        version: 3.28.0
-      '@opentiny/vue-color-picker':
+      '@opentiny/vue-config-provider':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-date-picker':
@@ -615,10 +609,7 @@ importers:
       '@opentiny/vue-tabs':
         specifier: ~3.28.0
         version: 3.28.0
-      '@opentiny/vue-time-line':
-        specifier: ~3.28.0
-        version: 3.28.0
-      '@opentiny/vue-tooltip':
+      '@opentiny/vue-theme':
         specifier: ~3.28.0
         version: 3.28.0
       '@opentiny/vue-transfer':
