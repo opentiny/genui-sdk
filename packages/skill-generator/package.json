@@ -1,0 +1,33 @@
+{
+  "name": "@opentiny/genui-sdk-skill-generator",
+  "version": "0.0.1",
+  "description": "Generate Agent skills from genPrompt output",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "genui-skill-generate": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run",
+    "generate:skill": "node dist/cli.js config.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "config.json"
+  ],
+  "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@types/node": "^22.13.5",
+    "escape-string-regexp": "^1.0.5",
+    "typescript": "^5.9.3",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^3.0.0"
+  }
+}
