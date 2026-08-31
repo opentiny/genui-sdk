@@ -1,7 +1,7 @@
 import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-sdk-core';
 import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '../meta';
 import { components } from './components';
-import { createOpenTinyMaterialsTheme } from './theme';
+import { createTheme } from './theme';
 
 const baseRequiredCompleteFieldSelectors = [
   '[componentName=TinyNumeric] > props > controlsPosition',
@@ -15,8 +15,6 @@ const standardRequiredCompleteFieldSelectors = [
   '[componentName=TinyTabItem] > props > name',
   '[componentName^=TinyHuicharts] > props > options > theme',
 ];
-
-const createTheme = createOpenTinyMaterialsTheme;
 
 const plusRequiredCompleteFieldSelectors = [
   ...standardRequiredCompleteFieldSelectors,

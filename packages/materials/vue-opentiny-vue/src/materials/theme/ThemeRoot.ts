@@ -76,11 +76,6 @@ export function createOpenTinyThemeRoot(themeState: ShallowRef<OpenTinyThemeStat
           {
             ref: providerRef,
             style: { height: '100%' },
-            theme: {
-              data: {
-                'tv-base-color-brand': themeState.value.colorScheme === 'dark' ? '#B3B3B3' : '#1476ff',
-              },
-            },
             ...attrs,
           },
           slots,
