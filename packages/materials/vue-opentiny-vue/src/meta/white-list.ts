@@ -11,11 +11,10 @@ export const miniWhiteList = [
   'ul',
   'li',
   'div',
+  'img',
   'input',
   'video',
   'label',
-  'Img',
-  'Slot',
   'Text',
   'TinyIcon',
   'TinyForm',
@@ -37,6 +36,8 @@ export const miniWhiteList = [
 
 export const standardWhiteList = [
   ...miniWhiteList,
+  'TinyTabs',
+  'TinyTabItem',
   'TinyPager',
   'TinyHuichartsLine',
   'TinyHuichartsHistogram',
@@ -52,25 +53,24 @@ export const standardWhiteList = [
   'TinyHuichartsProcess',
 ];
 
-// TODO: plus物料和白名单袋完善
 export const plusWhiteList = [
   ...standardWhiteList,
-  'TinyCarouselItem',
-  'TinyCarousel',
-  'TinyTree',
-  'TinyTransfer',
-  // 'GridStack',
-  // 'GridStackItem'
-  // 'RouterView',
-  // 'RouterLink',
-  // 'Collection',
+  // 面包屑组件会直接进行页面路由跳转，暂不开放
   // 'TinyBreadcrumb',
   // 'TinyBreadcrumbItem',
-  // 'TinyCollapse',
-  // 'TinyCollapseItem',
-  // 'TinyTimeLine',
-  // 'TinyTooltip',
-  // 'TinyPopover',
-  // 'TinyDialogBox',
-  // 'TinyPopeditor',
+  'TinyAutocomplete',
+  'TinyCascader',
+  'TinyColorPicker',
+  'TinyIpAddress',
+  'TinySteps',
+  'TinyCollapse',
+  'TinyCollapseItem',
+  'TinyTree',
+  'TinyTransfer',
+  'TinyPopeditor',
+  'TinyCarousel',
+  'TinyCarouselItem',
+  'TinyDialogBox',
+  'TinyTooltip',
+  'TinyPopover',
 ];

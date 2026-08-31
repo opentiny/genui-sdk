@@ -1,5 +1,5 @@
 import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-sdk-core';
-import { materialsMeta, miniMaterialsMeta } from '../meta';
+import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '../meta';
 import { components } from './components';
 
 const baseRequiredCompleteFieldSelectors = [
@@ -12,8 +12,13 @@ const baseRequiredCompleteFieldSelectors = [
 const standardRequiredCompleteFieldSelectors = [
   ...baseRequiredCompleteFieldSelectors,
   '[componentName=TinyTabItem] > props > name',
-  '[componentName=TinyTransfer] > props > data',
   '[componentName^=TinyHuicharts] > props > options > theme',
+];
+
+const plusRequiredCompleteFieldSelectors = [
+  ...standardRequiredCompleteFieldSelectors,
+  '[componentName=TinyCollapseItem] > props > name',
+  '[componentName=TinyAutocomplete] > props > fetchSuggestions',
 ];
 
 export const materials: IMaterials = {
@@ -26,4 +31,10 @@ export const miniMaterials = {
   components,
   requiredCompleteFieldSelectors: baseRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(miniMaterialsMeta),
+};
+
+export const plusMaterials: IMaterials = {
+  components,
+  requiredCompleteFieldSelectors: plusRequiredCompleteFieldSelectors,
+  defaultPropsMap: buildMaterialDefaultValueMap(plusMaterialsMeta),
 };
