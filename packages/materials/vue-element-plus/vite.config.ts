@@ -34,7 +34,8 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       external: (id) => {
-        if (id === 'element-plus/theme-chalk/dark/css-vars.css') {
+        const bareId = id.split('?')[0];
+        if (bareId === 'element-plus/theme-chalk/dark/css-vars.css') {
           return false;
         }
         return externalPackages.some((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`).test(id));
