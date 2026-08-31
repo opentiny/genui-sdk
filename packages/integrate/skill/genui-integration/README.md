@@ -28,6 +28,18 @@ npm install @opentiny/genui-sdk-integration-skill
 怎么设置 genui-sdk-server？
 ```
 
+## 文档同步
+
+部分内容以本仓 `docs/src` 为源，构建时由 `scripts/copy-from-docs.mjs` 生成（**不入库**，发布时 `prepack` 会生成）：
+
+| 路径 | 源 |
+|------|-----|
+| `examples/` | `docs/src/examples/` |
+| `references/materials/` 专页（`vue-*.md` / `angular-*.md`） | `docs/src/components/materials/` |
+
+本地开发：改 docs 后在本包执行 `npm run build`。  
+`references/materials/index.md` 以及 `references/vue.md` / `angular.md` / `server.md` 由 skill 手工维护并提交。
+
 ## 相关资源
 
 - [GenUI SDK 在线文档](https://docs.opentiny.design/genui-sdk/)
