@@ -5,7 +5,8 @@ import {
   type ThemeColorScheme,
   type ThemeDescriptor,
 } from '@opentiny/genui-sdk-core';
-import { defineComponent, h, ref } from 'vue';
+import { defineComponent, h } from 'vue';
+import 'element-plus/theme-chalk/dark/css-vars.css';
 
 const themes: ThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
@@ -24,14 +25,12 @@ function resolveDescriptor(
   );
 }
 
+// element-plus 暗色基于全局 html.dark，暗色 css 直接从 element-plus 引入并打包进物料
 export function createElementPlusMaterialsTheme(): IMaterialsTheme {
-  // 每个实例独立的状态与 Root（工厂每被调用一次即得到一套，供单个使用方独占）
-  const dark = ref(false);
   const Root = defineComponent({
     name: 'ElementPlusThemeRoot',
     setup(_, { slots }) {
-      return () =>
-        h('div', { class: { dark: dark.value }, style: { height: '100%' } }, slots.default?.());
+      return () => h('div', { style: { height: '100%' } }, slots.default?.());
     },
   });
 
@@ -39,9 +38,14 @@ export function createElementPlusMaterialsTheme(): IMaterialsTheme {
     themes,
     apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult {
       const descriptor = resolveDescriptor(theme, ctx.systemColorScheme);
-      // 只更新本实例状态，Root 类型保持不变，避免子树重挂载
-      dark.value = descriptor.colorScheme === 'dark';
-      return { descriptor, Root, dispose: () => {} };
+      document.documentElement.classList.toggle('dark', descriptor.colorScheme === 'dark');
+      return {
+        descriptor,
+        Root,
+        dispose: () => {
+          document.documentElement.classList.remove('dark');
+        },
+      };
     },
   };
 }

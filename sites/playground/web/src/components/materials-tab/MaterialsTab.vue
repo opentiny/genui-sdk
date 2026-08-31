@@ -7,6 +7,7 @@ import {
   getFrameworkOptions,
   componentLibOptionsByFramework,
   MATERIAL_THEME_OPTIONS,
+  ELEMENT_PLUS_THEME_OPTIONS,
 } from './materials-options';
 import vueIcon from '../../assets/images/vue.svg';
 import angularIcon from '../../assets/images/angular.svg';
@@ -37,6 +38,9 @@ const frameworkIconMap = {
 };
 
 const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
+const themeOptions = computed(() =>
+  componentLib.value === 'ElementPlus' ? ELEMENT_PLUS_THEME_OPTIONS : MATERIAL_THEME_OPTIONS,
+);
 
 const componentLibModel = computed({
   get: () => componentLib.value,
@@ -81,10 +85,10 @@ const handleSetFramework = (name) => {
       </tiny-radio-group>
     </div>
 
-    <template v-if="framework === 'Vue' && componentLib === 'TinyVue'">
+    <template v-if="framework === 'Vue' && (componentLib === 'TinyVue' || componentLib === 'ElementPlus')">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
-        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
+        <div v-for="item in themeOptions" :key="item.value" class="theme-card-item">
           <div
             class="theme-card"
             :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"
