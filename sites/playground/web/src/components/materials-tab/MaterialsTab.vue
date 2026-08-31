@@ -36,17 +36,10 @@ const frameworkIconMap = {
   Angular: angularIcon,
 };
 
-const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
-
-const componentLibModel = computed({
-  get: () => componentLib.value,
-  set: (val) => setComponentLib(val),
-});
-
-const handleSetFramework = (name) => {
-  setFramework(name);
-  // Angular 和 Vue 不支持主题切换, 默认设置为 light 主题
-  if (name === 'Angular' || 'Vue') {
+const setFramework = (name) => {
+  framework.value = name;
+  // 其他框架不支持主题切换，默认设置为light
+  if (name !== 'Vue') {
     emit('update:theme', MATERIAL_THEME_OPTIONS[0].value);
   }
 };
@@ -67,10 +60,9 @@ const handleSetFramework = (name) => {
         @keydown.enter="handleSetFramework(item.name)"
         @keydown.space.prevent="handleSetFramework(item.name)"
       >
-        <span class="framework-btn__icon">
-          <img :src="frameworkIconMap[item.name]" :alt="item.name" />
-        </span>
-        <span class="framework-btn__name">{{ t(item.textKey) }}</span>
+        <span v-if="item.alpha" class="framework-btn__alpha">{{ t('materials.alpha') }}</span>
+        <span class="framework-btn__icon">{{ item.icon }}</span>
+        <span class="framework-btn__name">{{ item.name }}</span>
       </div>
     </div>
 
@@ -124,7 +116,8 @@ const handleSetFramework = (name) => {
   }
 
   .framework-btn {
-    flex: 0 0 calc((100% - 12px) / 2);
+    position: relative;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -135,6 +128,18 @@ const handleSetFramework = (name) => {
     border-radius: 8px;
     background: transparent;
     cursor: pointer;
+  }
+
+  .framework-btn__alpha {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    padding: 1px 4px;
+    font-size: 10px;
+    line-height: 1.2;
+    color: #1476ff;
+    background: rgba(20, 118, 255, 0.08);
+    border-radius: 4px;
   }
 
   .framework-btn__icon {

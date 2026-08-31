@@ -3,9 +3,10 @@ import { ref, readonly, type Ref } from 'vue';
 import { PlaygroundMode } from '../../constants';
 
 export const FRAMEWORK_OPTIONS = [
-  { name: 'Vue', textKey: 'materials.frameworkVue' },
-  { name: 'Angular', textKey: 'materials.frameworkAngular' },
-];
+  { name: 'Vue', icon: 'V' },
+  { name: 'Angular', icon: 'A' },
+  { name: 'React', icon: 'R', alpha: true },
+] as const;
 
 export function getFrameworkOptions(mode: PlaygroundMode) {
   if (mode === PlaygroundMode.Builder) {

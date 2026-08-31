@@ -27,7 +27,9 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
-import { getMixedContentHandler, getMessageRendererAngular } from './message-renderers';
+import { getMixedContentHandler } from './ng-renderer/content-response-handler';
+import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
+import { getMessageRendererReact } from './react-renderer/message-renderer-react';
 import { locale, t } from './i18n';
 import { useRoute } from 'vue-router';
 import { PlaygroundMode } from './constants';
@@ -50,10 +52,9 @@ const {
   componentLib: cacheComponentLib,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-const { framework, componentLib, setFramework, setComponentLib } = useMaterialsConfig({
-  framework: cacheFramework,
-  componentLib: cacheComponentLib,
-});
+const framework = ref(
+  ['Angular', 'React'].includes(cacheFramework) ? cacheFramework : 'Vue',
+);
 
 /**
  * Normalizes cached custom examples for the id-based contract.
@@ -257,6 +258,7 @@ watch(chat, (instance) => {
     instance.setResponseHandlers(newResponseHandlers);
 
     instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
+    instance.setMessageRenderer('schema-card-react', getMessageRendererReact(instance));
   }
 });
 

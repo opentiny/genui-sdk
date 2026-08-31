@@ -17,6 +17,7 @@ function emitNotification(delta: IStreamDelta, chatMessage: IChatMessage) {
 }
 const cardTypeMap: Record<string, string> = {
   Angular: 'schema-card-angular',
+  React: 'schema-card-react',
   Vue: 'schema-card',
 };
 

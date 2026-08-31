@@ -39,8 +39,7 @@
     "themeDark": "暗黑",
     "themeLite": "清新",
     "themeAuto": "跟随系统",
-    "frameworkVue": "Vue框架",
-    "frameworkAngular": "Angular框架"
+    "alpha": "测试"
   },
   "model": {
     "select": "模型选择",

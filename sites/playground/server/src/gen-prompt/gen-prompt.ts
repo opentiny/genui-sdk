@@ -7,6 +7,7 @@ import {
 import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
+import { materialsMeta as reactMaterialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
 type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg';
@@ -38,6 +39,10 @@ const metaMap: IMetaMap = {
       mini: ngMaterialsMeta,
       standard: ngMaterialsMeta,
     },
+  },
+  React: {
+    mini: reactMaterialsMeta,
+    standard: reactMaterialsMeta,
   },
 };
 

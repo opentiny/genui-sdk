@@ -39,8 +39,7 @@
     "themeDark": "Dark",
     "themeLite": "Lite",
     "themeAuto": "System",
-    "frameworkVue": "Vue framework",
-    "frameworkAngular": "Angular framework"
+    "alpha": "Alpha"
   },
   "model": {
     "select": "Model",
