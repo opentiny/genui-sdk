@@ -110,6 +110,10 @@ export const enThemeConfig: DefaultTheme.Config = {
               { text: 'i18n', link: '/en/examples/config-provider/i18n' },
             ],
           },
+          {
+            text: 'Materials',
+            items: [{ text: 'Custom Materials Library', link: '/en/examples/custom-materials' }],
+          },
         ],
       },
       {

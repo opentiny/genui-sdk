@@ -6622,6 +6622,7 @@
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
+                    "defaultValue": "collapse-item",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {}
@@ -6642,6 +6643,7 @@
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
+                    "defaultValue": "",
                     "widget": {
                       "component": "InputConfigurator",
                       "props": {}
@@ -10354,6 +10356,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": [],
                     "widget": {
                       "component": "CodeConfigurator",
                       "props": {
@@ -10554,6 +10557,920 @@
               "disable": ["copy", "remove"]
             }
           }
+        },
+        {
+          "version": "3.28.0",
+          "icon": "autocomplete",
+          "name": {
+            "zh_CN": "自动完成"
+          },
+          "component": "TinyAutocomplete",
+          "description": "输入框自动完成建议",
+          "docUrl": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "devMode": "proCode",
+          "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinyAutocomplete",
+            "destructuring": true
+          },
+          "group": "component",
+          "priority": 2,
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                  {
+                    "property": "modelValue",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "输入框当前值"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "输入框占位文本"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "fetchSuggestions",
+                    "label": {
+                      "text": {
+                        "zh_CN": "建议回调"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {
+                        "dataType": "JSFunction"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "返回建议列表的方法，签名为 (queryString, cb) => void，通过 cb([{ value }]) 回传建议；请使用 JSFunction"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "valueKey",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示字段"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": "value",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "建议项用于显示的键名，默认 value"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "clearable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可清空"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否可清空"
+                    },
+                    "labelPosition": "left"
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {}
+          },
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": ["modelValue", "placeholder"]
+            },
+            "contextMenu": {
+              "actions": ["create symbol"],
+              "disable": ["copy", "remove"]
+            }
+          }
+        },
+        {
+          "version": "3.28.0",
+          "icon": "cascader",
+          "name": {
+            "zh_CN": "级联选择器"
+          },
+          "component": "TinyCascader",
+          "description": "多级数据级联选择",
+          "docUrl": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "devMode": "proCode",
+          "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinyCascader",
+            "destructuring": true
+          },
+          "group": "component",
+          "priority": 2,
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                  {
+                    "property": "modelValue",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "选中项绑定值，单选为路径数组"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "options",
+                    "label": {
+                      "text": {
+                        "zh_CN": "选项数据"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": [],
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {
+                        "language": "json"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "级联选项，项含 value/label/children"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "placeholder",
+                    "label": {
+                      "text": {
+                        "zh_CN": "占位文本"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "输入框占位文本"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "clearable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可清空"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否可清空"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "filterable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可搜索"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否可搜索选项"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "showAllLevels",
+                    "label": {
+                      "text": {
+                        "zh_CN": "显示完整路径"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": true,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "输入框是否显示选中值的完整路径"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "separator",
+                    "label": {
+                      "text": {
+                        "zh_CN": "分隔符"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": "/",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "选项分隔符"
+                    },
+                    "labelPosition": "left"
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {}
+          },
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": ["modelValue", "options"]
+            },
+            "contextMenu": {
+              "actions": ["create symbol"],
+              "disable": ["copy", "remove"]
+            }
+          }
+        },
+        {
+          "version": "3.28.0",
+          "icon": "colorpicker",
+          "name": {
+            "zh_CN": "颜色选择器"
+          },
+          "component": "TinyColorPicker",
+          "description": "颜色选择",
+          "docUrl": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "devMode": "proCode",
+          "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinyColorPicker",
+            "destructuring": true
+          },
+          "group": "component",
+          "priority": 2,
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                  {
+                    "property": "modelValue",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "当前颜色值，如 #1476ff"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "alpha",
+                    "label": {
+                      "text": {
+                        "zh_CN": "透明度"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否启用透明度"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "size",
+                    "label": {
+                      "text": {
+                        "zh_CN": "尺寸"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "尺寸：large / medium / small / mini"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "enableHistory",
+                    "label": {
+                      "text": {
+                        "zh_CN": "历史颜色"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否启用历史颜色"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "enablePredefineColor",
+                    "label": {
+                      "text": {
+                        "zh_CN": "预定义颜色"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否启用预定义颜色"
+                    },
+                    "labelPosition": "left"
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {}
+          },
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": ["modelValue"]
+            },
+            "contextMenu": {
+              "actions": ["create symbol"],
+              "disable": ["copy", "remove"]
+            }
+          }
+        },
+        {
+          "version": "3.28.0",
+          "icon": "ipaddress",
+          "name": {
+            "zh_CN": "IP 地址输入框"
+          },
+          "component": "TinyIpAddress",
+          "description": "IP 地址分段输入",
+          "docUrl": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "devMode": "proCode",
+          "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinyIpAddress",
+            "destructuring": true
+          },
+          "group": "component",
+          "priority": 2,
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                  {
+                    "property": "modelValue",
+                    "label": {
+                      "text": {
+                        "zh_CN": "绑定值"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "IP 地址字符串，如 192.168.0.1"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "type",
+                    "label": {
+                      "text": {
+                        "zh_CN": "类型"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": "IPv4",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "地址类型：IPv4 / IPv6"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "readonly",
+                    "label": {
+                      "text": {
+                        "zh_CN": "只读"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否只读"
+                    },
+                    "labelPosition": "left"
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {}
+          },
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": ["modelValue", "type"]
+            },
+            "contextMenu": {
+              "actions": ["create symbol"],
+              "disable": ["copy", "remove"]
+            }
+          }
+        },
+        {
+          "version": "3.28.0",
+          "icon": "steps",
+          "name": {
+            "zh_CN": "步骤条"
+          },
+          "component": "TinySteps",
+          "description": "引导用户按步骤完成任务",
+          "docUrl": "",
+          "screenshot": "",
+          "tags": "",
+          "keywords": "",
+          "devMode": "proCode",
+          "npm": {
+            "package": "@opentiny/vue",
+            "exportName": "TinySteps",
+            "destructuring": true
+          },
+          "group": "component",
+          "priority": 2,
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础信息"
+                },
+                "description": {
+                  "zh_CN": "基础信息"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "label": {
+                      "text": {
+                        "zh_CN": "步骤数据"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "defaultValue": [],
+                    "cols": 12,
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {
+                        "language": "json"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "步骤列表，项含 name，可选 status / description / count"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "active",
+                    "label": {
+                      "text": {
+                        "zh_CN": "当前步骤"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": 0,
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "当前激活步骤索引，从 0 开始"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "vertical",
+                    "label": {
+                      "text": {
+                        "zh_CN": "垂直布局"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否垂直方向"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "line",
+                    "label": {
+                      "text": {
+                        "zh_CN": "线条风格"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否为线条风格"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "dot",
+                    "label": {
+                      "text": {
+                        "zh_CN": "点状风格"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否为点状风格"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "advanced",
+                    "label": {
+                      "text": {
+                        "zh_CN": "高级向导"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "是否启用高级向导样式"
+                    },
+                    "labelPosition": "left"
+                  },
+                  {
+                    "property": "size",
+                    "label": {
+                      "text": {
+                        "zh_CN": "尺寸"
+                      }
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "defaultValue": "medium",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "尺寸，默认 medium"
+                    },
+                    "labelPosition": "left"
+                  }
+                ]
+              }
+            ],
+            "events": {},
+            "slots": {}
+          },
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": ["data", "active"]
+            },
+            "contextMenu": {
+              "actions": ["create symbol"],
+              "disable": ["copy", "remove"]
+            }
+          }
         }
       ],
       "blocks": [],
@@ -10715,6 +11632,99 @@
                 "props": {
                   "modelValue": "",
                   "placeholder": "输入关键词"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "自动完成"
+              },
+              "icon": "autocomplete",
+              "screenshot": "",
+              "snippetName": "TinyAutocomplete",
+              "schema": {
+                "componentName": "TinyAutocomplete",
+                "props": {
+                  "modelValue": "",
+                  "placeholder": "请输入内容",
+                  "fetchSuggestions": {
+                    "type": "JSFunction",
+                    "value": "function fetchSuggestions(queryString, cb) { const list = [{ value: '三全鲜食' }, { value: '旺仔牛奶' }, { value: '可口可乐' }]; cb(list.filter((i) => i.value.includes(queryString || ''))); }"
+                  }
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "级联选择器"
+              },
+              "icon": "cascader",
+              "screenshot": "",
+              "snippetName": "TinyCascader",
+              "schema": {
+                "componentName": "TinyCascader",
+                "props": {
+                  "modelValue": [],
+                  "placeholder": "请选择",
+                  "options": [
+                    {
+                      "value": "zhinan",
+                      "label": "指南",
+                      "children": [
+                        {
+                          "value": "anzhuang",
+                          "label": "安装"
+                        },
+                        {
+                          "value": "kaifa",
+                          "label": "开发"
+                        }
+                      ]
+                    },
+                    {
+                      "value": "zujian",
+                      "label": "组件",
+                      "children": [
+                        {
+                          "value": "form",
+                          "label": "Form"
+                        },
+                        {
+                          "value": "data",
+                          "label": "Data"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "颜色选择器"
+              },
+              "icon": "colorpicker",
+              "screenshot": "",
+              "snippetName": "TinyColorPicker",
+              "schema": {
+                "componentName": "TinyColorPicker",
+                "props": {
+                  "modelValue": "#1476ff"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "IP 地址输入框"
+              },
+              "icon": "ipaddress",
+              "screenshot": "",
+              "snippetName": "TinyIpAddress",
+              "schema": {
+                "componentName": "TinyIpAddress",
+                "props": {
+                  "modelValue": "192.168.0.1",
+                  "type": "IPv4"
                 }
               }
             }
@@ -11602,6 +12612,31 @@
             },
             {
               "name": {
+                "zh_CN": "步骤条"
+              },
+              "icon": "steps",
+              "screenshot": "",
+              "snippetName": "TinySteps",
+              "schema": {
+                "componentName": "TinySteps",
+                "props": {
+                  "active": 1,
+                  "data": [
+                    {
+                      "name": "提交申请"
+                    },
+                    {
+                      "name": "部门审批"
+                    },
+                    {
+                      "name": "完成"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": {
                 "zh_CN": "面包屑"
               },
               "icon": "breadcrumb",
@@ -11856,10 +12891,10 @@
         {
           "name": "TinyVue组件库",
           "package": "@opentiny/vue",
-          "version": "3.20.0",
+          "version": "3.28.0",
           "destructuring": true,
-          "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/~3.20/files/dist3/tiny-vue-pc.mjs",
-          "css": "https://registry.npmmirror.com/@opentiny/vue-theme/~3.20/files/index.css"
+          "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/~3.28/files/dist3/tiny-vue-pc.mjs",
+          "css": "https://registry.npmmirror.com/@opentiny/vue-theme/~3.28/files/index.css"
         },
         {
           "name": "element-plus组件库",
