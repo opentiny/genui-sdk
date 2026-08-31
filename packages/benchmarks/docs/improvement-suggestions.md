@@ -316,7 +316,6 @@ README.md                              ← 套件命令与口径
 
 ### 包内
 
-- 结论页设计：`.cursor/skills/genui-sdk-benchmarks/references/viz-design.md`
 - 跑测与环境变量：`packages/benchmarks/README.md`
 
 ### 业界实践（与本文建议的对应关系）

@@ -1,4 +1,4 @@
-import { A2UI_VENDOR_PATHS, readA2uiVendorJson, readA2uiVendorText } from './paths';
+import { A2UI_VENDOR_PATHS, readA2uiVendorText } from './paths';
 
 export const A2UI_OPEN_TAG = '<a2ui-json>';
 export const A2UI_CLOSE_TAG = '</a2ui-json>';
@@ -28,32 +28,39 @@ export type BuildA2uiSystemPromptOptions = {
   userAppendPrompt?: string;
 };
 
+let cachedCatalogRules: string | undefined;
+let cachedSchemaBlock: string | undefined;
+
+function getCatalogRules() {
+  cachedCatalogRules ??= readA2uiVendorText(A2UI_VENDOR_PATHS.rules).trim();
+  return cachedCatalogRules;
+}
+
+function getSchemaBlock() {
+  cachedSchemaBlock ??= [
+    A2UI_SCHEMA_BLOCK_START,
+    `### Server To Client Schema:\n${readA2uiVendorText(A2UI_VENDOR_PATHS.serverToClient).trim()}`,
+    `### Common Types Schema:\n${readA2uiVendorText(A2UI_VENDOR_PATHS.commonTypes).trim()}`,
+    `### Catalog Schema:\n${readA2uiVendorText(A2UI_VENDOR_PATHS.catalog).trim()}`,
+    A2UI_SCHEMA_BLOCK_END,
+  ].join('\n\n');
+  return cachedSchemaBlock;
+}
+
 /**
  * 对齐官方 DirectJsonPromptGenerator：role + workflow + UI rules + schema 块。
  * MVP 不注入 few-shot examples。
  */
 export function buildA2uiSystemPrompt(options: BuildA2uiSystemPromptOptions = {}): string {
   const role = (options.roleDescription ?? DEFAULT_ROLE).trim();
-  const catalogRules = readA2uiVendorText(A2UI_VENDOR_PATHS.rules).trim();
+  const catalogRules = getCatalogRules();
   const uiDescription = (options.uiDescription?.trim() || catalogRules).trim();
-
-  const serverToClient = readA2uiVendorJson(A2UI_VENDOR_PATHS.serverToClient);
-  const commonTypes = readA2uiVendorJson(A2UI_VENDOR_PATHS.commonTypes);
-  const catalog = readA2uiVendorJson(A2UI_VENDOR_PATHS.catalog);
-
-  const schemaBlock = [
-    A2UI_SCHEMA_BLOCK_START,
-    `### Server To Client Schema:\n${JSON.stringify(serverToClient)}`,
-    `### Common Types Schema:\n${JSON.stringify(commonTypes)}`,
-    `### Catalog Schema:\n${JSON.stringify(catalog)}`,
-    A2UI_SCHEMA_BLOCK_END,
-  ].join('\n\n');
 
   const parts = [
     role,
     `## Workflow Description:\n${A2UI_DEFAULT_WORKFLOW_RULES}`,
     `## UI Description:\n${uiDescription}`,
-    schemaBlock,
+    getSchemaBlock(),
   ];
 
   const append = options.userAppendPrompt?.trim();

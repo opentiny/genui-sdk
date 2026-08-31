@@ -467,21 +467,24 @@ export function prepare(report, reportPath) {
       error: r.errorMessage || r.schemaValidationError || 'protocol validation failed',
     }));
 
+  const successfulResults = results.filter((r) => r.requestFailed !== true);
   const summary = {
     runs: results.length,
     pass,
     fail,
     protocolRuns: protocolResults.length,
     passRate: protocolResults.length ? round(pass / protocolResults.length, 4) : 1,
-    avgTtftMs: round(avg(results.map((r) => r.ttftMs)), 0),
-    avgFirstChunkMs: round(avg(results.map((r) => r.firstChunkMs ?? r.ttftMs)), 0),
-    avgFirstTextMs: round(avg(results.map((r) => r.firstTextMs ?? r.ttftMs)), 0),
-    avgTotalMs: round(avg(results.map((r) => r.totalMs)), 0),
-    avgTpotMs: round(avg(results.map((r) => r.tpotMs)), 2),
-    avgFirstObsMs: round(avg(results.map((r) => r.firstObservableComponentMs)), 0),
-    totalTokens: results.reduce((s, r) => s + (r.totalTokens || 0), 0),
-    avgPromptTokens: round(avg(results.map((r) => r.promptTokens)), 0),
-    avgCompletionTokens: round(avg(results.map((r) => r.completionTokens)), 0),
+    avgTtftMs: round(avg(successfulResults.map((r) => r.ttftMs)), 0),
+    avgFirstChunkMs: round(avg(successfulResults.map((r) => r.firstChunkMs ?? r.ttftMs)), 0),
+    avgFirstTextMs: round(avg(successfulResults.map((r) => r.firstTextMs ?? r.ttftMs)), 0),
+    avgTotalMs: round(avg(successfulResults.map((r) => r.totalMs)), 0),
+    avgTpotMs: round(avg(successfulResults.map((r) => r.tpotMs)), 2),
+    avgFirstObsMs: round(avg(successfulResults.map((r) => r.firstObservableComponentMs)), 0),
+    totalTokens: successfulResults.length
+      ? successfulResults.reduce((s, r) => s + (r.totalTokens || 0), 0)
+      : null,
+    avgPromptTokens: round(avg(successfulResults.map((r) => r.promptTokens)), 0),
+    avgCompletionTokens: round(avg(successfulResults.map((r) => r.completionTokens)), 0),
     benchmarkTotalMs: report.benchmarkTotalMs ?? null,
     judgeEnabled: Boolean(report.llmJudge?.enabled || report.config?.llmJudgeEnabled),
     avgJudgeScore: round(

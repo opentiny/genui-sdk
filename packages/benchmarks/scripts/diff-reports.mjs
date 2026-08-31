@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 function readArg(name) {
   const index = process.argv.indexOf(name);
@@ -103,7 +104,7 @@ export function diffBenchmarkReports(baseline, current) {
   };
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url))) {
   const baselinePath = readArg('--baseline');
   const currentPath = readArg('--current');
   const outputPath = readArg('--out');

@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { LlmBenchmarkRunOptions, LlmBenchmarkSample, LlmBenchmarkSampleCase } from './framework/index';
 import { getLlmBenchmarkSampleCases } from './samples';
+import { validateBenchmarkSuiteScenarios } from './suites';
 import {
   buildSystemPromptForProtocol,
   hasFirstObservableForProtocol,
@@ -46,6 +47,7 @@ type SampleAttemptResult = {
 type RetryMeta = {
   retryCount: number;
   retryWaitMs: number;
+  rateLimitQueueWaitMs: number;
   lastRetryReason?: string;
   rateLimited?: boolean;
 };
@@ -250,12 +252,21 @@ async function runSampleAttemptWithRetry(
   wrapperComponent: string,
   protocol: BenchProtocol,
   retry: RetryConfig,
+  rateLimiter?: SlidingWindowRateLimiter,
 ): Promise<SampleAttemptResult & RetryMeta> {
   let retryWaitMs = 0;
+  let rateLimitQueueWaitMs = 0;
   let lastRetryReason: string | undefined;
   let rateLimited = false;
 
   for (let attempt = 1; attempt <= retry.maxAttempts; attempt++) {
+    if (rateLimiter) {
+      const waitedMs = await rateLimiter.waitTurn();
+      rateLimitQueueWaitMs += waitedMs;
+      if (waitedMs > 0) {
+        console.log(`[bench][rate-limit] model=${model}, attempt=${attempt}, waited=${waitedMs}ms`);
+      }
+    }
     const result = await runSampleAttempt(
       modelInstance,
       sampleCase,
@@ -269,6 +280,7 @@ async function runSampleAttemptWithRetry(
         ...result,
         retryCount: attempt - 1,
         retryWaitMs,
+        rateLimitQueueWaitMs,
         ...(lastRetryReason ? { lastRetryReason } : {}),
         ...(rateLimited || isRateLimitError(result.errorMessage ?? '') ? { rateLimited: true } : {}),
       };
@@ -303,7 +315,7 @@ async function generateSingleSample(
   materialsVariant: IMaterialsVariant,
   protocol: BenchProtocol,
   retry: RetryConfig,
-  rateLimitQueueWaitMs: number,
+  rateLimiter?: SlidingWindowRateLimiter,
 ): Promise<LlmBenchmarkSample> {
   const result = await runSampleAttemptWithRetry(
     modelInstance,
@@ -314,6 +326,7 @@ async function generateSingleSample(
     wrapperComponent,
     protocol,
     retry,
+    rateLimiter,
   );
 
   return {
@@ -343,7 +356,7 @@ async function generateSingleSample(
       ...(result.errorMessage ? { errorMessage: result.errorMessage } : {}),
       ...(result.retryCount > 0 ? { retryCount: result.retryCount } : {}),
       ...(result.retryWaitMs > 0 ? { retryWaitMs: result.retryWaitMs } : {}),
-      ...(rateLimitQueueWaitMs > 0 ? { rateLimitQueueWaitMs } : {}),
+      ...(result.rateLimitQueueWaitMs > 0 ? { rateLimitQueueWaitMs: result.rateLimitQueueWaitMs } : {}),
       ...(result.lastRetryReason ? { lastRetryReason: result.lastRetryReason } : {}),
       ...(result.rateLimited ? { rateLimited: true } : {}),
     },
@@ -363,7 +376,11 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
   const systemFull = buildSystemPromptForProtocol(protocol, framework, materialsVariant, options.promptConfig);
   const plainOnly = options.compareEmptySystemPlainOnly === true;
   const compareBoth = options.compareEmptySystem === true && !plainOnly;
-  const selected = selectSampleCases(getLlmBenchmarkSampleCases(protocol), options);
+  const availableCases = getLlmBenchmarkSampleCases(protocol);
+  if (options.suite) {
+    validateBenchmarkSuiteScenarios(options.suite, availableCases.map((item) => item.id));
+  }
+  const selected = selectSampleCases(availableCases, options);
   const repeat = Math.max(1, options.repeat ?? 1);
   const modelIds = resolveModelsForBench(options);
   if (selected.length === 0) {
@@ -507,15 +524,6 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
       }
 
       const rateLimiter = modelRateLimiterByModelId.get(job.modelId);
-      let rateLimitQueueWaitMs = 0;
-      if (rateLimiter) {
-        const waitedMs = await rateLimiter.waitTurn();
-        rateLimitQueueWaitMs = waitedMs;
-        if (waitedMs > 0) {
-          console.log(`[bench][rate-limit] model=${job.modelId}, waited=${waitedMs}ms`);
-        }
-      }
-
       const sample = await generateSingleSample(
         modelInstance,
         job.modelId,
@@ -529,7 +537,7 @@ export async function generateSamples(options: LlmBenchmarkRunOptions) {
         materialsVariant,
         protocol,
         retry,
-        rateLimitQueueWaitMs,
+        rateLimiter,
       );
 
       fs.mkdirSync(path.dirname(sampleFile), { recursive: true });

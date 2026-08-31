@@ -251,13 +251,18 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
     };
   };
 
-  const runBenchmark = async (form: BenchUiFormPayload) => {
-    if (runState === 'running') {
-      throw new Error('A benchmark run is already in progress');
-    }
+  const reserveRun = () => {
+    if (runState === 'running') return false;
     runState = 'running';
     lastError = undefined;
     lastSamplesDir = undefined;
+    return true;
+  };
+
+  const runBenchmark = async (form: BenchUiFormPayload, reserved = false) => {
+    if (!reserved && !reserveRun()) {
+      throw new Error('A benchmark run is already in progress');
+    }
     broadcast('log', ['[bench-ui] Starting benchmark with form configuration…']);
 
     const benchmarkStartedAtMs = Date.now();
@@ -359,20 +364,21 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
       }
 
       if (req.method === 'POST' && pathname === '/api/run') {
-        if (runState === 'running') {
+        if (!reserveRun()) {
           sendJson(res, 409, { ok: false, error: 'Benchmark already running' });
           return;
         }
-        const raw = await readBody(req);
         let form: BenchUiFormPayload;
         try {
+          const raw = await readBody(req);
           form = JSON.parse(raw || '{}') as BenchUiFormPayload;
         } catch {
+          runState = 'idle';
           sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
           return;
         }
         sendJson(res, 202, { ok: true, message: 'Benchmark started' });
-        runPromise = runBenchmark(form).catch(() => {
+        runPromise = runBenchmark(form, true).catch(() => {
           /* error already logged / state set */
         });
         return;

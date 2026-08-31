@@ -147,7 +147,7 @@ export function envMaterialsVariant(
   key: string,
   fallback: 'mini' | 'standard' | undefined,
 ): 'mini' | 'standard' {
-  const v = process.env[key]?.trim();
+  const v = process.env[key]?.trim().toLowerCase();
   if (v === 'mini' || v === 'standard') {
     return v;
   }

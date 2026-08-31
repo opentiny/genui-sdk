@@ -208,10 +208,15 @@ const insightsRenderScript = path.join(benchmarksPackageDir, 'scripts', 'render-
  * 将结论页（原 insights.html 布局）写入 htmlPath；数据来自已落盘的 report.json。
  */
 function writeInsightsReportHtml(reportJsonPath: string, htmlPath: string) {
-  execFileSync(process.execPath, [insightsRenderScript, reportJsonPath, '--out', htmlPath], {
-    cwd: benchmarksPackageDir,
-    encoding: 'utf-8',
-  });
+  try {
+    execFileSync(process.execPath, [insightsRenderScript, reportJsonPath, '--out', htmlPath], {
+      cwd: benchmarksPackageDir,
+      encoding: 'utf-8',
+    });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.warn(`[bench] Failed to render report.html; report.json and XLSX remain available: ${detail}`);
+  }
 }
 
 /**

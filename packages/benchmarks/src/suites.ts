@@ -38,3 +38,13 @@ export function resolveBenchmarkSuite(value: unknown): BenchmarkSuite | undefine
   const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
   return normalized === 'smoke' || normalized === 'nightly' || normalized === 'release' ? normalized : undefined;
 }
+
+export function validateBenchmarkSuiteScenarios(suite: BenchmarkSuite, availableScenarioIds: string[]) {
+  const configured = benchmarkSuitePresets[suite].scenarios;
+  if (!configured?.length) return;
+  const available = new Set(availableScenarioIds);
+  const missing = configured.filter((id) => !available.has(id));
+  if (missing.length > 0) {
+    throw new Error(`Suite "${suite}" references unknown scenarios: ${missing.join(', ')}`);
+  }
+}
