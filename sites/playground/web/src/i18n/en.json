@@ -38,7 +38,9 @@
     "themeLight": "Light",
     "themeDark": "Dark",
     "themeLite": "Lite",
-    "themeAuto": "System"
+    "themeAuto": "System",
+    "frameworkVue": "Vue framework",
+    "frameworkAngular": "Angular framework"
   },
   "model": {
     "select": "Model",
@@ -47,7 +49,7 @@
     "promptVariantMini": "Mini",
     "promptVariantStandard": "Standard",
     "promptVariantPlus": "Plus",
-    "prompt": "Prompts",
+    "additionalPrompt": "Additional prompts",
     "edit": "Edit",
     "delete": "Delete",
     "editPrompt": "Edit prompt",

@@ -38,7 +38,9 @@
     "themeLight": "亮色",
     "themeDark": "暗黑",
     "themeLite": "清新",
-    "themeAuto": "跟随系统"
+    "themeAuto": "跟随系统",
+    "frameworkVue": "Vue框架",
+    "frameworkAngular": "Angular框架"
   },
   "model": {
     "select": "模型选择",
@@ -47,7 +49,7 @@
     "promptVariantMini": "Mini（轻量）",
     "promptVariantStandard": "Standard（标准）",
     "promptVariantPlus": "Plus（增强）",
-    "prompt": "提示词",
+    "additionalPrompt": "追加提示词",
     "edit": "编辑",
     "delete": "删除",
     "editPrompt": "编辑提示词",
