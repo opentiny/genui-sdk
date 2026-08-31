@@ -63,10 +63,87 @@ export function getComponentItem(schema: any, componentPath: string, indexMode: 
   };
 }
 
-export function getPositionRelativePath(position: string, id: string, componentPath: string, fromPath: string) {
+function decodePointerSegments(pointer: string): string[] {
+  if (!pointer || pointer === '/') return [];
+  return pointer
+    .slice(1)
+    .split('/')
+    .map((segment) => segment.replace(/~1/g, '/').replace(/~0/g, '~'));
+}
+
+function encodePointerSegments(segments: string[]): string {
+  if (segments.length === 0) return '/';
+  return `/${segments.map((s) => s.replace(/~/g, '~0').replace(/\//g, '~1')).join('/')}`;
+}
+
+function getDirectChildrenPath(componentPath: string): string {
+  return componentPath === '/' ? '/children' : `${componentPath}/children`;
+}
+
+/**
+ * RFC 6902：path 末段 `-` 表示数组末尾追加。
+ * jsondiffpatch 未实现该哨兵，展开前需换成当前 length。
+ */
+export function resolveJsonPointerAppendSentinel(root: unknown, pointer: string): string {
+  if (typeof pointer !== 'string' || !pointer.startsWith('/')) {
+    return pointer;
+  }
+
+  const segments = decodePointerSegments(pointer);
+  if (segments.length === 0 || segments[segments.length - 1] !== '-') {
+    return pointer;
+  }
+
+  let current: any = root;
+  for (let i = 0; i < segments.length - 1; i++) {
+    const segment = segments[i];
+    if (current == null) {
+      throw new Error(`cannot resolve append sentinel in ${pointer}: missing parent`);
+    }
+    if (Array.isArray(current)) {
+      const index = Number.parseInt(segment, 10);
+      if (Number.isNaN(index) || index < 0 || index >= current.length) {
+        throw new Error(`cannot resolve append sentinel in ${pointer}: bad index ${segment}`);
+      }
+      current = current[index];
+    } else if (typeof current === 'object') {
+      current = current[segment];
+    } else {
+      throw new Error(`cannot resolve append sentinel in ${pointer}: not an object/array`);
+    }
+  }
+
+  if (!Array.isArray(current)) {
+    throw new Error(`cannot resolve append sentinel in ${pointer}: parent is not an array`);
+  }
+
+  return encodePointerSegments([...segments.slice(0, -1), String(current.length)]);
+}
+
+export function getPositionRelativePath(
+  position: string,
+  _id: string,
+  componentPath: string,
+  fromPath: string,
+  adjustForSourceRemoval: boolean = true,
+  schema?: any,
+): string | undefined {
+  // 文档根没有父数组，before/after 无意义
+  if (componentPath === '/' && (position === 'before' || position === 'after')) {
+    return undefined;
+  }
+
   const idIndexToParentArray = componentPath.split('/');
   const idIndexToParent = idIndexToParentArray.pop()!;
   const prefix = idIndexToParentArray.join('/');
+  const anchorIndex = Number.parseInt(idIndexToParent, 10);
+
+  if (
+    (position === 'before' || position === 'after') &&
+    (idIndexToParent === '' || Number.isNaN(anchorIndex))
+  ) {
+    return undefined;
+  }
 
   const fromPrefixArray = fromPath.split('/');
   const fromIdIndexToParent = fromPrefixArray.pop()!;
@@ -74,21 +151,34 @@ export function getPositionRelativePath(position: string, id: string, componentP
 
   const isSameParent = prefix === fromPrefix;
   const moveFromIndexLessThanIdIndex =
-    isSameParent && parseInt(fromIdIndexToParent, 10) < parseInt(idIndexToParent, 10);
+    adjustForSourceRemoval &&
+    isSameParent &&
+    parseInt(fromIdIndexToParent, 10) < anchorIndex;
 
   if (position === 'before') {
     if (moveFromIndexLessThanIdIndex) {
-      return `../${parseInt(idIndexToParent, 10) - 1}`;
+      return `../${anchorIndex - 1}`;
     }
-    return `../${parseInt(idIndexToParent, 10)}`;
+    return `../${anchorIndex}`;
   } else if (position === 'after') {
     if (moveFromIndexLessThanIdIndex) {
-      return `../${parseInt(idIndexToParent, 10)}`;
+      return `../${anchorIndex}`;
     }
-    return `../${parseInt(idIndexToParent, 10) + 1}`;
+    return `../${anchorIndex + 1}`;
   } else if (position === 'inside') {
-    return `/children/${getComponentItem(componentPath, id).node?.children?.length || 0}`;
+    const anchorNode = componentPath === '/' ? schema : getComponentItem(schema, componentPath).node;
+    const children = anchorNode?.children;
+    if (!Array.isArray(children)) {
+      return undefined;
+    }
+
+    const sourceIsDirectChild =
+      adjustForSourceRemoval && fromPrefix === getDirectChildrenPath(componentPath);
+    const childrenLen = sourceIsDirectChild ? Math.max(children.length - 1, 0) : children.length;
+    return `/children/${childrenLen}`;
   }
+
+  return undefined;
 }
 
 export function mergePath(path1: string, path2: string) {

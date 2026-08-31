@@ -7,15 +7,42 @@ import { streamText, stepCountIs } from 'ai';
 import getRawBody from 'raw-body';
 import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-completions';
 import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
+import {
+  buildAgentTools,
+  isAllowedAgentUrl,
+  isPlaygroundDevelopment,
+  resolveAgentApiUrl,
+} from './a2a-tools/index.js';
+import type { PlaygroundAgentConfig } from './a2a-tools/index.js';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { buildOpenApiTools } from './openapi-tools/index.js';
-import { genPlaygroundPrompt } from './gen-prompt/index.js';
+import { buildSkillTools } from './skills/index.js';
+import { genPlaygroundPrompt, getPlaygroundComponentWhiteList } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
+
+function filterAllowedPlaygroundAgents(rawAgents: PlaygroundAgentConfig[] = []): PlaygroundAgentConfig[] {
+  const agents: PlaygroundAgentConfig[] = [];
+
+  for (const agent of rawAgents) {
+    if (agent.enabled === false) {
+      continue;
+    }
+    const url = resolveAgentApiUrl(agent);
+    if (!url) {
+      continue;
+    }
+    if (isPlaygroundDevelopment || isAllowedAgentUrl(url)) {
+      agents.push(agent);
+    }
+  }
+
+  return agents;
+}
 
 const getPlaygroundConfig = (playgroundStr: string) => {
   let playgroundConfig: IPlaygroundConfig = {
@@ -25,6 +52,8 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     model: '',
     temperature: 0.3,
     agents: [],
+    skills: [],
+    openApiTools: [],
   };
 
   try {
@@ -40,6 +69,10 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    agents: filterAllowedPlaygroundAgents(
+      Array.isArray(playgroundConfig.agents) ? playgroundConfig.agents : [],
+    ),
+    skills: Array.isArray(playgroundConfig.skills) ? playgroundConfig.skills : [],
     openApiTools: playgroundConfig.openApiTools || [],
     promptVariant: playgroundConfig.promptVariant,
   };
@@ -82,12 +115,22 @@ export const createChatTemplate = () => {
       }
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
-      const { mcpServers, framework, componentLib, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
+      const {
+        mcpServers,
+        framework,
+        componentLib,
+        userAppendPrompt,
+        agents,
+        skills,
+        openApiTools,
+        promptVariant,
+      } = playgroundConfig;
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
         temperature: playgroundConfig.temperature,
         mcpServers,
+        skills,
       };
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
@@ -97,12 +140,40 @@ export const createChatTemplate = () => {
         abort.signal,
       );
       const openApiBuiltTools = await buildOpenApiTools(openApiTools);
-      const tools = { ...openApiBuiltTools, ...mcpTools };
+      const agentTools = buildAgentTools(agents, abort.signal);
+      const { tools: skillTools, systemPrompt: skillPrompt } = buildSkillTools(skills);
+      const duplicateToolNames = new Set<string>();
+      const seenToolNames = new Set<string>();
+      for (const name of [
+        ...Object.keys(openApiBuiltTools),
+        ...Object.keys(mcpTools),
+        ...Object.keys(agentTools),
+        ...Object.keys(skillTools),
+      ]) {
+        if (seenToolNames.has(name)) duplicateToolNames.add(name);
+        seenToolNames.add(name);
+      }
+      if (duplicateToolNames.size) {
+        console.error(`Duplicate tool names are not allowed: ${[...duplicateToolNames].join(', ')}`);
+        await Promise.allSettled([...clientsMap.values()].map((client) => client.close()));
+        res.write('data: [ERROR]\n\n');
+        res.end();
+        return;
+      }
+      const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools };
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
-      ${body.templateSchema ? generateJsonPatchPrompt() : ''}
+      const materialConfig = { promptVariant, componentLib };
+      const componentWhiteList = getPlaygroundComponentWhiteList(
+        framework,
+        materialConfig,
+        tgCustomConfig,
+      );
+      const systemPrompt = `${genPlaygroundPrompt(framework, materialConfig, tgCustomConfig)}
+      ${body.templateSchema ? generateJsonPatchPrompt(componentWhiteList) : ''}
       ${specificPrompt}
-      ${customSystemPrompt}`;
+      ${customSystemPrompt}
+      ${userAppendPrompt}
+      ${skillPrompt}`;
 
       const messages = normalizeMessagesForAiSdk(body.messages);
       if (body.templateSchema) {

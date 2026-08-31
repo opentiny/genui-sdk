@@ -71,7 +71,7 @@ export function parseJsonPatchOperations(content: string): unknown[] | null {
   }
   try {
     const parsed = JSON.parse(content);
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : null;
+    return Array.isArray(parsed) ? parsed : null;
   } catch {
     return null;
   }
