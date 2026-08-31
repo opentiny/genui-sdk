@@ -1,5 +1,5 @@
 const DOCS_BASE = import.meta.env.VITE_GENUI_DOCS_BASE || 'https://docs.opentiny.design/genui-sdk';
-const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://playground.opentiny.design/genui-sdk';
+const PLAYGROUND_HREF = import.meta.env.VITE_GENUI_PLAYGROUND_HREF || 'https://opentiny.github.io/genui-sdk/playground/';
 
 export const linkMap = {
   devDoc: `${DOCS_BASE}/guide/quick-start`,

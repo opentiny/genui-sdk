@@ -54,6 +54,7 @@
     "title": "Unlock more possibilities",
     "calculator": "Calculator",
     "todoApp": "Todo App",
+    "coinGame": "Coin Duel",
     "tryPlayground": "Try it in Playground",
     "replayControls": "Playback controls",
     "pause": "Pause",
@@ -64,8 +65,10 @@
     "prompt": {
       "element": "Generate a calculator without buttons, use div elements, macaron colors, no TinyLayout, make it beautiful",
       "page": "Create a rich todo app with as many features as you can think of",
+      "coin": "Create a coin duel simulator: both sides start with 100 yuan. The opponent tosses N coins in a row; if at least one lands heads the opponent wins X yuan, otherwise you win and the opponent pays you Y yuan. Simulate until one side goes broke and show both balances changing live with a line chart",
       "elementBubble": "Generate a calculator with div elements, macaron colors, make it beautiful",
-      "pageBubble": "Create a rich todo app with as many features as you can think of"
+      "pageBubble": "Create a rich todo app with as many features as you can think of",
+      "coinBubble": "Create a coin duel simulator where both sides start with 100 yuan and play until one goes broke"
     }
   },
   "guide": {
