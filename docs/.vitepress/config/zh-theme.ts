@@ -106,6 +106,10 @@ export const zhThemeConfig: DefaultTheme.Config = {
               { text: '国际化配置', link: '/examples/config-provider/i18n' },
             ],
           },
+          {
+            text: '物料库',
+            items: [{ text: '自定义物料库', link: '/examples/custom-materials' }],
+          },
         ],
       },
       {
