@@ -44,39 +44,22 @@ const metaMap: IMetaMap = {
 const optionsMap: IOptionsMap = {
   Vue: {
     mini: { includeJsonSchema: false, includeSnippets: false },
-  },
+  }
 };
-
-function getPlaygroundMaterialsMeta(
-  framework: IFrameworkKey,
-  materialConfig: IPlaygroundMaterialConfig,
-) {
-  const variant = materialConfig.promptVariant || 'standard';
-  const componentLib = materialConfig.componentLib as IComponentLibKey;
-  return metaMap[framework]?.[componentLib]?.[variant] ??metaMap[framework]?.[componentLib]?.standard ?? materialsMeta;
-}
-
-export function getPlaygroundComponentWhiteList(
-  framework: IFrameworkKey,
-  materialConfig: IPlaygroundMaterialConfig,
-  tgCustomConfig?: IGenPromptCustomConfig,
-) {
-  const meta = getPlaygroundMaterialsMeta(framework, materialConfig);
-  const customComponents = tgCustomConfig?.customComponents || [];
-  const customWhiteList = customComponents.map((component) => component.component);
-  return [...new Set([...meta.whiteList, ...customWhiteList])];
-}
 
 export function genPlaygroundPrompt(
   framework: IFrameworkKey,
   materialConfig: IPlaygroundMaterialConfig,
   tgCustomConfig?: IGenPromptCustomConfig,
 ) {
-  const variant = materialConfig.promptVariant || 'standard';
+  const { promptVariant, componentLib } = materialConfig;
+  const variant = promptVariant || 'standard';
+  const libKey = componentLib as IComponentLibKey;
+  const meta = metaMap[framework]?.[libKey]?.[variant] ?? metaMap[framework]?.[libKey]?.standard;
 
   return genPrompt(
     framework,
-    getPlaygroundMaterialsMeta(framework, materialConfig),
+    meta ?? materialsMeta,
     tgCustomConfig,
     {
       ...(optionsMap[framework]?.[variant] ?? {}),

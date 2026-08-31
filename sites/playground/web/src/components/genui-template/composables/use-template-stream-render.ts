@@ -89,9 +89,6 @@ async function jsonPatchRenderer(props: {
 
     const valid = validateJsonPatch(value as never);
     if (!valid) {
-      if (isSuccessfulParse && Array.isArray(value) && value.length === 0) {
-        setJsonPatchApplyResult('failed', messages.value, cardId);
-      }
       return;
     }
 
