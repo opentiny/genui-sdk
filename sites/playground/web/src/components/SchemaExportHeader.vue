@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { computed } from 'vue';
 import type { IRendererSlotsProps } from '@opentiny/genui-sdk-vue';
 import { IconDownload } from '@opentiny/vue-icon';
 import { useExportVueCode } from '../hooks/use-generate-vue-code';
@@ -22,9 +23,9 @@ const TinyIconDownload = IconDownload();
 const isAngular = props.framework === 'angular';
 
 
-const generating = isAngular ? (props.generating ?? false) : !props.isFinished;
+const generating = computed(() => (isAngular ? (props.generating ?? false) : !props.isFinished));
 
-const shouldShowExport = !generating && (isAngular || !props.isError);
+const shouldShowExport = computed(() => !generating.value && (isAngular || !props.isError));
 
 const handleExport = () => {
   if (isAngular) {
@@ -37,7 +38,6 @@ const handleExport = () => {
 
 <template>
   <div :class="isAngular ? 'angular-card-wrapper' : 'renderer-header'">
-    <slot v-if="isAngular" />
     <button
       v-if="shouldShowExport"
       type="button"
@@ -47,6 +47,7 @@ const handleExport = () => {
       <TinyIconDownload class="schema-export-icon" />
       <span class="schema-export-label">导出源码</span>
     </button>
+    <slot v-if="isAngular" />
   </div>
 </template>
 
@@ -89,8 +90,8 @@ const handleExport = () => {
 
 .angular-card-wrapper .schema-export-button {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  top: 28px;
+  right: 16px;
   z-index: 20;
 }
 

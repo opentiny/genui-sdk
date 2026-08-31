@@ -42,10 +42,8 @@ export function deriveLibraryMaps(
 
   Object.entries(materials.components ?? {}).forEach(([name, cls]) => {
     const entry = readCmpMeta(cls)?.selectors?.[0];
-    if (entry?.[0]) componentSelector[name] = entry[0]; // 元素型:['ti-select']
-    // 属性型 selector 的属性名,如 ['', 'tiButton', ''] → 'tiButton'。
-    // 注意部分组件的 selectors 是复合编码结构(如 TiUpload 的 ['ti-upload', 3, 'type', '']),
-    // entry[1] 可能是数字标记,须排除,不能当作属性名。
+    if (entry?.[0]) componentSelector[name] = entry[0];
+
     if (entry && typeof entry[1] === 'string' && entry[1]) {
       componentExtraSelector[name] = entry[1];
     }
