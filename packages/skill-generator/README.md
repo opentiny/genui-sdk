@@ -36,10 +36,11 @@ skills/<name>/
 ## 安装
 
 ```bash
-pnpm add @opentiny/genui-sdk-skill-generator @opentiny/genui-sdk-core
+pnpm add @opentiny/genui-sdk-skill-generator
 ```
 
-再提供物料包的 `materialsMeta`（如 `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta`）。
+默认包含 OpenTiny Vue 物料。需要接入自定义物料时，在配置中提供自己的
+`materialsMetaModule`（如 `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta`）。
 
 ## 编程式 API
 
@@ -61,11 +62,33 @@ generateSkillFiles('vue', materialsMeta, {
 ## CLI
 
 ```bash
-genui-skill-generate path/to/config.json
+npx @opentiny/genui-sdk-skill-generator
 ```
 
-仓库实际生成配置见 [`config.json`](./config.json)，它与 Playground 标准模式保持一致，
-使用完整 Vue 物料以及内置的 `continueChat`、`saveState` Action。
+不传配置时会使用包内置默认配置，并把 skill 生成到当前运行目录的
+`skills/genui-schema-json`。
+
+指定输出目录：
+
+```bash
+npx @opentiny/genui-sdk-skill-generator --out ./skills/my-skill
+```
+
+如需自定义物料、输出目录或 Action，可传入配置文件：
+
+```bash
+npx @opentiny/genui-sdk-skill-generator --config path/to/config.json
+```
+
+仓库默认配置见 [`config.json`](./config.json)，它与 Playground 标准模式保持一致，
+使用完整 Vue 物料以及内置的 `continueChat`、`saveState` Action。显式传配置时，
+所有相对路径都以配置文件所在目录为基准。
+
+兼容旧的位置参数写法：
+
+```bash
+npx @opentiny/genui-sdk-skill-generator path/to/config.json
+```
 
 ## CLI 配置参考
 

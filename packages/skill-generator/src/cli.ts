@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type {
   IGenPromptCustomConfig,
@@ -15,7 +15,7 @@ import { generateSkillFiles } from './skill-generator.js';
 export interface ISkillGenerateConfig {
   /** 框架名或框架配置；默认 vue */
   framework?: IGenPromptFramework | IGenPromptFrameworkConfig;
-  /** 导出 materialsMeta 的模块路径（相对配置文件目录或绝对路径） */
+  /** 导出 materialsMeta 的模块路径或包名导入 specifier */
   materialsMetaModule: string;
   /** materialsMeta 导出名；默认 materialsMeta */
   materialsMetaExport?: string;
@@ -35,6 +35,19 @@ export interface ISkillGenerateConfig {
   prune?: boolean;
 }
 
+export interface ISkillGenerateCliOptions {
+  /** 相对 skillDirs 的解析基准；省略时使用配置文件所在目录 */
+  outputBaseDir?: string;
+  /** 覆盖配置文件中的 skillDirs，通常来自 --out */
+  skillDirs?: string[];
+}
+
+export interface IParsedSkillGenerateArgs {
+  configPath: string;
+  options: ISkillGenerateCliOptions;
+  help: boolean;
+}
+
 /**
  * 将配置中的路径解析为绝对路径。
  *
@@ -44,6 +57,121 @@ export interface ISkillGenerateConfig {
  */
 export function resolveConfigPath(configDir: string, targetPath: string): string {
   return resolve(configDir, targetPath);
+}
+
+export function createSkillGenerateUsage(commandName = 'genui-skill-generate'): string {
+  return `用法:
+  ${commandName}
+  ${commandName} --out ./skills/my-skill
+  ${commandName} --config ./genui-skill.config.json
+  ${commandName} ./genui-skill.config.json
+
+选项:
+  --out <dir>       指定最终 skill 输出目录
+  --config <file>   指定配置文件
+  -h, --help        显示帮助`;
+}
+
+export function parseSkillGenerateArgs(
+  args: string[],
+  context: { defaultConfigPath: string; cwd?: string } | string,
+): IParsedSkillGenerateArgs {
+  const defaultConfigPath = typeof context === 'string' ? context : context.defaultConfigPath;
+  const cwd = typeof context === 'string' ? process.cwd() : context.cwd ?? process.cwd();
+  let configPath: string | undefined;
+  let outDir: string | undefined;
+  let help = false;
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === '-h' || arg === '--help') {
+      help = true;
+      continue;
+    }
+
+    if (arg === '--config') {
+      const value = args[index + 1];
+      if (!value || value.startsWith('-')) {
+        throw new Error('--config 需要指定配置文件路径');
+      }
+      configPath = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--config=')) {
+      configPath = arg.slice('--config='.length);
+      continue;
+    }
+
+    if (arg === '--out') {
+      const value = args[index + 1];
+      if (!value || value.startsWith('-')) {
+        throw new Error('--out 需要指定输出目录');
+      }
+      outDir = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--out=')) {
+      outDir = arg.slice('--out='.length);
+      continue;
+    }
+
+    if (arg.startsWith('-')) {
+      throw new Error(`未知选项: ${arg}`);
+    }
+
+    if (configPath) {
+      throw new Error(`只能指定一个配置文件: ${arg}`);
+    }
+
+    configPath = arg;
+  }
+
+  const hasExplicitConfig = Boolean(configPath);
+  const resolvedConfigPath = configPath ?? defaultConfigPath;
+  const options: ISkillGenerateCliOptions = hasExplicitConfig ? {} : { outputBaseDir: cwd };
+
+  if (outDir) {
+    options.skillDirs = [outDir];
+    options.outputBaseDir = cwd;
+  }
+
+  return { configPath: resolvedConfigPath, options, help };
+}
+
+export function resolveConfiguredSkillDirs(
+  config: ISkillGenerateConfig,
+  baseDir: string,
+  overrideSkillDirs?: string[],
+): string[] {
+  return (overrideSkillDirs ?? config.skillDirs).map((dir) => resolveConfigPath(baseDir, dir));
+}
+
+function isPathSpecifier(specifier: string): boolean {
+  return (
+    specifier.startsWith('.') ||
+    specifier.startsWith('/') ||
+    /^[a-zA-Z]:[\\/]/.test(specifier)
+  );
+}
+
+async function importMaterialsModule(
+  materialsMetaModule: string,
+  configDir: string,
+): Promise<Record<string, IMaterialsMeta>> {
+  const moduleSpecifier = isPathSpecifier(materialsMetaModule)
+    ? pathToFileURL(
+        isAbsolute(materialsMetaModule)
+          ? materialsMetaModule
+          : resolveConfigPath(configDir, materialsMetaModule),
+      ).href
+    : materialsMetaModule;
+
+  return (await import(moduleSpecifier)) as Record<string, IMaterialsMeta>;
 }
 
 /**
@@ -72,22 +200,22 @@ export function loadSkillGenerateConfig(configPath: string): {
  *
  * @param configPath - 配置文件路径
  */
-export async function runSkillGenerateCli(configPath: string): Promise<void> {
+export async function runSkillGenerateCli(
+  configPath: string,
+  options: ISkillGenerateCliOptions = {},
+): Promise<void> {
   const { config, configDir } = loadSkillGenerateConfig(configPath);
-  const materialsModulePath = resolveConfigPath(configDir, config.materialsMetaModule);
-  const materialsModule = (await import(pathToFileURL(materialsModulePath).href)) as Record<
-    string,
-    IMaterialsMeta
-  >;
+  const outputBaseDir = options.outputBaseDir ?? configDir;
+  const materialsModule = await importMaterialsModule(config.materialsMetaModule, configDir);
   const exportName = config.materialsMetaExport || 'materialsMeta';
   const materialsMeta = materialsModule[exportName];
 
   if (!materialsMeta) {
-    throw new Error(`模块未导出 ${exportName}: ${materialsModulePath}`);
+    throw new Error(`模块未导出 ${exportName}: ${config.materialsMetaModule}`);
   }
 
   const result = generateSkillFiles(config.framework ?? 'vue', materialsMeta, {
-    skillDirs: config.skillDirs.map((dir) => resolveConfigPath(configDir, dir)),
+    skillDirs: resolveConfiguredSkillDirs(config, outputBaseDir, options.skillDirs),
     tgCustomConfig: config.tgCustomConfig,
     promptOptions: config.promptOptions,
     referenceSubdir: config.referenceSubdir,

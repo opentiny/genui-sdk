@@ -19,10 +19,10 @@
     "config.json"
   ],
   "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*"
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*"
   },
   "devDependencies": {
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@types/node": "^22.13.5",
     "escape-string-regexp": "^1.0.5",
     "typescript": "^5.9.3",
