@@ -27,7 +27,7 @@ const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
   htmlWhitespaceSensitivity: 'ignore',
 };
 
-export class AngularCodeGeneratorBase extends CodeGeneratorBase {
+export class AngularCodeGenerator extends CodeGeneratorBase {
 
   /** 组件库注册表:key 为库标识,value 为该库的 IAngularLibraryConfig。分类逻辑收在类内,无需外部工厂。
    *  新增一个组件库的完整步骤(以 Material 为例):
@@ -54,15 +54,15 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
   ) {
     super();
     const raw =
-      library === undefined ? [AngularCodeGeneratorBase.defaultLibrary] : Array.isArray(library) ? library : [library];
+      library === undefined ? [AngularCodeGenerator.defaultLibrary] : Array.isArray(library) ? library : [library];
     const seen = new Set<string>();
     const resolved: { name: string; config: IAngularLibraryConfig }[] = [];
     for (const name of raw) {
       if (seen.has(name)) continue; // 去重,保序
       seen.add(name);
-      const config = (AngularCodeGeneratorBase.libraries as Record<string, IAngularLibraryConfig | undefined>)[name];
+      const config = (AngularCodeGenerator.libraries as Record<string, IAngularLibraryConfig | undefined>)[name];
       if (!config) {
-        throw new Error(`未知 Angular 组件库:"${name}",可用库:${Object.keys(AngularCodeGeneratorBase.libraries).join(', ')}`);
+        throw new Error(`未知 Angular 组件库:"${name}",可用库:${Object.keys(AngularCodeGenerator.libraries).join(', ')}`);
       }
       resolved.push({ name, config });
     }
@@ -72,9 +72,9 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
         ? resolved
         : [
             {
-              name: AngularCodeGeneratorBase.defaultLibrary,
-              config: (AngularCodeGeneratorBase.libraries as Record<string, IAngularLibraryConfig | undefined>)[
-                AngularCodeGeneratorBase.defaultLibrary
+              name: AngularCodeGenerator.defaultLibrary,
+              config: (AngularCodeGenerator.libraries as Record<string, IAngularLibraryConfig | undefined>)[
+                AngularCodeGenerator.defaultLibrary
               ]!,
             },
           ];
@@ -103,13 +103,13 @@ export class AngularCodeGeneratorBase extends CodeGeneratorBase {
   static create(
     library?: AngularLibraryRef,
     options: IAngularCodeGeneratorOptions = {},
-  ): AngularCodeGeneratorBase {
-    return new AngularCodeGeneratorBase(library, options);
+  ): AngularCodeGenerator {
+    return new AngularCodeGenerator(library, options);
   }
 
   /** 默认(opentiny-ng)出码入口,对外保持唯一 API */
   static generateCode(params: ICodeGeneratorParams): Promise<ICodeGeneratorResult> {
-    return new AngularCodeGeneratorBase().generate(params);
+    return new AngularCodeGenerator().generate(params);
   }
 
   protected get voidElements(): string[] {

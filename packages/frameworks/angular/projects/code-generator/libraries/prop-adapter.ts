@@ -2,7 +2,7 @@ import type { ICodegenDescription } from '../types';
 
 /**
  * 组件库 prop 特判适配器上下文。
- * 参数与 AngularCodeGeneratorBase.processLibrarySpecificProp 对齐,
+ * 参数与 AngularCodeGenerator.processLibrarySpecificProp 对齐,
  * 并注入两个工具函数,让适配器与基类方法解耦、可独立测试。
  */
 export interface IAngularPropContext {

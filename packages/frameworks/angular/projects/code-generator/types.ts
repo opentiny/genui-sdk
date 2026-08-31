@@ -86,7 +86,7 @@ export interface IFrameworkCodeGenerator<TParams, TResult> {
 /**
  * Angular 组件库配置——组件库专属信息以纯配置/策略注入,而非子类覆盖。
  * 不同组件库（TinyNG、Angular Material、PrimeNG 等）各提供一份配置对象,
- * 注册到 AngularCodeGeneratorBase.libraries 类内注册表,由该类直接实例化。
+ * 注册到 AngularCodeGenerator.libraries 类内注册表,由该类直接实例化。
  */
 export interface IAngularLibraryConfig {
   /** 组件名 → HTML 标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' } */

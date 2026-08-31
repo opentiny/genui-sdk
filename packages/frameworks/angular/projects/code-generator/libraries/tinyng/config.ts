@@ -5,7 +5,7 @@ import { TINY_NG_PROP_ADAPTERS } from './prop-adapters';
 
 /**
  * TinyNG 组件库专属配置:映射表来自物料包推导(map.ts),prop 特判来自适配器列表(prop-adapters.ts)。
- * 组件库差异全部收敛为纯配置/策略,注册到 AngularCodeGeneratorBase.libraries 类内注册表(见 angular-code-generator-base.ts),
+ * 组件库差异全部收敛为纯配置/策略,注册到 AngularCodeGenerator.libraries 类内注册表(见 angular-code-generator.ts),
  */
 export const TINYNG_CONFIG: IAngularLibraryConfig = {
   componentSelector,
