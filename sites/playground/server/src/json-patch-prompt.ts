@@ -27,7 +27,7 @@ ${jsonPatchSchemaText}
 ## ID 规则
 
 - **唯一来源**：只用**当前** schema 里的组件 id；忽略历史消息中的 id。
-- **只有组件节点有 id**：带 \`componentName\`、在 \`children\` 树中的节点。\`props\` / \`state\` / 表格 \`data\` 等业务字段即使叫 \`id\` 也不是组件 id（如 \`props.data[].id\`），禁止用作 \`id\` / \`positionId\`。
+- **只有组件节点有 id**：当前 schema 的根组件，以及其 \`children\` 树中带 \`componentName\` 的节点。\`props\` / \`state\` / 表格 \`data\` 等业务字段即使叫 \`id\` 也不是组件 id（如 \`props.data[].id\`），禁止用作 \`id\` / \`positionId\`。
 - 通过 componentName、props 文案等匹配到目标**节点**，再用该节点真实 id。验证失败则输出 \`[]\`，不要猜。
 
 ## 各 op 的 id / path
@@ -35,7 +35,7 @@ ${jsonPatchSchemaText}
 | op | id | 其它 |
 |----|-----|------|
 | add | **path 相对的锚点**（插 \`children\` → 共同父；改/增 props → 节点自身） | \`path\` 相对 \`id\`；末段 \`/-\` 可表数组末尾；禁止祖先 id + \`/children/.../props\` |
-| remove | **目标**节点自身 | 可选：省略 \`path\` 表示删除整个节点；\`path\` 表示删除该节点下的指定属性/数组项 (如 \`/props/text\`、\`/children/0\`)|
+| remove | **目标**节点自身 | 可选：省略 \`path\` 表示删除整个节点；\`path\` 只用于删除该节点下的属性/业务数组项（如 \`/props/text\`、\`/props/items/0\`）；删除子组件必须用子组件自身 id 且省略 path |
 | replace | **属性所属**节点自身 | \`path\` 通常 \`/props/...\`；禁止经 \`/children\` 改子组件 |
 | move / copy | **源**节点 | \`positionId\` + \`position\`(before\|after\|inside)；\`id\` ≠ \`positionId\`。copy 整树复制，新 id 由运行时生成 |
 
@@ -47,10 +47,9 @@ ${jsonPatchSchemaText}
 ## 正反例
 
 \`\`\`
-# remove：删组件：用目标自身 id，或省略 path 删整个节点；提供 path 则删该节点下的指定属性/数组项
+# remove：删组件用目标自身 id 且省略 path；提供 path 只删除该节点下的属性/业务数组项
 ✅ {"op":"remove","id":"itemB"}
 ✅ {"op":"remove","id":"itemB","path":"/props/text"}
-✅ {"op":"remove","id":"itemB","path":"/children/0"}
 ❌ {"op":"remove","id":"parent","path":"/children/1"}
    // 错因：删除子组件应直接用该子组件自身 id 且省略 path；不要经父节点 /children/<下标>
 

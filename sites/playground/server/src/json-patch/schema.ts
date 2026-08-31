@@ -40,7 +40,8 @@ const relativeJsonPointerBaseSchema = z
   .regex(
     /^(?:\/(?:[^~/]|~[01])*)+$/,
     'Invalid relative JSON Pointer. Must start with "/" and use ~0, ~1 for escaping.',
-  );
+  )
+  .refine((pointer) => pointer !== '/', 'Root pointer "/" is not valid for a component-relative path.');
 
 /** add：相对锚点；允许末段 `/-` 表示数组末尾追加 */
 const relativeJsonPointerSchemaAdd = relativeJsonPointerBaseSchema
@@ -129,9 +130,13 @@ const removeOperation = z
     op: z.literal('remove'),
     id: z.string().min(1).describe('Component id of the target node.'),
     path: relativeJsonPointerSchemaExisting
+      .refine(
+        (path) => !/^\/children\/\d+$/.test(path),
+        'Remove a child component using the child node id without path, not a parent /children/<index> path.',
+      )
       .optional()
       .describe(
-        'Optional relative path. If omitted, removes the whole node; if provided, removes the value at the specified path (e.g. a prop).',
+        'Optional relative path. If omitted, removes the whole node; if provided, removes a non-component value such as a prop or business-data item.',
       ),
   })
   .strict()

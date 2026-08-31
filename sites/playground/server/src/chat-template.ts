@@ -28,6 +28,9 @@ function filterAllowedPlaygroundAgents(rawAgents: PlaygroundAgentConfig[] = []):
   const agents: PlaygroundAgentConfig[] = [];
 
   for (const agent of rawAgents) {
+    if (agent.enabled === false) {
+      continue;
+    }
     const url = resolveAgentApiUrl(agent);
     if (!url) {
       continue;
@@ -64,8 +67,10 @@ const getPlaygroundConfig = (playgroundStr: string) => {
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
-    agents: filterAllowedPlaygroundAgents(playgroundConfig.agents || []),
-    skills: playgroundConfig.skills || [],
+    agents: filterAllowedPlaygroundAgents(
+      Array.isArray(playgroundConfig.agents) ? playgroundConfig.agents : [],
+    ),
+    skills: Array.isArray(playgroundConfig.skills) ? playgroundConfig.skills : [],
     openApiTools: playgroundConfig.openApiTools || [],
     promptVariant: playgroundConfig.promptVariant,
   };
@@ -138,7 +143,11 @@ export const createChatTemplate = () => {
         seenToolNames.add(name);
       }
       if (duplicateToolNames.size) {
-        console.warn(`Duplicate tool names detected: ${[...duplicateToolNames].join(', ')}`);
+        console.error(`Duplicate tool names are not allowed: ${[...duplicateToolNames].join(', ')}`);
+        await Promise.allSettled([...clientsMap.values()].map((client) => client.close()));
+        res.write('data: [ERROR]\n\n');
+        res.end();
+        return;
       }
       const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools };
       const maxSteps = 30;

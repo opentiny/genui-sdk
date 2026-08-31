@@ -129,6 +129,57 @@ function regenerateCopiedNodeIds(templeSchema: any, item: IFormattedJsonPatchOpe
   return true;
 }
 
+function collectComponentIds(node: any, ids = new Set<string>()): Set<string> {
+  if (!node || typeof node !== 'object') {
+    return ids;
+  }
+  if (typeof node.id === 'string' && node.id) {
+    ids.add(node.id);
+  }
+  if (Array.isArray(node.children)) {
+    node.children.forEach((child: any) => collectComponentIds(child, ids));
+  }
+  return ids;
+}
+
+function hasInsertedNodeIdConflict(
+  templeSchema: any,
+  item: IFormattedJsonPatchOperation,
+  componentPath: string,
+): boolean {
+  const insertsChild = item.op === 'add' && /^\/children\/(?:\d+|-)$/.test(item.path ?? '');
+  const replacesNode = item.op === 'replace' && item.path === undefined;
+  if ((!insertsChild && !replacesNode) || !item.value || typeof item.value !== 'object') {
+    return false;
+  }
+
+  const reservedIds = collectComponentIds(templeSchema);
+  if (replacesNode) {
+    const replacedNode =
+      componentPath === '/' ? templeSchema : getComponentItem(templeSchema, componentPath).node;
+    collectComponentIds(replacedNode).forEach((id) => reservedIds.delete(id));
+  }
+
+  let hasConflict = false;
+  const inspectNode = (node: any): void => {
+    if (!node || typeof node !== 'object' || hasConflict) {
+      return;
+    }
+    if (typeof node.id === 'string' && node.id) {
+      if (reservedIds.has(node.id)) {
+        hasConflict = true;
+        return;
+      }
+      reservedIds.add(node.id);
+    }
+    if (Array.isArray(node.children)) {
+      node.children.forEach(inspectNode);
+    }
+  };
+  inspectNode(item.value);
+  return hasConflict;
+}
+
 export const formatJsonPatch = (
   currentSchema: any,
   value: any[],
@@ -142,6 +193,11 @@ export const formatJsonPatch = (
 
     if (!componentPath) {
       console.error(t('templateEditor.componentPathNotFound', { id: String(item.id ?? '') }));
+      return item;
+    }
+
+    if (hasInsertedNodeIdConflict(templeSchema, item, componentPath)) {
+      item.idToPath = null;
       return item;
     }
 

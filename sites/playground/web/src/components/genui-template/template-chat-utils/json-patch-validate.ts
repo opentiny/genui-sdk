@@ -23,6 +23,10 @@ function validateOperation(operation: any): boolean {
     return false;
   }
 
+  if (operation.op === 'remove' && /^\/children\/\d+$/.test(operation.path)) {
+    return false;
+  }
+
   if (
     operation.op === 'replace' &&
     operation.path === undefined &&
