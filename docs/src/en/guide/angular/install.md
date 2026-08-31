@@ -129,6 +129,12 @@ export class GenuiExample {
 }
 ```
 
+## Custom notify
+
+When a schema `JSFunction` fails to parse or throws at runtime, pass `notify` on `GenuiConfigProvider` to use your app's notification UI. If omitted, the built-in DOM toast is used.
+
+See the [GenuiConfigProvider documentation](../../components/angular/config-provider#notify) for details.
+
 ::: tip GenuiLegacyRenderer
 For drop-in compatibility without configuring materials, see [GenuiRenderer Legacy compatibility](../../components/angular/renderer#compatibility-component-genuilegacyrenderer).
 :::

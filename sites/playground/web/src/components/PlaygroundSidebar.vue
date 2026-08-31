@@ -2,18 +2,23 @@
 import { TinyTabs, TinyTabItem } from '@opentiny/vue';
 import { iconPlus } from '@opentiny/vue-icon';
 import { ref, watch, computed, inject, defineAsyncComponent, shallowRef } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import NewSvg from '../assets/images/new.svg?raw';
 import OpenSvg from '../assets/images/open.svg?raw';
 import CloseSvg from '../assets/images/close.svg?raw';
 import MenuSvg from '../assets/images/menu.svg?raw';
+import ModeChatSvg from '../assets/images/mode-chat.svg?raw';
+import ModeBuilderSvg from '../assets/images/mode-builder.svg?raw';
 import ModelConfig from './tab-components/ModelConfig.vue';
 import McpTools from './tab-components/mcpTools.vue';
 import GenuiHistory from './tab-components/GenuiHistory.vue';
 import LanguageSwitcher from './LanguageSwitcher.vue';
+import ModeSwitchSlider from './ModeSwitchSlider.vue';
 import { useIsMobile } from '../hooks';
 import useTemplate from './genui-template/useTemplate';
 import { MaterialsTab } from './materials-tab';
 import { t } from '../i18n';
+import { PlaygroundMode } from '../constants';
 
 const props = defineProps({
   expanded: { type: Boolean, default: true },
@@ -22,35 +27,67 @@ const props = defineProps({
 
 const emit = defineEmits(['update:expanded', 'new-task', 'update:theme', 'update-custom-examples']);
 
-const { isTemplateInit, switchTemplate, createTemplate } = useTemplate();
+const { switchTemplate, createTemplate } = useTemplate();
 
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
-// 条件异步加载 genui-template 组件，不启用时完全不导入，构建时不会被打包
 const GenuiTemplateList = ENABLE_TEMPLATE
   ? defineAsyncComponent(() => import('./genui-template/GenuiTemplateList.vue'))
   : shallowRef(null);
 // 从上层注入共享的 playground 上下文（framework / 会话等）
 const playgroundContext = inject('playgroundContext');
-const { conversation } = playgroundContext;
+const { conversation, framework, setFramework } = playgroundContext;
 
+const route = useRoute();
+const router = useRouter();
 const TinyIconPlus = iconPlus();
 const activeName = ref('model');
 
 const { isMobile } = useIsMobile();
+
+const currentMode = computed(() =>
+  route.name === PlaygroundMode.Builder ? PlaygroundMode.Builder : PlaygroundMode.Chat,
+);
 
 const currentConversationTitle = computed(() => {
   const current = conversation.value?.getCurrentConversation?.();
   return current?.title || t('sidebar.newConversation');
 });
 
-// 侧边栏宽度（使用样式中定义的 CSS 变量，避免重复）
 const sidebarWidth = computed(() => (props.expanded ? 'var(--config-tas-width)' : 'var(--config-tas-width-collapsed)'));
 
-const showNewTaskButton = computed(() => activeName.value !== 'template');
+const showNewTaskButton = computed(() => currentMode.value === PlaygroundMode.Chat);
+
+const showNewTemplateButton = computed(() => ENABLE_TEMPLATE && currentMode.value === PlaygroundMode.Builder);
+
+const modeOptions = computed(() => [
+  { value: PlaygroundMode.Chat, label: t('sidebar.modeChat'), icon: ModeChatSvg },
+  { value: PlaygroundMode.Builder, label: t('sidebar.modeBuilder'), icon: ModeBuilderSvg },
+]);
+
+watch(
+  currentMode,
+  (mode) => {
+    if (mode === PlaygroundMode.Chat && activeName.value === 'template') {
+      activeName.value = 'model';
+    }
+    if (mode === PlaygroundMode.Builder && activeName.value === 'history') {
+      activeName.value = ENABLE_TEMPLATE ? 'template' : 'model';
+    }
+    if (mode === PlaygroundMode.Builder && framework.value === 'Angular') {
+      setFramework('Vue');
+    }
+  },
+  { immediate: true },
+);
 
 watch(isMobile, (mobile) => {
   if (mobile) emit('update:expanded', false);
 });
+
+const switchMode = (mode) => {
+  if (route.name === mode) return;
+  router.push({ name: mode, query: route.query });
+};
 
 const handleOverlayClick = () => {
   if (isMobile.value) emit('update:expanded', false);
@@ -65,13 +102,17 @@ const handleNewTask = () => {
   if (isMobile.value) emit('update:expanded', false);
 };
 
+const handleNewTemplate = () => {
+  createTemplate();
+  if (isMobile.value) emit('update:expanded', false);
+};
+
 const handleCreateNewTemplate = (id) => {
-  activeName.value = 'template';
+  router.push({ name: PlaygroundMode.Builder, query: route.query });
   if (id) {
     switchTemplate(id);
     return;
   }
-
   createTemplate();
 };
 
@@ -96,11 +137,11 @@ const updateCustomExamples = (list) => {
         {{ currentConversationTitle }}
       </div>
       <button
-        v-if="showNewTaskButton"
+        v-if="showNewTaskButton || showNewTemplateButton"
         type="button"
         class="playground-topbar__icon-btn"
-        :aria-label="t('sidebar.newTask')"
-        @click="handleNewTask"
+        :aria-label="showNewTaskButton ? t('sidebar.newTask') : t('template.new')"
+        @click="showNewTaskButton ? handleNewTask() : handleNewTemplate()"
       >
         <span class="svg-icon" :innerHTML="NewSvg"></span>
       </button>
@@ -124,39 +165,59 @@ const updateCustomExamples = (list) => {
           <span v-if="expanded">GenUI</span>
         </div>
 
-        <div class="playground-sidebar__actions">
-          <div class="playground-sidebar__actions-inner">
+        <div class="playground-sidebar__header-right">
+          <div v-if="ENABLE_TEMPLATE && expanded" class="playground-sidebar__mode">
+            <ModeSwitchSlider
+              :model-value="currentMode"
+              :options="modeOptions"
+              @update:model-value="switchMode"
+            />
+          </div>
+
+          <div class="playground-sidebar__actions">
+            <div class="playground-sidebar__actions-inner">
+              <button
+                v-if="expanded"
+                type="button"
+                class="playground-sidebar__icon-btn"
+                :aria-label="isMobile ? t('sidebar.closeSidebar') : t('sidebar.collapseSidebar')"
+                :title="isMobile ? t('sidebar.close') : t('sidebar.collapseSidebar')"
+                @click="emit('update:expanded', false)"
+              >
+                <span class="svg-icon" :innerHTML="CloseSvg" />
+              </button>
+              <button
+                v-else
+                type="button"
+                class="playground-sidebar__icon-btn"
+                :aria-label="t('sidebar.expandSidebar')"
+                :title="t('sidebar.expand')"
+                @click="toggleExpanded"
+              >
+                <span class="svg-icon" :innerHTML="OpenSvg" />
+              </button>
+            </div>
             <button
-              v-if="expanded"
+              v-if="!expanded && !isMobile && showNewTaskButton"
               type="button"
               class="playground-sidebar__icon-btn"
-              :aria-label="isMobile ? t('sidebar.closeSidebar') : t('sidebar.collapseSidebar')"
-              :title="isMobile ? t('sidebar.close') : t('sidebar.collapseSidebar')"
-              @click="emit('update:expanded', false)"
+              :aria-label="t('sidebar.newTask')"
+              :title="t('sidebar.newTask')"
+              @click="handleNewTask"
             >
-              <span class="svg-icon" :innerHTML="CloseSvg" />
+              <span class="svg-icon" :innerHTML="NewSvg" />
             </button>
             <button
-              v-else
+              v-if="!expanded && !isMobile && showNewTemplateButton"
               type="button"
               class="playground-sidebar__icon-btn"
-              :aria-label="t('sidebar.expandSidebar')"
-              :title="t('sidebar.expand')"
-              @click="toggleExpanded"
+              :aria-label="t('template.new')"
+              :title="t('template.new')"
+              @click="handleNewTemplate"
             >
-              <span class="svg-icon" :innerHTML="OpenSvg" />
+              <span class="svg-icon" :innerHTML="NewSvg" />
             </button>
           </div>
-          <button
-            v-if="!expanded && !isMobile && showNewTaskButton"
-            type="button"
-            class="playground-sidebar__icon-btn"
-            :aria-label="t('sidebar.newTask')"
-            :title="t('sidebar.newTask')"
-            @click="handleNewTask"
-          >
-            <span class="svg-icon" :innerHTML="NewSvg" />
-          </button>
         </div>
       </header>
 
@@ -164,6 +225,14 @@ const updateCustomExamples = (list) => {
         <button v-if="expanded && showNewTaskButton" class="new-task-btn" type="button" @click="handleNewTask">
           <TinyIconPlus :size="16" />
           <span class="new-task-btn__text">{{ t('sidebar.newTask') }}</span>
+          <div class="new-task-btn__shortcut">
+            <span>Ctrl</span>
+            <span>K</span>
+          </div>
+        </button>
+        <button v-if="expanded && showNewTemplateButton" class="new-task-btn" type="button" @click="handleNewTemplate">
+          <TinyIconPlus :size="16" />
+          <span class="new-task-btn__text">{{ t('template.new') }}</span>
           <div class="new-task-btn__shortcut">
             <span>Ctrl</span>
             <span>K</span>
@@ -177,6 +246,9 @@ const updateCustomExamples = (list) => {
         v-model="activeName"
         v-show="expanded"
       >
+        <tiny-tab-item v-if="ENABLE_TEMPLATE && currentMode === PlaygroundMode.Builder" :title="t('sidebar.tabTemplate')" name="template">
+          <component v-if="GenuiTemplateList" :is="GenuiTemplateList" />
+        </tiny-tab-item>
         <tiny-tab-item :title="t('sidebar.tabModel')" name="model">
           <ModelConfig @createNewTemplate="handleCreateNewTemplate" @update-custom-examples="updateCustomExamples" />
         </tiny-tab-item>
@@ -184,13 +256,10 @@ const updateCustomExamples = (list) => {
           <McpTools />
         </tiny-tab-item>
         <tiny-tab-item :title="t('sidebar.tabMaterials')" name="theme">
-          <MaterialsTab :theme="theme" @update:theme="emit('update:theme', $event)" />
+          <MaterialsTab :theme="theme" :current-mode="currentMode" @update:theme="emit('update:theme', $event)" />
         </tiny-tab-item>
-        <tiny-tab-item :title="t('sidebar.tabHistory')" name="history" class="history-tab">
+        <tiny-tab-item v-if="currentMode === PlaygroundMode.Chat" :title="t('sidebar.tabHistory')" name="history" class="history-tab">
           <GenuiHistory v-if="conversation" :conversation="conversation" />
-        </tiny-tab-item>
-        <tiny-tab-item v-if="ENABLE_TEMPLATE && isTemplateInit" :title="t('sidebar.tabTemplate')" name="template">
-          <component v-if="GenuiTemplateList" :is="GenuiTemplateList" />
         </tiny-tab-item>
       </tiny-tabs>
 
@@ -204,7 +273,7 @@ const updateCustomExamples = (list) => {
 
     <!-- 主内容区 -->
     <div class="playground-sidebar__main">
-      <slot :activeName="activeName" />
+      <slot />
     </div>
   </div>
 </template>
@@ -249,7 +318,7 @@ const updateCustomExamples = (list) => {
   &__header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 12px;
     padding: 24px 24px 0;
 
     &--collapsed {
@@ -267,10 +336,25 @@ const updateCustomExamples = (list) => {
     font-size: 16px;
   }
 
+  &__header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__mode {
+    display: flex;
+    min-width: 0;
+    flex-shrink: 0;
+  }
+
   &__actions {
     display: flex;
     flex-direction: column;
     gap: 20px;
+    flex-shrink: 0;
 
     &-inner {
       display: flex;

@@ -1,10 +1,14 @@
 import type { ChatCompletionChunk } from "openai/resources/chat/completions";
 import type { ChatCompletionCreateParamsBase } from "openai/resources/chat/completions";
-import type { IGenPromptCustomConfig } from "@opentiny/genui-sdk-core";
+import type { IGenPromptCustomConfig, IMaterialsMeta } from "@opentiny/genui-sdk-core";
 
 export interface IGenPromptConfig extends IGenPromptCustomConfig {
   framework?: 'Vue' | 'Angular' | string;
   strategy?: 'append' | 'override' | 'prepend';
+}
+
+export interface IChatCompletionsConfig {
+  materialsMeta?: IMaterialsMeta;
 }
 
 declare global {
