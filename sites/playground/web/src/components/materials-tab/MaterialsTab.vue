@@ -1,6 +1,6 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
-import { inject, computed } from 'vue';
+import { inject, computed, watch } from 'vue';
 import { t } from '../../i18n';
 import { PlaygroundMode } from '../../constants';
 import {
@@ -46,6 +46,17 @@ const componentLibModel = computed({
   get: () => componentLib.value,
   set: (val) => setComponentLib(val),
 });
+
+// 切换组件库后，若当前主题不被新库支持，回退到默认主题，避免没有主题卡片被选中
+watch(
+  () => componentLib.value,
+  (lib) => {
+    const options = lib === 'ElementPlus' ? ELEMENT_PLUS_THEME_OPTIONS : MATERIAL_THEME_OPTIONS;
+    if (!options.some((item) => item.value === props.theme)) {
+      emit('update:theme', options[0].value);
+    }
+  },
+);
 
 const handleSetFramework = (name) => {
   setFramework(name);

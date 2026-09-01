@@ -11,7 +11,6 @@ import ThemeRoot from './ThemeRoot.vue';
 const themes: ThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
   { id: 'dark', colorScheme: 'dark' },
-  { id: 'lite', colorScheme: 'light' },
 ];
 
 function resolveDescriptor(
@@ -26,11 +25,11 @@ function resolveDescriptor(
   );
 }
 
-export function createTheme(): IMaterialsTheme {
-  // 框架渲染 Root 时不传 props，主题通过闭包 ref 传入，Root 类型保持不变避免子树重挂载
+export function themeFactory(): IMaterialsTheme {
+
   const theme = ref('light');
   const Root = defineComponent({
-    name: 'OpenTinyThemeRoot',
+    name: 'ElementPlusThemeRoot',
     inheritAttrs: false,
     setup(_, { attrs, slots }) {
       return () => h(ThemeRoot, { theme: theme.value, ...attrs }, slots);
@@ -45,7 +44,9 @@ export function createTheme(): IMaterialsTheme {
       return {
         descriptor,
         Root,
-        dispose: () => {},
+        dispose: () => {
+          theme.value = 'light';
+        },
       };
     },
   };

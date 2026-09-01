@@ -49,11 +49,11 @@ provide(GENUI_I18N, i18n);
 const { theme: mediaTheme } = useMediaTheme();
 
 const themeFactories = computed<MaterialsThemeFactory[]>(() => {
-  const createTheme = props.materials?.createTheme;
-  if (!createTheme) {
+  const themeFactory = props.materials?.themeFactory;
+  if (!themeFactory) {
     return [];
   }
-  return Array.isArray(createTheme) ? createTheme : [createTheme];
+  return Array.isArray(themeFactory) ? themeFactory : [themeFactory];
 });
 
 const themeInstances = new Map<MaterialsThemeFactory, IMaterialsTheme>();

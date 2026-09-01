@@ -1,7 +1,7 @@
 import type { IMaterials, MergedMaterials } from './materials';
 import type { MaterialsThemeFactory } from './materials-theme';
 
-const KNOWN_KEYS = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'createTheme'];
+const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory'];
 
 export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
@@ -22,12 +22,17 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     Object.assign(defaultPropsMap, src.defaultPropsMap ?? {});
-    if (src.createTheme && !seenThemes.has(src.createTheme)) {
-      seenThemes.add(src.createTheme);
-      themes.push(src.createTheme);
+    if (src.themeFactory) {
+      const factories = Array.isArray(src.themeFactory) ? src.themeFactory : [src.themeFactory];
+      for (const factory of factories) {
+        if (factory && !seenThemes.has(factory)) {
+          seenThemes.add(factory);
+          themes.push(factory);
+        }
+      }
     }
     for (const key of Object.keys(src)) {
-      if (!KNOWN_KEYS.includes(key)) {
+      if (!handleKeys.includes(key)) {
         extra[key] = (src as Record<string, unknown>)[key];
       }
     }
@@ -41,7 +46,7 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
   };
 
   if (themes.length > 0) {
-    merged.createTheme = themes;
+    merged.themeFactory = themes;
   }
 
   return merged;

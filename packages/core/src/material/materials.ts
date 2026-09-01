@@ -8,10 +8,10 @@ export interface IMaterials {
   components?: IMaterialsMap;
   requiredCompleteFieldSelectors?: string[];
   defaultPropsMap?: Record<string, any>;
-  createTheme?: MaterialsThemeFactory;
+  themeFactory?: MaterialsThemeFactory;
   [key: string]: any;
 }
 
-export type MergedMaterials = Omit<IMaterials, 'createTheme'> & {
-  createTheme?: MaterialsThemeFactory | MaterialsThemeFactory[];
+export type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
+  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
 };
