@@ -35,7 +35,7 @@ const GenuiTemplateList = ENABLE_TEMPLATE
   : shallowRef(null);
 // 从上层注入共享的 playground 上下文（framework / 会话等）
 const playgroundContext = inject('playgroundContext');
-const { conversation, framework } = playgroundContext;
+const { conversation, framework, setFramework } = playgroundContext;
 
 const route = useRoute();
 const router = useRouter();
@@ -74,7 +74,7 @@ watch(
       activeName.value = ENABLE_TEMPLATE ? 'template' : 'model';
     }
     if (mode === PlaygroundMode.Builder && framework.value === 'Angular') {
-      framework.value = 'Vue';
+      setFramework('Vue');
     }
   },
   { immediate: true },

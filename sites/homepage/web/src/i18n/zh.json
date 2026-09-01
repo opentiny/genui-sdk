@@ -54,6 +54,7 @@
     "title": "解锁更多玩法",
     "calculator": "计算器",
     "todoApp": "Todo应用",
+    "coinGame": "硬币博弈",
     "tryPlayground": "我也试试，进入 Playground",
     "replayControls": "回放控制",
     "pause": "暂停",
@@ -64,8 +65,10 @@
     "prompt": {
       "element": "生成一个计算器，不要用button，使用div，马卡龙配色，不要使用TinyLayout，要好看的",
       "page": "创建一个待办应用，界面要丰富，把想到的功能尽量加进去",
+      "coin": "生成一个硬币博弈模拟器：双方各有100元，对手连续抛N次硬币，只要至少一次正面向上则对手胜并赢走X元，否则你胜、对手赔你Y元，一直模拟到一方破产为止，用折线图实时展示双方资金变化",
       "elementBubble": "生成一个计算器，使用div，马卡龙配色，要好看的",
-      "pageBubble": "创建一个待办应用，界面要丰富，把想到的功能尽量加进去"
+      "pageBubble": "创建一个待办应用，界面要丰富，把想到的功能尽量加进去",
+      "coinBubble": "生成一个硬币博弈模拟器，双方各100元，模拟到一方破产"
     }
   },
   "guide": {
@@ -117,7 +120,7 @@
     }
   },
   "link": {
-    "title": "更多探索 构建器模式",
+    "title": "即刻体验OpenTiny生成式UI",
     "description": "增强大模型对话显示与交互，打造极致顺滑的智能体验",
     "descriptionLine1": "增强大模型对话显示与交互",
     "descriptionLine2": "打造极致顺滑的智能体验",

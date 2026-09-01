@@ -13,6 +13,7 @@ import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
+import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -35,6 +36,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
+    componentLib: resolveComponentLib(playgroundConfig.framework, playgroundConfig.componentLib),
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
@@ -80,7 +82,7 @@ export const createChatTemplate = () => {
       }
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
-      const { mcpServers, framework, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
+      const { mcpServers, framework, componentLib, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
@@ -97,7 +99,7 @@ export const createChatTemplate = () => {
       const openApiBuiltTools = await buildOpenApiTools(openApiTools);
       const tools = { ...openApiBuiltTools, ...mcpTools };
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig)}
+      const systemPrompt = `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;

@@ -1,7 +1,10 @@
 <script setup>
+import { computed } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
-import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as epMaterials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
+import { mergeMaterials } from '@opentiny/genui-sdk-core';
 import SchemaExportHeader from '../components/SchemaExportHeader.vue';
 import { locale, t } from '../i18n';
 import PlaygroundViewShell from './PlaygroundViewShell.vue';
@@ -17,8 +20,10 @@ const {
   modelFeatures,
   customFetch,
   customExamples,
-  chat,
+  chat
 } = usePlaygroundViewContext();
+
+const materials = mergeMaterials(tinyMaterials, epMaterials)
 
 const setChatRef = (el) => {
   if (el) chat.value = el;
