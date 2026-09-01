@@ -1,65 +1,39 @@
 import { z } from 'zod';
-import { genNodeSchema } from '@opentiny/genui-sdk-core';
 
 /**
- * 领域扩展形态：LLM 用 `id` 锚定组件节点，`path` 为相对该节点的 RFC 6901 Pointer；
- * 运行时再合成绝对 path，落到标准 RFC 6902。
+ * RFC 6901 JSON Pointer 校验
+ * 精确匹配：必须为空或以 / 开头，且 ~ 后面必须跟着 0 或 1
  */
+const jsonPointerBaseSchema = z
+  .string()
+  .regex(
+    /^(?:|(?:\/(?:[^~/]|~[01])*)+)$/,
+    'Invalid JSON Pointer format. Must start with "/" and use ~0, ~1 for escaping.',
+  );
 
-/** 解码 JSON Pointer 各段（处理 ~0 / ~1）；相对 path 校验不接受根 pointer `/`。 */
-function decodePointerSegments(pointer: string): string[] {
-  if (pointer === '') return [];
+/** 是否存在 "-" 引用 token（JSON Patch add 的数组末尾 sentinel；replace/copy/test 不允许） */
+function jsonPointerHasAppendSentinel(pointer: string): boolean {
+  if (pointer === '') return false;
   return pointer
     .slice(1)
     .split('/')
-    .map((segment) => segment.replace(/~1/g, '/').replace(/~0/g, '~'));
+    .some((segment) => segment.replace(/~1/g, '/').replace(/~0/g, '~') === '-');
 }
 
-/** 是否存在 "-" 引用 token（JSON Patch add 的数组末尾 sentinel） */
-function jsonPointerHasAppendSentinel(pointer: string): boolean {
-  return decodePointerSegments(pointer).some((segment) => segment === '-');
-}
+/** add 的 path：允许 `/-` 表示插入数组末尾 */
+const jsonPointerSchemaAdd = jsonPointerBaseSchema.describe(
+  "RFC 6901 Pointer (e.g., '/foo/0', '/a~1b'). Use '/-' as the last segment to append to an array.",
+);
 
-/** "-" 出现在非末段（对 add 非法） */
-function jsonPointerHasAppendSentinelNotOnlyAtEnd(pointer: string): boolean {
-  const segments = decodePointerSegments(pointer);
-  return segments.slice(0, -1).some((segment) => segment === '-');
-}
-
-/** 是否是向当前锚点 children 数组插入一个完整组件节点 */
-function isDirectChildrenInsertionPointer(pointer: string): boolean {
-  const segments = decodePointerSegments(pointer);
-  return segments.length === 2 && segments[0] === 'children' && (segments[1] === '-' || /^\d+$/.test(segments[1]));
-}
-
-/**
- * 相对 `id` 的 JSON Pointer：必须以 `/` 开头（不可为空；空 path 由「省略 path」表达，见 remove）
- */
-const relativeJsonPointerBaseSchema = z
-  .string()
-  .regex(
-    /^(?:\/(?:[^~/]|~[01])*)+$/,
-    'Invalid relative JSON Pointer. Must start with "/" and use ~0, ~1 for escaping.',
-  )
-  .refine((pointer) => pointer !== '/', 'Root pointer "/" is not valid for a component-relative path.');
-
-/** add：相对锚点；允许末段 `/-` 表示数组末尾追加 */
-const relativeJsonPointerSchemaAdd = relativeJsonPointerBaseSchema
-  .refine(
-    (s) => !jsonPointerHasAppendSentinelNotOnlyAtEnd(s),
-    'Invalid JSON Pointer: "-" (array append) is only valid as the last segment for op "add".',
-  )
-  .describe(
-    "Pointer relative to anchor component `id` (e.g. '/children/0', '/props/items/-'). Use '/-' as the last segment to append to an array. Do not traverse other components via '/children/.../props'.",
-  );
-
-/** replace：相对目标节点；必须指向已有位置，禁止 `-` */
-const relativeJsonPointerSchemaExisting = relativeJsonPointerBaseSchema
+/** replace/copy/test 的 path 与 copy 的 from：必须指向已有位置，禁止 `-` 索引 */
+const jsonPointerSchemaExisting = jsonPointerBaseSchema
   .refine(
     (s) => !jsonPointerHasAppendSentinel(s),
     'Invalid JSON Pointer: "-" (array append) is only valid for op "add". Use a numeric index or property name.',
   )
-  .describe("Pointer relative to component `id` (e.g. '/props/text'). Do not use '/-' — that is only for op 'add'.");
+  .describe(
+    "RFC 6901 Pointer to an existing value (e.g., '/foo/0', '/a~1b'). Do not use '/-' — that is only for op 'add'.",
+  );
 
 /**
  * 递归 JSON 值定义
@@ -70,176 +44,106 @@ const jsonPatchValueSchema: z.ZodType<JsonValue> = z.lazy(() =>
   z.union([literalSchema, z.array(jsonPatchValueSchema), z.record(jsonPatchValueSchema)]),
 );
 
-const directChildrenInsertionPointerSchema = z
-  .string()
-  .regex(
-    /^\/children\/(?:\d+|-)$/,
-    'Path must be /children/<index> or /children/- when adding a child component.',
-  )
-  .describe('Direct children insertion path: /children/<index> or /children/-.');
-
-const nonChildrenInsertionPointerSchema = relativeJsonPointerSchemaAdd
-  .refine(
-    (s) => !isDirectChildrenInsertionPointer(s),
-    'Use a complete component node value when adding to /children/<index> or /children/-.',
-  )
-  .describe('Relative path for adding a non-component value, such as /props/name or /props/items/-.');
-
-const addOperationBase = z.object({
-  op: z.literal('add'),
+/**
+ * JSON Patch 操作集：以 RFC 6902 为语法基础，并做 UI 组件树场景下的领域扩展。
+ * 每条操作均带非标准的 `id`（RFC 6902 未定义），用于定位当前 schema 中的目标组件；
+ * `move` 还使用 `positionId` / `position` 等与组件相对位置相关的语义。
+ * 增加 .describe() 以优化 LLM 的 Function Calling 或 JSON 生成表现。
+ */
+const baseOperationSchema = z.object({
   id: z
     .string()
     .min(1)
     .describe(
-      'Anchor component id: parent when inserting into /children; the node itself when adding under /props. `path` is relative to this node — do not use an ancestor id with /children/.../props.',
+      'Target component id in the current UI schema (domain extension; RFC 6902 operations do not include this field).',
     ),
 });
 
-/**
- * JSON Patch 操作集：RFC 6902 语法 + 组件 id 定位扩展。
- * copy 与 move 同形（整节点 + positionId/position）；不包含 test。
- */
-const createAddOperation = (componentNodeValueSchema: z.ZodTypeAny) => {
-  const addChildOperation = addOperationBase
-    .extend({
-      path: directChildrenInsertionPointerSchema,
-      value: componentNodeValueSchema.describe(
-        'Complete schema component node to insert. Must include componentName and id.',
-      ),
-    })
-    .strict()
-    .describe('Adds a complete component node into the anchor component children array.');
+const movePositionSchema = z
+  .enum(['before', 'after', 'inside'])
+  .describe('Relative insertion position to positionId.');
 
-  const addValueOperation = addOperationBase
-    .extend({
-      path: nonChildrenInsertionPointerSchema,
-      value: jsonPatchValueSchema.describe('The non-component value to add at the specified relative path.'),
-    })
-    .strict()
-    .describe('Adds a non-component value under the anchor component, such as props or data.');
+// 添加
+const addOperation = z
+  .object({
+    op: z.literal('add'),
+    path: jsonPointerSchemaAdd,
+    value: jsonPatchValueSchema.describe('The value to add at the specified path.'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Adds a value to an object or inserts it into an array.');
 
-  return z
-    .union([addChildOperation, addValueOperation])
-    .describe(
-      'Adds a value under the component identified by `id` (relative `path`). For child props, use the child node id + /props/..., not parent + /children/n/props.',
-    );
-};
-
+// 移除
 const removeOperation = z
   .object({
     op: z.literal('remove'),
-    id: z.string().min(1).describe('Component id of the target node.'),
-    path: relativeJsonPointerSchemaExisting
-      .refine(
-        (path) => !/^\/children\/\d+$/.test(path),
-        'Remove a child component using the child node id without path, not a parent /children/<index> path.',
-      )
-      .optional()
-      .describe(
-        'Optional relative path. If omitted, removes the whole node; if provided, removes a non-component value such as a prop or business-data item.',
-      ),
   })
+  .extend(baseOperationSchema.shape)
   .strict()
-  .describe('Removes the target component (no `path`) or a specific property/array item under it (with `path`).');
+  .describe('Removes the target component by id.');
 
-const replaceOperationBase = z.object({
-  op: z.literal('replace'),
-  id: z.string().min(1).describe('Component id of the target node.'),
-});
+// 替换
+const replaceOperation = z
+  .object({
+    op: z.literal('replace'),
+    path: jsonPointerSchemaExisting,
+    value: jsonPatchValueSchema.describe('The new value to replace the current one.'),
+  })
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Replaces the value at the target location with a new value.');
 
-const createReplaceOperation = (componentNodeValueSchema: z.ZodTypeAny) => {
-  const replaceNodeOperation = replaceOperationBase
-    .extend({
-      value: componentNodeValueSchema.describe(
-        'Complete schema component node used to replace the target node. Must include componentName and id.',
-      ),
-    })
-    .strict()
-    .describe('Replaces the whole target component node. Do not include `path`.');
-
-  const replaceValueOperation = replaceOperationBase
-    .extend({
-      path: relativeJsonPointerSchemaExisting.describe(
-        'Relative path to an existing value under the target component, such as /props/text.',
-      ),
-      value: jsonPatchValueSchema.describe('The new non-component value.'),
-    })
-    .strict()
-    .describe('Replaces a specific property, array item, or other value under the target component.');
-
-  return z
-    .union([replaceNodeOperation, replaceValueOperation])
-    .describe('Replaces the target node (no `path`) or a specific property/array item under it (with `path`).');
-};
-
-const movePositionSchema = z.enum(['before', 'after', 'inside']).describe('Relative insertion position to positionId.');
-
+// 移动
 const moveOperation = z
   .object({
     op: z.literal('move'),
-    id: z.string().min(1).describe('Component id of the node being moved (source).'),
-    positionId: z
-      .string()
-      .min(1)
-      .describe('Anchor component id used as move destination reference (must differ from `id`).'),
+    positionId: z.string().min(1).describe('Anchor component id used as move destination reference.'),
     position: movePositionSchema,
   })
+  .extend(baseOperationSchema.shape)
   .strict()
-  .refine((operation) => operation.id !== operation.positionId, {
-    message: '`id` and `positionId` must differ for move.',
-    path: ['positionId'],
-  })
-  .describe(
-    'Moves component `id` relative to `positionId` by `position`. Runtime derives standard from/path; do not send from/path.',
-  );
+  .describe("Moves component `id` relative to `positionId` by `position`.");
 
+// 复制
 const copyOperation = z
   .object({
     op: z.literal('copy'),
-    id: z.string().min(1).describe('Component id of the node being copied (whole subtree).'),
-    positionId: z
-      .string()
-      .min(1)
-      .describe('Anchor component id used as copy destination reference (must differ from `id`).'),
-    position: movePositionSchema,
+    from: jsonPointerSchemaExisting.describe('Reference to the location to copy the value from.'),
+    path: jsonPointerSchemaExisting.describe('The destination path.'),
   })
+  .extend(baseOperationSchema.shape)
   .strict()
-  .refine((operation) => operation.id !== operation.positionId, {
-    message: '`id` and `positionId` must differ for copy.',
-    path: ['positionId'],
+  .describe("Copies a value from 'from' to 'path'.");
+
+// 测试
+const testOperation = z
+  .object({
+    op: z.literal('test'),
+    path: jsonPointerSchemaExisting,
+    value: jsonPatchValueSchema.describe('The value to compare against.'),
   })
-  .describe(
-    'Copies component `id` relative to `positionId` by `position` (same positioning as move). Runtime derives standard from/path and regenerates ids on the clone; do not send from/path.',
-  );
+  .extend(baseOperationSchema.shape)
+  .strict()
+  .describe('Tests that a value at the target location is equal to a specified value.');
 
 /**
- * 最终导出的「JSON Patch 风格」操作 Schema（RFC 6902 基础 + 组件定向扩展）。
- * 只接收组件白名单，不依赖 playground 配置，便于后续移动到 core 包。
+ * 最终导出的「JSON Patch 风格」操作 Schema（RFC 6902 基础 + 组件定向扩展）
  */
-export const genJsonPatchOperationSchema = (componentWhiteList?: string[]) => {
-  const componentNodeValueSchema = genNodeSchema(componentWhiteList)
-    .and(z.object({ id: z.string().min(1).describe('Required component id for patch targeting.') }))
-    .describe('Complete component node value. Used when adding to /children/<index|-> or replacing a whole node.');
+export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
+  addOperation,
+  removeOperation,
+  replaceOperation,
+  moveOperation,
+  copyOperation,
+  testOperation,
+]);
 
-  return z.union([
-    createAddOperation(componentNodeValueSchema),
-    removeOperation,
-    createReplaceOperation(componentNodeValueSchema),
-    moveOperation,
-    copyOperation,
-  ]);
-};
-
-export const genJsonPatchSchema = (componentWhiteList?: string[]) =>
-  z
-    .array(genJsonPatchOperationSchema(componentWhiteList))
-    .describe(
-      'JSON Patch–style operations (RFC 6902 + component `id` targeting). Each op uses `id` (and move/copy positioning); runtime expands to absolute paths. Applied in order.',
-    );
-
-export const jsonPatchOperationSchema = genJsonPatchOperationSchema();
-
-export const jsonPatchSchema = genJsonPatchSchema();
+export const jsonPatchSchema = z
+  .array(jsonPatchOperationSchema)
+  .describe(
+    'JSON Patch–style operations (based on RFC 6902), extended with component targeting (`id`, and move positioning) for UI schema manipulation; applied in order.',
+  );
 
 export type JsonPatchOperation = z.infer<typeof jsonPatchOperationSchema>;
 export type JsonPatch = z.infer<typeof jsonPatchSchema>;
