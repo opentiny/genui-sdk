@@ -265,6 +265,20 @@ const parseObjectData = (data: any, scope: any, ctx: any) => {
     );
   }
 
+  const refValue = propsEntries.find(
+    ([key, value]: [string, any]) => key === 'ref' && value?.type === JS_EXPRESSION,
+  );
+  if (refValue) {
+    res['ref'] = parseData(
+      {
+        type: JS_FUNCTION,
+        value: `(instance) => ${(refValue[1] as any).value}=instance`,
+      },
+      scope,
+      ctx,
+    );
+  }
+
   return res;
 };
 
