@@ -74,7 +74,7 @@ v1.3.0 起物料与核心解耦；从更早版本升级且希望零配置迁移�
 
 **问题**: UI 在流式传输期间不更新
 
-**解决方案**（按 pipeline 顺序排查）:
+**解决方案**（按处理流程顺序排查）:
 1. 后端是否返回 OpenAI 兼容 SSE（`data:` 行、请求体 `stream: true`）
 2. 应用是否**先**解析 SSE 帧并提取 `delta.content`（而非直接把原始字节传给 `PatternExtractor`）
 3. 是否对每个 text delta 调用 `PatternExtractor.handleContent`

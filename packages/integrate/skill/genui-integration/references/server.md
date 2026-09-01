@@ -1,13 +1,13 @@
 # Server 集成指南
 
-本指南涵盖 集成 `@opentiny/genui-sdk-server` 用于后端服务 that proxy LLM calls with OpenAI-compatible HTTP interfaces.
+本指南说明如何集成 `@opentiny/genui-sdk-server`，用于代理 LLM 调用并提供 OpenAI 兼容的 HTTP 接口。
 
 ## 概述
 
 GenUI SDK Server 提供:
 - OpenAI 兼容的 HTTP API
 - 流式响应支持（服务器发送事件）
-- Mul提示le AI service provider support
+- 支持多个 AI 服务提供商
 - 易于集成到现有 Express 应用
 
 ## 安装
@@ -67,9 +67,9 @@ API_KEY=your-api-key-here
 PORT=3100
 ```
 
-- `BASE_URL`: 你的 LLM 提供商的基础 URL (OpenAI, DeepSeek, etc.)
+- `BASE_URL`: 你的 LLM 提供商的基础 URL（OpenAI、DeepSeek 等）
 - `API_KEY`: 你的认证 API 密钥
-- `PORT`: 服务器的端口号 (默认: 3100)
+- `PORT`: 服务器的端口号（默认: 3100）
 
 > `model` 不在服务端 `.env` 中配置：服务器仅透传请求，`model` 由请求发起端在请求体中传入，须与 `BASE_URL` 对应提供商实际提供的模型名一致（如 `gpt-4`、`deepseek-v3.2`），否则上游会返回模型不存在的错误。
 
@@ -215,7 +215,7 @@ data: [DONE]
 
 ## tinygenui 配置
 
-The `metadata.tinygenui` field (JSON string) 启用 GenUI 特定功能以增强 LLM 生成质量.
+`metadata.tinygenui` 字段（JSON 字符串）用于启用 GenUI 特定能力，以提升 LLM 生成质量。
 
 ### 配置 结构
 
@@ -348,7 +348,7 @@ const customActions = [
         },
         target: {
           type: 'string',
-          description: '打开方式: _self (当前窗口) or _blank (新窗口)',
+          description: '打开方式：_self（当前窗口）或 _blank（新窗口）',
         },
       },
       required: ['url', 'target'],
@@ -545,7 +545,7 @@ CMD ["npx", "genui-sdk-server"]
 
 **解决方案**: 
 1. 使用不同的端口: `npx genui-sdk-server --port 3001`
-2. Or increase `maxAttempts` to try mul提示le ports
+2. 或增大 `maxAttempts`，以尝试多个端口
 
 ### API 密钥不工作
 
@@ -561,7 +561,7 @@ CMD ["npx", "genui-sdk-server"]
 **问题**: 浏览器因 CORS 错误阻止请求
 
 **解决方案**:
-1. 添加 CORS 中间件并配置显式 allowed origins（见上文 CORS 配置示例）
+1. 添加 CORS 中间件并配置显式 Origin 白名单（见上文 CORS 配置示例）
 2. 生产环境确认 `ALLOWED_ORIGINS` 包含前端域名，且浏览器请求的 `Origin` 在白名单中
 3. 开发环境 `localhost` / `127.0.0.1` 任意端口自动放行，勿使用无选项 `cors()`
 
@@ -578,5 +578,5 @@ CMD ["npx", "genui-sdk-server"]
 
 - 设置 [Vue 前端](./vue.md) 来连接到你的服务器
 - 设置 [Angular 前端](./angular.md) 来连接到你的服务器
-- 配置 [自定义组件](../examples/renderer/custom-components.md) 用于 specialized UI
+- 配置 [自定义组件](../examples/renderer/custom-components.md) 用于定制化 UI
 - 实现 [自定义动作](../examples/renderer/custom-actions.md) 用于交互功能
