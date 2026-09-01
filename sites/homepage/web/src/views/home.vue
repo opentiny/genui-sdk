@@ -68,7 +68,7 @@ const buttonSize = computed(() => {
           <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
             <tiny-button :reset-time="0" round type="primary" :size="buttonSize">{{ t('hero.devDoc') }}</tiny-button>
           </a>
-          <a v-if="linkMap[LinkKey.Playground]" v-bind="$attrs" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
+          <a v-if="linkMap[LinkKey.Playground]" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
             <tiny-button :reset-time="0" round ghost :size="buttonSize">{{ t('hero.playground') }}</tiny-button>
           </a>
           <a href="https://github.com/opentiny/genui-sdk" target="_blank" rel="noopener noreferrer" class="btn-link">
