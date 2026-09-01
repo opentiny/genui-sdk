@@ -2355,6 +2355,27 @@
                       "zh_CN": "表单验证规则"
                     },
                     "labelPosition": "top"
+                  },
+                  {
+                    "property": "validateOnRuleChange",
+                    "label": {
+                      "text": {
+                        "zh_CN": "校验规则变化时触发校验"
+                      }
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {}
+                    },
+                    "description": {
+                      "zh_CN": "校验规则变化时触发校验"
+                    },
+                    "labelPosition": "top",
+                    "defaultValue": false
                   }
                 ],
                 "description": {
@@ -3284,6 +3305,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "I18nConfigurator",
@@ -3722,6 +3744,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -3918,6 +3941,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "description": {
                       "zh_CN": "单选框组的绑定值"
                     }
@@ -4121,6 +4145,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -4544,6 +4569,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": false,
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -4718,6 +4744,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -4985,6 +5012,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": false,
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -5238,6 +5266,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": false,
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -5420,6 +5449,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": [],
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -7832,6 +7862,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "InputConfigurator",
@@ -9472,6 +9503,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": "",
                     "cols": 12,
                     "widget": {
                       "component": "I18nConfigurator",
@@ -10304,6 +10336,7 @@
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
+                    "defaultValue": [],
                     "widget": {
                       "component": "I18nConfigurator",
                       "props": {}
@@ -10526,7 +10559,7 @@
           }
         },
         {
-          "version": "3.28.0",
+          "version": "3.31.0",
           "icon": "autocomplete",
           "name": {
             "zh_CN": "自动完成"
@@ -10709,7 +10742,7 @@
           }
         },
         {
-          "version": "3.28.0",
+          "version": "3.31.0",
           "icon": "cascader",
           "name": {
             "zh_CN": "级联选择器"
@@ -10934,7 +10967,7 @@
           }
         },
         {
-          "version": "3.28.0",
+          "version": "3.31.0",
           "icon": "colorpicker",
           "name": {
             "zh_CN": "颜色选择器"
@@ -11094,7 +11127,7 @@
           }
         },
         {
-          "version": "3.28.0",
+          "version": "3.31.0",
           "icon": "ipaddress",
           "name": {
             "zh_CN": "IP 地址输入框"
@@ -11235,7 +11268,7 @@
           }
         },
         {
-          "version": "3.28.0",
+          "version": "3.31.0",
           "icon": "steps",
           "name": {
             "zh_CN": "步骤条"
@@ -12858,10 +12891,10 @@
         {
           "name": "TinyVue组件库",
           "package": "@opentiny/vue",
-          "version": "3.28.0",
+          "version": "3.31.0",
           "destructuring": true,
-          "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/~3.28/files/dist3/tiny-vue-pc.mjs",
-          "css": "https://registry.npmmirror.com/@opentiny/vue-theme/~3.28/files/index.css"
+          "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/~3.31/files/dist3/tiny-vue-pc.mjs",
+          "css": "https://registry.npmmirror.com/@opentiny/vue-theme/~3.31/files/index.css"
         },
         {
           "name": "element-plus组件库",

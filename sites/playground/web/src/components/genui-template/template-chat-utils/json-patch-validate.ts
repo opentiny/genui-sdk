@@ -1,11 +1,8 @@
 interface IJsonPatchOperation {
-  op: 'add' | 'remove' | 'replace' | 'move' | 'copy';
-  path?: string;
+  op: 'add' | 'remove' | 'replace' | 'move' | 'copy' | 'test';
+  path: string;
   value?: any;
   from?: string;
-  id?: string;
-  positionId?: string;
-  position?: 'before' | 'after' | 'inside';
   [key: string]: any;
 }
 
@@ -14,32 +11,8 @@ function validateOperation(operation: any): boolean {
     return false;
   }
 
-  const validOps = ['add', 'remove', 'replace', 'move', 'copy'];
+  const validOps = ['add', 'remove', 'replace', 'move', 'copy', 'test'];
   if (!operation.op || !validOps.includes(operation.op)) {
-    return false;
-  }
-
-  if ((operation.op === 'move' || operation.op === 'copy') && operation.id === operation.positionId) {
-    return false;
-  }
-
-  if (operation.op === 'remove' && /^\/children\/\d+$/.test(operation.path)) {
-    return false;
-  }
-
-  if (
-    operation.op === 'replace' &&
-    operation.path === undefined &&
-    (
-      !operation.value ||
-      typeof operation.value !== 'object' ||
-      Array.isArray(operation.value) ||
-      typeof operation.value.componentName !== 'string' ||
-      operation.value.componentName.length === 0 ||
-      typeof operation.value.id !== 'string' ||
-      operation.value.id.length === 0
-    )
-  ) {
     return false;
   }
 
