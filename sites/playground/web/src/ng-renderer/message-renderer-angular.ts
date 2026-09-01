@@ -25,16 +25,17 @@ export function getMessageRendererAngular(instance: InstanceType<typeof GenuiCha
     const props = instance.getProps();
     const { continueChatAction, saveStateAction } = instance;
     const cardId = schemaCardProps.id;
+    const customActions = {
+      continueChat: bindCardIdToAction(continueChatAction, cardId),
+      saveState: bindCardIdToAction(saveStateAction, cardId),
+    };
     return h(
       'div',
       h(GenuiRendererNg, {
         ...schemaCardProps,
         requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
         generating: instance.lastSchemaCardId === schemaCardProps.id ? instance.generating : false,
-        customActions: {
-          continueChat: bindCardIdToAction(continueChatAction, cardId),
-          saveState: bindCardIdToAction(saveStateAction, cardId),
-        },
+        customActions,
         key: schemaCardProps.id,
       }),
     );
