@@ -188,18 +188,17 @@ ${jsonPatchSchemaText}
 
 ## ⚠️ 核心规则（必须严格遵守）
 
-### 1. 验证步骤（必须严格执行）
+### 1. 定位目标
 
-**在生成任何操作前，必须先完成验证：**
 - 通过内容匹配（componentName、props.text 等）找到目标组件本身的 id
-- 验证 id 在 schema 中存在且匹配预期
-- 验证路径在组件内部有效
-- **验证失败则输出空数组 \`[]\`，不要猜测**
+- 确认 id 在当前 schema 中存在且匹配预期
+- 属性操作的 path 必须是该组件内部的相对路径
 
 ### 2. 组件 id 规则（基于 RFC 6902 扩展）
 
-**remove/replace 操作：必须使用目标组件本身的 id，禁止使用父组件 id + path**
+**remove/replace 操作：必须使用目标组件本身的 id。删/换整组件省略 path；改组件内属性用相对 path。禁止用父组件 id + \`/children/n\` 点名子组件**
 - ✅ 正确：删除 children[1] → 找到 children[1] 本身的 id，使用 \`{ "op": "remove", "id": "child123" }\`
+- ✅ 正确：修改属性 → \`{ "op": "replace", "id": "deep123", "path": "/props/text", "value": "新文本" }\`
 - ❌ 禁止：\`{ "op": "remove", "id": "parent123", "path": "/children/1" }\`
 
 **add 操作：使用父组件 id + path 指定位置**
@@ -236,22 +235,16 @@ ${jsonPatchSchemaText}
 初始状态：children = [A(id:1), B(id:2), C(id:3), D(id:4)]
 需要删除：children[1] (B) 和 children[3] (D)
 
-❌ 错误方式（使用初始路径）：
+❌ 错误方式（用父组件 id + /children/n 点名子组件）：
 [
-  {"op": "remove", "id": "comp123", "path": "/children/1"},  // 删除 B
-  {"op": "remove", "id": "comp123", "path": "/children/3"}   // 错误！删除 B 后，D 的索引变成 2
+  {"op": "remove", "id": "comp123", "path": "/children/1"},
+  {"op": "remove", "id": "comp123", "path": "/children/3"}
 ]
 
-✅ 正确方式（基于前面操作应用后的状态）：
+✅ 正确方式（用目标组件本身的 id，省略 path）：
 [
-  {"op": "remove", "id": "comp123", "path": "/children/1"},  // 删除 B，此时 children = [A, C, D]
-  {"op": "remove", "id": "comp123", "path": "/children/2"}   // 基于新状态，D 的索引是 2
-]
-
-✅ 更好的方式（从后往前删除，避免索引变化）：
-[
-  {"op": "remove", "id": "comp123", "path": "/children/3"},  // 删除 D
-  {"op": "remove", "id": "comp123", "path": "/children/1"}   // 删除 B（索引不变）
+  {"op": "remove", "id": "2"},
+  {"op": "remove", "id": "4"}
 ]
 
 move 示例（相对位置语义）：
@@ -294,9 +287,9 @@ move 示例（相对位置语义）：
 \`\`\`
 
 **记住：**
-1. 先验证组件 id，再验证相对路径，最后生成操作
+1. 用当前 schema 中的组件 id；属性 path 相对该组件
 2. **路径必须基于前面操作已应用后的状态，不能使用初始 schema 的路径**
-3. 每个操作前都要模拟前面所有操作的应用，验证路径在当时的 schema 状态下有效
+3. 每个操作前都要模拟前面所有操作的应用，确认路径在当时的 schema 状态下有效
 4. 最后生成的 jsonPatch 应用后的 json 必须符合 schemaJSON 的格式
 `;
 
