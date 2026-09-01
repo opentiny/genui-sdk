@@ -1,0 +1,135 @@
+{
+    "componentName": "Page",
+    "state": {
+      "list": ["第一项", "第二项", "第三项"]
+    },
+    "methods": {
+      "focusInput": {
+        "type": "JSFunction",
+        "value": "function focusInput() { this.refs.myInput.nativeElement.focus() }"
+      },
+      "logLoopRefs": {
+        "type": "JSFunction",
+        "value": "function logLoopRefs() { this.refs.loopInputs.forEach(function (el, i) { console.log('loopInputs[' + i + '] =', el, 'value =', el.value) }) }"
+      }
+    },
+    "refs": {
+      "myInput": null,
+      "loopInputs": []
+    },
+    "children": [
+      {
+        "componentName": "div",
+        "props": {
+          "style": "max-width: 640px; margin: 20px auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; font-family: sans-serif;"
+        },
+        "children": [
+          {
+            "componentName": "h3",
+            "children": "把实例绑定到 this.refs"
+          },
+          {
+            "componentName": "div",
+            "props": {
+              "style": "margin-bottom: 16px;"
+            },
+            "children": [
+              {
+                "componentName": "TiText",
+                "props": {
+                  "ref": {
+                    "type": "JSExpression",
+                    "value": "this.refs.myInput"
+                  },
+                  "placeholder": "在这里输入点什么"
+                }
+              },
+              {
+                "componentName": "TiButton",
+                "props": {
+                  "color": "primary",
+                  "onClick": {
+                    "type": "JSExpression",
+                    "value": "this.focusInput"
+                  }
+                },
+                "children": "聚焦输入框"
+              }
+            ]
+          },
+          {
+            "componentName": "h3",
+            "children": "循环中的 ref：this.refs.xxx[loopIndex]"
+          },
+          {
+            "componentName": "div",
+            "props": {
+              "style": "margin-bottom: 16px;"
+            },
+            "children": [
+              {
+                "componentName": "input",
+                "loop": {
+                  "type": "JSExpression",
+                  "value": "this.state.list"
+                },
+                "loopArgs": ["item", "index"],
+                "props": {
+                  "ref": {
+                    "type": "JSExpression",
+                    "value": "this.refs.loopInputs[index]"
+                  },
+                  "placeholder": {
+                    "type": "JSExpression",
+                    "value": "item + '(index=' + index + ')'"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "componentName": "TiButton",
+            "props": {
+              "color": "primary",
+              "style": "margin-bottom: 16px;",
+              "onClick": {
+                "type": "JSExpression",
+                "value": "this.logLoopRefs"
+              }
+            },
+            "children": "读取所有循环 ref"
+          },
+          {
+            "componentName": "h3",
+            "children": "refName：模板局部引用（类似 #name）"
+          },
+          {
+            "componentName": "div",
+            "props": {
+              "style": "margin-bottom: 16px;"
+            },
+            "children": [
+              {
+                "componentName": "input",
+                "props": {
+                  "refName": "localInput",
+                  "placeholder": "refName=localInput 的输入框"
+                }
+              },
+              {
+                "componentName": "TiButton",
+                "props": {
+                  "color": "primary",
+                  "onClick": {
+                    "type": "JSFunction",
+                    "value": "function() { console.log('refName localInput =', localInput, 'value =', localInput.value) }"
+                  }
+                },
+                "children": "读取 refName"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
