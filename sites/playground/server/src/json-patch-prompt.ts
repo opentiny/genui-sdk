@@ -23,7 +23,7 @@ function jsonPointerHasAppendSentinel(pointer: string): boolean {
 
 /** add 的 path：允许 `/-` 表示插入数组末尾 */
 const jsonPointerSchemaAdd = jsonPointerBaseSchema.describe(
-  "RFC 6901 Pointer (e.g., '/foo/0', '/a~1b'). Use '/-' as the last segment to append to an array.",
+  "JSON Pointer relative to id (e.g., '/props/text', '/children/0'). Use '/-' as the last segment to append to an array.",
 );
 
 /** replace/copy/test 的 path 与 copy 的 from：必须指向已有位置，禁止 `-` 索引 */
@@ -33,7 +33,7 @@ const jsonPointerSchemaExisting = jsonPointerBaseSchema
     'Invalid JSON Pointer: "-" (array append) is only valid for op "add". Use a numeric index or property name.',
   )
   .describe(
-    "RFC 6901 Pointer to an existing value (e.g., '/foo/0', '/a~1b'). Do not use '/-' — that is only for op 'add'.",
+    "JSON Pointer relative to id to an existing location (e.g., '/props/text', '/children/0'). Do not use '/-' — that is only for op 'add'.",
   );
 
 /**
@@ -72,21 +72,34 @@ const addOperation = z
 const removeOperation = z
   .object({
     op: z.literal('remove'),
+    path: jsonPointerSchemaExisting
+      .optional()
+      .describe(
+        'JSON Pointer relative to id. Empty or omitted names the component itself.',
+      ),
   })
   .extend(baseOperationSchema.shape)
   .strict()
-  .describe('Removes the target component by id.');
+  .describe(
+    'Removes the location identified by id and path. Omit path to remove the component itself.',
+  );
 
 // 替换
 const replaceOperation = z
   .object({
     op: z.literal('replace'),
-    path: jsonPointerSchemaExisting,
+    path: jsonPointerSchemaExisting
+      .optional()
+      .describe(
+        'JSON Pointer relative to id. Empty or omitted names the component itself.',
+      ),
     value: jsonPatchValueSchema.describe('The new value to replace the current one.'),
   })
   .extend(baseOperationSchema.shape)
   .strict()
-  .describe('Replaces the value at the target location with a new value.');
+  .describe(
+    'Replaces the location identified by id and path with `value`. Omit path to replace the component itself.',
+  );
 
 // 移动
 const moveOperation = z
@@ -108,7 +121,7 @@ const copyOperation = z
   })
   .extend(baseOperationSchema.shape)
   .strict()
-  .describe("Copies a value from 'from' to 'path'.");
+  .describe("Copies the value at `from` to `path`, both relative to `id`.");
 
 // 测试
 const testOperation = z
@@ -135,7 +148,9 @@ export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
 
 export const jsonPatchSchema = z
   .array(jsonPatchOperationSchema)
-  .describe('An array of JSON Patch operations (RFC 6902) to be applied in order.');
+  .describe(
+    'JSON Patch operations applied in order. `id` only makes `path` / `from` relative to a component; it does not change the operation meaning.',
+  );
 
 export type JsonPatchOperation = z.infer<typeof jsonPatchOperationSchema>;
 export type JsonPatch = z.infer<typeof jsonPatchSchema>;
@@ -172,28 +187,6 @@ ${jsonPatchSchemaText}
 - 不要假设历史消息中的 ID 仍然有效
 
 ## ⚠️ 核心规则（必须严格遵守）
-
-### 0. 验证优先策略（VF - Verification-First）
-
-**采用"先验证，再生成"的两阶段方法：**
-
-**阶段一：生成候选操作并验证**
-1. 基于初始理解，快速生成一个候选的 JSON PATCH 操作序列（可以是初步的或简化的）
-2. **严格验证候选操作**：
-   - 验证每个操作的组件 id 是否正确（通过内容匹配）
-   - 验证每个操作的路径是否有效（基于当时的 schema 状态）
-   - 验证路径变化是否正确（考虑前面操作的影响）
-   - 识别所有潜在问题（id 错误、路径错误、索引错误等）
-
-**阶段二：基于验证结果生成最终操作**
-1. 根据验证阶段发现的问题，修正候选操作
-2. 重新计算路径（考虑前面操作的影响）
-3. 生成最终的正确操作序列
-
-**验证优先的好处：**
-- 通过"逆向推理"（验证候选答案）激发批判性思维
-- 提前发现并修正错误，减少逻辑错误率
-- 即使候选操作不完美，验证过程也能帮助生成更准确的最终答案
 
 ### 1. 验证步骤（必须严格执行）
 
@@ -237,17 +230,6 @@ ${jsonPatchSchemaText}
 **路径变化规则：**
 - remove：删除索引 N 后，后续索引自动减 1
 - add：在索引 N 插入后，原索引 >= N 的元素索引加 1
-
-**必须按顺序计算并验证（应用 VF 策略）：**
-1. **生成候选路径**：基于当前理解，为每个操作生成候选路径
-2. **验证候选路径**：对每个候选路径，验证其在当时的 schema 状态下是否有效
-3. **修正路径**：根据验证结果修正错误的路径
-4. **最终验证**：确保所有路径在最终序列中都是正确的
-
-**具体步骤：**
-- **第一个操作**：生成候选路径 → 基于初始 schema 验证 → 修正并确认
-- **第二个操作**：模拟第一个操作已应用 → 生成候选路径 → 基于新状态验证 → 修正并确认
-- **后续操作**：依次模拟前面所有操作已应用 → 生成候选路径 → 基于累积状态验证 → 修正并确认
 
 **示例：**
 \`\`\`
@@ -294,31 +276,6 @@ move 示例（相对位置语义）：
 - \`move\` 操作使用 \`positionId + position(before/after/inside)\`，不使用 \`from/path\`
 - 组件编辑语义（id、positionId、position 等）必须同时满足本提示词上文的业务规则
 
-## 验证检查清单（VF 两阶段流程）
-
-### 阶段一：生成候选操作并验证
-
--**已生成候选操作**：基于初始理解生成初步的 JSON PATCH 操作序列
--**已验证组件 id**：通过内容匹配找到所有目标组件的 id（基于初始 schema）
--**已验证 id 存在性**：每个 id 在 schema 中存在且匹配预期
--**已判断操作类型**：区分组件操作 vs 属性操作
--**已识别潜在问题**：检查候选操作中的错误（id 错误、路径错误、索引错误等）
-
-### 阶段二：基于验证结果生成最终操作
-
--**已修正候选操作**：根据验证阶段发现的问题进行修正
--**已按顺序计算路径**：每个操作的路径都基于前面所有操作应用后的状态
--**已逐个验证路径**：对每个操作，模拟前面所有操作已应用，验证路径在当时的 schema 状态下有效
--**已优化操作顺序**：优先 replace，然后从后往前删除/添加
--**已最终验证**：确保所有操作在最终序列中都是正确的
-
-**关键原则：**
-- 先验证候选操作，再生成最终操作（VF 策略）
-- 路径不能以初始 schema 为基准，必须以前面操作已应用后的状态为基准
-- 验证过程本身比候选操作的质量更重要
-
-**任何一项未完成，输出空数组 \`[]\`**
-
 ## 输出格式
 
 \`\`\`jsonPatch
@@ -336,13 +293,10 @@ move 示例（相对位置语义）：
 ]
 \`\`\`
 
-**记住（VF 策略核心）：**
-1. **先验证，再生成**：先生成候选操作并严格验证，再基于验证结果生成最终操作
-2. **验证激发批判性思维**：通过验证候选操作，可以发现并修正潜在错误
-3. **验证过程比候选质量更重要**：即使候选操作不完美，验证过程也能帮助生成更准确的答案
-4. 先验证组件 id，再验证相对路径，最后生成操作
-5. **路径必须基于前面操作已应用后的状态，不能使用初始 schema 的路径**
-6. 每个操作前都要模拟前面所有操作的应用，验证路径在当时的 schema 状态下有效
-7. 没有验证，就没有操作
-8. 最后生成的 jsonPatch 应用后的 json 必须符合 schemaJSON 的格式
+**记住：**
+1. 先验证组件 id，再验证相对路径，最后生成操作
+2. **路径必须基于前面操作已应用后的状态，不能使用初始 schema 的路径**
+3. 每个操作前都要模拟前面所有操作的应用，验证路径在当时的 schema 状态下有效
+4. 最后生成的 jsonPatch 应用后的 json 必须符合 schemaJSON 的格式
 `;
+
