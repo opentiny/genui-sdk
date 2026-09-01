@@ -5,8 +5,8 @@ export class SchemaJsonPattern {
   protected startRegex: RegExp = new RegExp(`${this.startFlag}`);
   protected partialStartRegex: RegExp = new RegExp(`${getPartialStartRegString(this.startFlag)}$`);
   protected endFlag: string = '```';
-  protected endRegex: RegExp = new RegExp(`\\n\\s*${this.endFlag}`);
-  protected partialEndRegex: RegExp = new RegExp(`\\n(\\s*${getPartialStartRegString(this.endFlag)})?$`);
+  protected endRegex: RegExp = new RegExp(`(?:\\n\\s*)?${this.endFlag}(?=\\s*(?:\\n|$))`);
+  protected partialEndRegex: RegExp = new RegExp(`(?:\\n\\s*)?(\\s*${getPartialStartRegString(this.endFlag)})?$`);
 
   get regExpMap() {
     return {

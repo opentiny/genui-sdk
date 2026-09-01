@@ -9,9 +9,13 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   // 多模型对比列表；有值时优先于 model，按列表逐模型生成并汇总报告
   models: undefined,
   // 为 true 时默认用 maas-models.json 中全部模型名填满 models（显式 models / BENCH_MODELS 优先）
-  modelsFromMaasManifest: true,
+  modelsFromMaasManifest: false,
+  // 协议：genui（默认）| a2ui；可用 BENCH_PROTOCOL 覆盖
+  protocol: 'genui',
   // Prompt 生成使用的前端框架物料（影响系统提示词的配置）
   framework: 'Vue',
+  // materials 包 meta：standard → materialsMeta；Vue mini → miniMaterialsMeta（BENCH_MATERIALS_VARIANT）
+  materialsVariant: 'standard',
   // 单场景过滤（兼容项）；为空时不过滤
   scenario: undefined,
   // 多场景过滤（优先级高于 scenario）；为空时跑全部内置场景
@@ -19,13 +23,21 @@ export const benchmarkConfig: LlmBenchmarkRunOptions = {
   // 每个“模型 × 场景”重复执行次数（最小为 1）
   repeat: 1,
   // 为 true 时额外生成空 system 的「纯文本」对照样本（*_plain.json）；可用 BENCH_COMPARE_EMPTY_SYSTEM=true
-  compareEmptySystem: true,
-  // 为 true 时仅生成 plain（不生成 full）；与已有 full 同目录对比时配合 targetSampleRunDir / BENCH_TARGET_SAMPLE_RUN_DIR
-  compareEmptySystemPlainOnly: true,
+  compareEmptySystem: false,
+  // 为 true 时仅生成 plain（不生成 full）。默认 false：走 SDK genPrompt 主路径
+  compareEmptySystemPlainOnly: false,
   // 非空时样本直接写入该目录（不新建时间戳子目录）；相对路径相对于样本根目录（默认 reports/）
   targetSampleRunDir: undefined,
   // 生成阶段并发度（最小为 1）；值越大请求并发越高
   concurrency: 5,
+  // 按模型覆盖请求速率：如 { 'DeepSeek-V3.2': { requests: 5, windowMs: 60000 } }
+  modelRateLimit: undefined,
+  // 限流/临时错误重试：maxAttempts 含首次请求；可用 BENCH_RETRY_* 覆盖
+  retry: {
+    maxAttempts: 3,
+    baseDelayMs: 2_000,
+    maxDelayMs: 30_000,
+  },
   // streamText 单次请求超时（毫秒）；可由 BENCH_STREAM_TIMEOUT_MS 覆盖；0=不限制
   streamTimeoutMs: 600_000,
   // 生成样本时的 prompt 组合配置（genPrompt + specificPrompt + userAppendPrompt）
