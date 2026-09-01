@@ -24,7 +24,7 @@ const buttonSize = computed(() => {
         <div>{{ t('link.descriptionLine2') }}</div>
       </div>
       <div class="home-link-button-group">
-        <a :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
+        <a v-if="linkMap[LinkKey.Playground]" v-bind="$attrs" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button type="primary" :size="buttonSize" round>{{ t('link.tryNow') }}</tiny-button>
         </a>
         <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
