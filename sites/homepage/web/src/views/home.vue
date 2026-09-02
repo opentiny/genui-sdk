@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { TinyButton, TinyTag } from '@opentiny/vue';
-import genuiAbility1 from '@/assets/genui_ability_1.svg';
-import genuiAbility2 from '@/assets/genui_ability_2.webp';
-import genuiAbility3 from '@/assets/create-github.webp';
-import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
-import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4';
-import genuiFlowVedioCover from '@/assets/search-ticket.webp';
-import searchTicketVedio from '@/assets/video/search-ticket.mp4';
+import genuiAbility1 from '@/assets/genui_ability_1.svg?no-inline';
+import genuiAbility2 from '@/assets/genui_ability_2.webp?no-inline';
+import genuiAbility3 from '@/assets/create-github.webp?no-inline';
+import genuiActionVedioCover from '@/assets/order-milk-tea.webp?no-inline';
+import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4?no-inline';
+import genuiFlowVedioCover from '@/assets/search-ticket.webp?no-inline';
+import searchTicketVedio from '@/assets/video/search-ticket.mp4?no-inline';
 import { LinkKey, linkMap } from '@/utils/link';
 import { useMobile } from '@/composables/useMobile';
+import { useLazyVideo } from '@/composables/useLazyVideo';
 import HomeAbility from '@/components/HomeAbility.vue';
 import HomeGuide from '@/components/HomeGuide.vue';
 import HomeFeature from '@/components/HomeFeature.vue';
@@ -54,6 +55,11 @@ const { isMobile } = useMobile();
 const buttonSize = computed(() => {
   return isMobile.value ? 'default' : 'medium';
 });
+
+const actionVideoRef = ref<HTMLVideoElement | null>(null);
+const flowVideoRef = ref<HTMLVideoElement | null>(null);
+const { videoSrc: actionVideoSrc } = useLazyVideo(actionVideoRef, orderMilkTeaVedio);
+const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio);
 </script>
 
 <template>
@@ -91,13 +97,14 @@ const buttonSize = computed(() => {
     <!-- 第三屏 -->
     <home-ability :title="t('ability.interaction.title')" :subtitle="t('ability.interaction.subtitle')">
       <video
+        ref="actionVideoRef"
         class="cover-image ability-image"
         id="genui-action-vedio"
         controls
         preload="none"
         :poster="genuiActionVedioCover"
       >
-        <source :src="orderMilkTeaVedio" type="video/mp4" />
+        <source v-if="actionVideoSrc" :src="actionVideoSrc" type="video/mp4" />
       </video>
     </home-ability>
 
@@ -138,14 +145,14 @@ const buttonSize = computed(() => {
 
     <home-ability class="home-ability-5" :title="t('ability.stream.title')" :subtitle="t('ability.stream.subtitle')">
       <video
-        ref="videoRef"
+        ref="flowVideoRef"
         class="cover-image ability-image"
         id="genui-flow-vedio"
         controls
         preload="none"
         :poster="genuiFlowVedioCover"
       >
-        <source :src="searchTicketVedio" type="video/mp4" />
+        <source v-if="flowVideoSrc" :src="flowVideoSrc" type="video/mp4" />
       </video>
     </home-ability>
 
