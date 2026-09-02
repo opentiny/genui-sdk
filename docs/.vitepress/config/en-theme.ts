@@ -47,7 +47,10 @@ export const enThemeConfig: DefaultTheme.Config = {
       },
       {
         text: 'Angular Components',
-        items: [{ text: 'GenuiRenderer', link: '/en/components/angular/renderer' }],
+        items: [
+          { text: 'GenuiRenderer', link: '/en/components/angular/renderer' },
+          { text: 'GenuiConfigProvider', link: '/en/components/angular/config-provider' },
+        ],
       },
       {
         text: 'Server',
@@ -106,6 +109,10 @@ export const enThemeConfig: DefaultTheme.Config = {
               { text: 'Custom Theme', link: '/en/examples/config-provider/custom-theme' },
               { text: 'i18n', link: '/en/examples/config-provider/i18n' },
             ],
+          },
+          {
+            text: 'Materials',
+            items: [{ text: 'Custom Materials Library', link: '/en/examples/custom-materials' }],
           },
         ],
       },

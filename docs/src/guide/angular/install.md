@@ -126,6 +126,12 @@ export class GenuiExample {
 }
 ```
 
+## 自定义 Notify
+
+Schema 中 `JSFunction` 解析失败或执行报错时，可通过 `GenuiConfigProvider` 的 `notify` 接入业务侧通知（未配置时使用内置 DOM toast）。
+
+详见 [GenuiConfigProvider 组件文档](../../components/angular/config-provider#notify)。
+
 ::: tip GenuiLegacyRenderer
 若无需单独配置物料、需兼容旧版用法，见 [GenuiRenderer Legacy 兼容说明](../../components/angular/renderer#兼容组件-genuilegacyrenderer)。
 :::
