@@ -6,24 +6,36 @@
 
 ```
 skills/<name>/
-├── SKILL.md                      # 入口：输出格式 + 工作流 + 类型索引（仅链接已存在文件）
+├── SKILL.md                      # 入口：genPrompt 前缀 + 输出格式 / 工作流 / 类型索引（仅链接已存在文件）
 └── reference/
-    ├── quick-ref.md              # 手写层（不覆盖；缺失则路由不链 / 回退 generated）
-    ├── rules.md / editing.md / …
-    ├── components.md             # 按类型分组的白名单索引（生成器写入）
-    ├── components/               # 可选分类手写（basic/forms/…；存在则挂到对应类型标题下）
-    ├── examples/login-form.md
+    ├── quick-ref.md              # 手写：高频约定速查（存在才出链）
+    ├── rules.md                  # 手写：生成约束补充；缺失则回退 generated/rules.md
+    ├── editing.md                # 手写：修改已有卡片时的补读
+    ├── common-mistakes.md        # 手写：常见错误
+    ├── this-context.md           # 手写：this / 事件补充；缺失则回退 generated
+    ├── examples.md               # 手写：卡片示例补充；缺失则回退 generated
+    ├── examples/
+    │   └── login-form.md         # 手写：登录表单等整卡示例
+    ├── components.md             # 生成器写入：按类型分组的 componentName 白名单索引
+    ├── components/               # 可选分类手写（存在则挂到对应类型标题下）
+    │   ├── basic.md              # 手写：基础元素补充
+    │   ├── forms.md              # 手写：表单组件补充
+    │   └── …
     └── generated/                # 生成层（可覆盖，与 genPrompt 同步）
-        ├── components.md         # 全量 dump，仅用于还原 genPrompt，不要作为读取入口
-        ├── components/           # 按类型拆分的 props / events
-        │   ├── basic.md
-        │   ├── forms.md
-        │   └── …
-        ├── json-schema.md
-        ├── examples.md
-        ├── rules.md
-        ├── schema-snippets.md
-        └── this-context.md
+        ├── components.md         # 全量组件 dump，仅用于还原 genPrompt，不要作为读取入口
+        ├── components/           # 按类型拆分的 props / events（Agent 按需读这里）
+        │   ├── basic.md          # 基础元素（a、Text、TinyIcon 等）
+        │   ├── layout.md         # 布局组件（TinyCard 等）
+        │   ├── forms.md          # 表单组件（TinyForm、TinyInput 等）
+        │   ├── data-display.md   # 数据展示（TinyGrid、TinyPager）
+        │   ├── charts.md         # 图表组件（TinyHuicharts*）
+        │   └── …                 # 未归类时还有 other.md
+        ├── json-schema.md        # 卡片节点 JSON Schema：字段、白名单 enum、JSExpression / JSFunction / JSSlot
+        ├── examples.md           # 完整卡片示例（表单双向绑定、信息展示等）
+        ├── schema-snippets.md    # 可复用节点片段（单组件 props 样例）
+        ├── rules.md              # schemaJson 生成规则（Page 根、state/methods、禁止 Mock 等）
+        ├── this-context.md       # this.state / this.methods / this.callAction 用法
+        └── actions.md            # 自定义 Action 定义（提供 customActions 时生成）
 ```
 
 - **手写层**：补充说明，体积小、语义清晰；需自行维护，生成器不 scaffold
