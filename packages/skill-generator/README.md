@@ -167,3 +167,5 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 ```bash
 pnpm --filter @opentiny/genui-sdk-skill-generator generate:skill
 ```
+
+会刷新已提交的 [`example/genui-schema-json`](./example/genui-schema-json)，便于本地对照 CLI 输出。

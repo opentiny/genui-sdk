@@ -11,7 +11,7 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "generate:skill": "node dist/cli.js config.json"
+    "generate:skill": "node dist/cli.js config.json --out ./example/genui-schema-json"
   },
   "files": [
     "dist",
