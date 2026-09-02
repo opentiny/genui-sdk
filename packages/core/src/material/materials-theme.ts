@@ -1,25 +1,25 @@
 export type ThemeColorScheme = 'light' | 'dark';
 
-export interface ThemeDescriptor {
+export interface IThemeDescriptor {
   id: string;
   colorScheme?: ThemeColorScheme;
 }
 
-export interface ThemeApplyContext {
+export interface IThemeApplyContext {
   systemColorScheme: ThemeColorScheme;
 }
 
 export type ThemeDisposer = () => void;
 
-export interface ThemeApplyResult {
-  descriptor: ThemeDescriptor;
+export interface IThemeApplyResult {
+  descriptor: IThemeDescriptor;
   dispose: ThemeDisposer;
   Root?: unknown;
 }
 
 export interface IMaterialsTheme {
-  themes?: ThemeDescriptor[];
-  apply(theme: string, ctx: ThemeApplyContext): ThemeApplyResult;
+  themes?: IThemeDescriptor[];
+  apply(theme: string, ctx: IThemeApplyContext): IThemeApplyResult;
 }
 
 export type MaterialsThemeFactory = () => IMaterialsTheme;

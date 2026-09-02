@@ -4,7 +4,7 @@ import {
   type IMaterialsTheme,
   type MaterialsThemeFactory,
   type MergedMaterials,
-  type ThemeApplyResult,
+  type IThemeApplyResult,
   type ThemeColorScheme,
 } from '@opentiny/genui-sdk-core';
 import {
@@ -134,7 +134,7 @@ const ThemeRoots = defineComponent({
 
 const themeRoots = shallowRef<Component[]>([]);
 
-let applied: ThemeApplyResult[] = [];
+let applied: IThemeApplyResult[] = [];
 
 function clearTheme() {
   const pending = applied;
@@ -146,7 +146,7 @@ watch(
   () => [materialThemes.value, theme.value, mediaTheme.value, props.id] as const,
   ([apis, themeValue, systemColorScheme]) => {
     clearTheme();
-    const results: ThemeApplyResult[] = [];
+    const results: IThemeApplyResult[] = [];
     const roots: Component[] = [];
 
     for (const api of apis) {

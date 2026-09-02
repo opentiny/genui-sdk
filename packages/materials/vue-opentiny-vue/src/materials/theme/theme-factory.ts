@@ -1,14 +1,14 @@
 import {
   type IMaterialsTheme,
-  type ThemeApplyContext,
-  type ThemeApplyResult,
+  type IThemeApplyContext,
+  type IThemeApplyResult,
   type ThemeColorScheme,
-  type ThemeDescriptor,
+  type IThemeDescriptor,
 } from '@opentiny/genui-sdk-core';
 import { defineComponent, h, ref } from 'vue';
 import ThemeRoot from './ThemeRoot.vue';
 
-const themes: ThemeDescriptor[] = [
+const themes: IThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
   { id: 'dark', colorScheme: 'dark' },
   { id: 'lite', colorScheme: 'light' },
@@ -17,7 +17,7 @@ const themes: ThemeDescriptor[] = [
 function resolveDescriptor(
   theme: string,
   systemColorScheme: ThemeColorScheme,
-): ThemeDescriptor {
+): IThemeDescriptor {
   return (
     themes.find((item) => item.id === theme) ?? {
       id: systemColorScheme,
@@ -39,7 +39,7 @@ export function themeFactory(): IMaterialsTheme {
 
   return {
     themes,
-    apply(themeValue: string, ctx: ThemeApplyContext): ThemeApplyResult {
+    apply(themeValue: string, ctx: IThemeApplyContext): IThemeApplyResult {
       const descriptor = resolveDescriptor(themeValue, ctx.systemColorScheme);
       theme.value = descriptor.id;
       return {
