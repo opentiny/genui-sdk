@@ -28,7 +28,7 @@ function resolveDescriptor(
 export function themeFactory(): IMaterialsTheme {
 
   const theme = ref('light');
-  const Root = defineComponent({
+  const root = defineComponent({
     name: 'ElementPlusThemeRoot',
     inheritAttrs: false,
     setup(_, { attrs, slots }) {
@@ -43,7 +43,7 @@ export function themeFactory(): IMaterialsTheme {
       theme.value = descriptor.id;
       return {
         descriptor,
-        Root,
+        root,
         dispose: () => {
           theme.value = 'light';
         },

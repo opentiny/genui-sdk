@@ -13,8 +13,8 @@ export type ThemeDisposer = () => void;
 
 export interface IThemeApplyResult {
   descriptor: IThemeDescriptor;
-  dispose: ThemeDisposer;
-  Root?: unknown;
+  dispose?: ThemeDisposer;
+  root?: unknown;
 }
 
 export interface IMaterialsTheme {

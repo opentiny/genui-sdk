@@ -27,9 +27,9 @@ function resolveDescriptor(
 }
 
 export function themeFactory(): IMaterialsTheme {
-  // 框架渲染 Root 时不传 props，主题通过闭包 ref 传入，Root 类型保持不变避免子树重挂载
+  // 框架渲染 root 时不传 props，主题通过闭包 ref 传入，root 类型保持不变避免子树重挂载
   const theme = ref('light');
-  const Root = defineComponent({
+  const root = defineComponent({
     name: 'OpenTinyThemeRoot',
     inheritAttrs: false,
     setup(_, { attrs, slots }) {
@@ -44,7 +44,7 @@ export function themeFactory(): IMaterialsTheme {
       theme.value = descriptor.id;
       return {
         descriptor,
-        Root,
+        root,
         dispose: () => {},
       };
     },

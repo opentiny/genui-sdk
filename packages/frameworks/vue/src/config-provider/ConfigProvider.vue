@@ -151,8 +151,8 @@ watch(
 
     for (const api of apis) {
       const result = api.apply(themeValue, { systemColorScheme });
-      if (result.Root) {
-        roots.push(result.Root as Component);
+      if (result.root) {
+        roots.push(result.root as Component);
       }
       results.push(result);
       applied.push(result);
