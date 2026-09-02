@@ -58,10 +58,15 @@ export function createPageContext(): PageContextApi {
   };
   const listeners = new Set<() => void>();
 
-  /** 标准函数式更新：updater 接收当前 state，返回新 state */
+  /** 函数式不可变更新，返回新 state 对象 */
   const updateState = (updater: (state: Record<string, unknown>) => Record<string, unknown>) => {
     contextValue.state = updater(contextValue.state ?? {});
     notify();
+  };
+
+  const setState = (data: Record<string, unknown>, clear?: boolean) => {
+    const parsed = (parseData(data, {}, contextValue) as Record<string, unknown>) || {};
+    updateState((prev) => (clear ? { ...parsed } : { ...prev, ...parsed }));
   };
 
   const attachInternals = (ctx: PageContextValue): PageContextValue => {
@@ -99,11 +104,7 @@ export function createPageContext(): PageContextApi {
   return {
     getContext: () => contextValue,
     setContext,
-    setState: (data, clear) => {
-      if (clear) contextValue.state = {};
-      Object.assign(contextValue.state!, (parseData(data, {}, contextValue) as Record<string, unknown>) || {});
-      notify();
-    },
+    setState,
     subscribe: (listener) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
