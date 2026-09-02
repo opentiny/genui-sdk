@@ -25,6 +25,7 @@
     "@opentiny/genui-sdk-materials-react-antd": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:*",
     "ai": "5.0.10",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",

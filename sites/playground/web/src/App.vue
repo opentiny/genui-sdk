@@ -16,7 +16,9 @@ import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
-import { useInputMessage, useIsMobile } from './hooks';
+import { useMaterialsConfig } from './components/materials-tab';
+import { useInputMessage } from './hooks/use-input-message';
+import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
 import {
   getOverlapEliminatorHandler,
@@ -25,9 +27,7 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
-import { getMixedContentHandler } from './ng-renderer/content-response-handler';
-import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
-import { getMessageRendererReact } from './react-renderer/message-renderer-react';
+import { getMixedContentHandler, getMessageRendererAngular, getMessageRendererReact } from './message-renderers';
 import { locale, t } from './i18n';
 import { useRoute } from 'vue-router';
 import { PlaygroundMode } from './constants';
@@ -47,11 +47,13 @@ const {
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
   framework: cacheFramework,
+  componentLib: cacheComponentLib,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-const framework = ref(
-  ['Angular', 'React'].includes(cacheFramework) ? cacheFramework : 'Vue',
-);
+const { framework, componentLib, setFramework, setComponentLib } = useMaterialsConfig({
+  framework: cacheFramework,
+  componentLib: cacheComponentLib,
+});
 
 /**
  * Normalizes cached custom examples for the id-based contract.
@@ -155,7 +157,7 @@ watch(
 );
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value, () => componentLib.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -165,6 +167,7 @@ watch(
         chatConfig,
         customExamples: customExamples.value,
         framework: framework.value,
+        componentLib: componentLib.value,
       }),
     );
   },
@@ -280,6 +283,7 @@ const roles = computed(() => {
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
   framework: framework.value,
+  componentLib: componentLib.value,
 }));
 
 const playgroundContext = {
@@ -290,6 +294,9 @@ const playgroundContext = {
   conversation,
   customExamples,
   framework,
+  componentLib,
+  setComponentLib,
+  setFramework,
   theme,
   url,
   messages,

@@ -33,6 +33,7 @@ function onSchemaJsonForFramework(content: string, delta: IStreamDelta, chatMess
       type: currentSchemaType,
       content: content,
       id: uuidv4(),
+      framework,
     });
   }
   emitNotification(delta, chatMessage);

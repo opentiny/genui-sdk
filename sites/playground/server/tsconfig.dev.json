@@ -15,6 +15,9 @@
       "@opentiny/genui-sdk-materials-react-antd/meta": [
         "../../../packages/materials/react-antd/src/meta/index.ts"
       ],
+      "@opentiny/genui-sdk-materials-vue-element-plus/meta": [
+        "../../../packages/materials/vue-element-plus/src/meta/index.ts"
+      ],
       "@opentiny/genui-sdk-chat-completions": [
         "../../../packages/chat-completions/src/index.ts"
       ]

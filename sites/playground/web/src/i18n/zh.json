@@ -36,11 +36,14 @@
     "componentLib": "组件库",
     "theme": "主题",
     "themeLight": "亮色",
-    "themeDark": "暗黑",
-    "themeLite": "清新",
-    "themeAuto": "跟随系统",
-    "alpha": "测试"
-  },
+      "themeDark": "暗黑",
+      "themeLite": "清新",
+      "themeAuto": "跟随系统",
+      "alpha": "测试",
+      "frameworkVue": "Vue框架",
+      "frameworkAngular": "Angular框架",
+      "frameworkReact": "React框架"
+    },
   "model": {
     "select": "模型选择",
     "temperature": "模型温度",

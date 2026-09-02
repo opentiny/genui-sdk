@@ -30,6 +30,7 @@ npx genui-sdk-server -e .env.production
 
 ```typescript
 import { startServer, equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import express from 'express';
 
 // Option 1: Use startServer (includes default route /chat/completions)
@@ -37,6 +38,7 @@ startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: 'your-api-key',
+  materialsMeta, // optional: fix materials at startup
 });
 
 // Option 2: Custom Express app
@@ -45,6 +47,7 @@ equipChatCompletions(app, {
   route: '/api/chat',
   baseURL: 'https://api.openai.com/v1',
   apiKey: 'your-api-key',
+  materialsMeta,
 });
 app.listen(3100);
 ```
