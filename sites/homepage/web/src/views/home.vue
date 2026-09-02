@@ -2,7 +2,10 @@
 import { ref, computed } from 'vue';
 import { TinyButton, TinyTag } from '@opentiny/vue';
 import genuiAbility1 from '@/assets/genui_ability_1.svg';
-import genuiAbility2 from '@/assets/genui_ability_2.webp';
+// import genuiAbility2 from '@/assets/genui_ability_2.webp';
+import genuiAbility2Left from '@/assets/genui_ability_2_left.svg'
+import genuiAbility2Right from '@/assets/genui_ability_2_right.svg'
+import genuiInuseIcon from '@/assets/genui_ability_2_icon.svg'
 import genuiAbility3 from '@/assets/create-github.webp';
 import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
 import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4';
@@ -84,7 +87,21 @@ const buttonSize = computed(() => {
     <!-- 第二屏 -->
     <home-ability class="home-ability-2" :title="t('ability.visual.title')" :subtitle="t('ability.visual.subtitle')">
       <div class="ability-image-wrap-2">
-        <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
+        <!-- <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
+         -->
+        <div class="white-bg">
+          <div class="img-wrapper img-wrapper-left">
+            <div class="before-genui">接入GenUI前</div>
+            <img class="img-left" :src="genuiAbility2Left" alt="">
+          </div>
+          <div class="img-wrapper img-wrapper-right">
+            <div class="after-genui">
+              <img class="after-genui-icon" :src="genuiInuseIcon" alt="">
+              <span>接入GenUI后</span>
+            </div>
+            <img class="img-right" :src="genuiAbility2Right" alt="">
+          </div>
+        </div>
       </div>
     </home-ability>
 
@@ -312,18 +329,67 @@ const buttonSize = computed(() => {
     background: rgba(248, 248, 255, 1);
   }
 
+  :deep(.home-ability-2 .home-ability-content) {
+    width: 100%;
+  }
   :deep(.ability-image-wrap-2) {
     display: flex;
+    justify-content: center;
     padding: 16px;
     border-radius: 24px;
-    background-image: url('@/assets/genui_ability_bg_2.png');
+    background-image: url('@/assets/genui_ability_bg_2.svg');
     background-size: cover;
 
-    img {
-      border-radius: 16px;
+    .white-bg {
       width: 100%;
-      height: 100%;
+      background-color: #fff;
+      display: flex;
+      justify-content: center;
+      border-radius: 12px;
+      gap: 129px;
     }
+    
+    .img-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .img-wrapper-left {
+      padding-left: 87px;
+      padding-top: 26px;
+      padding-bottom: 72px;
+    }
+    .img-wrapper-right {
+      padding-left: 37px;
+      padding-right: 32px;
+      padding-bottom: 100px;
+      padding-top: 26px;
+      border-left: 1.2px solid rgba(205, 213, 255, 1);
+    }
+    .before-genui {
+      background-color: rgba(251, 244, 255, 1);
+      color: rgba(155, 88, 217, 1);
+      height: 28px;
+      width: 106px;
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+    .after-genui {
+      background-color: rgba(251, 244, 255, 1);
+      color: rgba(155, 88, 217, 1);
+      height: 28px;
+      width: 130px;
+      font-size: 14px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+    
   }
 }
 
