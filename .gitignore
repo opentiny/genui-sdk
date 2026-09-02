@@ -158,3 +158,6 @@ _site/
 .hermes/skills/
 .openclaw/skills/
 .config/opencode/skills/
+
+# Nested git worktrees must not become workspace packages
+*.worktrees/
