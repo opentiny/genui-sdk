@@ -9,6 +9,8 @@ import genuiInuseIcon from '@/assets/genui_ability_2_icon.svg'
 import genuiAbility3 from '@/assets/create-github.webp';
 // import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
 import genuiAbility3VideoCover from '@/assets/genui_ability_3_video_cover.svg'
+import genuiAbility4Right from '@/assets/genui_ability_4_right.svg'
+import genuiAbility5VideoCover from '@/assets/genui_ability_5_video_cover.svg'
 import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4';
 import genuiFlowVedioCover from '@/assets/search-ticket.webp';
 import searchTicketVedio from '@/assets/video/search-ticket.mp4';
@@ -119,6 +121,7 @@ const buttonSize = computed(() => {
       </video>
     </home-ability>
 
+    <!-- 第四屏 -->
     <home-mcp-tool-mobile v-if="isMobile"></home-mcp-tool-mobile>
     <home-ability
       v-else
@@ -150,7 +153,7 @@ const buttonSize = computed(() => {
             </div>
           </div>
         </div>
-        <img :class="`${abilityContentWrapClass}-right`" :src="genuiAbility3" alt="genui-mcp-tool" />
+        <img :class="`${abilityContentWrapClass}-right`" :src="genuiAbility4Right" alt="genui-mcp-tool" />
       </div>
     </home-ability>
 
@@ -161,7 +164,7 @@ const buttonSize = computed(() => {
         id="genui-flow-vedio"
         controls
         preload="none"
-        :poster="genuiFlowVedioCover"
+        :poster="genuiAbility5VideoCover"
       >
         <source :src="searchTicketVedio" type="video/mp4" />
       </video>
@@ -331,6 +334,14 @@ const buttonSize = computed(() => {
   }
 
   :deep(.home-ability-2 .home-ability-content) {
+    width: 100%;
+  }
+
+  :deep(.home-ability-4 .home-ability-content) {
+    width: 100%;
+  }
+
+  :deep(.home-ability-5 .home-ability-content) {
     width: 100%;
   }
 
@@ -704,7 +715,7 @@ const buttonSize = computed(() => {
   cursor: pointer;
 }
 
-#genui-action-vedio {
+#genui-action-vedio, #genui-flow-vedio {
   border-radius: 16px;
   box-shadow: 0 0 0 10px rgb(255, 255, 255, 1), 0 0 20px 0 rgba(0, 0, 0, 0.2);
 }

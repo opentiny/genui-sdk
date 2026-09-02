@@ -14,6 +14,9 @@ import todoJsonEn from '@/static/todo.en.json';
 import coinGameJson from '@/static/coin-game.json';
 import coinGameJsonEn from '@/static/coin-game.en.json';
 import { t, locale } from '@/i18n';
+import calculatorIcon from '@/assets/calculator.svg'
+import todoIcon from '@/assets/todo.svg'
+import playIcon from '@/assets/play.svg' 
 
 const TinyIconArrowRight = IconArrowRight();
 const TinyIconPause = IconPause();
@@ -266,6 +269,7 @@ onUnmounted(() => {
         value="element"
         @click="handleExtendClick('element')"
       >
+        <img class="extend-button-icon" :src="calculatorIcon" alt="" />
         {{ t('extend.calculator') }}
       </tiny-button>
       <tiny-button
@@ -276,6 +280,7 @@ onUnmounted(() => {
         value="page"
         @click="handleExtendClick('page')"
       >
+        <img class="extend-button-icon" :src="todoIcon" alt="" />
         {{ t('extend.todoApp') }}
       </tiny-button>
       <tiny-button
@@ -366,9 +371,9 @@ onUnmounted(() => {
                 circle
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
-                :icon="TinyIconStartCircle"
-                @click="handleCornerResume"
-              />
+                @click="handleCornerResume">
+                <img :src="playIcon" alt="">
+              </tiny-button>
             </tiny-tooltip>
             <tiny-tooltip
               v-else
@@ -403,6 +408,7 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   padding: 0px 8%;
+  background-image: url('@/assets/home_extend_bg.svg');
 
   &-title {
     margin-bottom: 40px;
@@ -414,9 +420,14 @@ onUnmounted(() => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, rgba(232, 238, 254, 1), rgba(232, 238, 254, 0.3) 100%);
-    border-radius: 24px;
+    // background: linear-gradient(180deg, rgba(232, 238, 254, 1), rgba(232, 238, 254, 0.3) 100%);
+    border-radius: 20px;
+    border: 1px solid #fff;
+    box-shadow: 0 0 60px 0 rgba(217, 223, 255, 0.5);
+
+
     padding: 28px;
+    margin-bottom: 110px;
 
     &-header {
       display: flex;
@@ -425,11 +436,12 @@ onUnmounted(() => {
 
       &-action {
         display: flex;
-        gap: 12px;
+        gap: 14px;
+        margin-left: 28px;
 
         div {
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
 
           @media (min-width: 1920px) {
@@ -648,12 +660,13 @@ onUnmounted(() => {
 }
 
 .extend-button-group {
-  border-radius: 382px;
+  // border-radius: 382px;
   width: fit-content;
   height: 56px;
-  background-color: rgba(232, 238, 254, 1);
+  // background-color: rgba(232, 238, 254, 1);
   display: flex;
   align-items: center;
+  gap: 24px;
   padding: 4px;
   margin-bottom: 48px;
 
@@ -661,13 +674,20 @@ onUnmounted(() => {
     height: 100%;
     width: 200px;
     margin-left: 0;
-    border-radius: 0;
     border: none;
-    background-color: rgba(232, 238, 254, 1);
-    font-size: 16px;
+    background-color: transparent;
+    font-size: 20px;
 
     &-element-1 {
-      border-radius: 382px 0 0 382px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .extend-button-icon {
+      width: 24px;
+      height: 24px;
     }
 
     &-element-2 {
@@ -675,11 +695,13 @@ onUnmounted(() => {
     }
 
     &-element-3 {
-      border-radius: 0 382px 382px 0;
+      // border-radius: 0 382px 382px 0;
     }
 
     &-element-active {
+      border-radius: 73px;
       background-color: #fff;
+      box-shadow: 0 0 20px 0 rgba(207, 218, 228, 0.36);
       font-weight: 700;
     }
   }
