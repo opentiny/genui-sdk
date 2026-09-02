@@ -1,19 +1,10 @@
-import type { ComponentType, ReactNode } from 'react';
+import type { ComponentType } from 'react';
 import { getCustomSettings, setCustomSettings } from './engine/use-custom-setting';
 import { builtinMaterials } from './builtin/builtin-materials';
 
 export type MaterialComponent = ComponentType<any>;
 
 export type ComponentRegistry = Record<string, MaterialComponent>;
-
-/** @deprecated 使用 MaterialComponent */
-export type ComponentRenderer<P = Record<string, unknown>> = MaterialComponent;
-
-/** @deprecated 渲染器已直接透传 props，不再使用此结构 */
-export interface ComponentRenderProps<P = Record<string, unknown>> {
-  props: P;
-  children?: ReactNode;
-}
 
 export function getMaterials(): ComponentRegistry {
   return getCustomSettings().materials ?? {};
