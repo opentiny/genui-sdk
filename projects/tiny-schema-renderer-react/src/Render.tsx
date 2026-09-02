@@ -25,13 +25,14 @@ export function normalizeChildren(children: Node['children']): Node[] {
 function getChildren(schema: Node, mergeScope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
   const children = normalizeChildren(schema.children);
   if (!children.length) return null;
-  return children.map((child) => renderComponent(child, mergeScope, context)).filter(Boolean);
+  return children.map((child, i) => renderComponent(child, mergeScope, context, child.id ?? i));
 }
 
 function renderComponent(
   schema: Node,
   scope: Record<string, unknown>,
   context: PageContextValue,
+  key?: string | number,
 ): React.ReactNode {
   const { componentName, loop, loopArgs, condition } = schema;
 
@@ -55,9 +56,10 @@ function renderComponent(
     }
 
     const { children: _c, schema: _schema, ...elementProps } = getBindProps(schema, mergeScope, context);
+    const elementKey = index !== undefined ? index : key;
     return React.createElement(
       component as string | ComponentType,
-      elementProps,
+      { ...elementProps, key: elementKey },
       getChildren(schema, mergeScope, context),
     );
   };
