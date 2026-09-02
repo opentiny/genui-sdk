@@ -7,7 +7,8 @@ import genuiAbility2Left from '@/assets/genui_ability_2_left.svg'
 import genuiAbility2Right from '@/assets/genui_ability_2_right.svg'
 import genuiInuseIcon from '@/assets/genui_ability_2_icon.svg'
 import genuiAbility3 from '@/assets/create-github.webp';
-import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
+// import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
+import genuiAbility3VideoCover from '@/assets/genui_ability_3_video_cover.svg'
 import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4';
 import genuiFlowVedioCover from '@/assets/search-ticket.webp';
 import searchTicketVedio from '@/assets/video/search-ticket.mp4';
@@ -91,13 +92,13 @@ const buttonSize = computed(() => {
          -->
         <div class="white-bg">
           <div class="img-wrapper img-wrapper-left">
-            <div class="before-genui">接入GenUI前</div>
+            <div class="before-genui">{{ t('ability.visual.before') }}</div>
             <img class="img-left" :src="genuiAbility2Left" alt="">
           </div>
           <div class="img-wrapper img-wrapper-right">
             <div class="after-genui">
               <img class="after-genui-icon" :src="genuiInuseIcon" alt="">
-              <span>接入GenUI后</span>
+              <span>{{ t('ability.visual.after') }}</span>
             </div>
             <img class="img-right" :src="genuiAbility2Right" alt="">
           </div>
@@ -106,13 +107,13 @@ const buttonSize = computed(() => {
     </home-ability>
 
     <!-- 第三屏 -->
-    <home-ability :title="t('ability.interaction.title')" :subtitle="t('ability.interaction.subtitle')">
+    <home-ability class="home-ability-3" :title="t('ability.interaction.title')" :subtitle="t('ability.interaction.subtitle')">
       <video
         class="cover-image ability-image"
         id="genui-action-vedio"
         controls
         preload="none"
-        :poster="genuiActionVedioCover"
+        :poster="genuiAbility3VideoCover"
       >
         <source :src="orderMilkTeaVedio" type="video/mp4" />
       </video>
@@ -325,13 +326,18 @@ const buttonSize = computed(() => {
     padding-bottom: 0 !important;
   }
 
-  .home-ability-4 {
-    background: rgba(248, 248, 255, 1);
+  :deep(.home-ability-3 .home-ability-content) {
+    width: 100%;
   }
 
   :deep(.home-ability-2 .home-ability-content) {
     width: 100%;
   }
+
+  .home-ability-4 {
+    background: rgba(248, 248, 255, 1);
+  }
+
   :deep(.ability-image-wrap-2) {
     display: flex;
     justify-content: center;
@@ -348,48 +354,50 @@ const buttonSize = computed(() => {
       border-radius: 12px;
       gap: 129px;
     }
-    
+
     .img-wrapper {
+      width: 100%;
+      min-width: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
+
+      img {
+        min-width: 0;
+        max-width: 100%;
+        height: auto;
+      }
     }
+
     .img-wrapper-left {
-      padding-left: 87px;
-      padding-top: 26px;
-      padding-bottom: 72px;
+      padding: 26px 0 72px 87px;
     }
+
     .img-wrapper-right {
-      padding-left: 37px;
-      padding-right: 32px;
-      padding-bottom: 100px;
-      padding-top: 26px;
+      padding: 26px 32px 100px 37px;
       border-left: 1.2px solid rgba(205, 213, 255, 1);
     }
-    .before-genui {
-      background-color: rgba(251, 244, 255, 1);
-      color: rgba(155, 88, 217, 1);
-      height: 28px;
-      width: 106px;
-      font-size: 14px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 22px;
-    }
+
+    .before-genui,
     .after-genui {
+      height: 28px;
+      font-size: 14px;
       background-color: rgba(251, 244, 255, 1);
       color: rgba(155, 88, 217, 1);
-      height: 28px;
-      width: 130px;
-      font-size: 14px;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 6px;
       margin-bottom: 22px;
     }
-    
+
+    .before-genui {
+      width: 106px;
+    }
+
+    .after-genui {
+      width: 130px;
+      gap: 6px;
+    }
   }
 }
 
