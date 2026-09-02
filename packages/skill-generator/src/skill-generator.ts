@@ -15,6 +15,25 @@ import type {
   IMaterialsMeta,
 } from '@opentiny/genui-sdk-core';
 import { genPrompt } from '@opentiny/genui-sdk-core';
+import {
+  COMPONENT_CATEGORY_DOCS,
+  formatComponentList,
+  groupComponentsByCategory,
+  parseWhitelistNames,
+  type IComponentCategoryGroup,
+} from './component-categories';
+
+export {
+  COMPONENT_CATEGORY_DOCS,
+  formatComponentList,
+  groupComponentsByCategory,
+  parseWhitelistNames,
+} from './component-categories';
+export type {
+  ComponentCategoryId,
+  IComponentCategoryGroup,
+  IGroupComponentsOptions,
+} from './component-categories';
 
 /** 匹配 prompt 顶层二级标题（行首 `## `，不含 `###`） */
 const PROMPT_SECTION_HEADING_RE = /^## .+$/gm;
@@ -63,13 +82,17 @@ export interface IGenerateSkillOptions {
   /** 传给 genPrompt 的选项；默认仅设置 isSkill=true，其余沿用 genPrompt 默认值 */
   promptOptions?: IGenPromptOptions;
   /**
-   * 可选：生成 SKILL.md 正文（输出格式、意图路由等）。
+   * 可选：生成 SKILL.md 正文（输出格式、工作流、类型索引等）。
    * formatter 内容追加在原始 skillPromptPrefix 后，不能替换 genPrompt 内容。
    * 调用时传入 skillDir，用于按磁盘「存在才出链」。
    */
   formatSkillBody?: (
     sectionMarkers: IPromptSectionMarker[],
-    context: { skillDir: string; referenceSubdir?: string },
+    context: {
+      skillDir: string;
+      referenceSubdir?: string;
+      componentGroups?: IComponentCategoryGroup[];
+    },
   ) => string;
   /**
    * genPrompt 章节写入的子目录（相对 reference/）。
@@ -78,7 +101,7 @@ export interface IGenerateSkillOptions {
    */
   referenceSubdir?: string;
   /**
-   * 是否将白名单同步到手写 `reference/components.md`（更新白名单；分类链仅在文件存在时写出）。
+   * 是否将白名单同步到手写 `reference/components.md`（按类型分组；手写分类文档存在时挂到对应标题下）。
    * 默认 true。
    */
   syncComponentsIndex?: boolean;
@@ -452,85 +475,228 @@ export function extractComponentsWhitelist(detail: string): string {
   return whitelistMatch?.[1]?.trim() ?? '';
 }
 
-/** 可选分类手写文档（仅当 `reference/components/<file>` 存在时出链） */
-export const COMPONENT_CATEGORY_DOCS = [
-  { file: 'basic.md', label: '基础元素' },
-  { file: 'layout.md', label: '布局组件' },
-  { file: 'forms.md', label: '表单组件' },
-  { file: 'data-display.md', label: '数据展示' },
-  { file: 'charts.md', label: '图表组件' },
-] as const;
+type ComponentSchemaEntry = { component?: unknown } & Record<string, unknown>;
 
 /**
- * 根据磁盘上已有的分类文档生成「按类别查阅」段落；无文件则返回空串。
+ * 从「可用组件」章节提取 JSON Schema 数组。无 fence 或解析失败时返回 null。
  *
- * @param skillDir - skill 目录
- * @returns Markdown 段落（含前后换行）或空串
+ * @param detail - 完整「可用组件」章节
+ * @returns 组件 schema 列表；无法提取时为 null
  */
-export function buildCategoryLinksSection(skillDir: string): string {
-  const dir = join(skillDir, 'reference', 'components');
-  const links = COMPONENT_CATEGORY_DOCS.filter(({ file }) => existsSync(join(dir, file))).map(
-    ({ file, label }) => `- [${label}](components/${file})`,
-  );
-  if (links.length === 0) return '';
-  return `\n按类别查阅（见 SKILL.md 意图路由）：\n\n${links.join('\n')}\n`;
+export function extractComponentsSchema(detail: string): ComponentSchemaEntry[] | null {
+  const fence = detail.match(/```json\s*([\s\S]*?)```/);
+  if (!fence) return null;
+
+  try {
+    const parsed = JSON.parse(fence[1]) as unknown;
+    if (!Array.isArray(parsed)) return null;
+    return parsed.filter(
+      (item): item is ComponentSchemaEntry => Boolean(item) && typeof item === 'object',
+    );
+  } catch {
+    return null;
+  }
+}
+
+export interface IComponentCategoryFile {
+  id: IComponentCategoryGroup['id'];
+  file: string;
+  label: string;
+  content: string;
 }
 
 /**
- * 生成手写层 `components.md` 精简索引正文。
+ * 按类型把组件 schema 拆成独立 Markdown（派生文件，不参与 genPrompt 还原）。
+ * 提取失败时返回空数组，调用方应回退全量 dump。
  *
- * @param whitelist - 白名单文本
+ * @param componentsDetail - 完整「可用组件」章节
+ * @param groups - 与索引同源的类型分组
+ * @returns 各类型文件内容
+ */
+export function buildComponentCategoryFiles(
+  componentsDetail: string,
+  groups: IComponentCategoryGroup[],
+): IComponentCategoryFile[] {
+  const schemas = extractComponentsSchema(componentsDetail);
+  if (!schemas) return [];
+
+  const byComponent = new Map<string, ComponentSchemaEntry[]>();
+  for (const item of schemas) {
+    if (typeof item.component !== 'string' || !item.component) continue;
+    const list = byComponent.get(item.component) ?? [];
+    list.push(item);
+    byComponent.set(item.component, list);
+  }
+
+  return groups
+    .filter((group) => group.components.length > 0)
+    .map((group) => {
+      const items = group.components.flatMap((name) => byComponent.get(name) ?? []);
+      return {
+        id: group.id,
+        file: `${group.id}.md`,
+        label: group.label,
+        content: `# ${group.label}\n\n白名单：${formatComponentList(group.components)}\n\n\`\`\`json\n${JSON.stringify(items, null, 2)}\n\`\`\`\n`,
+      };
+    });
+}
+
+function annotateCategoryDetailPaths(
+  groups: IComponentCategoryGroup[],
+  referenceSubdir: string,
+  categoryFiles: IComponentCategoryFile[],
+): IComponentCategoryGroup[] {
+  if (!categoryFiles.length) return groups;
+  const written = new Set(categoryFiles.map((file) => file.id));
+  return groups.map((group) =>
+    written.has(group.id)
+      ? { ...group, detailRelPath: `${referenceSubdir}/components/${group.id}.md` }
+      : group,
+  );
+}
+
+/**
+ * 将按类型拆分的组件详情写入 generated/components/，并清理过期文件。
+ *
+ * @param outputDir - 生成子目录（如 reference/generated）
+ * @param files - 本次生成的类型文件
+ * @param prune - 是否删除本次未生成的旧文件
+ */
+export function writeComponentCategoryFiles(
+  outputDir: string,
+  files: IComponentCategoryFile[],
+  prune = true,
+): void {
+  const categoryDir = join(outputDir, 'components');
+  if (files.length === 0) {
+    if (prune && existsSync(categoryDir)) {
+      removeStaleReferenceFiles(categoryDir, []);
+    }
+    return;
+  }
+
+  mkdirSync(categoryDir, { recursive: true });
+  const written: string[] = [];
+  for (const { file, content } of files) {
+    assertSafeReferenceFile(file);
+    writeFileSync(join(categoryDir, file), content, 'utf8');
+    written.push(file);
+  }
+  if (prune) {
+    removeStaleReferenceFiles(categoryDir, written);
+  }
+}
+
+/**
+ * 收集已存在的手写分类文档链接，按类型标题索引。
+ *
+ * @param skillDir - skill 目录
+ * @returns 类型标题 → Markdown 链接
+ */
+export function resolveHandwrittenCategoryLinks(skillDir: string): Map<string, string> {
+  const dir = join(skillDir, 'reference', 'components');
+  const links = new Map<string, string>();
+
+  for (const { file, label } of COMPONENT_CATEGORY_DOCS) {
+    if (existsSync(join(dir, file))) {
+      links.set(label, `[${label}](components/${file})`);
+    }
+  }
+
+  return links;
+}
+
+/**
+ * 生成手写层 `components.md` 按类型分组的索引正文。
+ *
+ * @param whitelist - 白名单文本（含反引号）
  * @param detailRelPath - 完整详情相对路径
- * @param categorySection - 可选分类链接段落（仅含已存在文件）
+ * @param groups - 可选预计算分组；缺省时按白名单名称启发式分组
+ * @param handwrittenLinks - 已存在的分类手写文档链接
  * @returns Markdown
  */
 export function buildComponentsIndex(
   whitelist: string,
   detailRelPath = 'generated/components.md',
-  categorySection = '',
+  groups?: IComponentCategoryGroup[],
+  handwrittenLinks?: ReadonlyMap<string, string>,
 ): string {
+  const names = parseWhitelistNames(whitelist);
+  const resolved = (groups?.length ? groups : groupComponentsByCategory(names)).filter(
+    (group) => group.components.length > 0,
+  );
+  const sections = resolved
+    .map((group) => {
+      const extra = handwrittenLinks?.get(group.label);
+      const extraLine = extra ? `\n\n详见 ${extra}` : '';
+      const detailLine = group.detailRelPath
+        ? `\n\nprops / events：[${group.detailRelPath}](${group.detailRelPath})`
+        : '';
+      return `### ${group.label}\n\n${formatComponentList(group.components)}${detailLine}${extraLine}`;
+    })
+    .join('\n\n');
+
+  const hasCategoryDetails = resolved.some((group) => group.detailRelPath);
+  const dumpFooter = hasCategoryDetails
+    ? ''
+    : `\n完整 props / events 见 [${detailRelPath}](${detailRelPath})（只定位已选组件，不要通读）。\n`;
+
   return `## 可用组件
 
-必须使用以下支持的 componentName：${whitelist}
+必须使用以下支持的 componentName（按类型查阅，禁止白名单外名称）：
+
+${sections}
 
 > 白名单以本文件为准（由物料同步）。
-${categorySection}
-完整 props / events 见 [${detailRelPath}](${detailRelPath})（按需再读）。
-`;
+${dumpFooter}`;
 }
 
 function buildManagedComponentsIndex(
   whitelist: string,
   detailRelPath: string,
-  categorySection: string,
+  groups?: IComponentCategoryGroup[],
+  handwrittenLinks?: ReadonlyMap<string, string>,
 ): string {
   return `${COMPONENTS_INDEX_START}\n${buildComponentsIndex(
     whitelist,
     detailRelPath,
-    categorySection,
+    groups,
+    handwrittenLinks,
   ).trimEnd()}\n${COMPONENTS_INDEX_END}`;
 }
 
 /**
- * 将白名单同步到手写 `reference/components.md`：兼容更新旧白名单行，其他情况使用受管区块。
+ * 将白名单同步到手写 `reference/components.md`：按类型分组写入受管区块。
  * 受管区块之外的手写内容保持不变；标记损坏时拒绝写入。
- * 分类链接按磁盘存在情况重写，避免死链。
+ * 无受管标记的旧扁平索引会整体升级为分类索引。
  *
  * @param skillDir - skill 目录
  * @param componentsDetail - 生成的完整组件章节
  * @param detailRelPath - 详情相对 reference/ 的路径
+ * @param componentGroups - 可选预计算分组
  */
 export function syncComponentsIndex(
   skillDir: string,
   componentsDetail: string,
   detailRelPath = 'generated/components.md',
+  componentGroups?: IComponentCategoryGroup[],
 ): void {
   const whitelist = extractComponentsWhitelist(componentsDetail);
   if (!whitelist) return;
 
   const indexPath = join(skillDir, 'reference', 'components.md');
   mkdirSync(join(skillDir, 'reference'), { recursive: true });
-  const categorySection = buildCategoryLinksSection(skillDir);
+  const handwrittenLinks = resolveHandwrittenCategoryLinks(skillDir);
+  const groups =
+    componentGroups?.length
+      ? componentGroups
+      : groupComponentsByCategory(parseWhitelistNames(whitelist));
+  const managed = buildManagedComponentsIndex(
+    whitelist,
+    detailRelPath,
+    groups,
+    handwrittenLinks,
+  );
 
   if (existsSync(indexPath)) {
     const current = readFileSync(indexPath, 'utf8');
@@ -547,66 +713,27 @@ export function syncComponentsIndex(
       throw new Error(`components.md 受管区块标记无效: ${indexPath}`);
     }
     if (managedStart >= 0 && managedEnd > managedStart) {
-      const next = `${current.slice(0, managedStart)}${buildManagedComponentsIndex(
-        whitelist,
-        detailRelPath,
-        categorySection,
-      )}${current.slice(managedEnd + COMPONENTS_INDEX_END.length)}`;
+      const next = `${current.slice(0, managedStart)}${managed}${current.slice(
+        managedEnd + COMPONENTS_INDEX_END.length,
+      )}`;
       writeFileSync(indexPath, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
       return;
     }
 
     if (/必须使用以下支持的 componentName：/.test(current)) {
-      let next = current.replace(
-        /必须使用以下支持的 componentName：[^\n]+/,
-        `必须使用以下支持的 componentName：${whitelist}`,
-      );
-      next = next.replace(
-        /> 白名单以本文件为准（由物料同步）。[^\n]*/,
-        '> 白名单以本文件为准（由物料同步）。',
-      );
-      // 纠正历史详情链接（components-detail.md → generated/components.md）
-      next = next.replace(
-        /\[([^\]]*)\]\(components-detail\.md\)/g,
-        `[$1](${detailRelPath})`,
-      );
-      next = next.replace(
-        /见 \[components-detail\.md\]\([^)]+\)/g,
-        `见 [${detailRelPath}](${detailRelPath})`,
-      );
-      if (!next.includes(detailRelPath) && /完整 props/.test(next)) {
-        next = next.replace(
-          /完整 props[^\n]+/,
-          `完整 props / events 见 [${detailRelPath}](${detailRelPath})（按需再读）。`,
-        );
-      }
-      // 按磁盘重写分类段落（无文件则去掉，避免死链）
-      if (/按类别查阅/.test(next)) {
-        next = next.replace(/\n按类别查阅[\s\S]*?(?=\n完整 props)/, categorySection);
-      } else if (categorySection) {
-        next = next.replace(/(\n完整 props)/, `${categorySection}$1`);
-      }
-      // 折叠可能留下的多余空行
-      next = next.replace(/\n{3,}/g, '\n\n');
+      const headingIndex = current.search(/^## 可用组件/m);
+      const prefix = headingIndex >= 0 ? current.slice(0, headingIndex) : '';
+      const next = `${prefix}${managed}`;
       writeFileSync(indexPath, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
       return;
     }
 
     const separator = current.endsWith('\n\n') ? '' : current.endsWith('\n') ? '\n' : '\n\n';
-    const next = `${current}${separator}${buildManagedComponentsIndex(
-      whitelist,
-      detailRelPath,
-      categorySection,
-    )}\n`;
-    writeFileSync(indexPath, next, 'utf8');
+    writeFileSync(indexPath, `${current}${separator}${managed}\n`, 'utf8');
     return;
   }
 
-  writeFileSync(
-    indexPath,
-    `${buildManagedComponentsIndex(whitelist, detailRelPath, categorySection)}\n`,
-    'utf8',
-  );
+  writeFileSync(indexPath, `${managed}\n`, 'utf8');
 }
 
 /**
@@ -619,7 +746,12 @@ export function syncComponentsIndex(
 export function writeReferenceFiles(
   skillDir: string,
   sections: SkillSections,
-  options: { referenceSubdir?: string; prune?: boolean; syncComponentsIndex?: boolean } = {},
+  options: {
+    referenceSubdir?: string;
+    prune?: boolean;
+    syncComponentsIndex?: boolean;
+    componentGroups?: IComponentCategoryGroup[];
+  } = {},
 ): void {
   const referenceSubdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
   const prune = options.prune ?? true;
@@ -634,6 +766,7 @@ export function writeReferenceFiles(
   mkdirSync(outputDir, { recursive: true });
 
   const written: string[] = [];
+  let groupsForIndex = options.componentGroups;
 
   for (const [file, content] of Object.entries(sections)) {
     if (!content) continue;
@@ -642,9 +775,26 @@ export function writeReferenceFiles(
     writeFileSync(join(outputDir, file), content, 'utf8');
     written.push(file);
 
-    // 空子目录时详情与索引路径相同，不能用索引逻辑改写原始 prompt 分片。
-    if (shouldSyncIndex && referenceSubdir && file === 'components.md') {
-      syncComponentsIndex(skillDir, content, `${referenceSubdir}/components.md`);
+    // 空子目录时详情与索引路径相同，不能用索引逻辑改写原始 prompt 分片；
+    // 也不拆类型文件，以免覆盖手写 reference/components/。
+    if (referenceSubdir && file === 'components.md') {
+      const whitelist = extractComponentsWhitelist(content);
+      const groups =
+        groupsForIndex?.length
+          ? groupsForIndex
+          : groupComponentsByCategory(parseWhitelistNames(whitelist));
+      const categoryFiles = buildComponentCategoryFiles(content, groups);
+      writeComponentCategoryFiles(outputDir, categoryFiles, prune);
+      groupsForIndex = annotateCategoryDetailPaths(groups, referenceSubdir, categoryFiles);
+
+      if (shouldSyncIndex) {
+        syncComponentsIndex(
+          skillDir,
+          content,
+          `${referenceSubdir}/components.md`,
+          groupsForIndex,
+        );
+      }
     }
   }
 
@@ -655,7 +805,7 @@ export function writeReferenceFiles(
 
 /**
  * 将 skill 入口写入各 skill 目录的 SKILL.md。
- * 始终逐字保留 genPrompt 前缀；有 formatSkillBody 时在其后追加 Agent 友好路由。
+ * 始终逐字保留 genPrompt 前缀；有 formatSkillBody 时在其后追加 Agent 友好工作流。
  * 每个目录单独生成正文，以便按该目录已有文件出链。
  *
  * @param skillDirs - skill 目录列表
@@ -672,6 +822,7 @@ export function writeSkillEntry(
   formatSkillBody?: IGenerateSkillOptions['formatSkillBody'],
   defaultFrontmatter?: string,
   referenceSubdir?: string,
+  componentGroups?: IComponentCategoryGroup[],
 ): void {
   if (skillDirs.length === 0) {
     throw new Error('skillDirs 不能为空');
@@ -685,6 +836,7 @@ export function writeSkillEntry(
     const formattedBody = formatSkillBody?.(sectionMarkers, {
       skillDir,
       referenceSubdir: subdir,
+      componentGroups,
     });
     const body = formattedBody
       ? `${skillPrefix}${skillPrefix.endsWith('\n') ? '' : '\n'}\n${formattedBody}`
@@ -696,7 +848,7 @@ export function writeSkillEntry(
 
 /**
  * 根据 materialsMeta 生成 skill 文件：先写 reference/generated/，再写 SKILL.md。
- * 手写文档（quick-ref、editing、components/ 等）不被覆盖；意图路由仅链接已存在文件。
+ * 手写文档（quick-ref、editing、components/ 等）不被覆盖；工作流仅链接已存在文件。
  *
  * @param framework - 框架名或框架配置
  * @param materialsMeta - 物料元信息
@@ -716,13 +868,18 @@ export function generateSkillFiles(
   );
 
   const referenceSubdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
+  const componentGroups = groupComponentsByCategory(materialsMeta.whiteList ?? [], {
+    materials: materialsMeta.materials,
+    customComponents: options.tgCustomConfig?.customComponents,
+  });
 
-  // 先落盘 generated/（及 components 白名单同步），再写 SKILL，便于「存在才出链」含 generated 回退
+  // 先落盘 generated/（及 components 类型索引），再写 SKILL，便于「存在才出链」含 generated 回退
   for (const skillDir of options.skillDirs) {
     writeReferenceFiles(skillDir, sections, {
       referenceSubdir,
       prune: options.prune ?? true,
       syncComponentsIndex: options.syncComponentsIndex ?? true,
+      componentGroups,
     });
   }
 
@@ -733,6 +890,7 @@ export function generateSkillFiles(
     options.formatSkillBody,
     options.defaultFrontmatter,
     referenceSubdir,
+    componentGroups,
   );
 
   for (const skillDir of options.skillDirs) {

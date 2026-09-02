@@ -6,9 +6,10 @@ import { buildGenuiSchemaSkillBody } from '../formatters';
 import {
   assignReferenceFiles,
   assertWrittenPromptCoverage,
-  buildCategoryLinksSection,
+  buildComponentCategoryFiles,
   buildComponentsIndex,
   ensureSkillFrontmatter,
+  extractComponentsSchema,
   extractComponentsWhitelist,
   extractReferenceSections,
   extractSkillPrefix,
@@ -16,6 +17,7 @@ import {
   genSkillContent,
   headingToReferenceFile,
   normalizeReferenceSubdir,
+  resolveHandwrittenCategoryLinks,
   sectionLink,
   splitPromptSections,
   syncComponentsIndex,
@@ -138,22 +140,91 @@ describe('skill-generator', () => {
     expect(extractComponentsWhitelist(detail)).toBe('`A`, `B`');
     const index = buildComponentsIndex('`A`, `B`');
     expect(index).toContain('generated/components.md');
+    expect(index).toContain('### 其他');
+    expect(index).toContain('`A`, `B`');
     expect(index).not.toContain('components/basic.md');
     expect(index).not.toContain('按类别查阅');
   });
 
-  it('buildCategoryLinksSection 仅链已存在分类文件', () => {
+  it('buildComponentsIndex 按类型标题列出白名单', () => {
+    const index = buildComponentsIndex(
+      '`TinyForm`, `TinyHuichartsLine`, `TinyGrid`, `a`, `TinyCard`',
+    );
+    expect(index).toContain('### 基础元素');
+    expect(index).toContain('### 布局组件');
+    expect(index).toContain('### 表单组件');
+    expect(index).toContain('### 数据展示');
+    expect(index).toContain('### 图表组件');
+    expect(index).toContain('`TinyForm`');
+    expect(index).toContain('只定位已选组件');
+    expect(index).not.toContain('### 其他');
+  });
+
+  it('buildComponentsIndex 有类型详情文件时按组出链，不再指向全量 dump', () => {
+    const index = buildComponentsIndex('`TinyForm`, `TinyHuichartsLine`', 'generated/components.md', [
+      {
+        id: 'forms',
+        label: '表单组件',
+        components: ['TinyForm'],
+        detailRelPath: 'generated/components/forms.md',
+      },
+      {
+        id: 'charts',
+        label: '图表组件',
+        components: ['TinyHuichartsLine'],
+        detailRelPath: 'generated/components/charts.md',
+      },
+    ]);
+
+    expect(index).toContain('[generated/components/forms.md](generated/components/forms.md)');
+    expect(index).toContain('[generated/components/charts.md](generated/components/charts.md)');
+    expect(index).not.toMatch(/完整 props \/ events 见 \[generated\/components\.md\]/);
+  });
+
+  it('extractComponentsSchema / buildComponentCategoryFiles 按类型拆分 JSON', () => {
+    const detail = `## 可用组件
+
+必须使用以下支持的 componentName：\`TinyForm\`, \`TinyHuichartsLine\`
+
+\`\`\`json
+[{"component":"TinyForm","name":"表单"},{"component":"TinyHuichartsLine","name":"折线图"}]
+\`\`\`
+`;
+    expect(extractComponentsSchema(detail)?.map((item) => item.component)).toEqual([
+      'TinyForm',
+      'TinyHuichartsLine',
+    ]);
+
+    const files = buildComponentCategoryFiles(detail, [
+      { id: 'forms', label: '表单组件', components: ['TinyForm'] },
+      { id: 'charts', label: '图表组件', components: ['TinyHuichartsLine'] },
+    ]);
+    expect(files).toHaveLength(2);
+    expect(files[0].file).toBe('forms.md');
+    expect(files[0].content).toContain('"component": "TinyForm"');
+    expect(files[0].content).not.toContain('TinyHuichartsLine');
+    expect(files[1].content).toContain('"component": "TinyHuichartsLine"');
+    expect(files[1].content).not.toContain('TinyForm');
+  });
+
+  it('extractComponentsSchema 无 JSON fence 时返回 null', () => {
+    expect(extractComponentsSchema('## 可用组件\n\n必须使用以下支持的 componentName：`A`\n')).toBe(
+      null,
+    );
+  });
+
+  it('resolveHandwrittenCategoryLinks 仅链已存在分类文件', () => {
     const skillDir = createTempDir('skill-category-');
-    expect(buildCategoryLinksSection(skillDir)).toBe('');
+    expect(resolveHandwrittenCategoryLinks(skillDir).size).toBe(0);
 
     mkdirSync(join(skillDir, 'reference', 'components'), { recursive: true });
     writeFileSync(join(skillDir, 'reference', 'components', 'forms.md'), '# forms\n', 'utf8');
-    const section = buildCategoryLinksSection(skillDir);
-    expect(section).toContain('[表单组件](components/forms.md)');
-    expect(section).not.toContain('basic.md');
+    const links = resolveHandwrittenCategoryLinks(skillDir);
+    expect(links.get('表单组件')).toBe('[表单组件](components/forms.md)');
+    expect(links.has('基础元素')).toBe(false);
   });
 
-  it('syncComponentsIndex 去掉不存在的分类死链', () => {
+  it('syncComponentsIndex 去掉不存在的分类死链并升级为类型索引', () => {
     const skillDir = createTempDir('skill-sync-');
     mkdirSync(join(skillDir, 'reference'), { recursive: true });
     writeFileSync(
@@ -181,9 +252,26 @@ describe('skill-generator', () => {
 
     const next = readFileSync(join(skillDir, 'reference', 'components.md'), 'utf8');
     expect(next).toContain('`A`, `B`');
+    expect(next).toContain('### 其他');
     expect(next).not.toContain('components/basic.md');
     expect(next).not.toContain('按类别查阅');
     expect(next).toContain('generated/components.md');
+  });
+
+  it('syncComponentsIndex 将手写分类文档挂到对应类型标题下', () => {
+    const skillDir = createTempDir('skill-sync-forms-doc-');
+    mkdirSync(join(skillDir, 'reference', 'components'), { recursive: true });
+    writeFileSync(join(skillDir, 'reference', 'components', 'forms.md'), '# forms\n', 'utf8');
+
+    syncComponentsIndex(
+      skillDir,
+      '## 可用组件\n\n必须使用以下支持的 componentName：`TinyForm`, `TinyInput`\n',
+    );
+
+    const next = readFileSync(join(skillDir, 'reference', 'components.md'), 'utf8');
+    expect(next).toContain('### 表单组件');
+    expect(next).toContain('详见 [表单组件](components/forms.md)');
+    expect(next).not.toContain('components/basic.md');
   });
 
   it('syncComponentsIndex 使用受管区块保留格式不同的手写内容', () => {
@@ -322,6 +410,79 @@ description: test
       generated.skillPrefix +
         generated.sectionMarkers.map(({ file }) => generated.sections[file]).join(''),
     ).toBe(generated.prompt);
+  });
+
+  it('writeReferenceFiles 将组件 schema 拆到 generated/components 并更新索引链接', () => {
+    const skillDir = createTempDir('skill-split-components-');
+    const detail = `## 可用组件
+
+必须使用以下支持的 componentName：\`TinyForm\`, \`TinyHuichartsLine\`
+
+具体组件的上下文如下：
+
+\`\`\`json
+[{"component":"TinyForm","name":"表单"},{"component":"TinyHuichartsLine","name":"折线图"}]
+\`\`\`
+`;
+    writeReferenceFiles(
+      skillDir,
+      { 'components.md': detail, 'rules.md': '## schemaJson 生成规则\nrules\n' },
+      {
+        componentGroups: [
+          { id: 'forms', label: '表单组件', components: ['TinyForm'] },
+          { id: 'charts', label: '图表组件', components: ['TinyHuichartsLine'] },
+        ],
+      },
+    );
+
+    const forms = readFileSync(
+      join(skillDir, 'reference', 'generated', 'components', 'forms.md'),
+      'utf8',
+    );
+    const charts = readFileSync(
+      join(skillDir, 'reference', 'generated', 'components', 'charts.md'),
+      'utf8',
+    );
+    const index = readFileSync(join(skillDir, 'reference', 'components.md'), 'utf8');
+    const dump = readFileSync(join(skillDir, 'reference', 'generated', 'components.md'), 'utf8');
+
+    expect(dump).toBe(detail);
+    expect(forms).toContain('"component": "TinyForm"');
+    expect(forms).not.toContain('TinyHuichartsLine');
+    expect(charts).toContain('"component": "TinyHuichartsLine"');
+    expect(index).toContain('generated/components/forms.md');
+    expect(index).toContain('generated/components/charts.md');
+    expect(index).not.toMatch(/完整 props \/ events 见 \[generated\/components\.md\]/);
+  });
+
+  it('writeReferenceFiles 无 JSON 时不拆类型文件，索引回退全量 dump', () => {
+    const skillDir = createTempDir('skill-split-missing-json-');
+    mkdirSync(join(skillDir, 'reference', 'generated', 'components'), { recursive: true });
+    writeFileSync(
+      join(skillDir, 'reference', 'generated', 'components', 'stale.md'),
+      '# stale\n',
+      'utf8',
+    );
+
+    writeReferenceFiles(
+      skillDir,
+      {
+        'components.md':
+          '## 可用组件\n\n必须使用以下支持的 componentName：`TinyForm`\n',
+      },
+      {
+        componentGroups: [{ id: 'forms', label: '表单组件', components: ['TinyForm'] }],
+      },
+    );
+
+    expect(existsSync(join(skillDir, 'reference', 'generated', 'components', 'forms.md'))).toBe(
+      false,
+    );
+    expect(existsSync(join(skillDir, 'reference', 'generated', 'components', 'stale.md'))).toBe(
+      false,
+    );
+    const index = readFileSync(join(skillDir, 'reference', 'components.md'), 'utf8');
+    expect(index).toMatch(/完整 props \/ events 见 \[generated\/components\.md\]/);
   });
 
   it('referenceSubdir 为空时拒绝 prune，避免破坏 prompt 之外的手写文件', () => {

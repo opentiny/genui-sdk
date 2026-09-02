@@ -42,6 +42,11 @@ afterEach(() => {
   }
 });
 
+const SAMPLE_GROUPS = [
+  { id: 'forms' as const, label: '表单组件', components: ['TinyForm', 'TinyInput'] },
+  { id: 'charts' as const, label: '图表组件', components: ['TinyHuichartsLine'] },
+];
+
 function seedGenerated(skillDir: string, subdir = 'generated'): void {
   const generatedDir = subdir
     ? join(skillDir, 'reference', subdir)
@@ -49,6 +54,7 @@ function seedGenerated(skillDir: string, subdir = 'generated'): void {
   mkdirSync(generatedDir, { recursive: true });
   writeFileSync(join(generatedDir, 'components.md'), '# g\n', 'utf8');
   writeFileSync(join(generatedDir, 'rules.md'), '# r\n', 'utf8');
+  writeFileSync(join(generatedDir, 'json-schema.md'), '# s\n', 'utf8');
   if (subdir) {
     writeFileSync(join(skillDir, 'reference', 'components.md'), '# index\n', 'utf8');
   }
@@ -78,21 +84,64 @@ function seedHandwritten(skillDir: string): void {
 }
 
 describe('formatters', () => {
-  it('仅 generated 时不链缺失手写文档，回退 generated/rules', () => {
+  it('仅 generated 时不链缺失手写文档，回退 generated/rules，工作流必含 json-schema', () => {
     const skillDir = createTempDir('skill-body-gen-');
     seedGenerated(skillDir);
     const markers = extractReferenceSections(SAMPLE_PROMPT);
-    const body = buildGenuiSchemaSkillBody(markers, { skillDir });
+    const body = buildGenuiSchemaSkillBody(markers, {
+      skillDir,
+      componentGroups: SAMPLE_GROUPS,
+    });
 
     expect(body).not.toContain('reference/quick-ref.md');
     expect(body).not.toContain('reference/editing.md');
     expect(body).not.toContain('reference/examples/login-form.md');
     expect(body).not.toContain('reference/common-mistakes.md');
+    expect(body).not.toContain('| 用户意图 | 必读 | 选读 |');
+    expect(body).toContain('## 工作流');
+    expect(body).toContain('## 按任务补读');
     expect(body).toContain('[components.md](reference/components.md)');
     expect(body).toContain('[generated/components.md](reference/generated/components.md)');
     expect(body).toContain('[rules.md](reference/generated/rules.md)');
-    expect(body).toContain('## 完整物料');
+    const workflow = body.slice(body.indexOf('## 工作流'), body.indexOf('## 按任务补读'));
+    expect(workflow).toContain('[json-schema.md](reference/generated/json-schema.md)');
+    expect(body).toContain('[表单组件](reference/components.md#表单组件)');
+    expect(body).toContain('[图表组件](reference/components.md#图表组件)');
+    expect(body).toContain('## 完整物料（按需再读）');
+    expect(body).not.toContain('genPrompt');
     expect(body).toContain('## ⚠️ 输出格式');
+  });
+
+  it('存在类型拆分文件时，类型索引与工作流链拆分文件而非全量 dump', () => {
+    const skillDir = createTempDir('skill-body-split-');
+    seedGenerated(skillDir);
+    mkdirSync(join(skillDir, 'reference', 'generated', 'components'), { recursive: true });
+    writeFileSync(
+      join(skillDir, 'reference', 'generated', 'components', 'forms.md'),
+      '# forms schema\n',
+      'utf8',
+    );
+    writeFileSync(
+      join(skillDir, 'reference', 'generated', 'components', 'charts.md'),
+      '# charts schema\n',
+      'utf8',
+    );
+    const markers = extractReferenceSections(SAMPLE_PROMPT);
+    const body = buildGenuiSchemaSkillBody(markers, {
+      skillDir,
+      componentGroups: SAMPLE_GROUPS,
+    });
+
+    expect(body).toContain('[表单组件](reference/generated/components/forms.md)');
+    expect(body).toContain('[图表组件](reference/generated/components/charts.md)');
+    expect(body).not.toContain('[表单组件](reference/components.md#表单组件)');
+    expect(body).toContain('| 表单组件 | [generated/components/forms.md](reference/generated/components/forms.md) |');
+    expect(body).not.toMatch(
+      /\| 可用组件 \| \[components\.md\]\(reference\/generated\/components\.md\) \|/,
+    );
+    const workflow = body.slice(body.indexOf('## 工作流'), body.indexOf('## 按任务补读'));
+    expect(workflow).toContain('禁止读取 `generated/components.md` 全文');
+    expect(workflow).not.toContain('中按组件名定位');
   });
 
   it('手写存在时优先手写路径，并链分类文档', () => {
@@ -100,17 +149,18 @@ describe('formatters', () => {
     seedGenerated(skillDir);
     seedHandwritten(skillDir);
     const markers = extractReferenceSections(SAMPLE_PROMPT);
-    const body = buildGenuiSchemaSkillBody(markers, { skillDir });
+    const body = buildGenuiSchemaSkillBody(markers, {
+      skillDir,
+      componentGroups: SAMPLE_GROUPS,
+    });
 
     expect(body).toContain('[quick-ref.md](reference/quick-ref.md)');
     expect(body).toContain('[login-form 示例](reference/examples/login-form.md)');
     expect(body).toContain('[editing.md](reference/editing.md)');
     expect(body).toContain('[common-mistakes.md](reference/common-mistakes.md)');
     expect(body).toContain('[rules.md](reference/rules.md)');
-    // 意图路由用手写；完整物料表仍可链 generated/rules.md
-    expect(body).toMatch(
-      /新建表单[\s\S]*?\[rules\.md\]\(reference\/rules\.md\)/,
-    );
+    expect(body).toContain('[forms.md](reference/components/forms.md)');
+    expect(body).toMatch(/表单 \/ 登录 \/ 注册[\s\S]*?\[rules\.md\]\(reference\/rules\.md\)/);
     expect(body).toContain('[data-display.md](reference/components/data-display.md)');
     expect(body).toContain('[charts.md](reference/components/charts.md)');
   });

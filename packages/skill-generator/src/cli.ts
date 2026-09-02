@@ -29,7 +29,7 @@ export interface ISkillGenerateConfig {
   skillBodyFormatter?: string;
   /** genPrompt 章节子目录，默认 generated */
   referenceSubdir?: string;
-  /** 是否同步白名单到手写 components.md；默认 true */
+  /** 是否将按类型分组的白名单同步到 components.md；默认 true */
   syncComponentsIndex?: boolean;
   /** 是否清理生成子目录中的过期文件；默认 true */
   prune?: boolean;
