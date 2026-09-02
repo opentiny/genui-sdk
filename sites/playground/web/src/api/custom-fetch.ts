@@ -43,7 +43,7 @@ export type IOpenApiToolServiceConfig = OpenApiToolServiceConfig;
 export interface IPlaygroundConfig {
   mcpServers: IMcpServerConfig[];
   framework: string;
-  componentLib?: 'TinyVue' | 'ElementPlus' | 'TinyNg';
+  componentLib?: 'TinyVue' | 'ElementPlus' | 'TinyNg' | 'Antd';
   promptList: string[];
   model: string;
   temperature: number;

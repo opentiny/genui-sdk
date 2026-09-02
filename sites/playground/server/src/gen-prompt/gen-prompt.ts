@@ -10,7 +10,7 @@ import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-
 import { materialsMeta as reactMaterialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
-type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg';
+type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg' | 'Antd';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
 type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
@@ -41,8 +41,10 @@ const metaMap: IMetaMap = {
     },
   },
   React: {
-    mini: reactMaterialsMeta,
-    standard: reactMaterialsMeta,
+    Antd: {
+      mini: reactMaterialsMeta,
+      standard: reactMaterialsMeta,
+    },
   },
 };
 
