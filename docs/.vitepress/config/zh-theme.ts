@@ -39,6 +39,7 @@ export const zhThemeConfig: DefaultTheme.Config = {
           { text: 'GenuiRenderer', link: '/components/renderer' },
           { text: 'GenuiChat', link: '/components/chat' },
           { text: 'GenuiConfigProvider', link: '/components/config-provider' },
+          { text: 'generateCode', link: '/components/code-generator' },
         ],
       },
       {

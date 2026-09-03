@@ -235,7 +235,7 @@ Besides the main entry, `@opentiny/genui-sdk-vue` provides subpath exports. Impo
 | `@opentiny/genui-sdk-vue/chat` | Chat only | `GenuiChat` |
 | `@opentiny/genui-sdk-vue/renderer` | Renderer only (custom chat UI) | `GenuiRenderer` |
 | `@opentiny/genui-sdk-vue/config-provider` | Theme / i18n / materials container | `GenuiConfigProvider` |
-| `@opentiny/genui-sdk-vue/code-generator` | SchemaJSON → Vue SFC | `generateCode` |
+| `@opentiny/genui-sdk-vue/code-generator` | SchemaJSON → Vue SFC | [`generateCode`](../components/code-generator) |
 
 ```ts
 import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
@@ -256,5 +256,6 @@ In v1.3.0, materials were decoupled from the SDK. If you need the built-in TinyV
 ## Related Docs
 
 - [GenuiChat API](../components/chat)
+- [generateCode](../components/code-generator) — SchemaJSON to Vue SFC
 - [Using Renderer](start-with-renderer)
 - [Examples](../examples/chat/custom-actions)

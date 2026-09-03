@@ -49,3 +49,4 @@ import { generateCode } from '@opentiny/genui-sdk-vue/code-generator';
 * [GenuiRender](https://docs.opentiny.design/genui-sdk/components/renderer)
 * [GenuiChat](https://docs.opentiny.design/genui-sdk/components/chat)
 * [GenuiConfigProvider](https://docs.opentiny.design/genui-sdk/components/config-provider)
+* [generateCode](https://docs.opentiny.design/genui-sdk/components/code-generator)

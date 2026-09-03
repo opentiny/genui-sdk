@@ -232,7 +232,7 @@ html {
 | `@opentiny/genui-sdk-vue/chat` | 仅需对话组件 | `GenuiChat` |
 | `@opentiny/genui-sdk-vue/renderer` | 仅需渲染器（自建对话 UI） | `GenuiRenderer` |
 | `@opentiny/genui-sdk-vue/config-provider` | 主题/国际化/物料配置容器 | `GenuiConfigProvider` |
-| `@opentiny/genui-sdk-vue/code-generator` | 将 SchemaJSON 转为 Vue SFC | `generateCode` |
+| `@opentiny/genui-sdk-vue/code-generator` | 将 SchemaJSON 转为 Vue SFC | [`generateCode`](../components/code-generator) |
 
 ```ts
 import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
@@ -253,5 +253,6 @@ import { generateCode } from '@opentiny/genui-sdk-vue/code-generator';
 ## 其他相关文档
 
 - 查看 [组件文档](../components/chat) 了解 `GenuiChat` 的详细 API
+- 查看 [generateCode](../components/code-generator) 了解如何将 SchemaJSON 转为 Vue SFC
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
 - 查看 [特性示例](../examples/chat/custom-actions) 学习高级用法
