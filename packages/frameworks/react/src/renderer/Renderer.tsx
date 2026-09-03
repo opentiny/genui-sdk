@@ -79,11 +79,8 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
         } else if (ref) {
           ref.current = instance;
         }
-        if (instance) {
-          updateContextAndState();
-        }
       },
-      [ref, updateContextAndState],
+      [ref],
     );
 
     useEffect(() => {

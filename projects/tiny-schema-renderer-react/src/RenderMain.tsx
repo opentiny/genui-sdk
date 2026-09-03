@@ -26,11 +26,15 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
 
-  useImperativeHandle(ref, () => ({
-    setContext,
-    getContext,
-    setState: (data) => setState(data, contextApi),
-  }));
+  useImperativeHandle(
+    ref,
+    () => ({
+      setContext,
+      getContext,
+      setState: (data) => setState(data, contextApi),
+    }),
+    [setContext, getContext, contextApi],
+  );
 
   const invokePageOnUnmounted = async () => {
     const fn = pageOnUnmountedRef.current;
