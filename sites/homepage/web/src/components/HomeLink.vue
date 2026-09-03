@@ -93,6 +93,10 @@ const buttonSize = computed(() => {
       gap: 20px;
     }
   }
+
+  @media (max-width: 768px) {
+    margin-top: 16px;
+  }
 }
 </style>
   

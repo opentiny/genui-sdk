@@ -558,7 +558,7 @@ const buttonSize = computed(() => {
   }
 
   :deep(.home-link) {
-    margin-top: 60px;
+    margin-top: 16px;
     padding: 46px 20px 43px 20px;
     background-image: url('@/assets/genui_ability_mobile_bg_2.svg');
 
