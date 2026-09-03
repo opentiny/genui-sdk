@@ -8,6 +8,7 @@ import genuiAbility2Right from '@/assets/genui_ability_2_right.svg'
 import genuiInuseIcon from '@/assets/genui_ability_2_icon.svg'
 import genuiAbility3 from '@/assets/create-github.webp';
 // import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
+import genuiAbility2 from '@/assets/genui_ability_2_img.webp'
 import genuiAbility3VideoCover from '@/assets/genui_ability_3_video_cover.svg'
 import genuiAbility4Right from '@/assets/genui_ability_4_right.svg'
 import genuiAbility5VideoCover from '@/assets/genui_ability_5_video_cover.svg'
@@ -90,21 +91,7 @@ const buttonSize = computed(() => {
     <!-- 第二屏 -->
     <home-ability class="home-ability-2" :title="t('ability.visual.title')" :subtitle="t('ability.visual.subtitle')">
       <div class="ability-image-wrap-2">
-        <!-- <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
-         -->
-        <div class="white-bg">
-          <div class="img-wrapper img-wrapper-left">
-            <div class="before-genui">{{ t('ability.visual.before') }}</div>
-            <img class="img-left" :src="genuiAbility2Left" alt="">
-          </div>
-          <div class="img-wrapper img-wrapper-right">
-            <div class="after-genui">
-              <img class="after-genui-icon" :src="genuiInuseIcon" alt="">
-              <span>{{ t('ability.visual.after') }}</span>
-            </div>
-            <img class="img-right" :src="genuiAbility2Right" alt="">
-          </div>
-        </div>
+        <img class="ability-image ability-image-2" :src="genuiAbility2" alt="genui-ability-2" />
       </div>
     </home-ability>
 
@@ -329,21 +316,13 @@ const buttonSize = computed(() => {
     padding-bottom: 0 !important;
   }
 
-  :deep(.home-ability-3 .home-ability-content) {
-    width: 100%;
-  }
-
-  :deep(.home-ability-2 .home-ability-content) {
-    width: 100%;
-  }
-
-  :deep(.home-ability-4 .home-ability-content) {
-    width: 100%;
-  }
-
+  :deep(.home-ability-2 .home-ability-content),
+  :deep(.home-ability-3 .home-ability-content),
+  :deep(.home-ability-4 .home-ability-content),
   :deep(.home-ability-5 .home-ability-content) {
     width: 100%;
   }
+
 
   .home-ability-4 {
     background: rgba(248, 248, 255, 1);
@@ -708,6 +687,10 @@ const buttonSize = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+
+  &-2 {
+    border-radius: 12px;
+  }
 }
 
 .cover-image {

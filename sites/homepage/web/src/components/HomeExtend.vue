@@ -16,6 +16,7 @@ import coinGameJsonEn from '@/static/coin-game.en.json';
 import { t, locale } from '@/i18n';
 import calculatorIcon from '@/assets/calculator.svg'
 import todoIcon from '@/assets/todo.svg'
+import coinsIcon from '@/assets/coins.svg'
 import playIcon from '@/assets/play.svg' 
 
 const TinyIconArrowRight = IconArrowRight();
@@ -290,6 +291,7 @@ onUnmounted(() => {
         value="coin"
         @click="handleExtendClick('coin')"
       >
+        <img class="extend-button-icon" :src="coinsIcon" alt="" />
         {{ t('extend.coinGame') }}
       </tiny-button>
     </tiny-button-group>
