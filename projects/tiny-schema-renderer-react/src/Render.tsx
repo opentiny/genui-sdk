@@ -1,11 +1,11 @@
-import React, { memo, type ComponentType } from 'react';
+import React, { memo, useContext as reactUseContext, type ComponentType } from 'react';
 import { isHtmlTag } from './builtin/html-tags';
 import { parseData, parseCondition, getLoopScope, getBindProps } from './engine';
 import type { Node, RootNode } from './types';
 import type { PageContextValue } from './engine';
 import type { MaterialComponent } from './materials';
 import { getResolvedMaterials } from './materials';
-import { usePageContext } from './page-context';
+import { PageContext } from './page-context';
 
 function getComponent(name: string): MaterialComponent | string | null {
   const materials = getResolvedMaterials();
@@ -74,6 +74,9 @@ export interface SchemaNodeRendererProps {
 }
 
 export const SchemaNodeRenderer = memo(function SchemaNodeRenderer({ schema, scope = {} }: SchemaNodeRendererProps) {
-  const context = usePageContext();
+  const context = reactUseContext(PageContext);
+  if (!context) {
+    throw new Error('SchemaNodeRenderer must be used within SchemaRenderer');
+  }
   return renderComponent(schema, scope, context);
 });
