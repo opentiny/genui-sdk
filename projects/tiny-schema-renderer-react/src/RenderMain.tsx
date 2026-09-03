@@ -106,7 +106,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
   return (
     <PageContextProvider value={context}>
-      {schema?.children?.length ? (
+      {schema?.children ? (
         <div className="genui-schema-renderer" data-scope={context.cssScopeId}>
           <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
         </div>
