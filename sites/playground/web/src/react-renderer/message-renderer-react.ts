@@ -1,5 +1,5 @@
 import { defineAsyncComponent, h } from 'vue';
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { cardIdSymbol, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 
 type GenuiChatInstance = InstanceType<typeof GenuiChat>;
@@ -22,6 +22,20 @@ function parseSchema(content: string | Record<string, unknown>) {
   return null;
 }
 
+function bindCardIdToAction<T extends { execute: (params: any, context: Record<string | symbol, any>) => any }>(
+  action: T,
+  cardId: string,
+): T {
+  return {
+    ...action,
+    execute: (params: any, context: Record<string | symbol, any> = {}) =>
+      action.execute(params, {
+        ...context,
+        [cardIdSymbol]: cardId,
+      }),
+  };
+}
+
 export function getMessageRendererReact(instance: GenuiChatInstance) {
   return (schemaCardProps) => {
     const schema = parseSchema(schemaCardProps.content);
@@ -30,18 +44,19 @@ export function getMessageRendererReact(instance: GenuiChatInstance) {
     }
 
     const { continueChatAction, saveStateAction } = instance;
+    const cardId = schemaCardProps.id;
     return h('div', [
       h(SchemaRendererReactAdapter, {
         schema,
-        generating: instance.lastSchemaCardId === schemaCardProps.id ? instance.generating : false,
+        generating: instance.lastSchemaCardId === cardId ? instance.generating : false,
         isJsonComplete: schemaCardProps.isJsonComplete,
         customActions: {
-          continueChat: continueChatAction,
-          saveState: saveStateAction,
+          continueChat: bindCardIdToAction(continueChatAction, cardId),
+          saveState: bindCardIdToAction(saveStateAction, cardId),
         },
-        rendererId: schemaCardProps.id,
+        rendererId: cardId,
         rendererState: schemaCardProps.state,
-        key: schemaCardProps.id,
+        key: cardId,
       }),
     ]);
   };
