@@ -50,7 +50,7 @@ const buttonSize = computed(() => {
   justify-content: center;
   align-items: center;
   padding: 102px 12.5%;
-  background-image: url('@/assets/genui_ability_bg_3.svg');
+  background-image: url('@/assets/homelink_bg.svg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -63,7 +63,6 @@ const buttonSize = computed(() => {
   }
 
   &-description {
-    // color: rgba(89, 89, 89, 1);
     font-size: 16px;
     font-weight: 400;
     line-height: 26px;
