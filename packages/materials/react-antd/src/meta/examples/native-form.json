@@ -95,7 +95,7 @@
               "text": "Submit",
               "onClick": {
                 "type": "JSFunction",
-                "value": "function() { var data = this.state.formData; console.log('submit', data); alert('Submitted:\\n' + JSON.stringify(data, null, 2)); }"
+                "value": "function() { var data = this.state.formData; console.log('submit', data); }"
               }
             }
           }
