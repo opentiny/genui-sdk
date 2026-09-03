@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { TinyButton } from '@opentiny/vue';
-import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.png';
-import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.png';
-import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.png';
+import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.png?no-inline';
+import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.png?no-inline';
+import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.png?no-inline';
 import genuiBuilderIconChat from '@/assets/genui_builder_icon_chat.svg';
 import genuiBuilderIconVersion from '@/assets/genui_builder_icon_version.svg';
 import genuiBuilderIconPreview from '@/assets/genui_builder_icon_preview.svg';
