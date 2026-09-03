@@ -38,7 +38,7 @@ export const enThemeConfig: DefaultTheme.Config = {
     ],
     '/en/components/': [
       {
-        text: 'Vue Docs',
+        text: 'Vue',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/renderer' },
           { text: 'GenuiChat', link: '/en/components/chat' },
@@ -46,21 +46,21 @@ export const enThemeConfig: DefaultTheme.Config = {
         ],
       },
       {
-        text: 'Angular Docs',
+        text: 'Angular',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/angular/renderer' },
           { text: 'GenuiConfigProvider', link: '/en/components/angular/config-provider' },
         ],
       },
       {
-        text: 'Server Docs',
+        text: 'Server',
         items: [
           { text: 'API Reference', link: '/en/components/server/api' },
           { text: 'CLI', link: '/en/components/server/cli' },
         ],
       },
       {
-        text: 'Core Docs',
+        text: 'Core',
         items: [{ text: 'API Docs', link: '/en/components/core/api' }],
       },
       {
