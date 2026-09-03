@@ -302,6 +302,7 @@ onUnmounted(() => {
           <div class="home-extend-schema-header-action-exit"></div>
         </div>
         <a
+          v-if="linkMap[LinkKey.Playground]"
           class="home-extend-schema-header-subtitle is-link"
           :href="linkMap[LinkKey.Playground] + inputMessage"
           target="_blank"

@@ -4,7 +4,7 @@ import builtinJson from './materials/builtin.json' with { type: 'json' };
 import chartJson from './materials/chart.json' with { type: 'json' };
 import extendJson from './materials/extend.json' with { type: 'json' };
 import { examples as allExamples } from './example-schema';
-import { miniWhiteList, standardWhiteList } from './white-list';
+import { miniWhiteList, standardWhiteList, plusWhiteList } from './white-list';
 
 // TODO: 优化物料协议后，删除 as IMaterialsProtocol[]
 const baseMetaMaterials = [bundleJson, builtinJson, extendJson] as IMaterialsProtocol[];
@@ -33,4 +33,12 @@ export const miniMaterialsMeta: IMaterialsMeta = {
   whiteList: miniWhiteList,
   examples: filterExamples(['form', 'grid']),
   rules: [],
+};
+
+export const plusMaterialsMeta: IMaterialsMeta = {
+  materials: standardMetaMaterials,
+  wrapperComponent: 'TinyCard',
+  whiteList: plusWhiteList,
+  examples: filterExamples(['form', 'info', 'grid', 'tabs']),
+  rules: STANDARD_RULES,
 };
