@@ -103,9 +103,8 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
         controls
         preload="none"
         :poster="genuiActionVedioCover"
-      >
-        <source v-if="actionVideoSrc" :src="actionVideoSrc" type="video/mp4" />
-      </video>
+        :src="actionVideoSrc"
+      />
     </home-ability>
 
     <home-mcp-tool-mobile v-if="isMobile"></home-mcp-tool-mobile>
@@ -151,9 +150,8 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
         controls
         preload="none"
         :poster="genuiFlowVedioCover"
-      >
-        <source v-if="flowVideoSrc" :src="flowVideoSrc" type="video/mp4" />
-      </video>
+        :src="flowVideoSrc"
+      />
     </home-ability>
 
     <home-extend></home-extend>
