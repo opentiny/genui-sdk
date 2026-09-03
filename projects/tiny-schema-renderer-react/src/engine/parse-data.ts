@@ -8,8 +8,8 @@ export type PageContextValue = Record<string, unknown> & {
   cssScopeId?: string;
   callAction?: (name: string, params?: unknown) => unknown;
   __getContext?: () => PageContextValue;
-  setState?: (updater: (state: Record<string, unknown>) => Record<string, unknown>) => void;
-  setIn?: (source: unknown, path: readonly unknown[], updater: unknown | ((prev: unknown) => unknown)) => unknown;
+  __setState?: (updater: (state: Record<string, unknown>) => Record<string, unknown>) => void;
+  __setIn?: (source: unknown, path: readonly unknown[], updater: unknown | ((prev: unknown) => unknown)) => unknown;
   __rejectStateMutationDuringRender?: () => undefined;
 };
 

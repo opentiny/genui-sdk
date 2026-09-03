@@ -53,12 +53,12 @@ function buildPathAccess(path: any[]): any {
   }, t.identifier('prev'));
 }
 
-/** setState(prev => setIn(prev, [path], valueExpr)) */
+/** __setState(prev => __setIn(prev, [path], valueExpr)) */
 function buildSetState(path: any[], valueExpr: any): any {
-  return t.callExpression(t.memberExpression(t.thisExpression(), t.identifier('setState')), [
+  return t.callExpression(t.memberExpression(t.thisExpression(), t.identifier('__setState')), [
     t.arrowFunctionExpression(
       [t.identifier('prev')],
-      t.callExpression(t.memberExpression(t.thisExpression(), t.identifier('setIn')), [
+      t.callExpression(t.memberExpression(t.thisExpression(), t.identifier('__setIn')), [
         t.identifier('prev'),
         pathToArray(path),
         valueExpr,

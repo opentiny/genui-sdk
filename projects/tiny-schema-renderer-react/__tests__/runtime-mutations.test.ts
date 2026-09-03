@@ -6,10 +6,10 @@ function simulate(source: string, initial: Record<string, unknown>) {
   const compiled = transformStateMutations(source);
   let state = initial;
   const ctx = {
-    setState: (updater: (s: Record<string, unknown>) => Record<string, unknown>) => {
+    __setState: (updater: (s: Record<string, unknown>) => Record<string, unknown>) => {
       state = updater(state);
     },
-    setIn,
+    __setIn: setIn,
   };
   // 模拟 parseExpression 的 with($scope) 执行：返回编译后的函数，再调用它
   const fn = new Function('$scope', 'with($scope){ return ' + compiled + ' }');

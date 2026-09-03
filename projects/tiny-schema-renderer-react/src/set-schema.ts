@@ -7,65 +7,58 @@ function reset(obj: Record<string, unknown>) {
   Object.keys(obj).forEach((key) => delete obj[key]);
 }
 
-export function setMethods(data: Record<string, unknown> = {}, page: PageContextApi, clear?: boolean) {
-  const { methods } = page;
-  if (clear) {
-    reset(methods as unknown as Record<string, unknown>);
-  }
-
-  Object.assign(
-    methods,
-    Object.fromEntries(
-      Object.keys(data).map((key) => {
-        const parsed = parseData(data[key], {}, page.getContext());
-        return [
-          key,
-          (...args: unknown[]) => {
-            if (typeof parsed !== 'function') {
-              return undefined;
-            }
-            return parsed.call(page.getContext(), ...args);
-          },
-        ];
-      }),
-    ),
+export function setMethods(data: Record<string, unknown> = {}, contextApi: PageContextApi, clear?: boolean) {
+  const methods = Object.fromEntries(
+    Object.keys(data).map((key) => {
+      const parsed = parseData(data[key], {}, contextApi.getContext());
+      return [
+        key,
+        (...args: unknown[]) => {
+          if (typeof parsed !== 'function') {
+            return undefined;
+          }
+          return parsed.call(contextApi.getContext(), ...args);
+        },
+      ];
+    }),
   );
 
-  page.setContext({ ...methods });
+  contextApi.setContext(methods);
 }
 
-export function setState(data: Record<string, unknown> | undefined, page: PageContextApi, clear?: boolean) {
+export function setState(data: Record<string, unknown> | undefined, contextApi: PageContextApi, clear?: boolean) {
   if (!data) {
     if (clear) {
-      page.setState({}, true);
+      contextApi.setContext({ state: {} });
     }
     return;
   }
-  page.setState(data, clear);
+  const parsed = (parseData(data, {}, contextApi.getContext()) as Record<string, unknown>) || {};
+  const prev = contextApi.getContext().state ?? {};
+  contextApi.setContext({ state: clear ? { ...parsed } : { ...prev, ...parsed } });
 }
 
-export function setRefs(data: Record<string, unknown> | undefined, page: PageContextApi, clear?: boolean) {
-  const refs = (page.getContext().refs ?? {}) as Record<string, unknown>;
+export function setRefs(data: Record<string, unknown> | undefined, contextApi: PageContextApi, clear?: boolean) {
+  const refs = (contextApi.getContext().refs ?? {}) as Record<string, unknown>;
   if (clear) {
     reset(refs);
   }
   if (!data) {
     return;
   }
-
-  Object.assign(refs, (parseData(data, {}, page.getContext()) as Record<string, unknown>) || {});
+  Object.assign(refs, (parseData(data, {}, contextApi.getContext()) as Record<string, unknown>) || {});
 }
 
-export function setSchema(schema: CardSchema, page: PageContextApi) {
-  const cssScopeId = page.getContext().cssScopeId;
-  page.setContext({ state: {}, refs: {}, cssScopeId }, true);
+export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
+  const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+  contextApi.setContext({ state: {}, refs: {}, cssScopeId }, true);
 
-  setMethods(schema.methods as Record<string, unknown> | undefined, page, true);
-  setState(schema.state as Record<string, unknown> | undefined, page, true);
-  setRefs(schema.refs as Record<string, unknown> | undefined, page, true);
+  setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
+  setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
+  setRefs(schema.refs as Record<string, unknown> | undefined, contextApi, true);
 
   if (schema.css && typeof document !== 'undefined') {
-    const id = page.getContext().cssScopeId!;
+    const id = contextApi.getContext().cssScopeId!;
     let el = document.getElementById(id);
     if (!el) {
       el = document.createElement('style');
@@ -75,5 +68,5 @@ export function setSchema(schema: CardSchema, page: PageContextApi) {
     el.textContent = schema.css;
   }
 
-  return getPageLifeCycleFns(schema.lifeCycles as LifeCycles | undefined, page.getContext);
+  return getPageLifeCycleFns(schema.lifeCycles as LifeCycles | undefined, contextApi.getContext);
 }

@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
-import { usePageContext, type PageContextApi } from '../src/use-context';
+import { useContext, type PageContextApi } from '../src/use-context';
 
 export function createContextApi(): PageContextApi {
-  const { result } = renderHook(() => usePageContext());
+  const { result } = renderHook(() => useContext());
   return result.current;
 }

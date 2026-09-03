@@ -1,10 +1,9 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
-import type { RootNode } from './types';
+import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
-import type { Node } from './types';
-import { createPageContext } from './use-context';
+import { useContext } from './use-context';
 import { PageContextProvider } from './page-context';
-import { setSchema } from './set-schema';
+import { setSchema, setState } from './set-schema';
 import type { LifeCycleFn } from './life-cycles';
 import { SchemaNodeRenderer, normalizeChildren } from './Render';
 import { Loading } from './Loading';
@@ -23,13 +22,14 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   { schema },
   ref,
 ) {
-  const page = useMemo(() => createPageContext(), []);
+  const contextApi = useContext();
+  const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
 
   useImperativeHandle(ref, () => ({
-    setContext: (ctx) => page.setContext(ctx),
-    getContext: () => page.getContext() as Record<string, unknown>,
-    setState: (data) => page.setState(data),
+    setContext,
+    getContext,
+    setState: (data) => setState(data, contextApi),
   }));
 
   const invokePageOnUnmounted = async () => {
@@ -59,7 +59,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     if (!schema || !pageInitSignature) return;
 
     let cancelled = false;
-    const { onMounted, onUnmounted } = setSchema(schema, page);
+    const { onMounted, onUnmounted } = setSchema(schema, contextApi);
     pageOnUnmountedRef.current = onUnmounted;
 
     (async () => {
@@ -101,9 +101,9 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   };
 
   return (
-    <PageContextProvider value={page}>
+    <PageContextProvider value={context}>
       {schema?.children?.length ? (
-        <div className="genui-schema-renderer" data-scope={page.getContext().cssScopeId}>
+        <div className="genui-schema-renderer" data-scope={context.cssScopeId}>
           <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
         </div>
       ) : (
