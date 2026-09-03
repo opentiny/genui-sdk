@@ -63,12 +63,25 @@ const buttonSize = computed(() => {
   }
 
   &-description {
-    color: rgba(89, 89, 89, 1);
+    // color: rgba(89, 89, 89, 1);
     font-size: 16px;
     font-weight: 400;
     line-height: 26px;
     text-align: center;
     margin-bottom: 36px;
+  }
+
+  &-title {
+    color: rgba(255, 123, 123, 1);
+    background-image: linear-gradient(
+      90deg,
+      rgba(255, 123, 123, 1) 0%,
+      rgba(157, 54, 240, 1) 50%,
+      rgba(18, 115, 255, 1) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   @media (min-width: 1920px) {
