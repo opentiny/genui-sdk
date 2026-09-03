@@ -33,6 +33,12 @@ import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materi
 </template>
 ```
 
+Import by feature via subpaths (`/chat`, `/renderer`, `/config-provider`, `/code-generator`) to avoid unused modules:
+
+```ts
+import { generateCode } from '@opentiny/genui-sdk-vue/code-generator';
+```
+
 ## Documentation
 
 * [quick-start](https://docs.opentiny.design/genui-sdk/guide/quick-start)
