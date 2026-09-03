@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseData } from '../src/engine';
 import { setState } from '../src/set-schema';
-import { createPageContext } from './render-page-context';
+import { createContextApi } from './render-context-api';
 
 describe('model input binding', () => {
   it('updates state and notifies on explicit value/onChange', () => {
-    const page = createPageContext();
-    setState({ formData: { name: '' } }, page);
+    const contextApi = createContextApi();
+    setState({ formData: { name: '' } }, contextApi);
 
     const props = parseData(
       {
@@ -21,15 +21,15 @@ describe('model input binding', () => {
         },
       },
       {},
-      page.getContext(),
+      contextApi.getContext(),
     ) as { value: string; onChange: (e: { target: { value: string } }) => void };
 
     expect(props.value).toBe('');
 
-    const before = page.getContext();
+    const before = contextApi.getContext();
     props.onChange({ target: { value: 'a' } });
-    expect(page.getContext().state?.formData).toEqual({ name: 'a' });
-    expect(page.getContext()).not.toBe(before);
+    expect(contextApi.getContext().state?.formData).toEqual({ name: 'a' });
+    expect(contextApi.getContext()).not.toBe(before);
 
     const nextProps = parseData(
       {
@@ -39,15 +39,15 @@ describe('model input binding', () => {
         },
       },
       {},
-      page.getContext(),
+      contextApi.getContext(),
     ) as { value: string };
 
     expect(nextProps.value).toBe('a');
   });
 
   it('updates state from an inline JSExpression event function', () => {
-    const page = createPageContext();
-    setState({ count: 0 }, page);
+    const contextApi = createContextApi();
+    setState({ count: 0 }, contextApi);
 
     const onClick = parseData(
       {
@@ -55,11 +55,11 @@ describe('model input binding', () => {
         value: '(value) => { this.state.count = value; }',
       },
       {},
-      page.getContext(),
+      contextApi.getContext(),
     ) as (value: number) => void;
 
     onClick(2);
 
-    expect(page.getContext().state).toEqual({ count: 2 });
+    expect(contextApi.getContext().state).toEqual({ count: 2 });
   });
 });

@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { parseData } from '../src/engine';
-import { createPageContext } from './render-page-context';
+import { createContextApi } from './render-context-api';
 import { setSchema } from '../src/set-schema';
 
 describe('setSchema', () => {
-  it('methods execute with latest context via parsed.call(page.getContext())', () => {
-    const page = createPageContext();
+  it('methods execute with latest context via parsed.call(contextApi.getContext())', () => {
+    const contextApi = createContextApi();
     setSchema(
       {
         state: { formData: { name: 'test' } },
@@ -18,14 +18,14 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    expect((page.getContext().handleSubmit as () => string)()).toBe('test');
+    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('test');
   });
 
   it('resolves callAction injected after methods were parsed', () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         methods: {
@@ -37,20 +37,20 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    page.setContext({
+    contextApi.setContext({
       callAction: (name: string) => (name === 'saveState' ? 'saved' : undefined),
     });
 
-    expect(typeof page.getContext().callAction).toBe('function');
-    expect((page.getContext().handleSubmit as () => string)()).toBe('saved');
+    expect(typeof contextApi.getContext().callAction).toBe('function');
+    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saved');
   });
 
   it('setSchema clears external context until re-injected', () => {
-    const page = createPageContext();
-    page.setContext({
+    const contextApi = createContextApi();
+    contextApi.setContext({
       callAction: (name: string) => name,
       cardId: 'card-1',
     });
@@ -66,22 +66,22 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    expect(page.getContext().callAction).toBeUndefined();
-    expect(page.getContext().cardId).toBeUndefined();
+    expect(contextApi.getContext().callAction).toBeUndefined();
+    expect(contextApi.getContext().cardId).toBeUndefined();
 
-    page.setContext({
+    contextApi.setContext({
       callAction: (name: string) => (name === 'saveState' ? 'saved' : undefined),
       cardId: 'card-1',
     });
 
-    expect((page.getContext().handleSubmit as () => string)()).toBe('saved');
+    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saved');
   });
 
   it('resetForm-style state assignment triggers re-render snapshot change', () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         state: { formData: { name: 'test' } },
@@ -94,20 +94,20 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    const before = page.getContext();
-    (page.getContext().resetForm as () => void)();
-    const after = page.getContext();
+    const before = contextApi.getContext();
+    (contextApi.getContext().resetForm as () => void)();
+    const after = contextApi.getContext();
 
     expect(after.state?.formData).toEqual({ name: '' });
     expect(after).not.toBe(before);
   });
 
   it('onMounted state mutation triggers re-render after lifecycle completes', async () => {
-    const page = createPageContext();
-    const before = page.getContext();
+    const contextApi = createContextApi();
+    const before = contextApi.getContext();
 
     const { onMounted } = setSchema(
       {
@@ -121,17 +121,17 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
     await onMounted?.();
 
-    expect(page.getContext().state?.tableData).toEqual([{ id: '001' }]);
-    expect(page.getContext()).not.toBe(before);
+    expect(contextApi.getContext().state?.tableData).toEqual([{ id: '001' }]);
+    expect(contextApi.getContext()).not.toBe(before);
   });
 
   it('updates after await without method or event wrapper notifications', async () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         state: { loading: true, result: null },
@@ -144,18 +144,18 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    const before = page.getContext();
-    await (page.getContext().load as () => Promise<void>)();
+    const before = contextApi.getContext();
+    await (contextApi.getContext().load as () => Promise<void>)();
 
-    expect(page.getContext().state).toEqual({ loading: false, result: 'done' });
-    expect(page.getContext()).not.toBe(before);
+    expect(contextApi.getContext().state).toEqual({ loading: false, result: 'done' });
+    expect(contextApi.getContext()).not.toBe(before);
   });
 
   it('updates from a timer callback after the method has returned', async () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         state: { ready: false },
@@ -169,16 +169,16 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    await (page.getContext().start as () => Promise<void>)();
+    await (contextApi.getContext().start as () => Promise<void>)();
 
-    expect(page.getContext().state).toEqual({ ready: true });
+    expect(contextApi.getContext().state).toEqual({ ready: true });
   });
 
   it('does not notify for a method that does not change state', () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         methods: {
@@ -187,17 +187,17 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    const before = page.getContext();
+    const before = contextApi.getContext();
 
-    expect((page.getContext().readOnly as () => string)()).toBe('ok');
-    expect(page.getContext()).toBe(before);
+    expect((contextApi.getContext().readOnly as () => string)()).toBe('ok');
+    expect(contextApi.getContext()).toBe(before);
   });
 
   it('compiles update, delete, Object.assign and array mutation writes', () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         state: { count: 1, form: { name: 'Ada' }, items: ['a', 'b'], obsolete: true },
@@ -211,18 +211,18 @@ describe('setSchema', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    (page.getContext().update as () => void)();
+    (contextApi.getContext().update as () => void)();
 
-    expect(page.getContext().state).toEqual({ count: 2, form: { name: 'Grace' }, items: ['a', 'b', 'c'] });
+    expect(contextApi.getContext().state).toEqual({ count: 2, form: { name: 'Grace' }, items: ['a', 'b', 'c'] });
   });
 });
 
 describe('parseData onClick with methods', () => {
   it('onClick handler can call this.handleSubmit()', () => {
-    const page = createPageContext();
+    const contextApi = createContextApi();
     setSchema(
       {
         methods: {
@@ -234,10 +234,10 @@ describe('parseData onClick with methods', () => {
         componentName: 'Page',
         children: [],
       },
-      page,
+      contextApi,
     );
 
-    const ctx = page.getContext();
+    const ctx = contextApi.getContext();
     const onClick = parseData(
       { type: 'JSFunction', value: 'function() { return this.handleSubmit(); }' },
       {},
