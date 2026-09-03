@@ -246,7 +246,7 @@ const buttonSize = computed(() => {
     }
 
     &-subtitle {
-      font-size: var(--font-size-title-lg);
+      font-size: var(--font-size-title-md);
       font-weight: 700;
       text-align: left;
       color: rgba(14, 112, 255, 1);

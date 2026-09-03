@@ -516,7 +516,7 @@ onUnmounted(() => {
       position: relative;
       width: 100%;
       @media (max-width: 768px) {
-        padding: 20px;
+        padding: 5px;
       }
     }
 
