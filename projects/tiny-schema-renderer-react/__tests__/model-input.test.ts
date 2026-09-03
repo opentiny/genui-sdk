@@ -1,13 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { parseData } from '../src/engine';
-import { createPageContext } from '../src/use-context';
+import { setState } from '../src/set-schema';
+import { createPageContext } from './render-page-context';
 
 describe('model input binding', () => {
   it('updates state and notifies on explicit value/onChange', () => {
     const page = createPageContext();
-    page.setState({ formData: { name: '' } });
-    let notifyCount = 0;
-    page.subscribe(() => notifyCount++);
+    setState({ formData: { name: '' } }, page);
 
     const props = parseData(
       {
@@ -27,9 +26,10 @@ describe('model input binding', () => {
 
     expect(props.value).toBe('');
 
+    const before = page.getContext();
     props.onChange({ target: { value: 'a' } });
     expect(page.getContext().state?.formData).toEqual({ name: 'a' });
-    expect(notifyCount).toBe(1);
+    expect(page.getContext()).not.toBe(before);
 
     const nextProps = parseData(
       {
@@ -47,7 +47,7 @@ describe('model input binding', () => {
 
   it('updates state from an inline JSExpression event function', () => {
     const page = createPageContext();
-    page.setState({ count: 0 });
+    setState({ count: 0 }, page);
 
     const onClick = parseData(
       {

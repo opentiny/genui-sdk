@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { transformStateMutations } from '../src/engine/transform-state-mutations';
-import { setIn } from '../src/use-context';
+import { setIn } from '../src/engine';
 
 function simulate(source: string, initial: Record<string, unknown>) {
   const compiled = transformStateMutations(source);

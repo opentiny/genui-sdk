@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseData } from '../src/engine';
-import { createPageContext } from '../src/use-context';
+import { createPageContext } from './render-page-context';
 import { setSchema } from '../src/set-schema';
 
 describe('setSchema', () => {
@@ -107,8 +107,7 @@ describe('setSchema', () => {
 
   it('onMounted state mutation triggers re-render after lifecycle completes', async () => {
     const page = createPageContext();
-    let notifyCount = 0;
-    page.subscribe(() => notifyCount++);
+    const before = page.getContext();
 
     const { onMounted } = setSchema(
       {
@@ -125,11 +124,10 @@ describe('setSchema', () => {
       page,
     );
 
-    const notifyAfterInit = notifyCount;
     await onMounted?.();
 
     expect(page.getContext().state?.tableData).toEqual([{ id: '001' }]);
-    expect(notifyCount).toBeGreaterThan(notifyAfterInit);
+    expect(page.getContext()).not.toBe(before);
   });
 
   it('updates after await without method or event wrapper notifications', async () => {
@@ -149,12 +147,11 @@ describe('setSchema', () => {
       page,
     );
 
-    let notifyCount = 0;
-    page.subscribe(() => notifyCount++);
+    const before = page.getContext();
     await (page.getContext().load as () => Promise<void>)();
 
     expect(page.getContext().state).toEqual({ loading: false, result: 'done' });
-    expect(notifyCount).toBe(2);
+    expect(page.getContext()).not.toBe(before);
   });
 
   it('updates from a timer callback after the method has returned', async () => {
@@ -193,11 +190,10 @@ describe('setSchema', () => {
       page,
     );
 
-    let notifyCount = 0;
-    page.subscribe(() => notifyCount++);
+    const before = page.getContext();
 
     expect((page.getContext().readOnly as () => string)()).toBe('ok');
-    expect(notifyCount).toBe(0);
+    expect(page.getContext()).toBe(before);
   });
 
   it('compiles update, delete, Object.assign and array mutation writes', () => {
