@@ -5,7 +5,7 @@ import { PlaygroundMode } from '../../constants';
 export const FRAMEWORK_OPTIONS = [
   { name: 'Vue', textKey: 'materials.frameworkVue' },
   { name: 'Angular', textKey: 'materials.frameworkAngular' },
-  { name: 'React', textKey: 'materials.frameworkReact', alpha: true },
+  { name: 'React', textKey: 'materials.frameworkReact' },
 ];
 
 export function getFrameworkOptions(mode: PlaygroundMode) {

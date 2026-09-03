@@ -69,7 +69,6 @@ const handleSetFramework = (name) => {
         @keydown.enter="handleSetFramework(item.name)"
         @keydown.space.prevent="handleSetFramework(item.name)"
       >
-        <span v-if="item.alpha" class="framework-btn__alpha">{{ t('materials.alpha') }}</span>
         <span class="framework-btn__icon">
           <img :src="frameworkIconMap[item.name]" :alt="item.name" />
         </span>
@@ -139,18 +138,6 @@ const handleSetFramework = (name) => {
     border-radius: 8px;
     background: transparent;
     cursor: pointer;
-  }
-
-  .framework-btn__alpha {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    padding: 1px 4px;
-    font-size: 10px;
-    line-height: 1.2;
-    color: #1476ff;
-    background: rgba(20, 118, 255, 0.08);
-    border-radius: 4px;
   }
 
   .framework-btn__icon {

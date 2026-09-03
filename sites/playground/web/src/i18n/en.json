@@ -39,7 +39,6 @@
       "themeDark": "Dark",
       "themeLite": "Lite",
       "themeAuto": "System",
-      "alpha": "Alpha",
       "frameworkVue": "Vue framework",
       "frameworkAngular": "Angular framework",
       "frameworkReact": "React framework"
