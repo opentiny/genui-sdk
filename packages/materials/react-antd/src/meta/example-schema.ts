@@ -1,19 +1,10 @@
-import { cardSchema, type IExample } from '@opentiny/genui-sdk-core';
-import nativeFormExampleJson from './examples/native-form.json' with { type: 'json' };
-import antdFormExampleJson from './examples/antd-form.json' with { type: 'json' };
+import type { IExample } from '@opentiny/genui-sdk-core';
+import antdFormSchema from './examples/antd-form.json' with { type: 'json' };
+import listSchema from './examples/list.json' with { type: 'json' };
+import tableSchema from './examples/table.json' with { type: 'json' };
 
-type ExampleJson = {
-  name: string;
-  description?: string;
-  schema: unknown;
-};
-
-function createExample(json: ExampleJson): IExample {
-  return {
-    name: json.name,
-    description: json.description,
-    schema: cardSchema.parse(json.schema),
-  };
-}
-
-export const examples: IExample[] = [createExample(nativeFormExampleJson), createExample(antdFormExampleJson)];
+export const examples = [
+  { id: 'antd-form', name: 'Ant Design 表单', schema: antdFormSchema },
+  { id: 'list', name: '简单列表', schema: listSchema },
+  { id: 'table', name: '数据表格', schema: tableSchema },
+] as IExample[];

@@ -1,137 +1,149 @@
 {
-  "name": "Ant Design form",
-  "description": "Form built with AntForm, AntFormItem, AntInput, AntSelect, AntButton",
-  "schema": {
-    "state": {
-      "formData": {
-        "name": "",
-        "email": "",
-        "department": ""
-      }
-    },
-    "methods": {
-      "handleSubmit": {
-        "type": "JSFunction",
-        "value": "function() { var data = this.state.formData; console.log('submit', data); }"
-      }
-    },
-    "componentName": "Page",
-    "props": {
-      "style": "max-width: 480px; padding: 16px;"
-    },
-    "children": [
-      {
-        "componentName": "AntCard",
-        "props": {
-          "title": "Contact form (Ant Design)"
-        },
-        "children": [
-          {
-            "componentName": "AntForm",
-            "props": {
-              "layout": "vertical"
-            },
-            "children": [
-              {
-                "componentName": "AntFormItem",
-                "props": {
-                  "label": "Name"
-                },
-                "children": [
-                  {
-                    "componentName": "AntInput",
-                    "props": {
-                      "placeholder": "Your name",
-                      "value": {
-                        "type": "JSExpression",
-                        "value": "this.state.formData.name"
-                      },
-                      "onChange": {
-                        "type": "JSFunction",
-                        "value": "function(e) { this.state.formData.name = e.target.value; }"
-                      }
-                    }
-                  }
-                ]
+  "state": {
+    "formData": {
+      "name": "",
+      "email": "",
+      "department": ""
+    }
+  },
+  "methods": {
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function() { var data = this.state.formData; var inputValue = this.refs.nameInput ? this.refs.nameInput.value : ''; console.log('submit', data, 'nameInput:', inputValue); }"
+    }
+  },
+  "refs": {
+    "nameInput": null
+  },
+  "componentName": "Page",
+  "props": {
+    "style": "max-width: 480px; padding: 16px;"
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "Contact form (Ant Design)"
+      },
+      "children": [
+        {
+          "componentName": "AntForm",
+          "props": {
+            "layout": "vertical"
+          },
+          "children": [
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "Name"
               },
-              {
-                "componentName": "AntFormItem",
-                "props": {
-                  "label": "Email"
-                },
-                "children": [
-                  {
-                    "componentName": "AntInput",
-                    "props": {
-                      "type": "email",
-                      "placeholder": "email@example.com",
-                      "value": {
-                        "type": "JSExpression",
-                        "value": "this.state.formData.email"
-                      },
-                      "onChange": {
-                        "type": "JSFunction",
-                        "value": "function(e) { this.state.formData.email = e.target.value; }"
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "componentName": "AntFormItem",
-                "props": {
-                  "label": "Department"
-                },
-                "children": [
-                  {
-                    "componentName": "AntSelect",
-                    "props": {
-                      "placeholder": "Select department",
-                      "options": [
-                        { "label": "Engineering", "value": "eng" },
-                        { "label": "HR", "value": "hr" },
-                        { "label": "Sales", "value": "sales" }
-                      ],
-                      "value": {
-                        "type": "JSExpression",
-                        "value": "this.state.formData.department"
-                      },
-                      "onChange": {
-                        "type": "JSFunction",
-                        "value": "function(value) { this.state.formData.department = value; }"
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                "componentName": "AntFormItem",
-                "props": {},
-                "children": [
-                  {
-                    "componentName": "AntButton",
-                    "props": {
-                      "type": "primary",
-                      "onClick": {
-                        "type": "JSFunction",
-                        "value": "function() { this.handleSubmit(); }"
-                      }
+              "children": [
+                {
+                  "componentName": "AntInput",
+                  "props": {
+                    "placeholder": "Your name",
+                    "ref": {
+                      "type": "JSExpression",
+                      "value": "this.refs.nameInput"
                     },
-                    "children": [
-                      {
-                        "componentName": "Text",
-                        "props": {
-                          "text": "Submit"
-                        }
-                      }
-                    ]
+                    "value": {
+                      "type": "JSExpression",
+                      "value": "this.state.formData.name"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(e) { this.state.formData.name = e.target.value; }"
+                    }
                   }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "Email"
+              },
+              "children": [
+                {
+                  "componentName": "AntInput",
+                  "props": {
+                    "type": "email",
+                    "placeholder": "email@example.com",
+                    "value": {
+                      "type": "JSExpression",
+                      "value": "this.state.formData.email"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(e) { this.state.formData.email = e.target.value; }"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "Department"
+              },
+              "children": [
+                {
+                  "componentName": "AntSelect",
+                  "props": {
+                    "placeholder": "Select department",
+                    "options": [
+                      {
+                        "label": "Engineering",
+                        "value": "eng"
+                      },
+                      {
+                        "label": "HR",
+                        "value": "hr"
+                      },
+                      {
+                        "label": "Sales",
+                        "value": "sales"
+                      }
+                    ],
+                    "value": {
+                      "type": "JSExpression",
+                      "value": "this.state.formData.department"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(value) { this.state.formData.department = value; }"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "AntButton",
+                  "props": {
+                    "type": "primary",
+                    "onClick": {
+                      "type": "JSFunction",
+                      "value": "function() { this.handleSubmit(); }"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "Submit"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
 }

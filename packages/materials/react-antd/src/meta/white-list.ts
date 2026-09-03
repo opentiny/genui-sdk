@@ -2,10 +2,6 @@ export const builtinWhiteList = [
   'Page',
   'Box',
   'Text',
-  'Img',
-  'Button',
-  'Input',
-  'Slot',
   'div',
   'span',
   'p',
@@ -32,13 +28,7 @@ export const builtinWhiteList = [
   'img',
   'ul',
   'ol',
-  'li',
-  'table',
-  'thead',
-  'tbody',
-  'tr',
-  'th',
-  'td',
+  'li'
 ];
 
 export const antdWhiteList = [
