@@ -10,7 +10,7 @@ hero:
       text: Quick Start
       link: /en/guide/quick-start
     - theme: alt
-      text: Components
+      text: Reference
       link: /en/components/renderer
 features:
   - title: AI Ecosystem Compatible

@@ -38,7 +38,7 @@ export const enThemeConfig: DefaultTheme.Config = {
     ],
     '/en/components/': [
       {
-        text: 'Vue Components',
+        text: 'Vue',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/renderer' },
           { text: 'GenuiChat', link: '/en/components/chat' },
@@ -46,7 +46,7 @@ export const enThemeConfig: DefaultTheme.Config = {
         ],
       },
       {
-        text: 'Angular Components',
+        text: 'Angular',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/angular/renderer' },
           { text: 'GenuiConfigProvider', link: '/en/components/angular/config-provider' },
