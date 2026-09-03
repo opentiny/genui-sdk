@@ -388,10 +388,12 @@ onUnmounted(() => {
                 circle
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
-                :icon="hasPlayedOnce ? TinyIconRefresh : TinyIconStartCircle"
+                :icon="hasPlayedOnce ? TinyIconRefresh : undefined"
                 :disabled="preparingPlayback"
                 @click="handleCornerReplay"
-              />
+                >
+                <img v-if="!hasPlayedOnce" :src="playIcon" alt="">
+              </tiny-button>
             </tiny-tooltip>
           </div>
         </div>
@@ -656,6 +658,7 @@ onUnmounted(() => {
 }
 
 .home-extend-control-btn {
+  border: none;
   box-shadow: 0 2px 4px #00000029;
 }
 
@@ -677,6 +680,8 @@ onUnmounted(() => {
     border: none;
     background-color: transparent;
     font-size: 20px;
+    font-weight: 400;
+    color: rgba(89, 89, 89, 1);
 
     &-element-1 {
       display: flex;
@@ -702,7 +707,8 @@ onUnmounted(() => {
       border-radius: 73px;
       background-color: #fff;
       box-shadow: 0 0 20px 0 rgba(207, 218, 228, 0.36);
-      font-weight: 700;
+      font-weight: 500;
+      color: rgba(25, 25, 25, 1)
     }
   }
 
