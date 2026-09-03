@@ -21,7 +21,6 @@ import playIcon from '@/assets/play.svg'
 const TinyIconArrowRight = IconArrowRight();
 const TinyIconPause = IconPause();
 const TinyIconRefresh = IconRefresh();
-const TinyIconStartCircle = IconStartCircle();
 
 const message = ref<{ role: 'assistant'; content: string } | null>(null);
 const extendSelect = ref('element');
@@ -529,6 +528,7 @@ onUnmounted(() => {
   @media (max-width: 768px) {
     &-schema {
       padding: 5%;
+      margin-bottom: 46px;
     }
   }
 

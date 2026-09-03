@@ -56,7 +56,7 @@ function handleFeatureClick(index: number) {
       <div class="home-builder-section-title genui-title">{{ t('ability.builder.title') }}</div>
     </div>
     <div :class="['home-builder-content', { 'home-builder-content-mobile': isMobile }]">
-      <div class="home-builder-content-left">
+      <div v-if="!isMobile" class="home-builder-content-left">
         <div class="home-builder-content-left-wrap">
           <img
             class="home-builder-content-left-image"
@@ -65,7 +65,7 @@ function handleFeatureClick(index: number) {
           />
         </div>
       </div>
-      <div class="home-builder-content-right">
+      <div v-if="!isMobile" class="home-builder-content-right">
         <div
           v-for="(feature, index) in features"
           :key="feature.title"
@@ -84,6 +84,23 @@ function handleFeatureClick(index: number) {
             <div class="home-builder-content-feature-title">{{ feature.title }}</div>
             <div class="home-builder-content-feature-description">{{ feature.description }}</div>
           </div>
+        </div>
+        <a v-if="linkMap[LinkKey.PlaygroundBuilder]" :href="linkMap[LinkKey.PlaygroundBuilder]" target="_blank" rel="noopener noreferrer" class="btn-link">
+          <tiny-button class="home-builder-content-button" size="medium" round ghost>
+            {{ t('ability.builder.tryNow') }}
+            <img :src="arrowRightIcon" alt="arrow-right" />
+          </tiny-button>
+        </a>
+      </div>
+      <div v-if="isMobile">
+        <div 
+          v-for="(item, index) in features"
+          :key="item.title"
+          class="home-builder-content-card"
+          >
+          <div class="home-builder-content-card-title">{{ item.title }}</div>
+          <div class="home-builder-content-card-description">{{ item.description }}</div>
+          <img :src="item.image" alt="" class="home-builder-content-card-img">
         </div>
         <a v-if="linkMap[LinkKey.PlaygroundBuilder]" :href="linkMap[LinkKey.PlaygroundBuilder]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button class="home-builder-content-button" size="medium" round ghost>
@@ -116,26 +133,23 @@ function handleFeatureClick(index: number) {
   }
 
   &-header {
-    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     width: 100%;
-    padding-top: 170px;
+    padding-top: 110px;
     padding-left: 12.5%;
     padding-right: 12.5%;
   }
 
-  &-title {
-    margin-bottom: 80px;
-  }
-
   &-badge {
-    position: absolute;
-    top: 110px;
-    left: 50%;
-    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
     z-index: 1;
 
     height: 34px;
     width: 128px;
+    margin-bottom: 26px;
 
     background-color: rgba(255, 255, 255, 0.4);
     border: 1px solid rgba(241, 236, 254, 1);
@@ -159,6 +173,10 @@ function handleFeatureClick(index: number) {
     }
   }
 
+  &-title {
+    margin-bottom: 80px;
+  }
+
   @media (max-width: 1280px) {
     &-header {
       padding-top: 80px;
@@ -179,11 +197,37 @@ function handleFeatureClick(index: number) {
 
     &-header {
       padding-top: 40px;
+      isolation: isolate;
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: -122px;
+        left: 63px;
+        width: 234px;
+        height: 570px;
+        border-radius: 50%;
+        background-color: rgba(239, 232, 255, 1);
+        filter: blur(160px);
+        pointer-events: none;
+        z-index: -1;  
+      }
     }
 
-    &-title {
+    &-badge {
+      margin-bottom: 20px;
+    }
+
+    .home-builder-section-title.genui-title {
       margin-bottom: 30px;
+      padding-inline: 24px;
       white-space: normal;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+      line-height: 32px;
     }
   }
 }
@@ -198,7 +242,9 @@ function handleFeatureClick(index: number) {
   }
 
   .home-builder-section-badge {
-    border-radius: 48px 48px 48px 0;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 96.55px;
+    border: 1px solid rgba(212, 195, 255, 1)
   }
 }
 
@@ -307,6 +353,22 @@ function handleFeatureClick(index: number) {
       font-size: 16px;
     }
   }
+
+  @media (max-width: 768px) {
+    .btn-link {
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+
+    &-button {
+      height: 36px;
+      font-size: 14px;
+      
+    }
+  }
+
 }
 
 .home-builder-content-mobile {
@@ -339,6 +401,43 @@ function handleFeatureClick(index: number) {
 
   .home-builder-content-button {
     margin-left: 16px;
+  }
+}
+
+.home-builder-content-card {
+  // background-color: pink;
+  height: 307px;
+  padding: 24px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 12px;
+  box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.08);
+
+  &-title {
+    font-size: 16px;
+    color: rgba(0, 0, 0, 1);
+    font-weight: 600;
+    line-height: 24px;
+    margin-bottom: 4px;
+    
+  }
+
+  &-description {
+    height: 44px;
+    color: rgba(128, 128, 128, 1);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 22px;
+    margin-bottom: 16px;
+  }
+
+  &-img {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    object-fit: fill;
   }
 }
 </style>
