@@ -415,7 +415,6 @@ onUnmounted(() => {
   background-image: url('@/assets/home_extend_bg.svg');
   background-size: cover;
   background-repeat: no-repeat;
-  background-size: cover;
   background-position: center;
 
   &-title {
