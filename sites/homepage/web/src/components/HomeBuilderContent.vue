@@ -266,7 +266,6 @@ function handleFeatureClick(index: number) {
   }
 
   &-left {
-    // flex: 1;
     min-width: 0;
 
     &-wrap {
@@ -286,7 +285,6 @@ function handleFeatureClick(index: number) {
   }
 
   &-right {
-    // flex: 1;
     min-width: 0;
     display: flex;
     flex-direction: column;
@@ -405,7 +403,6 @@ function handleFeatureClick(index: number) {
 }
 
 .home-builder-content-card {
-  // background-color: pink;
   height: 307px;
   padding: 24px 20px;
   margin-bottom: 20px;

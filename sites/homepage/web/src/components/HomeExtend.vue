@@ -424,7 +424,6 @@ onUnmounted(() => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    // background: linear-gradient(180deg, rgba(232, 238, 254, 1), rgba(232, 238, 254, 0.3) 100%);
     border-radius: 20px;
     border: 1px solid #fff;
     box-shadow: 0 0 60px 0 rgba(217, 223, 255, 0.5);
@@ -666,10 +665,8 @@ onUnmounted(() => {
 }
 
 .extend-button-group {
-  // border-radius: 382px;
   width: fit-content;
   height: 56px;
-  // background-color: rgba(232, 238, 254, 1);
   display: flex;
   align-items: center;
   gap: 24px;
