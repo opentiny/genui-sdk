@@ -38,15 +38,16 @@ export const enThemeConfig: DefaultTheme.Config = {
     ],
     '/en/components/': [
       {
-        text: 'Vue Components',
+        text: 'Vue',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/renderer' },
           { text: 'GenuiChat', link: '/en/components/chat' },
           { text: 'GenuiConfigProvider', link: '/en/components/config-provider' },
+          { text: 'generateCode', link: '/en/components/code-generator' },
         ],
       },
       {
-        text: 'Angular Components',
+        text: 'Angular',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/angular/renderer' },
           { text: 'GenuiConfigProvider', link: '/en/components/angular/config-provider' },
