@@ -57,8 +57,8 @@ const themeFactories = computed<MaterialsThemeFactory[]>(() => {
 });
 
 const themeInstances = new Map<MaterialsThemeFactory, IMaterialsTheme>();
-const materialThemes = computed<IMaterialsTheme[]>(() => {
-  const factories = themeFactories.value;
+
+function resolveThemeInstances(factories: MaterialsThemeFactory[]) {
   for (const key of themeInstances.keys()) {
     if (!factories.includes(key)) {
       themeInstances.delete(key);
@@ -72,7 +72,7 @@ const materialThemes = computed<IMaterialsTheme[]>(() => {
     }
     return instance;
   });
-});
+}
 
 const theme = computed(() => props.theme || 'light');
 
@@ -139,12 +139,13 @@ let applied: IThemeApplyResult[] = [];
 function clearTheme() {
   const pending = applied;
   applied = [];
-  pending.forEach((item) => item.dispose());
+  pending.forEach((item) => item.dispose?.());
 }
 
 watch(
-  () => [materialThemes.value, theme.value, mediaTheme.value, props.id] as const,
-  ([apis, themeValue, systemColorScheme]) => {
+  () => [themeFactories.value, theme.value, mediaTheme.value, props.id] as const,
+  ([factories, themeValue, systemColorScheme]) => {
+    const apis = resolveThemeInstances(factories);
     clearTheme();
     const results: IThemeApplyResult[] = [];
     const roots: Component[] = [];
