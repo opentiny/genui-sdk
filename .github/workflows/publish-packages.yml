@@ -86,6 +86,7 @@ jobs:
           node ./scripts/update-package-version.js packages/server/package.json "$VERSION"
           node ./scripts/update-package-version.js packages/frameworks/vue/package.json "$VERSION"
           node ./scripts/update-package-version.js packages/frameworks/angular/package.json "$VERSION"
+          node ./scripts/update-package-version.js packages/integrate/skill/genui-integration/package.json "$VERSION"
           if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
             node ./scripts/update-package-version.js packages/core/package.json "$VERSION"
             node ./scripts/update-package-version.js packages/materials/vue-opentiny-vue/package.json "$VERSION"
@@ -118,12 +119,15 @@ jobs:
       - name: Build Angular
         run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
 
+      - name: Build Integration Skill
+        run: pnpm --filter @opentiny/genui-sdk-integration-skill build
+
       - name: Sync workspace deps for publish
         env:
           FETCH_NPM_TAG: ${{ github.event.inputs.fetch_npm_tag }}
           PUBLISH_VERSION: ${{ github.event.inputs.version }}
         run: |
-          PUBLISH_PKG_JSONS="packages/server/output/package.json,packages/frameworks/vue/package.json,packages/frameworks/angular/output/package.json"
+          PUBLISH_PKG_JSONS="packages/server/output/package.json,packages/frameworks/vue/package.json,packages/frameworks/angular/output/package.json,packages/integrate/skill/genui-integration/package.json"
           if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
             PUBLISH_PKG_JSONS="${PUBLISH_PKG_JSONS},packages/core/package.json,packages/materials/vue-opentiny-vue/package.json,packages/materials/vue-element-plus/package.json,packages/materials/angular-opentiny-ng/package.json"
           fi
@@ -163,6 +167,10 @@ jobs:
 
       - name: Publish Angular to npm
         working-directory: packages/frameworks/angular/output
+        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+
+      - name: Publish Integration Skill to npm
+        working-directory: packages/integrate/skill/genui-integration
         run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
 
       - name: Create and push tags

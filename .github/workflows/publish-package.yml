@@ -15,6 +15,7 @@ on:
           - '@opentiny/genui-sdk-materials-vue-opentiny-vue'
           - '@opentiny/genui-sdk-materials-vue-element-plus'
           - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
+          - '@opentiny/genui-sdk-integration-skill'
       version:
         description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
         required: true
@@ -121,6 +122,13 @@ jobs:
               echo "filter=@opentiny/genui-sdk-materials-angular-opentiny-ng" >> "$GITHUB_OUTPUT"
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/materials/angular-opentiny-ng" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-integration-skill)
+              echo "pkg_json=packages/integrate/skill/genui-integration/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/integrate/skill/genui-integration/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-integration-skill" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/integrate/skill/genui-integration" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "::error::未知包: ${{ github.event.inputs.package }}"
