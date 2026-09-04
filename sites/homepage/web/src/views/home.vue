@@ -2,12 +2,7 @@
 import { ref, computed } from 'vue';
 import { TinyButton, TinyTag } from '@opentiny/vue';
 import genuiAbility1 from '@/assets/genui_ability_1.svg';
-// import genuiAbility2 from '@/assets/genui_ability_2.webp';
-import genuiAbility2Left from '@/assets/genui_ability_2_left.svg'
-import genuiAbility2Right from '@/assets/genui_ability_2_right.svg'
-import genuiInuseIcon from '@/assets/genui_ability_2_icon.svg'
-import genuiAbility3 from '@/assets/create-github.webp';
-// import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
+import genuiActionVedioCover from '@/assets/order-milk-tea.webp';
 import genuiAbility2 from '@/assets/genui_ability_2_img.webp'
 import genuiAbility3VideoCover from '@/assets/genui_ability_3_video_cover.svg'
 import genuiAbility4Right from '@/assets/genui_ability_4_right.svg'
@@ -102,7 +97,7 @@ const buttonSize = computed(() => {
         id="genui-action-vedio"
         controls
         preload="none"
-        :poster="genuiAbility3VideoCover"
+        :poster="genuiActionVedioCover"
       >
         <source :src="orderMilkTeaVedio" type="video/mp4" />
       </video>
