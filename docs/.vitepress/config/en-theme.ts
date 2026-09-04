@@ -43,6 +43,7 @@ export const enThemeConfig: DefaultTheme.Config = {
           { text: 'GenuiRenderer', link: '/en/components/renderer' },
           { text: 'GenuiChat', link: '/en/components/chat' },
           { text: 'GenuiConfigProvider', link: '/en/components/config-provider' },
+          { text: 'generateCode', link: '/en/components/code-generator' },
         ],
       },
       {
