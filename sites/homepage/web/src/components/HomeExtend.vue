@@ -702,10 +702,6 @@ onUnmounted(() => {
       border-radius: 0;
     }
 
-    &-element-3 {
-      // border-radius: 0 382px 382px 0;
-    }
-
     &-element-active {
       border-radius: 73px;
       background-color: #fff;
