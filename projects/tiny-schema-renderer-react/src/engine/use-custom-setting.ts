@@ -1,18 +1,14 @@
-import type { ComponentType } from 'react';
-import type { DefaultPropsMap } from './apply-default-props';
+import type { InstanceMaterials } from '../materials';
 
 export interface IRendererSettings {
   Function?: FunctionConstructor;
   transformJSX?: (code: string) => string;
-  materials?: Record<string, ComponentType<any>>;
-  defaultPropsMap?: DefaultPropsMap;
+  materials?: InstanceMaterials;
 }
-
-const defaultMaterials: Record<string, ComponentType<any>> = {};
 
 export const DEFAULT_RENDERER_SETTINGS: IRendererSettings = {
   Function: Function,
-  materials: defaultMaterials,
+  materials: {},
 };
 
 let customSettings: IRendererSettings = {};

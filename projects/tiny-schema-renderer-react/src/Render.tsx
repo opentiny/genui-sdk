@@ -1,16 +1,9 @@
 import React, { memo, useContext as reactUseContext, type ComponentType } from 'react';
-import { isHtmlTag } from './builtin/html-tags';
 import { parseData, parseCondition, getLoopScope, getBindProps } from './engine';
 import type { Node, RootNode } from './types';
 import type { PageContextValue } from './engine';
-import type { MaterialComponent } from './materials';
-import { getResolvedMaterials } from './materials';
+import { getComponent } from './materials';
 import { PageContext } from './page-context';
-
-function getComponent(name: string): MaterialComponent | string | null {
-  const materials = getResolvedMaterials();
-  return materials[name] || (isHtmlTag(name) ? name : null);
-}
 
 // TODO: 移除 验证直接写text
 export function normalizeChildren(children: Node['children']): Node[] {
@@ -40,7 +33,7 @@ function renderComponent(
     return null;
   }
 
-  const component = getComponent(componentName);
+  const component = getComponent(componentName, context);
 
   if (!component) {
     return null;

@@ -1,7 +1,7 @@
 import { parseData } from './parse-data';
 import { normalizeDomProps } from './parse-inline-style';
 import { applyDefaultPropsToProps } from './apply-default-props';
-import { getCustomSettings } from './use-custom-setting';
+import { getMaterials } from '../materials';
 import type { Node } from '../types';
 import type { PageContextValue } from './parse-data';
 
@@ -20,7 +20,7 @@ export function getBindProps(
     bindProps[context.cssScopeId] = '';
   }
 
-  applyDefaultPropsToProps(componentName, bindProps, getCustomSettings()?.defaultPropsMap);
+  applyDefaultPropsToProps(componentName, bindProps, getMaterials(context).defaultPropsMap);
 
   return normalizeDomProps(bindProps);
 }

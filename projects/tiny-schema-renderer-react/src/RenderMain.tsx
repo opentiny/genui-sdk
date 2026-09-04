@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
 import { useContext } from './use-context';
@@ -7,6 +7,8 @@ import { setSchema, setState } from './set-schema';
 import type { LifeCycleFn } from './life-cycles';
 import { SchemaNodeRenderer, normalizeChildren } from './Render';
 import { Loading } from './Loading';
+import { useRendererSettings } from './RendererContextProvider';
+import { MATERIALS } from './materials';
 
 export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
@@ -25,6 +27,11 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const contextApi = useContext();
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
+  const renderSettings = useRendererSettings();
+  const pageContext = useMemo(
+    () => ({ ...context, [MATERIALS]: renderSettings.materials }),
+    [context, renderSettings.materials],
+  );
 
   useImperativeHandle(
     ref,
@@ -105,7 +112,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   };
 
   return (
-    <PageContextProvider value={context}>
+    <PageContextProvider value={pageContext}>
       {schema?.children ? (
         <div className="genui-schema-renderer" data-scope={context.cssScopeId}>
           <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />

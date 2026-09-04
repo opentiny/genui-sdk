@@ -6,6 +6,9 @@
       "@opentiny/genui-sdk-vue": [
         "../../../packages/frameworks/vue/src/index.ts"
       ],
+      "@opentiny/genui-sdk-vue/code-generator": [
+        "../../../packages/frameworks/vue/src/code-generator/index.ts"
+      ],
       "@opentiny/genui-sdk-core": [
         "../../../packages/core/src/index.ts"
       ],

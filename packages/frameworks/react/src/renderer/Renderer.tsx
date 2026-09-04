@@ -45,10 +45,12 @@ export const Renderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     );
     const renderSettings = useMemo(
       () => ({
-        materials: mergedComponents,
-        defaultPropsMap: contextMaterials.defaultPropsMap,
+        materials: {
+          ...contextMaterials,
+          components: mergedComponents,
+        },
       }),
-      [mergedComponents, contextMaterials.defaultPropsMap],
+      [contextMaterials, mergedComponents],
     );
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
 

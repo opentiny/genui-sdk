@@ -1,27 +1,23 @@
 import type { ComponentType } from 'react';
-import { getCustomSettings, setCustomSettings } from './engine/use-custom-setting';
 import { builtinMaterials } from './builtin/builtin-materials';
+import { isHtmlTag } from './builtin/html-tags';
+import type { DefaultPropsMap } from './engine/apply-default-props';
 
 export type MaterialComponent = ComponentType<any>;
 
 export type ComponentRegistry = Record<string, MaterialComponent>;
 
-export function getMaterials(): ComponentRegistry {
-  return getCustomSettings().materials ?? {};
+export const MATERIALS = Symbol('MATERIALS');
+
+export type InstanceMaterials = {
+  components?: ComponentRegistry;
+  defaultPropsMap?: DefaultPropsMap;
+};
+
+export function getMaterials(context?: object | null): InstanceMaterials {
+  return (context as { [MATERIALS]?: InstanceMaterials } | null | undefined)?.[MATERIALS] ?? {};
 }
 
-export function setMaterials(materials: ComponentRegistry) {
-  if (!materials || typeof materials !== 'object') return;
-  setCustomSettings({
-    ...getCustomSettings(),
-    materials: { ...getMaterials(), ...materials },
-  });
-}
-
-export function mergeMaterials(...materialSets: ComponentRegistry[]): ComponentRegistry {
-  return Object.assign({}, ...materialSets);
-}
-
-export function getResolvedMaterials(): ComponentRegistry {
-  return mergeMaterials(builtinMaterials, getMaterials());
+export function getComponent(name: string, context?: object | null): MaterialComponent | string | null {
+  return builtinMaterials[name] || getMaterials(context).components?.[name] || (isHtmlTag(name) ? name : null);
 }

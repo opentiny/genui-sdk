@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { RendererContextProvider, SchemaRenderer } from '../src';
 import { demos } from './mock';
-import { materials } from './materials';
+import { components } from './components';
 
 export function App() {
   const [activeId, setActiveId] = useState(demos[0].id);
@@ -25,7 +25,7 @@ export function App() {
         </nav>
       </header>
       <main className="app-content">
-        <RendererContextProvider render-settings={{ materials }}>
+        <RendererContextProvider render-settings={{ materials: { components } }}>
           <SchemaRenderer schema={current.schema} />
         </RendererContextProvider>
       </main>

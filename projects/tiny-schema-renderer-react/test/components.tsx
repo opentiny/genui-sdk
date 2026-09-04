@@ -22,11 +22,11 @@ function AntTabs({ items, ...rest }: TabsProps) {
   return <Antd.Tabs {...rest} items={normalizedItems} />;
 }
 
-export const materials: Record<string, ComponentType<any>> = Object.fromEntries(
+export const components: Record<string, ComponentType<any>> = Object.fromEntries(
   Object.entries(Antd)
     .filter(([name, value]) => !SKIP.has(name) && (typeof value === 'object' || typeof value === 'function'))
     .map(([name, value]) => [`Ant${name}`, value as ComponentType<any>]),
 );
 
-materials.AntFormItem = Antd.Form.Item;
-materials.AntTabs = AntTabs;
+components.AntFormItem = Antd.Form.Item;
+components.AntTabs = AntTabs;

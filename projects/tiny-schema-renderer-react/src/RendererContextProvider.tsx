@@ -1,6 +1,11 @@
-import type { ReactNode } from 'react';
+import { createContext, useContext, type ReactNode } from 'react';
 import type { IRendererSettings } from './engine';
-import { setCustomSettings } from './engine';
+
+const RendererSettingsContext = createContext<IRendererSettings>({});
+
+export function useRendererSettings(): IRendererSettings {
+  return useContext(RendererSettingsContext);
+}
 
 export interface RendererContextProviderProps {
   children: ReactNode;
@@ -8,9 +13,9 @@ export interface RendererContextProviderProps {
 }
 
 export function RendererContextProvider({ children, 'render-settings': renderSettings }: RendererContextProviderProps) {
-  if (renderSettings) {
-    setCustomSettings(renderSettings);
-  }
-
-  return children;
+  return (
+    <RendererSettingsContext.Provider value={renderSettings ?? {}}>
+      {children}
+    </RendererSettingsContext.Provider>
+  );
 }
