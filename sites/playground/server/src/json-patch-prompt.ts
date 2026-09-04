@@ -142,7 +142,7 @@ export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
   removeOperation,
   replaceOperation,
   moveOperation,
-  copyOperation,
+  // copyOperation, // TODO 需要重新设计
   testOperation,
 ]);
 
