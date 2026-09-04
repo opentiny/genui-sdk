@@ -333,59 +333,6 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
     border-radius: 24px;
     background-image: url('@/assets/genui_ability_bg_2.svg');
     background-size: cover;
-
-    .white-bg {
-      width: 100%;
-      background-color: #fff;
-      display: flex;
-      justify-content: center;
-      border-radius: 12px;
-      gap: 129px;
-    }
-
-    .img-wrapper {
-      width: 100%;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-
-      img {
-        min-width: 0;
-        max-width: 100%;
-        height: auto;
-      }
-    }
-
-    .img-wrapper-left {
-      padding: 26px 0 72px 87px;
-    }
-
-    .img-wrapper-right {
-      padding: 26px 32px 100px 37px;
-      border-left: 1.2px solid rgba(205, 213, 255, 1);
-    }
-
-    .before-genui,
-    .after-genui {
-      height: 28px;
-      font-size: 14px;
-      background-color: rgba(251, 244, 255, 1);
-      color: rgba(155, 88, 217, 1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-bottom: 22px;
-    }
-
-    .before-genui {
-      width: 106px;
-    }
-
-    .after-genui {
-      width: 130px;
-      gap: 6px;
-    }
   }
 }
 
