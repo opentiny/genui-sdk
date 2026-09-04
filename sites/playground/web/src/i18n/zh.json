@@ -239,6 +239,7 @@
     "returnLatest": "返回最新版本",
     "devMode": "开发态",
     "selectedNode": "已选中",
+    "selectedComponents": "选中的组件",
     "clearSelectedNode": "清除选中组件",
     "history": "历史记录",
     "closeHistory": "关闭历史记录",

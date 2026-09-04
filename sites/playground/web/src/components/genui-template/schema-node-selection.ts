@@ -1,3 +1,4 @@
+import { t } from '../../i18n';
 import { findComponentPath, getComponentItem } from './template-chat-utils/schema-path';
 
 export interface SelectedSchemaNode {
@@ -28,18 +29,33 @@ interface MonacoCodeEditor {
 }
 
 function findObjectStart(text: string, pos: number): number {
-  let depth = 0;
-  for (let i = pos; i >= 0; i--) {
-    if (text[i] === '}') {
-      depth++;
-    } else if (text[i] === '{') {
-      if (depth === 0) {
-        return i;
+  const stack: number[] = [];
+  let inString = false;
+  let escaped = false;
+  const last = Math.min(pos, text.length - 1);
+  for (let i = 0; i <= last; i++) {
+    const ch = text[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === '"') {
+        inString = false;
       }
-      depth--;
+      continue;
+    }
+    if (ch === '"') {
+      inString = true;
+      continue;
+    }
+    if (ch === '{') {
+      stack.push(i);
+    } else if (ch === '}') {
+      stack.pop();
     }
   }
-  return -1;
+  return stack.length ? stack[stack.length - 1] : -1;
 }
 
 function findObjectEnd(text: string, start: number): number {
@@ -206,7 +222,7 @@ export function formatSelectedNodesContext(nodes: SelectedSchemaNode[]): string 
     (node) =>
       `- componentName: ${node.componentName}\n- id: ${node.id}\n- path: ${node.path}\n\`\`\`json\n${JSON.stringify(node.node, null, 2)}\n\`\`\``,
   );
-  return `\n\n[选中的组件]\n${blocks.join('\n\n')}\n`;
+  return `\n\n[${t('templateEditor.selectedComponents')}]\n${blocks.join('\n\n')}\n`;
 }
 
 export function findBlockByNodeId(jsonText: string, id: string): ComponentBlock | null {

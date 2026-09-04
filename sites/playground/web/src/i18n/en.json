@@ -239,6 +239,7 @@
     "returnLatest": "Back to latest",
     "devMode": "Dev mode",
     "selectedNode": "Selected",
+    "selectedComponents": "Selected components",
     "clearSelectedNode": "Clear selected component",
     "history": "History",
     "closeHistory": "Close history",

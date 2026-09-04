@@ -38,6 +38,7 @@ const { isDevMode } = useSchemaDevMode();
         :class="{ 'is-active': isDevMode }"
         :aria-label="t('templateEditor.devMode')"
         :title="t('templateEditor.devMode')"
+        :aria-pressed="isDevMode"
         @click="isDevMode = !isDevMode"
       >
         <InspectModeIcon />

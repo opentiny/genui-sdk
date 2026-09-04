@@ -265,19 +265,24 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
   templateData.value = [...templateData.value, { type: 'template', content: node.componentName, id }];
 };
 
+const SENDER_MAX_LENGTH = 20000;
+
 const syncSelectedNodes = (value: UserItem[]) => {
   const nextMap = new Map<string, SelectedSchemaNode>();
+  const usedSourceIds = new Set<string>();
   for (const item of value) {
     if (item.type !== 'template') {
       continue;
     }
     if (item.id && selectedNodeMap.has(item.id)) {
       nextMap.set(item.id, selectedNodeMap.get(item.id)!);
+      usedSourceIds.add(item.id);
       continue;
     }
     for (const [id, candidate] of selectedNodeMap) {
-      if (!nextMap.has(id) && candidate.componentName === item.content) {
+      if (!usedSourceIds.has(id) && candidate.componentName === item.content) {
         nextMap.set(item.id || id, candidate);
+        usedSourceIds.add(id);
         break;
       }
     }
@@ -359,7 +364,7 @@ const handleSendMessage = async () => {
 
   if (hasTags) {
     const composer = getComposerContent(snapshot, selectedNodeMap);
-    if (composer.isEmpty) {
+    if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
       return;
     }
     const userMessage: ChatMessage = {
@@ -480,7 +485,7 @@ onUnmounted(() => {
         :clearable="true"
         :loading="generating"
         :showWordLimit="true"
-        :maxLength="20000"
+        :maxLength="SENDER_MAX_LENGTH"
         @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
