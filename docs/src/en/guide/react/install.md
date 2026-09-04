@@ -70,4 +70,6 @@ You can now use `GenuiRenderer` to render generative UI. See the [Renderer usage
 
 - See the [Renderer usage guide](start-with-renderer) to learn how to use `GenuiRenderer` with finer control
 - See the [Renderer component docs](../../components/react/renderer) for the full API
+- See the [GenuiConfigProvider docs](../../components/react/config-provider) for materials injection
+- See [feature examples](../../examples/react/renderer/custom-actions) for usage examples
 - See [React Ant Design materials](../../components/materials/react-antd) for materials exports

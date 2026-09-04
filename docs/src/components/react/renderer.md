@@ -168,6 +168,8 @@ export function Example() {
 }
 ```
 
+查看 [Renderer 自定义 Actions](../../examples/react/renderer/custom-actions) 了解详细用法
+
 ### requiredCompleteFieldSelectors
 
 - **类型**: `string[]`
@@ -224,8 +226,48 @@ export function Example() {
 }
 ```
 
+查看 [Renderer 传递合并 State](../../examples/react/renderer/state) 了解详细用法
+
 ### id
 
 - **类型**: `string`
 - **必填**: 否
 - **说明**: 卡片标识，会写入渲染器上下文的 `cardId`，便于在自定义动作中区分实例。
+
+```tsx
+import { GenuiRenderer } from '@opentiny/genui-sdk-react';
+
+export function Example({ content }: { content: string }) {
+  return <GenuiRenderer content={content} id="card-1" isJsonComplete />;
+}
+```
+
+## Types
+
+### IRendererProps
+
+```typescript
+interface IRendererProps {
+  content: string | Record<string, unknown>;
+  isJsonComplete?: boolean;
+  generating?: boolean;
+  customComponents?: Record<string, ComponentType>;
+  customActions?: Record<string, ICustomAction>;
+  requiredCompleteFieldSelectors?: string[];
+  id?: string;
+  state?: Record<string, unknown>;
+}
+```
+
+### ICustomAction
+
+```typescript
+interface ICustomAction {
+  execute: (params: unknown, context: Record<string, unknown>) => unknown;
+  name?: string;
+  description?: string;
+  parameters?: unknown;
+  return?: unknown;
+  async?: boolean;
+}
+```

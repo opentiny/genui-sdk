@@ -69,4 +69,6 @@ import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
 - 查看 [Renderer 组件文档](../../components/react/renderer) 了解详细的 API
+- 查看 [GenuiConfigProvider 组件文档](../../components/react/config-provider) 了解物料注入
+- 查看 [特性示例](../../examples/react/renderer/custom-actions) 学习用法示例
 - 查看 [React Ant Design 物料包](../../components/materials/react-antd) 了解物料导出

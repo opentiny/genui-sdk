@@ -168,6 +168,8 @@ export function Example() {
 }
 ```
 
+See [Renderer custom actions](../../examples/react/renderer/custom-actions) for detailed usage.
+
 ### requiredCompleteFieldSelectors
 
 - **Type**: `string[]`
@@ -224,8 +226,48 @@ export function Example() {
 }
 ```
 
+See [Renderer merged state](../../examples/react/renderer/state) for detailed usage.
+
 ### id
 
 - **Type**: `string`
 - **Required**: No
 - **Description**: Card identifier written to the renderer context as `cardId`, useful for distinguishing instances in custom actions.
+
+```tsx
+import { GenuiRenderer } from '@opentiny/genui-sdk-react';
+
+export function Example({ content }: { content: string }) {
+  return <GenuiRenderer content={content} id="card-1" isJsonComplete />;
+}
+```
+
+## Types
+
+### IRendererProps
+
+```typescript
+interface IRendererProps {
+  content: string | Record<string, unknown>;
+  isJsonComplete?: boolean;
+  generating?: boolean;
+  customComponents?: Record<string, ComponentType>;
+  customActions?: Record<string, ICustomAction>;
+  requiredCompleteFieldSelectors?: string[];
+  id?: string;
+  state?: Record<string, unknown>;
+}
+```
+
+### ICustomAction
+
+```typescript
+interface ICustomAction {
+  execute: (params: unknown, context: Record<string, unknown>) => unknown;
+  name?: string;
+  description?: string;
+  parameters?: unknown;
+  return?: unknown;
+  async?: boolean;
+}
+```
