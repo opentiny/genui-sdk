@@ -4,6 +4,28 @@
     "materials": {
       "components": [
         {
+          "component": "Text",
+          "description": "内置文本节点，用于展示静态或绑定文本",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "text",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "文本内容"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
           "component": "AntButton",
           "description": "Ant Design 按钮，支持 primary/default/dashed/link/text 等类型",
           "npm": {

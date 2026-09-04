@@ -1,37 +1,19 @@
-export const builtinWhiteList = [
-  'Page',
-  'Box',
-  'Text',
-  'div',
-  'span',
-  'p',
-  'section',
-  'article',
-  'header',
-  'footer',
-  'main',
-  'nav',
+export const whiteList = [
+  'a',
+  'img',
+  'ul',
+  'ol',
+  'li',
   'h1',
   'h2',
   'h3',
   'h4',
   'h5',
   'h6',
-  'form',
-  'label',
-  'input',
-  'textarea',
-  'select',
-  'option',
-  'button',
-  'a',
-  'img',
-  'ul',
-  'ol',
-  'li'
-];
-
-export const antdWhiteList = [
+  'div',
+  'span',
+  'p',
+  'Text',
   'AntButton',
   'AntInput',
   'AntSelect',
@@ -46,5 +28,3 @@ export const antdWhiteList = [
   'AntRadio',
   'AntDatePicker',
 ];
-
-export const whiteList = [...builtinWhiteList, ...antdWhiteList];
