@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { TinyButton } from '@opentiny/vue';
-import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline';
-import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline';
-import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.svg?no-inline';
-import genuiBuilderIconChat from '@/assets/genui_builder_icon_chat.svg';
-import genuiBuilderIconVersion from '@/assets/genui_builder_icon_version.svg';
-import genuiBuilderIconPreview from '@/assets/genui_builder_icon_preview.svg';
-import genuiBuilderIconExperinment from '@/assets/genui_builder_icon_experinment.svg'
-import arrowRightIcon from '@/assets/arrow.svg';
+import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline?no-inline';
+import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline?no-inline';
+import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.svg?no-inline?no-inline';
+import genuiBuilderIconChat from '@/assets/genui_builder_icon_chat.svg?no-inline';
+import genuiBuilderIconVersion from '@/assets/genui_builder_icon_version.svg?no-inline';
+import genuiBuilderIconPreview from '@/assets/genui_builder_icon_preview.svg?no-inline';
+import genuiBuilderIconExperinment from '@/assets/genui_builder_icon_experinment.svg?no-inline';
+import arrowRightIcon from '@/assets/arrow.svg?no-inline';
 import { LinkKey, linkMap } from '@/utils/link';
 import { useMobile } from '@/composables/useMobile';
 import { t } from '@/i18n';

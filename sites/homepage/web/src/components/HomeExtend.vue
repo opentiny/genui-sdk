@@ -14,10 +14,10 @@ import todoJsonEn from '@/static/todo.en.json';
 import coinGameJson from '@/static/coin-game.json';
 import coinGameJsonEn from '@/static/coin-game.en.json';
 import { t, locale } from '@/i18n';
-import calculatorIcon from '@/assets/calculator.svg'
-import todoIcon from '@/assets/todo.svg'
-import coinsIcon from '@/assets/coins.svg'
-import playIcon from '@/assets/play.svg' 
+import calculatorIcon from '@/assets/calculator.svg?no-inline'
+import todoIcon from '@/assets/todo.svg?no-inline'
+import coinsIcon from '@/assets/coins.svg?no-inline'
+import playIcon from '@/assets/play.svg?no-inline'
 
 const TinyIconArrowRight = IconArrowRight();
 const TinyIconPause = IconPause();
