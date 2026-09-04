@@ -413,6 +413,10 @@ onUnmounted(() => {
   align-items: center;
   padding: 0px 8%;
   background-image: url('@/assets/home_extend_bg.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
 
   &-title {
     margin-bottom: 40px;
