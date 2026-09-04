@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** A2UI vendor pin（与 docs/a2ui.md / vendor/a2ui 一致）。 */
+/** A2UI vendor pin（与 README / vendor/a2ui 一致）。 */
 export const A2UI_VENDOR_VERSION = 'v0_9_1';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
