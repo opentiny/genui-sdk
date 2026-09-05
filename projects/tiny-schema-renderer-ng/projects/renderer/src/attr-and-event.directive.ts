@@ -52,10 +52,28 @@ export class AttrAndEventDirective {
     Object.entries(this.attrs)
       .filter(([attr, value]) => value !== null)
       .forEach(([attr, value]) => {
-        if (value != this.renderHostElemet.getAttribute(attr)) { // 不需要严格不等于
-          this.renderHostElemet.setAttribute(attr, value);
-        }
+        this.applyAttr(this.renderHostElemet, attr, value);
       });
+  }
+
+  private applyAttr(el: HTMLElement, attr: string, value: unknown) {
+    if (attr === 'style') {
+      this.applyStyle(el, value);
+      return;
+    }
+    if (value != el.getAttribute(attr)) {
+      el.setAttribute(attr, value as string);
+    }
+  }
+
+  private applyStyle(el: HTMLElement, value: unknown) {
+    if (typeof value === 'string') {
+      el.style.cssText = value;
+      return;
+    }
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      Object.assign(el.style, value as Record<string, string>);
+    }
   }
   clearAttrs(oldAttrs: Record<string, any>) {
     if (!this.renderHostElemet?.removeAttribute) {
