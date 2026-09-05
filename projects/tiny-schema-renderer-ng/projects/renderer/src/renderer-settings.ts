@@ -20,3 +20,4 @@ export interface IRendererSettings {
 export const RENDERER_SETTINGS = new InjectionToken<IRendererSettings>('RENDERER_SETTINGS');
 
 export const NOTIFY_CONTEXT_KEY = Symbol('renderer-notify');
+export const BLOCK_CONTEXT_KEY = Symbol('renderer-block');

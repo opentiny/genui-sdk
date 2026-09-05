@@ -6,7 +6,9 @@ import {
   Input,
   NgZone,
   OnDestroy,
+  Optional,
   SimpleChanges,
+  SkipSelf,
 } from '@angular/core';
 import { RendererContextService } from './context.service';
 import { parseData } from './parser/schema-parser';
@@ -17,7 +19,7 @@ import { LoadingComponent } from './loading.component';
 import { RendererTemplateComponent } from './renderer-template.component';
 import { RendererDirective } from './renderer.directive';
 import { ContentChildrenService } from './content-children';
-import { RENDERER_SETTINGS, type NotifyHandler } from './renderer-settings';
+import { RENDERER_SETTINGS, type NotifyHandler, BLOCK_CONTEXT_KEY } from './renderer-settings';
 
 function reset(obj: any) {
   Object.keys(obj).forEach((key) => delete obj[key]);
@@ -48,9 +50,11 @@ function reset(obj: any) {
       <div loading></div>
     </ng-container>
   `,
-})
+})                      
 export class RendererMain implements OnDestroy {
   @Input() schema: any = {};
+  @Input() props: any = {};
+  @Input() dispatchEvent: (event: string, data: any) => void = () => {};
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
@@ -66,14 +70,20 @@ export class RendererMain implements OnDestroy {
     private el: ElementRef,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
+    @SkipSelf() @Optional() private pageContextService: RendererContextService,
   ) {
     this.cssScopeId = `data-schema-${Math.random().toString(36).slice(2, 8)}`;
     this.applyRendererSettings();
+    this.updateBlocks();
   }
 
   private applyRendererSettings() {
     this.contextService.setMaterials(this.rendererSettings?.materials ?? {});
     this.contextService.setNotify(this.rendererSettings?.notify);
+  }
+
+  private updateBlocks() {
+    this.contextService.setBlock(this.pageContextService?.getContext()[BLOCK_CONTEXT_KEY] ?? {});
   }
 
   ngAfterViewInit() {
@@ -88,6 +98,12 @@ export class RendererMain implements OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['schema']) {
       this.setSchema(changes['schema'].currentValue);
+    }
+    if (changes['props']) {
+      this.setContext({ props: changes['props'].currentValue });
+    }
+    if (changes['dispatchEvent']) {
+      this.setMethods({ dispatchEvent: changes['dispatchEvent'].currentValue });
     }
   }
 
@@ -129,6 +145,9 @@ export class RendererMain implements OnDestroy {
 
   private setMethods(data: any, clear: boolean = false) {
     clear && reset(this.methods);
+    if (clear) {
+      this.methods.dispatchEvent = this.dispatchEvent;
+    }
     // 这里有些方法在画布还是有执行的必要的，比如说表格的renderer和formatText方法，包括一些自定义渲染函数
     Object.assign(
       this.methods,
@@ -180,6 +199,7 @@ export class RendererMain implements OnDestroy {
       state: this.state,
       refs: this.refs,
       cssScopeId: this.cssScopeId,
+      props: this.props,
     };
     this.contextService.setContext(context, true);
     this.applyRendererSettings();

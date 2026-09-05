@@ -7,11 +7,7 @@
       "name": "张三"
     },
     "selectedHobbies": [],
-    "listItems": [
-      { "label": "第一项" },
-      { "label": "第二项" },
-      { "label": "第三项" }
-    ],
+    "listItems": [{ "label": "第一项" }, { "label": "第二项" }, { "label": "第三项" }],
     "formData": {
       "name": "",
       "email": "",
@@ -492,12 +488,12 @@
               "value": "this.state.selectedHobbies"
             },
             "options": [
-              {"label": "阅读", "value": "reading"},
-              {"label": "运动", "value": "sports"},
-              {"label": "音乐", "value": "music"},
-              {"label": "旅行", "value": "travel"},
-              {"label": "烹饪", "value": "cooking"},
-              {"label": "摄影", "value": "photography"}
+              { "label": "阅读", "value": "reading" },
+              { "label": "运动", "value": "sports" },
+              { "label": "音乐", "value": "music" },
+              { "label": "旅行", "value": "travel" },
+              { "label": "烹饪", "value": "cooking" },
+              { "label": "摄影", "value": "photography" }
             ],
             "placeholder": "请选择兴趣爱好",
             "multiple": true,
@@ -1296,6 +1292,16 @@
           ]
         }
       ]
+    },
+    {
+      "componentName": "TestBlock",
+      "props": {
+        "text": "外部传入属性",
+        "onClickText": {
+          "type": "JSFunction",
+          "value": "function(content) { console.log('Text clicked', content) }"
+        }
+      }
     }
   ]
 }

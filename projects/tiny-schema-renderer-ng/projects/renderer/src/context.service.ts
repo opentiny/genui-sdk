@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Type } from '@angular/core';
 import { MATERIALS_CONTEXT_KEY, type IRendererMaterials } from './renderer-materials';
-import { NOTIFY_CONTEXT_KEY, type NotifyHandler } from './renderer-settings';
+import { BLOCK_CONTEXT_KEY, NOTIFY_CONTEXT_KEY, type NotifyHandler } from './renderer-settings';
 
 @Injectable()
 export class RendererContextService {
@@ -25,5 +25,9 @@ export class RendererContextService {
 
   setNotify(notify?: NotifyHandler) {
     this.context[NOTIFY_CONTEXT_KEY] = notify ? { notify } : {};
+  }
+  
+  setBlock(block: Record<string, Type<any>>) {
+    this.context[BLOCK_CONTEXT_KEY] = block ?? {};
   }
 }

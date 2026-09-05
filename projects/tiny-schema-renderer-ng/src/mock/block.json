@@ -1,0 +1,74 @@
+{
+    "componentName": "TestBlock",
+    "state": {
+      "title": "Hello, World!"
+    },
+    "children": [
+      {
+        "componentName": "div",
+        "props": {
+          "name": "header",
+          "params": [
+            {
+              "name": "title",
+              "value": {
+                "type": "JSExpression",
+                "value": "this.state.title"
+              }
+            }
+          ]
+        },
+        "children": [
+          {
+            "componentName": "Text",
+            "props": {
+              "text": {
+                "type": "JSExpression",
+                "value": "`Built-in header: ${this.state.title}`"
+              },
+              "style": {
+                "color": "red"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "componentName": "Text",
+        "props": {
+          "text": {
+            "type": "JSExpression",
+            "value": "`Text from input: ${this.props.text}`"
+          },
+          "onClick": {
+            "type": "JSFunction",
+            "value": "function(event) { this.dispatchEvent('clickText', event)}"
+          }
+        }
+      },
+      {
+        "componentName": "div",
+        "props": {
+          "description": "default slot"
+        }
+      },
+      {
+        "componentName": "div",
+        "props": {
+          "description": "Slot without params and children",
+          "name": "footer"
+        }
+      }
+    ],
+    "inputs": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "clickText": {
+        "type": "string"
+      }
+    }
+  }
+  

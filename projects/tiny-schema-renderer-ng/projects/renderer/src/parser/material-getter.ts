@@ -20,6 +20,7 @@ import {
 } from '@angular/forms';
 import { LogDirective } from '../buildin/log.directive';
 import { nativeElementComponentFactory } from '../native-element.component';
+import { getBlock } from '../block';
 
 export const Mapper: Record<string, Type<any>> = {
   Text: RendererTextComponent,
@@ -74,6 +75,7 @@ export const getComponent = (
 ): Type<any> | null => {
   return (
     Mapper[name] ||
+    getBlock(name, context) ||
     getMaterials(context).components?.[name] ||
     customElements[name] ||
     (isHTMLTag(name, true) ? createComponent(name) : null)
