@@ -308,12 +308,40 @@ function inferFirstOnly(propertyName: string): boolean {
 }
 
 /**
- * Property names declared by the compiled `viewQuery` fn — @ViewChild/@ViewChildren updates
+ * Property names declared by compiled `viewQuery` fns — @ViewChild/@ViewChildren updates
  * (`ctx.foo = _t`) and viewChild()/viewChildren() signals (`ɵɵviewQuerySignal(ctx.foo, ...)`).
  * Content patching must skip these: wiping e.g. TiDateComponent.dateEditComs breaks `focus()`.
- * Content-query signals live in the contentQueries fn, never here, so they stay patchable.
+ *
+ * Production bundles minify the `ctx` parameter (`e.dateEditComs=t`), and inherited queries
+ * (TiDate ← TiDateBase) may live on the parent `ɵcmp.viewQuery` only. Walk the prototype
+ * chain and accept any receiver identifier. Content-query signals live in `contentQueries`,
+ * never here, so they stay patchable.
  */
 const viewQueryPropsByClass = new WeakMap<object, Set<string>>();
+
+const VIEW_QUERY_ASSIGN_RE = /\b[A-Za-z_$][\w$]*\.([A-Za-z_$][\w$]*)\s*=/g;
+const VIEW_QUERY_SIGNAL_RE = /ɵɵviewQuerySignal\(\s*[A-Za-z_$][\w$]*\.([A-Za-z_$][\w$]*)\s*,/g;
+
+function collectViewQueryPropertyNamesFromCtor(ctor: object, names: Set<string>): void {
+  const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
+  if (typeof viewQuery === 'function') {
+    const src = Function.prototype.toString.call(viewQuery);
+    for (const m of src.matchAll(VIEW_QUERY_ASSIGN_RE)) {
+      names.add(m[1]);
+    }
+    for (const m of src.matchAll(VIEW_QUERY_SIGNAL_RE)) {
+      names.add(m[1]);
+    }
+  }
+  const declared = (ctor as any)?.ɵcmp?.viewQueries;
+  if (Array.isArray(declared)) {
+    for (const query of declared) {
+      if (typeof query?.propertyName === 'string') {
+        names.add(query.propertyName);
+      }
+    }
+  }
+}
 
 function getViewQueryPropertyNames(instance: object): Set<string> {
   const ctor = instance.constructor as object;
@@ -322,20 +350,34 @@ function getViewQueryPropertyNames(instance: object): Set<string> {
     return names;
   }
   names = new Set<string>();
-  const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
-  if (typeof viewQuery === 'function') {
-    const src = Function.prototype.toString.call(viewQuery);
-    // decorator @ViewChild/@ViewChildren update assignments
-    for (const m of src.matchAll(/ctx\.([A-Za-z_$][\w$]*)\s*=/g)) {
-      names.add(m[1]);
-    }
-    // signal viewChild()/viewChildren() create declarations
-    for (const m of src.matchAll(/ɵɵviewQuerySignal\(\s*ctx\.([A-Za-z_$][\w$]*)\s*,/g)) {
-      names.add(m[1]);
-    }
+  let current: object | null = ctor;
+  while (current && current !== Object && current !== Function && current !== Object.prototype) {
+    collectViewQueryPropertyNamesFromCtor(current, names);
+    current = Object.getPrototypeOf(current);
   }
   viewQueryPropsByClass.set(ctor, names);
   return names;
+}
+
+/** QueryLists Ivy already classified as view queries — never content-patch these. */
+function collectViewQueryLists(instance: object): Set<QueryList<unknown>> {
+  const viewLists = new Set<QueryList<unknown>>();
+  try {
+    const ctx = getLContext(instance);
+    const lView = ctx?.lView;
+    const lQueries = lView ? findLQueries(lView) : null;
+    if (!lView || !lQueries) {
+      return viewLists;
+    }
+    lQueries.queries.forEach((lQuery, index) => {
+      if (!isContentQueryIndex(lView, index) && lQuery.queryList instanceof QueryList) {
+        viewLists.add(lQuery.queryList);
+      }
+    });
+  } catch {
+    // getLContext can throw if instance is not in a live view yet.
+  }
+  return viewLists;
 }
 
 /** Discover content-query QueryLists on a component; skips view queries. */
@@ -377,12 +419,18 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
   }
 
   const viewQueryProps = getViewQueryPropertyNames(instance);
+  const viewQueryLists = collectViewQueryLists(instance);
   const shimBindings = hostShimBindings.get(instance);
   for (const key of Object.keys(instance as object)) {
     const value = (instance as any)[key];
     if (value instanceof QueryList) {
       // @ViewChildren fields are resolved by Angular — patching wipes matches (e.g. TiDate.dateEditComs).
-      if (viewQueryProps.has(key)) {
+      if (viewQueryProps.has(key) || viewQueryLists.has(value)) {
+        continue;
+      }
+      // Ivy already filled this list but did not classify it as a content query —
+      // treat it as a view query we failed to name (minified viewQuery / inheritance).
+      if (!seen.has(value) && value.length > 0) {
         continue;
       }
       if (seen.has(value)) {
@@ -406,10 +454,10 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       const node = (value as any)[SIGNAL];
       // viewChild()/viewChildren() signals are resolved by Angular — never patch.
       // Content signals stay patchable.
-      if (viewQueryProps.has(key)) {
+      const queryList = node._queryList as QueryList<unknown>;
+      if (viewQueryProps.has(key) || viewQueryLists.has(queryList)) {
         continue;
       }
-      const queryList = node._queryList as QueryList<unknown>;
       const firstOnly = inferFirstOnly(key);
       const signalMeta = getSignalQueryMetadata(node);
       if (seen.has(queryList)) {
@@ -862,14 +910,34 @@ export function patchOutletContentQueries(
 
 /**
  * Compiled `ɵcmp.contentQueries` source is re-parsed per class to recover `@ContentChild` field
- * names (`ctx.foo = _t.first`). Parsing `Function.prototype.toString` is fragile against
- * minification (which can rename `ctx`/`_t`) and Angular codegen changes, but it is the only
- * source of field→query cardinality (metadata holds predicate/flags, not the property name).
- * Fail closed: when the regex matches nothing, `firstProps` is empty and the caller skips
- * field-name binding entirely (queries simply remain unpatched). Results are cached per class
- * because this runs after every render tick.
+ * names (`ctx.foo = _t.first`). Production minifies `ctx`/`_t` (`e.foo=n.first`); inherited
+ * queries may live on a parent class. Walk the prototype chain and accept any identifiers.
+ * Fail closed: when nothing matches, `firstProps` is empty and field-name binding is skipped.
  */
 const contentChildFirstPropsByClass = new WeakMap<object, string[]>();
+
+const CONTENT_CHILD_FIRST_RE =
+  /\b[A-Za-z_$][\w$]*\.([A-Za-z_$][\w$]*)\s*=\s*[A-Za-z_$][\w$]*\.first\b/g;
+
+function collectContentChildFirstPropsFromCtor(ctor: object, firstProps: string[]): void {
+  const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
+  if (typeof contentQueries === 'function') {
+    const src = Function.prototype.toString.call(contentQueries);
+    for (const m of src.matchAll(CONTENT_CHILD_FIRST_RE)) {
+      if (!firstProps.includes(m[1])) {
+        firstProps.push(m[1]);
+      }
+    }
+  }
+  const declared = (ctor as any)?.ɵcmp?.queries;
+  if (Array.isArray(declared)) {
+    for (const query of declared) {
+      if (query?.first === true && typeof query?.propertyName === 'string' && !firstProps.includes(query.propertyName)) {
+        firstProps.push(query.propertyName);
+      }
+    }
+  }
+}
 
 function getContentChildFirstProps(instance: object): string[] {
   const ctor = instance.constructor as object;
@@ -878,13 +946,10 @@ function getContentChildFirstProps(instance: object): string[] {
     return cached;
   }
   const firstProps: string[] = [];
-  const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
-  if (typeof contentQueries === 'function') {
-    const src = Function.prototype.toString.call(contentQueries);
-    // `ctx.foo = _t.first` → @ContentChild
-    for (const m of src.matchAll(/ctx\.([A-Za-z_][\w$]*)\s*=\s*_t\.first/g)) {
-      firstProps.push(m[1]);
-    }
+  let current: object | null = ctor;
+  while (current && current !== Object && current !== Function && current !== Object.prototype) {
+    collectContentChildFirstPropsFromCtor(current, firstProps);
+    current = Object.getPrototypeOf(current);
   }
   contentChildFirstPropsByClass.set(ctor, firstProps);
   return firstProps;
