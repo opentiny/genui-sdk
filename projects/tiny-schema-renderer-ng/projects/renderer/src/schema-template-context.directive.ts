@@ -113,7 +113,7 @@ export class SchemaTemplateContextDirective {
   }
 
   private getLatestContext(): unknown {
-    // 宿主组件（如 ng-devui 表格 / app-list-item）通过 *ngTemplateOutlet 渲染本模板时，
+    // 宿主组件（如 app-list-item）通过 *ngTemplateOutlet 渲染本模板时，
     // 创建的 view 会记录在声明 LContainer 的 MOVED_VIEWS 槽位，其 CONTEXT 才是宿主传入
     // 的上下文。resolve() 在模板体内的 *ngFor/*ngIf 中执行，getCurrentView() 返回的是
     // 这些内部 view；沿 PARENT 链向上找到与 MOVED_VIEWS 引用相等的 view（即 outlet view）
