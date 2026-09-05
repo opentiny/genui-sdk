@@ -5,18 +5,9 @@
     },
     "children": [
       {
-        "componentName": "div",
+        "componentName": "NgContent",
         "props": {
-          "name": "header",
-          "params": [
-            {
-              "name": "title",
-              "value": {
-                "type": "JSExpression",
-                "value": "this.state.title"
-              }
-            }
-          ]
+          "select": "[header]"
         },
         "children": [
           {
@@ -47,16 +38,12 @@
         }
       },
       {
-        "componentName": "div",
-        "props": {
-          "description": "default slot"
-        }
+        "componentName": "NgContent"
       },
       {
-        "componentName": "div",
+        "componentName": "NgContent",
         "props": {
-          "description": "Slot without params and children",
-          "name": "footer"
+          "select": "[footer]"
         }
       }
     ],
@@ -71,4 +58,3 @@
       }
     }
   }
-  

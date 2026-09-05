@@ -12,6 +12,11 @@ import {
   classifySchemaChildrenByNgContentSelectors,
   getNgContentSelectors,
 } from './projectable-nodes';
+import {
+  bindProjectedView,
+  isRenderBlockType,
+  unbindProjectedView,
+} from '../block';
 
 function sameBucketChildren(prev: unknown, next: unknown): boolean {
   if (prev === next) {
@@ -65,9 +70,17 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
   ): Node[][] {
     const selectors = getNgContentSelectors(parentComponentType);
     const children = (context as any)?.children;
+    const holdDetached = isRenderBlockType(parentComponentType);
 
     if (selectors.length === 1 && selectors[0] === '*') {
-      return this.transformSingleSlot(context, children, childrenTemplate, viewContainerRef, options);
+      return this.transformSingleSlot(
+        context,
+        children,
+        childrenTemplate,
+        viewContainerRef,
+        options,
+        holdDetached,
+      );
     }
 
     if (!(children as any)?.length && typeof children !== 'string') {
@@ -97,13 +110,16 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
           children: buckets[i],
           slotIndexes: this.indexCache[i],
         };
-        const viewRef = viewContainerRef.createEmbeddedView(
+        const viewRef = this.createSlotView(
           childrenTemplate,
           slotContext,
+          viewContainerRef,
           options,
+          holdDetached,
         );
         this.viewRefs[i] = viewRef;
         this.slots[i] = viewRef.rootNodes;
+        bindProjectedView(this.slots[i], viewRef);
       }
       return this.slots;
     }
@@ -142,6 +158,7 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     childrenTemplate: TemplateRef<any>,
     viewContainerRef: ViewContainerRef,
     options?: { index: number; injector?: Injector },
+    holdDetached = false,
   ): Node[][] {
     if (!(children as any)?.length) {
       if (this.viewRefs[0]) {
@@ -155,11 +172,39 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       Object.assign(viewRef.context, context);
       return this.singleSlotNodes;
     }
-    const created = viewContainerRef.createEmbeddedView(childrenTemplate, context, options);
+    const created = this.createSlotView(
+      childrenTemplate,
+      context,
+      viewContainerRef,
+      options,
+      holdDetached,
+    );
     this.viewRefs = [created];
     this.selectors = ['*'];
     this.singleSlotNodes = [created.rootNodes];
+    bindProjectedView(this.singleSlotNodes[0], created);
     return this.singleSlotNodes;
+  }
+
+  /**
+   * Native hosts keep views on the parent VCR so `ɵɵprojection` can pick up
+   * `rootNodes`. Block hosts have no projection instructions — attach would
+   * leave children beside the host when the matching `NgContent` is lazy
+   * (`ngIf` / `condition`). Create those views detached; the outlet `insert`s
+   * them only when the anchor exists, and `detach` on destroy keeps them off
+   * the parent.
+   */
+  private createSlotView(
+    childrenTemplate: TemplateRef<any>,
+    context: Record<string, any>,
+    viewContainerRef: ViewContainerRef,
+    options?: { index: number; injector?: Injector },
+    holdDetached = false,
+  ): EmbeddedViewRef<any> {
+    const viewRef = holdDetached
+      ? childrenTemplate.createEmbeddedView(context, options?.injector)
+      : viewContainerRef.createEmbeddedView(childrenTemplate, context, options);
+    return viewRef;
   }
 
   private emptyNodesFor(slotCount: number): Node[][] {
@@ -213,9 +258,16 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
   }
 
   private destroyViews() {
-    for (const viewRef of this.viewRefs) {
-      viewRef?.destroy();
+    for (let i = 0; i < this.viewRefs.length; i++) {
+      unbindProjectedView(this.slots[i]);
+      const viewRef = this.viewRefs[i];
+      if (!viewRef) {
+        continue;
+      }
+      unbindProjectedView(viewRef.rootNodes);
+      viewRef.destroy();
     }
+    unbindProjectedView(this.singleSlotNodes[0]);
     this.viewRefs = [];
     this.slots = [];
     this.bucketCache = [];

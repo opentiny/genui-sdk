@@ -1,5 +1,6 @@
 export {
   classifySchemaChildrenByNgContentSelectors,
+  getHostProjectedNodes,
   getNgContentSelectors,
   getSchemaAttributeMap,
   partitionNodesByNgContentSelectors,

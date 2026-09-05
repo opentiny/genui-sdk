@@ -1,6 +1,6 @@
 import { blockComponentFactory } from './render-block';
-import { MATERIALS_CONTEXT_KEY } from './renderer-materials';
-import { BLOCK_CONTEXT_KEY } from './renderer-settings';
+import { MATERIALS_CONTEXT_KEY } from '../renderer-materials';
+import { BLOCK_CONTEXT_KEY } from '../renderer-settings';
 
 export function defineBlock(name: string, schema: {
   inputs: Record<string, unknown>,

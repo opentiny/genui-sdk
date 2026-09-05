@@ -1301,7 +1301,24 @@
           "type": "JSFunction",
           "value": "function(content) { console.log('Text clicked', content) }"
         }
-      }
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected header",
+            "header": true,
+            "style": { "color": "green" }
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected from page",
+            "style": { "color": "blue" }
+          }
+        }
+      ]
     }
   ]
 }

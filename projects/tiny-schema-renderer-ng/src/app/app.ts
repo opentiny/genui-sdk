@@ -3,7 +3,6 @@ import { RendererMain } from '../../projects/renderer/src/renderer-main';
 import { RENDERER_SETTINGS } from '../../projects/renderer/src/renderer-settings';
 import { ContentChildrenService } from '../../projects/renderer/src/content-children';
 import { materials } from './materials';
-import { blockComponentFactory } from '../../projects/renderer/src/render-block';
 import testBlockSchema from '../mock/block.json';
 
 @Component({
@@ -14,12 +13,14 @@ import testBlockSchema from '../mock/block.json';
   providers: [
     {
       provide: RENDERER_SETTINGS,
-      useValue: { materials: {
-        ...materials,
-        blocks: {
-          TestBlock: testBlockSchema
+      useValue: {
+        materials: {
+          ...materials,
+          blocks: {
+            TestBlock: testBlockSchema
+          }
         }
-      } },
+      },
     }
   ],
 })
@@ -30,7 +31,6 @@ export class App {
 
   async ngOnInit() {
     this.schema.set((await import('../mock/schema.json')).default);
-    // blockComponentFactory('Page', await import('../mock/block.json'));
   }
 
   /** Dev helper — call from template/console if needed. */

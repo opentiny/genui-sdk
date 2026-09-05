@@ -1,15 +1,35 @@
-import { Type } from '@angular/core';
+import { Type, ɵgetLContext as getLContext } from '@angular/core';
+
+/** LView header: TView pointer. Angular 20 `root_effect_scheduler.mjs`. */
+const TVIEW = 1;
+
+/**
+ * Nodes passed to `createComponent({ projectableNodes })` land on the host TNode
+ * (`projectNodes` in Angular). Read `lView[TVIEW].data[nodeIndex].projection`.
+ * Only populated when `ɵcmp.ngContentSelectors` is non-empty.
+ */
+export function getHostProjectedNodes(instance: object): Node[][] | null {
+  try {
+    const ctx = getLContext(instance) as { lView?: any[]; nodeIndex?: number } | null;
+    if (!ctx?.lView) {
+      return null;
+    }
+    const tNode = ctx.lView[TVIEW]?.data?.[ctx.nodeIndex as number];
+    const projection = tNode?.projection;
+    return Array.isArray(projection) ? (projection as Node[][]) : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Read ng-content slot selectors from a component def (order = projectableNodes indices).
- * Falls back to a single default slot `['*']`.
+ * Missing / non-array defs fall back to a single default slot `['*']`.
+ * An explicit empty array means no projection slots (e.g. a block with no NgContent).
  */
 export function getNgContentSelectors(componentType: Type<any> | null | undefined): string[] {
   const selectors = (componentType as any)?.ɵcmp?.ngContentSelectors;
-  if (Array.isArray(selectors) && selectors.length > 0) {
-    return selectors as string[];
-  }
-  return ['*'];
+  return Array.isArray(selectors) ? (selectors as string[]) : ['*'];
 }
 
 /** Flatten schema props that will be applied as host attributes (incl. nested `attributes`). */

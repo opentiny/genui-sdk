@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, SimpleChanges, Type, forwardRef } from "@angular/core";
-import { RendererMain } from "./renderer-main";
+import { RendererMain } from "../renderer-main";
+import { ProjectedViews, RENDER_BLOCK_MARKER, SET_PROJECTED_VIEWS } from "./projection/projected-view";
 
 const NAME = Symbol('name');
 const SCHEMA = Symbol('schema');
@@ -15,9 +16,10 @@ class DynamicProperties implements Record<string, unknown> {
   standalone: true,
   template: `
     <tiny-schema-renderer
-      [schema]="schema"
-      [props]="props"
-      [dispatchEvent]="dispatchEvent">
+      [schema]="_schema"
+      [props]="_props"
+      [dispatchEvent]="_dispatchEvent"
+      [projectedViews]="_projectedViews">
     </tiny-schema-renderer>
   `,
 })
@@ -29,17 +31,18 @@ export class RenderBlockComponent extends DynamicProperties {
   };
   public [CHANGES_KEY]!: string[];
 
-
-  @Input({ required: false }) propExample: string = 'test';
-  @Output() eventExample: EventEmitter<string> = new EventEmitter<string>();
-
-  public get schema() {
+  public get _schema() {
     return this[SCHEMA];
   }
-  public props: Record<string, unknown> = {};
+  public _props: Record<string, unknown> = {};
+  _projectedViews: ProjectedViews | null = null;
 
   constructor() {
     super();
+  }
+
+  [SET_PROJECTED_VIEWS](views: ProjectedViews | null) {
+    this._projectedViews = views;
   }
 
   protected init(name: string, schema: any) {
@@ -47,9 +50,8 @@ export class RenderBlockComponent extends DynamicProperties {
     this[SCHEMA] = schema;
     this[CHANGES_KEY] = this._getChangesKeys()
     this._initEventEmitter();
-    this.props = this._getUpdatedProps();
+    this._props = this._getUpdatedProps();
   }
-
 
   ngOnChanges(changes: SimpleChanges) {
     let needUpdateProps = false;
@@ -60,7 +62,7 @@ export class RenderBlockComponent extends DynamicProperties {
       }
     })
     if (needUpdateProps) {
-      this.props = this._getUpdatedProps()
+      this._props = this._getUpdatedProps()
     }
   }
 
@@ -80,15 +82,13 @@ export class RenderBlockComponent extends DynamicProperties {
     })
   }
 
-  public dispatchEvent = (event: string, ...data: any) => {
+  public _dispatchEvent = (event: string, ...data: any) => {
     if (Object.keys(this[SCHEMA].outputs).includes(event)) {
       ((this as any)[event] as EventEmitter<any>).emit(data)
     } else {
       console.warn(`Event ${event} not found in schema.outputs`)
     }
   }
-
-
 }
 
 export function getComponentInputs(schema: any, declare = false) {
@@ -112,6 +112,29 @@ export function getComponentOutputs(schema: any) {
   );
 }
 
+/** Depth-first: each schema `NgContent` becomes one slot; `props.select` or `*`. */
+export function extractNgContentSelectors(schema: any): string[] {
+  const selectors: string[] = [];
+  walkNgContent(schema, selectors);
+  return selectors;
+}
+
+function walkNgContent(node: any, selectors: string[]) {
+  if (!node || typeof node !== 'object') {
+    return;
+  }
+  if (node.componentName === 'NgContent') {
+    const select = node.props?.select;
+    selectors.push(typeof select === 'string' && select.trim() ? select.trim() : '*');
+  }
+  const children = node.children;
+  if (Array.isArray(children)) {
+    for (const child of children) {
+      walkNgContent(child, selectors);
+    }
+  }
+}
+
 function toKebabCase(name: string) {
   return (
     name.match(/[A-Z]{2,}(?=[A-Z][a-z0-9]|[0-9]|$)|[A-Z]?[a-z0-9]+|[A-Z]/g) ?? [name]
@@ -124,7 +147,7 @@ export function blockComponentFactory(name: string, schema: any): Type<any> {
   const componentType = class extends RenderBlockComponent {
     constructor() {
       super();
-      this.init(name, schema);
+      super.init(name, schema);
     }
   };
 
@@ -134,6 +157,8 @@ export function blockComponentFactory(name: string, schema: any): Type<any> {
   ɵcmp.factory = factory;
   ɵcmp.tView = null;
   ɵcmp.selectors = [[toKebabCase(name)]];
+  ɵcmp.ngContentSelectors = extractNgContentSelectors(schema);
+  ɵcmp[RENDER_BLOCK_MARKER] = true;
   ɵcmp.inputs = getComponentInputs(schema);
   ɵcmp.declaredInputs = getComponentInputs(schema, true);
   ɵcmp.outputs = getComponentOutputs(schema);

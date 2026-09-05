@@ -20,6 +20,7 @@ import { RendererTemplateComponent } from './renderer-template.component';
 import { RendererDirective } from './renderer.directive';
 import { ContentChildrenService } from './content-children';
 import { RENDERER_SETTINGS, type NotifyHandler, BLOCK_CONTEXT_KEY } from './renderer-settings';
+import { ProjectedViews } from './block';
 
 function reset(obj: any) {
   Object.keys(obj).forEach((key) => delete obj[key]);
@@ -44,6 +45,7 @@ function reset(obj: any) {
         [scope]="scope"
         [parent]="pageSchema"
         [template]="rendererTemplateComponent.template"
+        [projectedViews]="projectedViews"
       ></ng-template>
     </ng-container>
     <ng-container *ngIf="!pageSchema.children?.length">
@@ -55,6 +57,7 @@ export class RendererMain implements OnDestroy {
   @Input() schema: any = {};
   @Input() props: any = {};
   @Input() dispatchEvent: (event: string, data: any) => void = () => {};
+  @Input() projectedViews: ProjectedViews | null = null;
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
