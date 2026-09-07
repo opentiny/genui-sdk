@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { computed } from 'vue';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose, iconTime } from '@opentiny/vue-icon';
 import { useTemplateContext } from './composables';
+import InspectModeIcon from './InspectModeIcon.vue';
+import { useSchemaDevMode } from './useSchemaDevMode';
 import viewSchemaIcon from '../../assets/images/view-schema.svg';
 import { t } from '../../i18n';
 
@@ -12,6 +15,12 @@ withDefaults(defineProps<{
 const TinyCloseIcon = iconClose();
 const TinyIconTime = iconTime();
 const { versionControl, ui, actions } = useTemplateContext();
+const schemaDevMode = useSchemaDevMode();
+const isDevMode = computed(() => schemaDevMode.isDevMode.value);
+
+const toggleDevMode = () => {
+  schemaDevMode.isDevMode.value = !schemaDevMode.isDevMode.value;
+};
 </script>
 
 <template>
@@ -29,6 +38,17 @@ const { versionControl, ui, actions } = useTemplateContext();
           {{ t('templateEditor.returnLatest') }}
         </tiny-button>
       </template>
+      <button
+        type="button"
+        class="genui-schema-toolbar-close-btn genui-schema-toolbar-inspect-btn"
+        :class="{ 'is-active': isDevMode }"
+        :aria-label="t('templateEditor.devMode')"
+        :title="t('templateEditor.devMode')"
+        :aria-pressed="isDevMode"
+        @click="toggleDevMode"
+      >
+        <InspectModeIcon />
+      </button>
       <tiny-button
         type="text"
         class="genui-schema-toolbar-close-btn"
@@ -128,31 +148,81 @@ const { versionControl, ui, actions } = useTemplateContext();
 
 .genui-schema-toolbar-close-btn {
   flex-shrink: 0;
+}
 
-  &.tiny-button {
-    box-sizing: border-box;
-    min-width: 32px;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    color: #666;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.genui-schema-toolbar-inspect-btn {
+  box-sizing: border-box;
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #666;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 0;
+
+  &:hover {
+    color: #191919;
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  &:active {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #1890ff;
+    outline-offset: 2px;
+  }
+
+  &.is-active {
+    color: #1677ff;
+    background: rgba(22, 119, 255, 0.1);
 
     &:hover {
-      color: #191919;
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    &:active {
-      background: rgba(0, 0, 0, 0.08);
-    }
-
-    &.is-active {
       color: #1677ff;
-      background: rgba(22, 119, 255, 0.1);
+      background: rgba(22, 119, 255, 0.16);
+    }
+  }
+}
+
+.genui-schema-toolbar-close-btn.tiny-button.tiny-button--text {
+  box-sizing: border-box;
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  color: #666;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: #191919;
+    background: rgba(0, 0, 0, 0.06);
+  }
+
+  &:active {
+    background: rgba(0, 0, 0, 0.08);
+  }
+
+  &.is-active {
+    color: #1677ff;
+    background: rgba(22, 119, 255, 0.1);
+
+    &:hover {
+      color: #1677ff;
+      background: rgba(22, 119, 255, 0.16);
     }
   }
 }
