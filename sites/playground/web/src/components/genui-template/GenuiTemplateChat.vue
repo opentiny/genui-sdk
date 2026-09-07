@@ -38,6 +38,7 @@ import {
 import { generateId } from '../../utils';
 import { useSchemaDevModeOptional } from './useSchemaDevMode';
 import { getComposerContent, segmentsToPlainText } from './schema-composer';
+import { createComposerTagController } from './composer-atomic-tags';
 import type { SelectedSchemaNode } from './schema-node-selection';
 import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
@@ -60,7 +61,8 @@ const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
 const schemaDevMode = useSchemaDevModeOptional();
 const templateData = ref<UserItem[]>([]);
-const selectedNodeMap = new Map<string, SelectedSchemaNode>();
+const tagController = createComposerTagController<SelectedSchemaNode>();
+const selectedNodeMap = tagController.selectedNodeMap;
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -261,44 +263,26 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
     templateData.value = [{ type: 'text', content: inputMessage.value }];
   }
   const id = generateId();
-  selectedNodeMap.set(id, node);
+  tagController.trackTag(id, node);
   templateData.value = [...templateData.value, { type: 'template', content: node.componentName, id }];
 };
 
 const SENDER_MAX_LENGTH = 20000;
 
-const syncSelectedNodes = (value: UserItem[]) => {
-  const nextMap = new Map<string, SelectedSchemaNode>();
-  const usedSourceIds = new Set<string>();
-  for (const item of value) {
-    if (item.type !== 'template') {
-      continue;
-    }
-    if (item.id && selectedNodeMap.has(item.id)) {
-      nextMap.set(item.id, selectedNodeMap.get(item.id)!);
-      usedSourceIds.add(item.id);
-      continue;
-    }
-    for (const [id, candidate] of selectedNodeMap) {
-      if (!usedSourceIds.has(id) && candidate.componentName === item.content) {
-        nextMap.set(item.id || id, candidate);
-        usedSourceIds.add(id);
-        break;
-      }
-    }
-  }
-  selectedNodeMap.clear();
-  nextMap.forEach((node, id) => selectedNodeMap.set(id, node));
+/**
+ * TrSender 0.3.3 still treats template chips as editable text. Until it owns
+ * atomic tags, this controller keeps templateData + selectedNodeMap in sync
+ * (tombstones enable undo) and only locks newly rendered template chips.
+ */
+const handleTemplateDataUpdate = (value: UserItem[]) => {
+  templateData.value = tagController.applyTemplateData(value);
 };
 
-const handleTemplateDataUpdate = (value: UserItem[]) => {
-  syncSelectedNodes(value);
-  templateData.value = value;
-};
+const senderContainer = ref<HTMLElement>();
 
 const clearComposer = () => {
   templateData.value = [];
-  selectedNodeMap.clear();
+  tagController.clear();
 };
 
 if (props.messages?.length) {
@@ -451,11 +435,17 @@ onMounted(() => {
     getContent: () => getComposerContent(templateData.value, selectedNodeMap),
     clear: clearComposer,
   });
+  if (senderContainer.value) {
+    tagController.bind(senderContainer.value, () => {
+      templateData.value = tagController.applyTemplateData(templateData.value);
+    });
+  }
 });
 
 onUnmounted(() => {
   emitter.off('notification', handleNotification);
   schemaDevMode?.registerComposer(null);
+  tagController.unbind();
 });
 </script>
 
@@ -470,7 +460,7 @@ onUnmounted(() => {
         <span>{{ t('app.emptyTitle') }}</span>
       </div>
     </div>
-    <div class="sender-container">
+    <div class="sender-container" ref="senderContainer">
       <div
         :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
         v-show="!isLastMessageInBottom"
@@ -721,6 +711,11 @@ onUnmounted(() => {
 .tiny-sender {
   width: 80%;
   margin: 0 auto;
+
+  :deep(.editor .genui-composer-chip-host) {
+    cursor: default;
+    user-select: none;
+  }
 }
 
 .footer-text {

@@ -24,7 +24,6 @@ export function templateDataToSegments(
   nodeMap: Map<string, SelectedSchemaNode>,
 ): ComposerSegment[] {
   const segments: ComposerSegment[] = [];
-  const usedIds = new Set<string>();
 
   for (const item of templateData) {
     if (item.type === 'text') {
@@ -35,20 +34,7 @@ export function templateDataToSegments(
       continue;
     }
 
-    let node: SelectedSchemaNode | undefined;
-    if (item.id && nodeMap.has(item.id)) {
-      node = nodeMap.get(item.id);
-      usedIds.add(item.id);
-    } else {
-      for (const [id, candidate] of nodeMap) {
-        if (!usedIds.has(id) && candidate.componentName === item.content) {
-          node = candidate;
-          usedIds.add(id);
-          break;
-        }
-      }
-    }
-
+    const node = item.id ? nodeMap.get(item.id) : undefined;
     if (node) {
       segments.push({
         type: 'tag',
@@ -57,16 +43,6 @@ export function templateDataToSegments(
           componentName: node.componentName,
           path: node.path,
           node: node.node,
-        },
-      });
-    } else if (item.content) {
-      segments.push({
-        type: 'tag',
-        tag: {
-          id: item.id || '',
-          componentName: item.content,
-          path: '',
-          node: {},
         },
       });
     }
