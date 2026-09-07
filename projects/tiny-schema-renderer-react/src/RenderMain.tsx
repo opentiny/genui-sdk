@@ -10,6 +10,7 @@ import { SchemaNodeRenderer, normalizeChildren } from './Render';
 import { Loading } from './Loading';
 import { useRendererSettings } from './RendererContextProvider';
 import { MATERIALS } from './materials';
+import { NOTIFY } from './engine/notify';
 
 export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
@@ -29,12 +30,12 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
   const renderSettings = useRendererSettings();
-  const { materials, ...globalSettings } = renderSettings;
+  const { materials, notify, ...globalSettings } = renderSettings;
   setCustomSettings(globalSettings);
-  const pageContext = useMemo(
-    () => ({ ...context, [MATERIALS]: materials }),
-    [context, materials],
-  );
+  const instanceCtx = context as typeof context & Record<symbol, unknown>;
+  instanceCtx[MATERIALS] = materials;
+  instanceCtx[NOTIFY] = notify;
+  const pageContext = useMemo(() => ({ ...instanceCtx }), [instanceCtx, materials, notify]);
 
   useImperativeHandle(
     ref,

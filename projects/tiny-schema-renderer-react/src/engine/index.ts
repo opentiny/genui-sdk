@@ -1,7 +1,9 @@
 export type { PageContextValue } from './parse-data';
 export * from './apply-default-props';
-export type { IRendererSettings } from './use-custom-setting';
+export type { IRendererSettings, NotifyHandler } from './use-custom-setting';
 export { DEFAULT_RENDERER_SETTINGS } from './use-custom-setting';
+export { NOTIFY } from './notify';
+export type { NotifyOptions, NotifyType } from './notify';
 export * from './parse-expression';
 export * from './transform-state-mutations';
 export * from './parse-data';

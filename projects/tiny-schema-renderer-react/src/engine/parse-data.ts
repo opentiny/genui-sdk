@@ -1,5 +1,6 @@
 import { getBindCtx } from './context-runtime';
 import { parseExpression, isJSExpression, newFn } from './parse-expression';
+import { Notify } from './notify';
 
 export type PageContextValue = Record<string, unknown> & {
   state?: Record<string, unknown>;
@@ -49,12 +50,41 @@ export function setDefaultSlotRenderer(
 
 function generateFn(innerFn: (...args: unknown[]) => unknown, ctx: PageContextValue) {
   return (...args: unknown[]) => {
+    const runtimeCtx = getBindCtx(ctx);
+    let result: unknown = null;
     try {
-      return innerFn.call(getBindCtx(ctx), ...args);
+      result = innerFn.call(runtimeCtx, ...args);
     } catch (error) {
-      console.warn(`Function ${innerFn.name || 'anonymous'} execution error:`, error);
-      return undefined;
+      Notify(
+        {
+          type: 'warning',
+          title: `函数:${innerFn.name || 'anonymous'}执行报错`,
+          message: (error as Error)?.message || `函数:${innerFn.name || 'anonymous'}执行报错，请检查语法`,
+        },
+        runtimeCtx,
+      );
     }
+
+    if (result && typeof (result as Promise<unknown>).then === 'function') {
+      result = new Promise((resolve) => {
+        (result as Promise<unknown>).then(resolve).catch((error: Error) => {
+          Notify(
+            {
+              type: 'warning',
+              title: '异步函数执行报错',
+              message: error?.message || '异步函数执行报错，请检查语法',
+            },
+            runtimeCtx,
+          );
+          resolve({
+            result: [{}],
+            page: { total: 1 },
+          });
+        });
+      });
+    }
+
+    return result;
   };
 }
 
@@ -68,7 +98,14 @@ function parseJSFunction(data: { type: string; value: string }, scope: Record<st
       ctx,
     );
   } catch (error) {
-    console.warn('JSFunction parse error:', error);
+    Notify(
+      {
+        type: 'warning',
+        title: '函数声明解析报错',
+        message: (error as Error)?.message || '函数声明解析报错，请检查语法',
+      },
+      ctx,
+    );
     return undefined;
   }
 }

@@ -6,3 +6,4 @@ export { setSchema, setMethods, setState, setRefs } from './set-schema';
 
 export { RendererContextProvider } from './RendererContextProvider';
 export type { RendererContextProviderProps } from './RendererContextProvider';
+export type { NotifyHandler, NotifyOptions, NotifyType } from './engine/notify';

@@ -9,7 +9,7 @@ import {
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { SchemaRenderer, RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
 import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-schema-renderer-react';
-import { useGenuiMaterials } from '../config-provider';
+import { useGenuiMaterials, useGenuiNotify } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
 import './renderer.css';
@@ -34,6 +34,7 @@ const emptySchema: RootNode = { componentName: 'Page' };
 export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
   function GenuiRenderer(props, ref) {
     const contextMaterials = useGenuiMaterials();
+    const notify = useGenuiNotify();
     const mergedComponents = useMemo(
       () => ({
         ...contextMaterials.components,
@@ -47,8 +48,9 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
           ...contextMaterials,
           components: mergedComponents,
         },
+        notify,
       }),
-      [contextMaterials, mergedComponents],
+      [contextMaterials, mergedComponents, notify],
     );
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
 
