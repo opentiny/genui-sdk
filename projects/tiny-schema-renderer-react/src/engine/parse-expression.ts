@@ -39,7 +39,7 @@ export function parseExpression(
     }
     expression = transformStateMutations(expression);
     let params: Record<string, unknown> = {};
-    if (data.params) {
+    if (data.params?.length) {
       params = data.params.reduce<Record<string, unknown>>((acc, paramName) => {
         acc[paramName] = mergeScope[paramName];
         return acc;

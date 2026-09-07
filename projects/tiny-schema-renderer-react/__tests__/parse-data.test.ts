@@ -17,4 +17,9 @@ describe('parseData', () => {
     expect(parseCondition(true, {}, ctx)).toBe(true);
     expect(parseCondition({ type: 'JSExpression', value: 'this.state.count > 0' }, {}, ctx)).toBe(true);
   });
+
+  it('keeps empty params as a normal expression', () => {
+    const result = parseData({ type: 'JSExpression', value: 'this.state.count', params: [] }, {}, ctx);
+    expect(result).toBe(2);
+  });
 });

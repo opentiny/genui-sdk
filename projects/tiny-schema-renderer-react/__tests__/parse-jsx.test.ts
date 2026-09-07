@@ -1,7 +1,7 @@
 import { createElement, isValidElement } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { parseData } from '../src/engine';
-import { setCustomSettings } from '../src/engine/use-custom-setting';
+import { RENDERER_SETTINGS, setCustomSettings } from '../src/engine/use-custom-setting';
 import { MATERIALS } from '../src/materials';
 import { transformJSX } from '../src/transform-jsx';
 
@@ -35,5 +35,32 @@ describe('parse JSX function', () => {
     expect((element as { type: unknown }).type).toBe(AntButton);
     expect((element as { props: { type?: string; danger?: boolean; children?: string } }).props.type).toBe('primary');
     expect((element as { props: { children?: string } }).props.children).toBe('删除');
+  });
+
+  it('does not rewrite h(Component) text inside JSX strings', () => {
+    setCustomSettings({ transformJSX });
+    const ctx = {
+      [MATERIALS]: { components: { AntButton } },
+    };
+
+    const render = parseData(
+      {
+        type: 'JSFunction',
+        value: 'function render() { return <AntButton>h(Foo)</AntButton> }',
+      },
+      {},
+      ctx,
+    ) as () => { props: { children?: string } };
+
+    expect(render().props.children).toBe('h(Foo)');
+  });
+
+  it('prefers transformJSX from page context over global settings', () => {
+    setCustomSettings({ transformJSX: () => '"from-global"' });
+    const ctx = {
+      [RENDERER_SETTINGS]: { transformJSX: () => '"from-local"' },
+    };
+
+    expect(parseData({ type: 'JSExpression', value: '<i />' }, {}, ctx)).toBe('from-local');
   });
 });
