@@ -50,7 +50,7 @@ const props = defineProps<{
 }>();
 
 const route = useRoute();
-const TinyGenuiConfig: any = inject(GENUI_CONFIG);
+const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();

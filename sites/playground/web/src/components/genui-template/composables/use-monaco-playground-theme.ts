@@ -25,7 +25,7 @@ function useSystemPrefersDark() {
 export function useMonacoPlaygroundTheme(
   fallbackTheme?: () => PlaygroundColorTheme | undefined,
 ): ComputedRef<'vs' | 'vs-dark'> {
-  const genuiConfig = inject(GENUI_CONFIG);
+  const genuiConfig = inject(GENUI_CONFIG, null);
   const systemPrefersDark = useSystemPrefersDark();
 
   return computed(() => {

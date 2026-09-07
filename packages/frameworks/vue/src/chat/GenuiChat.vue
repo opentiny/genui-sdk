@@ -37,7 +37,7 @@ import { IResponseHandler, defaultResponseHandlers } from './response-handler';
 
 const props = defineProps<IChatProps>();
 
-const genuiConfig = inject(GENUI_CONFIG);
+const genuiConfig = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
 
 const isAllowFiles = computed(() => {
