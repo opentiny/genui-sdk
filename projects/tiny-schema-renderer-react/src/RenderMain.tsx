@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
+import { setCustomSettings } from './engine/use-custom-setting';
 import { useContext } from './use-context';
 import { PageContextProvider } from './page-context';
 import { setSchema, setState } from './set-schema';
@@ -28,9 +29,11 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
   const renderSettings = useRendererSettings();
+  const { materials, ...globalSettings } = renderSettings;
+  setCustomSettings(globalSettings);
   const pageContext = useMemo(
-    () => ({ ...context, [MATERIALS]: renderSettings.materials }),
-    [context, renderSettings.materials],
+    () => ({ ...context, [MATERIALS]: materials }),
+    [context, materials],
   );
 
   useImperativeHandle(

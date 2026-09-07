@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { RendererContextProvider, SchemaRenderer } from '../src';
 import { demos } from './mock';
 import { components } from './components';
+import { transformJSX } from '../src/transform-jsx';
+
+const renderSettings = { materials: { components }, transformJSX };
 
 export function App() {
   const [activeId, setActiveId] = useState(demos[0].id);
@@ -25,7 +28,7 @@ export function App() {
         </nav>
       </header>
       <main className="app-content">
-        <RendererContextProvider render-settings={{ materials: { components } }}>
+        <RendererContextProvider render-settings={renderSettings}>
           <SchemaRenderer schema={current.schema} />
         </RendererContextProvider>
       </main>

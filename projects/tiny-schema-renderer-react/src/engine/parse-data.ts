@@ -1,6 +1,5 @@
-import { getRuntimeCtx } from './context-runtime';
+import { getBindCtx } from './context-runtime';
 import { parseExpression, isJSExpression, newFn } from './parse-expression';
-import { transformStateMutations } from './transform-state-mutations';
 
 export type PageContextValue = Record<string, unknown> & {
   state?: Record<string, unknown>;
@@ -51,8 +50,7 @@ export function setDefaultSlotRenderer(
 function generateFn(innerFn: (...args: unknown[]) => unknown, ctx: PageContextValue) {
   return (...args: unknown[]) => {
     try {
-      const runtimeCtx = getRuntimeCtx(ctx);
-      return innerFn.call(runtimeCtx, ...args);
+      return innerFn.call(getBindCtx(ctx), ...args);
     } catch (error) {
       console.warn(`Function ${innerFn.name || 'anonymous'} execution error:`, error);
       return undefined;
@@ -63,14 +61,12 @@ function generateFn(innerFn: (...args: unknown[]) => unknown, ctx: PageContextVa
 function parseJSFunction(data: { type: string; value: string }, scope: Record<string, unknown>, ctx: PageContextValue) {
   try {
     if (!isFunctionString(data.value)) return undefined;
-    if (typeof scope === 'object' && Object.keys(scope).length > 0) {
-      return generateFn(
-        parseExpression({ type: JS_EXPRESSION, value: data.value }, scope, ctx) as (...args: unknown[]) => unknown,
-        ctx,
-      );
-    }
-    const innerFn = newFn(`return ${transformStateMutations(data.value)}`).bind(ctx)() as (...args: unknown[]) => unknown;
-    return generateFn(innerFn, ctx);
+    return generateFn(
+      parseExpression({ type: JS_EXPRESSION, value: `(${data.value}).bind(this)` }, scope, ctx) as (
+        ...args: unknown[]
+      ) => unknown,
+      ctx,
+    );
   } catch (error) {
     console.warn('JSFunction parse error:', error);
     return undefined;
@@ -128,7 +124,7 @@ const parseList: ParseHandler[] = [
   { type: isJSSlot, parseFunc: (d, s, c) => parseJSSlot(d as { type: string; value: unknown }, s, c) },
   { type: isString, parseFunc: (d) => (d as string).trim() },
   { type: isArray, parseFunc: (d, s, c) => (d as unknown[]).map((item) => parseData(item, s, c)) },
-  { type: isFunction, parseFunc: (d, _s, c) => (d as (...args: unknown[]) => unknown).bind(c) },
+  { type: isFunction, parseFunc: (d, _s, c) => (d as (...args: unknown[]) => unknown).bind(getBindCtx(c)) },
   { type: isObject, parseFunc: (d, s, c) => parseObjectData(d as Record<string, unknown>, s, c) },
 ];
 

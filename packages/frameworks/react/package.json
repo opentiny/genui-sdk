@@ -36,6 +36,10 @@
     "./config-provider": {
       "types": "./dist/config-provider.d.ts",
       "import": "./dist/config-provider.js"
+    },
+    "./transform-jsx": {
+      "types": "./dist/transform-jsx.d.ts",
+      "import": "./dist/transform-jsx.js"
     }
   },
   "files": [

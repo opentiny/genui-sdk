@@ -11,6 +11,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./transform-jsx": {
+      "types": "./dist/transform-jsx.d.ts",
+      "import": "./dist/transform-jsx.js"
     }
   },
   "files": [

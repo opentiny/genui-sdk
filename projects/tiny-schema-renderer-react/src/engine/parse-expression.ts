@@ -1,5 +1,7 @@
+import React from 'react';
 import { getCustomSettings, DEFAULT_RENDERER_SETTINGS } from './use-custom-setting';
-import { getRuntimeCtx } from './context-runtime';
+import { getBindCtx } from './context-runtime';
+import { getComponent } from '../materials';
 import type { PageContextValue } from './parse-data';
 import { transformStateMutations } from './transform-state-mutations';
 
@@ -10,6 +12,19 @@ export function newFn(...argv: string[]) {
   return new Fn(...argv);
 }
 
+function getJsxBindCtx(ctx: PageContextValue): PageContextValue {
+  const bindCtx = getBindCtx(ctx);
+  return new Proxy(bindCtx, {
+    get(target, prop, receiver) {
+      if (prop === 'getComponent') return (name: string) => getComponent(name, ctx);
+      return Reflect.get(target, prop, receiver);
+    },
+    has(target, prop) {
+      return prop === 'getComponent' || Reflect.has(target, prop);
+    },
+  });
+}
+
 export function parseExpression(
   data: { type: string; value: string; params?: string[] },
   scope: Record<string, unknown>,
@@ -17,21 +32,22 @@ export function parseExpression(
   isJsx = false,
 ): unknown {
   try {
-    const mergeScope: Record<string, unknown> = { ...ctx, ...scope, slotScope: scope };
+    const mergeScope: Record<string, unknown> = { ...scope, slotScope: scope };
     let expression = data.value;
     if (isJsx && getCustomSettings().transformJSX) {
       expression = getCustomSettings().transformJSX!(data.value);
     }
     expression = transformStateMutations(expression);
     let params: Record<string, unknown> = {};
-    if (data.params?.length) {
+    if (data.params) {
       params = data.params.reduce<Record<string, unknown>>((acc, paramName) => {
         acc[paramName] = mergeScope[paramName];
         return acc;
       }, {});
       expression = `(e) => {(${expression}).call(this, e, ${data.params.join(',')})}`;
     }
-    return newFn('$scope', `with($scope || {}) { return ${expression} }`).call(getRuntimeCtx(ctx), {
+    return newFn('$scope', `with($scope || {}) { return ${expression} }`).call(isJsx ? getJsxBindCtx(ctx) : getBindCtx(ctx), {
+      ...(isJsx ? { h: React.createElement } : {}),
       ...mergeScope,
       ...params,
     });

@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseData } from '../src/engine';
 import { createContextApi } from './render-context-api';
 import { setSchema } from '../src/set-schema';
+import bindThisSchema from '../test/mock/bind-this.json';
 
 describe('setSchema', () => {
   it('methods execute with latest context via parsed.call(contextApi.getContext())', () => {
@@ -217,6 +218,110 @@ describe('setSchema', () => {
     (contextApi.getContext().update as () => void)();
 
     expect(contextApi.getContext().state).toEqual({ count: 2, form: { name: 'Grace' }, items: ['a', 'b', 'c'] });
+  });
+});
+
+describe('bind this after context refresh', () => {
+  it('arrow method reads latest state after setContext', () => {
+    const contextApi = createContextApi();
+    setSchema(
+      {
+        state: { count: 1 },
+        methods: {
+          getCount: {
+            type: 'JSFunction',
+            value: '() => this.state.count',
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+    );
+
+    expect((contextApi.getContext().getCount as () => number)()).toBe(1);
+
+    contextApi.setContext({ state: { count: 2 } });
+
+    expect((contextApi.getContext().getCount as () => number)()).toBe(2);
+  });
+
+  it('scoped loop handler keeps this after parent state refresh', () => {
+    const contextApi = createContextApi();
+    setSchema(
+      {
+        state: { prefix: 'A' },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+    );
+
+    const onClick = parseData(
+      { type: 'JSFunction', value: '() => this.state.prefix + item' },
+      { item: '-1' },
+      contextApi.getContext(),
+    ) as () => string;
+
+    expect(onClick()).toBe('A-1');
+
+    contextApi.setContext({ state: { prefix: 'B' } });
+
+    expect(onClick()).toBe('B-1');
+  });
+
+  it('does not resolve stale ctx fields from with-scope after refresh', () => {
+    const contextApi = createContextApi();
+    setSchema(
+      {
+        state: { count: 1 },
+        methods: {
+          readCount: {
+            type: 'JSFunction',
+            value: 'function() { return this.state.count; }',
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+    );
+
+    const expr = parseData(
+      { type: 'JSExpression', value: '(function() { return this.state.count; }).bind(this)' },
+      {},
+      contextApi.getContext(),
+    ) as () => number;
+
+    expect(expr()).toBe(1);
+
+    contextApi.setContext({ state: { count: 9 } });
+
+    expect(expr()).toBe(9);
+    expect((contextApi.getContext().readCount as () => number)()).toBe(9);
+  });
+
+  it('mock bind-this schema keeps arrow this after refresh', () => {
+    const contextApi = createContextApi();
+    setSchema(bindThisSchema as Parameters<typeof setSchema>[0], contextApi);
+
+    const ctx = () => contextApi.getContext();
+    (ctx().bump as () => void)();
+    (ctx().readCount as () => void)();
+
+    expect(ctx().state?.count).toBe(2);
+    expect(ctx().state?.log).toBe('箭头 this.state.count = 2');
+
+    (ctx().togglePrefix as () => void)();
+    const markBanana = parseData(
+      { type: 'JSFunction', value: "() => { this.state.log = this.state.prefix + '-' + item.name; }" },
+      { item: { name: '香蕉' } },
+      ctx(),
+    ) as () => void;
+    markBanana();
+
+    expect(ctx().state?.prefix).toBe('B');
+    expect(ctx().state?.log).toBe('B-香蕉');
   });
 });
 

@@ -19,6 +19,7 @@ export default defineConfig({
         index: path.resolve(__dirname, './src/index.ts'),
         renderer: path.resolve(__dirname, './src/renderer/index.ts'),
         'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
+        'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
       },
       formats: ['es'],
       fileName: (_, entryName) => `${entryName}.js`,
