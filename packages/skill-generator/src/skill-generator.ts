@@ -342,7 +342,7 @@ export function assertWrittenPromptCoverage(
   referenceSubdir = 'generated',
 ): void {
   const skillSource = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
-  const frontmatter = skillSource.match(/^---[\s\S]*?---\n\n?/);
+  const frontmatter = skillSource.match(SKILL_FRONTMATTER_RE);
   if (!frontmatter) {
     throw new Error(`SKILL.md 格式无效，无法校验 genPrompt: ${skillDir}`);
   }
