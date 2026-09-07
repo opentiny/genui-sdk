@@ -1,12 +1,13 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
-import { inject, computed } from 'vue';
+import { inject, computed, watch } from 'vue';
 import { t } from '../../i18n';
 import { PlaygroundMode } from '../../constants';
 import {
   getFrameworkOptions,
   componentLibOptionsByFramework,
   MATERIAL_THEME_OPTIONS,
+  ELEMENT_PLUS_THEME_OPTIONS,
 } from './materials-options';
 import vueIcon from '../../assets/images/vue.svg';
 import angularIcon from '../../assets/images/angular.svg';
@@ -37,11 +38,25 @@ const frameworkIconMap = {
 };
 
 const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
+const themeOptions = computed(() =>
+  componentLib.value === 'ElementPlus' ? ELEMENT_PLUS_THEME_OPTIONS : MATERIAL_THEME_OPTIONS,
+);
 
 const componentLibModel = computed({
   get: () => componentLib.value,
   set: (val) => setComponentLib(val),
 });
+
+// 切换组件库后，若当前主题不被新库支持，回退到默认主题，避免没有主题卡片被选中
+watch(
+  () => componentLib.value,
+  (lib) => {
+    const options = lib === 'ElementPlus' ? ELEMENT_PLUS_THEME_OPTIONS : MATERIAL_THEME_OPTIONS;
+    if (!options.some((item) => item.value === props.theme)) {
+      emit('update:theme', options[0].value);
+    }
+  },
+);
 
 const handleSetFramework = (name) => {
   setFramework(name);
@@ -81,10 +96,10 @@ const handleSetFramework = (name) => {
       </tiny-radio-group>
     </div>
 
-    <template v-if="framework === 'Vue' && componentLib === 'TinyVue'">
+    <template v-if="framework === 'Vue' && (componentLib === 'TinyVue' || componentLib === 'ElementPlus')">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
-        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
+        <div v-for="item in themeOptions" :key="item.value" class="theme-card-item">
           <div
             class="theme-card"
             :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"

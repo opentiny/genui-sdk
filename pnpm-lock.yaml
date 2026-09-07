@@ -518,6 +518,9 @@ importers:
       '@opentiny/vue-color-picker':
         specifier: ~3.31.0
         version: 3.31.0
+      '@opentiny/vue-config-provider':
+        specifier: ~3.31.0
+        version: 3.31.0
       '@opentiny/vue-date-picker':
         specifier: ~3.31.0
         version: 3.31.0
@@ -620,6 +623,9 @@ importers:
       '@opentiny/vue-tabs':
         specifier: ~3.31.0
         version: 3.31.0
+      '@opentiny/vue-theme':
+        specifier: ~3.31.0
+        version: 3.31.1
       '@opentiny/vue-time-line':
         specifier: ~3.31.0
         version: 3.31.0
