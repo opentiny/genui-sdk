@@ -14,9 +14,10 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import {  scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import type { BubbleProps, BubbleRoleConfig } from '@opentiny/tiny-robot';
+import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
+import { TinyButton } from '@opentiny/vue';
 import copy from 'clipboard-copy';
 import type {
   INotificationPayload,
@@ -30,13 +31,16 @@ import {
   findLatestPendingSchemaCard,
   findSchemaCardByCardId,
   generateIdForComponents,
+  getLastNonCompressMessage,
   getLastUserMessage,
+  isContextCompressMessage,
   isManualSchemaSaveMessage,
   resolveJsonPatchApplyFailed,
   setJsonPatchApplyResult,
 } from './template-chat-utils';
 import { generateId } from '../../utils';
 import { useTemplateContext } from './composables';
+import { useContextZip } from './use-context-zip';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
 import useIcon from '../../use-icon';
@@ -142,6 +146,30 @@ const roles: Record<string, BubbleRoleConfig> = {
     avatar: h(IconUser, { style: { fontSize: '32px' } }),
     customContentField: 'messages',
   },
+  'context-compress': {
+    placement: 'start',
+    maxWidth: '100%',
+    slots: {
+      default: () => null,
+    },
+  },
+  zip: {
+    placement: 'start',
+    maxWidth: '100%',
+    slots: {
+      default: (slotProps) => {
+        return h('div', { class: 'context-zip-divider' }, [
+          h('span', { class: 'context-zip-divider__line' }),
+          h(
+            'span',
+            { class: 'context-zip-divider__text' },
+            typeof slotProps?.bubbleProps?.content === 'string' ? slotProps.bubbleProps.content : '',
+          ),
+          h('span', { class: 'context-zip-divider__line' }),
+        ]);
+      },
+    },
+  },
 };
 
 onMounted(() => {
@@ -192,6 +220,7 @@ const handleRefresh = ({ index }: { index: number }) => {
   }
 
   messages.value = messages.value.slice(0, index);
+  resetContextZip();
 
   const lastUserMessage = getLastUserMessage(messages.value);
   if (lastUserMessage && !lastUserMessage.messageId) {
@@ -246,8 +275,46 @@ if (props.messages?.length) {
 const { scrollToBottom, autoScrollToBottom, isLastMessageInBottom } = scrollEnd(messagesContainer);
 const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
-const showMessages = computed(() => {
-  let list = messages.value;
+const currentConversationId = computed(() => conversation.templateConversationState?.currentId);
+
+const contextZip = useContextZip({
+  messages,
+  generating,
+  currentConversationId,
+  getTemplateChatConfig: () => ({
+    ...conversation.getTemplateChatBaseConfig(),
+    templateSchema: schema.currentSchema,
+  }),
+  saveConversations: conversation.saveConversations,
+  scrollToBottom,
+});
+
+const {
+  isButtonDisabled,
+  isCompressing,
+  compress,
+  showDivider,
+  compressedDividerText,
+  compressingDividerText,
+  latestCompressIndex,
+  compressDisabledReason,
+  reset: resetContextZip,
+} = contextZip;
+
+const toShowMessage = (message: ChatMessage): BubbleProps => {
+  if (isContextCompressMessage(message)) {
+    return { role: 'context-compress', content: '' };
+  }
+  return message as BubbleProps;
+};
+
+const showMessages = computed((): BubbleProps[] => {
+  let list = messages.value.map((message, index) => {
+    if (index === latestCompressIndex.value) {
+      return { role: 'zip', content: compressedDividerText.value } as BubbleProps;
+    }
+    return toShowMessage(message);
+  });
 
   if (messageManager.value?.messageState.status === STATUS.PROCESSING) {
     return [
@@ -260,17 +327,18 @@ const showMessages = computed(() => {
     ];
   }
 
-  const lastMessage = messages.value[messages.value.length - 1];
+  const lastMessage = getLastNonCompressMessage(messages.value);
 
   if (generating.value && lastMessage?.role === 'assistant') {
+    const lastIndex = messages.value.indexOf(lastMessage);
     const existingMessages = Array.isArray((lastMessage as any)?.messages) ? (lastMessage as any).messages : [];
     const hasLoadingText = existingMessages.some((msg: any) => msg.type === 'loading-text');
 
-    if (!hasLoadingText) {
-      return [
-        ...list.slice(0, -1),
+    if (!hasLoadingText && lastIndex !== -1) {
+      list = [
+        ...list.slice(0, lastIndex),
         {
-          ...lastMessage,
+          ...toShowMessage(lastMessage),
           messages: [
             ...existingMessages,
             {
@@ -280,9 +348,14 @@ const showMessages = computed(() => {
               showThinkingResult: false,
             },
           ],
-        },
+        } as BubbleProps,
+        ...list.slice(lastIndex + 1),
       ];
     }
+  }
+
+  if (showDivider.value && isCompressing.value) {
+    list = [...list, { role: 'zip', content: compressingDividerText.value }];
   }
 
   return list;
@@ -293,6 +366,8 @@ const clearInputMessage = () => {
 };
 
 const handleSendMessage = async () => {
+  if (isCompressing.value) return;
+
   const messageContent = inputMessage.value;
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
@@ -374,16 +449,23 @@ onUnmounted(() => {
       >
         <IconArrowDown class="icon-arrow-down" />
       </div>
+      <div class="sender-tool-buttons">
+        <span class="zip-button-wrap" :title="compressDisabledReason">
+          <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
+            {{ t('template.compressButton') }}
+          </TinyButton>
+        </span>
+      </div>
       <tr-sender
         v-model="inputMessage"
-        :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
+        :placeholder="isCompressing ? t('template.compressPlaceholder') : generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
-        :loading="generating"
+        :loading="generating || isCompressing"
         :showWordLimit="true"
         :maxLength="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
-        @cancel="() => messageManager?.abortRequest()"
+        @cancel="() => (isCompressing ? resetContextZip() : messageManager?.abortRequest())"
       >
       </tr-sender>
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>
@@ -494,7 +576,7 @@ onUnmounted(() => {
   width: 100%;
 }
 
-:deep(.tr-bubble__content-wrapper) {
+:deep(.tr-bubble__content-wrapper:not(:has(.context-zip-divider))) {
   @avatar-and-gap-width: 56px;
   max-width: calc(100% - @avatar-and-gap-width * 2);
 
@@ -507,12 +589,68 @@ onUnmounted(() => {
   }
 }
 
+// 压缩分割线：由 messages → showMessages 注入 role: zip，撑满列表行宽
+:deep(.tr-bubble-list > .tr-bubble:has(.context-zip-divider)) {
+  width: 100% !important;
+  max-width: 100% !important;
+  --max-width: 100%;
+  margin-left: 0 !important;
+  align-self: stretch;
+  gap: 0 !important;
+}
+
+:deep(.tr-bubble:has(.context-zip-divider)) {
+  .tr-bubble__avatar {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden;
+  }
+
+  .tr-bubble__content-wrapper {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    align-items: stretch !important;
+    margin: 16px 0;
+  }
+
+  .tr-bubble__content {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+:deep(.context-zip-divider) {
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 12px;
+  color: #999;
+  user-select: none;
+
+  &__line {
+    height: 1px;
+    background: var(--sender-border-color, #e5e5e5);
+  }
+
+  &__text {
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 768px) {
-  :deep(.tr-bubble__content-wrapper) {
+  :deep(.tr-bubble__content-wrapper:not(:has(.context-zip-divider))) {
     max-width: calc(100% - 12px);
   }
 
-  :deep(.tr-bubble__content-wrapper .tr-bubble__content-items) {
+  :deep(.tr-bubble__content-wrapper:not(:has(.context-zip-divider)) .tr-bubble__content-items) {
     overflow-x: hidden;
   }
 }
@@ -525,6 +663,18 @@ onUnmounted(() => {
 
   .attachments-container {
     padding: 0 20px;
+  }
+
+  .sender-tool-buttons {
+    display: flex;
+    width: 80%;
+    justify-content: flex-end;
+    margin: 0 auto;
+    margin-bottom: 8px;
+  }
+
+  .zip-button-wrap {
+    display: inline-block;
   }
 }
 
