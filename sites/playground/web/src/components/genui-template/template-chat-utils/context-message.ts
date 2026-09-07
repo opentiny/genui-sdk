@@ -17,10 +17,17 @@ const CONTEXT_SUMMARY_PREFIX = '以下是此前对话的压缩摘要，请在此
 
 /** 会话压缩配置；最近消息作为摘要之外的原文缓冲区保留
  * 摘要是有损压缩，近期对话往往包含模型下一步最依赖的细节。经过摘要后，可能被简化或遗漏，需要保留原文缓冲区避免丢失重要信息。
- * 默认保留 2 条最近消息（user+assistant）。 */
+ * 默认保留 2 条最近消息（一轮 user+assistant）。 */
 export const CONTEXT_COMPRESSION_CONFIG = {
   keepRecentMessages: 2,
-} as const;
+};
+
+/** 保留原文的对话轮数（一对 user + assistant 计一轮），随 keepRecentMessages 变化。 */
+export function getKeepRecentTurns(
+  keepRecentMessages = CONTEXT_COMPRESSION_CONFIG.keepRecentMessages,
+): number {
+  return Math.max(1, Math.ceil(keepRecentMessages / 2));
+}
 
 export function isContextCompressMessage(message: ChatMessage): boolean {
   return (message as { type?: string }).type === CONTEXT_COMPRESS_MESSAGE_TYPE;

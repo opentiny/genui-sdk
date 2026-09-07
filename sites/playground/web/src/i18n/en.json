@@ -101,10 +101,12 @@
     "inputPlaceholder": "Describe what to build",
     "noUserMessageToReply": "No user message to reply to",
     "compressButton": "Compress conversation",
+    "compressHelpAria": "How conversation compression works",
+    "compressHelpTip": "Compress earlier turns to save model context; the latest {turns} turn(s) are kept as-is. History is not deleted, and you can compress again later. You cannot send while compressing, but you can cancel. The button stays unavailable until there are enough turns, or while generating.",
     "contextCompressed": "Conversation above has been compressed",
     "contextCompressing": "Compressing conversation",
     "compressPlaceholder": "Compressing conversation…",
-    "compressDisabledNeedMore": "Have at least one more turn before compressing earlier context",
+    "compressDisabledNeedMore": "Need more than the latest {turns} turn(s) before compressing earlier context",
     "compressDisabledGenerating": "Wait until generation finishes before compressing",
     "compressFailed": "Conversation compression failed. Please try again.",
     "compressNoUrl": "Template chat URL is not configured, so the conversation cannot be compressed"

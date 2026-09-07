@@ -17,7 +17,8 @@ import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleProps, BubbleRoleConfig } from '@opentiny/tiny-robot';
 import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
-import { TinyButton } from '@opentiny/vue';
+import { TinyButton, TinyTooltip } from '@opentiny/vue';
+import { iconHelpCircle } from '@opentiny/vue-icon';
 import copy from 'clipboard-copy';
 import type {
   INotificationPayload,
@@ -33,6 +34,7 @@ import {
   generateIdForComponents,
   getLastNonCompressMessage,
   getLastUserMessage,
+  getKeepRecentTurns,
   isContextCompressMessage,
   isManualSchemaSaveMessage,
   resolveJsonPatchApplyFailed,
@@ -48,6 +50,9 @@ import { t } from '../../i18n';
 
 const { addIcons } = useIcon();
 addIcons(IconAi, IconUser, IconArrowDown);
+
+const IconHelpCircle = iconHelpCircle();
+const keepRecentTurns = getKeepRecentTurns();
 
 const props = defineProps<{
   messages?: IMessage[];
@@ -450,11 +455,23 @@ onUnmounted(() => {
         <IconArrowDown class="icon-arrow-down" />
       </div>
       <div class="sender-tool-buttons">
-        <span class="zip-button-wrap" :title="compressDisabledReason">
-          <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
-            {{ t('template.compressButton') }}
-          </TinyButton>
-        </span>
+        <div class="zip-button-group">
+          <span class="zip-button-wrap" :title="compressDisabledReason">
+            <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
+              {{ t('template.compressButton') }}
+            </TinyButton>
+          </span>
+          <TinyTooltip
+            effect="light"
+            placement="top"
+            popper-class="genui-template-zip-help-tooltip"
+            :content="t('template.compressHelpTip', { turns: keepRecentTurns })"
+          >
+            <span class="zip-help-trigger" tabindex="0" :aria-label="t('template.compressHelpAria')">
+              <IconHelpCircle />
+            </span>
+          </TinyTooltip>
+        </div>
       </div>
       <tr-sender
         v-model="inputMessage"
@@ -495,6 +512,15 @@ onUnmounted(() => {
     --sender-border-color: #333;
     --generating-bg-before: linear-gradient(90deg, #262626, #808080);
     --generating-bg-after: #191919;
+
+    .zip-help-trigger {
+      color: #a6a6a6;
+
+      &:hover,
+      &:focus-visible {
+        color: #fff;
+      }
+    }
   }
 }
 
@@ -673,8 +699,36 @@ onUnmounted(() => {
     margin-bottom: 8px;
   }
 
+  .zip-button-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .zip-button-wrap {
     display: inline-block;
+  }
+
+  .zip-help-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    color: #808080;
+    cursor: help;
+    outline: none;
+
+    svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: var(--tr-text-primary, #191919);
+    }
   }
 }
 
@@ -772,5 +826,13 @@ onUnmounted(() => {
   font-size: 12px;
   color: #999;
   margin-top: 16px;
+}
+</style>
+
+<style lang="less">
+.tiny-tooltip__popper.genui-template-zip-help-tooltip {
+  max-width: 280px;
+  line-height: 1.5;
+  white-space: normal;
 }
 </style>
