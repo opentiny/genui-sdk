@@ -17,6 +17,17 @@ const COMPRESS_PROMPT_PREFIX = `请将以下对话历史压缩为可供后续模
 
 `;
 
+const SCHEMA_HISTORY_ITEM_TYPES = new Set(['schema-card', 'json-patch', 'schema-manual']);
+
+type HistoryItem = { type?: string; content?: string; input?: string };
+
+function serializeHistoryItem(item: HistoryItem): string {
+  if (item.type && SCHEMA_HISTORY_ITEM_TYPES.has(item.type)) {
+    return item.input ? `[Schema 变更] ${item.input}` : '[Schema 变更]';
+  }
+  return item.content ?? item.input ?? '';
+}
+
 export function serializeMessagesForCompress(messages: ChatMessage[]): string {
   return messages
     .filter((m) => m.role === 'user' || m.role === 'assistant')
@@ -29,17 +40,21 @@ export function serializeMessagesForCompress(messages: ChatMessage[]): string {
       let text = '';
       if (typeof m.content === 'string') {
         text = m.content;
-      } else if (
-        Array.isArray((m as unknown as { messages?: { content?: string; input?: string }[] }).messages)
-      ) {
-        text = ((m as unknown as { messages?: { content?: string; input?: string }[] }).messages || [])
-          .map((item) => item.content ?? item.input ?? '')
+      } else if (Array.isArray((m as unknown as { messages?: HistoryItem[] }).messages)) {
+        text = ((m as unknown as { messages?: HistoryItem[] }).messages || [])
+          .map(serializeHistoryItem)
           .filter(Boolean)
           .join('\n');
       }
       return `${roleLabel}: ${text}`;
     })
     .join('\n\n');
+}
+
+function throwAborted(): never {
+  const error = new Error('压缩请求已中止');
+  error.name = 'AbortError';
+  throw error;
 }
 
 export async function compressConversationHistory(options: {
@@ -63,55 +78,66 @@ export async function compressConversationHistory(options: {
     llmConfig,
   });
 
-  const reader = response.body!.getReader();
+  if (!response.body) {
+    throw new Error('压缩响应为空');
+  }
+
+  const reader = response.body.getReader();
   const decoder = new TextDecoder('utf-8');
   let buffer = '';
   let summary = '';
   let terminalState: 'done' | 'error' | 'aborted' | null = null;
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
+  try {
     while (true) {
-      const lineEnd = buffer.indexOf('\n');
-      if (lineEnd === -1) break;
-      const line = buffer.slice(0, lineEnd).trim();
-      buffer = buffer.slice(lineEnd + 1);
-      if (!line.startsWith('data:')) continue;
-      const data = line.slice(line.indexOf(':') + 1).trim();
-      if (data === '[DONE]') {
-        terminalState = 'done';
-        break;
-      }
-      if (data === '[ERROR]') {
-        terminalState = 'error';
-        break;
-      }
-      if (data === '[ABORTED]') {
-        terminalState = 'aborted';
-        break;
-      }
-      try {
-        const chunk = JSON.parse(data);
-        const content = chunk.choices?.[0]?.delta?.content;
-        if (typeof content === 'string') {
-          summary += content;
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      while (true) {
+        const lineEnd = buffer.indexOf('\n');
+        if (lineEnd === -1) break;
+        const line = buffer.slice(0, lineEnd).trim();
+        buffer = buffer.slice(lineEnd + 1);
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(line.indexOf(':') + 1).trim();
+        if (data === '[DONE]') {
+          terminalState = 'done';
+          break;
         }
-      } catch {
-        // ignore malformed SSE lines
+        if (data === '[ERROR]') {
+          terminalState = 'error';
+          break;
+        }
+        if (data === '[ABORTED]') {
+          terminalState = 'aborted';
+          break;
+        }
+        try {
+          const chunk = JSON.parse(data);
+          const content = chunk.choices?.[0]?.delta?.content;
+          if (typeof content === 'string') {
+            summary += content;
+          }
+        } catch {
+          // ignore malformed SSE lines
+        }
+      }
+      if (terminalState) {
+        break;
       }
     }
-    if (terminalState) {
-      break;
-    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
   }
 
+  if (signal?.aborted || terminalState === 'aborted') {
+    throwAborted();
+  }
   if (terminalState === 'error') {
     throw new Error('压缩请求失败');
   }
-  if (terminalState === 'aborted') {
-    throw new Error('压缩请求已中止');
+  if (terminalState !== 'done') {
+    throw new Error('压缩流异常结束');
   }
 
   const trimmed = summary.trim();

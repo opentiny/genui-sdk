@@ -97,7 +97,15 @@
     "confirmDeleteOne": "Delete this template?",
     "confirmBatchDelete": "Delete {count} selected template(s)?",
     "inputPlaceholder": "Describe what to build",
-    "noUserMessageToReply": "No user message to reply to"
+    "noUserMessageToReply": "No user message to reply to",
+    "compressButton": "Compress conversation",
+    "contextCompressed": "Conversation above has been compressed",
+    "contextCompressing": "Compressing conversation",
+    "compressPlaceholder": "Compressing conversation…",
+    "compressDisabledNeedMore": "Have at least one more turn before compressing earlier context",
+    "compressDisabledGenerating": "Wait until generation finishes before compressing",
+    "compressFailed": "Conversation compression failed. Please try again.",
+    "compressNoUrl": "Template chat URL is not configured, so the conversation cannot be compressed"
   },
   "common": {
     "edit": "Edit",

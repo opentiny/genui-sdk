@@ -97,7 +97,15 @@
     "confirmDeleteOne": "确定删除该模板吗？",
     "confirmBatchDelete": "确定删除选中的 {count} 个模板？",
     "inputPlaceholder": "描述要构建的内容",
-    "noUserMessageToReply": "没有可回复的用户消息"
+    "noUserMessageToReply": "没有可回复的用户消息",
+    "compressButton": "会话压缩",
+    "contextCompressed": "以上会话已压缩",
+    "contextCompressing": "压缩会话中",
+    "compressPlaceholder": "正在压缩会话…",
+    "compressDisabledNeedMore": "至少再进行一轮对话后才能压缩较早的上下文",
+    "compressDisabledGenerating": "生成完成后才能压缩会话",
+    "compressFailed": "会话压缩失败，请稍后重试",
+    "compressNoUrl": "未配置模板聊天地址，无法压缩会话"
   },
   "common": {
     "edit": "编辑",

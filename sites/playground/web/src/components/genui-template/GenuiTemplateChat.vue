@@ -294,8 +294,10 @@ const {
   isCompressing,
   compress,
   showDivider,
-  dividerText,
+  compressedDividerText,
+  compressingDividerText,
   latestCompressIndex,
+  compressDisabledReason,
   reset: resetContextZip,
 } = contextZip;
 
@@ -309,7 +311,7 @@ const toShowMessage = (message: ChatMessage): BubbleProps => {
 const showMessages = computed((): BubbleProps[] => {
   let list = messages.value.map((message, index) => {
     if (index === latestCompressIndex.value) {
-      return { role: 'zip', content: dividerText.value } as BubbleProps;
+      return { role: 'zip', content: compressedDividerText.value } as BubbleProps;
     }
     return toShowMessage(message);
   });
@@ -353,7 +355,7 @@ const showMessages = computed((): BubbleProps[] => {
   }
 
   if (showDivider.value && isCompressing.value) {
-    list = [...list, { role: 'zip', content: dividerText.value }];
+    list = [...list, { role: 'zip', content: compressingDividerText.value }];
   }
 
   return list;
@@ -447,15 +449,16 @@ onUnmounted(() => {
       >
         <IconArrowDown class="icon-arrow-down" />
       </div>
-      <!-- 会话压缩按钮 -->
       <div class="sender-tool-buttons">
-        <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
-          会话压缩
-        </TinyButton>
+        <span class="zip-button-wrap" :title="compressDisabledReason">
+          <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
+            {{ t('template.compressButton') }}
+          </TinyButton>
+        </span>
       </div>
       <tr-sender
         v-model="inputMessage"
-        :placeholder="generating || isCompressing ? t('loading.thinking') : t('template.inputPlaceholder')"
+        :placeholder="isCompressing ? t('template.compressPlaceholder') : generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating || isCompressing"
         :showWordLimit="true"
@@ -668,6 +671,10 @@ onUnmounted(() => {
     justify-content: flex-end;
     margin: 0 auto;
     margin-bottom: 8px;
+  }
+
+  .zip-button-wrap {
+    display: inline-block;
   }
 }
 
