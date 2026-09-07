@@ -69,19 +69,16 @@ const parseExpression = (data: any, scope: any, ctx: any, isJsx = false) => {
       }, {});
       expression = `(e) => {(${expression}).call(this, e, ${data.params.join(',')})}`;
     }
-    const bindCtx = {
-      ...(isJsx ? { getComponent: (name: string) => getComponent(name, ctx) } : {}),
-      ...ctx,
-    };
-    return newFn('$scope', `with($scope || {}) { return ${expression} }`).call(bindCtx, {
+    return newFn('$scope', `with($scope || {}) { return ${expression} }`).call(ctx, {
       ...mergeScope,
       ...params,
     });
   } catch (err) {
+    // 解析抛出异常，则再尝试解析 JSX 语法。如果解析 JSX 语法仍然出现错误，isJsx 变量会确保不会再次递归执行解析
     if (!isJsx) {
       return parseExpression(data, scope, ctx, true);
     }
-    throw err;
+    return undefined;
   }
 };
 // 解析函数字符串结构
@@ -141,29 +138,23 @@ export const generateFn = (innerFn: Function, context: any) => {
   };
 };
 
-const parseJSXFunction = (data: any, scope: any, ctx: any) => {
+// 解析JSX字符串为可执行函数
+const parseJSXFunction = (data: any, ctx: any) => {
   try {
     const newValue = transformJSX(data.value);
     const fnInfo = parseFunctionString(newValue);
     if (!fnInfo) throw Error('函数解析失败，请检查格式。示例：function fnName() { }');
-    return parseExpression(
-      {
-        type: JS_EXPRESSION,
-        value: `(${data.value}).bind(this)`,
-      },
-      scope,
-      ctx,
-      true,
-    );
+
+    return newFn(...fnInfo.params, fnInfo.body).bind({
+      ...ctx,
+      getComponent: (name: string) => getComponent(name, ctx),
+    });
   } catch (error) {
-    Notify(
-      {
-        type: 'warning',
-        title: '函数声明解析报错',
-        message: (error as Error)?.message || '函数声明解析报错，请检查语法',
-      },
-      ctx,
-    );
+    Notify({
+      type: 'warning',
+      title: '函数声明解析报错',
+      message: (error as Error)?.message || '函数声明解析报错，请检查语法',
+    }, ctx);
 
     return newFn();
   }
@@ -186,18 +177,19 @@ const parseJSFunction = (data: any, scope: any, ctx: any) => {
         parseExpression(
           {
             type: JS_EXPRESSION,
-            value: `(${data.value}).bind(this)`,
+            value: data.value,
           },
           scope,
           ctx,
-        ),
+        ).bind(ctx),
         ctx,
       );
     }
     const innerFn = newFn(`return ${data.value}`).bind(ctx)();
     return generateFn(innerFn, ctx);
   } catch (error) {
-    return parseJSXFunction(data, scope, ctx);
+    console.error(error);
+    return parseJSXFunction(data, ctx);
   }
 };
 
