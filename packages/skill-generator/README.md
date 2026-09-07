@@ -50,6 +50,7 @@ skills/<name>/
 - 除 `isSkill=true` 外不覆盖 `genPrompt` 的默认章节开关；JSON Schema 默认保留，Action 在提供 `customActions` 时生成
 - 生成结束后会从磁盘重新读取入口前缀和所有分片；无法逐字还原原始 `genPrompt` 时直接报错
 - `referenceSubdir` 为空时禁止启用 `prune`，避免清理手写 reference 文件
+- `referenceSubdir` 不能是手写目录 `components` / `examples`（或其子路径），避免默认 prune 删掉 `forms.md` 等补充文档
 
 ## 安装
 
@@ -119,7 +120,7 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 | `materialsMetaExport` | `string` | 否，`"materialsMeta"` | 物料模块的具名导出名称。 |
 | `skillDirs` | `string[]` | 是 | Skill 输出目录。生成章节写入每个目录；首个目录的 `SKILL.md` frontmatter 会复用于全部目录。 |
 | `skillBodyFormatter` | `string` | 否 | `SKILL.md` 附加正文 formatter。当前内置 `genui-schema-json`；只追加工作流与类型索引，不替换原始 `genPrompt` 前缀。 |
-| `referenceSubdir` | `string` | 否，`"generated"` | 生成章节在 `reference/` 下的子目录。推荐保持独立目录，避免覆盖手写文档。 |
+| `referenceSubdir` | `string` | 否，`"generated"` | 生成章节在 `reference/` 下的子目录。推荐保持独立目录，避免覆盖手写文档。不能使用手写目录名 `components`、`examples`。 |
 | `syncComponentsIndex` | `boolean` | 否，`true` | 将按类型分组的白名单同步到 `reference/components.md`。空子目录时为保持 prompt 无损而跳过。 |
 | `prune` | `boolean` | 否，`true` | 删除生成子目录内本次未生成的旧文件。`referenceSubdir` 为空时必须设为 `false`。 |
 | `tgCustomConfig` | `object` | 否，`{}` | 透传给 core `genPrompt` 的自定义组件、Snippet、示例和 Action。 |
@@ -168,4 +169,4 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 pnpm --filter @opentiny/genui-sdk-skill-generator generate:skill
 ```
 
-会刷新已提交的 [`example/genui-schema-json`](./example/genui-schema-json)，便于本地对照 CLI 输出。
+会把 skill 写到本地 [`example/genui-schema-json`](./example/genui-schema-json)，便于对照 CLI 输出。该目录由生成器产生，不提交到 git。

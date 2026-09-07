@@ -38,6 +38,12 @@ export type {
 /** 匹配 prompt 顶层二级标题（行首 `## `，不含 `###`） */
 const PROMPT_SECTION_HEADING_RE = /^## .+$/gm;
 
+/** 手写 reference 目录；不能用作 referenceSubdir，否则默认 prune 会清掉其中的补充文档 */
+const HANDWRITTEN_REFERENCE_DIRS = new Set(['components', 'examples']);
+
+/** SKILL.md YAML frontmatter，兼容 LF / CRLF */
+const SKILL_FRONTMATTER_RE = /^---[\s\S]*?---\r?\n(?:\r?\n)?/;
+
 /**
  * 中文章节标题 → 英文 reference 文件名（写入 referenceSubdir 下）
  */
@@ -181,6 +187,13 @@ export function normalizeReferenceSubdir(referenceSubdir = 'generated'): string 
   const segments = normalized.split('/');
   if (segments.some((segment) => !segment || segment === '.' || segment === '..')) {
     throw new Error(`referenceSubdir 包含不安全路径片段: ${referenceSubdir}`);
+  }
+
+  const handwrittenDir = segments.find((segment) => HANDWRITTEN_REFERENCE_DIRS.has(segment.toLowerCase()));
+  if (handwrittenDir) {
+    throw new Error(
+      `referenceSubdir 不能使用手写目录 ${handwrittenDir}，以免 prune 删除其中的补充文档`,
+    );
   }
 
   return normalized;
@@ -436,7 +449,7 @@ export function ensureSkillFrontmatter(
   }
 
   const source = readFileSync(skillPath, 'utf8');
-  const match = source.match(/^---[\s\S]*?---\n\n?/);
+  const match = source.match(SKILL_FRONTMATTER_RE);
 
   if (!match) {
     throw new Error('SKILL.md 格式无效，需包含 YAML frontmatter');

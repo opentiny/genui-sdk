@@ -127,6 +127,9 @@ describe('skill-generator', () => {
     expect(() => normalizeReferenceSubdir('C:\\tmp\\generated')).toThrow(/相对路径/);
     expect(() => normalizeReferenceSubdir('generated/..')).toThrow(/不安全路径片段/);
     expect(() => normalizeReferenceSubdir('../generated')).toThrow(/不安全路径片段/);
+    expect(() => normalizeReferenceSubdir('components')).toThrow(/手写目录/);
+    expect(() => normalizeReferenceSubdir('examples')).toThrow(/手写目录/);
+    expect(() => normalizeReferenceSubdir('components/generated')).toThrow(/手写目录/);
   });
 
   it('sectionLink 支持 generated 子目录', () => {
@@ -312,6 +315,17 @@ describe('skill-generator', () => {
         '## 可用组件\n\n必须使用以下支持的 componentName：`A`\n',
       ),
     ).toThrow(/受管区块标记无效/);
+  });
+
+  it('ensureSkillFrontmatter 接受 Windows CRLF frontmatter', () => {
+    const skillSourceDir = createTempDir('skill-frontmatter-crlf-');
+    writeFileSync(
+      join(skillSourceDir, 'SKILL.md'),
+      '---\r\nname: genui-schema-json\r\ndescription: test\r\n---\r\n\r\n# body\r\n',
+      'utf8',
+    );
+
+    expect(ensureSkillFrontmatter(skillSourceDir)).toMatch(/^---\r?\nname: genui-schema-json[\s\S]*---\r?\n/);
   });
 
   it('ensureSkillFrontmatter 只读取 YAML frontmatter', () => {
