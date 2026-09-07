@@ -3,9 +3,9 @@ import { ref, computed } from 'vue';
 import { TinyButton, TinyTag } from '@opentiny/vue';
 import genuiAbility1 from '@/assets/genui_ability_1.svg?no-inline';
 import genuiAbility2 from '@/assets/genui_ability_2_img.webp?no-inline';
-import genuiActionVedioCover from '@/assets/order-milk-tea.webp?no-inline';
-import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4?no-inline';
-import searchTicketVedio from '@/assets/video/search-ticket.mp4?no-inline';
+import genuiActionVideoCover from '@/assets/order-milk-tea.webp?no-inline';
+import orderMilkTeaVideo from '@/assets/video/order-milk-tea.mp4?no-inline';
+import searchTicketVideo from '@/assets/video/search-ticket.mp4?no-inline';
 import genuiAbility4Right from '@/assets/genui_ability_4_right.svg?no-inline';
 import genuiAbility5VideoCover from '@/assets/genui_ability_5_video_cover.svg?no-inline';
 import { LinkKey, linkMap } from '@/utils/link';
@@ -58,8 +58,8 @@ const buttonSize = computed(() => {
 
 const actionVideoRef = ref<HTMLVideoElement | null>(null);
 const flowVideoRef = ref<HTMLVideoElement | null>(null);
-const { videoSrc: actionVideoSrc } = useLazyVideo(actionVideoRef, orderMilkTeaVedio);
-const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio);
+const { videoSrc: actionVideoSrc } = useLazyVideo(actionVideoRef, orderMilkTeaVideo);
+const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo);
 </script>
 
 <template>
@@ -99,10 +99,10 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
       <video
         ref="actionVideoRef"
         class="cover-image ability-image"
-        id="genui-action-vedio"
+        id="genui-action-video"
         controls
         preload="none"
-        :poster="genuiActionVedioCover"
+        :poster="genuiActionVideoCover"
         :src="actionVideoSrc"
       />
     </home-ability>
@@ -147,7 +147,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
       <video
         ref="flowVideoRef"
         class="cover-image ability-image"
-        id="genui-flow-vedio"
+        id="genui-flow-video"
         controls
         preload="none"
         :poster="genuiAbility5VideoCover"
@@ -643,7 +643,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
   cursor: pointer;
 }
 
-#genui-action-vedio, #genui-flow-vedio {
+#genui-action-video, #genui-flow-video {
   border-radius: 16px;
   box-shadow: 0 0 0 10px rgb(255, 255, 255, 1), 0 0 20px 0 rgba(0, 0, 0, 0.2);
 }
