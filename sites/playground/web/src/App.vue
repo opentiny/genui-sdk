@@ -27,7 +27,7 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
-import { getMixedContentHandler, getMessageRendererAngular } from './message-renderers';
+import { getMixedContentHandler, getMessageRendererAngular, getMessageRendererReact } from './message-renderers';
 import { locale, t } from './i18n';
 import { useRoute } from 'vue-router';
 import { PlaygroundMode } from './constants';
@@ -257,6 +257,7 @@ watch(chat, (instance) => {
     instance.setResponseHandlers(newResponseHandlers);
 
     instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
+    instance.setMessageRenderer('schema-card-react', getMessageRendererReact(instance));
   }
 });
 

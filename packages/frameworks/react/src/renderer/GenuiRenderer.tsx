@@ -1,0 +1,157 @@
+import {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
+import { SchemaRenderer, RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
+import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-schema-renderer-react';
+import { useGenuiMaterials } from '../config-provider';
+import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
+import type { IRendererProps } from './renderer.types';
+import './renderer.css';
+
+type RootNode = NonNullable<SchemaRendererProps['schema']>;
+
+/** @deprecated 使用 SchemaRendererHandle */
+export type GenuiRendererHandle = SchemaRendererHandle;
+
+const errorSchema: RootNode = {
+  componentName: 'Page',
+  children: [
+    {
+      componentName: 'Text',
+      props: { text: 'Schema rendering error', style: 'line-height: 40px; color: #c00' },
+    },
+  ],
+};
+
+const emptySchema: RootNode = { componentName: 'Page' };
+
+export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
+  function GenuiRenderer(props, ref) {
+    const contextMaterials = useGenuiMaterials();
+    const mergedComponents = useMemo(
+      () => ({
+        ...contextMaterials.components,
+        ...props.customComponents,
+      }),
+      [contextMaterials.components, props.customComponents],
+    );
+    const renderSettings = useMemo(
+      () => ({
+        materials: {
+          ...contextMaterials,
+          components: mergedComponents,
+        },
+      }),
+      [contextMaterials, mergedComponents],
+    );
+    const rendererRef = useRef<SchemaRendererHandle | null>(null);
+
+    const updateContextAndState = useCallback(() => {
+      const instance = rendererRef.current;
+      if (!instance) return;
+
+      instance.setContext({
+        callAction: (actionName: string, params?: unknown) => {
+          if (!props.customActions?.[actionName]) {
+            console.warn(`Action ${actionName} not found`);
+            return;
+          }
+          return props.customActions[actionName].execute(params, instance.getContext());
+        },
+      });
+      if (props.id) {
+        instance.setContext({ cardId: props.id });
+      }
+      instance.setState(props.state || {});
+    }, [props.customActions, props.id, props.state]);
+
+    const setRendererRef = useCallback(
+      (instance: SchemaRendererHandle | null) => {
+        rendererRef.current = instance;
+        if (typeof ref === 'function') {
+          ref(instance);
+        } else if (ref) {
+          ref.current = instance;
+        }
+      },
+      [ref],
+    );
+
+    useEffect(() => {
+      updateContextAndState();
+    }, [updateContextAndState]);
+
+    const schemaRef = useRef<RootNode>({ ...emptySchema });
+    const [displaySchema, setDisplaySchema] = useState<RootNode>(schemaRef.current);
+    const [isError, setIsError] = useState(false);
+    const patcherRef = useRef<DeltaPatcher | null>(null);
+    patcherRef.current = useMemo(
+      () =>
+        new DeltaPatcher({
+          requiredCompleteFieldSelectors: [
+            ...defaultSelectors,
+            ...(contextMaterials.requiredCompleteFieldSelectors || []),
+            ...(props.requiredCompleteFieldSelectors || []),
+          ],
+        }),
+      [contextMaterials.requiredCompleteFieldSelectors, props.requiredCompleteFieldSelectors],
+    );
+
+    const contentKeyRef = useRef('');
+    useEffect(() => {
+      setIsError(false);
+      let json: Record<string, unknown> = {};
+      let isCompleted = true;
+      const raw = props.content;
+
+      if (typeof raw === 'string') {
+        if (raw.trim()) {
+          const { value, state } = repairJson(raw);
+          if (!value || typeof value !== 'object') {
+            setIsError(true);
+            return;
+          }
+          json = value as Record<string, unknown>;
+          isCompleted = state === RepairJsonState.SUCCESS;
+        }
+      } else {
+        json = (raw as Record<string, unknown>) || {};
+        isCompleted = props.generating ? false : (props.isJsonComplete ?? true);
+      }
+
+      if (!isCompleted && json && 'lifeCycles' in json) {
+        const { lifeCycles: _, ...rest } = json;
+        json = rest;
+      }
+
+      // TODO: 检查一下nextKey是否必要
+      const nextKey = JSON.stringify(json) + String(isCompleted);
+      if (!props.generating && contentKeyRef.current === nextKey) return;
+      contentKeyRef.current = nextKey;
+
+      patcherRef.current.patchWithDelta(schemaRef.current, json, isCompleted);
+      setDisplaySchema({ ...schemaRef.current });
+    }, [props.content, props.isJsonComplete, props.generating]);
+
+    useEffect(() => {
+      updateContextAndState();
+    }, [displaySchema, updateContextAndState]);
+
+    return (
+      <RendererContextProvider render-settings={renderSettings}>
+        <div className="genui-renderer-container schema-render-container">
+          <SchemaRenderer
+            ref={setRendererRef}
+            schema={isError ? errorSchema : displaySchema}
+          />
+        </div>
+      </RendererContextProvider>
+    );
+  },
+);
