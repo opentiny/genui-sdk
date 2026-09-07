@@ -1,5 +1,5 @@
 import { type Request, type Response } from 'express';
-import { streamText, stepCountIs, tool } from 'ai';
+import { streamText, generateText, stepCountIs, tool, type GenerateTextResult, type ToolSet } from 'ai';
 import getRawBody from 'raw-body';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -31,6 +31,80 @@ import { resolveComponentLib } from './utils/resolve-component-lib.js';
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
 const BUSY_ERROR_MESSAGE = '算力繁忙，请切换其他模型或稍后重试';
+
+function buildCompletionFromGenerateText(result: GenerateTextResult<any, any>): any {
+  const message: any = { role: 'assistant', content: '' };
+  const reasoningParts: string[] = [];
+  const toolCalls: any[] = [];
+  const toolResults: any[] = [];
+
+  for (const step of result.steps) {
+    if (step.reasoningText) reasoningParts.push(step.reasoningText);
+    if (step.text) message.content += step.text;
+    for (const toolCall of step.toolCalls) {
+      toolCalls.push({
+        id: toolCall.toolCallId,
+        type: 'function',
+        function: {
+          name: toolCall.toolName,
+          arguments: stringifyToolInput(toolCall.input),
+        },
+      });
+    }
+    for (const toolResult of step.toolResults) {
+      toolResults.push({
+        id: toolResult.toolCallId,
+        type: 'function',
+        function: {
+          name: toolResult.toolName,
+          arguments: stringifyToolInput(toolResult.input),
+          result: toolResult.output,
+        },
+      });
+    }
+  }
+
+  if (reasoningParts.length) message.reasoning_content = reasoningParts.join('');
+  if (toolCalls.length) message.tool_calls = toolCalls;
+  if (toolResults.length) message.tool_calls_result = toolResults;
+
+  const { inputTokens, outputTokens, totalTokens } = result.totalUsage;
+  return {
+    id: result.response?.id ?? `chatcmpl-${Date.now()}`,
+    object: 'chat.completion',
+    created: Date.now(),
+    model: result.response?.modelId ?? '',
+    choices: [
+      {
+        index: 0,
+        message,
+        finish_reason: mapFinishReason(result.finishReason),
+      },
+    ],
+    usage: {
+      prompt_tokens: inputTokens,
+      completion_tokens: outputTokens,
+      total_tokens: totalTokens,
+    },
+  };
+}
+
+/** 工具入参序列化为 OpenAI 协议要求的 JSON 字符串 */
+function stringifyToolInput(input: unknown): string {
+  if (typeof input === 'string') return input;
+  try {
+    return JSON.stringify(input ?? {});
+  } catch {
+    return '{}';
+  }
+}
+
+/** AI SDK 的 finishReason 映射为 OpenAI 协议的取值 */
+function mapFinishReason(finishReason: string): string {
+  if (finishReason === 'tool-calls') return 'tool_calls';
+  if (finishReason === 'content-filter') return 'content_filter';
+  return finishReason;
+}
 
 function extractStatusCode(error: any): number | undefined {
   if (!error) {
@@ -248,6 +322,7 @@ export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
     const abort = new AbortController();
     const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
+    const isStreaming = body.stream !== false;
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
       const text = await fs.readFile(path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'), 'utf-8');
@@ -389,6 +464,36 @@ export function createChatGenui() {
         }
       }
     });
+
+    if (!isStreaming) {
+      const generateOptions = {
+        model: model!,
+        temperature,
+        system: options.system,
+        messages: options.messages,
+        abortSignal: abort.signal,
+        tools: tools as ToolSet,
+        toolChoice: 'auto' as const,
+        stopWhen: stepCountIs(maxSteps),
+        ...(providerOptions ? { providerOptions } : {}),
+      };
+
+      try {
+        const result = await generateText(generateOptions);
+        if (abort.signal.aborted) {
+          res.status(499).json({ message: 'Request aborted', type: 'AbortedError', param: null, code: 499 });
+          return;
+        }
+        res.json(buildCompletionFromGenerateText(result));
+      } catch (error: any) {
+        const statusCode = error?.statusCode ?? 500;
+        const message = error?.message || 'Internal Server Error';
+        console.error('Error in chat-genui generateText:', error);
+        const errorResponse = { message, type: 'Internal Server Error', param: null, code: 'Internal Server Error' };
+        res.status(statusCode).json(errorResponse);
+      }
+      return;
+    }
 
     try {
       const stream = streamText(options);
