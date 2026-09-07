@@ -1,5 +1,5 @@
 import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
-import { GenuiConfigProvider, Renderer } from '@opentiny/genui-sdk-react';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
 import type { SchemaRendererHandle } from '@opentiny/tiny-schema-renderer-react';
 import { materials as reactMaterials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 import 'antd/dist/reset.css';
@@ -32,7 +32,7 @@ export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContent
     return React.createElement(
       GenuiConfigProvider,
       { materials: reactMaterials },
-      React.createElement(Renderer, {
+      React.createElement(GenuiRenderer, {
         ref: (instance: SchemaRendererHandle | null) => {
           rendererRef.current = instance;
           flushPendingContext();
