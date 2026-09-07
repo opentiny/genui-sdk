@@ -71,7 +71,7 @@ export default defineConfig({
         'vue-router',
         /^@vue\/*/,
         /^@opentiny\/vue.*/,
-        /^@opentiny\/genui-sdk-vue.*/
+        /^@opentiny\/genui-sdk.*/
       ],
       output: {
         entryFileNames: 'index.js',

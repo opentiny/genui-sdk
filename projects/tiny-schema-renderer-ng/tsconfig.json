@@ -19,7 +19,9 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "esnext",
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

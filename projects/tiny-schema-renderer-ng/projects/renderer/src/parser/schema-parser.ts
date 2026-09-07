@@ -99,6 +99,45 @@ const parseFunctionString = (fnStr: string) => {
   return null;
 };
 
+export const generateFn = (innerFn: Function, context: any) => {
+  return (...args: any[]) => {
+    let result: any = null;
+    try {
+      result = innerFn.call(context, ...args);
+    } catch (error) {
+      Notify(
+        {
+          type: 'warning',
+          title: `函数:${innerFn.name}执行报错`,
+          message: (error as Error)?.message || `函数:${innerFn.name}执行报错，请检查语法`,
+        },
+        context,
+      );
+    }
+
+    if (typeof result?.then === 'function') {
+      result = new Promise((resolve) => {
+        result.then(resolve).catch((error: Error) => {
+          Notify(
+            {
+              type: 'warning',
+              title: '异步函数执行报错',
+              message: error?.message || '异步函数执行报错，请检查语法',
+            },
+            context,
+          );
+          resolve({
+            result: [{}],
+            page: { total: 1 },
+          });
+        });
+      });
+    }
+
+    return result;
+  };
+};
+
 // 解析JSX字符串为可执行函数
 const parseJSXFunction = (data: any, ctx: any) => {
   try {
@@ -115,7 +154,7 @@ const parseJSXFunction = (data: any, ctx: any) => {
       type: 'warning',
       title: '函数声明解析报错',
       message: (error as Error)?.message || '函数声明解析报错，请检查语法',
-    });
+    }, ctx);
 
     return newFn();
   }
@@ -133,11 +172,23 @@ const parseJSFunction = (data: any, scope: any, ctx: any) => {
     if (!isFunctionString(data.value)) {
       return;
     }
-
-    return newFn('$scope', `with($scope || {}) { return (${data.value}).bind(this) }`).call(ctx, {
-      ...scope,
-    });
+    if (typeof scope === 'object' && Object.keys(scope).length > 0) {
+      return generateFn(
+        parseExpression(
+          {
+            type: JS_EXPRESSION,
+            value: data.value,
+          },
+          scope,
+          ctx,
+        ).bind(ctx),
+        ctx,
+      );
+    }
+    const innerFn = newFn(`return ${data.value}`).bind(ctx)();
+    return generateFn(innerFn, ctx);
   } catch (error) {
+    console.error(error);
     return parseJSXFunction(data, ctx);
   }
 };
@@ -208,6 +259,20 @@ const parseObjectData = (data: any, scope: any, ctx: any) => {
       {
         type: JS_FUNCTION,
         value: `(value) => ${(modelValue[1] as any).value}=value`,
+      },
+      scope,
+      ctx,
+    );
+  }
+
+  const refValue = propsEntries.find(
+    ([key, value]: [string, any]) => key === 'ref' && value?.type === JS_EXPRESSION,
+  );
+  if (refValue) {
+    res['ref'] = parseData(
+      {
+        type: JS_FUNCTION,
+        value: `(instance) => ${(refValue[1] as any).value}=instance`,
       },
       scope,
       ctx,

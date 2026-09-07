@@ -88,7 +88,7 @@ function handleFeatureClick(index: number) {
           <div class="home-builder-content-feature-description">{{ feature.description }}</div>
         </div>
       </div>
-      <a :href="linkMap[LinkKey.PlaygroundBuilder]" target="_blank" rel="noopener noreferrer" class="btn-link">
+      <a v-if="linkMap[LinkKey.PlaygroundBuilder]" :href="linkMap[LinkKey.PlaygroundBuilder]" target="_blank" rel="noopener noreferrer" class="btn-link">
         <tiny-button class="home-builder-content-button" size="medium" round ghost>
           {{ t('ability.builder.tryNow') }}
           <img :src="arrowRightIcon" alt="arrow-right" />

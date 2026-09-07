@@ -1,4 +1,5 @@
 export { default as GenuiChat } from './GenuiChat.vue';
+export { cardIdSymbol } from './useChat.js';
 export * from './CustomModelProvider.js';
 export * from './response-handler.js';
 export * from './chat.types.js';

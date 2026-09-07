@@ -1,6 +1,6 @@
 # GenuiConfigProvider 组件
 
-`GenuiConfigProvider` 用于为渲染器提供主题、国际化与物料配置能力，并将主题样式限定在特定作用域内。
+`GenuiConfigProvider` 用于为渲染器提供主题、国际化、物料与自定义 Notify 等配置能力，并将主题样式限定在特定作用域内。
 
 仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
@@ -120,6 +120,44 @@ const content = ref({});
 </script>
 ```
 
+### notify
+
+- **类型**: `NotifyHandler`
+- **必填**: 否
+- **默认值**: `undefined`
+- **说明**: 自定义渲染器通知回调。Schema 中 `JSFunction` 解析失败或执行报错时会调用该函数；未配置时使用内置 DOM toast。
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials" :notify="handleNotify">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider, type NotifyHandler } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+
+const handleNotify: NotifyHandler = (options) => {
+  // 接入业务侧消息组件，例如 TinyNotify / Element Plus ElMessage
+  console.log(options.type, options.title, options.message);
+};
+</script>
+```
+
 ## Slots
 
 `GenuiConfigProvider` 使用默认插槽包裹子组件。
@@ -186,3 +224,16 @@ type I18nMessageObject = {
 ```
 
 国际化消息对象结构，支持嵌套对象。键为消息键名，值为字符串或嵌套的消息对象。
+
+### NotifyHandler
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+自定义通知回调类型，见上方 [notify](#notify) 属性。

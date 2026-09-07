@@ -137,7 +137,7 @@ const temperature = ref(0.7);
 </script>
 
 <template>
-  <GenuiConfigProvider theme="dark" :materials="materials">
+  <GenuiConfigProvider theme="light" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature" />
   </GenuiConfigProvider>
 </template>
@@ -149,7 +149,7 @@ const temperature = ref(0.7);
 
 ```vue
 <template>
-  <GenuiConfigProvider theme="dark" :materials="materials">
+  <GenuiConfigProvider theme="light" :materials="materials">
     <GenuiChat :url="url" :model="model" :temperature="temperature">
       <template #empty>
         <div class="empty-text">欢迎使用生成式UI</div>
@@ -182,7 +182,7 @@ import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materi
 const url = 'https://your-chat-backend/api';
 const model = ref('deepseek-v3.2');
 const temperature = ref(0.7);
-const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('dark');
+const theme = ref<'dark' | 'lite' | 'light' | 'auto'>('light');
 </script>
 
 <template>

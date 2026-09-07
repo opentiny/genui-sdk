@@ -14,7 +14,7 @@ export interface IStartServerOptions extends Omit<IEquipChatCompletionsOptions, 
  * @param maxAttempts 最大尝试次数，默认10次
  */
 export function startServer(options: IStartServerOptions): void {
-  const { baseURL, apiKey, maxAttempts = 10, port = 3100 } = options;
+  const { baseURL, apiKey, materialsMeta, maxAttempts = 10, port = 3100 } = options;
 
   const app = express();
   app.use(cors());
@@ -23,6 +23,7 @@ export function startServer(options: IStartServerOptions): void {
     route: '/chat/completions',
     apiKey,
     baseURL,
+    materialsMeta,
   });
 
   let currentPort = port ?? 3100;
