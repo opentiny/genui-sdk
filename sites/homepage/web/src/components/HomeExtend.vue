@@ -411,7 +411,7 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0px 8%;
+  padding: 0px 12.5%;
   background-image: url('@/assets/home_extend_bg.svg');
   background-size: cover;
   background-repeat: no-repeat;
@@ -530,10 +530,15 @@ onUnmounted(() => {
     }
   }
   @media (max-width: 768px) {
+    padding-inline: 10%;
     &-schema {
       padding: 5%;
       margin-bottom: 46px;
     }
+  }
+
+  @media (max-width: 1280px) {
+    padding: 10%;
   }
 
   @media (min-width: 1920px) {
