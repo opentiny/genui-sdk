@@ -22,4 +22,14 @@ describe('parseData', () => {
     const result = parseData({ type: 'JSExpression', value: 'this.state.count', params: [] }, {}, ctx);
     expect(result).toBe(2);
   });
+
+  it('wires ref JSExpression into a ref-assignment callback', () => {
+    const ctxWithRefs = { ...ctx, refs: { formRef: null } };
+    const result = parseData({ ref: { type: 'JSExpression', value: 'this.refs.formRef' } }, {}, ctxWithRefs) as {
+      ref: (instance: unknown) => void;
+    };
+    expect(typeof result.ref).toBe('function');
+    result.ref({ id: 'form-1' });
+    expect(ctxWithRefs.refs.formRef).toEqual({ id: 'form-1' });
+  });
 });

@@ -5,20 +5,20 @@ import type { PageContextValue } from './engine';
 import { getComponent } from './materials';
 import { PageContext } from './page-context';
 
-// TODO: 移除 验证直接写text
 export function normalizeChildren(children: Node['children']): Node[] {
   if (children == null) return [];
-  if (typeof children === 'string') {
-    return [{ componentName: 'Text', props: { text: children } }];
-  }
   if (Array.isArray(children)) return children;
   return [];
 }
 
 function getChildren(schema: Node, mergeScope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
+  if (!Array.isArray(schema.children)) {
+    const content = parseData(schema.children, mergeScope, context);
+    return content as React.ReactNode;
+  }
   const children = normalizeChildren(schema.children);
   if (!children.length) return null;
-  return children.map((child, i) => renderComponent(child, mergeScope, context, child.id ?? i));
+  return children.map((child, i) => renderComponent(child, mergeScope, context, child.id ?? child.componentName + i));
 }
 
 function renderComponent(

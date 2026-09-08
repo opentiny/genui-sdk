@@ -74,12 +74,12 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     if (!schema || !pageInitSignature) return;
 
     let cancelled = false;
-    const { onMounted, onUnmounted } = setSchema(schema, contextApi);
-    pageOnUnmountedRef.current = onUnmounted;
-
     (async () => {
       await invokePageOnUnmounted();
       if (cancelled) return;
+      const { onMounted, onUnmounted } = setSchema(schema, contextApi);
+      if (cancelled) return;
+      pageOnUnmountedRef.current = onUnmounted;
       try {
         await onMounted?.();
       } catch (error) {
@@ -117,10 +117,8 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
   return (
     <PageContextProvider value={pageContext}>
-      {schema?.children ? (
-        <div className="genui-schema-renderer" data-scope={context.cssScopeId}>
-          <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
-        </div>
+      {schema?.children?.length ? (
+        <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
       ) : (
         <Loading />
       )}
