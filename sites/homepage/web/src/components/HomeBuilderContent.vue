@@ -123,8 +123,9 @@ function handleFeatureClick(index: number) {
   &-ellipse {
     position: absolute;
     top: -79px;
-    left: 361.5px;
-    width: 1251px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 67%;
     height: 178px;
     border-radius: 50%;
     background: rgba(241, 236, 254, 1);
@@ -152,7 +153,7 @@ function handleFeatureClick(index: number) {
     margin-bottom: 26px;
 
     background-color: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(241, 236, 254, 1);
+    border: 1px solid #C1A8FF;
     border-radius: 8px;
 
     display: flex;
@@ -244,14 +245,14 @@ function handleFeatureClick(index: number) {
   .home-builder-section-badge {
     background-color: rgba(255, 255, 255, 0.4);
     border-radius: 96.55px;
-    border: 1px solid rgba(212, 195, 255, 1)
+    border: 1px solid #C1A8FF
   }
 }
 
 .home-builder-content {
   display: flex;
   align-items: stretch;
-  justify-content: center;
+  justify-content: space-between;
   gap: 80px;
   width: 100%;
   box-sizing: border-box;
@@ -267,10 +268,12 @@ function handleFeatureClick(index: number) {
 
   &-left {
     min-width: 0;
+    width: 50%;
 
     &-wrap {
       flex: 1;
       width: 100%;
+      height: 100%;
       border-radius: 24px;
       overflow: hidden;
     }
@@ -279,7 +282,7 @@ function handleFeatureClick(index: number) {
       display: block;
       width: 100%;
       height: 100%;
-      object-fit: cover;
+      object-fit: contain;
       object-position: center;
     }
   }
@@ -287,8 +290,9 @@ function handleFeatureClick(index: number) {
   &-right {
     min-width: 0;
     display: flex;
+    width: 45%;
     flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     gap: 0;
   }
 

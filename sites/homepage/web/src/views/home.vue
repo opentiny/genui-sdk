@@ -216,7 +216,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
 
     &-right {
-      width: 55%;
+      width: 37.5%;
       animation: slideUpFromBottom 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s forwards;
       opacity: 0;
 
@@ -234,32 +234,40 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
 
     &-title {
-      font-size: var(--font-size-title-xl);
+      font-size: 52px;
       font-weight: 700;
       text-align: left;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       white-space: nowrap;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.15s forwards;
       opacity: 0;
     }
 
     &-subtitle {
-      font-size: var(--font-size-title-md);
+      font-size: var(--font-size-title-lg-sm);
       font-weight: 700;
       text-align: left;
-      color: rgba(14, 112, 255, 1);
+      color: rgba(254, 65, 65, 1);
       margin-bottom: 26px;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.28s forwards;
       opacity: 0;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      background-image: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(254, 65, 65, 1),
+        rgba(255, 62, 191, 1),
+        rgba(122, 54, 255, 1),
+        rgba(62, 146, 255, 1)
+      );
     }
 
     &-decsription {
-      font-size: 20px;
+      font-size: 18px;
       font-weight: 400;
+      font-weight: 250;
+      letter-spacing: 1px;
       line-height: var(--line-height-description);
       text-align: left;
       color: rgba(89, 89, 89, 1);
@@ -282,6 +290,13 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
 
     @media (max-width: 1280px) {
       padding: 8% 10%;
+      &-title {
+        font-size: 44px;
+      }
+
+      &-right {
+        width: 45%;
+      }
     }
 
     @media (min-width: 1280px) and (max-width: 1920px) {
@@ -346,7 +361,11 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     padding: 50px 20px !important;
     background: url('@/assets/genui_ability_mobile_bg_1.svg') center/cover no-repeat;
 
-    &-left {
+    &-title {
+      font-size: var(--font-size-title-md);
+    }
+
+    &-subtitle {
       font-size: var(--font-size-title-md);
     }
 
@@ -365,6 +384,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
 
     &-right {
+      height: 100%;
       width: 100%;
     }
   }

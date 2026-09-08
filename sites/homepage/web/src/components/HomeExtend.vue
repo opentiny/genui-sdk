@@ -428,17 +428,17 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     border-radius: 20px;
-    border: 1px solid #fff;
+    border: 2px solid #fff;
     box-shadow: 0 0 60px 0 rgba(217, 223, 255, 0.5);
 
-
-    padding: 28px;
+    padding: 29px 24px;
     margin-bottom: 110px;
+    
 
     &-header {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 29px;
 
       &-action {
         display: flex;
@@ -494,7 +494,7 @@ onUnmounted(() => {
       min-height: 560px;
       height: 590px;
       background: #fff;
-      border-radius: 12px;
+      border-radius: 4px;
       overflow: hidden;
       box-sizing: border-box;
       container-type: size;
@@ -665,24 +665,29 @@ onUnmounted(() => {
 .home-extend-control-btn {
   border: none;
   box-shadow: 0 2px 4px #00000029;
+  img {
+    display: block;
+    transform: translate(2px, 0);
+    width: 50px;
+    height: 50px;
+  }
 }
 
 .extend-button-group {
   width: fit-content;
-  height: 56px;
+  height: 44px;
   display: flex;
   align-items: center;
   gap: 24px;
-  padding: 4px;
   margin-bottom: 48px;
 
   .extend-button {
     height: 100%;
-    width: 200px;
+    width: 152px;
     margin-left: 0;
     border: none;
     background-color: transparent;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
     color: rgba(89, 89, 89, 1);
 
@@ -694,8 +699,9 @@ onUnmounted(() => {
     }
 
     .extend-button-icon {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
+      margin-right: 8px;
     }
 
     &-element-2 {
@@ -706,8 +712,11 @@ onUnmounted(() => {
       border-radius: 73px;
       background-color: #fff;
       box-shadow: 0 0 20px 0 rgba(207, 218, 228, 0.36);
-      font-weight: 500;
-      color: rgba(25, 25, 25, 1)
+      font-weight: 400;
+      color: rgba(25, 25, 25, 1);
+      .extend-button-icon {
+        filter: brightness(0.25);
+      }
     }
   }
 
@@ -724,5 +733,25 @@ onUnmounted(() => {
   .home-extend-schema-content {
     border-radius: 6px;
   }
+}
+</style>
+
+<style lang="less">
+.home-extend-schema-content-scroll {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #dbdbdb;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  scrollbar-color: #dbdbdb transparent;
+  scrollbar-width: thin;
 }
 </style>
