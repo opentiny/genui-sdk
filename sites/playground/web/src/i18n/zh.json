@@ -106,7 +106,6 @@
     "contextCompressing": "正在压缩会话",
     "compressPlaceholder": "正在压缩会话…",
     "compressDisabledNeedMore": "当前会话轮次不足，暂无法压缩",
-    "compressDisabledGenerating": "请等待生成完成后再压缩会话",
     "compressFailed": "会话压缩失败，请稍后重试",
     "compressNoUrl": "未配置模板聊天地址，无法压缩会话"
   },

@@ -67,7 +67,6 @@ export function useContextZip(options: UseContextZipOptions) {
 
   const compressDisabledReason = computed(() => {
     if (isCompressing.value) return '';
-    if (options.generating.value) return t('template.compressDisabledGenerating');
     if (compressionPlan.value === null) {
       return t('template.compressDisabledNeedMore');
     }

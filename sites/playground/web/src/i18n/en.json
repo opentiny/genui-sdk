@@ -106,7 +106,6 @@
     "contextCompressing": "Compressing conversation",
     "compressPlaceholder": "Compressing conversation…",
     "compressDisabledNeedMore": "Insufficient conversation turns to compress",
-    "compressDisabledGenerating": "Please wait until generation completes before compressing",
     "compressFailed": "Conversation compression failed. Please try again.",
     "compressNoUrl": "Template chat URL is not configured, so the conversation cannot be compressed"
   },
