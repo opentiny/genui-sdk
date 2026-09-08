@@ -3,7 +3,8 @@ import { templateChat } from '../template-chat-api';
 import type { LLMConfig } from '../chat.types';
 import { isContextCompressMessage } from './context-message';
 
-const COMPRESS_PROMPT_PREFIX = `请将以下对话历史压缩为可供后续模型继续工作的中文摘要。
+const COMPRESS_PROMPT_PREFIX = `【任务】
+将【对话历史】压缩为供后续页面生成模型继续工作的中文摘要。
 必须保留：
 1. 用户当前目标、明确需求和约束；
 2. 已确认的设计或实现决策，以及被否决的方案；
@@ -11,10 +12,10 @@ const COMPRESS_PROMPT_PREFIX = `请将以下对话历史压缩为可供后续模
 4. 尚未解决的问题和下一步工作；
 5. 后续对话中会用到的名称、ID 或关键值。
 
-当前 Schema 会由系统单独提供，不要复制完整 Schema，也不要虚构对话中没有的信息。
 使用“目标 / 已确认 / 已完成 / 待处理 / 关键上下文”几个简短小节；没有内容的小节可以省略。
-只输出摘要正文，不要使用代码块标记。
+证据不足的写入待处理并标明待确认。
 
+【对话历史】
 `;
 
 const SCHEMA_HISTORY_ITEM_TYPES = new Set(['schema-card', 'json-patch', 'schema-manual']);
