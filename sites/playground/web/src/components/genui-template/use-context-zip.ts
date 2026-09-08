@@ -7,7 +7,6 @@ import {
   createContextCompressMessage,
   findLatestContextCompressIndex,
   getContextCompressionPlan,
-  getKeepRecentTurns,
 } from './template-chat-utils';
 import { generateId } from '../../utils';
 import { t } from '../../i18n';
@@ -70,7 +69,7 @@ export function useContextZip(options: UseContextZipOptions) {
     if (isCompressing.value) return '';
     if (options.generating.value) return t('template.compressDisabledGenerating');
     if (compressionPlan.value === null) {
-      return t('template.compressDisabledNeedMore', { turns: getKeepRecentTurns() });
+      return t('template.compressDisabledNeedMore');
     }
     return '';
   });
