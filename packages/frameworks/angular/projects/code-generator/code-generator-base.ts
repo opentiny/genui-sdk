@@ -82,7 +82,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
     return [...new Set(identifiers.filter((id) => !keywords.has(id)))];
   }
 
-  protected createCodegenMeta(): ICodegenDescription {
+  protected createCodegenMeta(): ICodegenDescription { // 
     return {
       componentSet: new Set(),
       iconComponents: { componentNames: [], exportNames: [] }, // 纯预留

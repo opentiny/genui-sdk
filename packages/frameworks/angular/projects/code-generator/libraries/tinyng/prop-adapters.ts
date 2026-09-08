@@ -21,36 +21,6 @@ class PageSizesAdapter extends AngularPropAdapter {
   }
 }
 
-/** TiTable.displayedData(JSExpression + model)→ 双向绑定 */
-class DisplayedDataAdapter extends AngularPropAdapter {
-  readonly name = 'TiTable:displayedData';
-
-  tryHandle(ctx: IAngularPropContext): boolean {
-    const { componentName, key, rawItem, attrsArr, resolvePropValueType, cleanThisInTemplate } = ctx;
-    if (componentName !== 'TiTable' || key !== 'displayedData') return false;
-    const item = rawItem as { type?: string; value?: string; model?: { prop?: string } };
-    if (resolvePropValueType(rawItem) !== JS_EXPRESSION || !item.model) return false;
-
-    attrsArr.push(`[(displayedData)]="${cleanThisInTemplate(item.value ?? '')}"`);
-    return true;
-  }
-}
-
-/** TiTable.srcData(JSExpression)→ 单绑 */
-class SrcDataAdapter extends AngularPropAdapter {
-  readonly name = 'TiTable:srcData';
-
-  tryHandle(ctx: IAngularPropContext): boolean {
-    const { componentName, key, rawItem, attrsArr, resolvePropValueType, cleanThisInTemplate } = ctx;
-    if (componentName !== 'TiTable' || key !== 'srcData') return false;
-    if (resolvePropValueType(rawItem) !== JS_EXPRESSION) return false;
-
-    const value = (rawItem as { value?: string }).value ?? '';
-    attrsArr.push(`[srcData]="${cleanThisInTemplate(value)}"`);
-    return true;
-  }
-}
-
 /** TiPagination.pageSize(JSExpression)→ 包成 { size } 对象;若同时有 pageSizes 则已被 PageSizesAdapter 合并消费 */
 class PageSizeAdapter extends AngularPropAdapter {
   readonly name = 'TiPagination:pageSize';
@@ -70,7 +40,5 @@ class PageSizeAdapter extends AngularPropAdapter {
 /** TinyNG 组件 prop 特判适配器注册表:按声明顺序逐个尝试,首个命中者消费该 prop */
 export const TINY_NG_PROP_ADAPTERS: AngularPropAdapter[] = [
   new PageSizesAdapter(),
-  new DisplayedDataAdapter(),
-  new SrcDataAdapter(),
   new PageSizeAdapter(),
 ];

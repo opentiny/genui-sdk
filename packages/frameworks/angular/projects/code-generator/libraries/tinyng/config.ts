@@ -14,7 +14,6 @@ export const TINYNG_CONFIG: IAngularLibraryConfig = {
   componentExtraSelector,
   extraVoidElements: ['ti-image'],
   propBlacklist: { TiTable: ['border', 'stripe'] },
-  propRename: { TiPagination: { total: 'totalNumber' } },
   propAdapters: TINY_NG_PROP_ADAPTERS,
   libraryComponents,
 

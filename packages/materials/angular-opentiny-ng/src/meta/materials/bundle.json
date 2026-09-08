@@ -1701,7 +1701,7 @@
               "properties": [
                 "currentPage",
                 "pageSize",
-                "total"
+                "totalNumber"
               ]
             },
             "contextMenu": {
@@ -1774,7 +1774,7 @@
                     }
                   },
                   {
-                    "property": "total",
+                    "property": "totalNumber",
                     "label": {
                       "text": {
                         "zh_CN": "总条数"
@@ -6009,7 +6009,7 @@
                 "props": {
                   "currentPage": 1,
                   "pageSize": 10,
-                  "total": 100
+                  "totalNumber": 100
                 }
               }
             }

@@ -4,11 +4,11 @@
 
 | 组件 | 特殊处理 | 实现位置 |
 | --- | --- | --- |
-| TiPagination | `total` → `totalNumber` | `propRename`(见 [config.ts](config.ts)) |
+| TiPagination | `total` → `totalNumber` | 已删:物料包 meta 定义修正为 `totalNumber`(见 meta/bundle.json、examples/pagination.json) |
 | TiTable | `srcData.state` 归一化(字符串→对象 + 缺省字段补全) | `transformState`(见 [config.ts](config.ts)) |
 | TiItem | `label` 属性 → `<ti-item-label>` 子元素 | `transformChildren`(见 [config.ts](config.ts)) |
 | TiPagination | `pageSizes`/`pageSize` 合并为单个 `[pageSize]="{ options, size }"` | `propAdapters`(见 [prop-adapters.ts](prop-adapters.ts)) |
-| TiTable | `displayedData`/`srcData` 绑定形态 | `propAdapters`(见 [prop-adapters.ts](prop-adapters.ts)) |
+| TiTable | `displayedData` 双向 / `srcData` 单绑(原特判,现通用规则覆盖) | `handleBinding` 通用 `model:true`(见[第 5 节](#5-modeltrue-双向约定非表单组件默认出--key)) |
 
 ## 启动测试界面
 
@@ -18,13 +18,15 @@ pnpm dev:angular-test
 
 ---
 
-## 1. TiPagination:`total` → `totalNumber`
+## 1. TiPagination:`total` → `totalNumber`(已在物料包定义修正,出码器不再特判)
 
 **问题**:AI 输出的 schema JSON 中包含属性 `total`,而 TinyNG 的 `<ti-pagination>` 支持的是 `totalNumber`,不是 `total`:
 
+> 注:根因是物料包 meta 把分页属性名误写成了 `total`(见 angular-opentiny-ng 的 `meta/materials/bundle.json`、`meta/examples/pagination.json`),schema/AI 跟着错。现已把物料包定义改为 `totalNumber`,出码器不再需要 `propRename` 兜底(config.ts 中的条目已删除)。以下为原问题留档。
+
 ```json
 {
-  "componentName": "TinyPagination",
+  "componentName": "TiPagination",
   "props": {
     "currentPage": {
       "type": "JSExpression",
@@ -52,7 +54,7 @@ pnpm dev:angular-test
 }
 ```
 
-**处理**:`propRename`(见 [config.ts](config.ts))。
+**处理(已删)**:原靠 `propRename` 兜底;物料包定义已修正,`config.ts` 不再配置该项。
 
 ---
 
@@ -143,3 +145,22 @@ Angular 20 严格分离 renderView(创建)与 refreshView(更新),refreshView �
 | 仅 `pageSizes` | `[pageSize]="{ options: [10, 20, 50, 100], size: 10 }"` |
 
 **原因**:adapter 机制按 prop 逐个尝试、命中即消费,`pageSizes` 与 `pageSize` 是**两个不同的键**,每个键只会被触发一次,必须拆成两个 adapter 各守一键;两者靠 `'pageSizes' in props` 协调 —— 该判断读**原始 props 对象**而非已生成的 attrsArr,因此与遍历顺序无关。
+
+---
+
+## 5. `model:true` 双向约定:非表单组件默认出 `[(key)]`
+
+**约定**(`handleBinding`,见 [angular-code-generator.ts](../angular-code-generator.ts)):schema 中带 `model:true` 的 JSExpression 表示"该属性要双向同步"。Angular 生态的双向有两种实现形态,据此分流:
+
+| 组件形态 | 产物 | 依据 |
+| --- | --- | --- |
+| CVA 表单控件(`config.formComponents` 名单内) | `[(ngModel)]="expr"` | ngModel 是组件级指令,绑整值、不落单 prop |
+| 其余全部(默认) | `[(key)]="expr"` | banana-box 约定 `@Input key` + `@Output keyChange` |
+
+`key` 为 rename 后的真实属性名,如 TiTable `displayedData` → `[(displayedData)]`。
+
+**为什么默认取 `[(key)]` 而非 `[(ngModel)]`**:绝大多数双向属性(表格 `displayedData` 等)遵循 `key/keyChange` 命名,一套通用规则即可覆盖,无需按 prop 逐条特判;只有 CVA 表单控件必须靠 `ngModel`(它是整组件机制,`model:true` 无法从 prop 键推断),故仅需在 `IAngularLibraryConfig.formComponents` 列出组件名集合。
+
+**连带删除**:原 `DisplayedDataAdapter`(TiTable displayedData 双向特判)与 `SrcDataAdapter`(srcData 强制单绑)被此规则取代 —— `displayedData` 现落入通用 `[(key)]`,`srcData`(无 `model`)落入通用 `[key]`,产物不变。`prop-adapters.ts` 仅保留做**值形态重塑**的 `TiPagination` 两个 adapter(`pageSizes`/`pageSize` 合并为 `{ options, size }`),这类特判与双向机制无关、无法被通用规则替代。
+
+**注意**:依赖"AI 输出的 `model:true` 必然对应库中真实存在的 `key/keyChange` 双向属性"。当前无 TinyNG 表单控件出码样例,`formComponents` 留空;待需出表单控件时,需把 CVA 组件(TiInput/TiSelect/TiDate/…)加入名单,否则会被误当作 banana-box 出 `[(key)]` 而编译失败。

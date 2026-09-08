@@ -145,7 +145,7 @@
           "type": "JSExpression",
           "value": "this.state.pageSize"
         },
-        "total": {
+        "totalNumber": {
           "type": "JSExpression",
           "value": "this.state.total"
         },

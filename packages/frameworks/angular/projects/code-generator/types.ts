@@ -101,10 +101,16 @@ export interface IAngularLibraryConfig {
   extraVoidElements?: string[];
   /** 组件级 prop 黑名单——这些 prop 在模板中不生成。如 { TiTable: ['border', 'stripe'] } */
   propBlacklist?: Record<string, string[]>;
-  /** 组件级 prop 键名重命名。如 { TiPagination: { total: 'totalNumber' } } */
+  /** 组件级 prop 键名重命名(schema 键 → 组件真实键)。当前 TinyNG 无使用;通用能力保留给后续组件库 */
   propRename?: Record<string, Record<string, string>>;
-  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。如 TinyNG 的 TiPagination/TiTable 特判 */
+  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。如 TinyNG 的 TiPagination 值形态特判 */
   propAdapters?: AngularPropAdapter[];
+  /**
+   * 表单控件组件名集合。model:true 的整值双向对这些组件走 [(ngModel)];
+   * 约定(@Input key + @Output keyChange)默认出 [(key)]。
+   * ngModel 是组件级指令(绑整值、不落单 prop),故必须靠名单区分,不能从 schema 推断。
+   */
+  formComponents?: string[];
   /** 组件库全部组件名集合,供「组件库识别」比对 schema;缺省取 componentSelector 的键 */
   libraryComponents?: Set<string>;
   /** 组件库专属 state 预处理(遍历/序列化前),如 TinyNG 的 TiTable srcData.state 缺省字段补全 */

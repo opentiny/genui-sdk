@@ -9,9 +9,10 @@
  *   - moduleRefMap           : 组件名 → NgModule 类名,如 TiTabs → TiTabModule
  *   - libraryComponents      : 该库全部组件名集合(供「组件库识别」比对 schema)
  *
- * 注意:部分原生表单组件在物料包中被显式补齐了宿主标签 selector,
- * 但仍有个别组件(如 TinyNG 的 TiButton/TiText 等)的宿主标签只存在于
- * 库的使用约定中、无法从元数据推导,由调用方通过 hostTagOverride 提供最小覆盖。
+ * 注意:部分组件在 TinyNG 中按「宿主原生元素 + 属性指令」使用(如 <button tiButton>、
+ * <input tiText>),组件类本身是属性型 selector,编译元数据里没有宿主标签;这类宿主标签
+ * 由物料包源码在模块加载时显式补齐到 ɵcmp(见 angular-opentiny-ng 物料包 ng-components.ts),
+ * 因此这里可全部从元数据推导,无需调用方另行覆盖。
  */
 export interface IAngularMaterials {
   components?: Record<string, unknown>;
@@ -32,10 +33,7 @@ interface IAngularCmpMeta {
 
 const readCmpMeta = (cls: unknown): IAngularCmpMeta | undefined => (cls as any)?.['ɵcmp'];
 
-export function deriveLibraryMaps(
-  materials: IAngularMaterials,
-  hostTagOverride: Record<string, string> = {},
-): IAngularLibraryMaps {
+export function deriveLibraryMaps(materials: IAngularMaterials): IAngularLibraryMaps {
   const componentSelector: Record<string, string> = {};
   const componentExtraSelector: Record<string, string> = {};
   const moduleRefMap: Record<string, string> = {};
@@ -51,11 +49,6 @@ export function deriveLibraryMaps(
 
   Object.entries(materials.modules ?? {}).forEach(([name, mod]) => {
     moduleRefMap[name] = (mod as any).name;
-  });
-
-  // 宿主标签覆盖:组件类元数据缺失 tag 时按库的使用约定补齐(见文件头注释)
-  Object.entries(hostTagOverride).forEach(([name, tag]) => {
-    componentSelector[name] = tag;
   });
 
   return {

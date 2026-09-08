@@ -420,7 +420,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
       if (propType === JS_EXPRESSION) {
         if (item.model) {
-          attrsArr.push(`[(ngModel)]="${this.cleanThisInTemplate(item.value ?? '')}"`);
+          const expr = this.cleanThisInTemplate(item.value ?? '');
+          const isFormControl = cfg.formComponents?.includes(componentName ?? '') ?? false;
+          attrsArr.push(isFormControl ? `[(ngModel)]="${expr}"` : `[(${key})]="${expr}"`);
           return;
         }
         attrsArr.push(`[${key}]="${this.cleanThisInTemplate(item.value ?? '')}"`);
@@ -651,6 +653,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     const attrsArr: string[] = [];
 
+    // 语义不对
     const extraDirective = componentName ? this.resolveExtraDirective(componentName) : undefined;
     if (extraDirective) {
       attrsArr.push(extraDirective);
@@ -707,17 +710,17 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       result.push('>');
 
       // 库特定的 children 预处理(经 config.transformChildren 注入)
-      const transformedChildren = this.processLibrarySpecificChildren(componentName ?? '', children);
+      const transformedChildren = this.processLibrarySpecificChildren(componentName ?? '', children); // 没有
       
       //递归处理子元素 
-      this.recurseChildren(
+      this.recurseChildren( // 命名
         transformedChildren ?? children as NodeSchema[] | NodeSchema | string | undefined,
         state,
         description,
         result,
         schemaMethods,
       );
-      result.push(this.generateSlotContent(slot, state, description, schemaMethods));
+      result.push(this.generateSlotContent(slot, state, description, schemaMethods)); // 没有slot
       result.push(`</${component}>`);
     }
 
@@ -844,7 +847,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       true,
       schemaMethods
     );
-    const finalTemplate = `${template}${this.buildSlotTemplates(codegenMeta)}`;
+    const finalTemplate = `${template}${this.buildSlotTemplates(codegenMeta)}`; // 在children里处理
 
     // 2)
     const viewChildDecls = this.buildViewChildDecls(codegenMeta);
@@ -904,7 +907,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   /** ng-template 引用声明(ViewChild),供组件类在运行时取得模板里的 #slotN 引用 */
   protected buildViewChildDecls(codegenMeta: ICodegenDescription): string {
     return codegenMeta.slotTemplates
-      .map(({ ref }) => `@ViewChild('${ref}', { static: true }) ${ref}!: TemplateRef<any>;`)
+      .map(({ ref }) => `@ViewChild('${ref}', { static: true }) ${ref}!: TemplateRef<any>;`) // static不要写
       .join('\n\n  ');
   }
 
@@ -925,10 +928,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     const lifeCycles = (schema as CardSchema & { lifeCycles?: Record<string, { type?: string; value?: string }> }).lifeCycles;
     const mountedFn = lifeCycles?.onMounted;
     const fnInfo = mountedFn ? this.getFunctionInfo(mountedFn.value ?? '') : null;
-    return fnInfo ? this.cleanThisInClassBody(fnInfo.body) : '';
+    return fnInfo ? this.cleanThisInClassBody(fnInfo.body) : ''; // 这里要保留this
   }
 
   /** JSSlot 组装:含作用域插槽的属性提升为类字段,在 ngOnInit 里把占位引用(this.slotN)替换成 ng-template 的 TemplateRef */
+  // ondestroy
   protected buildLifecycleMethod(codegenMeta: ICodegenDescription, lifecycleBody: string): string {
     const slotFieldInits = codegenMeta.slotFields
       .map(({ fieldName, item }) => `this.${fieldName} = ${unwrapExpression(JSON.stringify(item))};`)
