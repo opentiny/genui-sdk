@@ -472,11 +472,12 @@ const systemPrompt = genPrompt('Vue', materialsMeta);
 物料的全部"契约"就体现在两个类型上，它们都定义在 `@opentiny/genui-sdk-core`：
 
 ```typescript
-// 渲染端：组件清单 + 缓冲字段 + 默认值映射
+// 渲染端：组件清单 + 缓冲字段 + 默认值映射 + 主题
 interface IMaterials {
   components?: Record<string, unknown>;      // 组件名 → 运行时组件
   requiredCompleteFieldSelectors?: string[]; // 缓冲字段选择器
   defaultPropsMap?: Record<string, any>;     // 组件默认 Props 映射
+  themeFactory?: MaterialsThemeFactory;      // 物料主题工厂（可选），见「物料主题」
   [key: string]: any;                        // 允许扩展其他字段
 }
 
@@ -492,7 +493,7 @@ interface IMaterialsMeta {
 
 两个类型各司其职：
 
-- **`IMaterials`**：交给前端渲染器（`GenuiConfigProvider` 注入）。渲染器拿到 Schema 里的 `componentName` 后，去 `components` 里找对应的 Vue 组件渲染；`defaultPropsMap` 用于流式渲染时补全尚未生成的属性；`requiredCompleteFieldSelectors` 用于声明"必须等字段完整才能渲染"的缓冲字段。
+- **`IMaterials`**：交给前端渲染器（`GenuiConfigProvider` 注入）。渲染器拿到 Schema 里的 `componentName` 后，去 `components` 里找对应的 Vue 组件渲染；`defaultPropsMap` 用于流式渲染时补全尚未生成的属性；`requiredCompleteFieldSelectors` 用于声明"必须等字段完整才能渲染"的缓冲字段；`themeFactory` 可选，声明物料支持的主题，让框架层统一调度（详见 [物料主题](../components/materials/theme)）。
 - **`IMaterialsMeta`**：交给服务端 `genPrompt`。`genPrompt` 会把 `materials`（组件协议，来自 `bundle.json`）与 `whiteList` 拼进 System Prompt，让 LLM 只使用白名单内的组件、并按照组件协议生成 Schema。
 
 两个类型通过 **`componentName`** 对齐：`IMaterials.components` 的 key 就是 Schema 里的 `componentName`，并且必须与 `IMaterialsMeta` 中每个组件的 `component` 字段一一对应。
