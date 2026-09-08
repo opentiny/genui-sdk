@@ -2,6 +2,7 @@ import zhCN from './zh.json';
 import enUS from './en.json';
 import { useI18n } from '@opentiny/genui-sdk-vue';
 import { isSupportedLocale, Locale } from './locale';
+import { syncComponentLocales } from './sync-component-locales';
 
 const LOCALE_STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_LOCALE';
 
@@ -17,12 +18,15 @@ if (savedLocale && isSupportedLocale(savedLocale)) {
   globalI18n.setLocale(savedLocale);
 }
 
+syncComponentLocales(globalI18n.locale.value);
+
 const { setLocale: setLocaleInternal, t, locale, mergeMessages, messages } = globalI18n;
 
 function setLocale(lang: string): void {
   const trimLang = lang.trim();
   setLocaleInternal(trimLang);
   localStorage.setItem(LOCALE_STORAGE_KEY, trimLang);
+  syncComponentLocales(trimLang);
 }
 
 export { t, locale, setLocale, mergeMessages, messages, useI18n, Locale };

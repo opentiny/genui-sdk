@@ -45,6 +45,11 @@
       "types": "./dist/materials.d.ts",
       "import": "./dist/materials.js",
       "require": "./dist/materials.js"
+    },
+    "./i18n": {
+      "types": "./dist/i18n.d.ts",
+      "import": "./dist/i18n.js",
+      "require": "./dist/i18n.js"
     }
   },
   "scripts": {
