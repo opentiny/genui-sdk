@@ -113,16 +113,15 @@ export function useContextZip(options: UseContextZipOptions) {
         signal: controller.signal,
       });
 
-      if (controller.signal.aborted) {
+      const isCurrentRequest = () => abortController === controller;
+
+      if (controller.signal.aborted || !isCurrentRequest()) {
         return;
       }
 
       const insertIndex = boundaryMessage ? targetMessages.indexOf(boundaryMessage) : -1;
       if (insertIndex === -1) {
-        if (
-          compressingConversationId.value === startedId &&
-          startedId === options.currentConversationId.value
-        ) {
+        if (isCurrentRequest() && startedId === options.currentConversationId.value) {
           status.value = 'idle';
         }
         return;
@@ -131,7 +130,7 @@ export function useContextZip(options: UseContextZipOptions) {
       targetMessages.splice(insertIndex, 0, createContextCompressMessage(summary, generateId()));
       options.saveConversations();
 
-      if (compressingConversationId.value !== startedId) {
+      if (!isCurrentRequest()) {
         return;
       }
       if (startedId === options.currentConversationId.value) {
@@ -146,7 +145,7 @@ export function useContextZip(options: UseContextZipOptions) {
         notifyCompressError(t('template.compressFailed'));
       }
       if (
-        compressingConversationId.value === startedId &&
+        abortController === controller &&
         startedId === options.currentConversationId.value &&
         !controller.signal.aborted
       ) {
@@ -155,8 +154,6 @@ export function useContextZip(options: UseContextZipOptions) {
     } finally {
       if (abortController === controller) {
         abortController = null;
-      }
-      if (compressingConversationId.value === startedId) {
         compressingConversationId.value = undefined;
       }
     }

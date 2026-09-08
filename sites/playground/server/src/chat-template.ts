@@ -17,6 +17,43 @@ import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
+const COMPRESS_SYSTEM_PROMPT = `你是会话摘要助手。根据用户给出的对话历史，只输出可供后续模型继续工作的中文摘要正文。
+不要输出 Schema、JSON Patch、代码块、工具调用或任何与摘要无关的内容。`;
+
+const appendSchemaContext = (
+  messages: ReturnType<typeof normalizeMessagesForAiSdk>,
+  templateSchema: unknown,
+  compressMode: boolean,
+) => {
+  const schemaJson = JSON.stringify(templateSchema, null, 2);
+  const schemaJsonContext = compressMode
+    ? `
+          **当前页面 Schema（仅供摘要参考，不要复制到输出中）：**
+          ${schemaJson}
+          `
+    : `
+          **当前 schemaJson（这是唯一可信的 ID 来源）：**
+          \`\`\`schemaJson
+          ${schemaJson}
+          \`\`\`
+          `;
+  if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+    if (Array.isArray(messages[messages.length - 1].content)) {
+      messages[messages.length - 1].content.push({
+        type: 'text',
+        text: schemaJsonContext,
+      });
+    } else {
+      messages[messages.length - 1].content += schemaJsonContext;
+    }
+  } else {
+    messages.push({
+      role: 'user',
+      content: schemaJsonContext,
+    });
+  }
+};
+
 const getPlaygroundConfig = (playgroundStr: string) => {
   let playgroundConfig: IPlaygroundConfig = {
     mcpServers: [],
@@ -83,6 +120,7 @@ export const createChatTemplate = () => {
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
       const { mcpServers, framework, componentLib, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
+      const isCompressMode = body.mode === 'compress';
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
@@ -92,41 +130,31 @@ export const createChatTemplate = () => {
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
       const { model, temperature, prompt: customSystemPrompt, specificPrompt, provider, extraBody } = llmConfig;
-      const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
-        mcpServers.filter((s) => s.enabled),
-        abort.signal,
-      );
-      const openApiBuiltTools = await buildOpenApiTools(openApiTools);
-      const tools = { ...openApiBuiltTools, ...mcpTools };
+
+      let tools: Awaited<ReturnType<typeof generateAiSdkTools>>['tools'] &
+        Awaited<ReturnType<typeof buildOpenApiTools>> = {};
+      let clientsMap: Awaited<ReturnType<typeof generateAiSdkTools>>['clientsMap'] = new Map();
+      if (!isCompressMode) {
+        const mcp = await generateAiSdkTools(
+          mcpServers.filter((s) => s.enabled),
+          abort.signal,
+        );
+        clientsMap = mcp.clientsMap;
+        const openApiBuiltTools = await buildOpenApiTools(openApiTools);
+        tools = { ...openApiBuiltTools, ...mcp.tools };
+      }
+
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
+      const systemPrompt = isCompressMode
+        ? COMPRESS_SYSTEM_PROMPT
+        : `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;
 
       const messages = normalizeMessagesForAiSdk(body.messages);
       if (body.templateSchema) {
-        const schemaJsonContext = `
-          **当前 schemaJson（这是唯一可信的 ID 来源）：**
-          \`\`\`schemaJson
-          ${JSON.stringify(body.templateSchema, null, 2)}
-          \`\`\`
-          `;
-        if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
-          if (Array.isArray(messages[messages.length - 1].content)) {
-            messages[messages.length - 1].content.push({
-              type: 'text',
-              text: schemaJsonContext,
-            });
-          } else {
-            messages[messages.length - 1].content += schemaJsonContext;
-          }
-        } else {
-          messages.push({
-            role: 'user',
-            content: schemaJsonContext,
-          });
-        }
+        appendSchemaContext(messages, body.templateSchema, isCompressMode);
       }
       const providerOptions =
         provider?.name && extraBody && Object.keys(extraBody).length > 0
@@ -139,9 +167,13 @@ export const createChatTemplate = () => {
         system: systemPrompt,
         messages: messages,
         abortSignal: abort.signal,
-        tools,
-        toolChoice: 'auto',
-        stopWhen: stepCountIs(maxSteps),
+        ...(isCompressMode
+          ? {}
+          : {
+              tools,
+              toolChoice: 'auto' as const,
+              stopWhen: stepCountIs(maxSteps),
+            }),
         ...(providerOptions ? { providerOptions } : {}),
       } as const;
 

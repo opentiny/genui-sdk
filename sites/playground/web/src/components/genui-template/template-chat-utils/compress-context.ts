@@ -18,14 +18,25 @@ const COMPRESS_PROMPT_PREFIX = `请将以下对话历史压缩为可供后续模
 `;
 
 const SCHEMA_HISTORY_ITEM_TYPES = new Set(['schema-card', 'json-patch', 'schema-manual']);
+const SKIP_HISTORY_ITEM_TYPES = new Set(['loading-text']);
 
 type HistoryItem = { type?: string; content?: string; input?: string };
 
 function serializeHistoryItem(item: HistoryItem): string {
+  if (item.type && SKIP_HISTORY_ITEM_TYPES.has(item.type)) {
+    return '';
+  }
   if (item.type && SCHEMA_HISTORY_ITEM_TYPES.has(item.type)) {
     return item.input ? `[Schema 变更] ${item.input}` : '[Schema 变更]';
   }
   return item.content ?? item.input ?? '';
+}
+
+function serializeStructuredMessages(items: HistoryItem[] | undefined): string {
+  if (!Array.isArray(items) || items.length === 0) {
+    return '';
+  }
+  return items.map(serializeHistoryItem).filter(Boolean).join('\n');
 }
 
 export function serializeMessagesForCompress(messages: ChatMessage[]): string {
@@ -37,15 +48,8 @@ export function serializeMessagesForCompress(messages: ChatMessage[]): string {
         return `会话摘要: ${text}`;
       }
       const roleLabel = m.role === 'user' ? '用户' : '助手';
-      let text = '';
-      if (typeof m.content === 'string') {
-        text = m.content;
-      } else if (Array.isArray((m as unknown as { messages?: HistoryItem[] }).messages)) {
-        text = ((m as unknown as { messages?: HistoryItem[] }).messages || [])
-          .map(serializeHistoryItem)
-          .filter(Boolean)
-          .join('\n');
-      }
+      const structured = serializeStructuredMessages((m as unknown as { messages?: HistoryItem[] }).messages);
+      const text = structured || (typeof m.content === 'string' ? m.content : '');
       return `${roleLabel}: ${text}`;
     })
     .join('\n\n');
@@ -76,6 +80,7 @@ export async function compressConversationHistory(options: {
     signal: signal ?? new AbortController().signal,
     templateSchema,
     llmConfig,
+    mode: 'compress',
   });
 
   if (!response.body) {
