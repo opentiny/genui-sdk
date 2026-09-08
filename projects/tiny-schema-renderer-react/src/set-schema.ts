@@ -1,4 +1,4 @@
-import { parseData } from './engine';
+import { parseData, handleScopedCss } from './engine';
 import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
@@ -65,7 +65,14 @@ export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
       el.id = id;
       document.head.appendChild(el);
     }
-    el.textContent = schema.css;
+    handleScopedCss(id, schema.css).then(
+      (scopedCss) => {
+        el!.textContent = scopedCss.css;
+      },
+      (error) => {
+        console.error('SchemaRenderer scope css error:', error);
+      },
+    );
   }
 
   return getPageLifeCycleFns(schema.lifeCycles as LifeCycles | undefined, contextApi.getContext);

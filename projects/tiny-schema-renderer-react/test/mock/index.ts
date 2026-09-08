@@ -6,6 +6,7 @@ import emptyChildrenSchema from './empty-children.json';
 import stateTransitionsSchema from './state-transitions.json';
 import bindThisSchema from './bind-this.json';
 import jsxParseSchema from './jsx-parse.json';
+import cssScopeSchema from './css-scope.json';
 
 export interface DemoItem {
   id: string;
@@ -20,5 +21,6 @@ export const demos: DemoItem[] = [
   { id: 'state', label: 'State 转换', schema: stateTransitionsSchema as RootNode },
   { id: 'bind-this', label: 'bind this 刷新', schema: bindThisSchema as RootNode },
   { id: 'jsx', label: 'JSX 解析', schema: jsxParseSchema as RootNode },
+  { id: 'css-scope', label: 'CSS scope 化', schema: cssScopeSchema as RootNode },
   { id: 'empty', label: '空 children（Loading）', schema: emptyChildrenSchema as RootNode },
 ];

@@ -10,3 +10,4 @@ export * from './parse-data';
 export * from './context-internals';
 export * from './get-bind-props';
 export * from './parse-inline-style';
+export * from './scope-css';
