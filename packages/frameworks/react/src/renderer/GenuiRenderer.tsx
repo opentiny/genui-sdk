@@ -5,19 +5,18 @@ import {
   useMemo,
   useRef,
   useState,
+  type ComponentType,
 } from 'react';
 import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
 import { SchemaRenderer, RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
 import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-schema-renderer-react';
+import type { InstanceMaterials } from '@opentiny/tiny-schema-renderer-react';
 import { useGenuiMaterials, useGenuiNotify } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
 import './renderer.css';
 
 type RootNode = NonNullable<SchemaRendererProps['schema']>;
-
-/** @deprecated 使用 SchemaRendererHandle */
-export type GenuiRendererHandle = SchemaRendererHandle;
 
 const errorSchema: RootNode = {
   componentName: 'Page',
@@ -37,7 +36,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     const notify = useGenuiNotify();
     const mergedComponents = useMemo(
       () => ({
-        ...contextMaterials.components,
+        ...(contextMaterials.components as Record<string, ComponentType<any>> | undefined),
         ...props.customComponents,
       }),
       [contextMaterials.components, props.customComponents],
@@ -47,7 +46,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
         materials: {
           ...contextMaterials,
           components: mergedComponents,
-        },
+        } as InstanceMaterials,
         notify,
       }),
       [contextMaterials, mergedComponents, notify],
@@ -137,7 +136,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
       if (!props.generating && contentKeyRef.current === nextKey) return;
       contentKeyRef.current = nextKey;
 
-      patcherRef.current.patchWithDelta(schemaRef.current, json, isCompleted);
+      patcherRef.current?.patchWithDelta(schemaRef.current, json, isCompleted);
       setDisplaySchema({ ...schemaRef.current });
     }, [props.content, props.isJsonComplete, props.generating]);
 

@@ -12,7 +12,7 @@ function normalizeItems(items?: TabItem[]): TabItem[] | undefined {
   return items.map((item) => {
     const { children, ...rest } = item;
     if (typeof children === 'function') {
-      const content = children();
+      const content = (children as () => React.ReactNode)();
       return {
         ...rest,
         children: Array.isArray(content) ? <Fragment>{content}</Fragment> : content,

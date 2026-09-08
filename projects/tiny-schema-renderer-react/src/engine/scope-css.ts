@@ -37,7 +37,7 @@ function rewriteSelector(id: string, selector: selectorParser.Selector) {
     selector.insertAfter(node, attr);
   } else {
     (selector.first as { spaces: { before: string } }).spaces.before = '';
-    selector.insertBefore(selector.first!, attr);
+    selector.insertBefore(selector.first as never, attr);
   }
 }
 
