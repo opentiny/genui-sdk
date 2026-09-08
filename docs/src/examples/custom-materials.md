@@ -113,12 +113,14 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+  // 可选：i18n，见下方「物料组件库国际化」
 };
 ```
 
 - `components`：组件清单，渲染器通过它解析 `componentName → 组件`。
 - `defaultPropsMap`：由 `buildMaterialDefaultValueMap` 根据 `bundle.json` 里的 `defaultValue` 自动生成，流式渲染时字段不全也能自动补全。
 - `requiredCompleteFieldSelectors`：**缓冲字段**。声明后，这些字段要等完整才参与渲染，避免流式过程中因字段不完整而报错（如 `[componentName=NSelect] > props > options`）。语法详见 [配置缓冲字段](./renderer/required-complete-field-selectors)。
+- `i18n`（可选）：组件库内置文案桥接，见 [物料组件库国际化](#物料组件库国际化)。
 
 最后补上 `materials` 子路径入口：
 
@@ -477,6 +479,7 @@ interface IMaterials {
   components?: Record<string, unknown>;      // 组件名 → 运行时组件
   requiredCompleteFieldSelectors?: string[]; // 缓冲字段选择器
   defaultPropsMap?: Record<string, any>;     // 组件默认 Props 映射
+  i18n?: IMaterialsI18n;                     // 可选：组件库内置文案
   [key: string]: any;                        // 允许扩展其他字段
 }
 
@@ -492,10 +495,32 @@ interface IMaterialsMeta {
 
 两个类型各司其职：
 
-- **`IMaterials`**：交给前端渲染器（`GenuiConfigProvider` 注入）。渲染器拿到 Schema 里的 `componentName` 后，去 `components` 里找对应的 Vue 组件渲染；`defaultPropsMap` 用于流式渲染时补全尚未生成的属性；`requiredCompleteFieldSelectors` 用于声明"必须等字段完整才能渲染"的缓冲字段。
+- **`IMaterials`**：交给前端渲染器（`GenuiConfigProvider` 注入）。渲染器拿到 Schema 里的 `componentName` 后，去 `components` 里找对应的 Vue 组件渲染；`defaultPropsMap` 用于流式渲染时补全尚未生成的属性；`requiredCompleteFieldSelectors` 用于声明"必须等字段完整才能渲染"的缓冲字段；可选的 `i18n` 用于同步组件库内置文案（见下节）。
 - **`IMaterialsMeta`**：交给服务端 `genPrompt`。`genPrompt` 会把 `materials`（组件协议，来自 `bundle.json`）与 `whiteList` 拼进 System Prompt，让 LLM 只使用白名单内的组件、并按照组件协议生成 Schema。
 
 两个类型通过 **`componentName`** 对齐：`IMaterials.components` 的 key 就是 Schema 里的 `componentName`，并且必须与 `IMaterialsMeta` 中每个组件的 `component` 字段一一对应。
+
+### 物料组件库国际化
+
+`i18n` 只管**组件库**内置文案（分页、空状态、日期选择器等），不管 GenUI Chat 业务文案（后者仍用 ConfigProvider 的 `locale` / `i18n`）。
+
+```typescript
+interface IMaterialsI18n {
+  setLocale(locale: string): void; // GenUI 语种：zh_CN / en_US
+  LocaleProvider?: unknown;        // 可选：单包 locale 包裹组件（如 ElConfigProvider）
+  LocaleProviders?: unknown[];     // 多包 merge 后按外→内嵌套；有则优先于 LocaleProvider
+}
+```
+
+集成方只需：
+
+```vue
+<GenuiConfigProvider :locale="locale" :materials="materials">
+  <GenuiChat ... />
+</GenuiConfigProvider>
+```
+
+ConfigProvider 会调用 `setLocale`，并嵌套 `LocaleProvider` / `LocaleProviders`。`mergeMaterials` 会组合多方的 `setLocale` 与 Provider。自研物料若需跟语言切换，在 `materials` 上挂上 `i18n` 即可；官方物料已内置。详细说明见 [国际化配置](./config-provider/i18n)。
 
 ### `bundle.json` 的协议类型
 

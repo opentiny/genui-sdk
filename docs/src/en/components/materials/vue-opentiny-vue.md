@@ -23,7 +23,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials / miniMaterials / plusMaterials
 
 - **Type**: `IMaterials`
-- **Description**: OpenTiny Vue component map for [GenuiConfigProvider](../config-provider#materials). `miniMaterials` is a smaller set (without charts, etc.); `plusMaterials` targets full business pages (tree, dialog, timeline, etc.).
+- **Description**: OpenTiny Vue component map for [GenuiConfigProvider](../config-provider#materials). `miniMaterials` is a smaller set (without charts, etc.); `plusMaterials` targets full business pages (tree, dialog, timeline, etc.). Includes built-in `materials.i18n` so UI-library copy follows ConfigProvider `locale`. See [Internationalization](../../examples/config-provider/i18n).
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';

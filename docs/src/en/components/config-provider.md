@@ -51,11 +51,11 @@ See [GenuiConfigProvider - Custom Theme](../examples/config-provider/custom-them
 - **Type**: `string`
 - **Required**: No
 - **Default**: `'zh_CN'`
-- **Description**: Sets the component locale. Supported language codes include `'zh_CN'` (Simplified Chinese) and `'en_US'` (English).
+- **Description**: Sets the locale. Supported codes: `'zh_CN'` (Simplified Chinese) and `'en_US'` (English). Syncs GenUI copy; when `materials` with `i18n` is also provided, calls `materials.i18n.setLocale` and nests `LocaleProvider` / `LocaleProviders` so UI-library built-in strings follow the same locale.
 
 ```vue
 <template>
-  <GenuiConfigProvider locale="en_US">
+  <GenuiConfigProvider :materials="materials" locale="en_US">
     <GenuiChat :url="url" />
   </GenuiConfigProvider>
 </template>
