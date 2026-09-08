@@ -15,7 +15,6 @@ export default defineConfig({
         'react',
         'react-dom',
         '@opentiny/genui-sdk-react',
-        '@opentiny/tiny-schema-renderer-react',
       ],
     },
   },
