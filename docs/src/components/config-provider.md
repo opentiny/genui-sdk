@@ -49,11 +49,11 @@
 - **类型**: `string`
 - **必填**: 否
 - **默认值**: `'zh_CN'`
-- **说明**: 设置组件的语言环境。支持的语言代码包括 `'zh_CN'`（简体中文）和 `'en_US'`（英文）。
+- **说明**: 设置语言环境。支持 `'zh_CN'`（简体中文）和 `'en_US'`（英文）。会同步 GenUI 文案；若同时传入带 `i18n` 的 `materials`，还会调用 `materials.i18n.setLocale`，并按需包裹 `LocaleProvider` / `LocaleProviders`，以切换物料组件库内置文案。
 
 ```vue
 <template>
-  <GenuiConfigProvider locale="en_US">
+  <GenuiConfigProvider :materials="materials" locale="en_US">
     <GenuiChat :url="url" />
   </GenuiConfigProvider>
 </template>

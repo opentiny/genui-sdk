@@ -388,13 +388,22 @@ interface IChatMessage {
 ### IMaterials
 
 ```typescript
+interface IMaterialsI18n {
+  setLocale(locale: string): void; // GenUI 语种：zh_CN / en_US
+  LocaleProvider?: unknown; // 可选 locale 包裹组件
+  LocaleProviders?: unknown[]; // 多包嵌套时优先使用
+}
+
 interface IMaterials {
   components?: Record<string, unknown>; // 组件名 → 运行时组件
   requiredCompleteFieldSelectors?: string[]; // 缓冲字段选择器
   defaultPropsMap?: Record<string, any>; // 组件默认 Props 映射
+  i18n?: IMaterialsI18n; // 可选：组件库内置文案
   [key: string]: any;
 }
 ```
+
+`i18n` 由 `GenuiConfigProvider` 的 `locale` 驱动，详见 [国际化配置](../../examples/config-provider/i18n)。
 
 ### IMaterialsMeta
 

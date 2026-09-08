@@ -15,7 +15,7 @@
 ## materials
 
 - **类型**: `IMaterials`
-- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。
+- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。已内置 `materials.i18n`，随 ConfigProvider 的 `locale` 切换组件库文案（含 `ElConfigProvider`），见 [国际化配置](../../examples/config-provider/i18n)。
 
 ```typescript
 import 'element-plus/dist/index.css';

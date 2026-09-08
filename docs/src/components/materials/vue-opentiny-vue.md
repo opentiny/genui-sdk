@@ -23,7 +23,7 @@
 ## materials / miniMaterials / plusMaterials
 
 - **类型**: `IMaterials`
-- **说明**: OpenTiny Vue 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。`miniMaterials` 为精简组件集（不含图表等）；`plusMaterials` 面向完整业务页（树、弹窗、时间线等）。
+- **说明**: OpenTiny Vue 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。`miniMaterials` 为精简组件集（不含图表等）；`plusMaterials` 面向完整业务页（树、弹窗、时间线等）。已内置 `materials.i18n`，随 ConfigProvider 的 `locale` 切换组件库文案，见 [国际化配置](../../examples/config-provider/i18n)。
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';

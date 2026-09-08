@@ -15,7 +15,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials).
+- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials). Includes built-in `materials.i18n` so UI-library copy follows ConfigProvider `locale` (including `ElConfigProvider`). See [Internationalization](../../examples/config-provider/i18n).
 
 ```typescript
 import 'element-plus/dist/index.css';

@@ -117,12 +117,14 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+  // optional: i18n — see "UI library i18n" below
 };
 ```
 
 - `components`: the component list; the renderer resolves `componentName → component` through it.
 - `defaultPropsMap`: generated automatically by `buildMaterialDefaultValueMap` from the `defaultValue` fields in `bundle.json`, so rendering stays stable even when streaming fields are incomplete.
 - `requiredCompleteFieldSelectors`: **buffer fields**. Once declared, these fields only participate in rendering after they are complete, avoiding errors caused by incomplete fields during streaming (e.g. `[componentName=NSelect] > props > options`). See [Configuring Buffer Fields](./renderer/required-complete-field-selectors) for the syntax.
+- `i18n` (optional): bridge for UI-library built-in strings; see [UI library i18n](#ui-library-i18n).
 
 Finally, add the `materials` subpath entry:
 
@@ -483,6 +485,7 @@ interface IMaterials {
   components?: Record<string, unknown>;      // component name → runtime component
   requiredCompleteFieldSelectors?: string[]; // buffer field selectors
   defaultPropsMap?: Record<string, any>;     // component default props map
+  i18n?: IMaterialsI18n;                     // optional: UI-library built-in i18n
   [key: string]: any;                        // allows extra fields
 }
 
@@ -498,10 +501,32 @@ interface IMaterialsMeta {
 
 What each one does:
 
-- **`IMaterials`**: consumed by the frontend renderer (injected via `GenuiConfigProvider`). When the renderer sees a `componentName` in a Schema, it looks up the corresponding Vue component in `components` to render it; `defaultPropsMap` fills in props that have not been generated yet during streaming; `requiredCompleteFieldSelectors` declares buffer fields that must be complete before rendering.
+- **`IMaterials`**: consumed by the frontend renderer (injected via `GenuiConfigProvider`). When the renderer sees a `componentName` in a Schema, it looks up the corresponding Vue component in `components` to render it; `defaultPropsMap` fills in props that have not been generated yet during streaming; `requiredCompleteFieldSelectors` declares buffer fields that must be complete before rendering; optional `i18n` syncs UI-library built-in strings (see below).
 - **`IMaterialsMeta`**: consumed by the server-side `genPrompt`. `genPrompt` folds `materials` (the component protocols from `bundle.json`) and `whiteList` into the System Prompt, telling the LLM to use only the whitelisted components and to generate schemas following the component protocols.
 
 The two types align through **`componentName`**: the keys of `IMaterials.components` are the `componentName` values in the Schema, and they must match the `component` field of each component in `IMaterialsMeta` one-to-one.
+
+### UI library i18n
+
+`i18n` covers **UI-library** built-in strings (pagination, empty states, date pickers, etc.), not GenUI Chat copy (still use ConfigProvider `locale` / `i18n` for that).
+
+```typescript
+interface IMaterialsI18n {
+  setLocale(locale: string): void; // GenUI locale: zh_CN / en_US
+  LocaleProvider?: unknown;        // optional single-package wrapper (e.g. ElConfigProvider)
+  LocaleProviders?: unknown[];     // after mergeMaterials, nest outer → inner; prefer over LocaleProvider when set
+}
+```
+
+Integrators only need:
+
+```vue
+<GenuiConfigProvider :locale="locale" :materials="materials">
+  <GenuiChat ... />
+</GenuiConfigProvider>
+```
+
+ConfigProvider calls `setLocale` and nests `LocaleProvider` / `LocaleProviders`. `mergeMaterials` composes `setLocale` and providers from each package. Custom materials that should follow locale switches can attach `i18n` on `materials`; official packages already do. See [Internationalization](./config-provider/i18n).
 
 ### The Protocol Type of `bundle.json`
 

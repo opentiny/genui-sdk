@@ -2,8 +2,8 @@
 import { TinyConfigProvider } from '@opentiny/vue';
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { watch, provide, computed, onMounted, ref, inject } from 'vue';
-import type { IMaterials } from '@opentiny/genui-sdk-core';
+import { watch, provide, computed, onMounted, ref, inject, h, defineComponent, type VNodeChild } from 'vue';
+import { applyMaterialsLocale, getMaterialsLocaleProviders, type IMaterials } from '@opentiny/genui-sdk-core';
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
@@ -101,6 +101,38 @@ watch(
 );
 
 watch(
+  () => [props.locale, props.materials] as const,
+  () => {
+    if (props.locale) {
+      applyMaterialsLocale(props.materials, props.locale);
+    }
+  },
+  { immediate: true },
+);
+
+const materialsLocaleProvider = computed(() => {
+  const providers = getMaterialsLocaleProviders(props.materials?.i18n);
+  if (providers.length === 0) {
+    return 'div';
+  }
+  if (providers.length === 1) {
+    return providers[0] as object;
+  }
+
+  return defineComponent({
+    name: 'GenuiMaterialsLocaleProviders',
+    setup(_, { slots }) {
+      return () =>
+        providers.reduceRight<VNodeChild>((children, Provider) => {
+          return h(Provider as object, null, {
+            default: () => children,
+          });
+        }, slots.default?.());
+    },
+  });
+});
+
+watch(
   () => actualTheme.value,
   (newVal) => {
     const themeConfig = themeMap[newVal] || themeMap.light;
@@ -130,7 +162,9 @@ const robotProviderProps = computed(() => {
 <template>
   <TinyConfigProvider ref="providerRef" class="tg-config-provider" :id="props.id">
     <ThemeProvider v-bind="robotProviderProps">
-      <slot />
+      <component :is="materialsLocaleProvider">
+        <slot />
+      </component>
     </ThemeProvider>
   </TinyConfigProvider>
 </template>

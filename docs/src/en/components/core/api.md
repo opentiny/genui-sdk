@@ -389,13 +389,22 @@ interface IChatMessage {
 ### IMaterials
 
 ```typescript
+interface IMaterialsI18n {
+  setLocale(locale: string): void; // GenUI locale: zh_CN / en_US
+  LocaleProvider?: unknown; // optional locale wrapper component
+  LocaleProviders?: unknown[]; // prefer when nesting multiple packages
+}
+
 interface IMaterials {
   components?: Record<string, unknown>; // component name → runtime component
   requiredCompleteFieldSelectors?: string[]; // buffer-field selectors
   defaultPropsMap?: Record<string, any>; // default props map
+  i18n?: IMaterialsI18n; // optional: UI-library built-in i18n
   [key: string]: any;
 }
 ```
+
+`i18n` is driven by `GenuiConfigProvider`'s `locale`. See [Internationalization](../../examples/config-provider/i18n).
 
 ### IMaterialsMeta
 
