@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/ng-packagr/ng-package.schema.json",
+  "dest": "../../dist-ng",
+  "lib": {
+    "entryFile": "src/index.ts"
+  },
+  "allowedNonPeerDependencies": [
+    "@angular/cdk",
+    "@angular/material",
+    "@opentiny/genui-sdk-core",
+    "rxjs"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@opentiny/genui-sdk-materials-angular-angular-material",
+  "version": "0.0.1",
+  "description": "ng-packagr build project for GenUI Angular Material materials (intermediate, not published)",
+  "private": true,
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular/core": "^20.3.0"
+  },
+  "dependencies": {
+    "@angular/cdk": "^20.2.14",
+    "@angular/material": "^20.2.14",
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  }
+}

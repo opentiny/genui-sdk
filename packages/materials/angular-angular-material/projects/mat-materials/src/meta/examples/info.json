@@ -1,0 +1,85 @@
+{
+  "state": {
+    "userInfo": {
+      "name": "张三",
+      "department": "研发部",
+      "email": "zhangsan@example.com",
+      "level": "P7"
+    }
+  },
+  "componentName": "Page",
+  "props": {
+    "style": "width: 100%; padding: 24px;"
+  },
+  "children": [
+    {
+      "componentName": "MatCard",
+      "props": {
+        "appearance": "outlined"
+      },
+      "children": [
+        {
+          "componentName": "MatCardHeader",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatCardTitle",
+              "props": {},
+              "children": "员工信息"
+            },
+            {
+              "componentName": "MatCardSubtitle",
+              "props": {},
+              "children": "基本信息卡片"
+            }
+          ]
+        },
+        {
+          "componentName": "MatDivider",
+          "props": {}
+        },
+        {
+          "componentName": "MatCardContent",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatList",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "姓名：张三"
+                },
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "部门：研发部"
+                },
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "邮箱：zhangsan@example.com"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "MatCardActions",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatButton",
+              "props": {
+                "appearance": "filled",
+                "color": "primary"
+              },
+              "children": "编辑"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
