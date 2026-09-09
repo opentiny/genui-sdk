@@ -33,9 +33,10 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
    *  新增一个组件库的完整步骤(以 Material 为例):
    *    1. materials 目录下建 Material 物料包(components/modules 命名导出);
    *    2. libraries/ 下建 material/ 目录,复用 derive-library-maps 推导映射,写 map.ts;
-   *    3. 按 AngularPropAdapter 抽象实现 prop-adapters.ts;
-   *    4. 仿 libraries/tinyng/config.ts 定义 Material 的 IAngularLibraryConfig(map + propAdapters + 库专属策略);
-   *    5. 在下方注册表加一行。
+   *    3. 仿 libraries/tinyng/config.ts 定义 Material 的 IAngularLibraryConfig(map + 库专属策略);
+   *    4. 在下方注册表加一行。
+   *  形态类 prop 问题先在物料包 meta/示例写对,出码器不做特判;仅确有通用规则覆盖不了
+   *  的形态重塑需求时,才按 AngularPropAdapter 抽象注入 config.propAdapters(当前 TinyNG 未使用)。
    */
   static readonly libraries = {
     'opentiny-ng': TINYNG_CONFIG,
@@ -799,7 +800,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   protected buildStateFields(schema: CardSchema, description: ICodegenDescription): string {
     const { state = {} } = (schema as CardSchema & { state?: Record<string, unknown> });
     for (const { config } of this.libraryConfigs) {
-      config.transformState?.(state); // 物料专属预处理(如 TiTable srcData.state 缺省字段补全);各库只碰自己关心的 state 结构,顺序无关
+      config.transformState?.(state); // 物料专属预处理(各库只碰自己关心的 state 结构,顺序无关)
     }
     this.traverseState(state as Record<string, any>, description, state);
     const stateStr = unwrapExpression(JSON.stringify(state, null, 2));

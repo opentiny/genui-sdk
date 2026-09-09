@@ -24,7 +24,6 @@ projects/code-generator/
     ├── derive-library-maps.ts       # 跨库:从物料包 ɵcmp 元数据推导映射
     └── tinyng/                      # TinyNG 库实现
         ├── map.ts                   #   映射推导
-        ├── prop-adapters.ts         #   prop 特判适配器
         └── config.ts                #   库配置汇总(TINYNG_CONFIG)
 ```
 
@@ -54,10 +53,11 @@ new AngularCodeGenerator(['opentiny-ng', 'material']).generate({ pageInfo: { sch
 
 1. materials 目录下建物料包(components/modules 命名导出);
 2. `libraries/` 下建 `<library>/` 目录,复用 `derive-library-maps` 推导映射,写 `map.ts`;
-3. 按 `AngularPropAdapter` 抽象实现 `prop-adapters.ts`;
-4. 仿 `libraries/tinyng/config.ts` 定义 `IAngularLibraryConfig`;
-5. 在 `AngularCodeGenerator.libraries` 注册表加一行。
+3. 仿 `libraries/tinyng/config.ts` 定义 `IAngularLibraryConfig`;
+4. 在 `AngularCodeGenerator.libraries` 注册表加一行。
+
+> 形态类 prop 问题一律先在物料包 meta/示例里写对(见 `libraries/tinyng/record.md`),出码器不做特判;仅当确有通用规则无法覆盖的形态重塑需求时,才复用 `prop-adapter.ts` 抽象实现并按 `propAdapters` 注入(当前 TinyNG 未使用)。
 
 ## 组件特殊用法
 
-各组件库对特定组件的特殊处理原因与示例(如 `<ti-pagination>` 的 `total`→`totalNumber`、`<ti-table>` 的 `srcData.state` 补全、JSSlot 列渲染等),记录在 `libraries/tinyng/record.md`。
+各组件库对特定组件的特殊处理原因与示例(如 `<ti-pagination>` 的 `total`→`totalNumber`、JSSlot 列渲染等),记录在 `libraries/tinyng/record.md`。

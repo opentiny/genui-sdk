@@ -143,7 +143,7 @@
         },
         "pageSize": {
           "type": "JSExpression",
-          "value": "this.state.pageSize"
+          "value": "this.state.pageSizeConfig"
         },
         "totalNumber": {
           "type": "JSExpression",
@@ -155,14 +155,17 @@
         },
         "pageSizeChange": {
           "type": "JSFunction",
-          "value": "function(size) { this.state.pageSize = size }"
+          "value": "function(size) { this.state.pageSizeConfig = { ...this.state.pageSizeConfig, size: size } }"
         }
       }
     }
   ],
   "state": {
     "currentPage": 1,
-    "pageSize": 10,
+    "pageSizeConfig": {
+      "options": [10, 20, 50, 100],
+      "size": 10
+    },
     "total": 100,
     "columns": [
       {
@@ -202,7 +205,12 @@
           "department": "市场部",
           "email": "wangwu@test.com"
         }
-      ]
+      ],
+      "state": {
+        "searched": false,
+        "sorted": false,
+        "paginated": true
+      }
     },
     "displayedData": []
   },

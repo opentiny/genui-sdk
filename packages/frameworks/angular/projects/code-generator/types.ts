@@ -103,7 +103,7 @@ export interface IAngularLibraryConfig {
   propBlacklist?: Record<string, string[]>;
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键)。当前 TinyNG 无使用;通用能力保留给后续组件库 */
   propRename?: Record<string, Record<string, string>>;
-  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。如 TinyNG 的 TiPagination 值形态特判 */
+  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。通用规则覆盖不了的值形态重塑才配置(当前 TinyNG 未使用,见 libraries/tinyng/record.md) */
   propAdapters?: AngularPropAdapter[];
   /**
    * 表单控件组件名集合。model:true 的整值双向对这些组件走 [(ngModel)];
@@ -113,7 +113,7 @@ export interface IAngularLibraryConfig {
   formComponents?: string[];
   /** 组件库全部组件名集合,供「组件库识别」比对 schema;缺省取 componentSelector 的键 */
   libraryComponents?: Set<string>;
-  /** 组件库专属 state 预处理(遍历/序列化前),如 TinyNG 的 TiTable srcData.state 缺省字段补全 */
+  /** 组件库专属 state 预处理(遍历/序列化前);各库只处理自己关心的 state 结构,顺序无关 */
   transformState?: (state: Record<string, unknown>) => void;
   /** 组件库专属 children 变换(子节点渲染前),如 TinyNG 的 TiFormField 子节点统一包装为 TiItem */
   transformChildren?: (

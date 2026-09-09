@@ -1755,20 +1755,20 @@
                     "property": "pageSize",
                     "label": {
                       "text": {
-                        "zh_CN": "每页条数"
+                        "zh_CN": "每页条数配置"
                       }
                     },
                     "description": {
-                      "zh_CN": "每页显示的数据条数"
+                      "zh_CN": "每页显示条数配置对象，必须给一个对象，形如 { options: [10, 20, 50, 100], size: 10 }。其中 options 是可选每页条数数组，size 是当前每页条数。组件用单个 pageSize 输入接收该对象，没有 pageSizes 属性，不要把选项列表单独写成 pageSizes"
                     },
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
                     "labelPosition": "left",
-                    "type": "number",
+                    "type": "object",
                     "widget": {
-                      "component": "NumberConfigurator",
+                      "component": "ObjectConfigurator",
                       "props": {
                       }
                     }
@@ -1791,28 +1791,6 @@
                     "type": "number",
                     "widget": {
                       "component": "NumberConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "pageSizes",
-                    "label": {
-                      "text": {
-                        "zh_CN": "每页条数选项"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "每页条数选项数组"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "array",
-                    "widget": {
-                      "component": "ArrayConfigurator",
                       "props": {
                       }
                     }
@@ -6008,7 +5986,10 @@
                 "componentName": "TiPagination",
                 "props": {
                   "currentPage": 1,
-                  "pageSize": 10,
+                  "pageSize": {
+                    "options": [10, 20, 50, 100],
+                    "size": 10
+                  },
                   "totalNumber": 100
                 }
               }
