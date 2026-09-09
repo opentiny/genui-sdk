@@ -1,0 +1,76 @@
+{
+  "name": "@opentiny/genui-sdk-materials-angular-angular-material",
+  "version": "0.0.1",
+  "description": "GenUI Angular materials package based on Angular Material",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/materials/angular-angular-material"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "generative-ui",
+    "angular-material",
+    "angular",
+    "materials"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./meta": {
+      "types": "./dist/meta.d.ts",
+      "import": "./dist/meta.js",
+      "require": "./dist/meta.js"
+    },
+    "./materials": {
+      "types": "./dist/materials.d.ts",
+      "import": "./dist/materials.js",
+      "require": "./dist/materials.js"
+    },
+    "./patch": {
+      "types": "./dist/patch.d.ts",
+      "import": "./dist/patch.js",
+      "require": "./dist/patch.js"
+    }
+  },
+  "scripts": {
+    "build:ng": "ng-packagr -p projects/mat-materials/ng-package.json",
+    "build": "pnpm build:ng && vite build --config ./build-from-dist/vite.config.lib.ts"
+  },
+  "dependencies": {
+    "@angular/cdk": "^20.2.14",
+    "@angular/core": "^20.3.0",
+    "@angular/material": "^20.2.14",
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/compiler-cli": "^20.3.0",
+    "escape-string-regexp": "^1.0.5",
+    "ng-packagr": "^20.3.0",
+    "typescript": "^5.8.2",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0",
+    "vite-plugin-static-copy": "^3.1.2"
+  }
+}

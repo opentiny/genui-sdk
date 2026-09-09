@@ -7,6 +7,7 @@ packages:
   - '!packages/server/output/**'
   - '!packages/frameworks/angular/**/*'
   - '!projects/tiny-schema-renderer-ng/**/*'
+  - '!packages/materials/angular-angular-material/projects/**'
 
 patchedDependencies:
   ai@6.0.116: patches/ai@6.0.116.patch

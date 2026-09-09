@@ -1,0 +1,179 @@
+{
+  "state": {
+    "columns": [
+      {
+        "title": "姓名"
+      },
+      {
+        "title": "部门"
+      },
+      {
+        "title": "职位"
+      }
+    ],
+    "displayedData": [
+      {
+        "name": "张三",
+        "department": "研发部",
+        "position": "前端工程师"
+      },
+      {
+        "name": "李四",
+        "department": "研发部",
+        "position": "后端工程师"
+      },
+      {
+        "name": "王五",
+        "department": "人事部",
+        "position": "HR"
+      }
+    ]
+  },
+  "componentName": "Page",
+  "props": {
+    "style": "width: 100%; padding: 24px;"
+  },
+  "children": [
+    {
+      "componentName": "MatCard",
+      "props": {
+        "appearance": "outlined"
+      },
+      "children": [
+        {
+          "componentName": "MatCardHeader",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatCardTitle",
+              "props": {},
+              "children": "员工列表"
+            }
+          ]
+        },
+        {
+          "componentName": "MatCardContent",
+          "props": {},
+          "children": [
+            {
+              "componentName": "table",
+              "props": {
+                "style": "width: 100%; border-collapse: collapse;"
+              },
+              "children": [
+                {
+                  "componentName": "thead",
+                  "props": {},
+                  "children": [
+                    {
+                      "componentName": "tr",
+                      "props": {
+                        "style": "background: #f5f5f5;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "th",
+                          "props": {
+                            "style": "padding: 8px; text-align: left;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "column.title"
+                                }
+                              }
+                            }
+                          ],
+                          "loop": {
+                            "type": "JSExpression",
+                            "value": "this.state.columns"
+                          },
+                          "loopArgs": [
+                            "column"
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "tbody",
+                  "props": {},
+                  "children": [
+                    {
+                      "componentName": "tr",
+                      "props": {},
+                      "loop": {
+                        "type": "JSExpression",
+                        "value": "this.state.displayedData"
+                      },
+                      "loopArgs": [
+                        "row"
+                      ],
+                      "children": [
+                        {
+                          "componentName": "td",
+                          "props": {
+                            "style": "padding: 8px; border-bottom: 1px solid #eee;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "row.name"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "td",
+                          "props": {
+                            "style": "padding: 8px; border-bottom: 1px solid #eee;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "row.department"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "td",
+                          "props": {
+                            "style": "padding: 8px; border-bottom: 1px solid #eee;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "row.position"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
