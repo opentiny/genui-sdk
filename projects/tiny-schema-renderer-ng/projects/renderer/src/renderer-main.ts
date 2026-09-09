@@ -2,7 +2,9 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EnvironmentInjector,
   inject,
+  Injector,
   Input,
   NgZone,
   OnDestroy,
@@ -45,6 +47,7 @@ function reset(obj: any) {
         [scope]="scope"
         [parent]="pageSchema"
         [template]="rendererTemplateComponent.template"
+        [injector]="schemaInjector"
         [projectedViews]="projectedViews"
       ></ng-template>
     </ng-container>
@@ -67,14 +70,31 @@ export class RendererMain implements OnDestroy {
   cssScopeId: string = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
+  /**
+   * Nested block renderer: schema DI parent is EnvironmentInjector, not the outer
+   * page element chain. Projected NgContent is created at the usage site and is unchanged.
+   */
+  readonly schemaInjector: Injector | undefined;
 
   constructor(
     private contextService: RendererContextService,
+    private contentChildrenService: ContentChildrenService,
     private el: ElementRef,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
+    private environmentInjector: EnvironmentInjector,
     @SkipSelf() @Optional() private pageContextService: RendererContextService,
   ) {
+    this.schemaInjector = this.pageContextService
+      ? Injector.create({
+          name: 'BlockSchemaInjector',
+          parent: this.environmentInjector,
+          providers: [
+            { provide: RendererContextService, useValue: this.contextService },
+            { provide: ContentChildrenService, useValue: this.contentChildrenService },
+          ],
+        })
+      : undefined;
     this.cssScopeId = `data-schema-${Math.random().toString(36).slice(2, 8)}`;
     this.applyRendererSettings();
     this.updateBlocks();

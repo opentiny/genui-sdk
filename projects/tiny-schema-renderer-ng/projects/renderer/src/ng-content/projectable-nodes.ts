@@ -1,4 +1,6 @@
 import { Type, ɵgetLContext as getLContext } from '@angular/core';
+import { getComponent } from '../parser/material-getter';
+import { isSchemaProjectionNode } from '../schema-host-nodes';
 
 /** LView header: TView pointer. Angular 20 `root_effect_scheduler.mjs`. */
 const TVIEW = 1;
@@ -23,6 +25,57 @@ export function getHostProjectedNodes(instance: object): Node[][] | null {
 }
 
 /**
+ * `createComponent({ projectableNodes })` copies each slot with `Array.from` onto the
+ * host TNode. Detached slot CD then creates real child hosts into nested views — those
+ * nodes are not in the copy, so lazy `<ng-content>` projects only the original `*ngIf`
+ * comments.
+ *
+ * Rewrite each TNode.projection slot to the live `rootNodes`. If that slot was already
+ * inserted (live ng-content), move any missing **schema** nodes next to the existing
+ * anchors. `rootNodes` also lists elements libraries insert on nested view containers;
+ * those are not schema children and are left where their owner placed them.
+ */
+export function syncLiveProjectedNodes(
+  instance: object,
+  liveSlots: Array<readonly Node[] | null | undefined>,
+): void {
+  const projected = getHostProjectedNodes(instance);
+  if (!projected?.length) {
+    return;
+  }
+  const slotCount = Math.min(projected.length, liveSlots.length);
+  for (let i = 0; i < slotCount; i++) {
+    const live = liveSlots[i];
+    if (!live?.length) {
+      continue;
+    }
+    let slot = projected[i];
+    if (!Array.isArray(slot)) {
+      slot = [];
+      projected[i] = slot;
+    }
+    const alreadyProjected = new Set(slot.filter(Boolean));
+    let parent: Node | null = null;
+    for (const node of slot) {
+      if (node?.parentNode) {
+        parent = node.parentNode;
+        break;
+      }
+    }
+    slot.length = 0;
+    for (const node of live) {
+      if (!isSchemaProjectionNode(node, alreadyProjected)) {
+        continue;
+      }
+      slot.push(node);
+      if (parent && node.parentNode !== parent) {
+        parent.appendChild(node);
+      }
+    }
+  }
+}
+
+/**
  * Read ng-content slot selectors from a component def (order = projectableNodes indices).
  * Missing / non-array defs fall back to a single default slot `['*']`.
  * An explicit empty array means no projection slots (e.g. a block with no NgContent).
@@ -30,6 +83,28 @@ export function getHostProjectedNodes(instance: object): Node[][] | null {
 export function getNgContentSelectors(componentType: Type<any> | null | undefined): string[] {
   const selectors = (componentType as any)?.ɵcmp?.ngContentSelectors;
   return Array.isArray(selectors) ? (selectors as string[]) : ['*'];
+}
+
+/**
+ * Host tag used for ng-content `select` matching — real createComponent host tag.
+ * Prefer `ɵcmp.selectors[0][0]` (e.g. DDatepicker → `input`); camelCase→kebab is only a fallback.
+ */
+function schemaHostTagName(schema: any, context: Record<PropertyKey, any> = {}): string {
+  const name = String(schema?.componentName ?? '');
+  if (!name) {
+    return '';
+  }
+  const sel = (getComponent(name, context) as any)?.['ɵcmp']?.selectors?.[0]?.[0];
+  if (typeof sel === 'string' && sel) {
+    return sel.toLowerCase();
+  }
+  if (name.includes('-') || name === name.toLowerCase()) {
+    return name.toLowerCase();
+  }
+  return name
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+    .toLowerCase();
 }
 
 /** Flatten schema props that will be applied as host attributes (incl. nested `attributes`). */
@@ -121,7 +196,11 @@ function matchAttributeSelector(attrs: Record<string, unknown>, body: string): b
  * `.class`, and compound forms (e.g. `app-list-item.active`, `[header][disabled]`), plus
  * comma-separated selector lists.
  */
-export function schemaChildMatchesSelector(schema: any, selector: string): boolean {
+export function schemaChildMatchesSelector(
+  schema: any,
+  selector: string,
+  context: Record<PropertyKey, any> = {},
+): boolean {
   const sel = selector.trim();
   if (!sel || sel === '*') {
     return true;
@@ -129,11 +208,13 @@ export function schemaChildMatchesSelector(schema: any, selector: string): boole
 
   // Selector list: "a, b, c"
   if (sel.includes(',')) {
-    return splitSelectorList(sel).some((part) => schemaChildMatchesSelector(schema, part));
+    return splitSelectorList(sel).some((part) =>
+      schemaChildMatchesSelector(schema, part, context),
+    );
   }
 
   const attrs = getSchemaAttributeMap(schema);
-  const tag = String(schema?.componentName ?? '').toLowerCase();
+  const tag = schemaHostTagName(schema, context);
   const classes = new Set(getSchemaClassList(schema));
 
   // Tokenize a compound selector: tag | .class | [attr] | [attr=value] | :pseudo
@@ -160,7 +241,7 @@ export function schemaChildMatchesSelector(schema: any, selector: string): boole
           return false;
         }
         // `:not(X)` matches when X does not match.
-        if (schemaChildMatchesSelector(schema, inner)) {
+        if (schemaChildMatchesSelector(schema, inner, context)) {
           return false;
         }
       }
@@ -183,6 +264,7 @@ export function schemaChildMatchesSelector(schema: any, selector: string): boole
 export function classifySchemaChildrenByNgContentSelectors(
   children: any[],
   selectors: string[],
+  context: Record<PropertyKey, any> = {},
 ): { buckets: any[][]; originalIndexes: number[][] } {
   const list = Array.isArray(children) ? children : [];
   const buckets = selectors.map(() => [] as any[]);
@@ -197,7 +279,7 @@ export function classifySchemaChildrenByNgContentSelectors(
       if (sel === '*') {
         continue;
       }
-      if (schemaChildMatchesSelector(child, sel)) {
+      if (schemaChildMatchesSelector(child, sel, context)) {
         buckets[i].push(child);
         originalIndexes[i].push(childIndex);
         placed = true;

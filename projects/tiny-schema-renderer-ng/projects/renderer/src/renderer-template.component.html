@@ -60,8 +60,8 @@
         #componentOutlet="componentOutlet"
       ></ng-template>
 
-      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes">
-        <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
+      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes" let-componentInjector="componentInjector">
+        <ng-container *ngIf="(children | isArray) && !!(componentInjector || componentOutlet?.componentInjector)">
           <ng-container *ngFor="let child of children; let childIndex = index">
             <ng-template [ngTemplateOutlet]="child.componentName === 'NgTemplate' 
               ? ngTemplate 

@@ -1,4 +1,6 @@
 import {
+  InjectionToken,
+  Injector,
   QueryList,
   TemplateRef,
   Type,
@@ -190,12 +192,47 @@ function rememberShimBinding(
   list.push({ signalNode, propertyName, firstOnly, predicate, descendants });
 }
 
-function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
+/**
+ * Query-signal node. Fast path uses Angular's `SIGNAL` brand; production bundles can
+ * duplicate that symbol, so fall back to any own-symbol whose node holds a QueryList.
+ */
+function getQuerySignalNode(value: unknown): any | null {
   if (typeof value !== 'function') {
-    return false;
+    return null;
   }
-  const node = (value as any)[SIGNAL];
-  return !!node && node._queryList instanceof QueryList;
+  const branded = (value as any)[SIGNAL];
+  if (branded?._queryList instanceof QueryList) {
+    return branded;
+  }
+  for (const sym of Object.getOwnPropertySymbols(value)) {
+    const node = (value as any)[sym];
+    if (node?._queryList instanceof QueryList) {
+      return node;
+    }
+  }
+  return null;
+}
+
+function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
+  return getQuerySignalNode(value) != null;
+}
+
+/** Ivy `ctx.foo` or minified `n.foo` — identifiers minify, property names usually do not. */
+const IVY_CTX_PROP = '[A-Za-z_$][\\w$]*\\.([A-Za-z_$][\\w$]*)';
+const IVY_ASSIGN_FIRST_RE = new RegExp(
+  `${IVY_CTX_PROP}\\s*=\\s*[A-Za-z_$][\\w$]*\\.first\\b`,
+  'g',
+);
+const IVY_ASSIGN_RE = new RegExp(`${IVY_CTX_PROP}\\s*=`, 'g');
+const IVY_CALL_PROP_ARG_RE = new RegExp(`\\(\\s*${IVY_CTX_PROP}\\s*,`, 'g');
+
+function ivyCtxProps(src: string, pattern: RegExp): string[] {
+  const props: string[] = [];
+  pattern.lastIndex = 0;
+  for (const m of src.matchAll(pattern)) {
+    props.push(m[1]);
+  }
+  return props;
 }
 
 /** Read predicate from a bound query signal node (no signal read → no QueryList wipe). */
@@ -325,13 +362,13 @@ function getViewQueryPropertyNames(instance: object): Set<string> {
   const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
   if (typeof viewQuery === 'function') {
     const src = Function.prototype.toString.call(viewQuery);
-    // decorator @ViewChild/@ViewChildren update assignments
-    for (const m of src.matchAll(/ctx\.([A-Za-z_$][\w$]*)\s*=/g)) {
-      names.add(m[1]);
+    // decorator @ViewChild/@ViewChildren: `ctx.foo = _t.first` or minified `r.trigger=o.first`
+    for (const name of ivyCtxProps(src, IVY_ASSIGN_RE)) {
+      names.add(name);
     }
-    // signal viewChild()/viewChildren() create declarations
-    for (const m of src.matchAll(/ɵɵviewQuerySignal\(\s*ctx\.([A-Za-z_$][\w$]*)\s*,/g)) {
-      names.add(m[1]);
+    // signal viewChild(): `ɵɵviewQuerySignal(ctx.foo,` or minified `Og(r._iconPrefixContainerSignal,`
+    for (const name of ivyCtxProps(src, IVY_CALL_PROP_ARG_RE)) {
+      names.add(name);
     }
   }
   viewQueryPropsByClass.set(ctor, names);
@@ -403,7 +440,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         hostInstance: instance,
       });
     } else if (isQuerySignal(value)) {
-      const node = (value as any)[SIGNAL];
+      const node = getQuerySignalNode(value);
       // viewChild()/viewChildren() signals are resolved by Angular — never patch.
       // Content signals stay patchable.
       if (viewQueryProps.has(key)) {
@@ -602,6 +639,51 @@ function pickMatchForOutlet(
       if (match) {
         return match;
       }
+      // ContentChild(MatFormFieldControl) matches `provide: { useExisting: MatInput }`,
+      // not `instanceof`. Native queries walk providers; so must we.
+      const provided = resolveProvidedToken(outlet, p as Type<unknown>);
+      if (provided != null) {
+        return provided;
+      }
+      continue;
+    }
+    // ContentChild(MAT_SLIDER_THUMB) etc. — InjectionToken, not a class.
+    if (p instanceof InjectionToken) {
+      const provided = resolveProvidedToken(outlet, p);
+      if (provided != null) {
+        return provided;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Resolve a class / DI token provided by this outlet's host (component or host directives). */
+function resolveProvidedToken(
+  outlet: ComponentOutlet,
+  token: Type<unknown> | InjectionToken<unknown>,
+): unknown {
+  const injectors = [outlet.componentRef?.injector, outlet.componentInjector].filter(
+    (injector): injector is Injector => injector != null,
+  );
+  for (const injector of injectors) {
+    try {
+      const value = injector.get(token as Type<unknown>, null, { optional: true, self: true });
+      if (value != null) {
+        return value;
+      }
+    } catch {
+      // Host injector may not be ready.
+    }
+  }
+  for (const injector of injectors) {
+    try {
+      const value = injector.get(token as Type<unknown>, null, { optional: true });
+      if (value != null && getOutletQueryCandidates(outlet).includes(value as object)) {
+        return value;
+      }
+    } catch {
+      // ignore
     }
   }
   return undefined;
@@ -679,12 +761,20 @@ export function resolvePatchResults(
   return results;
 }
 
+/** Null and undefined are the same empty ContentChild result. */
+function sameSlotValue(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  return a == null && b == null;
+}
+
 function sameQueryResults(a: unknown[], b: unknown[]): boolean {
   if (a.length !== b.length) {
     return false;
   }
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
+    if (!sameSlotValue(a[i], b[i])) {
       return false;
     }
   }
@@ -698,8 +788,70 @@ function childrenStructureKey(childInstances: unknown[]): string {
     .join(',');
 }
 
-/** Last structure key that already triggered a view refresh. */
-const lastScheduledStructureKey = new WeakMap<ComponentOutlet, string>();
+/** Last patch fingerprint that already scheduled a view refresh for this outlet. */
+const lastScheduledPatchKey = new WeakMap<ComponentOutlet, string>();
+
+let patchIdentitySeq = 0;
+const patchIdentities = new WeakMap<object, number>();
+
+function patchIdentity(value: unknown): string {
+  if (value == null) {
+    return '';
+  }
+  if (typeof value !== 'object') {
+    return `p:${String(value)}`;
+  }
+  let id = patchIdentities.get(value);
+  if (id == null) {
+    id = ++patchIdentitySeq;
+    patchIdentities.set(value, id);
+  }
+  return String(id);
+}
+
+function queryResultsFingerprint(targets: ContentQueryPatchTarget[]): string {
+  return targets
+    .map((target) => {
+      const items = target.queryList?.toArray?.() ?? [];
+      return `${target.kind}:${target.propertyName ?? ''}:${items.map(patchIdentity).join(',')}`;
+    })
+    .join('|');
+}
+
+type ReactiveLink = { consumer: ReactiveNode; nextConsumer?: ReactiveLink };
+type ReactiveNode = {
+  value?: unknown;
+  version?: number;
+  dirty?: boolean;
+  consumers?: ReactiveLink;
+  consumerMarkedDirty?: (node: ReactiveNode) => void;
+};
+
+/**
+ * Derived computeds such as MatFormField `_hasFloatingLabel = computed(() => !!this._labelChild())`
+ * subscribe to the original `contentChild()` computed. Replacing the field with a shim does not
+ * change that computed's value (native query is still empty), so they never re-run and lazy
+ * `@if (_hasFloatingLabel())` ng-content stays uncreated. Publish the patched value onto the
+ * original node and notify its consumers so they re-read `this._labelChild`.
+ */
+function publishQuerySignalValue(signalNode: object, nextValue: unknown): void {
+  const node = signalNode as ReactiveNode;
+  node.value = nextValue;
+  node.version = (node.version ?? 0) + 1;
+  markReactiveConsumersDirty(node);
+}
+
+function markReactiveConsumersDirty(node: ReactiveNode): void {
+  for (let link = node.consumers; link; link = link.nextConsumer) {
+    const consumer = link.consumer;
+    if (!consumer || consumer.dirty) {
+      continue;
+    }
+    consumer.dirty = true;
+    consumer.consumerMarkedDirty?.(consumer);
+    markReactiveConsumersDirty(consumer);
+  }
+}
 
 /** Install/update signal shim. Safe only outside ApplicationRef.synchronize (post-tick microtask). */
 function installOrUpdateSignalShim(
@@ -718,13 +870,15 @@ function installOrUpdateSignalShim(
     shim = signal(nextValue);
     signalShims.set(signalNode, shim);
     (hostInstance as any)[propertyName] = shim.asReadonly();
+    publishQuerySignalValue(signalNode, nextValue);
     return true;
   }
   const prev = shim();
-  if (firstOnly ? prev === nextValue : sameQueryResults((prev as unknown[]) ?? [], results)) {
+  if (firstOnly ? sameSlotValue(prev, nextValue) : sameQueryResults((prev as unknown[]) ?? [], results)) {
     return false;
   }
   shim.set(nextValue);
+  publishQuerySignalValue(signalNode, nextValue);
   return true;
 }
 
@@ -850,24 +1004,25 @@ export function patchOutletContentQueries(
     return false;
   }
 
-  // Only mark for check when the child structure changed or a shim needs a new value — else we'd loop.
-  const structureChanged = lastScheduledStructureKey.get(parentOutlet) !== structureKey;
-  if (!structureChanged && !shimChanged) {
+  // Query-result changes (e.g. MatFormFieldControl resolved via provide) need a CD so
+  // `_shouldLabelFloat` / `_initializeControl` see the real control. Structure-only
+  // gating would skip that when children were already registered.
+  // Fingerprint the applied results: MatTab empty ContentChild was `undefined !== null`
+  // every tick, which markForCheck'd in a loop (NG0103). Same results → no extra CD.
+  const patchKey = `${structureKey}#${queryResultsFingerprint(targets)}`;
+  if (lastScheduledPatchKey.get(parentOutlet) === patchKey) {
     return false;
   }
-  lastScheduledStructureKey.set(parentOutlet, structureKey);
+  lastScheduledPatchKey.set(parentOutlet, patchKey);
   parentOutlet.componentRef?.changeDetectorRef.markForCheck();
   return true;
 }
 
 /**
  * Compiled `ɵcmp.contentQueries` source is re-parsed per class to recover `@ContentChild` field
- * names (`ctx.foo = _t.first`). Parsing `Function.prototype.toString` is fragile against
- * minification (which can rename `ctx`/`_t`) and Angular codegen changes, but it is the only
- * source of field→query cardinality (metadata holds predicate/flags, not the property name).
- * Fail closed: when the regex matches nothing, `firstProps` is empty and the caller skips
- * field-name binding entirely (queries simply remain unpatched). Results are cached per class
- * because this runs after every render tick.
+ * names. Ivy emits `ctx.foo = _t.first`; production minify rewrites locals (`r._formFieldControl=a.first`)
+ * but keeps the property name. That name is not in query metadata, so toString is the only source.
+ * Fail closed: when nothing matches, field-name binding is skipped. Cached per class.
  */
 const contentChildFirstPropsByClass = new WeakMap<object, string[]>();
 
@@ -881,10 +1036,7 @@ function getContentChildFirstProps(instance: object): string[] {
   const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
   if (typeof contentQueries === 'function') {
     const src = Function.prototype.toString.call(contentQueries);
-    // `ctx.foo = _t.first` → @ContentChild
-    for (const m of src.matchAll(/ctx\.([A-Za-z_][\w$]*)\s*=\s*_t\.first/g)) {
-      firstProps.push(m[1]);
-    }
+    firstProps.push(...ivyCtxProps(src, IVY_ASSIGN_FIRST_RE));
   }
   contentChildFirstPropsByClass.set(ctor, firstProps);
   return firstProps;
@@ -934,7 +1086,7 @@ function syncHostFieldsFromContentQueryTargets(
     }
     // @ContentChild: host field holds the single match (or null).
     const next = target.queryList.toArray()[0] ?? null;
-    if (current !== next) {
+    if (!sameSlotValue(current, next)) {
       (instance as any)[prop] = next;
       changed = true;
     }
