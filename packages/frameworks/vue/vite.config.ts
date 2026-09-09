@@ -1,5 +1,5 @@
 import path from 'path';
-import { defineConfig, PluginOption } from 'vite';
+import { defineConfig } from 'vite';
 import { visualizer } from 'rollup-plugin-visualizer';
 import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import escapeStringRegexp from 'escape-string-regexp';
@@ -22,18 +22,10 @@ export default defineConfig(({ mode }) => {
         : null,
       dts({
         rollupTypes: true,
-        bundledPackages: [
-          '@opentiny/tiny-schema-renderer',
-          'zod',
-          'zod-to-json-schema',
-        ],
+        bundledPackages: ['zod', 'zod-to-json-schema'],
+        include: ['src'],
         compilerOptions: {
-          paths: {
-            // 临时规避此包无.d.ts文件的问题
-            '@opentiny/tiny-schema-renderer': ['../src/types/tiny-schema-renderer.d.ts'],
-            '@opentiny/tiny-schema-renderer/transform-jsx': ['../src/types/tiny-schema-renderer.d.ts'],
-          },
-          include: ['../src/types/tiny-schema-renderer.d.ts'],
+          skipLibCheck: true,
         },
       }),
     ],
@@ -48,6 +40,7 @@ export default defineConfig(({ mode }) => {
           'legacy-renderer': path.resolve(__dirname, './src/legacy-renderer/index.ts'),
           'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
           'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
+          'code-generator': path.resolve(__dirname, './src/code-generator/index.ts'),
         },
         formats: ['es'],
         fileName: (_, entryName) => `${entryName}.js`,
@@ -65,7 +58,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         external: [
           ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
-        ]
+        ],
       },
     },
   };

@@ -8,14 +8,15 @@ import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/mat
   selector: 'app-root',
   imports: [FormsModule, GenuiConfigProvider, GenuiRenderer],
   templateUrl: './app.html',
-  styleUrl: './app.less'
+  styleUrls: ['./app.less'],
 })
 export class App {
   inputText = '';
-  schema = '';
+  schema: any = '';
   rendererKey = '';
   generating = false;
   protected readonly activeMaterials = materials;
+
   async handleSend() {
     if (!this.inputText.trim() || this.generating) return;
 
@@ -24,7 +25,7 @@ export class App {
     this.rendererKey = this.rendererKey + 1;
     const userInput = this.inputText;
     this.inputText = '';
-  
+
     try {
       await fetchSchemaStream('http://localhost:3100/chat/completions', userInput, (schemaChunk: string) => {
         this.schema += schemaChunk;

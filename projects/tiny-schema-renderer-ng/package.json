@@ -4,6 +4,13 @@
   "type": "module",
   "main": "dist/renderer",
   "types": "dist/renderer",
+  "exports": {
+    ".": {
+      "types": "./dist/renderer/index.d.ts",
+      "import": "./dist/renderer/fesm2022/renderer.mjs",
+      "default": "./dist/renderer/fesm2022/renderer.mjs"
+    }
+  },
   "files": [
     "dist"
   ],

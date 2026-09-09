@@ -1,6 +1,7 @@
 import { ChatCompletions } from "./chat-completions";
 import type {
   ChatCompletionCreateParamsBase,
+  IChatCompletionsConfig,
   IRequestOptions,
   ChatCompletionResponse
 } from "./types";
@@ -9,8 +10,8 @@ export class FetchChatCompletions extends ChatCompletions<Response, ChatCompleti
   protected readonly apiKey: string;
   protected readonly baseURL: string;
 
-  constructor(config: { apiKey: string; baseURL: string }) {
-    super();
+  constructor(config: { apiKey: string; baseURL: string } & IChatCompletionsConfig) {
+    super(config);
     this.apiKey = config.apiKey;
     this.baseURL = config.baseURL.replace(/\/$/, '');
   }

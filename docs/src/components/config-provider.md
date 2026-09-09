@@ -1,6 +1,6 @@
 # GenuiConfigProvider 组件
 
-`GenuiConfigProvider` 用于为渲染器提供主题、国际化与物料配置能力，并将主题样式限定在特定作用域内。
+`GenuiConfigProvider` 用于为渲染器提供主题、国际化、物料与自定义 Notify 等配置能力，并将主题样式限定在特定作用域内。
 
 仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
@@ -8,12 +8,12 @@
 
 ### theme
 
-- **类型**: `'dark' | 'lite' | 'light' | 'auto'`
+- **类型**: `string`
 - **必填**: 否
 - **默认值**: `'light'`
-- **说明**: 主题模式。
+- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料主题](./materials/theme)。
   - `'dark'`：深色主题
-  - `'lite'`：清新主题
+  - `'lite'`：清新主题（仅 OpenTiny Vue 物料）
   - `'light'`：浅色主题
   - `'auto'`：自动跟随浏览器
 
@@ -120,6 +120,44 @@ const content = ref({});
 </script>
 ```
 
+### notify
+
+- **类型**: `NotifyHandler`
+- **必填**: 否
+- **默认值**: `undefined`
+- **说明**: 自定义渲染器通知回调。Schema 中 `JSFunction` 解析失败或执行报错时会调用该函数；未配置时使用内置 DOM toast。
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials" :notify="handleNotify">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider, type NotifyHandler } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+
+const handleNotify: NotifyHandler = (options) => {
+  // 接入业务侧消息组件，例如 TinyNotify / Element Plus ElMessage
+  console.log(options.type, options.title, options.message);
+};
+</script>
+```
+
 ## Slots
 
 `GenuiConfigProvider` 使用默认插槽包裹子组件。
@@ -186,3 +224,16 @@ type I18nMessageObject = {
 ```
 
 国际化消息对象结构，支持嵌套对象。键为消息键名，值为字符串或嵌套的消息对象。
+
+### NotifyHandler
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+自定义通知回调类型，见上方 [notify](#notify) 属性。

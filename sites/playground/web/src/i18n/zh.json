@@ -26,9 +26,10 @@
     "tabMaterials": "物料",
     "tabTheme": "主题",
     "tabHistory": "历史会话",
-    "tabTemplate": "模板（实验特性）",
+    "tabTemplate": "应用",
     "modeChat": "Chat",
-    "modeBuilder": "Builder"
+    "modeBuilder": "Builder",
+    "mode": "模式"
   },
   "materials": {
     "framework": "框架",
@@ -37,7 +38,9 @@
     "themeLight": "亮色",
     "themeDark": "暗黑",
     "themeLite": "清新",
-    "themeAuto": "跟随系统"
+    "themeAuto": "跟随系统",
+    "frameworkVue": "Vue框架",
+    "frameworkAngular": "Angular框架"
   },
   "model": {
     "select": "模型选择",
@@ -46,7 +49,7 @@
     "promptVariantMini": "Mini（轻量）",
     "promptVariantStandard": "Standard（标准）",
     "promptVariantPlus": "Plus（增强）",
-    "prompt": "提示词",
+    "additionalPrompt": "追加提示词",
     "edit": "编辑",
     "delete": "删除",
     "editPrompt": "编辑提示词",
@@ -89,10 +92,10 @@
   "template": {
     "selectTitle": "选择示例模板",
     "cancel": "取消",
-    "createNew": "创建新模板",
+    "createNew": "创建新应用",
     "confirm": "确定",
-    "new": "新建模板",
-    "defaultTitle": "新模板",
+    "new": "新建应用",
+    "defaultTitle": "新应用",
     "confirmDeleteOne": "确定删除该模板吗？",
     "confirmBatchDelete": "确定删除选中的 {count} 个模板？",
     "inputPlaceholder": "描述要构建的内容",
@@ -273,6 +276,9 @@
     "model": "模型",
     "finishReason": "结束原因",
     "time": "时间",
+    "duration": "总消耗时长",
+    "ttfb": "首响应耗时",
+    "renderDuration": "渲染耗时",
     "promptTokens": "输入 Token",
     "completionTokens": "输出 Token",
     "totalTokens": "总计 Token"

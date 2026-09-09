@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { TinyButton, TinyButtonGroup, TinyTooltip } from '@opentiny/vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue';
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import { IconArrowRight, IconPause, IconRefresh, IconStartCircle } from '@opentiny/vue-icon';
 import { LinkKey, linkMap } from '@/utils/link';
@@ -10,12 +11,17 @@ import { splitJsonIntoChunks } from '@/utils/jsonUtil';
 import caculatorJson from '@/static/caculator.json';
 import todoJson from '@/static/todo.json';
 import todoJsonEn from '@/static/todo.en.json';
+import coinGameJson from '@/static/coin-game.json';
+import coinGameJsonEn from '@/static/coin-game.en.json';
 import { t, locale } from '@/i18n';
+import calculatorIcon from '@/assets/calculator.svg?no-inline'
+import todoIcon from '@/assets/todo.svg?no-inline'
+import coinsIcon from '@/assets/coins.svg?no-inline'
+import playIcon from '@/assets/play.svg?no-inline'
 
 const TinyIconArrowRight = IconArrowRight();
 const TinyIconPause = IconPause();
 const TinyIconRefresh = IconRefresh();
-const TinyIconStartCircle = IconStartCircle();
 
 const message = ref<{ role: 'assistant'; content: string } | null>(null);
 const extendSelect = ref('element');
@@ -37,17 +43,21 @@ let revealCardOnFirstChunk = false;
 const messageContentMap = {
   element: t('extend.prompt.element'),
   page: t('extend.prompt.page'),
+  coin: t('extend.prompt.coin'),
 };
 const bubbleContentMap = {
   element: t('extend.prompt.elementBubble'),
   page: t('extend.prompt.pageBubble'),
+  coin: t('extend.prompt.coinBubble'),
 };
 const inputMessage = computed(
   () => `?input-message=${messageContentMap[extendSelect.value as keyof typeof messageContentMap]}`,
 );
 
-/** 已开始回放流程（生成中 / 准备中 / 暂停待续）时固定在右下角；仅待播放或重播待命时居中 */
-const streamControlsDocked = computed(() => generating.value || preparingPlayback.value || !streamCompleted.value);
+/** 首次播放按钮居中展示；生成中 / 暂停 / 播放过后的重放均固定右下角，避免遮挡内容 */
+const streamControlsDocked = computed(
+  () => generating.value || preparingPlayback.value || !streamCompleted.value || hasPlayedOnce.value,
+);
 
 const userBubbleContent = computed(
   () => bubbleContentMap[extendSelect.value as keyof typeof bubbleContentMap],
@@ -56,6 +66,9 @@ const userBubbleContent = computed(
 const getJsonData = (type: string) => {
   if (type === 'element') {
     return caculatorJson;
+  }
+  if (type === 'coin') {
+    return locale.value === 'en_US' ? coinGameJsonEn : coinGameJson;
   }
   return locale.value === 'en_US' ? todoJsonEn : todoJson;
 };
@@ -227,7 +240,7 @@ const handleCornerReplay = () => {
 };
 
 watch(isMobile, (mobile) => {
-  if (mobile && extendSelect.value === 'page') {
+  if (mobile && (extendSelect.value === 'page' || extendSelect.value === 'coin')) {
     handleExtendClick('element');
   }
 });
@@ -256,6 +269,7 @@ onUnmounted(() => {
         value="element"
         @click="handleExtendClick('element')"
       >
+        <img class="extend-button-icon" :src="calculatorIcon" alt="" />
         {{ t('extend.calculator') }}
       </tiny-button>
       <tiny-button
@@ -266,7 +280,19 @@ onUnmounted(() => {
         value="page"
         @click="handleExtendClick('page')"
       >
+        <img class="extend-button-icon" :src="todoIcon" alt="" />
         {{ t('extend.todoApp') }}
+      </tiny-button>
+      <tiny-button
+        v-if="!isMobile"
+        class="extend-button extend-button-element-3"
+        :reset-time="0"
+        :class="{ 'extend-button-element-active': extendSelect === 'coin' }"
+        value="coin"
+        @click="handleExtendClick('coin')"
+      >
+        <img class="extend-button-icon" :src="coinsIcon" alt="" />
+        {{ t('extend.coinGame') }}
       </tiny-button>
     </tiny-button-group>
     <div class="home-extend-schema">
@@ -277,6 +303,7 @@ onUnmounted(() => {
           <div class="home-extend-schema-header-action-exit"></div>
         </div>
         <a
+          v-if="linkMap[LinkKey.Playground]"
           class="home-extend-schema-header-subtitle is-link"
           :href="linkMap[LinkKey.Playground] + inputMessage"
           target="_blank"
@@ -310,13 +337,15 @@ onUnmounted(() => {
                   class="home-extend-render-area"
                   :class="{ 'is-visible': cardVisible, 'no-exit': suppressExitAnimation }"
                 >
-                  <GenuiRenderer
-                    :key="rendererKey"
-                    class="home-extend-schema-renderer"
-                    :content="message?.content || ''"
-                    :generating="generating"
-                    :customActions="customActions"
-                  />
+                  <GenuiConfigProvider :materials="materials">
+                    <GenuiRenderer
+                      :key="rendererKey"
+                      class="home-extend-schema-renderer"
+                      :content="message?.content || ''"
+                      :generating="generating"
+                      :customActions="customActions"
+                    />
+                  </GenuiConfigProvider>
                 </div>
               </div>
             </div>
@@ -344,9 +373,9 @@ onUnmounted(() => {
                 circle
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
-                :icon="TinyIconStartCircle"
-                @click="handleCornerResume"
-              />
+                @click="handleCornerResume">
+                <img :src="playIcon" alt="">
+              </tiny-button>
             </tiny-tooltip>
             <tiny-tooltip
               v-else
@@ -361,10 +390,12 @@ onUnmounted(() => {
                 circle
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
-                :icon="hasPlayedOnce ? TinyIconRefresh : TinyIconStartCircle"
+                :icon="hasPlayedOnce ? TinyIconRefresh : undefined"
                 :disabled="preparingPlayback"
                 @click="handleCornerReplay"
-              />
+                >
+                <img v-if="!hasPlayedOnce" :src="playIcon" alt="">
+              </tiny-button>
             </tiny-tooltip>
           </div>
         </div>
@@ -381,6 +412,10 @@ onUnmounted(() => {
   justify-content: center;
   align-items: center;
   padding: 0px 8%;
+  background-image: url('@/assets/home_extend_bg.svg');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 
   &-title {
     margin-bottom: 40px;
@@ -392,9 +427,13 @@ onUnmounted(() => {
     height: 100%;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, rgba(232, 238, 254, 1), rgba(232, 238, 254, 0.3) 100%);
-    border-radius: 24px;
+    border-radius: 20px;
+    border: 1px solid #fff;
+    box-shadow: 0 0 60px 0 rgba(217, 223, 255, 0.5);
+
+
     padding: 28px;
+    margin-bottom: 110px;
 
     &-header {
       display: flex;
@@ -403,11 +442,12 @@ onUnmounted(() => {
 
       &-action {
         display: flex;
-        gap: 12px;
+        gap: 14px;
+        margin-left: 28px;
 
         div {
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
 
           @media (min-width: 1920px) {
@@ -478,7 +518,7 @@ onUnmounted(() => {
       position: relative;
       width: 100%;
       @media (max-width: 768px) {
-        padding: 20px;
+        padding: 5px;
       }
     }
 
@@ -492,6 +532,7 @@ onUnmounted(() => {
   @media (max-width: 768px) {
     &-schema {
       padding: 5%;
+      margin-bottom: 46px;
     }
   }
 
@@ -622,16 +663,16 @@ onUnmounted(() => {
 }
 
 .home-extend-control-btn {
+  border: none;
   box-shadow: 0 2px 4px #00000029;
 }
 
 .extend-button-group {
-  border-radius: 382px;
   width: fit-content;
   height: 56px;
-  background-color: rgba(232, 238, 254, 1);
   display: flex;
   align-items: center;
+  gap: 24px;
   padding: 4px;
   margin-bottom: 48px;
 
@@ -639,22 +680,34 @@ onUnmounted(() => {
     height: 100%;
     width: 200px;
     margin-left: 0;
-    border-radius: 0;
     border: none;
-    background-color: rgba(232, 238, 254, 1);
-    font-size: 16px;
+    background-color: transparent;
+    font-size: 20px;
+    font-weight: 400;
+    color: rgba(89, 89, 89, 1);
 
     &-element-1 {
-      border-radius: 382px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .extend-button-icon {
+      width: 24px;
+      height: 24px;
     }
 
     &-element-2 {
-      border-radius: 382px;
+      border-radius: 0;
     }
 
     &-element-active {
+      border-radius: 73px;
       background-color: #fff;
-      font-weight: 700;
+      box-shadow: 0 0 20px 0 rgba(207, 218, 228, 0.36);
+      font-weight: 500;
+      color: rgba(25, 25, 25, 1)
     }
   }
 

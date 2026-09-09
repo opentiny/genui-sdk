@@ -50,20 +50,27 @@ const addOperation = z
   .describe('Adds a property or inserts a value relative to the component identified by id.');
 
 const removeOperation = z
-  .object({ op: z.literal('remove') })
+  .object({
+    op: z.literal('remove'),
+    path: jsonPointerSchemaExisting
+      .optional()
+      .describe('JSON Pointer relative to id. Empty or omitted names the component itself.'),
+  })
   .extend(baseOperationSchema.shape)
   .strict()
-  .describe('Removes the component identified by id.');
+  .describe('Removes the location identified by id and path. Omit path to remove the component itself.');
 
 const replaceOperation = z
   .object({
     op: z.literal('replace'),
-    path: jsonPointerSchemaExisting,
+    path: jsonPointerSchemaExisting
+      .optional()
+      .describe('JSON Pointer relative to id. Empty or omitted names the component itself.'),
     value: jsonPatchValueSchema.describe('Replacement value.'),
   })
   .extend(baseOperationSchema.shape)
   .strict()
-  .describe('Replaces an existing value relative to the component identified by id.');
+  .describe('Replaces the location identified by id and path. Omit path to replace the component itself.');
 
 const moveOperation = z
   .object({
@@ -74,16 +81,6 @@ const moveOperation = z
   .extend(baseOperationSchema.shape)
   .strict()
   .describe('Moves the component identified by id relative to positionId.');
-
-const copyOperation = z
-  .object({
-    op: z.literal('copy'),
-    from: jsonPointerSchemaExisting.describe('Source path relative to the component identified by id.'),
-    path: jsonPointerSchemaExisting.describe('Destination path relative to the same component.'),
-  })
-  .extend(baseOperationSchema.shape)
-  .strict()
-  .describe('Copies a value within the component identified by id.');
 
 const testOperation = z
   .object({
@@ -100,7 +97,6 @@ export const jsonPatchOperationSchema = z.discriminatedUnion('op', [
   removeOperation,
   replaceOperation,
   moveOperation,
-  copyOperation,
   testOperation,
 ]);
 

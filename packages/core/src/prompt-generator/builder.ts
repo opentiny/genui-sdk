@@ -65,11 +65,10 @@ export function genBuilderRulesPrompt(options: IGenBuilderPromptOptions = {}) {
   const ruleItems = [
     '- `id` 和 `positionId` 必须从当前 schemaJSON 中查找，禁止使用历史消息中已经失效的 ID',
     '- 通过组件类型、文本、属性和结构定位用户所指的组件；无法可靠定位时不要猜测',
-    '- `remove` 使用被删除组件自身的 `id`，且不包含 `path`',
-    '- `replace` 使用目标组件自身的 `id`，`path` 是组件内部的相对 JSON Pointer，例如 `/props/text`',
+    '- `remove` 和 `replace` 使用目标组件自身的 `id`；省略 `path` 表示组件本身，提供 `path` 表示组件内部位置',
+    '- 属性操作的 `path` 是组件内部的相对 JSON Pointer，例如 `/props/text`；禁止用父组件 ID 加 `/children/n` 指向已有子组件',
     '- `add` 使用父组件的 `id`，`path` 指定父组件内部的插入位置，例如 `/children/-`',
     '- `move.id` 是被移动组件，`positionId` 是目标锚点；两者都必须是当前 schemaJSON 中已有的组件 ID',
-    '- `copy` 的 `from` 和 `path` 都相对于 `id` 指向的同一个组件',
     '- 新增组件应符合可用组件、属性和卡片 JSON Schema；不要杜撰组件 API',
     '- 多条操作按数组顺序执行，后续操作必须基于前面操作已经应用后的状态',
     ...resultRules,
@@ -89,6 +88,12 @@ export const builderExamplesPrompt = `## JSON Patch 示例
 
 \`\`\`jsonPatch
 [{ "op": "replace", "id": "text-1", "path": "/props/text", "value": "新文本" }]
+\`\`\`
+
+删除组件内部属性：
+
+\`\`\`jsonPatch
+[{ "op": "remove", "id": "card-1", "path": "/props/obsolete" }]
 \`\`\`
 
 删除组件并移动另一个组件：

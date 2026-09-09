@@ -27,10 +27,7 @@
     "patchedDependencies": {
       "ai@6.0.116": "patches/ai@6.0.116.patch",
       "@ai-sdk/deepseek@1.0.7": "patches/@ai-sdk__deepseek@1.0.7.patch",
-      "@ai-sdk/openai-compatible@1.0.7": "patches/@ai-sdk__openai-compatible@1.0.7.patch",
-      "@opentiny/vue-renderless@3.28.2": "patches/@opentiny__vue-renderless@3.28.2.patch",
-      "@opentiny/vue-form-item@3.28.0": "patches/@opentiny__vue-form-item@3.28.0.patch",
-      "@opentiny/vue-grid@3.28.0": "patches/@opentiny__vue-grid@3.28.0.patch"
+      "@ai-sdk/openai-compatible@1.0.7": "patches/@ai-sdk__openai-compatible@1.0.7.patch"
     }
   },
   "keywords": [],

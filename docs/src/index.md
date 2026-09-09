@@ -11,7 +11,7 @@ hero:
       text: 快速开始
       link: /guide/quick-start
     - theme: alt
-      text: 组件文档
+      text: 参考文档
       link: /components/renderer
 features:
   - title: 现有AI生态兼容

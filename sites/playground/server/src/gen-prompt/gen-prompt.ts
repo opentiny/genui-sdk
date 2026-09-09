@@ -4,23 +4,40 @@ import {
   type IGenPromptOptions,
   type IMaterialsMeta,
 } from '@opentiny/genui-sdk-core';
-import { materialsMeta, miniMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
+type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
+type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
-type IMetaMap = Partial<Record<IFrameworkKey, IVariantMap<IMaterialsMeta>>>;
+type IMetaMap = Partial<Record<IFrameworkKey, ILibMap<IMaterialsMeta>>>;
 type IOptionsMap = Partial<Record<IFrameworkKey, IVariantMap<IGenPromptOptions>>>;
+
+interface IPlaygroundMaterialConfig {
+  promptVariant: IMaterialsMetaVariantKey | undefined;
+  componentLib?: IComponentLibKey | string;
+}
 
 const metaMap: IMetaMap = {
   Vue: {
-    mini: miniMaterialsMeta,
-    standard: materialsMeta,
+    TinyVue: {
+      mini: miniMaterialsMeta,
+      standard: materialsMeta,
+      plus: plusMaterialsMeta,
+    },
+    ElementPlus: {
+      mini: epMaterialsMeta,
+      standard: epMaterialsMeta,
+    },
   },
   Angular: {
-    mini: ngMaterialsMeta,
-    standard: ngMaterialsMeta,
+    TinyNg: {
+      mini: ngMaterialsMeta,
+      standard: ngMaterialsMeta,
+    },
   },
 };
 
@@ -32,14 +49,19 @@ const optionsMap: IOptionsMap = {
 
 export function genPlaygroundPrompt(
   framework: IFrameworkKey,
-  promptVariant: IMaterialsMetaVariantKey | undefined,
+  materialConfig: IPlaygroundMaterialConfig,
   tgCustomConfig?: IGenPromptCustomConfig,
   options?: IGenPromptOptions,
 ) {
-  const variantOptions = optionsMap[framework]?.[promptVariant] ?? {};
+  const { promptVariant, componentLib } = materialConfig;
+  const variant = promptVariant || 'standard';
+  const libKey = componentLib as IComponentLibKey;
+  const meta = metaMap[framework]?.[libKey]?.[variant] ?? metaMap[framework]?.[libKey]?.standard;
+  const variantOptions = optionsMap[framework]?.[variant] ?? {};
+
   return genPrompt(
     framework,
-    metaMap[framework]?.[promptVariant] ?? materialsMeta,
+    meta ?? materialsMeta,
     tgCustomConfig,
     {
       ...variantOptions,

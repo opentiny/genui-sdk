@@ -52,9 +52,17 @@ describe('jsonPatchSchema', () => {
     expect(jsonPatchSchema.safeParse([{ op: 'remove', id: 'component-1' }]).success).toBe(true);
   });
 
-  it('rejects the obsolete remove id plus path shape', () => {
+  it('accepts component-relative remove paths', () => {
     expect(
       jsonPatchSchema.safeParse([{ op: 'remove', id: 'component-1', path: '/children/0' }]).success,
+    ).toBe(true);
+  });
+
+  it('rejects copy until its component-relative semantics are redesigned', () => {
+    expect(
+      jsonPatchSchema.safeParse([
+        { op: 'copy', id: 'component-1', from: '/props/source', path: '/props/target' },
+      ]).success,
     ).toBe(false);
   });
 });
