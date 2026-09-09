@@ -1,6 +1,6 @@
 # GenuiConfigProvider Component
 
-`GenuiConfigProvider` provides theme, i18n, and materials configuration for the renderer, and scopes theme styles within a specific container.
+`GenuiConfigProvider` provides theme, i18n, materials, and custom notify configuration for the renderer, and scopes theme styles within a specific container.
 
 When using only ConfigProvider, you can import it on demand from `@opentiny/genui-sdk-vue/config-provider`. See [Quick Start - Subpath Imports](../guide/quick-start#subpath-imports).
 
@@ -122,6 +122,44 @@ const content = ref({});
 </script>
 ```
 
+### notify
+
+- **Type**: `NotifyHandler`
+- **Required**: No
+- **Default**: `undefined`
+- **Description**: Custom renderer notification callback. Invoked when a schema `JSFunction` fails to parse or throws at runtime. If omitted, the built-in DOM toast is used.
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials" :notify="handleNotify">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider, type NotifyHandler } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+
+const handleNotify: NotifyHandler = (options) => {
+  // Wire your app toast / message UI here
+  console.log(options.type, options.title, options.message);
+};
+</script>
+```
+
 ## Slots
 
 `GenuiConfigProvider` uses the default slot to wrap child components.
@@ -188,3 +226,16 @@ type I18nMessageObject = {
 ```
 
 Internationalization message object structure supporting nested objects. Keys are message keys; values are strings or nested message objects.
+
+### NotifyHandler
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+Custom notification callback type. See the [notify](#notify) prop above.

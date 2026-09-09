@@ -12,6 +12,11 @@ export interface ChatCompletionFinishChunk {
   object?: string;
   model?: string;
   created?: number;
+  durationMs?: number;
+  /** 发送请求 → AI 开始回复（首响应）耗时 ms */
+  ttfb?: number;
+  /** AI 开始回复 → UI 流式渲染完毕耗时 ms */
+  renderDurationMs?: number;
   choices?: Array<{
     index?: number;
     delta?: Record<string, unknown>;
@@ -42,6 +47,23 @@ const createdLabel = computed(() => {
   const ms = t < 1e12 ? t * 1000 : t;
   const d = new Date(ms);
   return Number.isNaN(d.getTime()) ? String(t) : d.toLocaleString();
+});
+
+function formatDuration(ms?: number) {
+  if (ms == null) return '';
+  const seconds = ms / 1000;
+  return `${Math.round(seconds * 100) / 100}s`;
+}
+
+const ttfbLabel = computed(() => formatDuration(finishChunk.value?.ttfb));
+
+const renderDurationLabel = computed(() => formatDuration(finishChunk.value?.renderDurationMs));
+
+const durationLabel = computed(() => {
+  const ttfb = finishChunk.value?.ttfb;
+  const renderDurationMs = finishChunk.value?.renderDurationMs;
+  if (ttfb == null || renderDurationMs == null) return '';
+  return formatDuration(ttfb + renderDurationMs);
 });
 
 function formatInt(n: number) {
@@ -80,6 +102,18 @@ const titleContent = computed(() => {
           <div v-if="finishChunk.created != null" class="stat-row">
             <dt>{{ t('finishInfo.time') }}</dt>
             <dd>{{ createdLabel }}</dd>
+          </div>
+          <div v-if="durationLabel" class="stat-row stat-row--emphasis">
+            <dt>{{ t('finishInfo.duration') }}</dt>
+            <dd>{{ durationLabel }}</dd>
+          </div>
+          <div v-if="ttfbLabel" class="stat-row">
+            <dt>{{ t('finishInfo.ttfb') }}</dt>
+            <dd>{{ ttfbLabel }}</dd>
+          </div>
+          <div v-if="renderDurationLabel" class="stat-row">
+            <dt>{{ t('finishInfo.renderDuration') }}</dt>
+            <dd>{{ renderDurationLabel }}</dd>
           </div>
           <template v-if="usage">
             <div v-if="usage.prompt_tokens != null" class="stat-row">

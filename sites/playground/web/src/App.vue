@@ -16,6 +16,7 @@ import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
+import { useMaterialsConfig } from './components/materials-tab';
 import { useInputMessage } from './hooks/use-input-message';
 import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
@@ -26,8 +27,7 @@ import {
   movePartialSchemaJsonToLastMessage,
 } from './continue-writing';
 import useIcon from './use-icon';
-import { getMixedContentHandler } from './ng-renderer/content-response-handler';
-import { getMessageRendererAngular } from './ng-renderer/message-renderer-angular';
+import { getMixedContentHandler, getMessageRendererAngular } from './message-renderers';
 import { locale, t } from './i18n';
 import { useRoute } from 'vue-router';
 import { PlaygroundMode } from './constants';
@@ -47,9 +47,13 @@ const {
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
   framework: cacheFramework,
+  componentLib: cacheComponentLib,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
 
-const framework = ref(cacheFramework === 'Angular' ? 'Angular' : 'Vue');
+const { framework, componentLib, setFramework, setComponentLib } = useMaterialsConfig({
+  framework: cacheFramework,
+  componentLib: cacheComponentLib,
+});
 
 /**
  * Normalizes cached custom examples for the id-based contract.
@@ -153,7 +157,7 @@ watch(
 );
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value, () => componentLib.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -163,6 +167,7 @@ watch(
         chatConfig,
         customExamples: customExamples.value,
         framework: framework.value,
+        componentLib: componentLib.value,
       }),
     );
   },
@@ -197,7 +202,9 @@ const replaceHandlers = (handlers, nextHandlers, name) => {
 };
 
 const chat = ref(null);
+
 const conversation = computed(() => chat.value?.getConversation());
+
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
@@ -213,6 +220,33 @@ watch(chat, (instance) => {
       ...defaultResponseHandlers,
       getContinueGeneratingHandler(conversation.value.messageManager),
       locationPartialSchemaJson(),
+      {
+        name: 'chatTiming',
+        match: () => false,
+        handler: () => false,
+        beforeRequest: (context) => {
+          context.timing = { sentAt: Date.now() };
+        },
+        start: (context) => {
+          const timing = context.timing;
+          if (timing) {
+            timing.firstByteAt = Date.now();
+            timing.ttfb = timing.firstByteAt - timing.sentAt;
+          }
+        },
+        end: (context) => {
+          const timing = context.timing;
+          const finishInfo = context.chatMessage?.finishInfo;
+          if (!timing || !finishInfo) return;
+          const { firstByteAt, ttfb } = timing;
+          const renderEndAt = Date.now();
+          context.chatMessage.finishInfo = {
+            ...finishInfo,
+            ttfb,
+            renderDurationMs: firstByteAt != null ? renderEndAt - firstByteAt : undefined,
+          };
+        },
+      },
     ];
 
     insertHandlersAfterName(
@@ -248,6 +282,7 @@ const roles = computed(() => {
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
   framework: framework.value,
+  componentLib: componentLib.value,
 }));
 
 const playgroundContext = {
@@ -258,6 +293,9 @@ const playgroundContext = {
   conversation,
   customExamples,
   framework,
+  componentLib,
+  setComponentLib,
+  setFramework,
   theme,
   url,
   messages,
@@ -299,10 +337,6 @@ const initExampleList = () => {
   customExamples.value = normalizeCustomExamples(cacheCustomExamples);
 };
 
-/**
- * Updates custom examples and enforces the normalized shape.
- * @param {unknown[]} list Latest examples from UI events.
- */
 const updateCustomExamples = (list) => {
   customExamples.value = normalizeCustomExamples(list);
 };
@@ -324,11 +358,15 @@ onMounted(() => {
   initExampleList();
   getModelOptions()
     .then(async (data) => {
+      let modelChanged = false;
       if (!data.find((item) => item.value === llmConfig.model)) {
         llmConfig.model = data[0]?.value;
+        modelChanged = true;
       }
       modelData.value = data;
-      syncModelFeatures(llmConfig.model);
+      if (!modelChanged) {
+        modelFeatures.value = await getModelFeatures(llmConfig.model);
+      }
     })
     .catch((error) => {
       console.error('Failed to get model options:', error);

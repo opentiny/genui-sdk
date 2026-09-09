@@ -38,16 +38,20 @@ export const enThemeConfig: DefaultTheme.Config = {
     ],
     '/en/components/': [
       {
-        text: 'Vue Components',
+        text: 'Vue',
         items: [
           { text: 'GenuiRenderer', link: '/en/components/renderer' },
           { text: 'GenuiChat', link: '/en/components/chat' },
           { text: 'GenuiConfigProvider', link: '/en/components/config-provider' },
+          { text: 'generateCode', link: '/en/components/code-generator' },
         ],
       },
       {
-        text: 'Angular Components',
-        items: [{ text: 'GenuiRenderer', link: '/en/components/angular/renderer' }],
+        text: 'Angular',
+        items: [
+          { text: 'GenuiRenderer', link: '/en/components/angular/renderer' },
+          { text: 'GenuiConfigProvider', link: '/en/components/angular/config-provider' },
+        ],
       },
       {
         text: 'Server',
@@ -106,6 +110,10 @@ export const enThemeConfig: DefaultTheme.Config = {
               { text: 'Custom Theme', link: '/en/examples/config-provider/custom-theme' },
               { text: 'i18n', link: '/en/examples/config-provider/i18n' },
             ],
+          },
+          {
+            text: 'Materials',
+            items: [{ text: 'Custom Materials Library', link: '/en/examples/custom-materials' }],
           },
         ],
       },

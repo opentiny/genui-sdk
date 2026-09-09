@@ -7,7 +7,7 @@ export const zhThemeConfig: DefaultTheme.Config = {
   },
   nav: [
     { text: '快速开始', link: '/guide/quick-start', activeMatch: '/guide/' },
-    { text: '组件文档', link: '/components/renderer', activeMatch: '/components/' },
+    { text: '参考文档', link: '/components/renderer', activeMatch: '/components/' },
     { text: '特性示例', link: '/examples/renderer/custom-actions', activeMatch: '/examples/' },
     { text: '协议规范', link: '/schema/protocol', activeMatch: '/schema/' },
   ],
@@ -34,26 +34,30 @@ export const zhThemeConfig: DefaultTheme.Config = {
     ],
     '/components/': [
       {
-        text: 'Vue 组件文档',
+        text: 'Vue 文档',
         items: [
           { text: 'GenuiRenderer', link: '/components/renderer' },
           { text: 'GenuiChat', link: '/components/chat' },
           { text: 'GenuiConfigProvider', link: '/components/config-provider' },
+          { text: 'generateCode', link: '/components/code-generator' },
         ],
       },
       {
-        text: 'Angular 组件文档',
-        items: [{ text: 'GenuiRenderer', link: '/components/angular/renderer' }],
+        text: 'Angular 文档',
+        items: [
+          { text: 'GenuiRenderer', link: '/components/angular/renderer' },
+          { text: 'GenuiConfigProvider', link: '/components/angular/config-provider' },
+        ],
       },
       {
-        text: 'Server 库文档',
+        text: 'Server 文档',
         items: [
           { text: 'API 参考', link: '/components/server/api' },
           { text: 'CLI', link: '/components/server/cli' },
         ],
       },
       {
-        text: 'Core 库文档',
+        text: 'Core 文档',
         items: [{ text: 'API 文档', link: '/components/core/api' }],
       },
       {
@@ -102,6 +106,10 @@ export const zhThemeConfig: DefaultTheme.Config = {
               { text: '自定义主题', link: '/examples/config-provider/custom-theme' },
               { text: '国际化配置', link: '/examples/config-provider/i18n' },
             ],
+          },
+          {
+            text: '物料库',
+            items: [{ text: '自定义物料库', link: '/examples/custom-materials' }],
           },
         ],
       },
