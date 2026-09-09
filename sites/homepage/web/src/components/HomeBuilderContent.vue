@@ -148,13 +148,13 @@ function handleFeatureClick(index: number) {
     justify-content: center;
     z-index: 1;
 
-    height: 34px;
+    height: 38px;
     width: 128px;
     margin-bottom: 26px;
 
     background-color: rgba(255, 255, 255, 0.4);
     border: 1px solid #C1A8FF;
-    border-radius: 8px;
+    border-radius: 6px;
 
     display: flex;
     align-items: center;
@@ -168,8 +168,8 @@ function handleFeatureClick(index: number) {
     white-space: nowrap;
 
     &-icon {
-      width: 12px;
-      height: 12px;
+      width: 16px;
+      height: 16px;
       flex-shrink: 0;
     }
   }
@@ -195,6 +195,17 @@ function handleFeatureClick(index: number) {
 
   @media (max-width: 768px) {
     padding-bottom: 46px;
+
+    &-ellipse {
+      top: -122px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 234px;
+      height: 230.5px;
+      border-radius: 50%;
+      background: rgba(239, 232, 255, 1);
+      filter: blur(200px);
+    }
 
     &-header {
       padding-top: 40px;
@@ -234,18 +245,13 @@ function handleFeatureClick(index: number) {
 }
 
 .home-builder-section-mobile {
+  margin-top: 49px;
   padding-bottom: 0;
 
   .home-builder-section-header {
     padding-top: 46px;
     padding-left: 20px;
     padding-right: 20px;
-  }
-
-  .home-builder-section-badge {
-    background-color: rgba(255, 255, 255, 0.4);
-    border-radius: 96.55px;
-    border: 1px solid #C1A8FF
   }
 }
 
@@ -407,11 +413,12 @@ function handleFeatureClick(index: number) {
 }
 
 .home-builder-content-card {
-  height: 307px;
-  padding: 24px 20px;
-  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
+  // height: 307px;
+  padding: 24px 20px;
+  margin-bottom: 20px;
+
   border: 1px solid rgba(255, 255, 255, 1);
   border-radius: 12px;
   box-shadow: 0 0 16px 0 rgba(0, 0, 0, 0.08);
@@ -426,7 +433,7 @@ function handleFeatureClick(index: number) {
   }
 
   &-description {
-    height: 44px;
+    // height: 44px;
     color: rgba(128, 128, 128, 1);
     font-size: 14px;
     font-weight: 400;

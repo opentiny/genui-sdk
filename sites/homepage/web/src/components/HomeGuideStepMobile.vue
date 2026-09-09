@@ -56,7 +56,7 @@ const handleGuideChange = (index: number) => {
 
   &-button-group {
     border-radius: 382px;
-    width: fit-content;
+    width: 100%;
     height: 32px;
     background-color: rgb(242, 242, 242);
     display: flex;
@@ -65,6 +65,8 @@ const handleGuideChange = (index: number) => {
   }
 
   .home-guide-step-mobile-button-group {
+    display: flex;
+    justify-content: space-between;
     .home-guide-step-mobile-button {
       background-color: rgb(242, 242, 242);
       &-active {

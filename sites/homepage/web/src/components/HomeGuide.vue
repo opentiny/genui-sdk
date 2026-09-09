@@ -113,7 +113,7 @@ const handleGuideCardClick = (index: number) => {
   flex-direction: column;
   justify-content: center;
   align-content: center;
-  padding: 110px 12.5% 0px 12.5%;
+  padding: 110px 10% 0px 10%;
 
   &-mobile {
     width: 100%;

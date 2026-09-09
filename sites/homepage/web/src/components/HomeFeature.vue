@@ -101,7 +101,7 @@ const features = [
   flex-direction: column;
   justify-content: center;
   align-content: center;
-  padding: 110px 12.5%;
+  padding: 110px 10%;
 
   &-header {
     display: flex;
@@ -173,6 +173,15 @@ const features = [
   @media (max-width: 768px) {
     &-content {
       grid-template-columns: repeat(1, 1fr);
+    }
+  }
+
+  @media (min-width: 768px) and (max-width: 819px) {
+    &-content {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    &-card {
+      gap: 20px;
     }
   }
 

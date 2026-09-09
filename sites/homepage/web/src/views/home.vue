@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { TinyButton, TinyTag } from '@opentiny/vue';
 import genuiAbility1 from '@/assets/genui_ability_1.svg?no-inline';
 import genuiAbility2 from '@/assets/genui_ability_2_img.webp?no-inline';
@@ -60,6 +60,7 @@ const actionVideoRef = ref<HTMLVideoElement | null>(null);
 const flowVideoRef = ref<HTMLVideoElement | null>(null);
 const { videoSrc: actionVideoSrc } = useLazyVideo(actionVideoRef, orderMilkTeaVideo);
 const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo);
+
 </script>
 
 <template>
@@ -68,7 +69,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     <div :class="{ 'home-core': true, 'home-core-mobile': isMobile }">
       <div class="home-core-left">
         <div class="home-core-title">{{ t('hero.title') }}</div>
-        <div class="home-core-subtitle">{{ t('hero.subtitle') }}</div>
+        <div ref="subtitleRef" class="home-core-subtitle">{{ t('hero.subtitle') }}</div>
         <div class="home-core-decsription">{{ t('hero.description') }}</div>
         <div class="operation-button-group">
           <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
@@ -206,7 +207,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     &-left {
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      width: 550px;
       margin-right: 6%;
     }
 
@@ -285,10 +286,59 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     @media (max-width: 768px) {
       &-left {
         margin-right: 0;
+        align-items: center;
       }
     }
 
-    @media (max-width: 1280px) {
+    @media (max-width: 820px) {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 50px 20px !important;
+      background: url('@/assets/genui_ability_mobile_bg_1.svg') center/cover no-repeat;
+
+      &-title {
+        font-size: var(--font-size-title-md);
+      }
+
+      &-subtitle {
+        font-size: var(--font-size-title-md);
+      }
+
+      &-decsription {
+        font-size: 14px;
+        white-space: normal;
+        margin-bottom: 28px;
+      }
+
+      &-left {
+        margin-bottom: 40px;
+        margin-right: 0;
+        align-items: center;
+
+        div {
+          text-align: center;
+        }
+      }
+
+      &-right {
+        height: 100%;
+        width: 80%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+          width: 80%;
+          height: auto;
+          max-width: 100%;
+        }
+      }
+    }
+
+    @media (min-width: 821px) and (max-width: 1280px) {
       padding: 8% 10%;
       &-title {
         font-size: 44px;
@@ -316,6 +366,10 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
 
     @media (min-width: 1920px) {
       padding: 140px 232px;
+
+      &-left {
+        width: 580px;
+      }
 
       :deep(.operation-button-group .tiny-button) {
         width: 152px;
@@ -666,6 +720,10 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
 #genui-action-video, #genui-flow-video {
   border-radius: 16px;
   box-shadow: 0 0 0 10px rgb(255, 255, 255, 1), 0 0 20px 0 rgba(0, 0, 0, 0.2);
+
+  @media (max-width: 768px) {
+    box-shadow: 0 0 0 5px rgb(255, 255, 255, 1), 0 0 20px 0 rgba(0, 0, 0, 0.2);
+  }
 }
 
 @keyframes slideUpFromBottom {

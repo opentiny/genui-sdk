@@ -378,10 +378,8 @@ onUnmounted(() => {
               </tiny-button>
             </tiny-tooltip>
             <tiny-tooltip
-              v-else
-              :content="
-                preparingPlayback ? t('extend.preparing') : hasPlayedOnce ? t('extend.replay') : t('extend.play')
-              "
+              v-else-if="hasPlayedOnce || preparingPlayback"
+              :content="preparingPlayback ? t('extend.preparing') : t('extend.replay')"
               placement="top"
               effect="light"
             >
@@ -397,6 +395,16 @@ onUnmounted(() => {
                 <img v-if="!hasPlayedOnce" :src="playIcon" alt="">
               </tiny-button>
             </tiny-tooltip>
+            <tiny-button
+              v-else
+              class="home-extend-control-btn"
+              circle
+              :reset-time="0"
+              :size="streamControlsDocked ? 'medium' : 'large'"
+              @click="handleCornerReplay"
+              >
+              <img :src="playIcon" alt="">
+            </tiny-button>
           </div>
         </div>
       </div>
@@ -639,6 +647,23 @@ onUnmounted(() => {
   }
 }
 
+// 移动端放缩适配：把生成的 UI（如 300px 宽的计算器卡片）等比缩小到可视区域内，
+// 避免被窄屏左右裁切。数值请自行微调，越大显示越大，直到恰好不被裁掉为止。
+.home-extend-schema-renderer {
+  @media (max-width: 768px) {
+    transform-origin: top left;
+    transform: scale(0.92);
+  }
+
+  // @media (max-width: 480px) {
+  //   transform: scale(0.82);
+  // }
+
+  // @media (max-width: 375px) {
+  //   transform: scale(0.74);
+  // }
+}
+
 .home-extend-stream-controls {
   position: absolute;
   inset: 0;
@@ -669,12 +694,25 @@ onUnmounted(() => {
 
 .home-extend-control-btn {
   border: none;
-  box-shadow: 0 2px 4px #00000029;
+  box-shadow: 0 2px 20px #00000018;
+
   img {
     display: block;
     transform: translate(2px, 0);
     width: 50px;
     height: 50px;
+  }
+}
+
+.home-extend-stream-controls:not(.home-extend-stream-controls--docked) {
+  .home-extend-control-btn {
+    width: 64px !important;
+    height: 64px !important;
+
+    img {
+      width: 64px;
+      height: 64px;
+    }
   }
 }
 
