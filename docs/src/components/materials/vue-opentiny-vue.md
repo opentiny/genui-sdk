@@ -25,6 +25,8 @@
 - **类型**: `IMaterials`
 - **说明**: OpenTiny Vue 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。`miniMaterials` 为精简组件集（不含图表等）；`plusMaterials` 面向完整业务页（树、弹窗、时间线等）。
 
+三个物料对象均内置 `themeFactory`（`light` / `dark` / `lite` 主题，见 [物料主题](./theme)），无需额外配置，直接设置 [GenuiConfigProvider](../config-provider#theme) 的 `theme` 即可切换：
+
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
@@ -32,6 +34,14 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 ```vue
 <GenuiConfigProvider :materials="materials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
+主题切换示例（`light` / `dark` / `lite` / `auto`）：
+
+```vue
+<GenuiConfigProvider :materials="materials" theme="dark">
   <GenuiChat />
 </GenuiConfigProvider>
 ```

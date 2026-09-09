@@ -26,6 +26,12 @@ export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeAuto', value: 'auto' },
 ];
 
+export const ELEMENT_PLUS_THEME_OPTIONS = [
+  { textKey: 'materials.themeLight', value: 'light' },
+  { textKey: 'materials.themeDark', value: 'dark' },
+  { textKey: 'materials.themeAuto', value: 'auto' },
+];
+
 export const MATERIAL_THEME_COLOR_MAP = {
   light: THEME_PREVIEW_COLOR_PRESETS.light,
   dark: THEME_PREVIEW_COLOR_PRESETS.dark,
