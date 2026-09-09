@@ -34,11 +34,21 @@ export function genPlaygroundPrompt(
   framework: IFrameworkKey,
   promptVariant: IMaterialsMetaVariantKey | undefined,
   tgCustomConfig?: IGenPromptCustomConfig,
+  options?: IGenPromptOptions,
 ) {
+  const variantOptions = optionsMap[framework]?.[promptVariant] ?? {};
   return genPrompt(
     framework,
     metaMap[framework]?.[promptVariant] ?? materialsMeta,
     tgCustomConfig,
-    optionsMap[framework]?.[promptVariant] ?? {},
+    {
+      ...variantOptions,
+      ...options,
+      builder: {
+        ...variantOptions.builder,
+        ...options?.builder,
+      },
+      rules: [...(variantOptions.rules ?? []), ...(options?.rules ?? [])],
+    },
   );
 }

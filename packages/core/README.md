@@ -17,7 +17,7 @@ pnpm add @opentiny/genui-sdk-core
 
 | Export | Description |
 |--------|-------------|
-| `genPrompt` | Build system prompt from framework, materials meta, and custom config |
+| `genPrompt` | Build a Generate or Builder system prompt from framework, materials meta, and custom config |
 | `PatternExtractor` | Split streaming text into normal vs marked (`schemaJson`) segments |
 | `SchemaJsonPattern` | Default pattern config for `` ```schemaJson `` blocks |
 | `StreamPatternExtractor` | Stream wrapper around `PatternExtractor` |
@@ -36,6 +36,7 @@ pnpm add @opentiny/genui-sdk-core
 | `CardSchema` / `NodeSchema` / `Node` | Protocol schema tree types |
 | `IMaterials` / `IMaterialsMeta` | Runtime materials vs prompt materials meta |
 | `IGenPromptCustomConfig` / `IGenPromptOptions` | `genPrompt` config and options |
+| `JsonPatch` / `JsonPatchOperation` | Builder-mode UI schema patch types |
 | `IPatchOptions` | `DeltaPatcher` options |
 | `RepairJsonState` | Result state enum for `repairJson` |
 
@@ -52,6 +53,10 @@ import {
 import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 const prompt = genPrompt('Vue', materialsMeta, customConfig);
+const builderPrompt = genPrompt('Vue', materialsMeta, customConfig, {
+  mode: 'builder',
+  builder: { validationLevel: 'strict' },
+});
 const { state, value } = repairJson(partialJson);
 ```
 

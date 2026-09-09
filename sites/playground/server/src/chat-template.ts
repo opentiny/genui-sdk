@@ -10,7 +10,6 @@ import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completion
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
 import { buildOpenApiTools } from './openapi-tools/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
-import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 
@@ -97,13 +96,20 @@ export const createChatTemplate = () => {
       const openApiBuiltTools = await buildOpenApiTools(openApiTools);
       const tools = { ...openApiBuiltTools, ...mcpTools };
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt(framework, promptVariant, tgCustomConfig)}
-      ${body.templateSchema ? generateJsonPatchPrompt() : ''}
-      ${specificPrompt}
-      ${customSystemPrompt}`;
+      const promptMode = body.templateSchema ? 'builder' : 'generate';
+      const systemPrompt = [
+        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig, {
+          mode: promptMode,
+          builder: { validationLevel: 'strict' },
+        }),
+        specificPrompt,
+        customSystemPrompt,
+      ]
+        .filter(Boolean)
+        .join('\n\n');
 
       const messages = normalizeMessagesForAiSdk(body.messages);
-      if (body.templateSchema) {
+      if (promptMode === 'builder') {
         const schemaJsonContext = `
           **当前 schemaJson（这是唯一可信的 ID 来源）：**
           \`\`\`schemaJson

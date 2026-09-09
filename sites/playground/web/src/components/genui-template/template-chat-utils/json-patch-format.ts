@@ -44,6 +44,9 @@ export const formatJsonPatch = (
       } else {
         item.path = componentPath;
       }
+      if (item.op === 'copy' && typeof item.from === 'string') {
+        item.from = componentPath === '/' ? item.from : `${componentPath}${item.from}`;
+      }
     }
 
     if (item.op === 'move') {
