@@ -29,16 +29,17 @@ import {
   finalizePendingSchemaCard,
   findLatestPendingSchemaCard,
   findSchemaCardByCardId,
-  generateIdForComponents,
   getLastUserMessage,
   isManualSchemaSaveMessage,
   resolveJsonPatchApplyFailed,
   setJsonPatchApplyResult,
 } from './template-chat-utils';
+import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
 import { useSchemaDevModeOptional } from './useSchemaDevMode';
 import { getComposerContent, segmentsToPlainText } from './schema-composer';
 import { createComposerTagController } from './composer-atomic-tags';
+import { createConversationComposerDrafts } from './conversation-composer-drafts';
 import type { SelectedSchemaNode } from './schema-node-selection';
 import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
@@ -63,6 +64,7 @@ const schemaDevMode = useSchemaDevModeOptional();
 const templateData = ref<UserItem[]>([]);
 const tagController = createComposerTagController<SelectedSchemaNode>();
 const selectedNodeMap = tagController.selectedNodeMap;
+const conversationComposerDrafts = createConversationComposerDrafts<SelectedSchemaNode>();
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -258,6 +260,28 @@ const inputMessage = computed({
   },
 });
 
+watch(
+  () => [conversation.currentConversationId, messageManager.value] as const,
+  ([conversationId, manager], [previousConversationId, previousManager]) => {
+    if (previousConversationId) {
+      conversationComposerDrafts.save(
+        previousConversationId,
+        templateData.value,
+        selectedNodeMap,
+        previousManager?.inputMessage.value ?? '',
+      );
+    }
+
+    tagController.clear();
+    const draft = conversationComposerDrafts.load(
+      conversationId ?? '',
+      manager?.inputMessage.value ?? '',
+    );
+    draft.selectedNodes.forEach(([id, node]) => tagController.trackTag(id, node));
+    templateData.value = draft.templateData;
+  },
+);
+
 const insertComposerTag = (node: SelectedSchemaNode) => {
   if (!templateData.value.length) {
     templateData.value = [{ type: 'text', content: inputMessage.value }];
@@ -414,11 +438,12 @@ const handleNotification = (event: INotificationPayload) => {
     applyFailed = resolveJsonPatchApplyFailed(card, messages.value);
     setJsonPatchApplyResult(applyFailed ? 'failed' : 'success', messages.value, cardId);
   }
-  const preview = schema.currentPreviewSchema;
+  let preview = schema.currentPreviewSchema;
   if (preview && !applyFailed) {
-    generateIdForComponents(preview);
+    preview = finalizeSchemaPreview(preview, schema);
+  } else {
+    schema.setCurrentSchema(preview);
   }
-  schema.setCurrentSchema(preview);
   finalizePendingSchemaCard(messages.value, {
     cardId: cardId || undefined,
     ...(applyFailed || !preview ? {} : { schema: preview }),
