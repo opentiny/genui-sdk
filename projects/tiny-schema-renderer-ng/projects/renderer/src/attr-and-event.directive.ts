@@ -7,6 +7,9 @@ import {
   Optional,
   ChangeDetectorRef,
   Self,
+  AfterViewInit,
+  DoCheck,
+  OnDestroy,
 } from '@angular/core';
 import { toNativeEventName } from './parser/event-utils';
 import { ComponentOutlet } from './component-outlet';
@@ -15,23 +18,30 @@ import { ComponentOutlet } from './component-outlet';
   selector: '[attrAndEvent]',
   standalone: true,
 })
-export class AttrAndEventDirective {
+export class AttrAndEventDirective implements AfterViewInit, DoCheck, OnDestroy {
   @Input() attrs: Record<string, any> = {};
   @Input() events: Record<string, any> = {};
-  get renderHostElemet() {
-    return (
-      this.componentRef?.location.nativeElement ||
+
+  private boundHost: HTMLElement | null = null;
+  private boundEvents: Record<string, any> = {};
+
+  /**
+   * Host of the created outlet only. Do not fall back to `parent.firstElementChild` —
+   * that is often a sibling (e.g. the datepicker input next to an addon).
+   */
+  get renderHostElement() {
+    const el =
       this.componentOutlet['_componentRef']?.location.nativeElement ||
-      (this.elementRef.nativeElement.parentElement?.firstElementChild as HTMLElement)
-    );
+      this.componentRef?.location.nativeElement;
+    return el?.addEventListener ? el : null;
   }
+
   constructor(
     private elementRef: ElementRef,
     @Self() @Optional() private componentRef: ComponentRef<any>,
     private cd: ChangeDetectorRef,
     private componentOutlet: ComponentOutlet,
-  ) {
-  }
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['attrs']) {
@@ -39,20 +49,38 @@ export class AttrAndEventDirective {
       this.updateAttrs();
     }
     if (changes['events']) {
-      this.clearEvents(changes['events'].previousValue || {});
-      this.updateEvents();
+      this.rebindEvents();
     }
   }
 
+  ngAfterViewInit() {
+    this.updateAttrs();
+    this.rebindEvents();
+  }
+
+  ngDoCheck() {
+    const host = this.renderHostElement;
+    if (host && host !== this.boundHost) {
+      this.updateAttrs();
+      this.rebindEvents();
+    }
+  }
+
+  ngOnDestroy() {
+    this.clearEventsFrom(this.boundHost, this.boundEvents);
+    this.boundHost = null;
+    this.boundEvents = {};
+  }
+
   updateAttrs() {
-    if (!this.renderHostElemet?.setAttribute) {
+    if (!this.renderHostElement?.setAttribute) {
       // 可能为comment类型
       return;
     }
     Object.entries(this.attrs)
       .filter(([attr, value]) => value !== null)
       .forEach(([attr, value]) => {
-        this.applyAttr(this.renderHostElemet, attr, value);
+        this.applyAttr(this.renderHostElement, attr, value);
       });
   }
 
@@ -61,8 +89,25 @@ export class AttrAndEventDirective {
       this.applyStyle(el, value);
       return;
     }
+    if (attr === 'class' || attr === 'className') {
+      this.applyClass(el, value);
+      return;
+    }
     if (value != el.getAttribute(attr)) {
       el.setAttribute(attr, value as string);
+    }
+  }
+
+  /** Merge schema class tokens; do not replace NgModel / host classes via setAttribute. */
+  private applyClass(el: HTMLElement, value: unknown) {
+    const tokens =
+      typeof value === 'string'
+        ? value.split(/\s+/).filter(Boolean)
+        : Array.isArray(value)
+          ? value.map(String)
+          : [];
+    for (const token of tokens) {
+      el.classList.add(token);
     }
   }
 
@@ -76,31 +121,49 @@ export class AttrAndEventDirective {
     }
   }
   clearAttrs(oldAttrs: Record<string, any>) {
-    if (!this.renderHostElemet?.removeAttribute) {
+    if (!this.renderHostElement?.removeAttribute) {
       return;
     }
     Object.entries(oldAttrs)
       .filter(([attr, value]) => value !== null)
       .forEach(([attr, value]) => {
-        if (this.renderHostElemet?.hasAttribute(attr) && (this.attrs[attr] === null || this.attrs[attr] === undefined)) {
-          this.renderHostElemet.removeAttribute(attr);
+        if (this.renderHostElement?.hasAttribute(attr) && (this.attrs[attr] === null || this.attrs[attr] === undefined)) {
+          this.renderHostElement.removeAttribute(attr);
         }
       });
   }
-  clearEvents(oldEvents: Record<string, any>) {
-    if (!this.renderHostElemet?.removeEventListener) {
+
+  private rebindEvents() {
+    this.clearEventsFrom(this.boundHost, this.boundEvents);
+    this.boundHost = this.renderHostElement;
+    this.boundEvents = this.events;
+    this.updateEvents();
+  }
+
+  private clearEventsFrom(host: HTMLElement | null, events: Record<string, any>) {
+    if (!host?.removeEventListener) {
       return;
     }
-    Object.entries(oldEvents).forEach(([event, value]) => {
-      this.renderHostElemet.removeEventListener(toNativeEventName(event), value);
+    Object.entries(events).forEach(([event, value]) => {
+      if (typeof value === 'function') {
+        host.removeEventListener(toNativeEventName(event), value);
+      }
     });
   }
+
+  clearEvents(oldEvents: Record<string, any>) {
+    this.clearEventsFrom(this.boundHost || this.renderHostElement, oldEvents);
+  }
+
   updateEvents() {
-    if (!this.renderHostElemet?.addEventListener) {
+    const host = this.boundHost || this.renderHostElement;
+    if (!host?.addEventListener) {
       return;
     }
     Object.entries(this.events).forEach(([event, value]) => {
-      this.renderHostElemet.addEventListener(toNativeEventName(event), value);
+      if (typeof value === 'function') {
+        host.addEventListener(toNativeEventName(event), value);
+      }
     });
   }
 }
