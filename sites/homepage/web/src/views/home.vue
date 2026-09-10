@@ -2,12 +2,12 @@
 import { ref, computed } from 'vue';
 import { TinyButton, TinyTag } from '@opentiny/vue';
 import genuiAbility1 from '@/assets/genui_ability_1.svg?no-inline';
-import genuiAbility2 from '@/assets/genui_ability_2.webp?no-inline';
-import genuiAbility3 from '@/assets/create-github.webp?no-inline';
-import genuiActionVedioCover from '@/assets/order-milk-tea.webp?no-inline';
-import orderMilkTeaVedio from '@/assets/video/order-milk-tea.mp4?no-inline';
-import genuiFlowVedioCover from '@/assets/search-ticket.webp?no-inline';
-import searchTicketVedio from '@/assets/video/search-ticket.mp4?no-inline';
+import genuiAbility2 from '@/assets/genui_ability_2_img.webp?no-inline';
+import genuiActionVideoCover from '@/assets/order-milk-tea.webp?no-inline';
+import orderMilkTeaVideo from '@/assets/video/order-milk-tea.mp4?no-inline';
+import searchTicketVideo from '@/assets/video/search-ticket.mp4?no-inline';
+import genuiAbility4Right from '@/assets/genui_ability_4_right.svg?no-inline';
+import genuiAbility5VideoCover from '@/assets/genui_ability_5_video_cover.svg?no-inline';
 import { LinkKey, linkMap } from '@/utils/link';
 import { useMobile } from '@/composables/useMobile';
 import { useLazyVideo } from '@/composables/useLazyVideo';
@@ -58,8 +58,8 @@ const buttonSize = computed(() => {
 
 const actionVideoRef = ref<HTMLVideoElement | null>(null);
 const flowVideoRef = ref<HTMLVideoElement | null>(null);
-const { videoSrc: actionVideoSrc } = useLazyVideo(actionVideoRef, orderMilkTeaVedio);
-const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio);
+const { videoSrc: actionVideoSrc } = useLazyVideo(actionVideoRef, orderMilkTeaVideo);
+const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo);
 </script>
 
 <template>
@@ -90,23 +90,24 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
     <!-- 第二屏 -->
     <home-ability class="home-ability-2" :title="t('ability.visual.title')" :subtitle="t('ability.visual.subtitle')">
       <div class="ability-image-wrap-2">
-        <img class="ability-image" :src="genuiAbility2" alt="genui-ability-2" />
+        <img class="ability-image ability-image-2" :src="genuiAbility2" alt="genui-ability-2" />
       </div>
     </home-ability>
 
     <!-- 第三屏 -->
-    <home-ability :title="t('ability.interaction.title')" :subtitle="t('ability.interaction.subtitle')">
+    <home-ability class="home-ability-3" :title="t('ability.interaction.title')" :subtitle="t('ability.interaction.subtitle')">
       <video
         ref="actionVideoRef"
         class="cover-image ability-image"
-        id="genui-action-vedio"
+        id="genui-action-video"
         controls
         preload="none"
-        :poster="genuiActionVedioCover"
+        :poster="genuiActionVideoCover"
         :src="actionVideoSrc"
       />
     </home-ability>
 
+    <!-- 第四屏 -->
     <home-mcp-tool-mobile v-if="isMobile"></home-mcp-tool-mobile>
     <home-ability
       v-else
@@ -138,7 +139,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
             </div>
           </div>
         </div>
-        <img :class="`${abilityContentWrapClass}-right`" :src="genuiAbility3" alt="genui-mcp-tool" />
+        <img :class="`${abilityContentWrapClass}-right`" :src="genuiAbility4Right" alt="genui-mcp-tool" />
       </div>
     </home-ability>
 
@@ -146,10 +147,10 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
       <video
         ref="flowVideoRef"
         class="cover-image ability-image"
-        id="genui-flow-vedio"
+        id="genui-flow-video"
         controls
         preload="none"
-        :poster="genuiFlowVedioCover"
+        :poster="genuiAbility5VideoCover"
         :src="flowVideoSrc"
       />
     </home-ability>
@@ -243,7 +244,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
     }
 
     &-subtitle {
-      font-size: var(--font-size-title-lg);
+      font-size: var(--font-size-title-md);
       font-weight: 700;
       text-align: left;
       color: rgba(14, 112, 255, 1);
@@ -313,22 +314,25 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
     padding-bottom: 0 !important;
   }
 
+  :deep(.home-ability-2 .home-ability-content),
+  :deep(.home-ability-3 .home-ability-content),
+  :deep(.home-ability-4 .home-ability-content),
+  :deep(.home-ability-5 .home-ability-content) {
+    width: 100%;
+  }
+
+
   .home-ability-4 {
     background: rgba(248, 248, 255, 1);
   }
 
   :deep(.ability-image-wrap-2) {
     display: flex;
+    justify-content: center;
     padding: 16px;
     border-radius: 24px;
     background-image: url('@/assets/genui_ability_bg_2.svg');
     background-size: cover;
-
-    img {
-      border-radius: 16px;
-      width: 100%;
-      height: 100%;
-    }
   }
 }
 
@@ -478,7 +482,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
   }
 
   :deep(.home-link) {
-    margin-top: 60px;
+    margin-top: 16px;
     padding: 46px 20px 43px 20px;
     background-image: url('@/assets/genui_ability_mobile_bg_2.svg');
 
@@ -628,11 +632,20 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVedio)
   width: 100%;
   height: 100%;
   object-fit: contain;
+
+  &-2 {
+    border-radius: 12px;
+  }
 }
 
 .cover-image {
   border-radius: 28px;
   cursor: pointer;
+}
+
+#genui-action-video, #genui-flow-video {
+  border-radius: 16px;
+  box-shadow: 0 0 0 10px rgb(255, 255, 255, 1), 0 0 20px 0 rgba(0, 0, 0, 0.2);
 }
 
 @keyframes slideUpFromBottom {

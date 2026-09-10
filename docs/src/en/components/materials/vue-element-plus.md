@@ -15,7 +15,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials).
+- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials). Ships with `themeFactory` (`light` / `dark` themes, see [Materials Theme](./theme)); set the [GenuiConfigProvider](../config-provider#theme) `theme` prop to switch:
 
 ```typescript
 import 'element-plus/dist/index.css';
@@ -25,6 +25,12 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 ```vue
 <GenuiConfigProvider :materials="materials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
+```vue
+<GenuiConfigProvider :materials="materials" theme="dark">
   <GenuiChat />
 </GenuiConfigProvider>
 ```
