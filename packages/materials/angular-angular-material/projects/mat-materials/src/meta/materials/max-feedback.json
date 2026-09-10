@@ -1,0 +1,777 @@
+{
+  "data": {
+    "framework": "Angular",
+    "materials": {
+      "components": [
+        {
+          "id": 74,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "加载圈"
+          },
+          "component": "MatProgressSpinner",
+          "icon": "progress-spinner",
+          "description": "圆形加载指示器",
+          "doc_url": "https://material.angular.dev/components/progress-spinner/overview",
+          "screenshot": "",
+          "tags": "progress-spinner,加载,反馈",
+          "keywords": "spinner,加载",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatProgressSpinner",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "mode",
+                    "label": {
+                      "text": {
+                        "zh_CN": "模式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "加载模式：determinate、indeterminate"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "determinate",
+                            "value": "determinate"
+                          },
+                          {
+                            "label": "indeterminate",
+                            "value": "indeterminate"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultValue": "indeterminate"
+                  },
+                  {
+                    "property": "value",
+                    "label": {
+                      "text": {
+                        "zh_CN": "进度值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "determinate 模式下的进度值（0-100）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 0
+                  },
+                  {
+                    "property": "diameter",
+                    "label": {
+                      "text": {
+                        "zh_CN": "直径"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "加载圈直径（像素）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 100
+                  },
+                  {
+                    "property": "strokeWidth",
+                    "label": {
+                      "text": {
+                        "zh_CN": "线宽"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "圆环线宽（像素）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 5
+                  },
+                  {
+                    "property": "color",
+                    "label": {
+                      "text": {
+                        "zh_CN": "颜色"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "主题色：primary、accent、warn"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "label": "accent",
+                            "value": "accent"
+                          },
+                          {
+                            "label": "warn",
+                            "value": "warn"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultValue": "primary"
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 75,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "进度条"
+          },
+          "component": "MatProgressBar",
+          "icon": "progress-bar",
+          "description": "水平进度条",
+          "doc_url": "https://material.angular.dev/components/progress-bar/overview",
+          "screenshot": "",
+          "tags": "progress-bar,进度条,反馈",
+          "keywords": "progress,进度条",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatProgressBar",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "mode",
+                    "label": {
+                      "text": {
+                        "zh_CN": "模式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "进度模式：determinate、indeterminate、buffer、query"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "determinate",
+                            "value": "determinate"
+                          },
+                          {
+                            "label": "indeterminate",
+                            "value": "indeterminate"
+                          },
+                          {
+                            "label": "buffer",
+                            "value": "buffer"
+                          },
+                          {
+                            "label": "query",
+                            "value": "query"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultValue": "indeterminate"
+                  },
+                  {
+                    "property": "value",
+                    "label": {
+                      "text": {
+                        "zh_CN": "进度值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "当前进度值（0-100）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 0
+                  },
+                  {
+                    "property": "bufferValue",
+                    "label": {
+                      "text": {
+                        "zh_CN": "缓冲值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "buffer 模式下的缓冲值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "color",
+                    "label": {
+                      "text": {
+                        "zh_CN": "颜色"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "主题色：primary、accent、warn"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "label": "accent",
+                            "value": "accent"
+                          },
+                          {
+                            "label": "warn",
+                            "value": "warn"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultValue": "primary"
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 76,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "菜单"
+          },
+          "component": "MatMenu",
+          "icon": "menu",
+          "description": "弹出菜单面板；触发按钮通过 matMenuTriggerFor 绑定本组件实例（可用 ref）",
+          "doc_url": "https://material.angular.dev/components/menu/overview",
+          "screenshot": "",
+          "tags": "menu,反馈",
+          "keywords": "menu,菜单",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatMenu",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "xPosition",
+                    "label": {
+                      "text": {
+                        "zh_CN": "水平位置"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "before 或 after"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "before",
+                            "value": "before"
+                          },
+                          {
+                            "label": "after",
+                            "value": "after"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "yPosition",
+                    "label": {
+                      "text": {
+                        "zh_CN": "垂直位置"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "above 或 below"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "above",
+                            "value": "above"
+                          },
+                          {
+                            "label": "below",
+                            "value": "below"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "overlapTrigger",
+                    "label": {
+                      "text": {
+                        "zh_CN": "重叠触发器"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否与触发元素重叠"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "菜单项"
+                },
+                "description": {
+                  "zh_CN": "放置 MatMenuItem"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 77,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "菜单项"
+          },
+          "component": "MatMenuItem",
+          "icon": "menu-item",
+          "description": "菜单中的单个操作项",
+          "doc_url": "https://material.angular.dev/components/menu/overview",
+          "screenshot": "",
+          "tags": "menu,反馈",
+          "keywords": "menu-item,菜单项",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatMenuItem",
+            "destructuring": false
+          },
+          "group": "反馈组件",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "disableRipple",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用涟漪"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用涟漪"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onClick": {
+                "label": {
+                  "zh_CN": "点击事件"
+                },
+                "description": {
+                  "zh_CN": "菜单项点击时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Event",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "原生点击事件"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "菜单项内容"
+                },
+                "description": {
+                  "zh_CN": "文案与图标"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "packages": [
+        {
+          "name": "@angular/material",
+          "package": "@angular/material",
+          "version": "20.2.14",
+          "destructuring": false,
+          "script": "",
+          "css": ""
+        }
+      ],
+      "snippets": [
+        {
+          "group": "feedback",
+          "label": {
+            "zh_CN": "反馈组件"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "加载圈"
+              },
+              "icon": "progress-spinner",
+              "screenshot": "",
+              "snippetName": "MatProgressSpinner",
+              "schema": {
+                "componentName": "MatProgressSpinner",
+                "props": {
+                  "mode": "indeterminate",
+                  "diameter": 48
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "进度条"
+              },
+              "icon": "progress-bar",
+              "screenshot": "",
+              "snippetName": "MatProgressBar",
+              "schema": {
+                "componentName": "MatProgressBar",
+                "props": {
+                  "mode": "determinate",
+                  "value": 60
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "blocks": []
+    }
+  }
+}

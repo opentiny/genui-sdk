@@ -6,6 +6,7 @@
   },
   "allowedNonPeerDependencies": [
     "@angular/cdk",
+    "@angular/common",
     "@angular/material",
     "@opentiny/genui-sdk-core",
     "rxjs"

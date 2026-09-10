@@ -16,6 +16,7 @@ import { provideNativeDateAdapter } from '@angular/material/core';
 
 providers: [
   provideAnimations(),
+  provideNativeDateAdapter(), // Datepicker / Timepicker
   // ...
 ]
 ```
@@ -28,23 +29,21 @@ and an Angular Material theme, e.g. `@angular/material/prebuilt-themes/indigo-pi
 
 ```ts
 import { genPrompt } from '@opentiny/genui-sdk-core';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-material/meta';
+import { proMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-material/meta';
 
-const systemPrompt = genPrompt('Angular', materialsMeta, customConfig);
+const systemPrompt = genPrompt('Angular', proMaterialsMeta, customConfig);
 ```
 
-`materialsMeta.wrapperComponent` defaults to `MatCard`.
+`wrapperComponent` defaults to `MatCard`. Prefer a tier meta that matches the runtime materials you inject.
 
 ### Renderer Materials (ConfigProvider)
 
-Pass `materials` to the renderer so schema `componentName` maps to the real Angular Material components:
-
 ```ts
-import { materials } from '@opentiny/genui-sdk-materials-angular-angular-material/materials';
+import { proMaterials } from '@opentiny/genui-sdk-materials-angular-angular-material/materials';
 ```
 
 ```html
-<genui-config-provider [materials]="materials">
+<genui-config-provider [materials]="proMaterials">
   <genui-renderer ... />
 </genui-config-provider>
 ```
@@ -53,63 +52,72 @@ import { materials } from '@opentiny/genui-sdk-materials-angular-angular-materia
 
 | Export Path | Exports | Description |
 |-------------|---------|-------------|
-| `@opentiny/genui-sdk-materials-angular-angular-material` | `materials`、`materialsMeta` | Unified entry |
-| `.../meta` | `materialsMeta` | For `genPrompt()` / building the server system prompt |
-| `.../materials` | `materials` | For `genui-config-provider [materials]` |
+| `@opentiny/genui-sdk-materials-angular-angular-material` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials`, `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta`, `applyMaterialPatch` | Unified entry |
+| `.../meta` | `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta` | For `genPrompt()` |
+| `.../materials` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials` | For `genui-config-provider [materials]` |
+| `.../patch` | side-effect / `applyMaterialPatch` | Runtime patches for Material form-field edge cases |
 
-### `materialsMeta`
+## Material Tiers
 
-Materials metadata, including:
+与 `angular-ng-devui` 相同，物料按累积 tier 拆分（`base ⊂ plus ⊂ max ⊂ pro`）。每层有独立的组件/指令 map、whitelist 与 bundle JSON：
 
-- `materials`: Protocol descriptions for components / snippets (see `src/meta/materials/bundle.json`)
-- `wrapperComponent`: Default wrapper component (`MatCard`)
-- `whiteList`: Whitelist of `componentName` values available to the LLM
-- `examples`: Prompt example schemas (form / info / grid / tabs / pagination)
+| Tier | Export | Contents |
+|------|--------|----------|
+| **base** | `materials` / `materialsMeta` | 基础 + 表单 + `MatCard*`（含 Fab / Hint / Error） |
+| **plus** | `plusMaterials` / `plusMaterialsMeta` | base + 布局/导航 + Datepicker / Autocomplete / Stepper |
+| **max** | `maxMaterials` / `maxMaterialsMeta` | plus + Progress + Menu |
+| **pro** | `proMaterials` / `proMaterialsMeta` | max + 碎片 / Table / Tree / Sort（全量） |
 
-Component library: `@angular/material`.
+分类目录：
 
-## Included Components
+- `components/basic-components.ts` / `form-components.ts` — base
+- `components/layout-components.ts` — plus
+- `components/feedback-components.ts` — max
+- `components/data-components.ts` — pro
+- `directives/base-directives.ts` / `layout-directives.ts` / `feedback-directives.ts` / `data-directives.ts`
 
-- **基础组件**: `MatButton`, `MatIconButton`, `MatIcon`, `MatDivider`
-- **表单组件**: `MatFormField`, `MatLabel`, `MatCheckbox`, `MatSlideToggle`, `MatSlider`, `MatSelect`, `MatOption`, `MatRadioGroup`, `MatRadioButton`, `MatButtonToggleGroup`, `MatButtonToggle`
-- **布局组件**: `MatCard`（含 `MatCardHeader`/`MatCardTitle`/`MatCardSubtitle`/`MatCardContent`/`MatCardActions`）, `MatToolbar`, `MatList`, `MatListItem`, `MatExpansionPanel`（含 `MatExpansionPanelHeader`/`MatExpansionPanelTitle`）
-- **导航组件**: `MatTabs`, `MatTab`
-- **数据展示**: `MatPaginator`
-- **反馈组件**: `MatProgressSpinner`, `MatProgressBar`
+对应 meta JSON：
+
+- `bundle.json` — base
+- `plus-layout.json` — plus
+- `max-feedback.json` — max
+- `pro-data.json` — pro
+
+### Tier breakdown
+
+**base** — Button/Fab/Icon/Divider，表单（含 `MatHint`/`MatError`，`matPrefix`/`matSuffix`），`MatCard*`（含 Footer / TitleGroup），以及 `matInput` / `matTooltip` / `matBadge`。
+
+**plus** — Toolbar、Sidenav*、GridList*、List 变体、Accordion / Expansion*、Tabs / TabNav*、Autocomplete、Datepicker / Timepicker、Stepper。
+
+**max** — Progress*、Menu / MenuItem（`matMenuTriggerFor`）。
+
+**pro** — Chip*（含 ChipGrid / ChipRow）、Paginator、Table / TextColumn / SortHeader、Tree / TreeNode。
+
+## Included Components（pro 全量）
+
+- **基础组件**: `MatButton`, `MatIconButton`, `MatFabButton`, `MatMiniFabButton`, `MatIcon`, `MatDivider`
+- **表单组件**: `MatFormField`, `MatLabel`, `MatHint`, `MatError`, `MatCheckbox`, `MatSlideToggle`, `MatSlider`, `MatSelect`, `MatOption`, `MatRadioGroup`, `MatRadioButton`, `MatButtonToggleGroup`, `MatButtonToggle`, `MatAutocomplete`, `MatDatepicker`, `MatDateRangePicker`, `MatDatepickerToggle`, `MatTimepicker`, `MatTimepickerToggle`
+- **布局组件**: `MatCard*`, `MatToolbar`, `MatSidenav*`, `MatGridList`/`MatGridTile`, `MatList*` 变体, `MatAccordion`, `MatExpansionPanel*`
+- **导航组件**: `MatTabs`, `MatTab`, `MatTabNav`, `MatTabLink`, `MatTabNavPanel`, `MatStepper`, `MatStep`
+- **数据展示**: `MatChipSet`, `MatChip`, `MatChipListbox`, `MatChipOption`, `MatChipGrid`, `MatChipRow`, `MatPaginator`, `MatTable`, `MatTextColumn`, `MatTableColumn`, `MatTableHeaderRow`, `MatTableDataRow`, `MatSortHeader`, `MatTree`, `MatTreeNode`
+- **反馈组件**: `MatProgressSpinner`, `MatProgressBar`, `MatMenu`, `MatMenuItem`
 
 ### Directives
 
-| directiveName | Description |
-|---------------|-------------|
-| `matInput` | 应用到原生 `input`/`textarea`，作为 `MatFormField` 的控件（schema 中声明 `matInput: true` 会自动挂载） |
-| `matSliderThumb` | 应用到 `MatSlider` 内的原生 `input`（`matSliderThumb: true`），用于拖动与 `ngModel` 绑定 |
-| `matTooltip` | 任意元素上展示提示气泡（props 中提供 `matTooltip` 文案与 `matTooltipPosition`） |
-| `matBadge` | 任意元素上的徽标（props 中提供 `matBadge` 数值） |
+| directiveName | Tier | Description |
+|---------------|------|-------------|
+| `matInput` | base | 原生 `input`/`textarea` 作为 `MatFormField` 控件（`matInput: true` 自动挂载） |
+| `matPrefix` / `matSuffix` | base | 表单前后缀（`matPrefix` / `matIconPrefix` / `matTextPrefix` 等） |
+| `matSliderThumb` | base | `MatSlider` 内拇指（`matSliderThumb: true`） |
+| `matTooltip` / `matBadge` | base | 通用提示 / 徽标 |
+| `matCardImage` / `matCardAvatar` | base | 卡片图片 / 头像 |
+| `matAutocomplete` / `matDatepicker` / `matTimepicker` | plus | 输入框绑定对应面板实例 |
+| `matStepperNext` / `matStepperPrevious` | plus | 步进器前进 / 后退 |
+| `matMenuTriggerFor` | max | 菜单触发（值为 `MatMenu` 实例，常用 `ref`） |
+| `matChipRemove` / `matChipAvatar` / `matChipInputFor` | pro | 碎片移除 / 头像 / 输入关联 `MatChipGrid` |
+| `matSort` | pro | 表格排序宿主 |
 
-### Form Binding
-
-表单控件通过 `ngModel` 双向绑定，与渲染器内置的 `ngModel`/`defaultValueAccessor` 指令配合使用：
-
-```json
-{
-  "componentName": "input",
-  "props": {
-    "matInput": true,
-    "placeholder": "请输入姓名",
-    "ngModel": { "type": "JSExpression", "model": true, "value": "this.state.name" }
-  },
-  "directives": [
-    { "directiveName": "ngModel" },
-    { "directiveName": "matInput" }
-  ]
-}
-```
-
-原生 `select` / `option` 也在白名单内：字符串 `value` 可直接用；对象必须写 `ngValue`（`NgSelectOption` 的 `{ host: true }` 由渲染器桥接到父级 `SelectControlValueAccessor`）。`MatSelect` / `MatOption` 没有这条 Host，不需要该桥。`ngModelGroup` 由渲染器子类去掉 `{ host: true }`，只保留 `skipSelf` 从父 injector 取 `ControlContainer`。
-
-## Regenerate bundle.json
-
-`src/meta/materials/bundle.json` is generated by `scripts/gen-bundle.mjs`:
+## Regenerate bundles
 
 ```bash
 node scripts/gen-bundle.mjs
@@ -117,8 +125,10 @@ node scripts/gen-bundle.mjs
 
 ## Limitations
 
-- `MatTable`（需 `matColumnDef`/`matCellDef` 模板指令）、`MatDatepicker`、`MatMenu`、`MatDialog` 等依赖模板引用或服务调用的组件暂未纳入白名单，简单表格请使用原生 `table` 标签（参考 `examples/grid.json`）。
-- 若需接入这些组件，需要渲染器支持模板引用或在该包中提供包装组件。
+- `MatDialog` / `MatSnackBar` / `MatBottomSheet` 为服务打开，不纳入 schema 根组件。
+- `MatMenu` / `MatAutocomplete` / `MatDatepicker` / `MatChipGrid` 等需通过 `props.ref` + `JSExpression` 把组件实例传给触发指令（如 `matMenuTriggerFor`）。
+- `MatTable` 使用 `MatTextColumn` / `MatTableColumn` + `MatTableHeaderRow` / `MatTableDataRow` bridge；自定义单元格用 `MatTableColumn` 子节点 `NgTemplate`（`let.row`）。详见 [TODO：结构指令直写 Schema](../../../docs/inner-docs/mat-table-structural-directives-todo.md)。
+- `MatTree` 完整节点模板仍依赖数据源与结构指令。
 
 ## More
 

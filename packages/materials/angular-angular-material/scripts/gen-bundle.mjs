@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.resolve(__dirname, '../projects/mat-materials/src/meta/materials/bundle.json');
 const VERSION = '20.2.14';
 
 let seq = 0;
@@ -218,6 +217,45 @@ const components = [
     },
   }),
   componentEntry({
+    component: 'MatFabButton',
+    nameZh: '悬浮按钮',
+    icon: 'fab',
+    description: 'Material Design FAB 悬浮操作按钮（button[mat-fab]）',
+    docUrl: 'https://material.angular.dev/components/button/overview',
+    groupName: '基础组件',
+    keywords: 'fab,悬浮按钮',
+    tags: 'fab,按钮,基础组件',
+    properties: [
+      boolProp('extended', '扩展', '是否显示扩展标签（extended FAB）'),
+      selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions),
+      boolProp('disabled', '禁用', '是否禁用按钮', { defaultValue: false }),
+      boolProp('disableRipple', '禁用涟漪', '是否禁用点击涟漪效果'),
+    ],
+    events: {
+      click: event('点击事件', '按钮点击时触发', [param('event', 'Event', '原生点击事件对象')]),
+    },
+    slots: defaultSlot('按钮内容', '通常放置 MatIcon，扩展模式可加文案'),
+  }),
+  componentEntry({
+    component: 'MatMiniFabButton',
+    nameZh: '迷你悬浮按钮',
+    icon: 'fab',
+    description: '小型 FAB（button[mat-mini-fab]）',
+    docUrl: 'https://material.angular.dev/components/button/overview',
+    groupName: '基础组件',
+    keywords: 'mini fab,迷你悬浮按钮',
+    tags: 'fab,按钮,基础组件',
+    properties: [
+      selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions),
+      boolProp('disabled', '禁用', '是否禁用按钮', { defaultValue: false }),
+      boolProp('disableRipple', '禁用涟漪', '是否禁用点击涟漪效果'),
+    ],
+    events: {
+      click: event('点击事件', '按钮点击时触发', [param('event', 'Event', '原生点击事件对象')]),
+    },
+    slots: defaultSlot('按钮内容', '通常放置 MatIcon'),
+  }),
+  componentEntry({
     component: 'MatIcon',
     nameZh: '图标',
     icon: 'icon',
@@ -278,6 +316,32 @@ const components = [
     tags: 'label,标签,表单',
     properties: [],
     slots: defaultSlot('标签内容', '标签文本内容'),
+  }),
+  componentEntry({
+    component: 'MatHint',
+    nameZh: '表单提示',
+    icon: 'hint',
+    description: 'MatFormField 下方提示文案（mat-hint）',
+    docUrl: 'https://material.angular.dev/components/form-field/overview',
+    groupName: '表单组件',
+    keywords: 'hint,提示',
+    tags: 'hint,表单',
+    properties: [
+      selectProp('align', '对齐', '提示对齐：start、end', ['start', 'end']),
+    ],
+    slots: defaultSlot('提示内容', '提示文本'),
+  }),
+  componentEntry({
+    component: 'MatError',
+    nameZh: '表单错误',
+    icon: 'error',
+    description: 'MatFormField 校验错误文案（mat-error）',
+    docUrl: 'https://material.angular.dev/components/form-field/overview',
+    groupName: '表单组件',
+    keywords: 'error,错误',
+    tags: 'error,表单',
+    properties: [],
+    slots: defaultSlot('错误内容', '错误文本'),
   }),
   componentEntry({
     component: 'MatCheckbox',
@@ -534,6 +598,32 @@ const components = [
     slots: defaultSlot('操作区', '通常放置 MatButton 操作按钮'),
   }),
   componentEntry({
+    component: 'MatCardFooter',
+    nameZh: '卡片页脚',
+    icon: 'card-footer',
+    description: '卡片底部页脚区域',
+    docUrl: 'https://material.angular.dev/components/card/overview',
+    groupName: '布局组件',
+    keywords: 'card-footer,卡片页脚',
+    tags: 'card-footer,卡片,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('页脚内容', '页脚文本或操作'),
+  }),
+  componentEntry({
+    component: 'MatCardTitleGroup',
+    nameZh: '卡片标题组',
+    icon: 'card-title-group',
+    description: '卡片标题与图片并排组合容器',
+    docUrl: 'https://material.angular.dev/components/card/overview',
+    groupName: '布局组件',
+    keywords: 'card-title-group,标题组',
+    tags: 'card-title-group,卡片,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('标题组内容', '标题、副标题与图片'),
+  }),
+  componentEntry({
     component: 'MatToolbar',
     nameZh: '工具栏',
     icon: 'toolbar',
@@ -548,6 +638,91 @@ const components = [
       selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions, { defaultValue: 'primary' }),
     ],
     slots: defaultSlot('工具栏内容', '工具栏内容，如标题文本或按钮'),
+  }),
+  componentEntry({
+    component: 'MatSidenavContainer',
+    nameZh: '侧边栏容器',
+    icon: 'sidenav',
+    description: '侧边导航布局容器，内含 MatSidenav 与 MatSidenavContent',
+    docUrl: 'https://material.angular.dev/components/sidenav/overview',
+    groupName: '布局组件',
+    keywords: 'sidenav,侧边栏,抽屉',
+    tags: 'sidenav,布局',
+    isContainer: true,
+    isLayout: true,
+    properties: [
+      boolProp('autosize', '自动尺寸', '内容变化时是否自动重新计算尺寸'),
+      boolProp('hasBackdrop', '遮罩', '是否显示遮罩（over/push 模式）'),
+    ],
+    slots: defaultSlot('侧边栏布局', '放置 MatSidenav 与 MatSidenavContent'),
+  }),
+  componentEntry({
+    component: 'MatSidenav',
+    nameZh: '侧边栏',
+    icon: 'sidenav',
+    description: '侧边导航面板',
+    docUrl: 'https://material.angular.dev/components/sidenav/overview',
+    groupName: '布局组件',
+    keywords: 'sidenav,侧边栏',
+    tags: 'sidenav,布局',
+    isContainer: true,
+    properties: [
+      selectProp('mode', '模式', '显示模式：over、push、side', ['over', 'push', 'side'], { defaultValue: 'over' }),
+      selectProp('position', '位置', '位置：start、end', ['start', 'end'], { defaultValue: 'start' }),
+      boolProp('opened', '打开', '是否打开', { defaultValue: false }),
+      boolProp('fixedInViewport', '固定视口', '是否固定在视口'),
+    ],
+    events: {
+      openedChange: event('开关变化', '打开状态变化时触发', [param('opened', 'boolean', '是否打开')]),
+    },
+    slots: defaultSlot('侧边栏内容', '导航列表等'),
+  }),
+  componentEntry({
+    component: 'MatSidenavContent',
+    nameZh: '侧边栏主内容',
+    icon: 'sidenav-content',
+    description: '侧边栏布局的主内容区',
+    docUrl: 'https://material.angular.dev/components/sidenav/overview',
+    groupName: '布局组件',
+    keywords: 'sidenav-content,主内容',
+    tags: 'sidenav,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('主内容', '页面主体'),
+  }),
+  componentEntry({
+    component: 'MatGridList',
+    nameZh: '网格列表',
+    icon: 'grid',
+    description: '按列数划分的网格布局容器',
+    docUrl: 'https://material.angular.dev/components/grid-list/overview',
+    groupName: '布局组件',
+    keywords: 'grid-list,网格',
+    tags: 'grid,布局',
+    isContainer: true,
+    isLayout: true,
+    properties: [
+      numProp('cols', '列数', '网格列数', { defaultValue: 2 }),
+      numProp('rowHeight', '行高', '行高（可用数字或比例字符串如 1:1）', { defaultValue: 100 }),
+      numProp('gutterSize', '间距', '格子间距（px）'),
+    ],
+    slots: defaultSlot('网格内容', '放置多个 MatGridTile'),
+  }),
+  componentEntry({
+    component: 'MatGridTile',
+    nameZh: '网格块',
+    icon: 'grid-tile',
+    description: '网格列表中的单个格子',
+    docUrl: 'https://material.angular.dev/components/grid-list/overview',
+    groupName: '布局组件',
+    keywords: 'grid-tile,网格块',
+    tags: 'grid,布局',
+    isContainer: true,
+    properties: [
+      numProp('colspan', '跨列', '占据列数', { defaultValue: 1 }),
+      numProp('rowspan', '跨行', '占据行数', { defaultValue: 1 }),
+    ],
+    slots: defaultSlot('格子内容', '格子内展示内容'),
   }),
   componentEntry({
     component: 'MatList',
@@ -574,6 +749,86 @@ const components = [
     isContainer: true,
     properties: [],
     slots: defaultSlot('列表项内容', '列表项文本或内容'),
+  }),
+  componentEntry({
+    component: 'MatNavList',
+    nameZh: '导航列表',
+    icon: 'nav-list',
+    description: '用于导航链接的列表容器',
+    docUrl: 'https://material.angular.dev/components/list/overview',
+    groupName: '布局组件',
+    keywords: 'nav-list,导航列表',
+    tags: 'list,导航,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('导航项', '放置带链接的 MatListItem'),
+  }),
+  componentEntry({
+    component: 'MatActionList',
+    nameZh: '操作列表',
+    icon: 'action-list',
+    description: '用于操作按钮的列表容器',
+    docUrl: 'https://material.angular.dev/components/list/overview',
+    groupName: '布局组件',
+    keywords: 'action-list,操作列表',
+    tags: 'list,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('操作项', '放置可点击的 MatListItem'),
+  }),
+  componentEntry({
+    component: 'MatSelectionList',
+    nameZh: '选择列表',
+    icon: 'selection-list',
+    description: '可多选/单选的列表，子节点为 MatListOption',
+    docUrl: 'https://material.angular.dev/components/list/overview',
+    groupName: '布局组件',
+    keywords: 'selection-list,选择列表',
+    tags: 'list,选择,布局',
+    isContainer: true,
+    properties: [
+      boolProp('multiple', '多选', '是否允许多选', { defaultValue: true }),
+      boolProp('disabled', '禁用', '是否禁用'),
+    ],
+    events: {
+      selectionChange: event('选择变化', '选中项变化时触发', [param('event', 'MatSelectionListChange', '选择事件')]),
+    },
+    slots: defaultSlot('选项', '放置多个 MatListOption'),
+  }),
+  componentEntry({
+    component: 'MatListOption',
+    nameZh: '列表选项',
+    icon: 'list-option',
+    description: '选择列表中的单个选项',
+    docUrl: 'https://material.angular.dev/components/list/overview',
+    groupName: '布局组件',
+    keywords: 'list-option,列表选项',
+    tags: 'list,选择,布局',
+    isContainer: true,
+    properties: [
+      strProp('value', '值', '选项值'),
+      boolProp('selected', '选中', '是否选中'),
+      boolProp('disabled', '禁用', '是否禁用'),
+    ],
+    slots: defaultSlot('选项内容', '选项文案'),
+  }),
+  componentEntry({
+    component: 'MatAccordion',
+    nameZh: '手风琴',
+    icon: 'accordion',
+    description: '手风琴容器，可约束内部 MatExpansionPanel 的展开行为',
+    docUrl: 'https://material.angular.dev/components/expansion/overview',
+    groupName: '布局组件',
+    keywords: 'accordion,手风琴',
+    tags: 'accordion,手风琴,布局',
+    isContainer: true,
+    properties: [
+      boolProp('multi', '多开', '是否允许多个面板同时展开'),
+      boolProp('hideToggle', '隐藏箭头', '是否隐藏所有面板箭头'),
+      selectProp('displayMode', '显示模式', 'default 或 flat', ['default', 'flat']),
+      selectProp('togglePosition', '箭头位置', 'before 或 after', ['before', 'after']),
+    ],
+    slots: defaultSlot('面板列表', '放置多个 MatExpansionPanel'),
   }),
   componentEntry({
     component: 'MatExpansionPanel',
@@ -622,6 +877,32 @@ const components = [
     properties: [],
     slots: defaultSlot('标题内容', '标题文本'),
   }),
+  componentEntry({
+    component: 'MatExpansionPanelDescription',
+    nameZh: '手风琴面板描述',
+    icon: 'expansion-panel-description',
+    description: '手风琴面板头部的次要描述文本',
+    docUrl: 'https://material.angular.dev/components/expansion/overview',
+    groupName: '布局组件',
+    keywords: 'expansion-description,手风琴描述',
+    tags: 'expansion-panel-description,手风琴,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('描述内容', '描述文本'),
+  }),
+  componentEntry({
+    component: 'MatExpansionPanelActionRow',
+    nameZh: '手风琴面板操作行',
+    icon: 'expansion-panel-actions',
+    description: '面板底部操作按钮行',
+    docUrl: 'https://material.angular.dev/components/expansion/overview',
+    groupName: '布局组件',
+    keywords: 'expansion-actions,手风琴操作',
+    tags: 'expansion-panel-action-row,手风琴,布局',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('操作内容', '通常放置 MatButton'),
+  }),
 
   // ============ 导航组件 ============
   componentEntry({
@@ -663,8 +944,302 @@ const components = [
     ],
     slots: defaultSlot('标签页内容', '该标签页的内容'),
   }),
+  componentEntry({
+    component: 'MatTabNav',
+    nameZh: '标签导航栏',
+    icon: 'tab-nav',
+    description: '基于路由/链接的标签导航栏（mat-tab-nav-bar）',
+    docUrl: 'https://material.angular.dev/components/tabs/overview',
+    groupName: '导航组件',
+    keywords: 'tab-nav,标签导航',
+    tags: 'tabs,导航',
+    isContainer: true,
+    properties: [
+      selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions),
+      boolProp('fitInkBarToContent', '墨条贴合', '墨条是否贴合内容宽度'),
+    ],
+    slots: defaultSlot('导航链接', '放置多个 MatTabLink'),
+  }),
+  componentEntry({
+    component: 'MatTabLink',
+    nameZh: '标签导航链接',
+    icon: 'tab-link',
+    description: '标签导航栏中的单个链接',
+    docUrl: 'https://material.angular.dev/components/tabs/overview',
+    groupName: '导航组件',
+    keywords: 'tab-link,标签链接',
+    tags: 'tabs,导航',
+    isContainer: true,
+    properties: [
+      boolProp('active', '激活', '是否为当前激活项'),
+      boolProp('disabled', '禁用', '是否禁用'),
+    ],
+    slots: defaultSlot('链接内容', '链接文案'),
+  }),
+  componentEntry({
+    component: 'MatTabNavPanel',
+    nameZh: '标签导航面板',
+    icon: 'tab-nav-panel',
+    description: '与 MatTabNav 关联的内容面板',
+    docUrl: 'https://material.angular.dev/components/tabs/overview',
+    groupName: '导航组件',
+    keywords: 'tab-nav-panel,标签面板',
+    tags: 'tabs,导航',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('面板内容', '当前标签对应内容'),
+  }),
+  componentEntry({
+    component: 'MatAutocomplete',
+    nameZh: '自动完成',
+    icon: 'autocomplete',
+    description: '自动完成面板；通过 input 的 matAutocomplete 绑定本组件实例（可用 ref）',
+    docUrl: 'https://material.angular.dev/components/autocomplete/overview',
+    groupName: '表单组件',
+    keywords: 'autocomplete,自动完成',
+    tags: 'autocomplete,表单',
+    isContainer: true,
+    properties: [
+      boolProp('autoActiveFirstOption', '自动激活首项', '打开时是否激活第一项'),
+      boolProp('disableRipple', '禁用涟漪', '是否禁用涟漪'),
+    ],
+    slots: defaultSlot('选项', '放置 MatOption'),
+  }),
+  componentEntry({
+    component: 'MatDatepicker',
+    nameZh: '日期选择器',
+    icon: 'datepicker',
+    description: '日期选择弹出层；input 通过 matDatepicker 绑定本组件实例，宿主需 provideNativeDateAdapter',
+    docUrl: 'https://material.angular.dev/components/datepicker/overview',
+    groupName: '表单组件',
+    keywords: 'datepicker,日期',
+    tags: 'datepicker,表单',
+    properties: [
+      boolProp('disabled', '禁用', '是否禁用'),
+      boolProp('touchUi', '触控 UI', '是否使用触控大面板'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatDateRangePicker',
+    nameZh: '日期范围选择器',
+    icon: 'daterange',
+    description: '日期范围选择弹出层，配合 MatDateRangeInput 使用',
+    docUrl: 'https://material.angular.dev/components/datepicker/overview',
+    groupName: '表单组件',
+    keywords: 'date-range,日期范围',
+    tags: 'datepicker,表单',
+    properties: [
+      boolProp('disabled', '禁用', '是否禁用'),
+      boolProp('touchUi', '触控 UI', '是否使用触控大面板'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatDatepickerToggle',
+    nameZh: '日期选择开关',
+    icon: 'datepicker-toggle',
+    description: '打开日期选择器的图标按钮，for 绑定 MatDatepicker 实例',
+    docUrl: 'https://material.angular.dev/components/datepicker/overview',
+    groupName: '表单组件',
+    keywords: 'datepicker-toggle,日期开关',
+    tags: 'datepicker,表单',
+    properties: [
+      strProp('for', '关联选择器', 'MatDatepicker 实例（常用 ref / JSExpression）'),
+      boolProp('disabled', '禁用', '是否禁用'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatTimepicker',
+    nameZh: '时间选择器',
+    icon: 'timepicker',
+    description: '时间选择弹出层；input 通过 matTimepicker 绑定本组件实例',
+    docUrl: 'https://material.angular.dev/components/timepicker/overview',
+    groupName: '表单组件',
+    keywords: 'timepicker,时间',
+    tags: 'timepicker,表单',
+    properties: [
+      boolProp('disabled', '禁用', '是否禁用'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatTimepickerToggle',
+    nameZh: '时间选择开关',
+    icon: 'timepicker-toggle',
+    description: '打开时间选择器的图标按钮，for 绑定 MatTimepicker 实例',
+    docUrl: 'https://material.angular.dev/components/timepicker/overview',
+    groupName: '表单组件',
+    keywords: 'timepicker-toggle,时间开关',
+    tags: 'timepicker,表单',
+    properties: [
+      strProp('for', '关联选择器', 'MatTimepicker 实例（常用 ref / JSExpression）'),
+      boolProp('disabled', '禁用', '是否禁用'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatStepper',
+    nameZh: '步进器',
+    icon: 'stepper',
+    description: '水平/垂直步进流程容器',
+    docUrl: 'https://material.angular.dev/components/stepper/overview',
+    groupName: '导航组件',
+    keywords: 'stepper,步进',
+    tags: 'stepper,导航',
+    isContainer: true,
+    isLayout: true,
+    properties: [
+      selectProp('orientation', '方向', 'horizontal 或 vertical', ['horizontal', 'vertical'], {
+        defaultValue: 'horizontal',
+      }),
+      boolProp('linear', '线性', '是否必须按序完成', { defaultValue: true }),
+      numProp('selectedIndex', '选中索引', '当前步骤索引', { defaultValue: 0 }),
+    ],
+    events: {
+      selectionChange: event('步骤变化', '选中步骤变化时触发', [param('event', 'StepperSelectionChange', '步骤事件')]),
+    },
+    slots: defaultSlot('步骤', '放置多个 MatStep'),
+  }),
+  componentEntry({
+    component: 'MatStep',
+    nameZh: '步骤',
+    icon: 'step',
+    description: '步进器中的单个步骤',
+    docUrl: 'https://material.angular.dev/components/stepper/overview',
+    groupName: '导航组件',
+    keywords: 'step,步骤',
+    tags: 'stepper,导航',
+    isContainer: true,
+    properties: [
+      strProp('label', '标签', '步骤标题'),
+      boolProp('optional', '可选', '是否为可选步骤'),
+      boolProp('editable', '可编辑', '完成后是否可回退编辑', { defaultValue: true }),
+      boolProp('completed', '已完成', '是否标记完成'),
+    ],
+    slots: defaultSlot('步骤内容', '该步骤表单或说明'),
+  }),
 
   // ============ 数据展示 ============
+  componentEntry({
+    component: 'MatChipSet',
+    nameZh: '碎片组',
+    icon: 'chip',
+    description: '静态展示用碎片容器，子节点为 MatChip',
+    docUrl: 'https://material.angular.dev/components/chips/overview',
+    groupName: '数据展示',
+    keywords: 'chip,碎片,标签',
+    tags: 'chip,碎片,数据',
+    isContainer: true,
+    properties: [
+      boolProp('disabled', '禁用', '是否禁用整组碎片'),
+      strProp('role', 'ARIA 角色', '无障碍角色，默认 listbox'),
+    ],
+    slots: defaultSlot('碎片列表', '放置 MatChip 子节点'),
+  }),
+  componentEntry({
+    component: 'MatChip',
+    nameZh: '碎片',
+    icon: 'chip',
+    description: '单个展示碎片，需放在 MatChipSet 内；可配合 matChipRemove / matChipAvatar',
+    docUrl: 'https://material.angular.dev/components/chips/overview',
+    groupName: '数据展示',
+    keywords: 'chip,碎片',
+    tags: 'chip,碎片,数据',
+    isContainer: true,
+    properties: [
+      boolProp('removable', '可移除', '是否可移除（需子节点挂 matChipRemove）', { defaultValue: true }),
+      boolProp('highlighted', '高亮', '是否高亮选中样式'),
+      boolProp('disabled', '禁用', '是否禁用'),
+      selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions),
+      strProp('value', '值', '碎片关联值'),
+    ],
+    events: {
+      removed: event('移除事件', '点击移除图标时触发'),
+    },
+    slots: defaultSlot('碎片内容', '文案、头像与移除图标'),
+  }),
+  componentEntry({
+    component: 'MatChipListbox',
+    nameZh: '碎片列表框',
+    icon: 'chip',
+    description: '可选择碎片列表，子节点为 MatChipOption，支持 ngModel',
+    docUrl: 'https://material.angular.dev/components/chips/overview',
+    groupName: '数据展示',
+    keywords: 'chip,listbox,碎片选择',
+    tags: 'chip,碎片,选择,数据',
+    isContainer: true,
+    properties: [
+      boolProp('multiple', '多选', '是否允许多选'),
+      boolProp('selectable', '可选', '是否允许选择', { defaultValue: true }),
+      boolProp('required', '必填', '是否必填'),
+      boolProp('disabled', '禁用', '是否禁用'),
+      boolProp('hideSingleSelectionIndicator', '隐藏单选指示', '单选时是否隐藏勾选指示'),
+      strProp('ariaOrientation', '方向', 'ARIA 方向：horizontal / vertical'),
+    ],
+    events: {
+      change: event('选择变化', '选中项变化时触发', [param('event', 'MatChipListboxChange', '选择变化事件')]),
+      ...Object.fromEntries([['ngModelChange', ngModelEvent()]]),
+    },
+    slots: defaultSlot('选项碎片', '放置 MatChipOption 子节点'),
+  }),
+  componentEntry({
+    component: 'MatChipOption',
+    nameZh: '可选碎片',
+    icon: 'chip',
+    description: '可选择碎片，需放在 MatChipListbox 内',
+    docUrl: 'https://material.angular.dev/components/chips/overview',
+    groupName: '数据展示',
+    keywords: 'chip,option,可选碎片',
+    tags: 'chip,碎片,选择,数据',
+    isContainer: true,
+    properties: [
+      boolProp('selected', '选中', '是否选中'),
+      boolProp('selectable', '可选', '是否允许选择', { defaultValue: true }),
+      boolProp('disabled', '禁用', '是否禁用'),
+      boolProp('removable', '可移除', '是否可移除'),
+      selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions),
+      strProp('value', '值', '选项值'),
+    ],
+    events: {
+      selectionChange: event('选中变化', '选中状态变化时触发', [
+        param('event', 'MatChipSelectionChange', '选中变化事件'),
+      ]),
+    },
+    slots: defaultSlot('碎片内容', '选项文案与图标'),
+  }),
+  componentEntry({
+    component: 'MatChipGrid',
+    nameZh: '碎片网格',
+    icon: 'chip',
+    description: '可输入式碎片容器；input 通过 matChipInputFor 绑定本组件实例',
+    docUrl: 'https://material.angular.dev/components/chips/overview',
+    groupName: '数据展示',
+    keywords: 'chip-grid,碎片输入',
+    tags: 'chip,碎片,数据',
+    isContainer: true,
+    properties: [
+      boolProp('disabled', '禁用', '是否禁用'),
+      boolProp('required', '必填', '是否必填'),
+    ],
+    slots: defaultSlot('碎片行', '放置 MatChipRow，并可配合 input[matChipInputFor]'),
+  }),
+  componentEntry({
+    component: 'MatChipRow',
+    nameZh: '碎片行',
+    icon: 'chip',
+    description: '碎片网格中的可编辑碎片行',
+    docUrl: 'https://material.angular.dev/components/chips/overview',
+    groupName: '数据展示',
+    keywords: 'chip-row,碎片行',
+    tags: 'chip,碎片,数据',
+    isContainer: true,
+    properties: [
+      boolProp('removable', '可移除', '是否可移除', { defaultValue: true }),
+      boolProp('disabled', '禁用', '是否禁用'),
+      strProp('value', '值', '碎片值'),
+    ],
+    events: {
+      removed: event('移除事件', '移除时触发'),
+    },
+    slots: defaultSlot('碎片内容', '文案与移除图标'),
+  }),
   componentEntry({
     component: 'MatPaginator',
     nameZh: '分页器',
@@ -686,6 +1261,120 @@ const components = [
     events: {
       page: event('翻页事件', '翻页时触发', [param('event', 'PageEvent', '分页事件对象')]),
     },
+  }),
+  componentEntry({
+    component: 'MatTable',
+    nameZh: '数据表格',
+    icon: 'table',
+    description: 'Material 数据表格；列用 MatTextColumn / MatTableColumn，行用 MatTableHeaderRow / MatTableDataRow',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'table,表格',
+    tags: 'table,数据',
+    isContainer: true,
+    properties: [
+      arrayProp('dataSource', '数据源', '表格数据源（数组或 MatTableDataSource）'),
+    ],
+    slots: defaultSlot('表格结构', '列定义与行定义 bridge'),
+  }),
+  componentEntry({
+    component: 'MatTextColumn',
+    nameZh: '文本列',
+    icon: 'table-column',
+    description: '简化的文本列定义（mat-text-column）',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'text-column,文本列',
+    tags: 'table,数据',
+    properties: [
+      strProp('name', '列名', '列标识，对应 displayedColumns'),
+      strProp('headerText', '表头文案', '表头显示文本'),
+      strProp('dataAccessor', '取值', '从行数据取值的字段名或访问器'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatTableColumn',
+    nameZh: '表格列',
+    icon: 'table-column',
+    description: '自定义表格列；可放 NgTemplate（let.row）渲染单元格，否则按 name 读字段',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'table-column,自定义列',
+    tags: 'table,数据',
+    isContainer: true,
+    properties: [
+      strProp('name', '列名', '列标识，对应 displayedColumns'),
+      strProp('headerText', '表头文案', '表头显示文本'),
+    ],
+    slots: defaultSlot('单元格模板', '可选 NgTemplate，上下文含 row'),
+  }),
+  componentEntry({
+    component: 'MatTableHeaderRow',
+    nameZh: '表头行',
+    icon: 'table-header',
+    description: 'MatTable 表头行定义 bridge（等价 *matHeaderRowDef）',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'header-row,表头',
+    tags: 'table,数据',
+    properties: [
+      arrayProp('columns', '列顺序', 'displayedColumns 列名数组'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatTableDataRow',
+    nameZh: '数据行',
+    icon: 'table-row',
+    description: 'MatTable 数据行定义 bridge（等价 *matRowDef）',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'data-row,数据行',
+    tags: 'table,数据',
+    properties: [
+      arrayProp('columns', '列顺序', 'displayedColumns 列名数组'),
+    ],
+  }),
+  componentEntry({
+    component: 'MatSortHeader',
+    nameZh: '排序表头',
+    icon: 'sort',
+    description: '可排序表头（mat-sort-header），父级需开启 matSort',
+    docUrl: 'https://material.angular.dev/components/sort/overview',
+    groupName: '数据展示',
+    keywords: 'sort-header,排序',
+    tags: 'sort,table,数据',
+    isContainer: true,
+    properties: [
+      strProp('id', '排序 id', '排序列标识'),
+      boolProp('disabled', '禁用', '是否禁用排序'),
+    ],
+    slots: defaultSlot('表头内容', '表头文案'),
+  }),
+  componentEntry({
+    component: 'MatTree',
+    nameZh: '树',
+    icon: 'tree',
+    description: '树形结构宿主；节点展开仍依赖数据源与节点模板',
+    docUrl: 'https://material.angular.dev/components/tree/overview',
+    groupName: '数据展示',
+    keywords: 'tree,树',
+    tags: 'tree,数据',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('树节点', '放置 MatTreeNode 等'),
+  }),
+  componentEntry({
+    component: 'MatTreeNode',
+    nameZh: '树节点',
+    icon: 'tree-node',
+    description: '树节点宿主元素',
+    docUrl: 'https://material.angular.dev/components/tree/overview',
+    groupName: '数据展示',
+    keywords: 'tree-node,树节点',
+    tags: 'tree,数据',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('节点内容', '节点文案与子树'),
   }),
 
   // ============ 反馈组件 ============
@@ -721,6 +1410,42 @@ const components = [
       numProp('bufferValue', '缓冲值', 'buffer 模式下的缓冲值'),
       selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions, { defaultValue: 'primary' }),
     ],
+  }),
+  componentEntry({
+    component: 'MatMenu',
+    nameZh: '菜单',
+    icon: 'menu',
+    description: '弹出菜单面板；触发按钮通过 matMenuTriggerFor 绑定本组件实例（可用 ref）',
+    docUrl: 'https://material.angular.dev/components/menu/overview',
+    groupName: '反馈组件',
+    keywords: 'menu,菜单',
+    tags: 'menu,反馈',
+    isContainer: true,
+    properties: [
+      selectProp('xPosition', '水平位置', 'before 或 after', ['before', 'after']),
+      selectProp('yPosition', '垂直位置', 'above 或 below', ['above', 'below']),
+      boolProp('overlapTrigger', '重叠触发器', '是否与触发元素重叠'),
+    ],
+    slots: defaultSlot('菜单项', '放置 MatMenuItem'),
+  }),
+  componentEntry({
+    component: 'MatMenuItem',
+    nameZh: '菜单项',
+    icon: 'menu-item',
+    description: '菜单中的单个操作项',
+    docUrl: 'https://material.angular.dev/components/menu/overview',
+    groupName: '反馈组件',
+    keywords: 'menu-item,菜单项',
+    tags: 'menu,反馈',
+    isContainer: true,
+    properties: [
+      boolProp('disabled', '禁用', '是否禁用'),
+      boolProp('disableRipple', '禁用涟漪', '是否禁用涟漪'),
+    ],
+    events: {
+      click: event('点击事件', '菜单项点击时触发', [param('event', 'Event', '原生点击事件')]),
+    },
+    slots: defaultSlot('菜单项内容', '文案与图标'),
   }),
 ];
 
@@ -1042,6 +1767,46 @@ const snippets = [
     label: { zh_CN: '数据展示' },
     children: [
       {
+        name: { zh_CN: '碎片组' },
+        icon: 'chip',
+        screenshot: '',
+        snippetName: 'MatChipSet',
+        schema: {
+          componentName: 'MatChipSet',
+          children: [
+            { componentName: 'MatChip', children: 'Angular' },
+            { componentName: 'MatChip', children: 'Material' },
+            {
+              componentName: 'MatChip',
+              props: { removable: true },
+              children: [
+                'GenUI',
+                {
+                  componentName: 'MatIcon',
+                  props: { fontIcon: 'cancel', matChipRemove: true },
+                  directives: [{ directiveName: 'matChipRemove' }],
+                },
+              ],
+            },
+          ],
+        },
+      },
+      {
+        name: { zh_CN: '碎片列表框' },
+        icon: 'chip',
+        screenshot: '',
+        snippetName: 'MatChipListbox',
+        schema: {
+          componentName: 'MatChipListbox',
+          props: { multiple: true },
+          children: [
+            { componentName: 'MatChipOption', props: { value: '前端', selected: true }, children: '前端' },
+            { componentName: 'MatChipOption', props: { value: '物料' }, children: '物料' },
+            { componentName: 'MatChipOption', props: { value: '渲染器' }, children: '渲染器' },
+          ],
+        },
+      },
+      {
         name: { zh_CN: '分页器' },
         icon: 'pagination',
         screenshot: '',
@@ -1079,26 +1844,133 @@ const snippets = [
   },
 ];
 
-const bundle = {
+const BASE_COMPONENTS = new Set([
+  'MatButton', 'MatIconButton', 'MatFabButton', 'MatMiniFabButton', 'MatIcon', 'MatDivider',
+  'MatFormField', 'MatLabel', 'MatHint', 'MatError', 'MatCheckbox', 'MatSlideToggle', 'MatSlider',
+  'MatSelect', 'MatOption', 'MatRadioGroup', 'MatRadioButton',
+  'MatButtonToggleGroup', 'MatButtonToggle',
+  'MatCard', 'MatCardHeader', 'MatCardTitle', 'MatCardSubtitle', 'MatCardContent', 'MatCardActions',
+  'MatCardFooter', 'MatCardTitleGroup',
+]);
+const PLUS_LAYOUT_COMPONENTS = new Set([
+  'MatToolbar',
+  'MatSidenavContainer', 'MatSidenav', 'MatSidenavContent',
+  'MatGridList', 'MatGridTile',
+  'MatList', 'MatListItem', 'MatNavList', 'MatActionList', 'MatSelectionList', 'MatListOption',
+  'MatAccordion',
+  'MatExpansionPanel', 'MatExpansionPanelHeader', 'MatExpansionPanelTitle',
+  'MatExpansionPanelDescription', 'MatExpansionPanelActionRow',
+  'MatTabs', 'MatTab', 'MatTabNav', 'MatTabLink', 'MatTabNavPanel',
+  'MatAutocomplete',
+  'MatDatepicker', 'MatDateRangePicker', 'MatDatepickerToggle',
+  'MatTimepicker', 'MatTimepickerToggle',
+  'MatStepper', 'MatStep',
+]);
+const MAX_FEEDBACK_COMPONENTS = new Set([
+  'MatProgressSpinner', 'MatProgressBar', 'MatMenu', 'MatMenuItem',
+]);
+const PRO_DATA_COMPONENTS = new Set([
+  'MatChipSet', 'MatChip', 'MatChipListbox', 'MatChipOption',
+  'MatChipGrid', 'MatChipRow',
+  'MatPaginator',
+  'MatTable', 'MatTextColumn', 'MatTableColumn', 'MatTableHeaderRow', 'MatTableDataRow',
+  'MatSortHeader',
+  'MatTree', 'MatTreeNode',
+]);
+
+const packages = [
+  {
+    name: '@angular/material',
+    package: '@angular/material',
+    version: VERSION,
+    destructuring: false,
+    script: '',
+    css: '',
+  },
+];
+
+const makeBundle = (componentList, snippetGroups) => ({
   data: {
     framework: 'Angular',
     materials: {
-      components,
-      packages: [
-        {
-          name: '@angular/material',
-          package: '@angular/material',
-          version: VERSION,
-          destructuring: false,
-          script: '',
-          css: '',
-        },
-      ],
-      snippets,
+      components: componentList,
+      packages,
+      snippets: snippetGroups,
       blocks: [],
     },
   },
-};
+});
 
-writeFileSync(OUT, JSON.stringify(bundle, null, 2) + '\n');
-console.log(`bundle.json generated: ${components.length} components, ${snippets.reduce((n, g) => n + g.children.length, 0)} snippets -> ${OUT}`);
+const pickComponents = (names) => components.filter((c) => names.has(c.component));
+const pickSnippetGroups = (groupNames) =>
+  snippets
+    .filter((g) => groupNames.includes(g.group))
+    .map((g) => ({
+      ...g,
+      children: g.children.filter((child) => {
+        const name = child.snippetName;
+        if (groupNames.includes('basic') || groupNames.includes('form')) {
+          return BASE_COMPONENTS.has(name);
+        }
+        if (groupNames.includes('layout') || groupNames.includes('navigation')) {
+          return PLUS_LAYOUT_COMPONENTS.has(name);
+        }
+        if (groupNames.includes('feedback')) {
+          return MAX_FEEDBACK_COMPONENTS.has(name);
+        }
+        if (groupNames.includes('data-display')) {
+          return PRO_DATA_COMPONENTS.has(name);
+        }
+        return true;
+      }),
+    }))
+    .filter((g) => g.children.length);
+
+const OUT_DIR = path.resolve(__dirname, '../projects/mat-materials/src/meta/materials');
+
+const outputs = [
+  {
+    file: 'bundle.json',
+    bundle: makeBundle(pickComponents(BASE_COMPONENTS), pickSnippetGroups(['basic', 'form'])),
+  },
+  {
+    file: 'plus-layout.json',
+    bundle: makeBundle(
+      pickComponents(PLUS_LAYOUT_COMPONENTS),
+      pickSnippetGroups(['layout', 'navigation']),
+    ),
+  },
+  {
+    file: 'max-feedback.json',
+    bundle: makeBundle(pickComponents(MAX_FEEDBACK_COMPONENTS), [
+      {
+        group: 'feedback',
+        label: { zh_CN: '反馈组件' },
+        children: snippets.find((g) => g.group === 'data-display')?.children.filter((c) =>
+          MAX_FEEDBACK_COMPONENTS.has(c.snippetName),
+        ) ?? [],
+      },
+    ].filter((g) => g.children.length)),
+  },
+  {
+    file: 'pro-data.json',
+    bundle: makeBundle(pickComponents(PRO_DATA_COMPONENTS), [
+      {
+        group: 'data-display',
+        label: { zh_CN: '数据展示' },
+        children: snippets.find((g) => g.group === 'data-display')?.children.filter((c) =>
+          PRO_DATA_COMPONENTS.has(c.snippetName),
+        ) ?? [],
+      },
+    ].filter((g) => g.children.length)),
+  },
+];
+
+for (const { file, bundle: data } of outputs) {
+  const out = path.join(OUT_DIR, file);
+  writeFileSync(out, JSON.stringify(data, null, 2) + '\n');
+  const n = data.data.materials.components.length;
+  const s = data.data.materials.snippets.reduce((acc, g) => acc + g.children.length, 0);
+  console.log(`${file}: ${n} components, ${s} snippets -> ${out}`);
+}
+

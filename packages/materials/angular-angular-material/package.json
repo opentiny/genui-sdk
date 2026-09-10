@@ -54,10 +54,12 @@
   },
   "scripts": {
     "build:ng": "ng-packagr -p projects/mat-materials/ng-package.json",
-    "build": "pnpm build:ng && vite build --config ./build-from-dist/vite.config.lib.ts"
+    "build": "pnpm build:ng && vite build --config ./build-from-dist/vite.config.lib.ts",
+    "gen:bundle": "node scripts/gen-bundle.mjs"
   },
   "dependencies": {
     "@angular/cdk": "^20.2.14",
+    "@angular/common": "^20.3.0",
     "@angular/core": "^20.3.0",
     "@angular/material": "^20.2.14",
     "@opentiny/genui-sdk-core": "workspace:*",

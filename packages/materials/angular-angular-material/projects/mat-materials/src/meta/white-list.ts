@@ -1,11 +1,23 @@
-export const whiteList = [
-  // Angular Material 组件
+// 原生 HTML 元素 + 内置组件，所有 tier 通用。
+const NATIVE_AND_BUILTIN = [
+  'a', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'ol', 'ul', 'li',
+  'input', 'video', 'label', 'div', 'span', 'img', 'button', 'table', 'tr', 'td',
+  'th', 'thead', 'tbody', 'form', 'select', 'option', 'textarea',
+  'Text', 'Icon', 'Img', 'Slot',
+];
+
+/** base：基础组件 + 表单控件 + Card */
+export const baseWhiteList = [
   'MatButton',
   'MatIconButton',
+  'MatFabButton',
+  'MatMiniFabButton',
   'MatIcon',
   'MatDivider',
   'MatFormField',
   'MatLabel',
+  'MatHint',
+  'MatError',
   'MatCheckbox',
   'MatSlideToggle',
   'MatSlider',
@@ -21,49 +33,75 @@ export const whiteList = [
   'MatCardSubtitle',
   'MatCardContent',
   'MatCardActions',
+  'MatCardFooter',
+  'MatCardTitleGroup',
+  ...NATIVE_AND_BUILTIN,
+];
+
+/** 向后兼容旧导出 */
+export const whiteList = baseWhiteList;
+
+/** plus：base + 布局壳 + 导航 + 表单增强 */
+export const plusWhiteList = [
+  ...baseWhiteList,
   'MatToolbar',
+  'MatSidenavContainer',
+  'MatSidenav',
+  'MatSidenavContent',
+  'MatGridList',
+  'MatGridTile',
   'MatList',
   'MatListItem',
+  'MatNavList',
+  'MatActionList',
+  'MatSelectionList',
+  'MatListOption',
+  'MatAccordion',
   'MatExpansionPanel',
   'MatExpansionPanelHeader',
   'MatExpansionPanelTitle',
+  'MatExpansionPanelDescription',
+  'MatExpansionPanelActionRow',
   'MatTabs',
   'MatTab',
-  'MatPaginator',
+  'MatTabNav',
+  'MatTabLink',
+  'MatTabNavPanel',
+  'MatAutocomplete',
+  'MatDatepicker',
+  'MatDateRangePicker',
+  'MatDatepickerToggle',
+  'MatTimepicker',
+  'MatTimepickerToggle',
+  'MatStepper',
+  'MatStep',
+];
+
+/** max：plus + 反馈 + 菜单 */
+export const maxWhiteList = [
+  ...plusWhiteList,
   'MatProgressSpinner',
   'MatProgressBar',
-  // HTML 原生元素
-  'a',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'p',
-  'ol',
-  'ul',
-  'li',
-  'input',
-  'video',
-  'label',
-  'div',
-  'span',
-  'img',
-  'button',
-  'table',
-  'tr',
-  'td',
-  'th',
-  'thead',
-  'tbody',
-  'form',
-  'select',
-  'option',
-  'textarea',
-  // 内置组件
-  'Text',
-  'Icon',
-  'Img',
-  'Slot',
+  'MatMenu',
+  'MatMenuItem',
+];
+
+/** pro：max + 数据展示，全量 */
+export const proWhiteList = [
+  ...maxWhiteList,
+  'MatChipSet',
+  'MatChip',
+  'MatChipListbox',
+  'MatChipOption',
+  'MatChipGrid',
+  'MatChipRow',
+  'MatPaginator',
+  'MatTable',
+  'MatTextColumn',
+  'MatTableColumn',
+  'MatTableHeaderRow',
+  'MatTableDataRow',
+  'MatSortHeader',
+  'MatTree',
+  'MatTreeNode',
 ];
