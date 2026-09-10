@@ -32,6 +32,13 @@ export const enThemeConfig: DefaultTheme.Config = {
         ],
       },
       {
+        text: 'GenUI SDK React Guide',
+        items: [
+          { text: 'Install & Setup', link: '/en/guide/react/install' },
+          { text: 'Using Renderer', link: '/en/guide/react/start-with-renderer' },
+        ],
+      },
+      {
         text: 'GenUI SDK Server Guide',
         items: [{ text: 'Server Usage', link: '/en/guide/server-usage' }],
       },
@@ -54,6 +61,13 @@ export const enThemeConfig: DefaultTheme.Config = {
         ],
       },
       {
+        text: 'React Components',
+        items: [
+          { text: 'GenuiRenderer', link: '/en/components/react/renderer' },
+          { text: 'GenuiConfigProvider', link: '/en/components/react/config-provider' },
+        ],
+      },
+      {
         text: 'Server',
         items: [
           { text: 'API Reference', link: '/en/components/server/api' },
@@ -70,6 +84,7 @@ export const enThemeConfig: DefaultTheme.Config = {
           { text: 'Vue OpenTiny Vue', link: '/en/components/materials/vue-opentiny-vue' },
           { text: 'Vue Element Plus', link: '/en/components/materials/vue-element-plus' },
           { text: 'Angular OpenTiny NG', link: '/en/components/materials/angular-opentiny-ng' },
+          { text: 'React Ant Design', link: '/en/components/materials/react-antd' },
         ],
       },
     ],
@@ -129,6 +144,18 @@ export const enThemeConfig: DefaultTheme.Config = {
                 link: '/en/examples/angular/renderer/required-complete-field-selectors',
               },
               { text: 'Merged State', link: '/en/examples/angular/renderer/state' },
+            ],
+          },
+        ],
+      },
+      {
+        text: 'React Examples',
+        items: [
+          {
+            text: 'Renderer',
+            items: [
+              { text: 'Custom Actions', link: '/en/examples/react/renderer/custom-actions' },
+              { text: 'Merged State', link: '/en/examples/react/renderer/state' },
             ],
           },
         ],

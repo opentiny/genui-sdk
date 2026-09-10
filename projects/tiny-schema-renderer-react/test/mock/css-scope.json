@@ -1,0 +1,37 @@
+{
+  "componentName": "Page",
+  "css": ".css-demo-card {\n  margin: 16px;\n  padding: 16px;\n  border: 1px solid #e5e7eb;\n  border-radius: 8px;\n  background: #ffffff;\n}\n\n.css-demo-title {\n  font-size: 16px;\n  font-weight: 600;\n}\n\n.css-demo-desc {\n  margin: 8px 0 0;\n  color: #6b7280;\n}\n",
+  "props": {
+    "className": "css-demo-card"
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "className": "css-demo-title"
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "CSS scope 化示例"
+          }
+        }
+      ]
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "className": "css-demo-desc"
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "页面内 css 会通过 postcss 自动加上 data-schema-xxx 作用域属性，样式不会污染其他页面。"
+          }
+        }
+      ]
+    }
+  ]
+}

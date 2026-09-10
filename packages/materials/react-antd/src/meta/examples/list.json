@@ -1,0 +1,70 @@
+{
+  "componentName": "Page",
+  "state": {
+    "listData": [
+      {
+        "name": "张三",
+        "role": "前端工程师"
+      },
+      {
+        "name": "李四",
+        "role": "后端工程师"
+      },
+      {
+        "name": "王五",
+        "role": "产品经理"
+      }
+    ]
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "团队成员列表（loop 渲染）"
+      },
+      "children": [
+        {
+          "componentName": "ul",
+          "props": {
+            "style": "list-style: none; padding: 0; margin: 0;"
+          },
+          "children": [
+            {
+              "componentName": "li",
+              "loop": {
+                "type": "JSExpression",
+                "value": "this.state.listData"
+              },
+              "loopArgs": [
+                "item"
+              ],
+              "props": {
+                "style": "display: flex; justify-content: space-between; padding: 10px 0;"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "item.name"
+                    }
+                  }
+                },
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "item.role"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

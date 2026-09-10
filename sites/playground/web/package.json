@@ -31,6 +31,10 @@
     "uuid": "11.1.0",
     "vite-commit-hash-plugin": "workspace:*",
     "vue": "^3.5.18",
+    "antd": "^5.24.0",
+    "schema-renderer-react-adapter": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
@@ -42,6 +46,7 @@
     "vite": "^7.1.2",
     "vite-jsconfig-paths": "^2.0.1",
     "vite-plugin-node-polyfills": "^0.24.0",
-    "vue-tsc": "^3.0.5"
+    "vue-tsc": "^3.0.5",
+    "@vitejs/plugin-react": "^4.3.0"
   }
 }

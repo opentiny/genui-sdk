@@ -11,11 +11,14 @@ on:
           - '@opentiny/genui-sdk-server'
           - '@opentiny/genui-sdk-vue'
           - '@opentiny/genui-sdk-angular'
+          - '@opentiny/genui-sdk-react'
           - '@opentiny/genui-sdk-core'
           - '@opentiny/genui-sdk-materials-vue-opentiny-vue'
           - '@opentiny/genui-sdk-materials-vue-element-plus'
           - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
           - '@opentiny/genui-sdk-integration-skill'
+          - '@opentiny/genui-sdk-materials-react-antd'
+          - '@opentiny/tiny-schema-renderer-react'
       version:
         description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
         required: true
@@ -104,6 +107,13 @@ jobs:
               echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/frameworks/angular/output" >> "$GITHUB_OUTPUT"
               ;;
+            @opentiny/genui-sdk-react)
+              echo "pkg_json=packages/frameworks/react/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/frameworks/react/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-react" >> "$GITHUB_OUTPUT"
+              echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/frameworks/react" >> "$GITHUB_OUTPUT"
+              ;;
             @opentiny/genui-sdk-core)
               echo "pkg_json=packages/core/package.json" >> "$GITHUB_OUTPUT"
               echo "sync_pkg_json=packages/core/package.json" >> "$GITHUB_OUTPUT"
@@ -138,6 +148,20 @@ jobs:
               echo "filter=@opentiny/genui-sdk-integration-skill" >> "$GITHUB_OUTPUT"
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/integrate/skill/genui-integration" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-materials-react-antd)
+              echo "pkg_json=packages/materials/react-antd/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/materials/react-antd/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-materials-react-antd" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/materials/react-antd" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/tiny-schema-renderer-react)
+              echo "pkg_json=projects/tiny-schema-renderer-react/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=projects/tiny-schema-renderer-react/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/tiny-schema-renderer-react" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=projects/tiny-schema-renderer-react" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "::error::未知包: ${{ github.event.inputs.package }}"
