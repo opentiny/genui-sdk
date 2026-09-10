@@ -18,7 +18,6 @@ on:
           - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
           - '@opentiny/genui-sdk-integration-skill'
           - '@opentiny/genui-sdk-materials-react-antd'
-          - '@opentiny/tiny-schema-renderer-react'
       version:
         description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
         required: true
@@ -155,13 +154,6 @@ jobs:
               echo "filter=@opentiny/genui-sdk-materials-react-antd" >> "$GITHUB_OUTPUT"
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/materials/react-antd" >> "$GITHUB_OUTPUT"
-              ;;
-            @opentiny/tiny-schema-renderer-react)
-              echo "pkg_json=projects/tiny-schema-renderer-react/package.json" >> "$GITHUB_OUTPUT"
-              echo "sync_pkg_json=projects/tiny-schema-renderer-react/package.json" >> "$GITHUB_OUTPUT"
-              echo "filter=@opentiny/tiny-schema-renderer-react" >> "$GITHUB_OUTPUT"
-              echo "build_script=build" >> "$GITHUB_OUTPUT"
-              echo "publish_dir=projects/tiny-schema-renderer-react" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "::error::未知包: ${{ github.event.inputs.package }}"
