@@ -298,7 +298,6 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       padding: 50px 20px !important;
       background: url('@/assets/genui_ability_mobile_bg_1.svg') center/cover no-repeat;
 
-      // 字号由 --font-size-hero-* 承接，此处只保留该区间特有的行高与间距
       &-title {
         line-height: 49px;
         margin-bottom: 4px;
@@ -341,7 +340,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
 
     @media (max-width: 1280px) {
       &-left {
-        width: 380px;
+        width: 410px;
       }
 
       &-right {
