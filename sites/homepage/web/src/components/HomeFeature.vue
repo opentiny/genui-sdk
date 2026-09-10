@@ -150,7 +150,7 @@ const features = [
         margin-bottom: 16px;
       }
       .home-feature-card-description {
-        font-size: 14px;
+        font-size: var(--font-size-body-md);
       }
     }
 
@@ -181,7 +181,7 @@ const features = [
       grid-template-columns: repeat(2, 1fr);
     }
     &-card {
-      gap: 20px;
+      gap: 4px;
     }
   }
 

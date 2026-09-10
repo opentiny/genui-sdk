@@ -73,6 +73,10 @@ const handleGuideChange = (index: number) => {
         background-color: #fff;
       }
     }
+    @media (min-width: 768px) and (max-width: 1280px) {
+      width: 53%;
+      height: 56px;
+    }
   }
 
   &-button {
@@ -85,6 +89,10 @@ const handleGuideChange = (index: number) => {
 
     &-active {
       font-weight: 700;
+    }
+
+    @media (min-width: 768px) and (max-width: 1280px) {
+      width: 157px;
     }
   }
 }

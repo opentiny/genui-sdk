@@ -92,12 +92,12 @@ function handleFeatureClick(index: number) {
           </tiny-button>
         </a>
       </div>
-      <div v-if="isMobile">
-        <div 
-          v-for="(item, index) in features"
+      <div class="home-builder-content-cards">
+        <div
+          v-for="item in features"
           :key="item.title"
           class="home-builder-content-card"
-          >
+        >
           <div class="home-builder-content-card-title">{{ item.title }}</div>
           <div class="home-builder-content-card-description">{{ item.description }}</div>
           <img :src="item.image" alt="" class="home-builder-content-card-img">
@@ -184,6 +184,9 @@ function handleFeatureClick(index: number) {
       padding-left: 10%;
       padding-right: 10%;
     }
+    &-title {
+      margin-bottom: 73px;
+    }
   }
 
   @media (min-width: 1920px) {
@@ -196,36 +199,11 @@ function handleFeatureClick(index: number) {
   @media (max-width: 768px) {
     padding-bottom: 46px;
 
-    &-ellipse {
-      top: -122px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 234px;
-      height: 230.5px;
-      border-radius: 50%;
-      background: rgba(239, 232, 255, 1);
-      filter: blur(200px);
-    }
-
     &-header {
       padding-top: 40px;
       isolation: isolate;
       position: relative;
       overflow: hidden;
-
-      &::before {
-        content: '';
-        position: absolute;
-        top: -122px;
-        left: 63px;
-        width: 234px;
-        height: 570px;
-        border-radius: 50%;
-        background-color: rgba(239, 232, 255, 1);
-        filter: blur(160px);
-        pointer-events: none;
-        z-index: -1;  
-      }
     }
 
     &-badge {
@@ -236,7 +214,7 @@ function handleFeatureClick(index: number) {
       margin-bottom: 30px;
       padding-inline: 24px;
       white-space: normal;
-      font-size: 24px;
+      font-size: var(--font-size-title-md);
       font-weight: 700;
       letter-spacing: 0;
       line-height: 32px;
@@ -358,7 +336,7 @@ function handleFeatureClick(index: number) {
   @media (min-width: 1280px) {
     &-button {
       height: 44px;
-      font-size: 16px;
+      font-size: var(--font-size-body-sm-sm);
     }
   }
 
@@ -372,8 +350,27 @@ function handleFeatureClick(index: number) {
 
     &-button {
       height: 36px;
-      font-size: 14px;
-      
+      font-size: var(--font-size-body-md);
+    }
+  }
+
+  &-cards {
+    display: none;
+  }
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 30px;
+    padding: 0 20px 30px;
+
+    &-left,
+    &-right {
+      display: none;
+    }
+
+    &-cards {
+      display: block;
     }
   }
 
@@ -415,7 +412,6 @@ function handleFeatureClick(index: number) {
 .home-builder-content-card {
   display: flex;
   flex-direction: column;
-  // height: 307px;
   padding: 24px 20px;
   margin-bottom: 20px;
 
@@ -433,7 +429,6 @@ function handleFeatureClick(index: number) {
   }
 
   &-description {
-    // height: 44px;
     color: rgba(128, 128, 128, 1);
     font-size: 14px;
     font-weight: 400;

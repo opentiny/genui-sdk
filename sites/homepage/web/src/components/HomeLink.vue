@@ -38,8 +38,8 @@ const buttonSize = computed(() => {
 <style lang="less" scoped>
 
 .btn-link {
-  + .btn-link {
-    margin-left: 16px;
+  :deep(.tiny-button) {
+    font-size: 16px;
   }
 }
 
@@ -76,7 +76,7 @@ const buttonSize = computed(() => {
 
   @media (min-width: 1920px) {
     &-description {
-      font-size: 18px;
+      font-size: var(--font-size-body-sm);
     }
 
     &-button-group {
@@ -86,6 +86,7 @@ const buttonSize = computed(() => {
   }
 
   @media (max-width: 768px) {
+    background-image: url('@/assets/homelink_bg_mobile.svg');
     margin-top: 16px;
   }
 }

@@ -1,5 +1,28 @@
-.genui-sdk-container {
-  // 字体大小变量定义
+// 取值对照表（字号）：
+//   token                    >1280  ≤1280  ≤820
+//   title-xl                  56     32     —
+//   title-lg                  50     28     —
+//   title-lg-sm               48     36     —
+//   title-lg-sm-md            44     32     24
+//   title-md                  36     24     —
+//   title-sm                  24     20     —
+//   title-xs                  20     16     14
+//   body-lg                   24     16     —
+//   body-md                   20     14     —
+//   body-sm                   18     12     —
+//   body-sm-sm                16     10     —
+//   body-xs                   14     10     —
+// ============================================================================
+
+// 断点
+@bp-xl: 1920px;
+@bp-lg: 1280px;
+@bp-sm: 820px;
+@bp-mobile: 768px;
+@bp-xl-down: (@bp-xl - 0.02px);
+
+:root {
+  // ≥1281px
   --font-size-title-xl: 56px;
   --font-size-title-lg: 50px;
   --font-size-title-lg-sm: 48px;
@@ -13,23 +36,37 @@
   --font-size-body-sm-sm: 16px;
   --font-size-body-xs: 14px;
 
-  // 行高变量定义
   --line-height-title-xl: 74px;
   --line-height-title-lg: 72px;
   --line-height-title-lg-sm: 64px;
+  --line-height-title-lg-sm-md: 64px;
   --line-height-title-md: 48px;
   --line-height-title-sm: 32px;
+  --line-height-title-xs: 27px;
   --line-height-body-lg: 32px;
   --line-height-body-md: 27px;
   --line-height-body-sm: 30px;
+  --line-height-body-sm-sm: 24px;
   --line-height-body-xs: 20px;
   --line-height-description: 26px;
 
-  // 媒体查询统一管理字体大小
-  @media (max-width: 1280px) {
-    --font-size-title-lg-sm: 36px;
+  // 首屏
+  --font-size-hero-title: 52px;
+  --font-size-hero-subtitle: 48px;
+  --font-size-hero-description: 18px;
+
+  // XL（<1920px）—— 仅首屏
+  @media (max-width: @bp-xl-down) {
+    --font-size-hero-title: 42px;
+    --font-size-hero-subtitle: 38px;
+  }
+
+  //（≤1280px，覆盖 821–1280）
+  @media (max-width: @bp-lg) {
     --font-size-title-xl: 32px;
     --font-size-title-lg: 28px;
+    --font-size-title-lg-sm: 36px;
+    --font-size-title-lg-sm-md: 32px;
     --font-size-title-md: 24px;
     --font-size-title-sm: 20px;
     --font-size-title-xs: 16px;
@@ -42,34 +79,66 @@
     --line-height-title-xl: 42px;
     --line-height-title-lg: 38px;
     --line-height-title-lg-sm: 56px;
+    --line-height-title-lg-sm-md: 43px;
     --line-height-title-md: 32px;
     --line-height-title-sm: 28px;
+    --line-height-title-xs: 21px;
+    --line-height-body-lg: 24px;
     --line-height-body-md: 22px;
     --line-height-body-sm: 20px;
+    --line-height-body-sm-sm: 18px;
     --line-height-body-xs: 16px;
     --line-height-description: 20px;
+
+    --font-size-hero-title: 30px;
+    --font-size-hero-subtitle: 30px;
   }
 
-  @media (max-width: 820px) {
+  // （≤820px）
+  @media (max-width: @bp-sm) {
     --font-size-title-lg-sm-md: 24px;
     --font-size-title-xs: 14px;
+
+    --line-height-title-lg-sm-md: 32px;
+    --line-height-title-xs: 20px;
+  }
+
+  // ≤768px
+  @media (max-width: @bp-mobile) {
+    --font-size-hero-title: 24px;
+    --font-size-hero-subtitle: 24px;
+    --font-size-hero-description: 14px;
+  }
+
+  // 区块标题 / 副标题的别名层
+  --genui-title-size: var(--font-size-title-lg-sm-md);
+  --genui-title-lh: var(--line-height-title-lg-sm-md);
+  --genui-title-gap: 16px;
+  --genui-subtitle-size: var(--font-size-title-xs);
+  --genui-subtitle-lh: var(--line-height-title-xs);
+  --genui-subtitle-gap: 60px;
+
+  @media (min-width: @bp-mobile) and (max-width: @bp-lg) {
+    --genui-title-gap: 12px;
+    --genui-subtitle-gap: 26px;
   }
 }
 
+// 区块标题 / 副标题
 .genui-title {
-  font-size: var(--font-size-title-lg-sm-md);
-  line-height: var(--line-height-title-lg-sm);
+  font-size: var(--genui-title-size);
+  line-height: var(--genui-title-lh);
   font-weight: 700;
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--genui-title-gap);
 }
 
 .genui-subtitle {
-  font-size: var(--font-size-title-xs);
-  line-height: var(--line-height-body-md);
+  font-size: var(--genui-subtitle-size);
+  line-height: var(--genui-subtitle-lh);
   font-weight: 250;
   letter-spacing: 1px;
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: var(--genui-subtitle-gap);
   color: rgba(128, 128, 128, 1);
 }

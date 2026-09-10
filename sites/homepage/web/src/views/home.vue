@@ -235,7 +235,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
 
     &-title {
-      font-size: 52px;
+      font-size: var(--font-size-hero-title);
       font-weight: 700;
       text-align: left;
       margin-bottom: 8px;
@@ -245,7 +245,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
 
     &-subtitle {
-      font-size: var(--font-size-title-lg-sm);
+      font-size: var(--font-size-hero-subtitle);
       font-weight: 700;
       text-align: left;
       color: rgba(254, 65, 65, 1);
@@ -265,17 +265,16 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
 
     &-decsription {
-      font-size: 18px;
-      font-weight: 400;
+      font-size: var(--font-size-hero-description);
       font-weight: 250;
       letter-spacing: 1px;
-      line-height: var(--line-height-description);
       text-align: left;
       color: rgba(89, 89, 89, 1);
       margin-bottom: 76px;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
       opacity: 0;
       line-height: 1.5;
+      // 有意为之：这里借字号 token 当宽度用，让描述区宽度跟着字号阶梯同步伸缩
       max-width: calc(var(--font-size-title-lg) * 12);
 
       @media (max-width: 1280px) {
@@ -290,7 +289,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       }
     }
 
-    @media (max-width: 820px) {
+    @media (min-width: 768px) and (max-width: 1024px) {
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -299,18 +298,20 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       padding: 50px 20px !important;
       background: url('@/assets/genui_ability_mobile_bg_1.svg') center/cover no-repeat;
 
+      // 字号由 --font-size-hero-* 承接，此处只保留该区间特有的行高与间距
       &-title {
-        font-size: var(--font-size-title-md);
+        line-height: 49px;
+        margin-bottom: 4px;
       }
 
       &-subtitle {
-        font-size: var(--font-size-title-md);
+        line-height: 48px;
+        margin-bottom: 16px;
       }
 
       &-decsription {
-        font-size: 14px;
         white-space: normal;
-        margin-bottom: 28px;
+        margin-bottom: 27px;
       }
 
       &-left {
@@ -338,26 +339,21 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       }
     }
 
-    @media (min-width: 821px) and (max-width: 1280px) {
-      padding: 8% 10%;
-      &-title {
-        font-size: 44px;
+    @media (max-width: 1280px) {
+      &-left {
+        width: 380px;
       }
 
       &-right {
-        width: 45%;
+        flex: 1;
       }
     }
 
+
     @media (min-width: 1280px) and (max-width: 1920px) {
-      &-title {
-        font-size: var(--font-size-title-lg);
+      &-left {
+        width: 470px;
       }
-
-      &-subtitle {
-        font-size: var(--font-size-title-lg-sm-md);
-      }
-
       &-right {
         width: 45%;
         flex-shrink: 0;
@@ -415,16 +411,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     padding: 50px 20px !important;
     background: url('@/assets/genui_ability_mobile_bg_1.svg') center/cover no-repeat;
 
-    &-title {
-      font-size: var(--font-size-title-md);
-    }
-
-    &-subtitle {
-      font-size: var(--font-size-title-md);
-    }
-
     &-decsription {
-      font-size: 14px;
       white-space: normal;
       margin-bottom: 28px;
     }
@@ -503,7 +490,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
         }
 
         &-subtitle {
-          font-size: 14px;
+          font-size: var(--font-size-body-md);
         }
       }
     }
@@ -616,7 +603,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
   }
 
   &-label {
-    margin: 20px 0px 10px 0px;
+    margin: 32px 0px 10px 0px;
     font-size: var(--font-size-body-lg);
     font-weight: 600;
     line-height: var(--line-height-body-lg);
@@ -631,7 +618,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
 
   @media (max-width: 1280px) {
     &-label {
-      margin: 5px 0px 2px 0px;
+      margin: 24px 0px 2px 0px;
     }
 
     &-parameters {

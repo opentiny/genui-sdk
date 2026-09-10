@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import { TinyButton } from '@opentiny/vue';
@@ -12,23 +12,15 @@ import { LinkKey, linkMap } from '@/utils/link';
 import HomeGuideCard from './HomeGuideCard.vue';
 import HomeGuideStepMobile from './HomeGuideStepMobile.vue';
 import { t } from '@/i18n';
+import { useMobile } from '@/composables/useMobile';
 
 const activeCard = ref(0);
 const codeRef = ref<HTMLElement | null>(null);
-const isMobile = ref(false);
-
-const updateIsMobile = () => {
-  isMobile.value = window.innerWidth < 768;
-};
+// 本组件的移动端布局区间是 <1280，与其它区块的 <768 不同，故显式传入断点
+const { isMobile } = useMobile(1280);
 
 onMounted(() => {
-  updateIsMobile();
-  window.addEventListener('resize', updateIsMobile);
   hightlight();
-});
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateIsMobile);
 });
 
 hljs.registerLanguage('javascript', javascript);
@@ -166,7 +158,7 @@ const handleGuideCardClick = (index: number) => {
       @media (min-width: 1280px) {
         &-button {
           height: 44px;
-          font-size: 16px;
+          font-size: var(--font-size-body-sm-sm);
         }
       }
     }
@@ -274,7 +266,6 @@ const handleGuideCardClick = (index: number) => {
   }
 
   :deep(.guide-code) {
-    font-size: 14px;
     border-radius: 0 0 6px 6px;
 
     &::-webkit-scrollbar-corner {
@@ -397,6 +388,14 @@ const handleGuideCardClick = (index: number) => {
   .hljs-link {
     color: #93c5fd;
     text-decoration: underline;
+  }
+}
+
+// 移动端代码字号。必须放在上面 :deep(.guide-code) 基础规则之后：
+// 两者特异性相同，靠源码顺序决定胜负，写在前面会被 16px 压掉。
+@media (max-width: 768px) {
+  :deep(.guide-code) {
+    font-size: 14px;
   }
 }
 </style>

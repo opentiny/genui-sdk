@@ -647,21 +647,16 @@ onUnmounted(() => {
   }
 }
 
-// 移动端放缩适配：把生成的 UI（如 300px 宽的计算器卡片）等比缩小到可视区域内，
-// 避免被窄屏左右裁切。数值请自行微调，越大显示越大，直到恰好不被裁掉为止。
 .home-extend-schema-renderer {
   @media (max-width: 768px) {
     transform-origin: top left;
-    transform: scale(0.92);
+    transform: scale(0.9);
   }
-
-  // @media (max-width: 480px) {
-  //   transform: scale(0.82);
-  // }
-
-  // @media (max-width: 375px) {
-  //   transform: scale(0.74);
-  // }
+  
+  @media (max-width: 480px) {
+    transform-origin: top left;
+    transform: scale(0.8);
+  }
 }
 
 .home-extend-stream-controls {
