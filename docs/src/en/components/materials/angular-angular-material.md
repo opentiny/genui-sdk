@@ -1,97 +1,66 @@
 # Angular Material
 
-`@opentiny/genui-sdk-materials-angular-angular-material` is a materials package based on [Angular Material](https://material.angular.dev/), providing runtime component mappings and prompt metadata.
+`@opentiny/genui-sdk-materials-angular-angular-material` is the Angular Material materials package for GenUI: runtime component maps plus prompt metadata.
 
-Type definitions: see [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#imaterialsmeta).
+See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#imaterialsmeta) for types.
 
 ## Exports
 
 | Entry | Exports |
-|-------|---------|
-| `.` | `materials`、`materialsMeta` |
-| `./materials` | `materials` |
-| `./meta` | `materialsMeta` |
+|------|------|
+| `.` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials`, matching `*MaterialsMeta`, `applyMaterialPatch` |
+| `./materials` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials` |
+| `./meta` | `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta` |
 
-## materials
+## Material Tiers
 
-- **Type**: `IMaterials`
-- **Description**: Angular Material component mappings, injected into ConfigProvider.
+Same cumulative model as the ng-devui materials package (`base ⊂ plus ⊂ max ⊂ pro`):
+
+| Tier | Runtime / Meta | Contents |
+|------|----------------|----------|
+| **base** | `materials` / `materialsMeta` | Basics + form + `MatCard*` (incl. Fab / Hint / Error) |
+| **plus** | `plusMaterials` / `plusMaterialsMeta` | base + layout/nav + Datepicker / Autocomplete / Stepper |
+| **max** | `maxMaterials` / `maxMaterialsMeta` | plus + Progress + Menu |
+| **pro** | `proMaterials` / `proMaterialsMeta` | max + chips / Table / Tree / Sort (full set) |
 
 ```typescript
-import { materials } from '@opentiny/genui-sdk-materials-angular-angular-material/materials';
+import { proMaterials } from '@opentiny/genui-sdk-materials-angular-angular-material/materials';
+import { proMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-material/meta';
 ```
 
 ```html
-<genui-config-provider [materials]="materials">
+<genui-config-provider [materials]="proMaterials">
   <genui-renderer ... />
 </genui-config-provider>
 ```
 
-The host app must also provide Angular Material prerequisites:
+The host app still needs Angular Material runtime setup (`provideAnimations`, theme CSS; add `provideNativeDateAdapter` when using Datepicker).
 
-```typescript
-import { provideAnimations } from '@angular/platform-browser/animations';
-import { provideNativeDateAdapter } from '@angular/material/core';
+## Components (pro)
 
-providers: [
-  provideAnimations(),
-  // ...
-]
-```
-
-and import a theme, e.g. `@angular/material/prebuilt-themes/indigo-pink.css`.
-
-## materialsMeta
-
-- **Type**: `IMaterialsMeta`
-- **Description**: Used by server-side [`genPrompt`](../core/api#genprompt). `wrapperComponent` defaults to `MatCard`.
-
-```typescript
-import { genPrompt } from '@opentiny/genui-sdk-core';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-material/meta';
-
-const systemPrompt = genPrompt('Angular', materialsMeta);
-```
-
-## Components
-
-- **Basic**: `MatButton`, `MatIconButton`, `MatIcon`, `MatDivider`
-- **Form controls**: `MatFormField`, `MatLabel`, `MatCheckbox`, `MatSlideToggle`, `MatSlider`, `MatSelect`, `MatOption`, `MatRadioGroup`, `MatRadioButton`, `MatButtonToggleGroup`, `MatButtonToggle`
-- **Layout**: `MatCard` (incl. `MatCardHeader`/`MatCardTitle`/`MatCardSubtitle`/`MatCardContent`/`MatCardActions`), `MatToolbar`, `MatList`, `MatListItem`, `MatExpansionPanel` (incl. `MatExpansionPanelHeader`/`MatExpansionPanelTitle`)
-- **Navigation**: `MatTabs`, `MatTab`
-- **Data display**: `MatPaginator`
-- **Feedback**: `MatProgressSpinner`, `MatProgressBar`
+- **Basic**: `MatButton`, `MatIconButton`, `MatFabButton`, `MatMiniFabButton`, `MatIcon`, `MatDivider`
+- **Form controls**: `MatFormField`, `MatLabel`, `MatHint`, `MatError`, `MatCheckbox`, `MatSlideToggle`, `MatSlider`, `MatSelect`, `MatOption`, `MatRadioGroup`, `MatRadioButton`, `MatButtonToggleGroup`, `MatButtonToggle`, `MatAutocomplete`, `MatDatepicker`, `MatDateRangePicker`, `MatDatepickerToggle`, `MatTimepicker`, `MatTimepickerToggle`
+- **Layout**: `MatCard*`, `MatToolbar`, `MatSidenav*`, `MatGridList`/`MatGridTile`, `MatList*` variants, `MatAccordion`, `MatExpansionPanel*`
+- **Navigation**: `MatTabs`, `MatTab`, `MatTabNav`, `MatTabLink`, `MatTabNavPanel`, `MatStepper`, `MatStep`
+- **Data display**: `MatChipSet`, `MatChip`, `MatChipListbox`, `MatChipOption`, `MatChipGrid`, `MatChipRow`, `MatPaginator`, `MatTable`, `MatTextColumn`, `MatTableColumn`, `MatTableHeaderRow`, `MatTableDataRow`, `MatSortHeader`, `MatTree`, `MatTreeNode`
+- **Feedback**: `MatProgressSpinner`, `MatProgressBar`, `MatMenu`, `MatMenuItem`
 
 ### Directives
 
 | directiveName | Description |
 |---------------|-------------|
-| `matInput` | Applied to native `input`/`textarea` elements as a `MatFormField` control (auto-applied when the schema declares `matInput: true`) |
-| `matSliderThumb` | Applied to a native `input` inside `MatSlider` (`matSliderThumb: true`) for dragging and `ngModel` binding |
-| `matTooltip` | Tooltip on any element (provide `matTooltip` text and `matTooltipPosition` via props) |
-| `matBadge` | Badge on any element (provide a `matBadge` value via props) |
-
-### Form binding
-
-Form controls use `ngModel` two-way binding together with the renderer's built-in `ngModel`/`defaultValueAccessor` directives:
-
-```json
-{
-  "componentName": "input",
-  "props": {
-    "matInput": true,
-    "placeholder": "请输入姓名",
-    "ngModel": { "type": "JSExpression", "model": true, "value": "this.state.name" }
-  },
-  "directives": [
-    { "directiveName": "ngModel" },
-    { "directiveName": "matInput" }
-  ]
-}
-```
-
-Native `select` / `option` are also on the whitelist: a string `value` works as-is; object options need `ngValue` (the renderer bridges `NgSelectOption`'s `{ host: true }` to the parent `SelectControlValueAccessor`). `MatSelect` / `MatOption` do not use that Host lookup. `ngModelGroup` is a renderer subclass that drops `{ host: true }` and keeps `skipSelf` so it can read `ControlContainer` from the parent injector.
+| `matInput` | Native `input`/`textarea` as a `MatFormField` control (`matInput: true` auto-applies) |
+| `matPrefix` / `matSuffix` | Form field prefix / suffix |
+| `matSliderThumb` | Thumb inside `MatSlider` |
+| `matTooltip` / `matBadge` | Tooltip / badge |
+| `matAutocomplete` / `matDatepicker` / `matTimepicker` | Bind an input to the panel instance |
+| `matMenuTriggerFor` | Menu trigger (value is a `MatMenu` instance) |
+| `matChipRemove` / `matChipAvatar` / `matChipInputFor` | Chip remove / avatar / input-for grid |
+| `matSort` | Sort host on a table |
 
 ## Known limitations
 
-`MatTable` (needs `matColumnDef`/`matCellDef` template directives), `MatDatepicker`, `MatMenu` and `MatDialog` rely on template references or service calls and are not yet in the whitelist. For simple tables, use the native `table` element instead (see `examples/grid.json`).
+- `MatDialog` / `MatSnackBar` / `MatBottomSheet` are service-driven and are not schema root components.
+- Menu / Autocomplete / Datepicker / ChipGrid need `ref` + `JSExpression` to pass the component instance into the trigger directive.
+- Use `MatTable` with `MatTextColumn` / `MatTableColumn` plus `MatTableHeaderRow` / `MatTableDataRow` bridges; custom cells use `MatTableColumn` + `NgTemplate` (see `examples/grid.json` and the demo `page.json`).
+- Full `MatTree` node templates still rely on data sources and structural directives.

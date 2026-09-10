@@ -1,0 +1,2322 @@
+{
+  "data": {
+    "framework": "Angular",
+    "materials": {
+      "components": [
+        {
+          "id": 59,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "碎片组"
+          },
+          "component": "MatChipSet",
+          "icon": "chip",
+          "description": "静态展示用碎片容器，子节点为 MatChip",
+          "doc_url": "https://material.angular.dev/components/chips/overview",
+          "screenshot": "",
+          "tags": "chip,碎片,数据",
+          "keywords": "chip,碎片,标签",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatChipSet",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用整组碎片"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "role",
+                    "label": {
+                      "text": {
+                        "zh_CN": "ARIA 角色"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "无障碍角色，默认 listbox"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "碎片列表"
+                },
+                "description": {
+                  "zh_CN": "放置 MatChip 子节点"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 60,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "碎片"
+          },
+          "component": "MatChip",
+          "icon": "chip",
+          "description": "单个展示碎片，需放在 MatChipSet 内；可配合 matChipRemove / matChipAvatar",
+          "doc_url": "https://material.angular.dev/components/chips/overview",
+          "screenshot": "",
+          "tags": "chip,碎片,数据",
+          "keywords": "chip,碎片",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatChip",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "removable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可移除"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否可移除（需子节点挂 matChipRemove）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": true
+                  },
+                  {
+                    "property": "highlighted",
+                    "label": {
+                      "text": {
+                        "zh_CN": "高亮"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否高亮选中样式"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "color",
+                    "label": {
+                      "text": {
+                        "zh_CN": "颜色"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "主题色：primary、accent、warn"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "label": "accent",
+                            "value": "accent"
+                          },
+                          {
+                            "label": "warn",
+                            "value": "warn"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "value",
+                    "label": {
+                      "text": {
+                        "zh_CN": "值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "碎片关联值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onRemoved": {
+                "label": {
+                  "zh_CN": "移除事件"
+                },
+                "description": {
+                  "zh_CN": "点击移除图标时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "碎片内容"
+                },
+                "description": {
+                  "zh_CN": "文案、头像与移除图标"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 61,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "碎片列表框"
+          },
+          "component": "MatChipListbox",
+          "icon": "chip",
+          "description": "可选择碎片列表，子节点为 MatChipOption，支持 ngModel",
+          "doc_url": "https://material.angular.dev/components/chips/overview",
+          "screenshot": "",
+          "tags": "chip,碎片,选择,数据",
+          "keywords": "chip,listbox,碎片选择",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatChipListbox",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "multiple",
+                    "label": {
+                      "text": {
+                        "zh_CN": "多选"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否允许多选"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "selectable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可选"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否允许选择"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": true
+                  },
+                  {
+                    "property": "required",
+                    "label": {
+                      "text": {
+                        "zh_CN": "必填"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否必填"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "hideSingleSelectionIndicator",
+                    "label": {
+                      "text": {
+                        "zh_CN": "隐藏单选指示"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "单选时是否隐藏勾选指示"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "ariaOrientation",
+                    "label": {
+                      "text": {
+                        "zh_CN": "方向"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "ARIA 方向：horizontal / vertical"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onChange": {
+                "label": {
+                  "zh_CN": "选择变化"
+                },
+                "description": {
+                  "zh_CN": "选中项变化时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "MatChipListboxChange",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "选择变化事件"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              },
+              "onNgModelChange": {
+                "label": {
+                  "zh_CN": "值改变事件"
+                },
+                "description": {
+                  "zh_CN": "值改变时触发（双向绑定 ngModel 自动生成 onNgModelChange）"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "any",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "当前的值"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "选项碎片"
+                },
+                "description": {
+                  "zh_CN": "放置 MatChipOption 子节点"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 62,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "可选碎片"
+          },
+          "component": "MatChipOption",
+          "icon": "chip",
+          "description": "可选择碎片，需放在 MatChipListbox 内",
+          "doc_url": "https://material.angular.dev/components/chips/overview",
+          "screenshot": "",
+          "tags": "chip,碎片,选择,数据",
+          "keywords": "chip,option,可选碎片",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatChipOption",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "selected",
+                    "label": {
+                      "text": {
+                        "zh_CN": "选中"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否选中"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "selectable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可选"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否允许选择"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": true
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "removable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可移除"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否可移除"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "color",
+                    "label": {
+                      "text": {
+                        "zh_CN": "颜色"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "主题色：primary、accent、warn"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "primary",
+                            "value": "primary"
+                          },
+                          {
+                            "label": "accent",
+                            "value": "accent"
+                          },
+                          {
+                            "label": "warn",
+                            "value": "warn"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "property": "value",
+                    "label": {
+                      "text": {
+                        "zh_CN": "值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "选项值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onSelectionChange": {
+                "label": {
+                  "zh_CN": "选中变化"
+                },
+                "description": {
+                  "zh_CN": "选中状态变化时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "MatChipSelectionChange",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "选中变化事件"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "碎片内容"
+                },
+                "description": {
+                  "zh_CN": "选项文案与图标"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 63,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "碎片网格"
+          },
+          "component": "MatChipGrid",
+          "icon": "chip",
+          "description": "可输入式碎片容器；input 通过 matChipInputFor 绑定本组件实例",
+          "doc_url": "https://material.angular.dev/components/chips/overview",
+          "screenshot": "",
+          "tags": "chip,碎片,数据",
+          "keywords": "chip-grid,碎片输入",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatChipGrid",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "required",
+                    "label": {
+                      "text": {
+                        "zh_CN": "必填"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否必填"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "碎片行"
+                },
+                "description": {
+                  "zh_CN": "放置 MatChipRow，并可配合 input[matChipInputFor]"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 64,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "碎片行"
+          },
+          "component": "MatChipRow",
+          "icon": "chip",
+          "description": "碎片网格中的可编辑碎片行",
+          "doc_url": "https://material.angular.dev/components/chips/overview",
+          "screenshot": "",
+          "tags": "chip,碎片,数据",
+          "keywords": "chip-row,碎片行",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatChipRow",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "removable",
+                    "label": {
+                      "text": {
+                        "zh_CN": "可移除"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否可移除"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": true
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "value",
+                    "label": {
+                      "text": {
+                        "zh_CN": "值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "碎片值"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onRemoved": {
+                "label": {
+                  "zh_CN": "移除事件"
+                },
+                "description": {
+                  "zh_CN": "移除时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "碎片内容"
+                },
+                "description": {
+                  "zh_CN": "文案与移除图标"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 65,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "分页器"
+          },
+          "component": "MatPaginator",
+          "icon": "pagination",
+          "description": "Material Design 分页器，通常配合表格使用",
+          "doc_url": "https://material.angular.dev/components/paginator/overview",
+          "screenshot": "",
+          "tags": "paginator,分页,数据",
+          "keywords": "paginator,分页",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatPaginator",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "length",
+                    "label": {
+                      "text": {
+                        "zh_CN": "总数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "数据总条数"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 0
+                  },
+                  {
+                    "property": "pageSize",
+                    "label": {
+                      "text": {
+                        "zh_CN": "每页条数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "每页显示条数"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 10
+                  },
+                  {
+                    "property": "pageIndex",
+                    "label": {
+                      "text": {
+                        "zh_CN": "当前页码"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "当前页码（从 0 开始）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "number",
+                    "widget": {
+                      "component": "NumberConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": 0
+                  },
+                  {
+                    "property": "pageSizeOptions",
+                    "label": {
+                      "text": {
+                        "zh_CN": "每页条数选项"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "可选的每页条数，如 [10, 20, 50]"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {}
+                    },
+                    "defaultValue": [
+                      10,
+                      20,
+                      50
+                    ]
+                  },
+                  {
+                    "property": "hidePageSize",
+                    "label": {
+                      "text": {
+                        "zh_CN": "隐藏每页条数"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否隐藏每页条数选择器"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "showFirstLastButtons",
+                    "label": {
+                      "text": {
+                        "zh_CN": "首尾按钮"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否显示跳转首页/末页按钮"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
+              "onPage": {
+                "label": {
+                  "zh_CN": "翻页事件"
+                },
+                "description": {
+                  "zh_CN": "翻页时触发"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "PageEvent",
+                      "defaultValue": "",
+                      "description": {
+                        "zh_CN": "分页事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {}
+          }
+        },
+        {
+          "id": 66,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "数据表格"
+          },
+          "component": "MatTable",
+          "icon": "table",
+          "description": "Material 数据表格；列用 MatTextColumn / MatTableColumn，行用 MatTableHeaderRow / MatTableDataRow",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "table,表格",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTable",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "dataSource",
+                    "label": {
+                      "text": {
+                        "zh_CN": "数据源"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表格数据源（数组或 MatTableDataSource）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "表格结构"
+                },
+                "description": {
+                  "zh_CN": "列定义与行定义 bridge"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 67,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "文本列"
+          },
+          "component": "MatTextColumn",
+          "icon": "table-column",
+          "description": "简化的文本列定义（mat-text-column）",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "text-column,文本列",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTextColumn",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "label": {
+                      "text": {
+                        "zh_CN": "列名"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "列标识，对应 displayedColumns"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "headerText",
+                    "label": {
+                      "text": {
+                        "zh_CN": "表头文案"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表头显示文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "dataAccessor",
+                    "label": {
+                      "text": {
+                        "zh_CN": "取值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "从行数据取值的字段名或访问器"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 68,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "表格列"
+          },
+          "component": "MatTableColumn",
+          "icon": "table-column",
+          "description": "自定义表格列；可放 NgTemplate（let.row）渲染单元格，否则按 name 读字段",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "table-column,自定义列",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTableColumn",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "label": {
+                      "text": {
+                        "zh_CN": "列名"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "列标识，对应 displayedColumns"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "headerText",
+                    "label": {
+                      "text": {
+                        "zh_CN": "表头文案"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表头显示文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "单元格模板"
+                },
+                "description": {
+                  "zh_CN": "可选 NgTemplate，上下文含 row"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 69,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "表头行"
+          },
+          "component": "MatTableHeaderRow",
+          "icon": "table-header",
+          "description": "MatTable 表头行定义 bridge（等价 *matHeaderRowDef）",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "header-row,表头",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTableHeaderRow",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "columns",
+                    "label": {
+                      "text": {
+                        "zh_CN": "列顺序"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "displayedColumns 列名数组"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 70,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "数据行"
+          },
+          "component": "MatTableDataRow",
+          "icon": "table-row",
+          "description": "MatTable 数据行定义 bridge（等价 *matRowDef）",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "data-row,数据行",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTableDataRow",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "columns",
+                    "label": {
+                      "text": {
+                        "zh_CN": "列顺序"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "displayedColumns 列名数组"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 71,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "排序表头"
+          },
+          "component": "MatSortHeader",
+          "icon": "sort",
+          "description": "可排序表头（mat-sort-header），父级需开启 matSort",
+          "doc_url": "https://material.angular.dev/components/sort/overview",
+          "screenshot": "",
+          "tags": "sort,table,数据",
+          "keywords": "sort-header,排序",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatSortHeader",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "id",
+                    "label": {
+                      "text": {
+                        "zh_CN": "排序 id"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "排序列标识"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否禁用排序"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "表头内容"
+                },
+                "description": {
+                  "zh_CN": "表头文案"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 72,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "树"
+          },
+          "component": "MatTree",
+          "icon": "tree",
+          "description": "树形结构宿主；节点展开仍依赖数据源与节点模板",
+          "doc_url": "https://material.angular.dev/components/tree/overview",
+          "screenshot": "",
+          "tags": "tree,数据",
+          "keywords": "tree,树",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTree",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "树节点"
+                },
+                "description": {
+                  "zh_CN": "放置 MatTreeNode 等"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 73,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "树节点"
+          },
+          "component": "MatTreeNode",
+          "icon": "tree-node",
+          "description": "树节点宿主元素",
+          "doc_url": "https://material.angular.dev/components/tree/overview",
+          "screenshot": "",
+          "tags": "tree,数据",
+          "keywords": "tree-node,树节点",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTreeNode",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "节点内容"
+                },
+                "description": {
+                  "zh_CN": "节点文案与子树"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "packages": [
+        {
+          "name": "@angular/material",
+          "package": "@angular/material",
+          "version": "20.2.14",
+          "destructuring": false,
+          "script": "",
+          "css": ""
+        }
+      ],
+      "snippets": [
+        {
+          "group": "data-display",
+          "label": {
+            "zh_CN": "数据展示"
+          },
+          "children": [
+            {
+              "name": {
+                "zh_CN": "碎片组"
+              },
+              "icon": "chip",
+              "screenshot": "",
+              "snippetName": "MatChipSet",
+              "schema": {
+                "componentName": "MatChipSet",
+                "children": [
+                  {
+                    "componentName": "MatChip",
+                    "children": "Angular"
+                  },
+                  {
+                    "componentName": "MatChip",
+                    "children": "Material"
+                  },
+                  {
+                    "componentName": "MatChip",
+                    "props": {
+                      "removable": true
+                    },
+                    "children": [
+                      "GenUI",
+                      {
+                        "componentName": "MatIcon",
+                        "props": {
+                          "fontIcon": "cancel",
+                          "matChipRemove": true
+                        },
+                        "directives": [
+                          {
+                            "directiveName": "matChipRemove"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "碎片列表框"
+              },
+              "icon": "chip",
+              "screenshot": "",
+              "snippetName": "MatChipListbox",
+              "schema": {
+                "componentName": "MatChipListbox",
+                "props": {
+                  "multiple": true
+                },
+                "children": [
+                  {
+                    "componentName": "MatChipOption",
+                    "props": {
+                      "value": "前端",
+                      "selected": true
+                    },
+                    "children": "前端"
+                  },
+                  {
+                    "componentName": "MatChipOption",
+                    "props": {
+                      "value": "物料"
+                    },
+                    "children": "物料"
+                  },
+                  {
+                    "componentName": "MatChipOption",
+                    "props": {
+                      "value": "渲染器"
+                    },
+                    "children": "渲染器"
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "分页器"
+              },
+              "icon": "pagination",
+              "screenshot": "",
+              "snippetName": "MatPaginator",
+              "schema": {
+                "componentName": "MatPaginator",
+                "props": {
+                  "length": 100,
+                  "pageSize": 10,
+                  "pageSizeOptions": [
+                    10,
+                    20,
+                    50
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "blocks": []
+    }
+  }
+}
