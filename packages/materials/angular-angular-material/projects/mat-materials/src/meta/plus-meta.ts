@@ -1,19 +1,20 @@
 import type { IMaterialsMeta, IMaterialsProtocol } from '@opentiny/genui-sdk-core';
 import bundleJson from './materials/bundle.json';
+import plusLayoutJson from './materials/plus-layout.json';
 import { examples as allExamples } from './example-schema';
-import { baseWhiteList } from './white-list';
+import { plusWhiteList } from './white-list';
 
 function filterExamples(ids: string[]) {
   return allExamples.filter((example) => !!example.id && ids.includes(example.id));
 }
 
-const metaMaterials = [bundleJson] as unknown as IMaterialsProtocol[];
+const metaMaterials = [bundleJson, plusLayoutJson] as unknown as IMaterialsProtocol[];
 
-/** base 物料元数据 */
-export const materialsMeta: IMaterialsMeta = {
+/** plus 物料元数据：base + 布局 / 导航 */
+export const plusMaterialsMeta: IMaterialsMeta = {
   materials: metaMaterials,
   wrapperComponent: 'MatCard',
-  whiteList: baseWhiteList,
-  examples: filterExamples(['form', 'info']),
+  whiteList: plusWhiteList,
+  examples: filterExamples(['form', 'info', 'tabs']),
   rules: [],
 };
