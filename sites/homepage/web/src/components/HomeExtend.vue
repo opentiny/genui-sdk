@@ -452,6 +452,9 @@ onUnmounted(() => {
         display: flex;
         gap: 14px;
         margin-left: 28px;
+        @media (max-width: 768px) {
+          margin-left: 0;
+        }
 
         div {
           width: 14px;

@@ -37,12 +37,6 @@ const buttonSize = computed(() => {
 
 <style lang="less" scoped>
 
-.btn-link {
-  :deep(.tiny-button) {
-    font-size: 16px;
-  }
-}
-
 .home-link {
   width: 100%;
   display: flex;
@@ -63,7 +57,7 @@ const buttonSize = computed(() => {
   }
 
   &-title {
-    color: #191919
+    color: #191919;
   }
 
   &-description {
@@ -74,21 +68,44 @@ const buttonSize = computed(() => {
     margin-bottom: 36px;
   }
 
+  &-button-group {
+    display: flex;
+    gap: 20px;
+  }
+
   @media (min-width: 1920px) {
     &-description {
       font-size: var(--font-size-body-sm);
-    }
-
-    &-button-group {
-      display: flex;
-      gap: 20px;
     }
   }
 
   @media (max-width: 768px) {
     background-image: url('@/assets/homelink_bg_mobile.svg');
     margin-top: 16px;
+
+    &-button-group {
+      display: flex;
+      gap: 12px;
+    }
+
+    .home-link-title.genui-title {
+      font-size: 22px;
+    }
   }
 }
+
+.btn-link {
+  :deep(.tiny-button) {
+    font-size: 16px;
+  }
+
+  @media (max-width: 768px) {
+    :deep(.tiny-button) {
+      font-size: 14px;
+    }
+  }
+}
+
+
 </style>
   
