@@ -1,0 +1,728 @@
+{
+  "data": {
+    "framework": "React",
+    "materials": {
+      "components": [
+        {
+          "component": "Text",
+          "description": "内置文本节点，用于展示静态或绑定文本",
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "text",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "文本内容"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntButton",
+          "description": "Ant Design 按钮，支持 primary/default/dashed/link/text 等类型",
+          "npm": {
+            "package": "antd",
+            "exportName": "Button",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "type",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "类型：primary、default、dashed、link、text"
+                    }
+                  },
+                  {
+                    "property": "size",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "尺寸：small、middle、large"
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  },
+                  {
+                    "property": "danger",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onClick": {
+                "description": {
+                  "zh_CN": "点击事件"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "鼠标事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntInput",
+          "description": "Ant Design 输入框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Input",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "value",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "输入值，可用 model:true 双向绑定"
+                    }
+                  },
+                  {
+                    "property": "modelValue",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "输入值（modelValue 别名）"
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "type": "string"
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  },
+                  {
+                    "property": "type",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "input type：text、password、email 等"
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "description": {
+                  "zh_CN": "值变化事件"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "ChangeEvent，可通过 event.target.value 取值"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntSelect",
+          "description": "Ant Design 下拉选择器",
+          "npm": {
+            "package": "antd",
+            "exportName": "Select",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "value",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "选中值，可用 model:true 双向绑定"
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "type": "string"
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  },
+                  {
+                    "property": "options",
+                    "type": "array",
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "选项数组，如 [{ label: '男', value: 'male' }]"
+                    }
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "description": {
+                  "zh_CN": "选中值变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "value",
+                      "type": "any",
+                      "description": {
+                        "zh_CN": "当前选中值"
+                      }
+                    },
+                    {
+                      "name": "option",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "当前选中项"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntForm",
+          "description": "Ant Design 表单容器",
+          "npm": {
+            "package": "antd",
+            "exportName": "Form",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "layout",
+                    "type": "string",
+                    "defaultValue": "vertical",
+                    "description": {
+                      "zh_CN": "布局：horizontal、vertical、inline"
+                    }
+                  }
+                ]
+              }
+            ],
+            "slots": {
+              "default": {
+                "description": {
+                  "zh_CN": "表单项子节点，通常放 AntFormItem"
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntFormItem",
+          "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 modelValue 或 value（model:true），不要设置 name 属性",
+          "npm": {
+            "package": "antd",
+            "exportName": "Form.Item",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "label",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "表单项标签"
+                    }
+                  },
+                  {
+                    "property": "required",
+                    "type": "boolean",
+                    "description": {
+                      "zh_CN": "是否必填（仅展示）"
+                    }
+                  }
+                ]
+              }
+            ],
+            "slots": {
+              "default": {
+                "description": {
+                  "zh_CN": "表单项内容，如 AntInput、AntSelect"
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntCard",
+          "description": "Ant Design 卡片容器",
+          "npm": {
+            "package": "antd",
+            "exportName": "Card",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "title",
+                    "type": "string"
+                  },
+                  {
+                    "property": "variant",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "样式：outlined（有边框）、borderless（无边框）、filled（填充）"
+                    }
+                  }
+                ]
+              }
+            ],
+            "slots": {
+              "default": {
+                "description": {
+                  "zh_CN": "卡片内容"
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntTable",
+          "description": "Ant Design 表格",
+          "npm": {
+            "package": "antd",
+            "exportName": "Table",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "columns",
+                    "type": "array",
+                    "description": {
+                      "zh_CN": "列配置，如 [{ title: '姓名', dataIndex: 'name', key: 'name' }]"
+                    }
+                  },
+                  {
+                    "property": "dataSource",
+                    "type": "array",
+                    "description": {
+                      "zh_CN": "表格数据源"
+                    }
+                  },
+                  {
+                    "property": "rowKey",
+                    "type": "string"
+                  },
+                  {
+                    "property": "pagination",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntTabs",
+          "description": "Ant Design 标签页，通过 items 配置子页签",
+          "npm": {
+            "package": "antd",
+            "exportName": "Tabs",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "defaultActiveKey",
+                    "type": "string",
+                    "defaultValue": "1"
+                  },
+                  {
+                    "property": "activeKey",
+                    "type": "string"
+                  },
+                  {
+                    "property": "items",
+                    "type": "array",
+                    "description": {
+                      "zh_CN": "子页签列表，每项含 key、label、children(JSSlot)"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntModal",
+          "description": "Ant Design 对话框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Modal",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "open",
+                    "type": "boolean",
+                    "description": {
+                      "zh_CN": "是否显示"
+                    }
+                  },
+                  {
+                    "property": "title",
+                    "type": "string"
+                  },
+                  {
+                    "property": "okText",
+                    "type": "string"
+                  },
+                  {
+                    "property": "cancelText",
+                    "type": "string"
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onOk": {
+                "description": {
+                  "zh_CN": "点击确定"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [],
+                  "returns": {}
+                }
+              },
+              "onCancel": {
+                "description": {
+                  "zh_CN": "点击取消或关闭"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "关闭事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            },
+            "slots": {
+              "default": {
+                "description": {
+                  "zh_CN": "对话框内容"
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntSwitch",
+          "description": "Ant Design 开关",
+          "npm": {
+            "package": "antd",
+            "exportName": "Switch",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "checked",
+                    "type": "boolean",
+                    "description": {
+                      "zh_CN": "是否选中，可用 model:true 双向绑定"
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "description": {
+                  "zh_CN": "开关状态变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "checked",
+                      "type": "boolean",
+                      "description": {
+                        "zh_CN": "切换后的选中状态"
+                      }
+                    },
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "事件对象"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntCheckbox",
+          "description": "Ant Design 复选框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Checkbox",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "checked",
+                    "type": "boolean"
+                  },
+                  {
+                    "property": "text",
+                    "type": "string"
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "description": {
+                  "zh_CN": "选中状态变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "ChangeEvent，可通过 event.target.checked 取值"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntRadio",
+          "description": "Ant Design 单选框",
+          "npm": {
+            "package": "antd",
+            "exportName": "Radio",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "value",
+                    "type": "string"
+                  },
+                  {
+                    "property": "checked",
+                    "type": "boolean"
+                  },
+                  {
+                    "property": "text",
+                    "type": "string"
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "description": {
+                  "zh_CN": "选中变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "event",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "ChangeEvent，可通过 event.target.value / checked 取值"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        },
+        {
+          "component": "AntDatePicker",
+          "description": "Ant Design 日期选择器",
+          "npm": {
+            "package": "antd",
+            "exportName": "DatePicker",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "value",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "日期值，可用 model:true 双向绑定"
+                    }
+                  },
+                  {
+                    "property": "placeholder",
+                    "type": "string"
+                  },
+                  {
+                    "property": "disabled",
+                    "type": "boolean"
+                  }
+                ]
+              }
+            ],
+            "events": {
+              "onChange": {
+                "description": {
+                  "zh_CN": "日期变化"
+                },
+                "type": "event",
+                "functionInfo": {
+                  "params": [
+                    {
+                      "name": "date",
+                      "type": "Object",
+                      "description": {
+                        "zh_CN": "dayjs 日期对象，未选时为 null"
+                      }
+                    },
+                    {
+                      "name": "dateString",
+                      "type": "string",
+                      "description": {
+                        "zh_CN": "格式化后的日期字符串"
+                      }
+                    }
+                  ],
+                  "returns": {}
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

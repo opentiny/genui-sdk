@@ -36,12 +36,13 @@
     "componentLib": "Component library",
     "theme": "Theme",
     "themeLight": "Light",
-    "themeDark": "Dark",
-    "themeLite": "Lite",
-    "themeAuto": "System",
-    "frameworkVue": "Vue framework",
-    "frameworkAngular": "Angular framework"
-  },
+      "themeDark": "Dark",
+      "themeLite": "Lite",
+      "themeAuto": "System",
+      "frameworkVue": "Vue framework",
+      "frameworkAngular": "Angular framework",
+      "frameworkReact": "React framework"
+    },
   "model": {
     "select": "Model",
     "temperature": "Temperature",

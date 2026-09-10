@@ -1,0 +1,713 @@
+{
+  "componentName": "Page",
+  "state": {
+    "counter": {
+      "value": 0
+    },
+    "user": {
+      "name": "张三",
+      "age": 30
+    },
+    "list": [
+      { "id": 1, "name": "苹果" },
+      { "id": 2, "name": "香蕉" },
+      { "id": 3, "name": "橙子" }
+    ],
+    "obj": {
+      "key": "value"
+    },
+    "asyncTimeout": {
+      "value": 0,
+      "status": "未执行"
+    },
+    "asyncPromise": {
+      "name": "-",
+      "status": "未执行"
+    },
+    "asyncAwait": {
+      "value": 0,
+      "status": "未执行"
+    },
+    "asyncChain": {
+      "value": 0,
+      "status": "未执行"
+    }
+  },
+  "methods": {
+    "increment": {
+      "type": "JSFunction",
+      "value": "function increment() { this.state.counter.value++; }"
+    },
+    "decrement": {
+      "type": "JSFunction",
+      "value": "function decrement() { this.state.counter.value--; }"
+    },
+    "setNested": {
+      "type": "JSFunction",
+      "value": "function setNested() { this.state.user.name = '李四'; this.state.user.age = 31; }"
+    },
+    "pushItem": {
+      "type": "JSFunction",
+      "value": "function pushItem() { this.state.list.push({ id: this.state.list.length + 1, name: '葡萄' }); }"
+    },
+    "deleteKey": {
+      "type": "JSFunction",
+      "value": "function deleteKey() { delete this.state.obj.key; }"
+    },
+    "runSetTimeout": {
+      "type": "JSFunction",
+      "value": "function runSetTimeout() { this.state.asyncTimeout.status = '等待 1s...'; setTimeout(() => { this.state.asyncTimeout.value = this.state.asyncTimeout.value + 100; this.state.asyncTimeout.status = '完成 count + 100'; }, 1000); }"
+    },
+    "runPromiseThen": {
+      "type": "JSFunction",
+      "value": "function runPromiseThen() { this.state.asyncPromise.status = '进行中...'; Promise.resolve('ok').then((res) => { this.state.asyncPromise.name = '异步-' + res; this.state.asyncPromise.status = '完成'; }); }"
+    },
+    "runAwait": {
+      "type": "JSFunction",
+      "value": "async function runAwait() { this.state.asyncAwait.status = '进行中...'; await new Promise((r) => setTimeout(r, 800)); this.state.asyncAwait.value = 500; this.state.asyncAwait.status = '完成 count = 500'; }"
+    },
+    "runChain": {
+      "type": "JSFunction",
+      "value": "async function runChain() { this.state.asyncChain.status = '链式进行中...'; await new Promise((r) => setTimeout(r, 300)); this.state.asyncChain.value += 1; await new Promise((r) => setTimeout(r, 300)); this.state.asyncChain.value += 1; await new Promise((r) => setTimeout(r, 300)); this.state.asyncChain.value += 1; this.state.asyncChain.status = '完成 count += 3'; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "State 转换 / 异步操作演示",
+        "style": "max-width: 720px; margin: 0 auto;"
+      },
+      "children": [
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-section"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "基础计数（++ / --）"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-section-desc"
+              },
+              "children": "同步直接修改 state"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-row"
+          },
+          "children": [
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.decrement"
+                }
+              },
+              "children": "count--"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-value"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.counter.value"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.increment"
+                }
+              },
+              "children": "count++"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-section"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "嵌套赋值"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-section-desc"
+              },
+              "children": "同步修改嵌套对象字段"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-row"
+          },
+          "children": [
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.setNested"
+                }
+              },
+              "children": "user.name / user.age 赋值"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card op-card-wide"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "user"
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "JSON.stringify(this.state.user)"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-section"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "数组操作 / 删除"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-section-desc"
+              },
+              "children": "同步修改数组与对象属性"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-row"
+          },
+          "children": [
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.pushItem"
+                }
+              },
+              "children": "push"
+            },
+            {
+              "componentName": "AntButton",
+              "props": {
+                "danger": true,
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.deleteKey"
+                }
+              },
+              "children": "delete 属性"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-grid"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "list（数组操作）"
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "ul",
+                      "props": {
+                        "className": "op-list"
+                      },
+                      "children": [
+                        {
+                          "componentName": "li",
+                          "loop": {
+                            "type": "JSExpression",
+                            "value": "this.state.list"
+                          },
+                          "loopArgs": [
+                            "item"
+                          ],
+                          "children": [
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "'#' + item.id + ' ' + item.name"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "obj（delete）"
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "JSON.stringify(this.state.obj)"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-section"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "异步操作（重点）"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-section-desc"
+              },
+              "children": "渲染周期之外更新 state，验证订阅通知"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-grid"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "setTimeout"
+                    },
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "className": "op-status"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "this.state.asyncTimeout.status"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "'value = ' + this.state.asyncTimeout.value"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-action"
+                  },
+                  "children": [
+                    {
+                      "componentName": "AntButton",
+                      "props": {
+                        "block": true,
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "this.runSetTimeout"
+                        }
+                      },
+                      "children": "1s 后 count + 100"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "Promise.then"
+                    },
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "className": "op-status"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "this.state.asyncPromise.status"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "'name = ' + this.state.asyncPromise.name"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-action"
+                  },
+                  "children": [
+                    {
+                      "componentName": "AntButton",
+                      "props": {
+                        "block": true,
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "this.runPromiseThen"
+                        }
+                      },
+                      "children": "resolve 后更新 name"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "async/await"
+                    },
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "className": "op-status"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "this.state.asyncAwait.status"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "'value = ' + this.state.asyncAwait.value"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-action"
+                  },
+                  "children": [
+                    {
+                      "componentName": "AntButton",
+                      "props": {
+                        "block": true,
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "this.runAwait"
+                        }
+                      },
+                      "children": "await 800ms 后 value = 500"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-card op-card-wide"
+              },
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-title"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "op-label"
+                      },
+                      "children": "链式 await"
+                    },
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "className": "op-status"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "this.state.asyncChain.status"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-value"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "'value = ' + this.state.asyncChain.value"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "op-card-action"
+                  },
+                  "children": [
+                    {
+                      "componentName": "AntButton",
+                      "props": {
+                        "block": true,
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "this.runChain"
+                        }
+                      },
+                      "children": "三段 await 依次 value += 1"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
