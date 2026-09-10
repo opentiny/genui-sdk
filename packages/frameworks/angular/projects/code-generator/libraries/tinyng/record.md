@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | TiPagination | `total` → `totalNumber` | 已删:物料包 meta 定义修正为 `totalNumber`(见 meta/bundle.json、examples/pagination.json) |
 | TiTable | `srcData.state` 归一化(字符串→对象 + 缺省字段补全) | 已删:物料包示例把 `srcData.state` 补成对象形式(见 meta/examples/grid.json、pagination.json) |
-| TiItem | `label` 属性 → `<ti-item-label>` 子元素 | `transformChildren`(见 [config.ts](config.ts)) |
+| TiItem | `label` → `[label]="'姓名'"` 绑定形式(字符串/表达式均以更新相写入) | `transformChildren`(见 [config.ts](config.ts)) |
 | TiPagination | `pageSizes`/`pageSize` → 单个 `pageSize` 对象 `{ options, size }` | 已删:物料包 meta 定义与示例改为单 `pageSize` 对象(见 meta/bundle.json、meta/examples/pagination.json) |
 | TiTable | `displayedData` 双向 / `srcData` 单绑(原特判,现通用规则覆盖) | `handleBinding` 通用 `model:true`(见[第 5 节](#5-modeltrue-双向约定非表单组件默认出--key)) |
 
@@ -88,20 +88,22 @@ schema 中 `"state": "paginated"` 表示启用声明式分页(同理 `"searched"
 
 ---
 
-## 3. TiItem:`label` 属性不能直接绑定
+## 3. TiItem:`label` 必须以 `[label]=` 绑定形式输出
 
-**崩溃根因**(Angular 20):`TiItemComponent.setItemLabel` 在设置 `label` 属性时调用 `this.formfield.changeDetector.detectChanges()` 与 `this.changeDetector.detectChanges()`。而 `<ti-item label="姓名">` 的 `label` 是静态属性输入,会在视图**创建期**(create pass)被写入,此时 formfield / ti-item 自己的视图都还没完成创建 → 一调 `detectChanges()` 就触发断言(dev 报 `"Should be run in update mode"`,prod 报 `Cannot read properties of null`)。
+**崩溃根因**(Angular 20):`TiItemComponent.setItemLabel` 在设置 `label` 属性时调用 `this.formfield.changeDetector.detectChanges()` 与 `this.changeDetector.detectChanges()`。而 `<ti-item label="姓名">` 的 `label` 是**静态属性输入**(编译为 `tNode.initialInputs`),会在视图**创建期**(create pass)被写入并执行 setter,此时 formfield / ti-item 自己的视图都还没完成创建 → 一调 `detectChanges()` 就触发断言(dev 报 `"Should be run in update mode"`,prod 报 `Cannot read properties of null`)。
 
-Angular 20 严格分离 renderView(创建)与 refreshView(更新),refreshView 开头断言目标视图不能在创建模式。
+Angular 20 严格分离 renderView(创建)与 refreshView(更新):创建相只建 DOM/实例/常量初始化、不求值动态表达式;更新相(refreshView)才执行 `ɵɵproperty` 写绑定值,此时视图已离开创建模式,`detectChanges()` 合法。
 
-**解决方案**:改用 `<ti-item-label>` 子元素后,`label` 的写入发生在 `TiItemLabelComponent.ngAfterContentInit`(content hooks 阶段 = 更新期),此时所有子视图已完成创建,`detectChanges()` 合法。
+**方案**:把 label 一律变成**方括号绑定**(编译为更新相的 `ɵɵproperty`),让它随其他输入在更新相写入,创建相不碰 setter → 不崩。`transformChildren`(见 [config.ts](config.ts))在 TiFormField 分支统一包装 TiItem 时,对字符串 label 包成单引号字面量表达式,让通用 handleBinding 输出:
 
-**处理**:`transformChildren`(见 [config.ts](config.ts)),TiFormField 分支统一包装 TiItem 时,把 `label` 属性剥离为第一个子元素 `<ti-item-label>`(其余 props 如 `required` / `show` / `verticalAlign` / `rowspan` / `colspan` / `index` 照旧):
+- 原本输出(崩):`<ti-item label="姓名" [required]="true">`(字符串字面量走 handleLiteralBinding 的裸属性分支)
+- 改为(不崩):`<ti-item [label]="'姓名'" [required]="true">`(包成 `{ type: 'JSExpression', value: "'姓名'" }` 后落入 `[key]="..."` 分支)
 
-- 原本输出(崩):`<ti-item label="姓名" [required]="true">`
-- 改为(不崩):`<ti-item [required]="true"><ti-item-label>姓名</ti-item-label>...`
+字符串与表达式两种情形都覆盖:JSExpression label(`this.state.xxx` 等)原样保留,handleBinding 本就输出 `[label]="expr"`;数字/布尔/对象/数组字面量经 handleLiteralBinding 也落在 `[label]="..."` / `[label]='...'` 绑定上,均在更新相写入,无需特判。
 
-**补充**:因为 `<ti-item-label>` 注入的是 DOM 节点,内容可以是富文本(如 `<ti-item-label><span style="color:red">姓名</span></ti-item-label>`)。`labelWidth` 等 formfield 属性不受影响。`TiItemLabel` 已随物料包 `components`/`modules` 注册(见 angular-opentiny-ng 的 `ng-components.ts`),出码器需要的 selector(`ti-item-label`)、归属模块(`TiFormfieldModule`)由 map 自动推导带出,不再手工补齐;它**不进 meta**(bundle.json/白名单),因为是出码内部产物,不应作为可作者化组件教给模型。
+**转义顺序**(写入 value 时):先 `\` → `\\`,再 `'` → `\'`(Angular 表达式词法支持 `\'` 与 `\\`),最后 `"` → `&quot;`(产物落在外层双引号属性内,不提前闭合;HTML 实体解析先于表达式词法,还原回的 `"` 在单引号串内合法)。
+
+**连带清理**:原出码内部产物 `TiItemLabel`(`<ti-item-label>`,由 transformChildren 合成、曾随物料包 `components`/`modules` 注册)已随本方案删除——不再合成该节点,物料包映射回归只含真实组件,无需任何注册。
 
 ---
 

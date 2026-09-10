@@ -1,4 +1,5 @@
 import type { NodeSchema } from '@opentiny/genui-sdk-core';
+import { JS_EXPRESSION } from '../../constants';
 import type { IAngularLibraryConfig } from '../../types';
 import { componentSelector, moduleRefMap, componentExtraSelector, libraryComponents } from './map';
 
@@ -19,8 +20,10 @@ export const TINYNG_CONFIG: IAngularLibraryConfig = {
 
   /**
    * TiFormField 的直接子节点统一包装为 TiItem(库的表单布局约定);
-   * 同时把 TiItem 的 label 属性剥离为第一个子元素 <ti-item-label>(见 record.md:
-   * TiItemComponent.setItemLabel 在视图创建期调用 detectChanges() 触发 Angular 20 断言崩溃)。
+   * 同时把 TiItem 的字符串 label 转成绑定形式 [label]="'姓名'",避免静态属性
+   * label="姓名" 在视图创建相写 input(见 record.md §3:TiItemComponent.setItemLabel
+   * 在创建相调用 detectChanges() 触发 Angular 20 断言崩溃)。字符串与 JSExpression
+   * 两种情形都要求以更新相写入的 [label]= 绑定输出。
    */
   transformChildren: (componentName, children) => {
     if (componentName === 'TiFormField' && Array.isArray(children)) {
@@ -33,17 +36,15 @@ export const TINYNG_CONFIG: IAngularLibraryConfig = {
 
         const props = item.props as Record<string, unknown> | undefined;
         const label = props?.label;
-        if (label !== undefined) {
-          delete props!.label;
-          const labelNode: NodeSchema = { componentName: 'TiItemLabel', children: String(label) };
-          if (Array.isArray(item.children)) {
-            item.children = [labelNode, ...item.children];
-          } else if (typeof item.children === 'string') {
-            item.children = [labelNode, { componentName: 'Text', props: { text: item.children } }];
-          } else {
-            item.children = [labelNode];
-          }
+        if (typeof label === 'string') {
+          // 字符串 label 包成单引号字面量表达式,handleBinding 据此输出 [label]="'姓名'"(更新相写入)。
+          // 转义顺序:先 \ 后 '(Angular 表达式词法支持 \' 与 \\),最后 " → &quot;(保证外层双引号
+          // 属性不提前闭合;HTML 实体解析先于表达式词法,还原的 " 在单引号串内合法)。
+          const escaped = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+          props!.label = { type: JS_EXPRESSION, value: `'${escaped}'` };
         }
+        // JSExpression label 原样保留(handleBinding 本就输出 [label]="expr");数字/布尔/对象/数组
+        // 字面量经 handleLiteralBinding 也落在 [label]= 绑定上,均在更新相写入,无需额外特判。
         return item;
       });
     }
