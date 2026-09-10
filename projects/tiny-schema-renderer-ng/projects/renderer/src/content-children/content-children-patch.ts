@@ -316,6 +316,9 @@ function inferFirstOnly(propertyName: string): boolean {
  * (TiDate ← TiDateBase) may live on the parent `ɵcmp.viewQuery` only. Walk the prototype
  * chain and accept any receiver identifier. Content-query signals live in `contentQueries`,
  * never here, so they stay patchable.
+ *
+ * Note: runtime `ɵcmp` does not expose a `viewQueries` array — only the compiled `viewQuery`
+ * function is available, so property names are recovered by parsing that function source.
  */
 const viewQueryPropsByClass = new WeakMap<object, Set<string>>();
 
@@ -324,22 +327,15 @@ const VIEW_QUERY_SIGNAL_RE = /ɵɵviewQuerySignal\(\s*[A-Za-z_$][\w$]*\.([A-Za-z
 
 function collectViewQueryPropertyNamesFromCtor(ctor: object, names: Set<string>): void {
   const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
-  if (typeof viewQuery === 'function') {
-    const src = Function.prototype.toString.call(viewQuery);
-    for (const m of src.matchAll(VIEW_QUERY_ASSIGN_RE)) {
-      names.add(m[1]);
-    }
-    for (const m of src.matchAll(VIEW_QUERY_SIGNAL_RE)) {
-      names.add(m[1]);
-    }
+  if (typeof viewQuery !== 'function') {
+    return;
   }
-  const declared = (ctor as any)?.ɵcmp?.viewQueries;
-  if (Array.isArray(declared)) {
-    for (const query of declared) {
-      if (typeof query?.propertyName === 'string') {
-        names.add(query.propertyName);
-      }
-    }
+  const src = Function.prototype.toString.call(viewQuery);
+  for (const m of src.matchAll(VIEW_QUERY_ASSIGN_RE)) {
+    names.add(m[1]);
+  }
+  for (const m of src.matchAll(VIEW_QUERY_SIGNAL_RE)) {
+    names.add(m[1]);
   }
 }
 
@@ -425,12 +421,9 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
     const value = (instance as any)[key];
     if (value instanceof QueryList) {
       // @ViewChildren fields are resolved by Angular — patching wipes matches (e.g. TiDate.dateEditComs).
+      // Only skip when viewQuery source or LQueries classification identifies the list —
+      // never infer from length alone (a filled content query would then be skipped forever).
       if (viewQueryProps.has(key) || viewQueryLists.has(value)) {
-        continue;
-      }
-      // Ivy already filled this list but did not classify it as a content query —
-      // treat it as a view query we failed to name (minified viewQuery / inheritance).
-      if (!seen.has(value) && value.length > 0) {
         continue;
       }
       if (seen.has(value)) {
@@ -912,6 +905,10 @@ export function patchOutletContentQueries(
  * Compiled `ɵcmp.contentQueries` source is re-parsed per class to recover `@ContentChild` field
  * names (`ctx.foo = _t.first`). Production minifies `ctx`/`_t` (`e.foo=n.first`); inherited
  * queries may live on a parent class. Walk the prototype chain and accept any identifiers.
+ *
+ * Order is base-class → subclass so index mapping matches Ivy LView content-query order
+ * (base queries registered before subclass queries). Runtime `ɵcmp` has no `queries` array —
+ * only the compiled `contentQueries` function is parsed.
  * Fail closed: when nothing matches, `firstProps` is empty and field-name binding is skipped.
  */
 const contentChildFirstPropsByClass = new WeakMap<object, string[]>();
@@ -921,20 +918,13 @@ const CONTENT_CHILD_FIRST_RE =
 
 function collectContentChildFirstPropsFromCtor(ctor: object, firstProps: string[]): void {
   const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
-  if (typeof contentQueries === 'function') {
-    const src = Function.prototype.toString.call(contentQueries);
-    for (const m of src.matchAll(CONTENT_CHILD_FIRST_RE)) {
-      if (!firstProps.includes(m[1])) {
-        firstProps.push(m[1]);
-      }
-    }
+  if (typeof contentQueries !== 'function') {
+    return;
   }
-  const declared = (ctor as any)?.ɵcmp?.queries;
-  if (Array.isArray(declared)) {
-    for (const query of declared) {
-      if (query?.first === true && typeof query?.propertyName === 'string' && !firstProps.includes(query.propertyName)) {
-        firstProps.push(query.propertyName);
-      }
+  const src = Function.prototype.toString.call(contentQueries);
+  for (const m of src.matchAll(CONTENT_CHILD_FIRST_RE)) {
+    if (!firstProps.includes(m[1])) {
+      firstProps.push(m[1]);
     }
   }
 }
@@ -945,11 +935,16 @@ function getContentChildFirstProps(instance: object): string[] {
   if (cached) {
     return cached;
   }
-  const firstProps: string[] = [];
+  // Collect subclass → base, then reverse so firstProps is base → subclass (LView order).
+  const chain: object[] = [];
   let current: object | null = ctor;
   while (current && current !== Object && current !== Function && current !== Object.prototype) {
-    collectContentChildFirstPropsFromCtor(current, firstProps);
+    chain.push(current);
     current = Object.getPrototypeOf(current);
+  }
+  const firstProps: string[] = [];
+  for (let i = chain.length - 1; i >= 0; i--) {
+    collectContentChildFirstPropsFromCtor(chain[i], firstProps);
   }
   contentChildFirstPropsByClass.set(ctor, firstProps);
   return firstProps;
@@ -968,12 +963,17 @@ function bindDecoratorQueryPropertyNames(
     return;
   }
   // LView order: content signals + ContentChildren (named) + @ContentChild QueryLists (unnamed).
-  // Match the unnamed QueryLists to the compiled `_t.first` props in order.
+  // Match the unnamed QueryLists to the compiled `_t.first` props in base→subclass order.
+  // Only bind props that exist on this instance and are not already claimed.
+  const usedProps = new Set(
+    targets.map((t) => t.propertyName).filter((name): name is string => !!name),
+  );
+  const availableProps = firstProps.filter((prop) => prop in instance && !usedProps.has(prop));
   const unboundChildQueries = targets.filter(
     (t) => t.kind === 'query-list' && !t.propertyName,
   );
-  for (let i = 0; i < firstProps.length && i < unboundChildQueries.length; i++) {
-    unboundChildQueries[i].propertyName = firstProps[i];
+  for (let i = 0; i < availableProps.length && i < unboundChildQueries.length; i++) {
+    unboundChildQueries[i].propertyName = availableProps[i];
     unboundChildQueries[i].firstOnly = true;
   }
 }
