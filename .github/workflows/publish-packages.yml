@@ -34,6 +34,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      NPM_TAG: ${{ github.event.inputs.npm_tag }}
     permissions:
       contents: write
       id-token: write
@@ -61,6 +63,13 @@ jobs:
             exit 1
           fi
           echo "✓ 版本号格式正确: $VERSION"
+
+      - name: Validate npm tag
+        run: |
+          case "$NPM_TAG" in
+            latest|beta|alpha) ;;
+            *) echo "::error::无效的 npm 标签: $NPM_TAG"; exit 1 ;;
+          esac
 
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
@@ -140,38 +149,38 @@ jobs:
       - name: Publish Core to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/core
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Vue materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/vue-opentiny-vue
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Element Plus materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/vue-element-plus
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Angular materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/angular-opentiny-ng
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish server to npm
         working-directory: packages/server/output
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Vue to npm
         working-directory: packages/frameworks/vue
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Angular to npm
         working-directory: packages/frameworks/angular/output
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Integration Skill to npm
         working-directory: packages/integrate/skill/genui-integration
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Create and push tags
         run: |

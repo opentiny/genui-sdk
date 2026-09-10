@@ -42,6 +42,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      NPM_TAG: ${{ github.event.inputs.npm_tag }}
     permissions:
       contents: write
       id-token: write
@@ -69,6 +71,13 @@ jobs:
             exit 1
           fi
           echo "✓ 版本号格式正确: $VERSION"
+
+      - name: Validate npm tag
+        run: |
+          case "$NPM_TAG" in
+            latest|beta|alpha) ;;
+            *) echo "::error::无效的 npm 标签: $NPM_TAG"; exit 1 ;;
+          esac
 
       - name: Resolve package config
         id: pkg
@@ -171,7 +180,7 @@ jobs:
 
       - name: Publish to npm
         working-directory: ${{ steps.pkg.outputs.publish_dir }}
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Create and push tag
         run: |
