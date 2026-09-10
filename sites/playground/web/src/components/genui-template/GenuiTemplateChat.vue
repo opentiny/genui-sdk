@@ -41,7 +41,7 @@ import {
 } from './template-chat-utils';
 import { generateId } from '../../utils';
 import { useTemplateContext } from './composables';
-import { useContextZip } from './use-context-zip';
+import { useContextCompress } from './use-context-compress';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
 import useIcon from '../../use-icon';
@@ -156,19 +156,19 @@ const roles: Record<string, BubbleRoleConfig> = {
       default: () => null,
     },
   },
-  zip: {
+  compress: {
     placement: 'start',
     maxWidth: '100%',
     slots: {
       default: (slotProps) => {
-        return h('div', { class: 'context-zip-divider' }, [
-          h('span', { class: 'context-zip-divider__line' }),
+        return h('div', { class: 'context-compress-divider' }, [
+          h('span', { class: 'context-compress-divider__line' }),
           h(
             'span',
-            { class: 'context-zip-divider__text' },
+            { class: 'context-compress-divider__text' },
             typeof slotProps?.bubbleProps?.content === 'string' ? slotProps.bubbleProps.content : '',
           ),
-          h('span', { class: 'context-zip-divider__line' }),
+          h('span', { class: 'context-compress-divider__line' }),
         ]);
       },
     },
@@ -223,7 +223,7 @@ const handleRefresh = ({ index }: { index: number }) => {
   }
 
   messages.value = messages.value.slice(0, index);
-  resetContextZip();
+  resetContextCompress();
 
   const lastUserMessage = getLastUserMessage(messages.value);
   if (lastUserMessage && !lastUserMessage.messageId) {
@@ -280,7 +280,7 @@ const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
 const currentConversationId = computed(() => conversation.templateConversationState?.currentId);
 
-const contextZip = useContextZip({
+const contextCompress = useContextCompress({
   messages,
   generating,
   currentConversationId,
@@ -301,8 +301,8 @@ const {
   compressingDividerText,
   latestCompressIndex,
   compressDisabledReason,
-  reset: resetContextZip,
-} = contextZip;
+  reset: resetContextCompress,
+} = contextCompress;
 
 const compressButtonTip = computed(
   () => compressDisabledReason.value || t('template.compressHelpTip', { turns: keepRecentTurns }),
@@ -318,7 +318,7 @@ const toShowMessage = (message: ChatMessage): BubbleProps => {
 const showMessages = computed((): BubbleProps[] => {
   let list = messages.value.map((message, index) => {
     if (index === latestCompressIndex.value) {
-      return { role: 'zip', content: compressedDividerText.value } as BubbleProps;
+      return { role: 'compress', content: compressedDividerText.value } as BubbleProps;
     }
     return toShowMessage(message);
   });
@@ -362,7 +362,7 @@ const showMessages = computed((): BubbleProps[] => {
   }
 
   if (showDivider.value && isCompressing.value) {
-    list = [...list, { role: 'zip', content: compressingDividerText.value }];
+    list = [...list, { role: 'compress', content: compressingDividerText.value }];
   }
 
   return list;
@@ -460,11 +460,11 @@ onUnmounted(() => {
         <TinyTooltip
           effect="light"
           placement="top"
-          popper-class="genui-template-zip-help-tooltip"
+          popper-class="genui-template-compress-help-tooltip"
           :content="compressButtonTip"
         >
-          <span class="zip-button-wrap">
-            <TinyButton round class="zip-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
+          <span class="compress-button-wrap">
+            <TinyButton round class="compress-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
               {{ t('template.compressButton') }}
             </TinyButton>
           </span>
@@ -479,7 +479,7 @@ onUnmounted(() => {
         :maxLength="20000"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
-        @cancel="() => (isCompressing ? resetContextZip() : messageManager?.abortRequest())"
+        @cancel="() => (isCompressing ? resetContextCompress() : messageManager?.abortRequest())"
       >
       </tr-sender>
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>
@@ -590,7 +590,7 @@ onUnmounted(() => {
   width: 100%;
 }
 
-:deep(.tr-bubble__content-wrapper:not(:has(.context-zip-divider))) {
+:deep(.tr-bubble__content-wrapper:not(:has(.context-compress-divider))) {
   @avatar-and-gap-width: 56px;
   max-width: calc(100% - @avatar-and-gap-width * 2);
 
@@ -603,8 +603,8 @@ onUnmounted(() => {
   }
 }
 
-// 压缩分割线：由 messages → showMessages 注入 role: zip，撑满列表行宽
-:deep(.tr-bubble-list > .tr-bubble:has(.context-zip-divider)) {
+// 压缩分割线：由 messages → showMessages 注入 role: compress，撑满列表行宽
+:deep(.tr-bubble-list > .tr-bubble:has(.context-compress-divider)) {
   width: 100% !important;
   max-width: 100% !important;
   --max-width: 100%;
@@ -613,7 +613,7 @@ onUnmounted(() => {
   gap: 0 !important;
 }
 
-:deep(.tr-bubble:has(.context-zip-divider)) {
+:deep(.tr-bubble:has(.context-compress-divider)) {
   .tr-bubble__avatar {
     display: none !important;
     width: 0 !important;
@@ -638,7 +638,7 @@ onUnmounted(() => {
   }
 }
 
-:deep(.context-zip-divider) {
+:deep(.context-compress-divider) {
   display: grid !important;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -660,11 +660,11 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
-  :deep(.tr-bubble__content-wrapper:not(:has(.context-zip-divider))) {
+  :deep(.tr-bubble__content-wrapper:not(:has(.context-compress-divider))) {
     max-width: calc(100% - 12px);
   }
 
-  :deep(.tr-bubble__content-wrapper:not(:has(.context-zip-divider)) .tr-bubble__content-items) {
+  :deep(.tr-bubble__content-wrapper:not(:has(.context-compress-divider)) .tr-bubble__content-items) {
     overflow-x: hidden;
   }
 }
@@ -687,7 +687,7 @@ onUnmounted(() => {
     margin-bottom: 8px;
   }
 
-  .zip-button-wrap {
+  .compress-button-wrap {
     display: inline-block;
   }
 }
@@ -790,7 +790,7 @@ onUnmounted(() => {
 </style>
 
 <style lang="less">
-.tiny-tooltip__popper.genui-template-zip-help-tooltip {
+.tiny-tooltip__popper.genui-template-compress-help-tooltip {
   max-width: 280px;
   line-height: 1.5;
   white-space: normal;

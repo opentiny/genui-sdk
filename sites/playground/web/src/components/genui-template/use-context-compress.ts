@@ -11,9 +11,9 @@ import {
 import { generateId } from '../../utils';
 import { t } from '../../i18n';
 
-type ContextZipStatus = 'idle' | 'compressing' | 'compressed';
+type ContextCompressStatus = 'idle' | 'compressing' | 'compressed';
 
-interface UseContextZipOptions {
+interface UseContextCompressOptions {
   messages: ComputedRef<ChatMessage[]>;
   generating: ComputedRef<boolean>;
   currentConversationId: ComputedRef<string | undefined>;
@@ -41,8 +41,8 @@ function notifyCompressError(message: string) {
   });
 }
 
-export function useContextZip(options: UseContextZipOptions) {
-  const status = ref<ContextZipStatus>('idle');
+export function useContextCompress(options: UseContextCompressOptions) {
+  const status = ref<ContextCompressStatus>('idle');
   const compressingConversationId = ref<string | undefined>();
   let abortController: AbortController | null = null;
 
