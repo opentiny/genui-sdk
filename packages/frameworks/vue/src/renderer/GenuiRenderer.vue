@@ -4,7 +4,7 @@ import { ref, watch, computed, inject, nextTick, onErrorCaptured, provide, shall
 import SchemaRenderer, { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
-import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
+import { GENUI_CONFIG, GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import type { IRendererProps } from './renderer.types';
 import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
@@ -30,6 +30,7 @@ const callAction = (actionName: string, params: any) => {
 };
 
 const materials = inject<IMaterials>(GENUI_MATERIALS, {});
+const genuiConfig = inject(GENUI_CONFIG, null);
 const customSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
 
 watch(() => props.customComponents, (newVal) => {
@@ -148,7 +149,7 @@ watch(
 </script>
 
 <template>
-  <div class="schema-render-container">
+  <div class="schema-render-container" :class="{ dark: genuiConfig?.colorScheme === 'dark' }">
     <slot name="header" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
     <SchemaRenderer :schema="displaySchema" ref="rendererInstance" />
     <slot name="footer" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
@@ -159,8 +160,13 @@ watch(
 @import url('./custom.css');
 
 .schema-render-container {
+  --ti-genui-renderer-text-color: #191919;
   position: relative;
-  color: var(--tv-color-text, #191919);
+  color: var(--ti-genui-renderer-text-color);
+}
+
+.schema-render-container.dark {
+  --ti-genui-renderer-text-color: #f5f5f5;
 }
 
 .schema-render-container:has(.loading-warp):after {
