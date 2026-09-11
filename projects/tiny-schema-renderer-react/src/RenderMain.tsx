@@ -7,6 +7,7 @@ import { PageContextProvider } from './page-context';
 import { setSchema, setState } from './set-schema';
 import type { LifeCycleFn } from './life-cycles';
 import { SchemaNodeRenderer, normalizeChildren } from './Render';
+import { SchemaErrorBoundary } from './SchemaErrorBoundary';
 import { Loading } from './Loading';
 import { useRendererSettings } from './RendererContextProvider';
 import { MATERIALS } from './materials';
@@ -117,11 +118,13 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
   return (
     <PageContextProvider value={pageContext}>
-      {schema?.children?.length ? (
-        <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
-      ) : (
-        <Loading />
-      )}
+      <SchemaErrorBoundary componentName="Page">
+        {schema?.children?.length ? (
+          <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
+        ) : (
+          <Loading />
+        )}
+      </SchemaErrorBoundary>
     </PageContextProvider>
   );
 });
