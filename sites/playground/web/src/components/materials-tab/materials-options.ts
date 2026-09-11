@@ -10,7 +10,7 @@ export const FRAMEWORK_OPTIONS = [
 
 export function getFrameworkOptions(mode: PlaygroundMode) {
   if (mode === PlaygroundMode.Builder) {
-    return FRAMEWORK_OPTIONS.filter((item) => item.name !== 'Angular');
+    return FRAMEWORK_OPTIONS.filter((item) => item.name === 'Vue');
   }
   return [...FRAMEWORK_OPTIONS];
 }
