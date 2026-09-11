@@ -27,6 +27,26 @@ describe('SchemaRenderer callback ref', () => {
     expect(() => render(createElement(Host))).not.toThrow();
   });
 
+  it('initializes schema state and methods before render returns', () => {
+    const rendererRef = createRef<SchemaRendererHandle>();
+    const schema = {
+      componentName: 'Page',
+      state: { count: 1 },
+      methods: {
+        getCount: {
+          type: 'JSFunction' as const,
+          value: 'function() { return this.state.count; }',
+        },
+      },
+      children: [{ componentName: 'div' }],
+    };
+
+    render(createElement(SchemaRenderer, { ref: rendererRef, schema }));
+
+    expect(rendererRef.current?.getContext().state).toEqual({ count: 1 });
+    expect((rendererRef.current?.getContext().getCount as () => number)()).toBe(1);
+  });
+
   it('preserves runtime state when only the schema object identity changes', async () => {
     const rendererRef = createRef<SchemaRendererHandle>();
     const schema = {

@@ -1,7 +1,7 @@
-import { createElement } from 'react';
-import { render } from '@testing-library/react';
+import { createElement, createRef } from 'react';
+import { act, render } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import { SchemaRenderer } from '../src/RenderMain';
+import { SchemaRenderer, type SchemaRendererHandle } from '../src/RenderMain';
 
 const g = globalThis as Record<string, unknown>;
 
@@ -38,5 +38,33 @@ describe('SchemaRenderer life cycles', () => {
     unmount();
     await new Promise((r) => setTimeout(r, 20));
     expect(g.__secondUnmounted).toBe(true);
+  });
+
+  it('waits for an asynchronous onUnmounted before initializing the next schema', async () => {
+    let resolveUnmount!: () => void;
+    g.__asyncUnmount = () => new Promise<void>((resolve) => (resolveUnmount = resolve));
+    const rendererRef = createRef<SchemaRendererHandle>();
+    const first = {
+      componentName: 'Page',
+      state: { version: 1 },
+      children: [{ componentName: 'div' }],
+      lifeCycles: {
+        onUnmounted: { type: 'JSFunction' as const, value: 'function() { return globalThis.__asyncUnmount(); }' },
+      },
+    };
+    const second = {
+      componentName: 'Page',
+      state: { version: 2 },
+      children: [{ componentName: 'div' }],
+    };
+
+    const { rerender } = render(createElement(SchemaRenderer, { ref: rendererRef, schema: first }));
+    rerender(createElement(SchemaRenderer, { ref: rendererRef, schema: second }));
+
+    expect(rendererRef.current?.getContext().state).toEqual({ version: 1 });
+    await act(async () => resolveUnmount());
+    expect(rendererRef.current?.getContext().state).toEqual({ version: 2 });
+
+    delete g.__asyncUnmount;
   });
 });

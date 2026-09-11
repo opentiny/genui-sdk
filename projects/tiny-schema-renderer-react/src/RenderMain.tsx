@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
 import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
 import { setCustomSettings } from './engine/use-custom-setting';
@@ -11,6 +11,8 @@ import { Loading } from './Loading';
 import { useRendererSettings } from './RendererContextProvider';
 import { MATERIALS } from './materials';
 import { NOTIFY } from './engine/notify';
+
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
@@ -29,6 +31,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const contextApi = useContext();
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
+  const pageUnmountPromiseRef = useRef<Promise<void> | null>(null);
   const schemaRef = useRef<RootNode | null>(schema);
   schemaRef.current = schema;
   const renderSettings = useRendererSettings();
@@ -49,12 +52,27 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     [setContext, getContext, contextApi],
   );
 
-  const invokePageOnUnmounted = useCallback(async () => {
+  const invokePageOnUnmounted = useCallback((): void | Promise<void> => {
+    if (pageUnmountPromiseRef.current) return pageUnmountPromiseRef.current;
+
     const fn = pageOnUnmountedRef.current;
     pageOnUnmountedRef.current = null;
     if (typeof fn !== 'function') return;
     try {
-      await fn();
+      const result = fn();
+      if (result && typeof result.then === 'function') {
+        const pending = result
+          .catch((error) => {
+            console.error('SchemaRenderer onUnmounted error:', error);
+          })
+          .finally(() => {
+            if (pageUnmountPromiseRef.current === pending) {
+              pageUnmountPromiseRef.current = null;
+            }
+          });
+        pageUnmountPromiseRef.current = pending;
+        return pending;
+      }
     } catch (error) {
       console.error('SchemaRenderer onUnmounted error:', error);
     }
@@ -72,23 +90,34 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
         })
       : '';
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const currentSchema = schemaRef.current;
     if (!currentSchema || !pageInitSignature) return;
 
     let cancelled = false;
-    (async () => {
-      await invokePageOnUnmounted();
+    const initializeSchema = () => {
       if (cancelled) return;
       const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
       if (cancelled) return;
       pageOnUnmountedRef.current = onUnmounted;
       try {
-        await onMounted?.();
+        const result = onMounted?.();
+        if (result && typeof result.then === 'function') {
+          void result.catch((error) => {
+            console.error('SchemaRenderer onMounted error:', error);
+          });
+        }
       } catch (error) {
         console.error('SchemaRenderer onMounted error:', error);
       }
-    })();
+    };
+
+    const unmountResult = invokePageOnUnmounted();
+    if (unmountResult && typeof unmountResult.then === 'function') {
+      void unmountResult.then(initializeSchema);
+    } else {
+      initializeSchema();
+    }
 
     return () => {
       cancelled = true;
