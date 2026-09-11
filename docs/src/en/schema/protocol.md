@@ -393,7 +393,7 @@ Access state in component properties through JS expressions using `this.state`.
 
 ### Two-Way Binding
 
-For form components, use `model: true` to implement two-way binding.
+Renderers that support model binding can set `model: true` on a form component's JSExpression. The React renderer does not process this marker; read state through `value` or `checked` and update it explicitly through `onChange`.
 
 ```json
 {
@@ -795,7 +795,7 @@ A: Use the node's `loop` and `loopArgs` fields; `loop` specifies the data source
 
 ### Q: How do I implement two-way binding?
 
-A: Set `model: true` in a JSExpression; applicable to form components.
+A: Renderers that support model binding can set `model: true` in a JSExpression. With the React renderer, use controlled props and update state explicitly through `onChange`.
 
 ### Q: How do I define component event handlers?
 

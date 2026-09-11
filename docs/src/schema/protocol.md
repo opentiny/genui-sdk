@@ -395,7 +395,7 @@ interface JSSlot {
 
 ### 双向绑定
 
-对于表单组件，使用 `model: true` 实现双向绑定。
+支持模型绑定的渲染器可在表单组件的 JSExpression 中设置 `model: true`。React 渲染器不处理该标记，必须使用 `value` 或 `checked` 读取状态，并通过 `onChange` 显式更新状态。
 
 ```json
 {
@@ -873,7 +873,7 @@ A: 使用节点的 `loop` 和 `loopArgs` 字段，`loop` 指定数据源，`loop
 
 ### Q: 如何实现双向绑定？
 
-A: 在 JSExpression 中设置 `model: true`，适用于表单组件。
+A: 支持模型绑定的渲染器可在 JSExpression 中设置 `model: true`。React 渲染器需要使用受控属性，并通过 `onChange` 显式更新状态。
 
 ### Q: 如何定义组件的事件处理？
 
