@@ -345,9 +345,18 @@ importers:
 
   packages/frameworks/react:
     dependencies:
+      '@babel/standalone':
+        specifier: ^7.28.5
+        version: 7.28.5
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../core
+      postcss:
+        specifier: ^8.5.6
+        version: 8.5.6
+      postcss-selector-parser:
+        specifier: ^7.1.0
+        version: 7.1.0
     devDependencies:
       '@opentiny/tiny-schema-renderer-react':
         specifier: workspace:*
