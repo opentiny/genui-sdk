@@ -87,6 +87,7 @@ export interface IChatProps {
   url?: string;
   model?: string;
   temperature?: number;
+  stream?: boolean;
   messages?: IMessage[];
   chatConfig?: IChatConfig;
   requiredCompleteFieldSelectors?: string[];
