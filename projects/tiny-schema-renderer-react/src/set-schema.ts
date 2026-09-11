@@ -10,9 +10,14 @@ function reset(obj: Record<string, unknown>) {
 }
 
 export function setMethods(data: Record<string, unknown> = {}, contextApi: PageContextApi, clear?: boolean) {
+  const methodContext = clear ? { ...contextApi.getContext() } : contextApi.getContext();
+  if (clear) {
+    schemaMethodKeys.get(contextApi)?.forEach((key) => delete methodContext[key]);
+  }
+
   const methods = Object.fromEntries(
     Object.keys(data).map((key) => {
-      const parsed = parseData(data[key], {}, contextApi.getContext());
+      const parsed = parseData(data[key], {}, methodContext);
       return [
         key,
         (...args: unknown[]) => {
@@ -25,7 +30,16 @@ export function setMethods(data: Record<string, unknown> = {}, contextApi: PageC
     }),
   );
 
+  if (clear) {
+    contextApi.setContext({ ...methodContext, ...methods }, true);
+    schemaMethodKeys.set(contextApi, new Set(Object.keys(methods)));
+    return;
+  }
+
   contextApi.setContext(methods);
+  const methodKeys = schemaMethodKeys.get(contextApi) ?? new Set<string>();
+  Object.keys(methods).forEach((key) => methodKeys.add(key));
+  schemaMethodKeys.set(contextApi, methodKeys);
 }
 
 export function setState(data: Record<string, unknown> | undefined, contextApi: PageContextApi, clear?: boolean) {
@@ -56,11 +70,9 @@ export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
   const nextContext = { ...contextApi.getContext() };
   delete nextContext.state;
   delete nextContext.refs;
-  schemaMethodKeys.get(contextApi)?.forEach((key) => delete nextContext[key]);
   contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId }, true);
 
   setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
-  schemaMethodKeys.set(contextApi, new Set(Object.keys(schema.methods ?? {})));
   setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
   setRefs(schema.refs as Record<string, unknown> | undefined, contextApi, true);
 
