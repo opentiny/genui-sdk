@@ -1,6 +1,11 @@
 .schema-render-container {
+  --ti-genui-renderer-text-color: #191919;
   position: relative;
-  color: var(--tv-color-text, #191919);
+  color: var(--ti-genui-renderer-text-color);
+}
+
+.schema-render-container.dark {
+  --ti-genui-renderer-text-color: #f5f5f5;
 }
 
 .schema-render-container:has(.loading-wrap):after {

@@ -11,7 +11,7 @@ import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-c
 import { SchemaRenderer, RendererContextProvider } from '@opentiny/tiny-schema-renderer-react';
 import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-schema-renderer-react';
 import type { InstanceMaterials } from '@opentiny/tiny-schema-renderer-react';
-import { useGenuiMaterials, useGenuiNotify } from '../config-provider';
+import { useGenuiConfig, useGenuiMaterials, useGenuiNotify } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
 import type { IRendererProps } from './renderer.types';
 import './renderer.css';
@@ -34,6 +34,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
   function GenuiRenderer(props, ref) {
     const contextMaterials = useGenuiMaterials();
     const notify = useGenuiNotify();
+    const genuiConfig = useGenuiConfig();
     const mergedComponents = useMemo(
       () => ({
         ...(contextMaterials.components as Record<string, ComponentType<any>> | undefined),
@@ -145,7 +146,9 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
 
     return (
       <RendererContextProvider renderSettings={renderSettings}>
-        <div className="genui-renderer-container schema-render-container">
+        <div
+          className={`genui-renderer-container schema-render-container${genuiConfig.colorScheme === 'dark' ? ' dark' : ''}`}
+        >
           <SchemaRenderer
             ref={setRendererRef}
             schema={isError ? errorSchema : displaySchema}
