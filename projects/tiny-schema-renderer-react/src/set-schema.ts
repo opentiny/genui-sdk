@@ -3,14 +3,21 @@ import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
+const schemaMethodKeys = new WeakMap<PageContextApi, Set<string>>();
+
 function reset(obj: Record<string, unknown>) {
   Object.keys(obj).forEach((key) => delete obj[key]);
 }
 
 export function setMethods(data: Record<string, unknown> = {}, contextApi: PageContextApi, clear?: boolean) {
+  const methodContext = clear ? { ...contextApi.getContext() } : contextApi.getContext();
+  if (clear) {
+    schemaMethodKeys.get(contextApi)?.forEach((key) => delete methodContext[key]);
+  }
+
   const methods = Object.fromEntries(
     Object.keys(data).map((key) => {
-      const parsed = parseData(data[key], {}, contextApi.getContext());
+      const parsed = parseData(data[key], {}, methodContext);
       return [
         key,
         (...args: unknown[]) => {
@@ -23,7 +30,16 @@ export function setMethods(data: Record<string, unknown> = {}, contextApi: PageC
     }),
   );
 
+  if (clear) {
+    contextApi.setContext({ ...methodContext, ...methods }, true);
+    schemaMethodKeys.set(contextApi, new Set(Object.keys(methods)));
+    return;
+  }
+
   contextApi.setContext(methods);
+  const methodKeys = schemaMethodKeys.get(contextApi) ?? new Set<string>();
+  Object.keys(methods).forEach((key) => methodKeys.add(key));
+  schemaMethodKeys.set(contextApi, methodKeys);
 }
 
 export function setState(data: Record<string, unknown> | undefined, contextApi: PageContextApi, clear?: boolean) {
@@ -51,7 +67,10 @@ export function setRefs(data: Record<string, unknown> | undefined, contextApi: P
 
 export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
   const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
-  contextApi.setContext({ state: {}, refs: {}, cssScopeId }, true);
+  const nextContext = { ...contextApi.getContext() };
+  delete nextContext.state;
+  delete nextContext.refs;
+  contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId }, true);
 
   setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
   setState(schema.state as Record<string, unknown> | undefined, contextApi, true);

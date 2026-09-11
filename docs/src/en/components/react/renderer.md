@@ -194,6 +194,8 @@ export function Example({ content }: { content: string }) {
 - **Required**: No
 - **Description**: Global state passed to the renderer, accessible in components via context.
 
+React form components should read state through `value` or `checked` and update it with an `onChange` JSFunction. The React renderer does not use `model: true` to generate change handlers automatically.
+
 ```tsx
 import { GenuiRenderer } from '@opentiny/genui-sdk-react';
 

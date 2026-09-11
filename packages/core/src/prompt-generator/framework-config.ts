@@ -15,7 +15,9 @@ export const angularFrameworkConfig: IGenPromptFrameworkConfig = {
 };
 
 export const reactFrameworkConfig: IGenPromptFrameworkConfig = {
-  rules: [],
+  rules: [
+    '- React 表单组件必须通过受控属性（如 `value` 或 `checked`）读取 `state`，并显式提供 `onChange` 类型的 `JSFunction` 更新对应 `state`；`model: true` 不会自动生成变更事件',
+  ],
 };
 
 const frameworkConfigMap: Record<IGenPromptFramework, IGenPromptFrameworkConfig> = {
