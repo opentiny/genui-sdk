@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
 import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
 import { setCustomSettings } from './engine/use-custom-setting';
@@ -29,6 +29,8 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const contextApi = useContext();
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
+  const schemaRef = useRef<RootNode | null>(schema);
+  schemaRef.current = schema;
   const renderSettings = useRendererSettings();
   const { materials, notify, ...globalSettings } = renderSettings;
   setCustomSettings(globalSettings);
@@ -47,7 +49,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     [setContext, getContext, contextApi],
   );
 
-  const invokePageOnUnmounted = async () => {
+  const invokePageOnUnmounted = useCallback(async () => {
     const fn = pageOnUnmountedRef.current;
     pageOnUnmountedRef.current = null;
     if (typeof fn !== 'function') return;
@@ -56,7 +58,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     } catch (error) {
       console.error('SchemaRenderer onUnmounted error:', error);
     }
-  };
+  }, []);
 
   /** 页面初始化签名：state/methods/refs/css/lifeCycles 变化时需重跑 init 与生命周期 */
   const pageInitSignature =
@@ -71,13 +73,14 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       : '';
 
   useEffect(() => {
-    if (!schema || !pageInitSignature) return;
+    const currentSchema = schemaRef.current;
+    if (!currentSchema || !pageInitSignature) return;
 
     let cancelled = false;
     (async () => {
       await invokePageOnUnmounted();
       if (cancelled) return;
-      const { onMounted, onUnmounted } = setSchema(schema, contextApi);
+      const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
       if (cancelled) return;
       pageOnUnmountedRef.current = onUnmounted;
       try {
@@ -90,24 +93,21 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     return () => {
       cancelled = true;
     };
-  }, [pageInitSignature, schema]);
-
-  const parentSchemaRef = useRef<RootNode | null>(schema);
-  parentSchemaRef.current = schema;
+  }, [contextApi, invokePageOnUnmounted, pageInitSignature]);
 
   useEffect(() => {
     // TODO: 方案待讨论
     setDefaultSlotRenderer(
       (children, scope, _ctx) =>
         normalizeChildren(children as Node['children']).map((child, i) => (
-          <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={parentSchemaRef.current} />
+          <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={schemaRef.current} />
         )) as unknown[],
     );
 
     return () => {
       void invokePageOnUnmounted();
     };
-  }, []);
+  }, [invokePageOnUnmounted]);
 
   const rootChildrenSchema: Node = {
     componentName: 'div',
