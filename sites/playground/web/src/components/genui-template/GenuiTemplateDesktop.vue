@@ -9,6 +9,8 @@ import SchemaJsonEditor from './SchemaJsonEditor.vue';
 import SchemaPreviewToolbar from './SchemaPreviewToolbar.vue';
 import { useTemplateContext } from './composables';
 import { isRenderableSchema } from './template-chat-utils';
+import { useSchemaDevMode } from './useSchemaDevMode';
+import { useSchemaRendererInspect } from './useSchemaRendererInspect';
 import { t } from '../../i18n';
 
 defineProps<{
@@ -17,6 +19,7 @@ defineProps<{
 
 const TinyCloseIcon = iconClose();
 const { schema, conversation, versionControl, editor, ui, actions } = useTemplateContext();
+const { isDevMode, insertComposerTag } = useSchemaDevMode();
 
 const rendererSchema = computed(() => {
   const preview = schema.currentPreviewSchema ?? schema.currentSchema;
@@ -27,6 +30,17 @@ const rendererSchemaKey = computed(() => {
   const preview = rendererSchema.value as Record<string, unknown> | null;
   const componentName = preview?.componentName ?? 'schema';
   return `${schema.currentCardId || 'preview'}-${String(componentName)}`;
+});
+
+const {
+  containerRef: rendererContainerRef,
+  onMouseMove: handleRendererMouseMove,
+  onMouseLeave: handleRendererMouseLeave,
+  onClick: handleRendererInspectClick,
+} = useSchemaRendererInspect({
+  isDevMode,
+  schema: rendererSchema,
+  insertComposerTag,
 });
 </script>
 
@@ -70,13 +84,20 @@ const rendererSchemaKey = computed(() => {
       <div class="renderer-container-wrapper">
         <schema-preview-toolbar variant="desktop" />
         <div class="schema-renderer-body">
-          <schema-renderer
-            :key="rendererSchemaKey"
-            class="schema-renderer"
-            :content="rendererSchema"
-            :generating="false"
-            :is-json-complete="schema.currentPreviewSchemaComplete"
-          />
+          <div
+            ref="rendererContainerRef"
+            :class="['schema-renderer', { 'is-inspectable': isDevMode }]"
+            @mousemove="handleRendererMouseMove"
+            @mouseleave="handleRendererMouseLeave"
+            @click.capture="handleRendererInspectClick"
+          >
+            <schema-renderer
+              :key="rendererSchemaKey"
+              :content="rendererSchema"
+              :generating="false"
+              :is-json-complete="schema.currentPreviewSchemaComplete"
+            />
+          </div>
           <schema-version-history-panel :theme="theme" />
         </div>
       </div>
@@ -137,6 +158,25 @@ const rendererSchemaKey = computed(() => {
       padding: 20px;
       overflow: auto;
       box-sizing: border-box;
+
+      &.is-inspectable {
+        cursor: default;
+
+        :deep([data-id]) {
+          cursor: default;
+        }
+
+        :deep([data-id].is-schema-hovered:not(.is-schema-selected)) {
+          outline: 2px solid #1890ff;
+          outline-offset: -2px;
+        }
+
+        :deep([data-id].is-schema-selected) {
+          outline: 2px solid #1890ff;
+          outline-offset: -2px;
+          box-shadow: inset 0 0 0 2px rgba(24, 144, 255, 0.15);
+        }
+      }
     }
   }
 }

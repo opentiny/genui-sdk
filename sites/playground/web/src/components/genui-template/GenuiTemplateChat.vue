@@ -14,8 +14,8 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import {  scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import type { BubbleRoleConfig, UserItem } from '@opentiny/tiny-robot';
+import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
 import type {
@@ -29,13 +29,19 @@ import {
   finalizePendingSchemaCard,
   findLatestPendingSchemaCard,
   findSchemaCardByCardId,
-  generateIdForComponents,
   getLastUserMessage,
   isManualSchemaSaveMessage,
   resolveJsonPatchApplyFailed,
   setJsonPatchApplyResult,
 } from './template-chat-utils';
+import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
+import { useSchemaDevModeOptional } from './useSchemaDevMode';
+import { getComposerContent, segmentsToPlainText } from './schema-composer';
+import { createComposerTagController } from './composer-atomic-tags';
+import { createConversationComposerDrafts } from './conversation-composer-drafts';
+import type { SelectedSchemaNode } from './schema-node-selection';
+import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
@@ -54,6 +60,11 @@ const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
+const schemaDevMode = useSchemaDevModeOptional();
+const templateData = ref<UserItem[]>([]);
+const tagController = createComposerTagController<SelectedSchemaNode>();
+const selectedNodeMap = tagController.selectedNodeMap;
+const conversationComposerDrafts = createConversationComposerDrafts<SelectedSchemaNode>();
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -221,6 +232,16 @@ const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schem
 
 const messageRenderers = {
   markdown: markdownRenderer,
+  'template-user': (props: {
+    segments?: import('./schema-composer').ComposerSegment[];
+    content?: string;
+    selectedNodes?: { id: string; componentName: string }[];
+  }) =>
+    h(TemplateUserMessageRenderer, {
+      segments: props.segments,
+      content: props.content,
+      selectedNodes: props.selectedNodes,
+    }),
   'json-patch': createSchemaMessageRenderer('json-patch'),
   'schema-card': createSchemaMessageRenderer('schema-card'),
   'schema-manual': createSchemaMessageRenderer('schema-manual'),
@@ -234,6 +255,55 @@ const inputMessage = computed({
     }
   },
 });
+
+watch(
+  () => [conversation.currentConversationId, messageManager.value] as const,
+  ([conversationId, manager], [previousConversationId, previousManager]) => {
+    if (previousConversationId) {
+      conversationComposerDrafts.save(
+        previousConversationId,
+        templateData.value,
+        selectedNodeMap,
+        previousManager?.inputMessage.value ?? '',
+      );
+    }
+
+    tagController.clear();
+    const draft = conversationComposerDrafts.load(
+      conversationId ?? '',
+      manager?.inputMessage.value ?? '',
+    );
+    draft.selectedNodes.forEach(([id, node]) => tagController.trackTag(id, node));
+    templateData.value = draft.templateData;
+  },
+);
+
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  if (!templateData.value.length) {
+    templateData.value = [{ type: 'text', content: inputMessage.value }];
+  }
+  const id = generateId();
+  tagController.trackTag(id, node);
+  templateData.value = [...templateData.value, { type: 'template', content: node.componentName, id }];
+};
+
+const SENDER_MAX_LENGTH = 20000;
+
+/**
+ * TrSender 0.3.3 still treats template chips as editable text. Until it owns
+ * atomic tags, this controller keeps templateData + selectedNodeMap in sync
+ * (tombstones enable undo) and only locks newly rendered template chips.
+ */
+const handleTemplateDataUpdate = (value: UserItem[]) => {
+  templateData.value = tagController.applyTemplateData(value);
+};
+
+const senderContainer = ref<HTMLElement>();
+
+const clearComposer = () => {
+  templateData.value = [];
+  tagController.clear();
+};
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -286,13 +356,49 @@ const showMessages = computed(() => {
 
 const clearInputMessage = () => {
   inputMessage.value = '';
+  clearComposer();
 };
 
 const handleSendMessage = async () => {
-  const messageContent = inputMessage.value;
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
 
+  const snapshot = templateData.value.slice();
+  const hasTags = snapshot.some((item) => item.type === 'template');
+
+  if (hasTags) {
+    const composer = getComposerContent(snapshot, selectedNodeMap);
+    if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
+      return;
+    }
+    const userMessage: ChatMessage = {
+      role: 'user',
+      content: composer.apiContent,
+      messageId: cardId,
+      messages: [
+        {
+          type: 'template-user',
+          segments: composer.segments,
+        },
+      ],
+    };
+    messages.value.push(userMessage);
+
+    if (messages.value.length === 1 && messages.value[0].role === 'user') {
+      const currentConversationId = conversation.templateConversationState?.currentId;
+      if (currentConversationId) {
+        conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
+      }
+    }
+
+    prevSchema.value = JSON.stringify(schema.currentSchema);
+    messageManager.value?.send();
+    clearInputMessage();
+    scrollToBottom();
+    return;
+  }
+
+  const messageContent = inputMessage.value;
   const userMessage: ChatMessage = {
     role: 'user',
     content: messageContent,
@@ -328,11 +434,12 @@ const handleNotification = (event: INotificationPayload) => {
     applyFailed = resolveJsonPatchApplyFailed(card, messages.value);
     setJsonPatchApplyResult(applyFailed ? 'failed' : 'success', messages.value, cardId);
   }
-  const preview = schema.currentPreviewSchema;
+  let preview = schema.currentPreviewSchema;
   if (preview && !applyFailed) {
-    generateIdForComponents(preview);
+    preview = finalizeSchemaPreview(preview, schema);
+  } else {
+    schema.setCurrentSchema(preview);
   }
-  schema.setCurrentSchema(preview);
   finalizePendingSchemaCard(messages.value, {
     cardId: cardId || undefined,
     ...(applyFailed || !preview ? {} : { schema: preview }),
@@ -344,10 +451,22 @@ watch(() => messages.value, throttledScrollToBottom, { deep: true });
 
 onMounted(() => {
   emitter.on('notification', handleNotification);
+  schemaDevMode?.registerComposer({
+    insertTag: insertComposerTag,
+    getContent: () => getComposerContent(templateData.value, selectedNodeMap),
+    clear: clearComposer,
+  });
+  if (senderContainer.value) {
+    tagController.bind(senderContainer.value, () => {
+      templateData.value = tagController.applyTemplateData(templateData.value);
+    });
+  }
 });
 
 onUnmounted(() => {
   emitter.off('notification', handleNotification);
+  schemaDevMode?.registerComposer(null);
+  tagController.unbind();
 });
 </script>
 
@@ -362,7 +481,7 @@ onUnmounted(() => {
         <span>{{ t('app.emptyTitle') }}</span>
       </div>
     </div>
-    <div class="sender-container">
+    <div class="sender-container" ref="senderContainer">
       <div
         :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
         v-show="!isLastMessageInBottom"
@@ -372,11 +491,13 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
+        :template-data="templateData"
         :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating"
         :showWordLimit="true"
-        :maxLength="20000"
+        :maxLength="SENDER_MAX_LENGTH"
+        @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="() => messageManager?.abortRequest()"
@@ -611,6 +732,11 @@ onUnmounted(() => {
 .tiny-sender {
   width: 80%;
   margin: 0 auto;
+
+  :deep(.editor .genui-composer-chip-host) {
+    cursor: default;
+    user-select: none;
+  }
 }
 
 .footer-text {
