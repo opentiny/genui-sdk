@@ -106,14 +106,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "输入值，可用 model:true 双向绑定"
-                    }
-                  },
-                  {
-                    "property": "modelValue",
-                    "type": "string",
-                    "description": {
-                      "zh_CN": "输入值（modelValue 别名）"
+                      "zh_CN": "输入值；双向绑定时需配合 onChange 更新 state"
                     }
                   },
                   {
@@ -175,7 +168,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "选中值，可用 model:true 双向绑定"
+                      "zh_CN": "选中值；双向绑定时需配合 onChange 更新 state"
                     }
                   },
                   {
@@ -263,7 +256,7 @@
         },
         {
           "component": "AntFormItem",
-          "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 modelValue 或 value（model:true），不要设置 name 属性",
+          "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 value 或 checked，并通过 onChange 更新 state，不要设置 name 属性",
           "npm": {
             "package": "antd",
             "exportName": "Form.Item",
@@ -513,7 +506,7 @@
                     "property": "checked",
                     "type": "boolean",
                     "description": {
-                      "zh_CN": "是否选中，可用 model:true 双向绑定"
+                      "zh_CN": "是否选中；双向绑定时需配合 onChange 更新 state"
                     }
                   },
                   {
@@ -679,7 +672,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "日期值，可用 model:true 双向绑定"
+                      "zh_CN": "日期值；双向绑定时需配合 onChange 更新 state"
                     }
                   },
                   {
