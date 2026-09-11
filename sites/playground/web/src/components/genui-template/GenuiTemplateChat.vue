@@ -17,7 +17,7 @@ import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
 import type { BubbleProps, BubbleRoleConfig } from '@opentiny/tiny-robot';
 import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
-import { TinyButton, TinyTooltip } from '@opentiny/vue';
+import { TinyButton } from '@opentiny/vue';
 import copy from 'clipboard-copy';
 import type {
   INotificationPayload,
@@ -33,7 +33,6 @@ import {
   generateIdForComponents,
   getLastNonCompressMessage,
   getLastUserMessage,
-  getKeepRecentTurns,
   isContextCompressMessage,
   isManualSchemaSaveMessage,
   resolveJsonPatchApplyFailed,
@@ -49,8 +48,6 @@ import { t } from '../../i18n';
 
 const { addIcons } = useIcon();
 addIcons(IconAi, IconUser, IconArrowDown);
-
-const keepRecentTurns = getKeepRecentTurns();
 
 const props = defineProps<{
   messages?: IMessage[];
@@ -148,13 +145,6 @@ const roles: Record<string, BubbleRoleConfig> = {
     maxWidth: '90%',
     avatar: h(IconUser, { style: { fontSize: '32px' } }),
     customContentField: 'messages',
-  },
-  'context-compress': {
-    placement: 'start',
-    maxWidth: '100%',
-    slots: {
-      default: () => null,
-    },
   },
   compress: {
     placement: 'start',
@@ -299,25 +289,17 @@ const {
   showDivider,
   compressedDividerText,
   compressingDividerText,
-  latestCompressIndex,
-  compressDisabledReason,
+  canCompress,
   reset: resetContextCompress,
 } = contextCompress;
 
-const compressButtonTip = computed(
-  () => compressDisabledReason.value || t('template.compressHelpTip', { turns: keepRecentTurns }),
-);
-
 const toShowMessage = (message: ChatMessage): BubbleProps => {
-  if (isContextCompressMessage(message)) {
-    return { role: 'context-compress', content: '' };
-  }
   return message as BubbleProps;
 };
 
 const showMessages = computed((): BubbleProps[] => {
-  let list = messages.value.map((message, index) => {
-    if (index === latestCompressIndex.value) {
+  let list = messages.value.map((message) => {
+    if (isContextCompressMessage(message)) {
       return { role: 'compress', content: compressedDividerText.value } as BubbleProps;
     }
     return toShowMessage(message);
@@ -457,18 +439,11 @@ onUnmounted(() => {
         <IconArrowDown class="icon-arrow-down" />
       </div>
       <div class="sender-tool-buttons">
-        <TinyTooltip
-          effect="light"
-          placement="top"
-          popper-class="genui-template-compress-help-tooltip"
-          :content="compressButtonTip"
-        >
-          <span class="compress-button-wrap">
-            <TinyButton round class="compress-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
-              {{ t('template.compressButton') }}
-            </TinyButton>
-          </span>
-        </TinyTooltip>
+        <span v-if="canCompress" class="compress-button-wrap">
+          <TinyButton round class="compress-button" :disabled="isButtonDisabled" :loading="isCompressing" @click="compress">
+            {{ t('template.compressButton') }}
+          </TinyButton>
+        </span>
       </div>
       <tr-sender
         v-model="inputMessage"
@@ -789,10 +764,4 @@ onUnmounted(() => {
 }
 </style>
 
-<style lang="less">
-.tiny-tooltip__popper.genui-template-compress-help-tooltip {
-  max-width: 280px;
-  line-height: 1.5;
-  white-space: normal;
-}
-</style>
+

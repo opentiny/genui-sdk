@@ -101,11 +101,9 @@
     "inputPlaceholder": "描述要构建的内容",
     "noUserMessageToReply": "没有可回复的用户消息",
     "compressButton": "会话压缩",
-    "compressHelpTip": "将较早对话压缩为摘要后发送给模型，最近 {turns} 轮保留原文",
     "contextCompressed": "以上会话已压缩",
     "contextCompressing": "正在压缩会话",
     "compressPlaceholder": "正在压缩会话…",
-    "compressDisabledNeedMore": "当前会话轮次不足，暂无法压缩",
     "compressFailed": "会话压缩失败，请稍后重试",
     "compressNoUrl": "未配置模板聊天地址，无法压缩会话"
   },

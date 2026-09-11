@@ -60,17 +60,11 @@ export function useContextCompress(options: UseContextCompressOptions) {
   );
   const showDivider = computed(() => isCompressing.value || latestCompressIndex.value !== -1);
 
+  const canCompress = computed(() => compressionPlan.value !== null);
+
   const isButtonDisabled = computed(() => {
     if (isCompressing.value || options.generating.value) return true;
     return compressionPlan.value === null;
-  });
-
-  const compressDisabledReason = computed(() => {
-    if (isCompressing.value) return '';
-    if (compressionPlan.value === null) {
-      return t('template.compressDisabledNeedMore');
-    }
-    return '';
   });
 
   const reset = () => {
@@ -96,7 +90,6 @@ export function useContextCompress(options: UseContextCompressOptions) {
 
     const targetMessages = options.messages.value;
     const startedId = options.currentConversationId.value;
-    const boundaryMessage = targetMessages[plan.insertIndex];
 
     abortController?.abort();
     const controller = new AbortController();
@@ -119,14 +112,7 @@ export function useContextCompress(options: UseContextCompressOptions) {
         return;
       }
 
-      const insertIndex = boundaryMessage ? targetMessages.indexOf(boundaryMessage) : -1;
-      if (insertIndex === -1) {
-        if (isCurrentRequest() && startedId === options.currentConversationId.value) {
-          status.value = 'idle';
-        }
-        return;
-      }
-
+      const insertIndex = Math.min(plan.insertIndex, targetMessages.length);
       targetMessages.splice(insertIndex, 0, createContextCompressMessage(summary, generateId()));
       options.saveConversations();
 
@@ -165,8 +151,8 @@ export function useContextCompress(options: UseContextCompressOptions) {
     isCompressing,
     showDivider,
     latestCompressIndex,
+    canCompress,
     isButtonDisabled,
-    compressDisabledReason,
     reset,
     compress,
   };

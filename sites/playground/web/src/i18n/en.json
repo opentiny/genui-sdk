@@ -101,11 +101,9 @@
     "inputPlaceholder": "Describe what to build",
     "noUserMessageToReply": "No user message to reply to",
     "compressButton": "Compress conversation",
-    "compressHelpTip": "Earlier conversation is compressed into a summary for the model. The latest {turns} turn(s) are retained in full.",
     "contextCompressed": "Conversation above has been compressed",
     "contextCompressing": "Compressing conversation",
     "compressPlaceholder": "Compressing conversation…",
-    "compressDisabledNeedMore": "Insufficient conversation turns to compress",
     "compressFailed": "Conversation compression failed. Please try again.",
     "compressNoUrl": "Template chat URL is not configured, so the conversation cannot be compressed"
   },

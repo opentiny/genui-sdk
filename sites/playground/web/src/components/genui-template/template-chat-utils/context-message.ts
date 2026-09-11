@@ -15,20 +15,6 @@ export type IContextCompressMessage = ChatMessage & {
 
 const CONTEXT_SUMMARY_PREFIX = '以下是此前对话的压缩摘要，请在此基础上继续：\n\n';
 
-/** 会话压缩配置；最近消息作为摘要之外的原文缓冲区保留
- * 摘要是有损压缩，近期对话往往包含模型下一步最依赖的细节。经过摘要后，可能被简化或遗漏，需要保留原文缓冲区避免丢失重要信息。
- * 默认保留 2 条最近消息（一轮 user+assistant）。 */
-export const CONTEXT_COMPRESSION_CONFIG = {
-  keepRecentMessages: 2,
-};
-
-/** 保留原文的对话轮数（一对 user + assistant 计一轮），随 keepRecentMessages 变化。 */
-export function getKeepRecentTurns(
-  keepRecentMessages = CONTEXT_COMPRESSION_CONFIG.keepRecentMessages,
-): number {
-  return Math.max(1, Math.ceil(keepRecentMessages / 2));
-}
-
 export function isContextCompressMessage(message: ChatMessage): boolean {
   return (message as { type?: string }).type === CONTEXT_COMPRESS_MESSAGE_TYPE;
 }
@@ -86,43 +72,22 @@ export interface ContextCompressionPlan {
 }
 
 /**
- * 构造滚动压缩计划：压缩旧上下文，同时保留最近若干条原始消息。
- * 保留区尽量从 user 消息开始，避免拆开一轮 user -> assistant 对话。
+ * 构造滚动压缩计划：压缩全部活动上下文，不保留原文。
  */
 export function getContextCompressionPlan(
   messages: ChatMessage[],
-  keepRecentMessages = CONTEXT_COMPRESSION_CONFIG.keepRecentMessages,
 ): ContextCompressionPlan | null {
   const latestCompressIndex = findLatestContextCompressIndex(messages);
   const activeStart = latestCompressIndex === -1 ? 0 : latestCompressIndex;
-  const activeNormalIndexes: number[] = [];
-
-  for (let index = activeStart; index < messages.length; index++) {
-    if (!isContextCompressMessage(messages[index])) {
-      activeNormalIndexes.push(index);
-    }
-  }
-
-  if (activeNormalIndexes.length <= keepRecentMessages) {
-    return null;
-  }
-
-  const tentativeRetainedIndex = activeNormalIndexes.length - keepRecentMessages;
-  let retainedIndex = tentativeRetainedIndex;
-  while (retainedIndex > 0 && messages[activeNormalIndexes[retainedIndex]].role !== 'user') {
-    retainedIndex--;
-  }
-
-  const insertIndex = activeNormalIndexes[retainedIndex];
   const messagesToCompress = messages
-    .slice(activeStart, insertIndex)
-    .filter((message, index, list) => !isContextCompressMessage(message) || index === 0);
+    .slice(activeStart)
+    .filter((message, index) => !isContextCompressMessage(message) || index === 0);
 
   if (!messagesToCompress.some((message) => !isContextCompressMessage(message))) {
     return null;
   }
 
-  return { messages: messagesToCompress, insertIndex };
+  return { messages: messagesToCompress, insertIndex: messages.length };
 }
 
 /** 自最近一次压缩摘要起（含摘要）；无压缩时返回全部可见消息 */
