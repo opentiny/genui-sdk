@@ -67,4 +67,23 @@ describe('SchemaRenderer life cycles', () => {
 
     delete g.__asyncUnmount;
   });
+
+  it('invokes onUnmounted when the schema becomes null', async () => {
+    const schema = {
+      componentName: 'Page',
+      children: [{ componentName: 'div' }],
+      lifeCycles: {
+        onUnmounted: { type: 'JSFunction' as const, value: 'function() { globalThis.__nullUnmounted = true; }' },
+      },
+    };
+
+    const { rerender } = render(createElement(SchemaRenderer, { schema }));
+    expect(g.__nullUnmounted).toBeUndefined();
+
+    rerender(createElement(SchemaRenderer, { schema: null }));
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(g.__nullUnmounted).toBe(true);
+    delete g.__nullUnmounted;
+  });
 });

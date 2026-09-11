@@ -138,13 +138,17 @@ interface JSExpression {
 }
 ```
 
-**Two-way binding example:**
+**Two-way binding example (including React controlled binding):**
 ```json
 {
   "value": {
     "type": "JSExpression",
     "value": "this.state.inputValue",
     "model": true
+  },
+  "onChange": {
+    "type": "JSFunction",
+    "value": "function(event) { this.state.inputValue = event.target.value; }"
   }
 }
 ```
@@ -404,6 +408,10 @@ Renderers that support model binding can set `model: true` on a form component's
       "type": "JSExpression",
       "value": "this.state.inputValue",
       "model": true
+    },
+    "onChange": {
+      "type": "JSFunction",
+      "value": "function(event) { this.state.inputValue = event.target.value; }"
     }
   }
 }

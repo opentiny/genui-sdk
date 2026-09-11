@@ -142,13 +142,17 @@ interface JSExpression {
 }
 ```
 
-**双向绑定示例：**
+**双向绑定示例（包含 React 受控绑定）：**
 ```json
 {
   "value": {
     "type": "JSExpression",
     "value": "this.state.inputValue",
     "model": true
+  },
+  "onChange": {
+    "type": "JSFunction",
+    "value": "function(event) { this.state.inputValue = event.target.value; }"
   }
 }
 ```
@@ -406,6 +410,10 @@ interface JSSlot {
       "type": "JSExpression",
       "value": "this.state.inputValue",
       "model": true
+    },
+    "onChange": {
+      "type": "JSFunction",
+      "value": "function(event) { this.state.inputValue = event.target.value; }"
     }
   }
 }

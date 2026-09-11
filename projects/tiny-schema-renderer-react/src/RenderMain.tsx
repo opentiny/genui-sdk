@@ -92,11 +92,10 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
   useIsomorphicLayoutEffect(() => {
     const currentSchema = schemaRef.current;
-    if (!currentSchema || !pageInitSignature) return;
 
     let cancelled = false;
     const initializeSchema = () => {
-      if (cancelled) return;
+      if (cancelled || !currentSchema || !pageInitSignature) return;
       const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
       if (cancelled) return;
       pageOnUnmountedRef.current = onUnmounted;

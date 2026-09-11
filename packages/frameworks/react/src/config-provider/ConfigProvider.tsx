@@ -15,13 +15,8 @@ const GenuiConfigContext = createContext<IGenuiConfig>({ colorScheme: 'light' })
 
 export type GenuiTheme = ThemeColorScheme | 'auto';
 
-function getSystemColorScheme(): ThemeColorScheme {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'light';
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
-
 function useSystemColorScheme(enabled: boolean): ThemeColorScheme {
-  const [colorScheme, setColorScheme] = useState<ThemeColorScheme>(getSystemColorScheme);
+  const [colorScheme, setColorScheme] = useState<ThemeColorScheme>('light');
 
   useEffect(() => {
     if (!enabled || typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
