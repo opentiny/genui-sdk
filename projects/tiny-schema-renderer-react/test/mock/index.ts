@@ -7,6 +7,7 @@ import stateTransitionsSchema from './state-transitions.json';
 import bindThisSchema from './bind-this.json';
 import jsxParseSchema from './jsx-parse.json';
 import cssScopeSchema from './css-scope.json';
+import datePickerSchema from './date-picker.json';
 
 export interface DemoItem {
   id: string;
@@ -16,6 +17,7 @@ export interface DemoItem {
 
 export const demos: DemoItem[] = [
   { id: 'form', label: '表单校验', schema: formValidationSchema as RootNode },
+  { id: 'date-picker', label: '日期选择', schema: datePickerSchema as RootNode },
   { id: 'table', label: '表格渲染', schema: tableSchema as RootNode },
   { id: 'tabs', label: 'Tabs 渲染', schema: tabsSchema as RootNode },
   { id: 'state', label: 'State 转换', schema: stateTransitionsSchema as RootNode },
