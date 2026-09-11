@@ -5,7 +5,8 @@ import { componentSelector, moduleRefMap, componentExtraSelector, libraryCompone
 
 /**
  * TinyNG 组件库专属配置:映射表来自物料包推导(map.ts)。
- * 组件库差异全部收敛为纯配置/策略,注册到 AngularCodeGenerator.libraries 类内注册表(见 angular-code-generator.ts)。
+ * 组件库差异全部收敛为纯配置/策略,登记到 angular-code-generator.ts 的 BUILTIN_LIBRARIES 内置注册表
+ * (使用方还可经 IAngularCodeGeneratorOptions.libraries 按实例注入其它库配置)。
  * 说明:prop 形态类特判(如 TiPagination 的 pageSize 对象)已在物料包 meta/示例中直接写对,不再需要 propAdapters,
  * 故本库不再配置该项(prop-adapter.ts 抽象保留给未来确有形态重塑需求的组件库)。
  */
@@ -37,14 +38,9 @@ export const TINYNG_CONFIG: IAngularLibraryConfig = {
         const props = item.props as Record<string, unknown> | undefined;
         const label = props?.label;
         if (typeof label === 'string') {
-          // 字符串 label 包成单引号字面量表达式,handleBinding 据此输出 [label]="'姓名'"(更新相写入)。
-          // 转义顺序:先 \ 后 '(Angular 表达式词法支持 \' 与 \\),最后 " → &quot;(保证外层双引号
-          // 属性不提前闭合;HTML 实体解析先于表达式词法,还原的 " 在单引号串内合法)。
           const escaped = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
           props!.label = { type: JS_EXPRESSION, value: `'${escaped}'` };
         }
-        // JSExpression label 原样保留(handleBinding 本就输出 [label]="expr");数字/布尔/对象/数组
-        // 字面量经 handleLiteralBinding 也落在 [label]= 绑定上,均在更新相写入,无需额外特判。
         return item;
       });
     }

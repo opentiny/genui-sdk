@@ -85,8 +85,9 @@ export interface IFrameworkCodeGenerator<TParams, TResult> {
 
 /**
  * Angular 组件库配置——组件库专属信息以纯配置/策略注入,而非子类覆盖。
- * 不同组件库（TinyNG、Angular Material、PrimeNG 等）各提供一份配置对象,
- * 注册到 AngularCodeGenerator.libraries 类内注册表,由该类直接实例化。
+ * 不同组件库（TinyNG、Angular Material、PrimeNG 等）各提供一份配置对象:
+ * 内置库(当前仅 TinyNG)登记在 angular-code-generator.ts 的 BUILTIN_LIBRARIES,
+ * 其余由使用方经 IAngularCodeGeneratorOptions.libraries 按实例注入。
  */
 export interface IAngularLibraryConfig {
   /** 组件名 → HTML 标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' } */
@@ -132,6 +133,15 @@ export interface IVueCodeGeneratorOptions {
 export interface IAngularCodeGeneratorOptions {
   /** prettier 格式化参数,覆盖默认值;仅 formatWithPrettier 开启时生效 */
   prettierOpts?: Record<string, unknown>;
+  /**
+   * 组件库注册表:库标识 → 库配置。与内置注册表浅合并,同名键以传入者为准;不传时仅内置库可用。
+   * 自定义库的 componentSelector / moduleRefMap / componentExtraSelector / libraryComponents
+   * 必须经 deriveLibraryMaps(该库自己的物料包 materials) 推导,不可手写
+   * (推导依赖导入物料包时对 Angular 编译器元数据的写入,见 libraries/derive-library-maps.ts)。
+   */
+  libraries?: Record<string, IAngularLibraryConfig>;
+  /** 默认库标识(未显式传 library 参数时使用)。缺省沿用内置 'opentiny-ng';传入值必须存在于合并后的注册表中 */
+  defaultLibrary?: string;
 }
 
 /** Angular 类体段落定义——buildAngularComponentSource 按定义顺序拼接组件类成员 */

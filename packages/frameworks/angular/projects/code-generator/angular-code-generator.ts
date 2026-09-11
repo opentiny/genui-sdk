@@ -27,61 +27,55 @@ const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
   htmlWhitespaceSensitivity: 'ignore',
 };
 
+const BUILTIN_LIBRARIES: Record<string, IAngularLibraryConfig> = {
+  'opentiny-ng': TINYNG_CONFIG,
+};
+
+/** 内置默认组件库标识,实例未显式指定 defaultLibrary 且未传 library 参数时使用 */
+const BUILTIN_DEFAULT_LIBRARY = 'opentiny-ng';
+
 export class AngularCodeGenerator extends CodeGeneratorBase {
 
-  /** 组件库注册表:key 为库标识,value 为该库的 IAngularLibraryConfig。分类逻辑收在类内,无需外部工厂。
-   *  新增一个组件库的完整步骤(以 Material 为例):
-   *    1. materials 目录下建 Material 物料包(components/modules 命名导出);
-   *    2. libraries/ 下建 material/ 目录,复用 derive-library-maps 推导映射,写 map.ts;
-   *    3. 仿 libraries/tinyng/config.ts 定义 Material 的 IAngularLibraryConfig(map + 库专属策略);
-   *    4. 在下方注册表加一行。
-   *  形态类 prop 问题先在物料包 meta/示例写对,出码器不做特判;仅确有通用规则覆盖不了
-   *  的形态重塑需求时,才按 AngularPropAdapter 抽象注入 config.propAdapters(当前 TinyNG 未使用)。
-   */
-  static readonly libraries = {
-    'opentiny-ng': TINYNG_CONFIG,
-  } as const satisfies Record<string, IAngularLibraryConfig>;
+  /** 本实例的组件库注册表(内置 + 构造器注入)。不持有为 static,避免全局单例使配置无法按实例定制 */
+  private readonly libraries: Record<string, IAngularLibraryConfig>;
 
-  /** 默认组件库标识,未显式指定时使用 */
-  static readonly defaultLibrary = 'opentiny-ng';
+  /** 本实例的默认组件库标识,未显式指定时使用 */
+  private readonly defaultLibrary: string;
 
   /** 激活的组件库列表(注册顺序),缺省仅默认库;多库混合出码时按组件名路由(resolveConfig) */
   protected readonly libraryConfigs: ReadonlyArray<{ name: string; config: IAngularLibraryConfig }>;
   private readonly prettierOpts: Record<string, unknown>;
 
-  constructor(
-    library?: AngularLibraryRef,
-    private readonly generatorOptions: IAngularCodeGeneratorOptions = {},
-  ) {
+  constructor(library?: AngularLibraryRef, options: IAngularCodeGeneratorOptions = {}) {
     super();
-    const raw =
-      library === undefined ? [AngularCodeGenerator.defaultLibrary] : Array.isArray(library) ? library : [library];
+
+    // 注册表与默认库在构造期一次性解析为实例属性;此后本实例不再读取任何类级共享配置
+    this.libraries = { ...BUILTIN_LIBRARIES, ...(options.libraries ?? {}) };
+    this.defaultLibrary = options.defaultLibrary ?? BUILTIN_DEFAULT_LIBRARY;
+    if (!this.libraries[this.defaultLibrary]) {
+      throw new Error(
+        `默认 Angular 组件库 "${this.defaultLibrary}" 不在注册表中,可用库:${Object.keys(this.libraries).join(', ')}`,
+      );
+    }
+
+    const raw = library === undefined ? [this.defaultLibrary] : Array.isArray(library) ? library : [library];
     const seen = new Set<string>();
     const resolved: { name: string; config: IAngularLibraryConfig }[] = [];
     for (const name of raw) {
       if (seen.has(name)) continue; // 去重,保序
       seen.add(name);
-      const config = (AngularCodeGenerator.libraries as Record<string, IAngularLibraryConfig | undefined>)[name];
+      const config = this.libraries[name];
       if (!config) {
-        throw new Error(`未知 Angular 组件库:"${name}",可用库:${Object.keys(AngularCodeGenerator.libraries).join(', ')}`);
+        throw new Error(`未知 Angular 组件库:"${name}",可用库:${Object.keys(this.libraries).join(', ')}`);
       }
       resolved.push({ name, config });
     }
-    // 空数组回退默认库
+    // 空数组回退默认库(defaultLibrary 已在上面校验必然存在)
     this.libraryConfigs =
-      resolved.length > 0
-        ? resolved
-        : [
-            {
-              name: AngularCodeGenerator.defaultLibrary,
-              config: (AngularCodeGenerator.libraries as Record<string, IAngularLibraryConfig | undefined>)[
-                AngularCodeGenerator.defaultLibrary
-              ]!,
-            },
-          ];
+      resolved.length > 0 ? resolved : [{ name: this.defaultLibrary, config: this.libraries[this.defaultLibrary] }];
     this.prettierOpts = {
       ...DEFAULT_PRETTIER_OPTS,
-      ...(generatorOptions.prettierOpts ?? {}),
+      ...(options.prettierOpts ?? {}),
     };
   }
 
@@ -686,15 +680,13 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       ngIfAttr = `*ngIf="${conditionValue}"`
     }
 
-    // Angular 不允许同一元素上同时使用 *ngIf 与 *ngFor 两个结构型指令。
-    // 两者共存时，将 *ngFor 提升到外层 <ng-container> 上，元素本身保留 *ngIf。
-    const wrapNgFor = Boolean(ngForAttr && ngIfAttr);
-    if (wrapNgFor) {
-      result.push(`\n<ng-container ${ngForAttr}>`);
-    } else if (ngForAttr) {
-      attrsArr.push(ngForAttr);
+    const hoistNgIf = Boolean(ngForAttr && ngIfAttr);
+    if (hoistNgIf) {
+      result.push(`\n<ng-container ${ngIfAttr}>`);
     }
-    if (ngIfAttr) {
+    if (ngForAttr) {
+      attrsArr.push(ngForAttr);
+    } else if (ngIfAttr) {
       attrsArr.push(ngIfAttr);
     }
 
@@ -725,7 +717,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       result.push(`</${component}>`);
     }
 
-    if (wrapNgFor) {
+    if (hoistNgIf) {
       result.push('\n</ng-container>');
     }
 
