@@ -1,6 +1,7 @@
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IJsonPatchMessageItem, ISchemaCardMessageItem, ISchemaManualMessageItem } from '../chat.types';
 import { formatDate } from '../../../utils';
+import { getVisibleChatMessages } from './context-message';
 import { applyJsonPatchOperations } from './json-patch-format';
 import { getManualEdits, manualEditToCardSnapshot } from './manual-schema';
 
@@ -263,8 +264,9 @@ export function findSchemaCardByCardId(
     return null;
   }
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const chatMessage = messages[i];
+  const visibleMessages = getVisibleChatMessages(messages);
+  for (let i = visibleMessages.length - 1; i >= 0; i--) {
+    const chatMessage = visibleMessages[i];
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
@@ -291,8 +293,9 @@ export function findLatestPendingSchemaCard(
     return null;
   }
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const chatMessage = messages[i];
+  const visibleMessages = getVisibleChatMessages(messages);
+  for (let i = visibleMessages.length - 1; i >= 0; i--) {
+    const chatMessage = visibleMessages[i];
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
@@ -321,8 +324,9 @@ export function findLatestSchemaCardInConversation(
     return null;
   }
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const chatMessage = messages[i];
+  const visibleMessages = getVisibleChatMessages(messages);
+  for (let i = visibleMessages.length - 1; i >= 0; i--) {
+    const chatMessage = visibleMessages[i];
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
@@ -399,6 +403,7 @@ export function repairAllStalePendingSchemaCards(messages: ChatMessage[] | undef
   return updated;
 }
 
+/** 从会话消息中反向查找最近一条含 schema 的卡片（跳过 context-compress 等无卡片消息） */
 export function findLatestSchemaInConversation(
   messages: ChatMessage[] | undefined,
 ): ILatestSchemaInConversation | null {
@@ -406,8 +411,9 @@ export function findLatestSchemaInConversation(
     return null;
   }
 
-  for (let i = messages.length - 1; i >= 0; i--) {
-    const chatMessage = messages[i];
+  const visibleMessages = getVisibleChatMessages(messages);
+  for (let i = visibleMessages.length - 1; i >= 0; i--) {
+    const chatMessage = visibleMessages[i];
 
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
