@@ -9,7 +9,7 @@ type CustomAction = {
 };
 
 type ReactHostComponent = React.ForwardRefExoticComponent<
-  { initial: ReactHostContentProps } & React.RefAttributes<ReactHostHandle>
+  { initial: ReactHostContentProps; onRendererReady?: () => void } & React.RefAttributes<ReactHostHandle>
 >;
 
 const props = defineProps<{
@@ -40,7 +40,13 @@ function resolveIsJsonComplete() {
 }
 
 function buildContentProps(): ReactHostContentProps | null {
-  const schema = structuredClone(toRaw(props.schema)) as Record<string, unknown>;
+  const rawSchema = toRaw(props.schema);
+  let schema: Record<string, unknown>;
+  try {
+    schema = structuredClone(rawSchema) as Record<string, unknown>;
+  } catch {
+    schema = rawSchema;
+  }
   if (!schema?.componentName) return null;
   return {
     content: schema,
@@ -78,6 +84,7 @@ async function syncReactProps() {
       React.createElement(Host, {
         ref: onHostReady,
         initial: next,
+        onRendererReady: flushPendingContext,
       }),
     );
   }
