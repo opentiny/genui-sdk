@@ -7,8 +7,6 @@
 | `genui`（默认） | `schemaJson` | `genRootSchema()` |
 | `a2ui` | `<a2ui-json>` | A2UI v0.9.1 Schema + AJV |
 
-**非目标**：不做渲染美观评分；不做同一次运行内的双协议并排；不合成跨协议 / 跨维度总分；不是通用 LLM 排行榜。
-
 ```text
 选模型与场景 → 调模型落盘样本 → 协议校验（可选 Judge）→ 聚合指标 → JSON / HTML / Excel
 ```
