@@ -3,6 +3,8 @@ import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
+const schemaMethodKeys = new WeakMap<PageContextApi, Set<string>>();
+
 function reset(obj: Record<string, unknown>) {
   Object.keys(obj).forEach((key) => delete obj[key]);
 }
@@ -51,9 +53,14 @@ export function setRefs(data: Record<string, unknown> | undefined, contextApi: P
 
 export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
   const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
-  contextApi.setContext({ state: {}, refs: {}, cssScopeId }, true);
+  const nextContext = { ...contextApi.getContext() };
+  delete nextContext.state;
+  delete nextContext.refs;
+  schemaMethodKeys.get(contextApi)?.forEach((key) => delete nextContext[key]);
+  contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId }, true);
 
   setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
+  schemaMethodKeys.set(contextApi, new Set(Object.keys(schema.methods ?? {})));
   setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
   setRefs(schema.refs as Record<string, unknown> | undefined, contextApi, true);
 

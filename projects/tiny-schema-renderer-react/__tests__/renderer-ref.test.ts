@@ -49,4 +49,28 @@ describe('SchemaRenderer callback ref', () => {
 
     expect(rendererRef.current?.getContext().state).toEqual({ count: 1 });
   });
+
+  it('preserves host actions injected before schema initialization completes', async () => {
+    const rendererRef = createRef<SchemaRendererHandle>();
+    const callAction = (name: string) => (name === 'save' ? 'saved' : undefined);
+    const setRendererRef = (instance: SchemaRendererHandle | null) => {
+      rendererRef.current = instance;
+      instance?.setContext({ callAction });
+    };
+    const schema = {
+      componentName: 'Page',
+      methods: {
+        submit: {
+          type: 'JSFunction' as const,
+          value: "function() { return this.callAction('save'); }",
+        },
+      },
+      children: [{ componentName: 'div' }],
+    };
+
+    render(createElement(SchemaRenderer, { ref: setRendererRef, schema }));
+    await waitFor(() => expect(typeof rendererRef.current?.getContext().submit).toBe('function'));
+
+    expect((rendererRef.current?.getContext().submit as () => string)()).toBe('saved');
+  });
 });
