@@ -3,14 +3,14 @@
   color: var(--tv-color-text, #191919);
 }
 
-.schema-render-container:has(.loading-warp):after {
+.schema-render-container:has(.loading-wrap):after {
   display: none;
 }
 
-.schema-render-container .loading-warp.loading-warp {
+.schema-render-container .loading-wrap.loading-wrap {
   display: none;
 }
 
-.schema-render-container .loading-warp .loading {
+.schema-render-container .loading-wrap .loading {
   display: none;
 }
