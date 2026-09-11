@@ -1,9 +1,11 @@
 import type { IGenPromptAction } from './action';
 import type { IGenPromptOptions } from './prompt';
 
-export const skillRulesPrompt = ['特别重要：除了上下文数据和工具调用结果以外，禁止使用任何Mock数据'];
+export const skillRulesPrompt = ['- 禁止使用 Mock 数据，所有数据必须来自上下文或工具调用结果'];
 
-export const targetRulesPrompt = ['如果上下文或者工具调用结果中没有可用数据，可以使用Mock数据来完成会话'];
+export const targetRulesPrompt = [
+  '- 优先使用上下文数据；如果上下文没有可用数据，可以使用合理的 Mock 数据填充，但图片和链接地址不可杜撰',
+];
 
 function formatRuleItems(rules: string[]) {
   return rules.map((rule) => (rule.startsWith('- ') ? rule : `- ${rule}`));
@@ -22,27 +24,27 @@ function buildBaseRuleItems(
   }
   if (hasSaveState) {
     actionRules.push(
-      '- 如果当前操作列数据（增删查改等），请调用 `this.callAction` 去调用 saveState，保存当前状态，方便持久化存储',
+      '- 当用户执行数据修改操作（增删改查等）时，请调用 `this.callAction` 调用 saveState，保存当前状态以便持久化',
     );
   }
 
   return [
-    '- schemaJson 必须是一个根节点 `componentName` 为 `Page` 的 JSON',
+    '- schemaJson 根节点的 `componentName` 必须为 `Page`',
+    '- 根节点 Page 必须包含 `state` 和 `methods` 字段（可以为空对象）',
     ...actionRules,
-    '- `type` 为 `JSFunction` 的 `value` 必须是完整的函数',
-    '- `state` 和 `methods` 字段必须紧跟 `"componentName": "Page",` 之后，请务必先生成 `state` 和 `methods` 字段，再使用。',
-    '- `children` 不能放到 `props` 里，必须是数组或字符串',
-    '- `children` 不支持 `JSExpression` 表达式；请使用 `Text` 组件展示文本，或使用 `loop` 来实现列表渲染',
-    '- 单个组件节点也可以使用 `condition` 来控制显示',
-    '- 请注意对话的连续性，不要重复渲染多余内容',
-    '- 图片和链接地址不可杜撰',
-    '- 只允许从上下文获取组件API，禁止杜撰组件API',
+    '- `type` 为 `JSFunction` 的 `value` 必须是完整的函数定义',
+    '- 节点的 `children` 字段必须是数组或字符串，不能是 JSExpression',
+    '- 组件 props 中的插槽属性（如 JSSlot）按组件 API 定义使用',
+    '- 使用 `Text` 组件展示文本，使用 `loop` 实现列表渲染',
+    '- 单个组件节点可以使用 `condition` 控制显示',
+    '- 保持对话连续性，不要重复渲染多余内容',
+    '- 只允许从上下文获取组件 API，禁止杜撰组件 API',
     ...(wrapperComponent
-      ? [`- 根节点请尽可能使用 \`${wrapperComponent}\` 组件包裹，但禁止设置颜色样式`]
+      ? [`- 根节点请使用 \`${wrapperComponent}\` 组件包裹，禁止设置颜色样式`]
       : []),
     '- 禁止设置所有组件的 `background`、`color`、`background-color` 等颜色 CSS 样式',
     '- 禁止使用任何弹窗组件，逻辑中禁止使用 `alert`、`confirm`、`prompt`',
-    '- 生成的 schemaJson 必须使用 \`\`\`schemaJson {content} \`\`\` 代码块包裹',
+    '- 生成的 schemaJson 必须使用 ```schemaJson {content} ``` 代码块包裹',
   ];
 }
 
