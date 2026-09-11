@@ -10,8 +10,9 @@
   },
   "scripts": {
     "build": "vite build",
-    "test": "vitest run",
-    "generate:skill": "node dist/cli.js config.json --out ./example/genui-schema-json"
+    "test": "pnpm build:deps && vitest run",
+    "generate:skill": "node dist/cli.js config.json --out ./example/genui-schema-json",
+    "build:deps": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-materials-vue-opentiny-vue build"
   },
   "files": [
     "dist",

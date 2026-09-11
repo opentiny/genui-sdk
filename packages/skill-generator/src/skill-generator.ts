@@ -36,7 +36,7 @@ export type {
 } from './component-categories';
 
 /** 匹配 prompt 顶层二级标题（行首 `## `，不含 `###`） */
-const PROMPT_SECTION_HEADING_RE = /^## .+$/gm;
+const PROMPT_SECTION_HEADING_RE = /^## .+?\r?$/gm;
 
 /** 手写 reference 目录；不能用作 referenceSubdir，否则默认 prune 会清掉其中的补充文档 */
 const HANDWRITTEN_REFERENCE_DIRS = new Set(['components', 'examples']);
@@ -84,6 +84,8 @@ export interface IGenerateSkillOptions {
   /** skill 输出目录列表；frontmatter 从首个目录的 SKILL.md 读取 */
   skillDirs: string[];
   /** genPrompt 自定义配置 */
+  promptCustomConfig?: IGenPromptCustomConfig;
+  /** 兼容旧配置；优先使用 promptCustomConfig */
   tgCustomConfig?: IGenPromptCustomConfig;
   /** 传给 genPrompt 的选项；默认仅设置 isSkill=true，其余沿用 genPrompt 默认值 */
   promptOptions?: IGenPromptOptions;
@@ -263,7 +265,7 @@ export function extractReferenceSections(prompt: string): IPromptSectionMarker[]
   const markers: Array<Omit<IPromptSectionMarker, 'file'>> = [];
 
   for (const match of prompt.matchAll(PROMPT_SECTION_HEADING_RE)) {
-    const marker = match[0];
+    const marker = match[0].replace(/\r$/, '');
     markers.push({
       marker,
       title: marker.replace(/^##\s+/, ''),
@@ -361,7 +363,14 @@ export function assertWrittenPromptCoverage(
     sectionMarkers
       .map(({ file }) => {
         assertSafeReferenceFile(file);
-        return readFileSync(join(referenceDir, file), 'utf8');
+        const filePath = join(referenceDir, file);
+        try {
+          return readFileSync(filePath, 'utf8');
+        } catch (error) {
+          throw new Error(
+            `生成文件无法逐字还原 genPrompt，读取分片失败: ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
       })
       .join('');
 
@@ -735,7 +744,14 @@ export function syncComponentsIndex(
 
     if (/必须使用以下支持的 componentName：/.test(current)) {
       const headingIndex = current.search(/^## 可用组件/m);
-      const prefix = headingIndex >= 0 ? current.slice(0, headingIndex) : '';
+      if (headingIndex < 0) {
+        throw new Error(
+          `components.md 包含「必须使用以下支持的 componentName：」但缺少「## 可用组件」标题，` +
+            `拒绝覆盖手写文件: ${indexPath}。请在文件中添加「## 可用组件」标题，` +
+            `或将受管区块包裹在 <!-- genui-skill-generator:start --> / <!-- genui-skill-generator:end --> 标记中。`,
+        );
+      }
+      const prefix = current.slice(0, headingIndex);
       const next = `${prefix}${managed}`;
       writeFileSync(indexPath, next.endsWith('\n') ? next : `${next}\n`, 'utf8');
       return;
@@ -824,35 +840,35 @@ export function writeReferenceFiles(
  * @param skillDirs - skill 目录列表
  * @param skillPrefix - genPrompt 前缀
  * @param sectionMarkers - 章节标记（供 formatSkillBody 使用）
- * @param formatSkillBody - 可选，生成 Agent 友好正文
- * @param defaultFrontmatter - 默认 frontmatter
- * @param referenceSubdir - 生成章节子目录
+ * @param options - 正文 formatter、默认 frontmatter、生成章节子目录和组件分组
  */
 export function writeSkillEntry(
   skillDirs: string[],
   skillPrefix: string,
   sectionMarkers: IPromptSectionMarker[],
-  formatSkillBody?: IGenerateSkillOptions['formatSkillBody'],
-  defaultFrontmatter?: string,
-  referenceSubdir?: string,
-  componentGroups?: IComponentCategoryGroup[],
+  options: {
+    formatSkillBody?: IGenerateSkillOptions['formatSkillBody'];
+    defaultFrontmatter?: string;
+    referenceSubdir?: string;
+    componentGroups?: IComponentCategoryGroup[];
+  } = {},
 ): void {
   if (skillDirs.length === 0) {
     throw new Error('skillDirs 不能为空');
   }
 
-  const frontmatter = ensureSkillFrontmatter(skillDirs[0], defaultFrontmatter);
-  const subdir = normalizeReferenceSubdir(referenceSubdir ?? 'generated');
+  const frontmatter = ensureSkillFrontmatter(skillDirs[0], options.defaultFrontmatter);
+  const subdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
 
   for (const skillDir of skillDirs) {
     mkdirSync(skillDir, { recursive: true });
-    const formattedBody = formatSkillBody?.(sectionMarkers, {
+    const formattedBody = options.formatSkillBody?.(sectionMarkers, {
       skillDir,
       referenceSubdir: subdir,
-      componentGroups,
+      componentGroups: options.componentGroups,
     });
     const body = formattedBody
-      ? `${skillPrefix}${skillPrefix.endsWith('\n') ? '' : '\n'}\n${formattedBody}`
+      ? `${skillPrefix}${skillPrefix.endsWith('\n') ? '' : '\n'}${formattedBody}`
       : skillPrefix;
     const content = `${frontmatter}${body}`;
     writeFileSync(join(skillDir, 'SKILL.md'), content, 'utf8');
@@ -876,14 +892,14 @@ export function generateSkillFiles(
   const { prompt, skillPrefix, sections, sectionMarkers } = genSkillContent(
     framework,
     materialsMeta,
-    options.tgCustomConfig,
+    options.promptCustomConfig ?? options.tgCustomConfig,
     options.promptOptions,
   );
 
   const referenceSubdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
   const componentGroups = groupComponentsByCategory(materialsMeta.whiteList ?? [], {
     materials: materialsMeta.materials,
-    customComponents: options.tgCustomConfig?.customComponents,
+    customComponents: (options.promptCustomConfig ?? options.tgCustomConfig)?.customComponents,
   });
 
   // 先落盘 generated/（及 components 类型索引），再写 SKILL，便于「存在才出链」含 generated 回退
@@ -896,15 +912,12 @@ export function generateSkillFiles(
     });
   }
 
-  writeSkillEntry(
-    options.skillDirs,
-    skillPrefix,
-    sectionMarkers,
-    options.formatSkillBody,
-    options.defaultFrontmatter,
+  writeSkillEntry(options.skillDirs, skillPrefix, sectionMarkers, {
+    formatSkillBody: options.formatSkillBody,
+    defaultFrontmatter: options.defaultFrontmatter,
     referenceSubdir,
     componentGroups,
-  );
+  });
 
   for (const skillDir of options.skillDirs) {
     assertWrittenPromptCoverage(

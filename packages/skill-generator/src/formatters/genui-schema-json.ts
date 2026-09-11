@@ -81,8 +81,8 @@ export function buildGenuiSchemaSkillBody(
   const typeIndex = buildTypeIndex(context.componentGroups ?? [], indexHref, categoryDetailLinks);
 
   const propsStep = hasCategoryDetails
-    ? '4. 需要 props / events 时，只读下方「组件类型索引」中对应类型文件，禁止读取 `generated/components.md` 全文'
-    : `4. 需要某组件的 props / events 时，在 ${inlineRef(componentsGenerated ?? componentsIndex, 'generated/components.md')} 中按组件名定位，禁止通读`;
+    ? `4. 需要 props / events 时，只读下方「组件类型索引」中对应类型文件，禁止读取 \`${generatedLabel(subdir, 'components.md')}\` 全文`
+    : `4. 需要某组件的 props / events 时，在 ${inlineRef(componentsGenerated ?? componentsIndex, generatedLabel(subdir, 'components.md'))} 中按组件名定位，禁止通读`;
 
   const workflow = [
     `1. 读结构契约：${inlineRef(jsonSchema, 'json-schema.md')} — 节点字段、componentName 白名单 enum、JSExpression / JSFunction / JSSlot`,
@@ -109,14 +109,14 @@ export function buildGenuiSchemaSkillBody(
     : `仅在需要完整 props / 全量示例时再读 \`${generatedDirLabel}\`。链接仅包含当前 skill 目录中已存在的文件。`;
   const propsHint = hasCategoryDetails
     ? '属性细节只读组件类型索引中的对应类型文件'
-    : `属性细节再读 ${inlineRef(componentsGenerated ?? componentsIndex, 'generated/components.md')}`;
+    : `属性细节再读 ${inlineRef(componentsGenerated ?? componentsIndex, generatedLabel(subdir, 'components.md'))}`;
   const generatedIndex = buildGeneratedCatalog(sectionMarkers, subdir, context, hasCategoryDetails);
 
   return `# GenUI schemaJson 生成技能
 
 ## ⚠️ 输出格式（最高优先级，必须遵守）
 
-你的输出**只能**是一个 schemaJson 代码块。回复的第一行必须是字面量 \`\` \`\`\`schemaJson \`\`，最后一行必须是字面量 \`\` \`\`\` \`\`，中间是合法 JSON。
+你的输出**只能**是一个 schemaJson 代码块。回复的第一行必须是字面量 \`\`\`\` \`\`\`schemaJson \`\`\`\`，最后一行必须是字面量 \`\`\`\` \`\`\` \`\`\`\`，中间是合法 JSON。
 
 \`\`\`schemaJson
 { "componentName": "Page", "state": {}, "methods": {}, "children": [{ "componentName": "TinyCard", "children": [] }] }

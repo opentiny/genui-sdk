@@ -22,6 +22,8 @@ export interface ISkillGenerateConfig {
   /** skill 输出目录列表；frontmatter 从首个目录的 SKILL.md 读取 */
   skillDirs: string[];
   /** genPrompt 自定义配置 */
+  promptCustomConfig?: IGenPromptCustomConfig;
+  /** 兼容旧配置；优先使用 promptCustomConfig */
   tgCustomConfig?: IGenPromptCustomConfig;
   /** 传给 genPrompt 的选项 */
   promptOptions?: IGenPromptOptions;
@@ -74,10 +76,10 @@ export function createSkillGenerateUsage(commandName = 'genui-skill-generate'): 
 
 export function parseSkillGenerateArgs(
   args: string[],
-  context: { defaultConfigPath: string; cwd?: string } | string,
+  context: { defaultConfigPath: string; cwd?: string },
 ): IParsedSkillGenerateArgs {
-  const defaultConfigPath = typeof context === 'string' ? context : context.defaultConfigPath;
-  const cwd = typeof context === 'string' ? process.cwd() : context.cwd ?? process.cwd();
+  const { defaultConfigPath } = context;
+  const cwd = context.cwd ?? process.cwd();
   let configPath: string | undefined;
   let outDir: string | undefined;
   let help = false;
@@ -216,7 +218,7 @@ export async function runSkillGenerateCli(
 
   const result = generateSkillFiles(config.framework ?? 'vue', materialsMeta, {
     skillDirs: resolveConfiguredSkillDirs(config, outputBaseDir, options.skillDirs),
-    tgCustomConfig: config.tgCustomConfig,
+    promptCustomConfig: config.promptCustomConfig ?? config.tgCustomConfig,
     promptOptions: config.promptOptions,
     referenceSubdir: config.referenceSubdir,
     syncComponentsIndex: config.syncComponentsIndex,

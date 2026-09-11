@@ -101,7 +101,9 @@ npx @opentiny/genui-sdk-skill-generator --config path/to/config.json
 
 仓库默认配置见 [`config.json`](./config.json)，它与 Playground 标准模式保持一致，
 使用完整 Vue 物料以及内置的 `continueChat`、`saveState` Action。显式传配置时，
-所有相对路径都以配置文件所在目录为基准。
+配置中的 `skillDirs` 和相对路径形式的 `materialsMetaModule` 以配置文件所在目录为基准。
+`--out` 始终相对当前工作目录解析，并覆盖配置中的 `skillDirs`。编程调用
+`runSkillGenerateCli` 时，`outputBaseDir` 只影响输出目录，不影响物料模块的解析。
 
 兼容旧的位置参数写法：
 
@@ -111,7 +113,9 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 
 ## CLI 配置参考
 
-所有相对路径都以配置文件所在目录为基准。
+配置中的 `skillDirs` 和相对路径形式的 `materialsMetaModule` 以配置文件所在目录为基准。
+`--out` 始终相对当前工作目录解析，并覆盖配置中的 `skillDirs`。编程调用
+`runSkillGenerateCli` 时，`outputBaseDir` 只影响输出目录，不影响物料模块的解析。
 
 | 配置项 | 类型 | 必填 / 默认值 | 含义 |
 | --- | --- | --- | --- |
@@ -123,7 +127,7 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 | `referenceSubdir` | `string` | 否，`"generated"` | 生成章节在 `reference/` 下的子目录。推荐保持独立目录，避免覆盖手写文档。不能使用手写目录名 `components`、`examples`。 |
 | `syncComponentsIndex` | `boolean` | 否，`true` | 将按类型分组的白名单同步到 `reference/components.md`。空子目录时为保持 prompt 无损而跳过。 |
 | `prune` | `boolean` | 否，`true` | 删除生成子目录内本次未生成的旧文件。`referenceSubdir` 为空时必须设为 `false`。 |
-| `tgCustomConfig` | `object` | 否，`{}` | 透传给 core `genPrompt` 的自定义组件、Snippet、示例和 Action。 |
+| `promptCustomConfig` | `object` | 否，`{}` | 透传给 core `genPrompt` 的自定义组件、Snippet、示例和 Action。 |
 | `promptOptions` | `object` | 否 | 控制 core prompt 章节。生成器仅默认设置 `isSkill=true`，其余沿用 core 默认值。 |
 
 推荐配置：
@@ -136,7 +140,7 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 }
 ```
 
-### tgCustomConfig
+### promptCustomConfig
 
 | 配置项 | 内容结构 | 生成效果 |
 | --- | --- | --- |
@@ -161,7 +165,7 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 | `rules` | `[]` | 追加项目规则。合并顺序是物料规则、框架规则、项目规则。 |
 
 完整可运行配置见 [`config.json`](./config.json)。需要接入自定义组件、Snippet、示例或 Action 时，
-按上面的字段说明补充到 `tgCustomConfig` 即可。
+按上面的字段说明补充到 `promptCustomConfig` 即可。
 
 ## 本仓库维护
 
@@ -170,3 +174,9 @@ pnpm --filter @opentiny/genui-sdk-skill-generator generate:skill
 ```
 
 会把 skill 写到本地 [`example/genui-schema-json`](./example/genui-schema-json)，便于对照 CLI 输出。该目录由生成器产生，不提交到 git。
+
+切换 `referenceSubdir` 后，旧生成目录需手动清理；`prune` 仅清理当前生成目录中的过期文件，不会跨目录删除内容。
+
+开发验证：执行 `pnpm --filter @opentiny/genui-sdk-skill-generator test`，会自动构建 core 与 Vue 物料依赖后运行测试。
+
+`tgCustomConfig` 保留为兼容别名；同时提供时以 `promptCustomConfig` 为准。

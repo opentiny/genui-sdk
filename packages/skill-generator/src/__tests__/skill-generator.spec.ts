@@ -74,6 +74,46 @@ describe('skill-generator', () => {
     ]);
   });
 
+  it('CRLF 章节保持标题干净且分片可逐字还原', () => {
+    const prompt = SAMPLE_PROMPT.replace(/\n/g, '\r\n');
+    const markers = extractReferenceSections(prompt);
+    expect(markers.map(({ title }) => title)).toEqual(extractReferenceSections(SAMPLE_PROMPT).map(({ title }) => title));
+    const sections = splitPromptSections(prompt, markers);
+    expect(extractSkillPrefix(prompt, markers) + markers.map(({ file }) => sections[file]).join('')).toBe(prompt);
+  });
+
+  it('无标题的旧白名单拒绝覆盖手写内容', () => {
+    const dir = createTempDir('skill-handwritten-');
+    mkdirSync(join(dir, 'reference'));
+    const file = join(dir, 'reference', 'components.md');
+    const content = '# 我的说明\n\n重要内容\n必须使用以下支持的 componentName：`Old`\n';
+    writeFileSync(file, content);
+    expect(() => syncComponentsIndex(dir, '必须使用以下支持的 componentName：`A`\n')).toThrow(/拒绝覆盖手写文件/);
+    expect(readFileSync(file, 'utf8')).toBe(content);
+  });
+
+  it('嵌套生成目录不会被跨目录清理删除', () => {
+    const dir = createTempDir('skill-nested-');
+    writeReferenceFiles(dir, { 'rules.md': 'old' });
+    writeReferenceFiles(dir, { 'rules.md': 'new' }, { referenceSubdir: 'generated/nested' });
+    expect(readFileSync(join(dir, 'reference/generated/nested/rules.md'), 'utf8')).toBe('new');
+    expect(readFileSync(join(dir, 'reference/generated/rules.md'), 'utf8')).toBe('old');
+  });
+
+  it('缺失分片错误包含文件路径和还原校验上下文', () => {
+    const dir = createTempDir('skill-missing-');
+    const markers = extractReferenceSections(SAMPLE_PROMPT);
+    const prefix = extractSkillPrefix(SAMPLE_PROMPT, markers);
+    writeSkillEntry([dir], prefix, markers);
+    expect(() => assertWrittenPromptCoverage(dir, SAMPLE_PROMPT, prefix, markers)).toThrow(/无法逐字还原 genPrompt.*components\.md/);
+  });
+
+  it('追加正文不额外插入空行', () => {
+    const dir = createTempDir('skill-separator-');
+    writeSkillEntry([dir], '# prefix\n', [], { formatSkillBody: () => '# body\n' });
+    expect(readFileSync(join(dir, 'SKILL.md'), 'utf8')).toContain('# prefix\n# body\n');
+  });
+
   it('extractSkillPrefix 取首个 ## 之前的内容', () => {
     const markers = extractReferenceSections(SAMPLE_PROMPT);
     expect(extractSkillPrefix(SAMPLE_PROMPT, markers)).toBe(`# 技能说明
@@ -358,7 +398,7 @@ description: test
       [skillDir],
       prefix,
       markers,
-      () => '# 附加路由\n\n按需读取 reference。\n',
+      { formatSkillBody: () => '# 附加路由\n\n按需读取 reference。\n' },
     );
 
     expect(() =>
@@ -397,6 +437,17 @@ description: test
     expect(() =>
       assertWrittenPromptCoverage(skillDir, SAMPLE_PROMPT, prefix, markers),
     ).toThrow(/未完整保留 genPrompt 前缀/);
+  });
+
+  it('promptCustomConfig 优先于兼容别名', () => {
+    const dir = createTempDir('skill-config-alias-');
+    const result = generateSkillFiles('vue', { materials: [], examples: [], whiteList: [] }, {
+      skillDirs: [dir],
+      promptCustomConfig: { customActions: [{ name: 'preferredAction' }] },
+      tgCustomConfig: { customActions: [{ name: 'legacyAction' }] },
+    });
+    expect(result.sections['actions.md']).toContain('preferredAction');
+    expect(result.sections['actions.md']).not.toContain('legacyAction');
   });
 
   it('默认保留 genPrompt 的 JSON Schema，并将自定义 Action 写入独立章节', () => {

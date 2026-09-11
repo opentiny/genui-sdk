@@ -84,6 +84,19 @@ function seedHandwritten(skillDir: string): void {
 }
 
 describe('formatters', () => {
+  it('自定义生成目录的类型工作流不引用默认目录', () => {
+    const skillDir = createTempDir('skill-custom-dir-');
+    mkdirSync(join(skillDir, 'reference/material-docs/components'), { recursive: true });
+    writeFileSync(join(skillDir, 'reference/material-docs/components/forms.md'), '# forms');
+    const body = buildGenuiSchemaSkillBody(extractReferenceSections(SAMPLE_PROMPT), {
+      skillDir,
+      referenceSubdir: 'material-docs',
+      componentGroups: [{ id: 'forms', label: '表单组件', components: ['TinyForm'], detailRelPath: 'material-docs/components/forms.md' }],
+    });
+    expect(body).toContain('禁止读取 `material-docs/components.md` 全文');
+    expect(body).not.toContain('`generated/components.md`');
+  });
+
   it('仅 generated 时不链缺失手写文档，回退 generated/rules，工作流必含 json-schema', () => {
     const skillDir = createTempDir('skill-body-gen-');
     seedGenerated(skillDir);
