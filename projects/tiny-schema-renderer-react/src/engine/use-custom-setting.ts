@@ -24,13 +24,3 @@ export function setCustomSettings(rendererSettings: IRendererSettings): void {
 export function getCustomSettings(): IRendererSettings {
   return customSettings || {};
 }
-
-export default function useCustomSetting(): {
-  setCustomSettings: (rendererSettings: IRendererSettings) => void;
-  getCustomSettings: () => IRendererSettings;
-} {
-  return {
-    setCustomSettings,
-    getCustomSettings,
-  };
-}
