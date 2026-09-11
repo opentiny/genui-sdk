@@ -1,0 +1,48 @@
+{
+  "componentName": "Page",
+  "state": {
+    "formData": {
+      "joinDate": ""
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "日期选择"
+      },
+      "children": [
+        {
+          "componentName": "AntForm",
+          "props": {
+            "layout": "vertical"
+          },
+          "children": [
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "入职日期"
+              },
+              "children": [
+                {
+                  "componentName": "AntDatePicker",
+                  "props": {
+                    "placeholder": "请选择入职日期",
+                    "value": {
+                      "type": "JSExpression",
+                      "value": "this.state.formData.joinDate"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(date, dateString) { this.state.formData.joinDate = dateString; }"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
