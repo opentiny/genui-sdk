@@ -25,6 +25,38 @@ export function getHostProjectedNodes(instance: object): Node[][] | null {
 }
 
 /**
+ * Hosts with no `ng-content` (e.g. TinyNG `TiFormField`) never get a TNode.projection
+ * table. Detached slot CD still creates schema children (TiItem registers via DI;
+ * plain `div` button rows do not). Mount any still-orphaned schema nodes under the
+ * host so they enter the document — nodes already moved by the library (`tiInclude`)
+ * stay where they are (`host.contains`).
+ */
+export function mountOrphanSchemaNodesOnHost(
+  host: Element | null | undefined,
+  liveSlots: Array<readonly Node[] | null | undefined>,
+): void {
+  if (!host) {
+    return;
+  }
+  const seen = new Set<Node>();
+  for (const slot of liveSlots) {
+    if (!slot?.length) {
+      continue;
+    }
+    for (const node of slot) {
+      if (!node || !isSchemaProjectionNode(node, seen)) {
+        continue;
+      }
+      seen.add(node);
+      if (host.contains(node)) {
+        continue;
+      }
+      host.appendChild(node);
+    }
+  }
+}
+
+/**
  * `createComponent({ projectableNodes })` copies each slot with `Array.from` onto the
  * host TNode. Detached slot CD then creates real child hosts into nested views — those
  * nodes are not in the copy, so lazy `<ng-content>` projects only the original `*ngIf`
@@ -34,13 +66,17 @@ export function getHostProjectedNodes(instance: object): Node[][] | null {
  * inserted (live ng-content), move any missing **schema** nodes next to the existing
  * anchors. `rootNodes` also lists elements libraries insert on nested view containers;
  * those are not schema children and are left where their owner placed them.
+ *
+ * When the host has no projection slots, fall back to {@link mountOrphanSchemaNodesOnHost}.
  */
 export function syncLiveProjectedNodes(
   instance: object,
   liveSlots: Array<readonly Node[] | null | undefined>,
+  hostElement?: Element | null,
 ): void {
   const projected = getHostProjectedNodes(instance);
   if (!projected?.length) {
+    mountOrphanSchemaNodesOnHost(hostElement, liveSlots);
     return;
   }
   const slotCount = Math.min(projected.length, liveSlots.length);
@@ -68,7 +104,11 @@ export function syncLiveProjectedNodes(
         continue;
       }
       slot.push(node);
-      if (parent && node.parentNode !== parent) {
+      if (
+        parent &&
+        node.parentNode !== parent &&
+        !parent.contains(node) // 组件已把宿主包进内部 wrapper（如 TiTextArea 的 container div），不动
+      ) {
         parent.appendChild(node);
       }
     }

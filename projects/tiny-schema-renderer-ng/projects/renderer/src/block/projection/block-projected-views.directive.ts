@@ -90,7 +90,11 @@ export class BlockProjectedViewsDirective implements AfterComponentCreate, DoChe
     }
     const instance = this.outlet.componentInstance;
     if (instance) {
-      syncLiveProjectedNodes(instance, liveSlots);
+      syncLiveProjectedNodes(
+        instance,
+        liveSlots,
+        this.outlet.componentRef?.location.nativeElement,
+      );
     }
   }
 }

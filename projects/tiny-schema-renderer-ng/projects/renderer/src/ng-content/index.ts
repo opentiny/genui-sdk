@@ -3,6 +3,7 @@ export {
   getHostProjectedNodes,
   getNgContentSelectors,
   getSchemaAttributeMap,
+  mountOrphanSchemaNodesOnHost,
   partitionNodesByNgContentSelectors,
   schemaChildMatchesSelector,
   syncLiveProjectedNodes,
