@@ -127,6 +127,17 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
     });
 
     chatOnReceiveData(response);
+
+    const onFinish = options.events?.onFinish;
+    let defaultPrevented = false;
+    if (onFinish) {
+      onFinish(response.choices?.[0]?.finish_reason ?? 'stop', { messages, messageState }, () => {
+        defaultPrevented = true;
+      });
+    }
+    if (!defaultPrevented && messageState.status !== STATUS.ABORTED) {
+      messageState.status = STATUS.FINISHED;
+    }
   };
 
   const streamChatOnReceiveData = (data: ChatCompletionStreamResponse) => {
