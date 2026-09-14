@@ -13,6 +13,8 @@ export interface ISkillBodyContext {
   referenceSubdir?: string;
   /** 与 components.md 同源的类型分组，用于入口类型索引 */
   componentGroups?: IComponentCategoryGroup[];
+  /** 根节点包裹组件名（materialsMeta.wrapperComponent）；默认 TinyCard */
+  wrapperComponent?: string;
 }
 
 /**
@@ -28,6 +30,7 @@ export function buildGenuiSchemaSkillBody(
   context: ISkillBodyContext,
 ): string {
   const subdir = normalizeReferenceSubdir(context.referenceSubdir ?? 'generated');
+  const wrapperComponent = context.wrapperComponent ?? 'TinyCard';
   const generatedDirLabel = subdir ? `reference/${subdir}/` : 'reference/';
   const jsonSchema = preferDoc(context, 'json-schema.md', 'json-schema.md', subdir);
   const rules = preferDoc(context, 'rules.md', 'rules.md', subdir);
@@ -119,7 +122,7 @@ export function buildGenuiSchemaSkillBody(
 你的输出**只能**是一个 schemaJson 代码块。回复的第一行必须是字面量 \`\`\`\` \`\`\`schemaJson \`\`\`\`，最后一行必须是字面量 \`\`\`\` \`\`\` \`\`\`\`，中间是合法 JSON。
 
 \`\`\`schemaJson
-{ "componentName": "Page", "state": {}, "methods": {}, "children": [{ "componentName": "TinyCard", "children": [] }] }
+{ "componentName": "Page", "state": {}, "methods": {}, "children": [{ "componentName": "${wrapperComponent}", "children": [] }] }
 \`\`\`
 
 **禁止：** \`json\` 代码块、裸 JSON、代码块外的任何文字、多个代码块。
@@ -164,7 +167,7 @@ ${typeIndex}
 
 - \`state\`、\`methods\` **始终存在**（无数据时用 \`{}\`）
 - 字段顺序：\`componentName\` → \`state\` → \`methods\` → 其他 → \`children\`
-- 根内容用 \`TinyCard\` 包裹；仅 \`TinyCard\` 禁止颜色样式，其他组件可正常使用 \`style\`
+- 根内容用 \`${wrapperComponent}\` 包裹；仅 \`${wrapperComponent}\` 禁止颜色样式，其他组件可正常使用 \`style\`
 
 ## 完整物料（按需再读）
 

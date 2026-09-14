@@ -100,6 +100,8 @@ export interface IGenerateSkillOptions {
       skillDir: string;
       referenceSubdir?: string;
       componentGroups?: IComponentCategoryGroup[];
+      /** 根节点包裹组件名（materialsMeta.wrapperComponent）；默认 TinyCard */
+      wrapperComponent?: string;
     },
   ) => string;
   /**
@@ -851,6 +853,7 @@ export function writeSkillEntry(
     defaultFrontmatter?: string;
     referenceSubdir?: string;
     componentGroups?: IComponentCategoryGroup[];
+    wrapperComponent?: string;
   } = {},
 ): void {
   if (skillDirs.length === 0) {
@@ -866,6 +869,7 @@ export function writeSkillEntry(
       skillDir,
       referenceSubdir: subdir,
       componentGroups: options.componentGroups,
+      wrapperComponent: options.wrapperComponent,
     });
     const body = formattedBody
       ? `${skillPrefix}${skillPrefix.endsWith('\n') ? '' : '\n'}${formattedBody}`
@@ -917,6 +921,7 @@ export function generateSkillFiles(
     defaultFrontmatter: options.defaultFrontmatter,
     referenceSubdir,
     componentGroups,
+    wrapperComponent: materialsMeta.wrapperComponent,
   });
 
   for (const skillDir of options.skillDirs) {

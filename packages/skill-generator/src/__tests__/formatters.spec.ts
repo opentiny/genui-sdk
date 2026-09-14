@@ -211,6 +211,28 @@ describe('formatters', () => {
     );
   });
 
+  it('未传 wrapperComponent 时默认使用 TinyCard', () => {
+    const skillDir = createTempDir('skill-body-default-wrapper-');
+    seedGenerated(skillDir);
+    const body = buildGenuiSchemaSkillBody(extractReferenceSections(SAMPLE_PROMPT), { skillDir });
+
+    expect(body).toContain('根内容用 `TinyCard` 包裹');
+    expect(body).toContain('"componentName": "TinyCard"');
+  });
+
+  it('wrapperComponent 覆盖根节点包裹组件名', () => {
+    const skillDir = createTempDir('skill-body-custom-wrapper-');
+    seedGenerated(skillDir);
+    const body = buildGenuiSchemaSkillBody(extractReferenceSections(SAMPLE_PROMPT), {
+      skillDir,
+      wrapperComponent: 'TiCard',
+    });
+
+    expect(body).toContain('根内容用 `TiCard` 包裹');
+    expect(body).toContain('"componentName": "TiCard"');
+    expect(body).not.toContain('TinyCard');
+  });
+
   it('resolveSkillBodyFormatter 解析内置名称', () => {
     expect(resolveSkillBodyFormatter('genui-schema-json')).toBe(
       SKILL_BODY_FORMATTERS['genui-schema-json'],
