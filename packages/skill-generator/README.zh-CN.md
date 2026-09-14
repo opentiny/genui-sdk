@@ -168,11 +168,51 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 完整可运行配置见 [`config.json`](./config.json)。需要接入自定义组件、Snippet、示例或 Action 时，
 按上面的字段说明补充到 `promptCustomConfig` 即可。
 
-Angular NG 物料示例见 [`config.ng.json`](./config.ng.json)：`framework` 设为 `"angular"`，
-`materialsMetaModule` 指向 Angular 物料包，formatter 自动使用 `TiCard` 作为根节点包裹组件：
+Angular NG 物料示例：`framework` 设为 `"angular"`，`materialsMetaModule` 指向 Angular
+物料包，formatter 自动使用 `TiCard` 作为根节点包裹组件。完整示例配置：
+
+```json
+{
+  "framework": "angular",
+  "materialsMetaModule": "path/to/angular-opentiny-ng/dist/meta.js",
+  "materialsMetaExport": "materialsMeta",
+  "skillDirs": ["./skills/genui-schema-json-ng"],
+  "skillBodyFormatter": "genui-schema-json",
+  "referenceSubdir": "generated",
+  "syncComponentsIndex": true,
+  "prune": true,
+  "promptCustomConfig": {
+    "customActions": [
+      {
+        "name": "continueChat",
+        "description": "继续对话，用于表单的提交按钮等",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "对话消息，可以是按钮文本等，也可以是其他内容"
+            }
+          }
+        }
+      },
+      {
+        "name": "saveState",
+        "description": "保存状态，用于保存组件状态",
+        "parameters": {
+          "type": "null"
+        }
+      }
+    ]
+  },
+  "promptOptions": {
+    "isSkill": true
+  }
+}
+```
 
 ```bash
-npx @opentiny/genui-sdk-skill-generator --config config.ng.json
+npx @opentiny/genui-sdk-skill-generator --config path/to/config.ng.json
 ```
 
 ## 本仓库维护

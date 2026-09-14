@@ -169,12 +169,52 @@ Recommended configuration:
 A fully runnable config is at [`config.json`](./config.json). To integrate custom components, snippets, examples, or Actions,
 add them to `promptCustomConfig` following the field descriptions above.
 
-For Angular NG materials, see [`config.ng.json`](./config.ng.json): set `framework` to `"angular"`,
-point `materialsMetaModule` to the Angular material package, and the formatter automatically uses `TiCard`
-as the root wrapper component:
+For Angular NG materials, set `framework` to `"angular"`, point `materialsMetaModule` at the
+Angular material package, and the formatter automatically uses `TiCard` as the root wrapper
+component. A complete example configuration:
+
+```json
+{
+  "framework": "angular",
+  "materialsMetaModule": "path/to/angular-opentiny-ng/dist/meta.js",
+  "materialsMetaExport": "materialsMeta",
+  "skillDirs": ["./skills/genui-schema-json-ng"],
+  "skillBodyFormatter": "genui-schema-json",
+  "referenceSubdir": "generated",
+  "syncComponentsIndex": true,
+  "prune": true,
+  "promptCustomConfig": {
+    "customActions": [
+      {
+        "name": "continueChat",
+        "description": "继续对话，用于表单的提交按钮等",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "description": "对话消息，可以是按钮文本等，也可以是其他内容"
+            }
+          }
+        }
+      },
+      {
+        "name": "saveState",
+        "description": "保存状态，用于保存组件状态",
+        "parameters": {
+          "type": "null"
+        }
+      }
+    ]
+  },
+  "promptOptions": {
+    "isSkill": true
+  }
+}
+```
 
 ```bash
-npx @opentiny/genui-sdk-skill-generator --config config.ng.json
+npx @opentiny/genui-sdk-skill-generator --config path/to/config.ng.json
 ```
 
 ## Repository Maintenance
