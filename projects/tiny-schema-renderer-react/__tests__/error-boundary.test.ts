@@ -1,5 +1,5 @@
 import { createElement } from 'react';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { SchemaRenderer } from '../src/RenderMain';
 import { RendererContextProvider } from '../src/RendererContextProvider';
@@ -31,6 +31,49 @@ describe('SchemaRenderer error boundary', () => {
 
     expect(screen.getByTestId('host')).toBeTruthy();
     expect(screen.getByText(/Page failed to render: isValid is not a function/)).toBeTruthy();
+    errorSpy.mockRestore();
+  });
+
+  it('retries rendering after the schema changes', () => {
+    cleanup();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    function Ok() {
+      return createElement('span', null, 'recovered');
+    }
+
+    const { rerender, container } = render(
+      createElement(
+        RendererContextProvider,
+        { 'render-settings': { materials: { components: { Boom, Ok } } } },
+        createElement(SchemaRenderer, {
+          schema: {
+            componentName: 'Page',
+            children: [{ componentName: 'Boom' }],
+          },
+        }),
+      ),
+    );
+
+    expect(container.querySelector('[data-tag="schema-error"]')?.textContent).toContain(
+      'isValid is not a function',
+    );
+
+    rerender(
+      createElement(
+        RendererContextProvider,
+        { 'render-settings': { materials: { components: { Boom, Ok } } } },
+        createElement(SchemaRenderer, {
+          schema: {
+            componentName: 'Page',
+            children: [{ componentName: 'Ok' }],
+          },
+        }),
+      ),
+    );
+
+    expect(container.textContent).toContain('recovered');
+    expect(container.querySelector('[data-tag="schema-error"]')).toBeNull();
     errorSpy.mockRestore();
   });
 });

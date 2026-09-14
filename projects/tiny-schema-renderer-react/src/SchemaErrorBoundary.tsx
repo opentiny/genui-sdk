@@ -1,8 +1,11 @@
 import { Component, type ErrorInfo, type PropsWithChildren } from 'react';
 import { Notify } from './engine/notify';
+import type { PageContextValue } from './engine';
 
 type SchemaErrorBoundaryProps = PropsWithChildren<{
   componentName?: string;
+  resetKey?: string;
+  notifyContext?: PageContextValue;
 }>;
 
 type SchemaErrorBoundaryState = {
@@ -16,14 +19,23 @@ export class SchemaErrorBoundary extends Component<SchemaErrorBoundaryProps, Sch
     return { error };
   }
 
+  componentDidUpdate(prevProps: SchemaErrorBoundaryProps) {
+    if (prevProps.resetKey !== this.props.resetKey && this.state.error) {
+      this.setState({ error: null });
+    }
+  }
+
   componentDidCatch(error: Error, info: ErrorInfo) {
     const name = this.props.componentName || 'Schema';
     console.error(`SchemaRenderer ${name} render error:`, error, info.componentStack);
-    Notify({
-      type: 'warning',
-      title: `${name} rendering error`,
-      message: error.message,
-    });
+    Notify(
+      {
+        type: 'warning',
+        title: `${name} rendering error`,
+        message: error.message,
+      },
+      this.props.notifyContext,
+    );
   }
 
   render() {

@@ -118,7 +118,11 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
   return (
     <PageContextProvider value={pageContext}>
-      <SchemaErrorBoundary componentName="Page">
+      <SchemaErrorBoundary
+        componentName="Page"
+        resetKey={schema ? JSON.stringify(schema) : ''}
+        notifyContext={pageContext}
+      >
         {schema?.children?.length ? (
           <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
         ) : (

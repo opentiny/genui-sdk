@@ -18,7 +18,8 @@ function isDayjsValue(value: unknown): value is Dayjs {
 }
 
 function normalizeDateValue(value: DateInput): DatePickerProps['value'] {
-  if (value == null || value === '') return null;
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
   if (isDayjsValue(value)) return value.isValid() ? value : null;
 
   const parsed =
