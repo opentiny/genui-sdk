@@ -54,6 +54,15 @@ function readContainer(host: Element): any[] | null {
   return Array.isArray(container) ? container : null;
 }
 
+function viewIndexInContainer(container: any[], view: any[]): number {
+  for (let i = CONTAINER_HEADER_OFFSET; i < container.length; i++) {
+    if (container[i] === view) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 /**
  * Reads the context object that the hosting material passed to `*ngTemplateOutlet`
  * for this schema `NgTemplate`, and exposes selected variables into the render scope
@@ -63,6 +72,9 @@ function readContainer(host: Element): any[] | null {
  * Angular does not expose the context via public API. Views rendered via
  * `*ngTemplateOutlet` are tracked in the template's declaration LContainer
  * `MOVED_VIEWS` slot; their `CONTEXT` holds the outlet-provided object.
+ *
+ * Schema structural directives (`NgIf` / `NgForOf` on this ng-template) stamp views
+ * directly into the same LContainer; those are matched via `getCurrentView()` as well.
  */
 @Directive({
   selector: 'ng-template[ngSchemaTemplate]',
@@ -113,40 +125,36 @@ export class SchemaTemplateContextDirective {
   }
 
   private getLatestContext(): unknown {
-    // 宿主组件（如 app-list-item）通过 *ngTemplateOutlet 渲染本模板时，
-    // 创建的 view 会记录在声明 LContainer 的 MOVED_VIEWS 槽位，其 CONTEXT 才是宿主传入
-    // 的上下文。resolve() 在模板体内的 *ngFor/*ngIf 中执行，getCurrentView() 返回的是
-    // 这些内部 view；沿 PARENT 链向上找到与 MOVED_VIEWS 引用相等的 view（即 outlet view）
-    // 即可取到宿主 context。用引用匹配而非 key 匹配，可避免 ngFor 的 index/$implicit
-    // 等内部变量与宿主 context 同名时取错层。
+    // Host *ngTemplateOutlet → MOVED_VIEWS; schema NgIf/NgForOf → container slots.
+    // Walk getCurrentView() PARENT chain and match by reference so each NgFor row
+    // resolves its own context (not the last stamped view).
     const container =
       this.container ?? (this.container = readContainer(this.host.nativeElement) ?? null);
     const moved = container?.[MOVED_VIEWS];
-    if (Array.isArray(moved) && moved.length > 0) {
-      try {
-        let view = getCurrentView() as unknown as any[] | null;
-        let depth = 0;
-        while (view && depth < 32) {
-          if (moved.indexOf(view) !== -1) {
-            return view[CONTEXT];
-          }
-          // LView and LContainer share PARENT at [3] (see @angular/core layout constants).
-          const next = view[3];
-          if (!Array.isArray(next)) {
-            break;
-          }
-          view = next;
-          depth++;
+    try {
+      let view = getCurrentView() as unknown as any[] | null;
+      let depth = 0;
+      while (view && depth < 32) {
+        if (Array.isArray(moved) && moved.indexOf(view) !== -1) {
+          return view[CONTEXT];
         }
-      } catch {
-        // fall through to direct-render scan
+        if (container && viewIndexInContainer(container, view) !== -1) {
+          return view[CONTEXT];
+        }
+        const next = view[PARENT];
+        if (!Array.isArray(next)) {
+          break;
+        }
+        view = next;
+        depth++;
       }
+    } catch {
+      // fall through to direct-render scan
     }
     if (!container) {
       return undefined;
     }
     let latest: unknown;
-    // Views rendered directly at the anchor (no *ngTemplateOutlet move).
     for (let i = CONTAINER_HEADER_OFFSET; i < container.length; i++) {
       const view = container[i];
       if (Array.isArray(view) && view[CONTEXT] != null) {

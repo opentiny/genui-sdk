@@ -1,4 +1,6 @@
 import {
+  InjectionToken,
+  Injector,
   QueryList,
   TemplateRef,
   Type,
@@ -72,6 +74,32 @@ export interface TemplateContentRefEntry {
   index?: number;
   /** The projected TemplateRef. */
   templateRef: TemplateRef<unknown>;
+}
+
+/**
+ * Directive instances dynamically created on a schema `NgTemplate` via
+ * {@link SchemaTemplateDirectivesDirective}. Native `@ContentChild` cannot see them
+ * (not in LView slots); the content-children patch reads this map instead.
+ */
+const templateDirectiveInstances = new WeakMap<TemplateRef<unknown>, object[]>();
+
+/** Register (or clear) schema structural / attribute directive instances for a TemplateRef. */
+export function setTemplateDirectiveInstances(
+  templateRef: TemplateRef<unknown>,
+  instances: object[],
+): void {
+  if (!instances.length) {
+    templateDirectiveInstances.delete(templateRef);
+    return;
+  }
+  templateDirectiveInstances.set(templateRef, instances.slice());
+}
+
+/** Snapshot of directive instances currently attached to a schema NgTemplate. */
+export function getTemplateDirectiveInstances(
+  templateRef: TemplateRef<unknown>,
+): object[] {
+  return templateDirectiveInstances.get(templateRef)?.slice() ?? [];
 }
 
 /**
@@ -190,12 +218,47 @@ function rememberShimBinding(
   list.push({ signalNode, propertyName, firstOnly, predicate, descendants });
 }
 
-function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
+/**
+ * Query-signal node. Fast path uses Angular's `SIGNAL` brand; production bundles can
+ * duplicate that symbol, so fall back to any own-symbol whose node holds a QueryList.
+ */
+function getQuerySignalNode(value: unknown): any | null {
   if (typeof value !== 'function') {
-    return false;
+    return null;
   }
-  const node = (value as any)[SIGNAL];
-  return !!node && node._queryList instanceof QueryList;
+  const branded = (value as any)[SIGNAL];
+  if (branded?._queryList instanceof QueryList) {
+    return branded;
+  }
+  for (const sym of Object.getOwnPropertySymbols(value)) {
+    const node = (value as any)[sym];
+    if (node?._queryList instanceof QueryList) {
+      return node;
+    }
+  }
+  return null;
+}
+
+function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
+  return getQuerySignalNode(value) != null;
+}
+
+/** Ivy `ctx.foo` or minified `n.foo` — identifiers minify, property names usually do not. */
+const IVY_CTX_PROP = '[A-Za-z_$][\\w$]*\\.([A-Za-z_$][\\w$]*)';
+const IVY_ASSIGN_FIRST_RE = new RegExp(
+  `${IVY_CTX_PROP}\\s*=\\s*[A-Za-z_$][\\w$]*\\.first\\b`,
+  'g',
+);
+const IVY_ASSIGN_RE = new RegExp(`${IVY_CTX_PROP}\\s*=`, 'g');
+const IVY_CALL_PROP_ARG_RE = new RegExp(`\\(\\s*${IVY_CTX_PROP}\\s*,`, 'g');
+
+function ivyCtxProps(src: string, pattern: RegExp): string[] {
+  const props: string[] = [];
+  pattern.lastIndex = 0;
+  for (const m of src.matchAll(pattern)) {
+    props.push(m[1]);
+  }
+  return props;
 }
 
 /** Read predicate from a bound query signal node (no signal read → no QueryList wipe). */
@@ -325,13 +388,13 @@ function getViewQueryPropertyNames(instance: object): Set<string> {
   const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
   if (typeof viewQuery === 'function') {
     const src = Function.prototype.toString.call(viewQuery);
-    // decorator @ViewChild/@ViewChildren update assignments
-    for (const m of src.matchAll(/ctx\.([A-Za-z_$][\w$]*)\s*=/g)) {
-      names.add(m[1]);
+    // decorator @ViewChild/@ViewChildren: `ctx.foo = _t.first` or minified `r.trigger=o.first`
+    for (const name of ivyCtxProps(src, IVY_ASSIGN_RE)) {
+      names.add(name);
     }
-    // signal viewChild()/viewChildren() create declarations
-    for (const m of src.matchAll(/ɵɵviewQuerySignal\(\s*ctx\.([A-Za-z_$][\w$]*)\s*,/g)) {
-      names.add(m[1]);
+    // signal viewChild(): `ɵɵviewQuerySignal(ctx.foo,` or minified `Og(r._iconPrefixContainerSignal,`
+    for (const name of ivyCtxProps(src, IVY_CALL_PROP_ARG_RE)) {
+      names.add(name);
     }
   }
   viewQueryPropsByClass.set(ctor, names);
@@ -403,7 +466,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         hostInstance: instance,
       });
     } else if (isQuerySignal(value)) {
-      const node = (value as any)[SIGNAL];
+      const node = getQuerySignalNode(value);
       // viewChild()/viewChildren() signals are resolved by Angular — never patch.
       // Content signals stay patchable.
       if (viewQueryProps.has(key)) {
@@ -602,6 +665,150 @@ function pickMatchForOutlet(
       if (match) {
         return match;
       }
+      // ContentChild(MatFormFieldControl) matches `provide: { useExisting: MatInput }`,
+      // not `instanceof`. Native queries walk providers; so must we.
+      const provided = resolveProvidedToken(outlet, p as Type<unknown>);
+      if (provided != null) {
+        return provided;
+      }
+      continue;
+    }
+    // ContentChild(MAT_SLIDER_THUMB) etc. — InjectionToken, not a class.
+    if (p instanceof InjectionToken) {
+      const provided = resolveProvidedToken(outlet, p);
+      if (provided != null) {
+        return provided;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Resolve a class / DI token provided by this outlet's host (component or host directives). */
+function resolveProvidedToken(
+  outlet: ComponentOutlet,
+  token: Type<unknown> | InjectionToken<unknown>,
+): unknown {
+  const injectors = [outlet.componentRef?.injector, outlet.componentInjector].filter(
+    (injector): injector is Injector => injector != null,
+  );
+  for (const injector of injectors) {
+    try {
+      const value = injector.get(token as Type<unknown>, null, { optional: true, self: true });
+      if (value != null) {
+        return value;
+      }
+    } catch {
+      // Host injector may not be ready.
+    }
+  }
+  for (const injector of injectors) {
+    try {
+      const value = injector.get(token as Type<unknown>, null, { optional: true });
+      if (value != null && getOutletQueryCandidates(outlet).includes(value as object)) {
+        return value;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Resolve a type / InjectionToken predicate against directive instances on a schema
+ * NgTemplate (instanceof + `providers: [{ provide, useExisting }]` mirrors outlet hosts).
+ */
+function pickMatchFromTemplateDirectives(
+  instances: object[],
+  predicate: unknown,
+): unknown | undefined {
+  if (!instances.length) {
+    return undefined;
+  }
+  if (typeof predicate === 'string') {
+    return instances.find((candidate) => typeNameMatches(candidate, predicate));
+  }
+  if (typeof predicate === 'function') {
+    const match = instances.find((candidate) => candidate instanceof (predicate as Type<unknown>));
+    if (match) {
+      return match;
+    }
+    // e.g. ContentChildren(CdkColumnDef) when only MatColumnDef is present and provides it.
+    for (const candidate of instances) {
+      const provided = resolveProvidedTokenFromInstance(candidate, predicate as Type<unknown>);
+      if (provided != null) {
+        return provided;
+      }
+    }
+    return undefined;
+  }
+  if (predicate instanceof InjectionToken) {
+    for (const candidate of instances) {
+      const provided = resolveProvidedTokenFromInstance(candidate, predicate);
+      if (provided != null) {
+        return provided;
+      }
+    }
+  }
+  return undefined;
+}
+
+/** Match Ivy `contentQuery(..., CdkCellDef, …)` name strings to live Mat/Cdk instances. */
+function typeNameMatches(instance: object, predicateName: string): boolean {
+  const want = predicateName.replace(/^_/, '');
+  const got = (instance.constructor?.name ?? '').replace(/^_/, '');
+  if (!want || !got) {
+    return false;
+  }
+  if (got === want) {
+    return true;
+  }
+  // MatX provides CdkX (MatCellDef ↔ CdkCellDef).
+  if (want.startsWith('Cdk') && got === `Mat${want.slice(3)}`) {
+    return true;
+  }
+  if (want.startsWith('Mat') && got === `Cdk${want.slice(3)}`) {
+    return true;
+  }
+  const def = (instance.constructor as Type<any> & { ɵdir?: any; ɵcmp?: any }).ɵdir
+    ?? (instance.constructor as Type<any> & { ɵcmp?: any }).ɵcmp;
+  const providers = def?.providers;
+  if (!Array.isArray(providers)) {
+    return false;
+  }
+  return providers.some(
+    (provider: any) =>
+      provider
+      && typeof provider === 'object'
+      && 'provide' in provider
+      && 'useExisting' in provider
+      && typeof provider.provide?.name === 'string'
+      && provider.provide.name.replace(/^_/, '') === want,
+  );
+}
+
+/** Read `ɵdir.providers` / `ɵcmp.providers` for `useExisting` matching (no injector walk). */
+function resolveProvidedTokenFromInstance(
+  instance: object,
+  token: Type<unknown> | InjectionToken<unknown>,
+): unknown {
+  const def = (instance.constructor as Type<any> & { ɵdir?: any; ɵcmp?: any }).ɵdir
+    ?? (instance.constructor as Type<any> & { ɵcmp?: any }).ɵcmp;
+  const providers = def?.providers;
+  if (!Array.isArray(providers)) {
+    return undefined;
+  }
+  for (const provider of providers) {
+    if (
+      provider
+      && typeof provider === 'object'
+      && 'provide' in provider
+      && provider.provide === token
+      && 'useExisting' in provider
+    ) {
+      // useExisting points at the declaring class; the live instance is `instance`.
+      return instance;
     }
   }
   return undefined;
@@ -610,17 +817,22 @@ function pickMatchForOutlet(
 function pickMatchForTemplateEntry(
   entry: TemplateContentRefEntry,
   predicate: unknown,
-): TemplateRef<unknown> | undefined {
+): unknown | undefined {
   const predicates = normalizePredicates(predicate);
   if (!predicates.length) {
     return undefined;
   }
+  const instances = getTemplateDirectiveInstances(entry.templateRef);
   for (const p of predicates) {
     if (isTemplateRefType(p)) {
       return entry.templateRef;
     }
     if (typeof p === 'string' && entry.refName === p) {
       return entry.templateRef;
+    }
+    const fromDirs = pickMatchFromTemplateDirectives(instances, p);
+    if (fromDirs != null) {
+      return fromDirs;
     }
   }
   return undefined;
@@ -679,12 +891,20 @@ export function resolvePatchResults(
   return results;
 }
 
+/** Null and undefined are the same empty ContentChild result. */
+function sameSlotValue(a: unknown, b: unknown): boolean {
+  if (a === b) {
+    return true;
+  }
+  return a == null && b == null;
+}
+
 function sameQueryResults(a: unknown[], b: unknown[]): boolean {
   if (a.length !== b.length) {
     return false;
   }
   for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i]) {
+    if (!sameSlotValue(a[i], b[i])) {
       return false;
     }
   }
@@ -698,8 +918,70 @@ function childrenStructureKey(childInstances: unknown[]): string {
     .join(',');
 }
 
-/** Last structure key that already triggered a view refresh. */
-const lastScheduledStructureKey = new WeakMap<ComponentOutlet, string>();
+/** Last patch fingerprint that already scheduled a view refresh for this outlet. */
+const lastScheduledPatchKey = new WeakMap<ComponentOutlet, string>();
+
+let patchIdentitySeq = 0;
+const patchIdentities = new WeakMap<object, number>();
+
+function patchIdentity(value: unknown): string {
+  if (value == null) {
+    return '';
+  }
+  if (typeof value !== 'object') {
+    return `p:${String(value)}`;
+  }
+  let id = patchIdentities.get(value);
+  if (id == null) {
+    id = ++patchIdentitySeq;
+    patchIdentities.set(value, id);
+  }
+  return String(id);
+}
+
+function queryResultsFingerprint(targets: ContentQueryPatchTarget[]): string {
+  return targets
+    .map((target) => {
+      const items = target.queryList?.toArray?.() ?? [];
+      return `${target.kind}:${target.propertyName ?? ''}:${items.map(patchIdentity).join(',')}`;
+    })
+    .join('|');
+}
+
+type ReactiveLink = { consumer: ReactiveNode; nextConsumer?: ReactiveLink };
+type ReactiveNode = {
+  value?: unknown;
+  version?: number;
+  dirty?: boolean;
+  consumers?: ReactiveLink;
+  consumerMarkedDirty?: (node: ReactiveNode) => void;
+};
+
+/**
+ * Derived computeds such as MatFormField `_hasFloatingLabel = computed(() => !!this._labelChild())`
+ * subscribe to the original `contentChild()` computed. Replacing the field with a shim does not
+ * change that computed's value (native query is still empty), so they never re-run and lazy
+ * `@if (_hasFloatingLabel())` ng-content stays uncreated. Publish the patched value onto the
+ * original node and notify its consumers so they re-read `this._labelChild`.
+ */
+function publishQuerySignalValue(signalNode: object, nextValue: unknown): void {
+  const node = signalNode as ReactiveNode;
+  node.value = nextValue;
+  node.version = (node.version ?? 0) + 1;
+  markReactiveConsumersDirty(node);
+}
+
+function markReactiveConsumersDirty(node: ReactiveNode): void {
+  for (let link = node.consumers; link; link = link.nextConsumer) {
+    const consumer = link.consumer;
+    if (!consumer || consumer.dirty) {
+      continue;
+    }
+    consumer.dirty = true;
+    consumer.consumerMarkedDirty?.(consumer);
+    markReactiveConsumersDirty(consumer);
+  }
+}
 
 /** Install/update signal shim. Safe only outside ApplicationRef.synchronize (post-tick microtask). */
 function installOrUpdateSignalShim(
@@ -718,13 +1000,15 @@ function installOrUpdateSignalShim(
     shim = signal(nextValue);
     signalShims.set(signalNode, shim);
     (hostInstance as any)[propertyName] = shim.asReadonly();
+    publishQuerySignalValue(signalNode, nextValue);
     return true;
   }
   const prev = shim();
-  if (firstOnly ? prev === nextValue : sameQueryResults((prev as unknown[]) ?? [], results)) {
+  if (firstOnly ? sameSlotValue(prev, nextValue) : sameQueryResults((prev as unknown[]) ?? [], results)) {
     return false;
   }
   shim.set(nextValue);
+  publishQuerySignalValue(signalNode, nextValue);
   return true;
 }
 
@@ -810,6 +1094,153 @@ export function patchContentQuery(
 }
 
 /**
+ * Collect content queries along the directive inheritance chain (e.g. MatColumnDef → CdkColumnDef).
+ *
+ * After Ivy linking, `ɵdir.queries` is often stripped and only `contentQueries(rf, ctx)` remains
+ * (see CdkColumnDef). Parse that function for predicates + `ctx.prop = _t.first` assignments.
+ */
+function collectDirectiveQueryDefs(ctor: Type<unknown>): Array<{
+  propertyName: string;
+  predicate: unknown;
+  firstOnly: boolean;
+  descendants: boolean;
+}> {
+  const results: Array<{
+    propertyName: string;
+    predicate: unknown;
+    firstOnly: boolean;
+    descendants: boolean;
+  }> = [];
+  const seen = new Set<string>();
+  let current: Type<unknown> | null | undefined = ctor;
+  let depth = 0;
+  while (current && depth < 8) {
+    const dir = (current as Type<unknown> & { ɵdir?: { queries?: any[]; contentQueries?: Function } })
+      .ɵdir;
+    if (Array.isArray(dir?.queries)) {
+      for (const q of dir!.queries!) {
+        const propertyName = typeof q?.propertyName === 'string' ? q.propertyName : null;
+        if (!propertyName || seen.has(propertyName)) {
+          continue;
+        }
+        seen.add(propertyName);
+        results.push({
+          propertyName,
+          predicate: q.predicate ?? null,
+          firstOnly: !!q.first,
+          descendants: !!q.descendants,
+        });
+      }
+    } else if (typeof dir?.contentQueries === 'function') {
+      for (const q of parseDirectiveContentQueries(dir.contentQueries)) {
+        if (seen.has(q.propertyName)) {
+          continue;
+        }
+        seen.add(q.propertyName);
+        results.push(q);
+      }
+    }
+    const proto = Object.getPrototypeOf(current.prototype);
+    const nextCtor = proto?.constructor as Type<unknown> | undefined;
+    if (!nextCtor || nextCtor === Object || nextCtor === current) {
+      break;
+    }
+    current = nextCtor;
+    depth++;
+  }
+  return results;
+}
+
+/**
+ * Recover `@ContentChild` metadata from a linked `ɵdir.contentQueries` function.
+ * Predicate is the identifier name string (e.g. `"CdkCellDef"`) — {@link pickMatchFromTemplateDirectives}
+ * resolves it against live directive instances by constructor / provide name.
+ */
+function parseDirectiveContentQueries(contentQueries: Function): Array<{
+  propertyName: string;
+  predicate: unknown;
+  firstOnly: boolean;
+  descendants: boolean;
+}> {
+  const src = Function.prototype.toString.call(contentQueries);
+  const predicates: Array<{ name: string; flags: number }> = [];
+  const predRe =
+    /contentQuery\s*\(\s*[^,]+,\s*([A-Za-z_$][\w$]*)\s*,\s*(\d+)\s*\)/g;
+  for (const m of src.matchAll(predRe)) {
+    predicates.push({ name: m[1], flags: Number(m[2]) || 0 });
+  }
+  const firstProps = ivyCtxProps(src, IVY_ASSIGN_FIRST_RE);
+  const assignProps = ivyCtxProps(src, IVY_ASSIGN_RE);
+  const props = firstProps.length ? firstProps : assignProps;
+  const firstSet = new Set(firstProps);
+  const out: Array<{
+    propertyName: string;
+    predicate: unknown;
+    firstOnly: boolean;
+    descendants: boolean;
+  }> = [];
+  for (let i = 0; i < props.length && i < predicates.length; i++) {
+    out.push({
+      propertyName: props[i],
+      predicate: predicates[i].name,
+      firstOnly: firstSet.has(props[i]) || firstProps.length > 0,
+      descendants: !!(predicates[i].flags & QUERY_FLAG_DESCENDANTS),
+    });
+  }
+  return out;
+}
+
+/**
+ * Patch `@ContentChild(ren)` declared on host directives (e.g. MatColumnDef.cell on
+ * `ng-container` + matColumnDef). Component-instance queries are handled separately via
+ * {@link discoverContentQueryTargets}; host-directive queries often have no live QueryList
+ * on the component instance, so we write matched results straight onto the directive fields.
+ */
+function patchHostDirectiveContentQueries(
+  parentOutlet: ComponentOutlet,
+  descendantOutlets?: ComponentOutlet[] | null,
+): boolean {
+  let changed = false;
+  for (const candidate of getOutletQueryCandidates(parentOutlet)) {
+    if (candidate === parentOutlet.componentInstance) {
+      continue;
+    }
+    const queryDefs = collectDirectiveQueryDefs(candidate.constructor as Type<unknown>);
+    if (!queryDefs.length) {
+      continue;
+    }
+    for (const q of queryDefs) {
+      const results = resolvePatchResults(
+        {
+          kind: 'query-list',
+          propertyName: q.propertyName,
+          // Unused when resolving via resolvePatchResults — only predicate/descendants matter.
+          queryList: null as unknown as QueryList<unknown>,
+          predicate: q.predicate,
+          firstOnly: q.firstOnly,
+          descendants: q.descendants,
+          hostInstance: candidate,
+        },
+        parentOutlet,
+        descendantOutlets,
+      );
+      const next = q.firstOnly ? (results[0] ?? null) : results;
+      const current = (candidate as Record<string, unknown>)[q.propertyName];
+      if (q.firstOnly) {
+        if (!sameSlotValue(current, next)) {
+          (candidate as Record<string, unknown>)[q.propertyName] = next;
+          changed = true;
+        }
+      } else if (!sameQueryResults(Array.isArray(current) ? current : [], results)) {
+        (candidate as Record<string, unknown>)[q.propertyName] = results;
+        changed = true;
+      }
+    }
+  }
+  return changed;
+}
+
+/**
  * Patch content queries for one parent outlet. Must run after the CD tick
  * (not inside afterEveryRender — would throw NG0100).
  */
@@ -828,7 +1259,12 @@ export function patchOutletContentQueries(
     .filter((instance): instance is object => instance != null);
   const projected = refs.filter((entry) => entry.kind === 'template');
 
-  const structureKey = `${childInstances.length}:${childrenStructureKey(childInstances)}#tpl:${projected.length}:${projected.map((p) => p.refName ?? '').join(',')}`;
+  const structureKey = `${childInstances.length}:${childrenStructureKey(childInstances)}#tpl:${projected.length}:${projected
+    .map((p) => {
+      const dirs = getTemplateDirectiveInstances(p.templateRef);
+      return `${p.refName ?? ''}:${dirs.map((d) => d.constructor.name).join(',')}`;
+    })
+    .join('|')}`;
   const targets = discoverContentQueryTargets(parentInstance);
   let queryChanged = false;
   let shimChanged = false;
@@ -845,29 +1281,52 @@ export function patchOutletContentQueries(
   if (syncHostFieldsFromContentQueryTargets(parentInstance, targets)) {
     queryChanged = true;
   }
+  if (patchHostDirectiveContentQueries(parentOutlet, descendantOutlets)) {
+    queryChanged = true;
+  }
 
   if (!queryChanged && !shimChanged) {
     return false;
   }
 
-  // Only mark for check when the child structure changed or a shim needs a new value — else we'd loop.
-  const structureChanged = lastScheduledStructureKey.get(parentOutlet) !== structureKey;
-  if (!structureChanged && !shimChanged) {
+  // Query-result changes (e.g. MatFormFieldControl resolved via provide) need a CD so
+  // `_shouldLabelFloat` / `_initializeControl` see the real control. Structure-only
+  // gating would skip that when children were already registered.
+  // Fingerprint the applied results: MatTab empty ContentChild was `undefined !== null`
+  // every tick, which markForCheck'd in a loop (NG0103). Same results → no extra CD.
+  // Include host-directive ContentChild fields (MatColumnDef.cell etc.) so wiring them
+  // after component QueryLists still schedules a CD.
+  const hostDirKey = getOutletQueryCandidates(parentOutlet)
+    .filter((c) => c !== parentInstance)
+    .map((c) =>
+      collectDirectiveQueryDefs(c.constructor as Type<unknown>)
+        .map((q) => {
+          const v = (c as Record<string, unknown>)[q.propertyName];
+          const label =
+            v == null
+              ? ''
+              : Array.isArray(v)
+                ? v.map((x) => (x as object)?.constructor?.name ?? String(x)).join(',')
+                : ((v as object)?.constructor?.name ?? String(v));
+          return `${q.propertyName}:${label}`;
+        })
+        .join(','),
+    )
+    .join('|');
+  const patchKey = `${structureKey}#${queryResultsFingerprint(targets)}#hd:${hostDirKey}`;
+  if (lastScheduledPatchKey.get(parentOutlet) === patchKey) {
     return false;
   }
-  lastScheduledStructureKey.set(parentOutlet, structureKey);
+  lastScheduledPatchKey.set(parentOutlet, patchKey);
   parentOutlet.componentRef?.changeDetectorRef.markForCheck();
   return true;
 }
 
 /**
  * Compiled `ɵcmp.contentQueries` source is re-parsed per class to recover `@ContentChild` field
- * names (`ctx.foo = _t.first`). Parsing `Function.prototype.toString` is fragile against
- * minification (which can rename `ctx`/`_t`) and Angular codegen changes, but it is the only
- * source of field→query cardinality (metadata holds predicate/flags, not the property name).
- * Fail closed: when the regex matches nothing, `firstProps` is empty and the caller skips
- * field-name binding entirely (queries simply remain unpatched). Results are cached per class
- * because this runs after every render tick.
+ * names. Ivy emits `ctx.foo = _t.first`; production minify rewrites locals (`r._formFieldControl=a.first`)
+ * but keeps the property name. That name is not in query metadata, so toString is the only source.
+ * Fail closed: when nothing matches, field-name binding is skipped. Cached per class.
  */
 const contentChildFirstPropsByClass = new WeakMap<object, string[]>();
 
@@ -881,10 +1340,7 @@ function getContentChildFirstProps(instance: object): string[] {
   const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
   if (typeof contentQueries === 'function') {
     const src = Function.prototype.toString.call(contentQueries);
-    // `ctx.foo = _t.first` → @ContentChild
-    for (const m of src.matchAll(/ctx\.([A-Za-z_][\w$]*)\s*=\s*_t\.first/g)) {
-      firstProps.push(m[1]);
-    }
+    firstProps.push(...ivyCtxProps(src, IVY_ASSIGN_FIRST_RE));
   }
   contentChildFirstPropsByClass.set(ctor, firstProps);
   return firstProps;
@@ -934,7 +1390,7 @@ function syncHostFieldsFromContentQueryTargets(
     }
     // @ContentChild: host field holds the single match (or null).
     const next = target.queryList.toArray()[0] ?? null;
-    if (current !== next) {
+    if (!sameSlotValue(current, next)) {
       (instance as any)[prop] = next;
       changed = true;
     }

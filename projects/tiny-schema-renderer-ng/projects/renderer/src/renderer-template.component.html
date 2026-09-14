@@ -40,6 +40,8 @@
           {
             children: schema.children,
             scope: mergeScope,
+            parent: schema,
+            projectedViews: projectedViews
           } | projectNgContent: childrenTemplate : viewContainerRef : (schema.componentName | getComponent)
         "
         [schemaRefScope]="mergeScope"
@@ -60,8 +62,8 @@
         #componentOutlet="componentOutlet"
       ></ng-template>
 
-      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes">
-        <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
+      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes" let-componentInjector="componentInjector" let-parentSchema="parent" let-projectedViews="projectedViews">
+        <ng-container *ngIf="(children | isArray) && !!(componentInjector || componentOutlet?.componentInjector)">
           <ng-container *ngFor="let child of children; let childIndex = index">
             <ng-template [ngTemplateOutlet]="child.componentName === 'NgTemplate' 
               ? ngTemplate 
@@ -76,6 +78,10 @@
                 ngSchemaTemplate
                 schemaTemplateContext
                 #templateCtx="schemaTemplateContext"
+                schemaTemplateDirectives
+                [schemaTemplateDirectiveTypes]="child.directives | autoApplyDirectives: child | getDirectives"
+                [schemaTemplateDirectiveProps]="context | parseData: child.props : scope"
+                [schemaTemplateParentInjector]="componentInjector || componentOutlet?.componentInjector"
                 [contentChildrenParent]="componentOutlet"
                 [contentChildrenRefName]="child.props?.refName"
                 [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
@@ -84,19 +90,16 @@
                 [schemaTemplateLet]="context | parseData: child.props?.let : scope"
                 [schemaTemplateScope]="scope"
               >
-                <ng-container *ngIf="(child.children | isArray)">
-                  <ng-container *ngFor="let c of child.children">
-                    <ng-template
-                      rendererTemplate
-                      [schema]="c"
-                      [scope]="templateCtx.resolve()"
-                      [parent]="child"
-                      [template]="template"
-                      [injector]="componentOutlet.componentInjector"
-                    ></ng-template>
-                  </ng-container>
-                </ng-container>
-                <ng-container *ngIf="child.children | isString">{{ child.children }}</ng-container>
+                <ng-template
+                  [ngTemplateOutlet]="childrenTemplate"
+                  [ngTemplateOutletContext]="{
+                    children: child.children,
+                    scope: templateCtx.resolve(),
+                    parent: child,
+                    componentInjector: componentInjector || componentOutlet?.componentInjector,
+                    projectedViews: projectedViews
+                  }"
+                ></ng-template>
               </ng-template>
             </ng-template>
             <ng-template #projectedNodes>
@@ -113,10 +116,11 @@
                 rendererTemplate
                 [schema]="child"
                 [scope]="scope"
-                [parent]="schema"
+                [parent]="parentSchema"
                 [template]="template"
-                [injector]="componentOutlet.componentInjector"
+                [injector]="componentInjector || componentOutlet?.componentInjector"
                 [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
+                [projectedViews]="projectedViews"
               ></ng-template>
             </ng-template>
           </ng-container>

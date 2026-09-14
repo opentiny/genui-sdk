@@ -13,6 +13,12 @@ const PROJECTED_VIEW = Symbol('projectedView');
 /** Method key on RenderBlock — not a string, so it cannot clash with schema props. */
 export const SET_PROJECTED_VIEWS = Symbol('setProjectedViews');
 
+/**
+ * Push resolved `this.contentRefs` values into the nested RendererMain.
+ * Values are TemplateRef / component instances matched by schema `contentRefs` declaration.
+ */
+export const SET_CONTENT_REFS = Symbol('setContentRefs');
+
 type SlotNodes = Node[] & { [PROJECTED_VIEW]?: EmbeddedViewRef<unknown> };
 
 export function bindProjectedView(nodes: Node[], viewRef: EmbeddedViewRef<unknown>) {

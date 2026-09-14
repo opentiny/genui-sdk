@@ -1,5 +1,11 @@
 import { type Type } from '@angular/core';
 import {
+  NgComponentOutlet,
+  NgForOf,
+  NgIf,
+  NgTemplateOutlet,
+} from '@angular/common';
+import {
   MATERIALS_CONTEXT_KEY,
   type AutoApplyDirectivePattern,
   type IRendererMaterials,
@@ -10,15 +16,34 @@ import {
   CheckboxControlValueAccessor,
   DefaultValueAccessor,
   EmailValidator,
+  FormControlDirective,
+  FormGroupDirective,
   FormsModule,
+  NgForm,
   NgModel,
   NumberValueAccessor,
   NgControlStatus,
   RadioControlValueAccessor,
+  ReactiveFormsModule,
   RequiredValidator,
   SelectControlValueAccessor,
+  SelectMultipleControlValueAccessor,
+  NgSelectOption,
+  ɵNgSelectMultipleOption,
 } from '@angular/forms';
 import { LogDirective } from '../buildin/log.directive';
+import { SchemaDeferredNgPlural } from '../buildin/schema-deferred-ng-plural';
+import { SchemaNgSwitch } from '../buildin/schema-ng-switch';
+import { SchemaNgSwitchCase, SchemaNgSwitchDefault } from '../buildin/schema-ng-switch-case';
+import { SchemaNgPluralCase } from '../buildin/schema-ng-plural-case';
+import { NgControlContainerHostBridge } from '../buildin/ng-control-container-host.directive';
+import { NgSelectOptionHostBridge } from '../buildin/ng-select-option-host.directive';
+import {
+  SchemaFormArrayName,
+  SchemaFormControlName,
+  SchemaFormGroupName,
+  SchemaNgModelGroup,
+} from '../buildin/skip-self-control-container';
 import { nativeElementComponentFactory } from '../native-element.component';
 import { getBlock } from '../block';
 
@@ -30,24 +55,57 @@ export const ModuleRef: Record<string, Type<any>> = {};
 
 export const directiveMap: Record<string, Type<any>> = {
   ngModel: NgModel,
+  ngModelGroup: SchemaNgModelGroup,
+  ngForm: NgForm,
+  formGroup: FormGroupDirective,
+  formControl: FormControlDirective,
+  formControlName: SchemaFormControlName,
+  formGroupName: SchemaFormGroupName,
+  formArrayName: SchemaFormArrayName,
+  ngControlContainerHost: NgControlContainerHostBridge,
+  ngSelectOptionHost: NgSelectOptionHostBridge,
+  ngSelectOption: NgSelectOption,
+  ngSelectMultipleOption: ɵNgSelectMultipleOption,
   defaultValueAccessor: DefaultValueAccessor,
   checkboxValueAccessor: CheckboxControlValueAccessor,
   numberValueAccessor: NumberValueAccessor,
   selectValueAccessor: SelectControlValueAccessor,
+  selectMultipleValueAccessor: SelectMultipleControlValueAccessor,
   radioValueAccessor: RadioControlValueAccessor,
   ngControlStatus: NgControlStatus,
   required: RequiredValidator,
   email: EmailValidator,
   log: LogDirective,
+  // @angular/common structural / outlet directives (NgTemplate host path)
+  ngIf: NgIf,
+  ngFor: NgForOf,
+  ngForOf: NgForOf,
+  ngTemplateOutlet: NgTemplateOutlet,
+  ngComponentOutlet: NgComponentOutlet,
+  ngSwitch: SchemaNgSwitch,
+  ngSwitchCase: SchemaNgSwitchCase,
+  ngSwitchDefault: SchemaNgSwitchDefault,
+  ngPlural: SchemaDeferredNgPlural,
+  ngPluralCase: SchemaNgPluralCase,
 };
 
 /** 非 standalone 指令 -> 其声明导出的 NgModule（用于创建模块提供 DI 依赖） */
 export const directiveModuleRef: Record<string, Type<any>> = {
   ngModel: FormsModule,
+  ngModelGroup: FormsModule,
+  ngForm: FormsModule,
+  formGroup: ReactiveFormsModule,
+  formControl: ReactiveFormsModule,
+  formControlName: ReactiveFormsModule,
+  formGroupName: ReactiveFormsModule,
+  formArrayName: ReactiveFormsModule,
   defaultValueAccessor: FormsModule,
   checkboxValueAccessor: FormsModule,
   numberValueAccessor: FormsModule,
   selectValueAccessor: FormsModule,
+  selectMultipleValueAccessor: FormsModule,
+  ngSelectOption: FormsModule,
+  ngSelectMultipleOption: FormsModule,
   radioValueAccessor: FormsModule,
   ngControlStatus: FormsModule,
   required: FormsModule,
@@ -55,10 +113,16 @@ export const directiveModuleRef: Record<string, Type<any>> = {
 };
 
 (NgModel['ɵdir'] as any).standalone = true;
+(NgForm['ɵdir'] as any).standalone = true;
+(FormGroupDirective['ɵdir'] as any).standalone = true;
+(FormControlDirective['ɵdir'] as any).standalone = true;
 (DefaultValueAccessor['ɵdir'] as any).standalone = true;
 (CheckboxControlValueAccessor['ɵdir'] as any).standalone = true;
 (NumberValueAccessor['ɵdir'] as any).standalone = true;
 (SelectControlValueAccessor['ɵdir'] as any).standalone = true;
+(SelectMultipleControlValueAccessor['ɵdir'] as any).standalone = true;
+(NgSelectOption['ɵdir'] as any).standalone = true;
+(ɵNgSelectMultipleOption['ɵdir'] as any).standalone = true;
 (RadioControlValueAccessor['ɵdir'] as any).standalone = true;
 (NgControlStatus['ɵdir'] as any).standalone = true;
 (RequiredValidator['ɵdir'] as any).standalone = true;
@@ -109,36 +173,68 @@ export const createComponent = (component: string): Type<any> => {
   return componentFactory;
 };
 
+const NATIVE_FORM_TAGS = new Set(['input', 'textarea', 'select']);
+
 export const getAutoApplyPatterns = (
   context: Record<PropertyKey, any> = {},
 ): AutoApplyDirectivePattern => {
-  const tagOf = (schema: any, ctx: Record<PropertyKey, any> = {}) =>
-    (getComponent(schema?.componentName, ctx) as any)?.['ɵcmp']?.selectors?.[0]?.[0] ?? '';
+  const tagOf = (schema: any, ctx: Record<PropertyKey, any> = {}) => {
+    const name = String(schema?.componentName ?? '').toLowerCase();
+    // Prefer schema name: NativeElement ɵcmp is Object.create'd and selectors can be stale.
+    if (NATIVE_FORM_TAGS.has(name)) {
+      return name;
+    }
+    const sel = (getComponent(schema?.componentName, ctx) as any)?.['ɵcmp']?.selectors?.[0]?.[0];
+    return typeof sel === 'string' ? sel.toLowerCase() : '';
+  };
 
-  const hasNgModel = (schema: any) => !!schema?.props?.ngModel;
+  const hasNgModel = (schema: any) => !!(schema?.props?.ngModel || schema?.props?.onNgModelChange);
 
   const hasAttr = (schema: any, key: string) =>
     schema?.props?.[key] !== undefined && schema?.props?.[key] !== false;
 
+  // @Self() NG_VALUE_ACCESSOR / NG_VALIDATORS / NgControl live on this TNode only.
+  const hasFormBinding = (schema: any) =>
+    hasNgModel(schema) || hasAttr(schema, 'formControlName') || hasAttr(schema, 'formControl');
+
   const isInputType = (schema: any, ctx: Record<PropertyKey, any>, type: string) =>
-    tagOf(schema, ctx) === 'input' && hasNgModel(schema) && schema?.props?.type === type;
+    tagOf(schema, ctx) === 'input' && hasFormBinding(schema) && schema?.props?.type === type;
+
+  const isNativeOption = (schema: any) =>
+    String(schema?.componentName ?? '').toLowerCase() === 'option';
 
   return {
-    ngModel: (schema: any) => !!(schema?.props?.ngModel || schema?.props?.onNgModelChange),
-    // 控件状态：随 ngModel 自动挂载，往宿主写 ng-valid/ng-invalid/ng-touched/ng-dirty 等 class，供校验结果展示。
-    ngControlStatus: (schema: any) => !!(schema?.props?.ngModel || schema?.props?.onNgModelChange),
+    ngForm: (schema: any) =>
+      String(schema?.componentName ?? '').toLowerCase() === 'form' &&
+      !hasAttr(schema, 'ngNoForm') &&
+      !hasAttr(schema, 'ngNativeValidate') &&
+      !hasAttr(schema, 'formGroup'),
+    ngModel: (schema: any) => hasNgModel(schema),
+    ngModelGroup: (schema: any) => hasAttr(schema, 'ngModelGroup'),
+    ngControlStatus: (schema: any) => hasFormBinding(schema),
+    ngControlContainerHost: (schema: any) => hasNgModel(schema),
+    formGroup: (schema: any) => hasAttr(schema, 'formGroup'),
+    formControl: (schema: any) => hasAttr(schema, 'formControl'),
+    formControlName: (schema: any) => hasAttr(schema, 'formControlName'),
+    formGroupName: (schema: any) => hasAttr(schema, 'formGroupName'),
+    formArrayName: (schema: any) => hasAttr(schema, 'formArrayName'),
     defaultValueAccessor: (schema: any, ctx = {}) =>
       ['input', 'textarea'].includes(tagOf(schema, ctx)) &&
-      hasNgModel(schema) &&
+      hasFormBinding(schema) &&
       !['checkbox', 'number', 'range', 'radio'].includes(schema?.props?.type),
     checkboxValueAccessor: (schema: any, ctx = {}) => isInputType(schema, ctx, 'checkbox'),
     numberValueAccessor: (schema: any, ctx = {}) => isInputType(schema, ctx, 'number'),
     radioValueAccessor: (schema: any, ctx = {}) => isInputType(schema, ctx, 'radio'),
     selectValueAccessor: (schema: any, ctx = {}) =>
-      tagOf(schema, ctx) === 'select' && hasNgModel(schema) && !schema?.props?.multiple,
-    // 校验器：仅在挂载 ngModel 时生效（校验器需 @Self() NgControl）。
-    required: (schema: any, ctx = {}) => hasNgModel(schema) && hasAttr(schema, 'required'),
-    email: (schema: any, ctx = {}) => hasNgModel(schema) && hasAttr(schema, 'email'),
+      tagOf(schema, ctx) === 'select' && hasFormBinding(schema) && !schema?.props?.multiple,
+    selectMultipleValueAccessor: (schema: any, ctx = {}) =>
+      tagOf(schema, ctx) === 'select' && hasFormBinding(schema) && !!schema?.props?.multiple,
+    ngSelectOption: (schema: any) => isNativeOption(schema),
+    ngSelectMultipleOption: (schema: any) => isNativeOption(schema),
+    ngSelectOptionHost: (schema: any) => isNativeOption(schema),
+    // 校验器：仅在挂载表单控件时生效（校验器需 @Self() NgControl）。
+    required: (schema: any) => hasFormBinding(schema) && hasAttr(schema, 'required'),
+    email: (schema: any) => hasFormBinding(schema) && hasAttr(schema, 'email'),
     ...(getMaterials(context).autoApplyDirectives ?? {}),
   };
 };
