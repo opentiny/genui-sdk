@@ -6,7 +6,8 @@ import { dataComponents, dataModules } from './components/data-components';
 import { dataAutoApplyDirectives, dataDirectives } from './directives/data-directives';
 
 /**
- * pro 物料：max + 数据展示（碎片 / Paginator / Table / Tree / Sort），全量物料。
+ * pro 物料：max + 数据展示（碎片 / Paginator / Sort / Tree），全量物料。
+ * Table 已在 base。
  */
 export const proMaterials: IMatMaterials = {
   components: { ...maxMaterials.components, ...dataComponents },

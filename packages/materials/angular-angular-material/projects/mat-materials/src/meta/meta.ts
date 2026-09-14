@@ -14,6 +14,6 @@ export const materialsMeta: IMaterialsMeta = {
   materials: metaMaterials,
   wrapperComponent: 'MatCard',
   whiteList: baseWhiteList,
-  examples: filterExamples(['form', 'info']),
+  examples: filterExamples(['form', 'info', 'grid']),
   rules: [],
 };

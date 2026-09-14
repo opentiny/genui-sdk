@@ -1,0 +1,1046 @@
+{
+  "state": {
+    "formData": {
+      "name": "张三",
+      "department": "R&D",
+      "sex": "男",
+      "enabled": true,
+      "agreed": true,
+      "view": "list",
+      "score": 80,
+      "remark": "负责前端物料与渲染器",
+      "city": { "code": "shanghai", "name": "上海" }
+    },
+    "skillTags": ["前端", "物料"],
+    "displayTags": ["Angular", "Material", "GenUI"],
+    "userInfo": {
+      "name": "张三",
+      "department": "研发部",
+      "email": "zhangsan@example.com",
+      "level": "P7"
+    },
+    "currentPage": 0,
+    "pageSize": 5,
+    "total": 13,
+    "progress": 65,
+    "displayedColumns": ["name", "department", "position", "actions"],
+    "tableData": [
+      { "id": 1, "name": "张三", "department": "研发部", "position": "前端工程师" },
+      { "id": 2, "name": "李四", "department": "研发部", "position": "后端工程师" },
+      { "id": 3, "name": "王五", "department": "人事部", "position": "HR" },
+      { "id": 4, "name": "赵六", "department": "财务部", "position": "会计" },
+      { "id": 5, "name": "钱七", "department": "市场部", "position": "运营" },
+      { "id": 6, "name": "孙八", "department": "研发部", "position": "测试工程师" },
+      { "id": 7, "name": "周九", "department": "产品部", "position": "产品经理" },
+      { "id": 8, "name": "吴十", "department": "设计部", "position": "UI 设计师" },
+      { "id": 9, "name": "郑十一", "department": "研发部", "position": "架构师" },
+      { "id": 10, "name": "冯十二", "department": "市场部", "position": "增长运营" },
+      { "id": 11, "name": "陈十三", "department": "人事部", "position": "招聘专员" },
+      { "id": 12, "name": "褚十四", "department": "财务部", "position": "出纳" },
+      { "id": 13, "name": "卫十五", "department": "产品部", "position": "需求分析" }
+    ]
+  },
+  "refs": {
+    "slider": null
+  },
+  "methods": {
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function handleSubmit() { console.log(this.state.formData) }"
+    },
+    "handleReset": {
+      "type": "JSFunction",
+      "value": "function handleReset() { this.state.formData.name = ''; this.state.formData.department = ''; this.state.formData.remark = ''; this.state.formData.sex = ''; this.state.formData.view = ''; this.state.formData.city = null; this.state.formData.agreed = false; this.state.formData.enabled = false; this.state.formData.score = 0; }"
+    },
+    "handleDelete": {
+      "type": "JSFunction",
+      "value": "function handleDelete(row) { this.state.tableData = this.state.tableData.filter(function(item) { return item.id !== row.id; }); this.state.total = this.state.tableData.length; var maxPage = Math.max(0, Math.ceil(this.state.total / this.state.pageSize) - 1); if (this.state.currentPage > maxPage) { this.state.currentPage = maxPage; } }"
+    },
+    "handleChipRemoved": {
+      "type": "JSFunction",
+      "value": "function handleChipRemoved(tag) { this.state.displayTags = this.state.displayTags.filter(function(item) { return item !== tag; }); }"
+    },
+    "onPageChange": {
+      "type": "JSFunction",
+      "value": "function onPageChange(event) { this.state.currentPage = event.pageIndex; this.state.pageSize = event.pageSize; }"
+    }
+  },
+  "componentName": "Page",
+  "props": {
+    "style": "width: 100%; min-height: 100%; background: #f5f5f5;"
+  },
+  "children": [
+    {
+      "componentName": "MatToolbar",
+      "props": {
+        "color": "primary"
+      },
+      "children": [
+        {
+          "componentName": "MatIcon",
+          "props": {
+            "fontIcon": "home"
+          }
+        },
+        {
+          "componentName": "span",
+          "props": {
+            "style": "margin-left: 8px; font-size: 18px;"
+          },
+          "children": "员工工作台"
+        },
+        {
+          "componentName": "span",
+          "props": {
+            "style": "flex: 1 1 auto;"
+          }
+        },
+        {
+          "componentName": "MatIconButton",
+          "props": {
+            "matTooltip": "消息通知"
+          },
+          "directives": [
+            { "directiveName": "matTooltip" }
+          ],
+          "children": [
+            {
+              "componentName": "MatIcon",
+              "props": {
+                "matBadge": "4",
+                "matBadgeColor": "warn"
+              },
+              "directives": [
+                { "directiveName": "matBadge" }
+              ],
+              "children": "notifications"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "style": "padding: 24px; display: flex; flex-direction: column; gap: 24px;"
+      },
+      "children": [
+        {
+          "componentName": "MatCard",
+          "props": {
+            "appearance": "outlined"
+          },
+          "children": [
+            {
+              "componentName": "MatCardHeader",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatCardTitle",
+                  "props": {},
+                  "children": "员工信息"
+                },
+                {
+                  "componentName": "MatCardSubtitle",
+                  "props": {},
+                  "children": "编辑并提交员工档案"
+                }
+              ]
+            },
+            {
+              "componentName": "MatDivider",
+              "props": {}
+            },
+            {
+              "componentName": "form",
+              "props": {
+                "onNgSubmit": {
+                  "type": "JSExpression",
+                  "value": "this.handleSubmit"
+                }
+              },
+              "children": [
+            {
+              "componentName": "MatCardContent",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "display: flex; flex-direction: column; gap: 16px; padding-top: 16px;"
+                  },
+                  "children": [
+                    {
+                      "componentName": "MatFormField",
+                      "props": {
+                        "appearance": "outline",
+                        "floatLabel": "auto",
+                        "style": "width: 100%;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "MatLabel",
+                          "props": {},
+                          "children": "姓名"
+                        },
+                        {
+                          "componentName": "input",
+                          "props": {
+                            "matInput": true,
+                            "name": "name",
+                            "placeholder": "请输入姓名",
+                            "ngModel": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.formData.name"
+                            }
+                          },
+                          "directives": [
+                            { "directiveName": "ngModel" },
+                            { "directiveName": "matInput" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "MatFormField",
+                      "props": {
+                        "appearance": "outline",
+                        "style": "width: 100%;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "MatLabel",
+                          "props": {},
+                          "children": "部门"
+                        },
+                        {
+                          "componentName": "MatSelect",
+                          "props": {
+                            "placeholder": "请选择部门",
+                            "name": "department",
+                            "ngModel": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.formData.department"
+                            }
+                          },
+                          "directives": [
+                            { "directiveName": "ngModel" }
+                          ],
+                          "children": [
+                            {
+                              "componentName": "MatOption",
+                              "props": { "value": "HR" },
+                              "children": "人事部"
+                            },
+                            {
+                              "componentName": "MatOption",
+                              "props": { "value": "R&D" },
+                              "children": "研发部"
+                            },
+                            {
+                              "componentName": "MatOption",
+                              "props": { "value": "finance" },
+                              "children": "财务部"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "ngModelGroup": "address"
+                      },
+                      "children": [
+                        {
+                          "componentName": "label",
+                          "props": {
+                            "style": "display: block; margin-bottom: 8px; font-weight: 500;"
+                          },
+                          "children": "城市"
+                        },
+                        {
+                          "componentName": "select",
+                          "props": {
+                            "name": "city",
+                            "style": "width: 100%; padding: 8px;",
+                            "compareWith": {
+                              "type": "JSExpression",
+                              "value": "function (a, b) { return a && b ? a.code === b.code : a === b; }"
+                            },
+                            "ngModel": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.formData.city"
+                            }
+                          },
+                          "children": [
+                            {
+                              "componentName": "option",
+                              "props": { "value": "" },
+                              "children": "请选择城市"
+                            },
+                            {
+                              "componentName": "option",
+                              "props": {
+                                "ngValue": {
+                                  "type": "JSExpression",
+                                  "value": "{ code: 'beijing', name: '北京' }"
+                                }
+                              },
+                              "children": "北京"
+                            },
+                            {
+                              "componentName": "option",
+                              "props": {
+                                "ngValue": {
+                                  "type": "JSExpression",
+                                  "value": "{ code: 'shanghai', name: '上海' }"
+                                }
+                              },
+                              "children": "上海"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "MatFormField",
+                      "props": {
+                        "appearance": "outline",
+                        "style": "width: 100%;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "MatLabel",
+                          "props": {},
+                          "children": "备注"
+                        },
+                        {
+                          "componentName": "textarea",
+                          "props": {
+                            "matInput": true,
+                            "name": "remark",
+                            "rows": 3,
+                            "placeholder": "请输入备注",
+                            "ngModel": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.formData.remark"
+                            }
+                          },
+                          "directives": [
+                            { "directiveName": "ngModel" },
+                            { "directiveName": "matInput" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "div",
+                      "props": {},
+                      "children": [
+                        {
+                          "componentName": "label",
+                          "props": {
+                            "style": "display: block; margin-bottom: 8px; font-weight: 500;"
+                          },
+                          "children": "性别"
+                        },
+                        {
+                          "componentName": "MatRadioGroup",
+                          "props": {
+                            "name": "sex",
+                            "ngModel": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.formData.sex"
+                            }
+                          },
+                          "directives": [
+                            { "directiveName": "ngModel" }
+                          ],
+                          "children": [
+                            {
+                              "componentName": "MatRadioButton",
+                              "props": {
+                                "value": "男",
+                                "style": "margin-right: 16px;"
+                              },
+                              "children": "男"
+                            },
+                            {
+                              "componentName": "MatRadioButton",
+                              "props": { "value": "女" },
+                              "children": "女"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "div",
+                      "props": {},
+                      "children": [
+                        {
+                          "componentName": "label",
+                          "props": {
+                            "style": "display: block; margin-bottom: 8px; font-weight: 500;"
+                          },
+                          "children": "视图"
+                        },
+                        {
+                          "componentName": "MatButtonToggleGroup",
+                          "props": {
+                            "name": "view",
+                            "ngModel": {
+                              "type": "JSExpression",
+                              "model": true,
+                              "value": "this.state.formData.view"
+                            }
+                          },
+                          "directives": [
+                            { "directiveName": "ngModel" }
+                          ],
+                          "children": [
+                            {
+                              "componentName": "MatButtonToggle",
+                              "props": { "value": "list" },
+                              "children": "列表"
+                            },
+                            {
+                              "componentName": "MatButtonToggle",
+                              "props": { "value": "grid" },
+                              "children": "网格"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "div",
+                      "props": {},
+                      "children": [
+                        {
+                          "componentName": "div",
+                          "props": {
+                            "style": "display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "label",
+                              "props": {
+                                "style": "font-weight: 500;"
+                              },
+                              "children": "评分"
+                            },
+                            {
+                              "componentName": "Text",
+                              "props": {
+                                "style": "font-weight: 500;",
+                                "text": {
+                                  "type": "JSExpression",
+                                  "value": "this.refs.slider != null ? this.refs.slider.value : this.state.formData.score"
+                                }
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "MatSlider",
+                          "props": {
+                            "min": 0,
+                            "max": 100,
+                            "step": 1,
+                            "discrete": true,
+                            "showTickMarks": true,
+                            "style": "width: 100%;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "input",
+                              "props": {
+                                "matSliderThumb": true,
+                                "name": "score",
+                                "ref": {
+                                  "type": "JSExpression",
+                                  "value": "this.refs.slider"
+                                },
+                                "refName": "slider",
+                                "ngModel": {
+                                  "type": "JSExpression",
+                                  "model": true,
+                                  "value": "this.state.formData.score"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "MatCheckbox",
+                      "props": {
+                        "color": "primary",
+                        "name": "agreed",
+                        "ngModel": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.formData.agreed"
+                        }
+                      },
+                      "directives": [
+                        { "directiveName": "ngModel" }
+                      ],
+                      "children": "同意隐私协议"
+                    },
+                    {
+                      "componentName": "MatSlideToggle",
+                      "props": {
+                        "color": "primary",
+                        "name": "enabled",
+                        "ngModel": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.formData.enabled"
+                        }
+                      },
+                      "directives": [
+                        { "directiveName": "ngModel" }
+                      ],
+                      "children": "是否启用"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "MatCardActions",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatButton",
+                  "props": {
+                    "appearance": "filled",
+                    "color": "primary",
+                    "type": "submit",
+                    "matTooltip": "提交员工信息",
+                    "matTooltipPosition": "above"
+                  },
+                  "directives": [
+                    { "directiveName": "matTooltip" }
+                  ],
+                  "children": "提交"
+                },
+                {
+                  "componentName": "MatButton",
+                  "props": {
+                    "appearance": "outlined",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.handleReset"
+                    }
+                  },
+                  "children": "重置"
+                }
+              ]
+            }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "MatCard",
+          "props": {
+            "appearance": "outlined"
+          },
+          "children": [
+            {
+              "componentName": "MatCardHeader",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatCardTitle",
+                  "props": {},
+                  "children": "档案概览"
+                },
+                {
+                  "componentName": "MatCardSubtitle",
+                  "props": {},
+                  "children": "基本信息与任务进度"
+                }
+              ]
+            },
+            {
+              "componentName": "MatCardContent",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatTabs",
+                  "props": {
+                    "selectedIndex": 0,
+                    "stretchTabs": true
+                  },
+                  "children": [
+                    {
+                      "componentName": "MatTab",
+                      "props": {
+                        "label": "基本信息"
+                      },
+                      "children": [
+                        {
+                          "componentName": "MatList",
+                          "props": {},
+                          "children": [
+                            {
+                              "componentName": "MatListItem",
+                              "props": {},
+                              "children": "姓名：张三"
+                            },
+                            {
+                              "componentName": "MatListItem",
+                              "props": {},
+                              "children": "部门：研发部"
+                            },
+                            {
+                              "componentName": "MatListItem",
+                              "props": {},
+                              "children": "邮箱：zhangsan@example.com"
+                            },
+                            {
+                              "componentName": "MatListItem",
+                              "props": {},
+                              "children": "职级：P7"
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "div",
+                          "props": {
+                            "style": "margin-top: 16px;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "label",
+                              "props": {
+                                "style": "display: block; margin-bottom: 8px; font-weight: 500;"
+                              },
+                              "children": "技能标签"
+                            },
+                            {
+                              "componentName": "MatChipSet",
+                              "props": {},
+                              "children": [
+                                {
+                                  "componentName": "MatChip",
+                                  "loop": {
+                                    "type": "JSExpression",
+                                    "value": "this.state.displayTags"
+                                  },
+                                  "loopArgs": ["tag", "tagIndex"],
+                                  "props": {
+                                    "highlighted": {
+                                      "type": "JSExpression",
+                                      "value": "tag === 'GenUI'"
+                                    },
+                                    "removable": true,
+                                    "onRemoved": {
+                                      "type": "JSFunction",
+                                      "value": "function() { this.handleChipRemoved(tag) }"
+                                    }
+                                  },
+                                  "children": [
+                                    {
+                                      "componentName": "Text",
+                                      "props": {
+                                        "text": {
+                                          "type": "JSExpression",
+                                          "value": "tag"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "componentName": "MatIcon",
+                                      "props": {
+                                        "matChipRemove": true
+                                      },
+                                      "directives": [
+                                        { "directiveName": "matChipRemove" }
+                                      ],
+                                      "children": "cancel"
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "componentName": "MatChipListbox",
+                              "props": {
+                                "multiple": true,
+                                "style": "margin-top: 12px;",
+                                "ngModel": {
+                                  "type": "JSExpression",
+                                  "model": true,
+                                  "value": "this.state.skillTags"
+                                }
+                              },
+                              "directives": [
+                                { "directiveName": "ngModel" }
+                              ],
+                              "children": [
+                                {
+                                  "componentName": "MatChipOption",
+                                  "props": { "value": "前端" },
+                                  "children": "前端"
+                                },
+                                {
+                                  "componentName": "MatChipOption",
+                                  "props": { "value": "物料" },
+                                  "children": "物料"
+                                },
+                                {
+                                  "componentName": "MatChipOption",
+                                  "props": { "value": "渲染器" },
+                                  "children": "渲染器"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "MatTab",
+                      "props": {
+                        "label": "任务进度"
+                      },
+                      "children": [
+                        {
+                          "componentName": "div",
+                          "props": {
+                            "style": "padding: 16px 0; display: flex; flex-direction: column; gap: 16px;"
+                          },
+                          "children": [
+                            {
+                              "componentName": "p",
+                              "props": {},
+                              "children": "本季度目标完成度"
+                            },
+                            {
+                              "componentName": "MatProgressBar",
+                              "props": {
+                                "mode": "determinate",
+                                "value": {
+                                  "type": "JSExpression",
+                                  "value": "this.state.progress"
+                                }
+                              }
+                            },
+                            {
+                              "componentName": "div",
+                              "props": {
+                                "style": "display: flex; align-items: center; gap: 16px;"
+                              },
+                              "children": [
+                                {
+                                  "componentName": "MatProgressSpinner",
+                                  "props": {
+                                    "mode": "indeterminate",
+                                    "diameter": 40
+                                  }
+                                },
+                                {
+                                  "componentName": "Text",
+                                  "props": {
+                                    "text": "正在同步组织架构..."
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "MatTab",
+                      "props": {
+                        "label": "帮助"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "text": "如需修改职级或部门，请联系人事部。"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "MatCard",
+          "props": {
+            "appearance": "outlined",
+            "style": "min-width: 0; max-width: 100%; width: 100%; overflow: hidden;"
+          },
+          "children": [
+            {
+              "componentName": "MatCardHeader",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatCardTitle",
+                  "props": {},
+                  "children": "团队成员"
+                }
+              ]
+            },
+            {
+              "componentName": "MatCardContent",
+              "props": {
+                "style": "min-width: 0; overflow: hidden;"
+              },
+              "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "style": "max-height: 280px; overflow: auto; max-width: calc(100vw - 120px);"
+                      },
+                      "children": [
+                {
+                  "componentName": "MatTable",
+                  "props": {
+                    "style": "min-width: 800px;",
+                    "dataSource": {
+                      "type": "JSExpression",
+                      "value": "this.state.tableData.slice(this.state.currentPage * this.state.pageSize, (this.state.currentPage + 1) * this.state.pageSize)"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "ng-container",
+                      "directives": [{ "directiveName": "matColumnDef" }],
+                      "props": {
+                        "matColumnDef": "name",
+                        "sticky": true
+                      },
+                      "children": [
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matHeaderCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "th",
+                              "props": { "matHeaderCell": true },
+                              "children": "姓名"
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matCellDef" }],
+                          "props": { "let": { "row": "$implicit" } },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matCell": true },
+                              "children": [
+                                {
+                                  "componentName": "Text",
+                                  "props": {
+                                    "text": {
+                                      "type": "JSExpression",
+                                      "value": "row.name"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "MatTextColumn",
+                      "props": {
+                        "name": "department",
+                        "headerText": "部门"
+                      }
+                    },
+                    {
+                      "componentName": "MatTextColumn",
+                      "props": {
+                        "name": "position",
+                        "headerText": "职位"
+                      }
+                    },
+                    {
+                      "componentName": "ng-container",
+                      "directives": [{ "directiveName": "matColumnDef" }],
+                      "props": {
+                        "matColumnDef": "actions",
+                        "stickyEnd": true
+                      },
+                      "children": [
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matHeaderCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "th",
+                              "props": { "matHeaderCell": true },
+                              "children": "操作"
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matCellDef" }],
+                          "props": {
+                            "let": { "row": "$implicit" }
+                          },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matCell": true },
+                              "children": [
+                                {
+                                  "componentName": "MatButton",
+                                  "props": {
+                                    "appearance": "text",
+                                    "color": "warn",
+                                    "onClick": {
+                                      "type": "JSFunction",
+                                      "value": "function() { this.handleDelete(row) }"
+                                    }
+                                  },
+                                  "children": "删除"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matHeaderRowDef" }],
+                      "props": {
+                        "matHeaderRowDef": {
+                          "type": "JSExpression",
+                          "value": "this.state.displayedColumns"
+                        },
+                        "matHeaderRowDefSticky": true
+                      },
+                      "children": [
+                        { "componentName": "MatHeaderRow" }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matRowDef" }],
+                      "props": {
+                        "matRowDefColumns": {
+                          "type": "JSExpression",
+                          "value": "this.state.displayedColumns"
+                        },
+                        "let": { "row": "$implicit" }
+                      },
+                      "children": [
+                        { "componentName": "MatRow" }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matNoDataRow" }],
+                      "children": [
+                        {
+                          "componentName": "tr",
+                          "props": {
+                            "class": "mat-mdc-row mdc-data-table__row"
+                          },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": {
+                                "class": "mat-mdc-cell mdc-data-table__cell",
+                                "colSpan": 4,
+                                "style": "text-align: center; padding: 16px;"
+                              },
+                              "children": "暂无数据"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+                      ]
+                    }
+              ]
+            },
+            {
+              "componentName": "MatCardActions",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatPaginator",
+                  "props": {
+                    "length": {
+                      "type": "JSExpression",
+                      "value": "this.state.total"
+                    },
+                    "pageSize": {
+                      "type": "JSExpression",
+                      "value": "this.state.pageSize"
+                    },
+                    "pageIndex": {
+                      "type": "JSExpression",
+                      "value": "this.state.currentPage"
+                    },
+                    "pageSizeOptions": [5, 10, 20],
+                    "showFirstLastButtons": true,
+                    "onPage": {
+                      "type": "JSExpression",
+                      "value": "this.onPageChange"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "MatExpansionPanel",
+          "props": {
+            "expanded": true
+          },
+          "children": [
+            {
+              "componentName": "MatExpansionPanelHeader",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatExpansionPanelTitle",
+                  "props": {},
+                  "children": "常见问题"
+                }
+              ]
+            },
+            {
+              "componentName": "p",
+              "props": {},
+              "children": "本页覆盖 Angular Material 物料白名单中的全部组件与 matInput / matTooltip / matBadge / matChipRemove 指令，可用于联调渲染器。"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

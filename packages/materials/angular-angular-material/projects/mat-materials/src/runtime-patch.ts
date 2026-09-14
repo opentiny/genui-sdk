@@ -1,6 +1,7 @@
 import { MatFormField } from '@angular/material/form-field';
 import { MatSlider } from '@angular/material/slider';
 import { EMPTY } from 'rxjs';
+import { patchMatTableDeferredRender } from './materials/components/schema-mat-table';
 
 /**
  * 占位 MatFormFieldControl 实现。
@@ -162,6 +163,7 @@ export function applyMaterialPatch(): boolean {
   patchNotchedOutlineClassFix();
   patchFormFieldNotchUpgrade();
   patchMatSliderThumbTiming();
+  patchMatTableDeferredRender();
   patched = true;
   return true;
 }

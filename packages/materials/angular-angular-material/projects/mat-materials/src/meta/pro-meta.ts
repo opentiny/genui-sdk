@@ -22,6 +22,6 @@ export const proMaterialsMeta: IMaterialsMeta = {
   materials: metaMaterials,
   wrapperComponent: 'MatCard',
   whiteList: proWhiteList,
-  examples: filterExamples(['form', 'info', 'grid', 'tabs', 'pagination']),
+  examples: filterExamples(['form', 'info', 'grid', 'tabs', 'pagination', 'page']),
   rules: [],
 };
