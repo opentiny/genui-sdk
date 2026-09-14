@@ -65,6 +65,7 @@ export class RendererMain implements OnDestroy {
   methods: any = {};
   state: any = {};
   refs: Record<string, any> = {};
+  contentRefs: Record<string, any> = {};
   /** Page-level template scope — props.refName writes locals here (and into loop mergeScopes). */
   scope: Record<string, any> = {};
   cssScopeId: string = '';
@@ -75,6 +76,11 @@ export class RendererMain implements OnDestroy {
    * page element chain. Projected NgContent is created at the usage site and is unchanged.
    */
   readonly schemaInjector: Injector | undefined;
+
+  @Input('contentRefs')
+  set contentRefsBinding(value: Record<string, any> | null | undefined) {
+    this.setContentRefs(value ?? {}, true);
+  }
 
   constructor(
     private contextService: RendererContextService,
@@ -116,6 +122,7 @@ export class RendererMain implements OnDestroy {
     this.el.nativeElement.getContext = () => this.contextService.getContext();
     this.el.nativeElement.setState = (state: any) => this._setState(state);
     this.el.nativeElement.setRefs = (refs: any) => this.setRefs(refs);
+    this.el.nativeElement.setContentRefs = (contentRefs: any) => this.setContentRefs(contentRefs);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -213,6 +220,18 @@ export class RendererMain implements OnDestroy {
     });
   }
 
+  public setContentRefs(contentRefs: Record<string, any>, clear: boolean = false) {
+    this._setContentRefs(contentRefs, clear);
+  }
+
+  private _setContentRefs(data: any, clear: boolean = false) {
+    clear && reset(this.contentRefs);
+    Object.assign(this.contentRefs, data || {});
+    this.contextService.setContext({
+      contentRefs: this.contentRefs,
+    });
+  }
+
   private async setSchema(data: any) {
     if (!data || !Object.keys(data).length) {
       return;
@@ -221,6 +240,7 @@ export class RendererMain implements OnDestroy {
     const context = {
       state: this.state,
       refs: this.refs,
+      contentRefs: this.contentRefs,
       cssScopeId: this.cssScopeId,
       props: this.props,
     };

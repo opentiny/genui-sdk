@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 import { getComponent, getModuleRef } from './parser/material-getter';
 import { ProjectNgContentPipe } from './ng-content';
-import { BlockProjectedViewsDirective, ProjectedViews, RenderNgContentDirective } from './block';
+import {
+  BlockContentRefsDirective,
+  BlockProjectedViewsDirective,
+  ProjectedViews,
+  RenderNgContentDirective,
+} from './block';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
@@ -87,6 +92,7 @@ export class IsStringPipe implements PipeTransform {
     SchemaTemplateContextDirective,
     SchemaTemplateDirectivesDirective,
     RenderNgContentDirective,
+    BlockContentRefsDirective,
     BlockProjectedViewsDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,

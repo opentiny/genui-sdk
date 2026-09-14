@@ -1,6 +1,6 @@
-import { Component, EventEmitter, Input, Output, SimpleChanges, Type, forwardRef } from "@angular/core";
+import { Component, EventEmitter, SimpleChanges, Type, forwardRef } from "@angular/core";
 import { RendererMain } from "../renderer-main";
-import { ProjectedViews, RENDER_BLOCK_MARKER, SET_PROJECTED_VIEWS } from "./projection/projected-view";
+import { ProjectedViews, RENDER_BLOCK_MARKER, SET_CONTENT_REFS, SET_PROJECTED_VIEWS } from "./projection/projected-view";
 
 const NAME = Symbol('name');
 const SCHEMA = Symbol('schema');
@@ -19,7 +19,8 @@ class DynamicProperties implements Record<string, unknown> {
       [schema]="_schema"
       [props]="_props"
       [dispatchEvent]="_dispatchEvent"
-      [projectedViews]="_projectedViews">
+      [projectedViews]="_projectedViews"
+      [contentRefs]="_contentRefs">
     </tiny-schema-renderer>
   `,
 })
@@ -28,6 +29,7 @@ export class RenderBlockComponent extends DynamicProperties {
   public [SCHEMA]!: {
     inputs: Record<string, unknown>,
     outputs: Record<string, unknown>,
+    contentRefs?: Record<string, string>,
   };
   public [CHANGES_KEY]!: string[];
 
@@ -36,6 +38,7 @@ export class RenderBlockComponent extends DynamicProperties {
   }
   public _props: Record<string, unknown> = {};
   _projectedViews: ProjectedViews | null = null;
+  _contentRefs: Record<string, unknown> = {};
 
   constructor() {
     super();
@@ -43,6 +46,10 @@ export class RenderBlockComponent extends DynamicProperties {
 
   [SET_PROJECTED_VIEWS](views: ProjectedViews | null) {
     this._projectedViews = views;
+  }
+
+  [SET_CONTENT_REFS](refs: Record<string, unknown> | null) {
+    this._contentRefs = refs ?? {};
   }
 
   protected init(name: string, schema: any) {
@@ -77,13 +84,13 @@ export class RenderBlockComponent extends DynamicProperties {
   }
 
   protected _initEventEmitter() {
-    Object.keys(this[SCHEMA].outputs).forEach(key => {
+    Object.keys(this[SCHEMA].outputs || {}).forEach(key => {
       (this as any)[key] = new EventEmitter<any>()
     })
   }
 
   public _dispatchEvent = (event: string, ...data: any) => {
-    if (Object.keys(this[SCHEMA].outputs).includes(event)) {
+    if (Object.keys(this[SCHEMA].outputs || {}).includes(event)) {
       ((this as any)[event] as EventEmitter<any>).emit(data)
     } else {
       console.warn(`Event ${event} not found in schema.outputs`)
@@ -93,7 +100,7 @@ export class RenderBlockComponent extends DynamicProperties {
 
 export function getComponentInputs(schema: any, declare = false) {
   return Object.fromEntries(
-    Object.entries(schema.inputs).map(([key, value]) => [
+    Object.entries(schema.inputs || {}).map(([key, value]) => [
       key,
       declare 
       ? key 
@@ -108,7 +115,7 @@ export function getComponentInputs(schema: any, declare = false) {
 }
 export function getComponentOutputs(schema: any) {
   return Object.fromEntries(
-    Object.entries(schema.outputs).map(([key, value]) => [key, key])
+    Object.entries(schema.outputs || {}).map(([key, value]) => [key, key])
   );
 }
 

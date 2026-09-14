@@ -1,6 +1,7 @@
-import { Directive, DoCheck, EmbeddedViewRef } from '@angular/core';
+import { Directive, DoCheck, EmbeddedViewRef, Optional, Self } from '@angular/core';
 import { AfterComponentCreate, ComponentOutlet } from '../../component-outlet';
 import { getNgContentSelectors, syncLiveProjectedNodes } from '../../ng-content/projectable-nodes';
+import { BlockContentRefsDirective } from './block-content-refs.directive';
 import {
   isRenderBlockType,
   projectedViewFromSlot,
@@ -26,8 +27,13 @@ type BlockHost = {
 export class BlockProjectedViewsDirective implements AfterComponentCreate, DoCheck {
   private lastInstance: object | null = null;
   private lastContent: Node[][] | undefined;
+  /** Last synced live `rootNodes` per slot — skip `syncLiveProjectedNodes` when unchanged. */
+  private lastSyncedLiveRoots: (readonly Node[] | null)[] | null = null;
 
-  constructor(private readonly outlet: ComponentOutlet) {}
+  constructor(
+    private readonly outlet: ComponentOutlet,
+    @Optional() @Self() private readonly contentRefs: BlockContentRefsDirective | null,
+  ) {}
 
   onComponentCreated() {
     this.lastInstance = this.outlet.componentInstance;
@@ -48,13 +54,15 @@ export class BlockProjectedViewsDirective implements AfterComponentCreate, DoChe
   }
 
   private applyProjectedViews() {
+    this.lastSyncedLiveRoots = null;
     const instance = this.outlet.componentInstance as BlockHost | null;
     const content = this.outlet.ngComponentOutletContent;
     const type = this.outlet.ngComponentOutlet;
     if (typeof instance?.[SET_PROJECTED_VIEWS] === 'function') {
       const views = projectedViewsFromContent(content, getNgContentSelectors(type));
       instance[SET_PROJECTED_VIEWS](views);
-      if (views) {
+      const appliedContentRefs = this.contentRefs?.applyContentRefs(instance, content) ?? false;
+      if (views || appliedContentRefs) {
         this.outlet.componentRef?.changeDetectorRef.detectChanges();
       }
       return;
@@ -73,6 +81,11 @@ export class BlockProjectedViewsDirective implements AfterComponentCreate, DoChe
     if (!content?.length || isRenderBlockType(this.outlet.ngComponentOutlet)) {
       return;
     }
+    // Leaf / empty projection: pipe still passes `[[]]` with no bound view — skip.
+    if (!content.some((slot) => projectedViewFromSlot(slot))) {
+      return;
+    }
+
     const componentInjector = this.outlet.componentInjector;
     const liveSlots: Node[][] = [];
     for (const slot of content) {
@@ -88,6 +101,12 @@ export class BlockProjectedViewsDirective implements AfterComponentCreate, DoChe
         liveSlots.push(slot);
       }
     }
+
+    if (sameLiveRoots(this.lastSyncedLiveRoots, liveSlots)) {
+      return;
+    }
+    this.lastSyncedLiveRoots = liveSlots.map((slot) => slot.slice());
+
     const instance = this.outlet.componentInstance;
     if (instance) {
       syncLiveProjectedNodes(
@@ -97,4 +116,26 @@ export class BlockProjectedViewsDirective implements AfterComponentCreate, DoChe
       );
     }
   }
+}
+
+function sameLiveRoots(
+  prev: (readonly Node[] | null)[] | null,
+  next: Node[][],
+): boolean {
+  if (!prev || prev.length !== next.length) {
+    return false;
+  }
+  for (let i = 0; i < next.length; i++) {
+    const a = prev[i];
+    const b = next[i];
+    if (!a || a.length !== b.length) {
+      return false;
+    }
+    for (let j = 0; j < b.length; j++) {
+      if (a[j] !== b[j]) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
