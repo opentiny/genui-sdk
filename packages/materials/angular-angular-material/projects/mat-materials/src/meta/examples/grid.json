@@ -16,6 +16,16 @@
         "name": "王五",
         "department": "人事部",
         "position": "HR"
+      },
+      {
+        "name": "赵六",
+        "department": "市场部",
+        "position": "销售"
+      },
+      {
+        "name": "钱七",
+        "department": "财务部",
+        "position": "会计"
       }
     ]
   },
@@ -37,7 +47,7 @@
             {
               "componentName": "MatCardTitle",
               "props": {},
-              "children": "员工列表"
+              "children": "员工列表（sticky 列/表头 + 空数据行 + 表尾）"
             }
           ]
         },
@@ -46,53 +56,246 @@
           "props": {},
           "children": [
             {
-              "componentName": "MatTable",
+              "componentName": "div",
               "props": {
-                "style": "width: 100%;",
-                "dataSource": {
-                  "type": "JSExpression",
-                  "value": "this.state.displayedData"
-                }
+                "style": "max-height: 220px; overflow: auto;"
               },
               "children": [
                 {
-                  "componentName": "MatTextColumn",
+                  "componentName": "MatTable",
                   "props": {
-                    "name": "name",
-                    "headerText": "姓名"
-                  }
-                },
-                {
-                  "componentName": "MatTextColumn",
-                  "props": {
-                    "name": "department",
-                    "headerText": "部门"
-                  }
-                },
-                {
-                  "componentName": "MatTextColumn",
-                  "props": {
-                    "name": "position",
-                    "headerText": "职位"
-                  }
-                },
-                {
-                  "componentName": "MatTableHeaderRow",
-                  "props": {
-                    "columns": {
+                    "style": "width: 100%;",
+                    "dataSource": {
                       "type": "JSExpression",
-                      "value": "this.state.displayedColumns"
+                      "value": "this.state.displayedData"
                     }
-                  }
-                },
-                {
-                  "componentName": "MatTableDataRow",
-                  "props": {
-                    "columns": {
-                      "type": "JSExpression",
-                      "value": "this.state.displayedColumns"
+                  },
+                  "children": [
+                    {
+                      "componentName": "ng-container",
+                      "directives": [{ "directiveName": "matColumnDef" }],
+                      "props": {
+                        "matColumnDef": "name",
+                        "sticky": true
+                      },
+                      "children": [
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matHeaderCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "th",
+                              "props": { "matHeaderCell": true },
+                              "children": "姓名"
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matCellDef" }],
+                          "props": { "let": { "row": "$implicit" } },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matCell": true },
+                              "children": [
+                                {
+                                  "componentName": "Text",
+                                  "props": {
+                                    "text": {
+                                      "type": "JSExpression",
+                                      "value": "row.name"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matFooterCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matFooterCell": true },
+                              "children": "合计"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "ng-container",
+                      "directives": [{ "directiveName": "matColumnDef" }],
+                      "props": { "matColumnDef": "department" },
+                      "children": [
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matHeaderCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "th",
+                              "props": { "matHeaderCell": true },
+                              "children": "部门"
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matCellDef" }],
+                          "props": { "let": { "row": "$implicit" } },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matCell": true },
+                              "children": [
+                                {
+                                  "componentName": "Text",
+                                  "props": {
+                                    "text": {
+                                      "type": "JSExpression",
+                                      "value": "row.department"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matFooterCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matFooterCell": true },
+                              "children": {
+                                "type": "JSExpression",
+                                "value": "String(this.state.displayedData.length) + ' 人'"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "ng-container",
+                      "directives": [{ "directiveName": "matColumnDef" }],
+                      "props": { "matColumnDef": "position" },
+                      "children": [
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matHeaderCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "th",
+                              "props": { "matHeaderCell": true },
+                              "children": "职位"
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matCellDef" }],
+                          "props": { "let": { "row": "$implicit" } },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matCell": true },
+                              "children": [
+                                {
+                                  "componentName": "Text",
+                                  "props": {
+                                    "text": {
+                                      "type": "JSExpression",
+                                      "value": "row.position"
+                                    }
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "componentName": "NgTemplate",
+                          "directives": [{ "directiveName": "matFooterCellDef" }],
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": { "matFooterCell": true },
+                              "children": ""
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matHeaderRowDef" }],
+                      "props": {
+                        "matHeaderRowDef": {
+                          "type": "JSExpression",
+                          "value": "this.state.displayedColumns"
+                        },
+                        "matHeaderRowDefSticky": true
+                      },
+                      "children": [
+                        { "componentName": "MatHeaderRow" }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matRowDef" }],
+                      "props": {
+                        "matRowDefColumns": {
+                          "type": "JSExpression",
+                          "value": "this.state.displayedColumns"
+                        },
+                        "let": { "row": "$implicit" }
+                      },
+                      "children": [
+                        { "componentName": "MatRow" }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matNoDataRow" }],
+                      "children": [
+                        {
+                          "componentName": "tr",
+                          "props": {
+                            "class": "mat-mdc-row mdc-data-table__row"
+                          },
+                          "children": [
+                            {
+                              "componentName": "td",
+                              "props": {
+                                "class": "mat-mdc-cell mdc-data-table__cell",
+                                "colSpan": 3,
+                                "style": "text-align: center; padding: 16px;"
+                              },
+                              "children": "暂无数据"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "NgTemplate",
+                      "directives": [{ "directiveName": "matFooterRowDef" }],
+                      "props": {
+                        "matFooterRowDef": {
+                          "type": "JSExpression",
+                          "value": "this.state.displayedColumns"
+                        },
+                        "matFooterRowDefSticky": true
+                      },
+                      "children": [
+                        { "componentName": "MatFooterRow" }
+                      ]
                     }
-                  }
+                  ]
                 }
               ]
             }

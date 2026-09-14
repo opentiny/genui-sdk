@@ -4,7 +4,7 @@ import { MatSort } from '@angular/material/sort';
 import { MatTreeNode } from '@angular/material/tree';
 import type { AutoApplyDirectivePattern } from '../types';
 
-/** pro：碎片 / 排序 / 树节点相关指令 */
+/** pro：碎片 / 排序 / 树节点（Table 结构指令在 base `table-directives`） */
 export const dataDirectives: Record<string, Type<any>> = {
   matChipRemove: MatChipRemove,
   matChipAvatar: MatChipAvatar,

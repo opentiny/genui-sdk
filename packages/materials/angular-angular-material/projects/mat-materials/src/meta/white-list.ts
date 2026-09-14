@@ -6,7 +6,7 @@ const NATIVE_AND_BUILTIN = [
   'Text', 'Icon', 'Img', 'Slot',
 ];
 
-/** base：基础组件 + 表单控件 + Card */
+/** base：基础组件 + 表单控件 + Card + MatTable */
 export const baseWhiteList = [
   'MatButton',
   'MatIconButton',
@@ -35,6 +35,15 @@ export const baseWhiteList = [
   'MatCardActions',
   'MatCardFooter',
   'MatCardTitleGroup',
+  'MatTable',
+  'MatTextColumn',
+  'MatHeaderRow',
+  'MatRow',
+  'MatFooterRow',
+  'MatHeaderCell',
+  'MatCell',
+  'MatFooterCell',
+  'ng-container',
   ...NATIVE_AND_BUILTIN,
 ];
 
@@ -86,7 +95,7 @@ export const maxWhiteList = [
   'MatMenuItem',
 ];
 
-/** pro：max + 数据展示，全量 */
+/** pro：max + 数据展示增强（碎片 / Paginator / Sort / Tree），全量 */
 export const proWhiteList = [
   ...maxWhiteList,
   'MatChipSet',
@@ -96,11 +105,6 @@ export const proWhiteList = [
   'MatChipGrid',
   'MatChipRow',
   'MatPaginator',
-  'MatTable',
-  'MatTextColumn',
-  'MatTableColumn',
-  'MatTableHeaderRow',
-  'MatTableDataRow',
   'MatSortHeader',
   'MatTree',
   'MatTreeNode',
