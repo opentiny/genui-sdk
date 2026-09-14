@@ -1,67 +1,67 @@
 # @opentiny/genui-sdk-skill-generator
 
-基于 `genPrompt(framework, materialsMeta, …, { isSkill: true })`，生成可在 Cursor / Claude Code 等 Agent 中按需加载的 skill。
+Generate Agent skills (Cursor / Claude Code, etc.) from `genPrompt(framework, materialsMeta, …, { isSkill: true })` output.
 
-## 分层模型
+## Layer Model
 
 ```
 skills/<name>/
-├── SKILL.md                      # 入口：genPrompt 前缀 + 输出格式 / 工作流 / 类型索引（仅链接已存在文件）
+├── SKILL.md                      # Entry: genPrompt prefix + output format / workflow / type index (links only to existing files)
 └── reference/
-    ├── quick-ref.md              # 手写：高频约定速查（存在才出链）
-    ├── rules.md                  # 手写：生成约束补充；缺失则回退 generated/rules.md
-    ├── editing.md                # 手写：修改已有卡片时的补读
-    ├── common-mistakes.md        # 手写：常见错误
-    ├── this-context.md           # 手写：this / 事件补充；缺失则回退 generated
-    ├── examples.md               # 手写：卡片示例补充；缺失则回退 generated
+    ├── quick-ref.md              # Handwritten: high-frequency conventions quick reference (linked only if exists)
+    ├── rules.md                  # Handwritten: generation constraint supplements; falls back to generated/rules.md
+    ├── editing.md                # Handwritten: supplementary reading when modifying existing cards
+    ├── common-mistakes.md        # Handwritten: common mistakes
+    ├── this-context.md           # Handwritten: this / event supplements; falls back to generated
+    ├── examples.md               # Handwritten: card example supplements; falls back to generated
     ├── examples/
-    │   └── login-form.md         # 手写：登录表单等整卡示例
-    ├── components.md             # 生成器写入：按类型分组的 componentName 白名单索引
-    ├── components/               # 可选分类手写（存在则挂到对应类型标题下）
-    │   ├── basic.md              # 手写：基础元素补充
-    │   ├── forms.md              # 手写：表单组件补充
+    │   └── login-form.md         # Handwritten: full card examples like login forms
+    ├── components.md             # Generator writes: componentName allowlist index grouped by type
+    ├── components/               # Optional categorized handwritten docs (linked under corresponding type heading)
+    │   ├── basic.md              # Handwritten: basic element supplements
+    │   ├── forms.md              # Handwritten: form component supplements
     │   └── …
-    └── generated/                # 生成层（可覆盖，与 genPrompt 同步）
-        ├── components.md         # 全量组件 dump，仅用于还原 genPrompt，不要作为读取入口
-        ├── components/           # 按类型拆分的 props / events（Agent 按需读这里）
-        │   ├── basic.md          # 基础元素（a、Text、TinyIcon 等）
-        │   ├── layout.md         # 布局组件（TinyCard 等）
-        │   ├── forms.md          # 表单组件（TinyForm、TinyInput 等）
-        │   ├── data-display.md   # 数据展示（TinyGrid、TinyPager）
-        │   ├── charts.md         # 图表组件（TinyHuicharts*）
-        │   └── …                 # 未归类时还有 other.md
-        ├── json-schema.md        # 卡片节点 JSON Schema：字段、白名单 enum、JSExpression / JSFunction / JSSlot
-        ├── examples.md           # 完整卡片示例（表单双向绑定、信息展示等）
-        ├── schema-snippets.md    # 可复用节点片段（单组件 props 样例）
-        ├── rules.md              # schemaJson 生成规则（Page 根、state/methods、禁止 Mock 等）
-        ├── this-context.md       # this.state / this.methods / this.callAction 用法
-        └── actions.md            # 自定义 Action 定义（提供 customActions 时生成）
+    └── generated/                # Generated layer (overwritable, synced with genPrompt)
+        ├── components.md         # Full component dump, only used for genPrompt restoration, not a reading entry
+        ├── components/           # Props / events split by type (Agent reads on demand)
+        │   ├── basic.md          # Basic elements (a, Text, TinyIcon, etc.)
+        │   ├── layout.md         # Layout components (TinyCard, etc.)
+        │   ├── forms.md          # Form components (TinyForm, TinyInput, etc.)
+        │   ├── data-display.md   # Data display (TinyGrid, TinyPager)
+        │   ├── charts.md         # Chart components (TinyHuicharts*)
+        │   └── …                 # Uncategorized items go to other.md
+        ├── json-schema.md        # Card node JSON Schema: fields, allowlist enum, JSExpression / JSFunction / JSSlot
+        ├── examples.md           # Full card examples (form two-way binding, info display, etc.)
+        ├── schema-snippets.md    # Reusable node snippets (single-component props samples)
+        ├── rules.md              # schemaJson generation rules (Page root, state/methods, no mock, etc.)
+        ├── this-context.md       # this.state / this.methods / this.callAction usage
+        └── actions.md            # Custom action definitions (generated when customActions is provided)
 ```
 
-- **手写层**：补充说明，体积小、语义清晰；需自行维护，生成器不 scaffold
-- **生成层**：完整物料 dump 与按类型拆分的组件详情；生成器只写这里
-- **类型索引**：`components.md` 由生成器按表单 / 图表 / 数据展示等分组，并链到 `generated/components/<类型>.md`
-- **出链策略**：工作流 / 手写补充链均「存在才出链」；`json-schema` / `rules` / `examples` / `this-context` 手写缺失时回退 `generated/` 同名文件；组件 props 优先链拆分文件，不链全量 `generated/components.md`
+- **Handwritten layer**: supplementary explanations, small footprint, clear semantics; maintained manually, the generator does not scaffold
+- **Generated layer**: full material dump and component details split by type; the generator only writes here
+- **Type index**: `components.md` is grouped by the generator (forms / charts / data display, etc.) and linked to `generated/components/<type>.md`
+- **Linking strategy**: workflow / handwritten supplementary links are "only linked if they exist"; `json-schema` / `rules` / `examples` / `this-context` fall back to the `generated/` same-name file when handwritten ones are missing; component props link to split files preferentially, not the full `generated/components.md`
 
-## genPrompt 一致性
+## genPrompt Consistency
 
-- `SKILL.md` 始终逐字保留 `genPrompt` 的一级标题前缀；formatter 只在其后追加工作流与类型索引
-- `reference/generated/*.md` 是原始 `##` 章节的无损分片，不格式化、不补换行
-- 除 `isSkill=true` 外不覆盖 `genPrompt` 的默认章节开关；JSON Schema 默认保留，Action 在提供 `customActions` 时生成
-- 生成结束后会从磁盘重新读取入口前缀和所有分片；无法逐字还原原始 `genPrompt` 时直接报错
-- `referenceSubdir` 为空时禁止启用 `prune`，避免清理手写 reference 文件
-- `referenceSubdir` 不能是手写目录 `components` / `examples`（或其子路径），避免默认 prune 删掉 `forms.md` 等补充文档
+- `SKILL.md` always preserves the `genPrompt` H1 heading prefix verbatim; the formatter only appends workflow and type index after it
+- `reference/generated/*.md` are lossless splits of the original `##` sections, no formatting or line break changes
+- Except for `isSkill=true`, the generator does not override `genPrompt`'s default section toggles; JSON Schema is retained by default, and Actions are generated when `customActions` is provided
+- After generation, the entry prefix and all splits are re-read from disk; it errors out if the original `genPrompt` cannot be restored verbatim
+- `prune` is forbidden when `referenceSubdir` is empty, to avoid cleaning handwritten reference files
+- `referenceSubdir` must not be `components` / `examples` (or their subpaths), to prevent default prune from deleting supplement docs like `forms.md`
 
-## 安装
+## Installation
 
 ```bash
 pnpm add @opentiny/genui-sdk-skill-generator
 ```
 
-默认包含 OpenTiny Vue 物料。需要接入自定义物料时，在配置中提供自己的
-`materialsMetaModule`（如 `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta`）。
+The package includes OpenTiny Vue materials by default. To use custom materials, provide your own
+`materialsMetaModule` in the configuration (e.g. `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta`).
 
-## 编程式 API
+## Programmatic API
 
 ```typescript
 import {
@@ -73,8 +73,8 @@ import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/me
 generateSkillFiles('vue', materialsMeta, {
   skillDirs: ['/path/to/skills/genui-schema-json'],
   formatSkillBody: buildGenuiSchemaSkillBody,
-  referenceSubdir: 'generated', // 默认
-  syncComponentsIndex: true,    // 默认同步白名单到手写 components.md
+  referenceSubdir: 'generated', // default
+  syncComponentsIndex: true,    // default: sync allowlist to handwritten components.md
 });
 ```
 
@@ -84,54 +84,55 @@ generateSkillFiles('vue', materialsMeta, {
 npx @opentiny/genui-sdk-skill-generator
 ```
 
-不传配置时会使用包内置默认配置，并把 skill 生成到当前运行目录的
-`skills/genui-schema-json`。
+Without a config file, it uses the built-in default configuration and generates skills into `skills/genui-schema-json` under the current working directory.
 
-指定输出目录：
+Specify an output directory:
 
 ```bash
 npx @opentiny/genui-sdk-skill-generator --out ./skills/my-skill
 ```
 
-如需自定义物料、输出目录或 Action，可传入配置文件：
+To customize materials, output directory, or Actions, pass a config file:
 
 ```bash
 npx @opentiny/genui-sdk-skill-generator --config path/to/config.json
 ```
 
-仓库默认配置见 [`config.json`](./config.json)，它与 Playground 标准模式保持一致，
-使用完整 Vue 物料以及内置的 `continueChat`、`saveState` Action。显式传配置时，
-配置中的 `skillDirs` 和相对路径形式的 `materialsMetaModule` 以配置文件所在目录为基准。
-`--out` 始终相对当前工作目录解析，并覆盖配置中的 `skillDirs`。编程调用
-`runSkillGenerateCli` 时，`outputBaseDir` 只影响输出目录，不影响物料模块的解析。
+The repo's default config is at [`config.json`](./config.json), aligned with the Playground standard mode,
+using the full Vue material set and built-in `continueChat` / `saveState` Actions. When a config file is
+explicitly passed, `skillDirs` and relative-path `materialsMetaModule` are resolved relative to the config
+file's directory. `--out` is always resolved relative to the current working directory and overrides the
+config's `skillDirs`. When calling `runSkillGenerateCli` programmatically, `outputBaseDir` only affects the
+output directory, not material module resolution.
 
-兼容旧的位置参数写法：
+Legacy positional argument syntax is also supported:
 
 ```bash
 npx @opentiny/genui-sdk-skill-generator path/to/config.json
 ```
 
-## CLI 配置参考
+## CLI Configuration Reference
 
-配置中的 `skillDirs` 和相对路径形式的 `materialsMetaModule` 以配置文件所在目录为基准。
-`--out` 始终相对当前工作目录解析，并覆盖配置中的 `skillDirs`。编程调用
-`runSkillGenerateCli` 时，`outputBaseDir` 只影响输出目录，不影响物料模块的解析。
+`skillDirs` and relative-path `materialsMetaModule` in the config are resolved relative to the config file's directory.
+`--out` is always resolved relative to the current working directory and overrides the config's `skillDirs`.
+When calling `runSkillGenerateCli` programmatically, `outputBaseDir` only affects the output directory,
+not material module resolution.
 
-| 配置项 | 类型 | 必填 / 默认值 | 含义 |
+| Config | Type | Required / Default | Description |
 | --- | --- | --- | --- |
-| `framework` | `string \| { rules?: string[] }` | 否，`"vue"` | 框架规则。内置 `vue`、`angular`、`react`；未知字符串回退 Vue，也可传 `{ rules }` 自定义框架规则。 |
-| `materialsMetaModule` | `string` | 是 | 导出物料元数据的 ESM 模块路径，例如物料包构建后的 `dist/meta.js`。生成前必须可被 Node 动态导入。 |
-| `materialsMetaExport` | `string` | 否，`"materialsMeta"` | 物料模块的具名导出名称。 |
-| `skillDirs` | `string[]` | 是 | Skill 输出目录。生成章节写入每个目录；首个目录的 `SKILL.md` frontmatter 会复用于全部目录。 |
-| `skillBodyFormatter` | `string` | 否 | `SKILL.md` 附加正文 formatter。当前内置 `genui-schema-json`；只追加工作流与类型索引，不替换原始 `genPrompt` 前缀。根节点包裹组件名从 `materialsMeta.wrapperComponent` 动态获取，无需手写。 |
-| `referenceSubdir` | `string` | 否，`"generated"` | 生成章节在 `reference/` 下的子目录。推荐保持独立目录，避免覆盖手写文档。不能使用手写目录名 `components`、`examples`。 |
-| `syncComponentsIndex` | `boolean` | 否，`true` | 将按类型分组的白名单同步到 `reference/components.md`。空子目录时为保持 prompt 无损而跳过。 |
-| `prune` | `boolean` | 否，`true` | 删除生成子目录内本次未生成的旧文件。`referenceSubdir` 为空时必须设为 `false`。 |
-| `flatPrompt` | `boolean` | 否，`false` | 跳过 reference 章节拆分与写入，将完整 prompt 直接作为 `SKILL.md` 正文（不产出 `reference/` 目录）。适用于无需分片引用的场景。 |
-| `promptCustomConfig` | `object` | 否，`{}` | 透传给 core `genPrompt` 的自定义组件、Snippet、示例和 Action。 |
-| `promptOptions` | `object` | 否 | 控制 core prompt 章节。生成器仅默认设置 `isSkill=true`，其余沿用 core 默认值。 |
+| `framework` | `string \| { rules?: string[] }` | No, `"vue"` | Framework rules. Built-in: `vue`, `angular`, `react`; unknown strings fall back to Vue; you can also pass `{ rules }` for custom framework rules. |
+| `materialsMetaModule` | `string` | Yes | ESM module path to the material metadata export (e.g. a built material package's `dist/meta.js`). Must be dynamically importable by Node before generation. |
+| `materialsMetaExport` | `string` | No, `"materialsMeta"` | Named export name from the materials module. |
+| `skillDirs` | `string[]` | Yes | Skill output directories. Sections are written to each directory; the `SKILL.md` frontmatter from the first directory is reused for all directories. |
+| `skillBodyFormatter` | `string` | No | `SKILL.md` additional body formatter. Currently built-in: `genui-schema-json`; only appends workflow and type index, does not replace the original `genPrompt` prefix. The root wrapper component name is dynamically read from `materialsMeta.wrapperComponent` — no manual configuration needed. |
+| `referenceSubdir` | `string` | No, `"generated"` | Subdirectory for generated sections under `reference/`. Keeping it independent is recommended to avoid overwriting handwritten docs. Must not use handwritten directory names `components` or `examples`. |
+| `syncComponentsIndex` | `boolean` | No, `true` | Sync the type-grouped allowlist to `reference/components.md`. Skipped when subdirectories are empty to preserve prompt integrity. |
+| `prune` | `boolean` | No, `true` | Delete old files in the generated subdirectory that were not produced in the current run. Must be `false` when `referenceSubdir` is empty. |
+| `flatPrompt` | `boolean` | No, `false` | Skip reference section splitting and writing; write the full prompt directly as `SKILL.md` body (no `reference/` directory). Useful for scenarios that do not need split references. |
+| `promptCustomConfig` | `object` | No, `{}` | Custom components, snippets, examples, and Actions passed through to core `genPrompt`. |
+| `promptOptions` | `object` | No | Controls core prompt sections. The generator only sets `isSkill=true` by default; other values follow core defaults. |
 
-推荐配置：
+Recommended configuration:
 
 ```json
 {
@@ -143,48 +144,52 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 
 ### promptCustomConfig
 
-| 配置项 | 内容结构 | 生成效果 |
+| Field | Content Structure | Generation Effect |
 | --- | --- | --- |
-| `customComponents` | `{ component, name?, description?, schema }[]` | 组件名加入白名单，属性、事件和插槽说明写入 `components.md`。`schema.properties` 可配置 `property`、`description`、`type`、`required`、`defaultValue`、嵌套 `properties`；`schema.events` 可配置 `event`、`description`、`functionInfo`。 |
-| `customSnippets` | `NodeSchema[]` | 合并到 `schema-snippets.md`。节点通常包含 `componentName`、`props`、`children`，也支持 `slot`、`loop`、`loopArgs`、`condition`。 |
-| `customExamples` | `{ id?, name, description?, schema }[]` | 完整卡片示例合并到 `examples.md`；`schema` 建议使用 `Page` 根节点并包含 `state`、`methods`、`children`。 |
-| `customActions` | `{ name, description?, parameters?, return?, async? }[]` | 有定义且未关闭 `includeActions` 时生成 `actions.md`。`parameters` 和 `return` 使用 JSON Schema；`async=true` 表示 `this.callAction` 返回 Promise。 |
+| `customComponents` | `{ component, name?, description?, schema }[]` | Component names added to the allowlist; property, event, and slot descriptions written to `components.md`. `schema.properties` supports `property`, `description`, `type`, `required`, `defaultValue`, nested `properties`; `schema.events` supports `event`, `description`, `functionInfo`. |
+| `customSnippets` | `NodeSchema[]` | Merged into `schema-snippets.md`. Nodes typically include `componentName`, `props`, `children`, and also support `slot`, `loop`, `loopArgs`, `condition`. |
+| `customExamples` | `{ id?, name, description?, schema }[]` | Full card examples merged into `examples.md`; `schema` should use `Page` root node and include `state`, `methods`, `children`. |
+| `customActions` | `{ name, description?, parameters?, return?, async? }[]` | Generates `actions.md` when defined and `includeActions` is not disabled. `parameters` and `return` use JSON Schema; `async=true` means `this.callAction` returns a Promise. |
 
-`continueChat` 和 `saveState` 是 core 识别的特殊 Action 名称，会额外生成继续对话和状态持久化规则。配置只向模型描述组件和 Action；运行时组件注册及 Action 执行函数仍需由应用提供。
+`continueChat` and `saveState` are special Action names recognized by core, which additionally generates continue-chat and state-persistence rules. The configuration only describes components and Actions to the model; runtime component registration and Action execution functions still need to be provided by the application.
 
 ### promptOptions
 
-| 配置项 | 默认值 | 含义 |
+| Config | Default | Description |
 | --- | --- | --- |
-| `isSkill` | `true` | 使用 Skill 前缀和禁止无依据 Mock 数据规则；一般不要设为 `false`。 |
-| `includeJsonSchema` | `true` | 生成完整 `json-schema.md`。 |
-| `includeSnippets` | `true` | 生成包含物料及自定义片段的 `schema-snippets.md`。 |
-| `includeExamples` | `true` | 生成包含物料及自定义示例的 `examples.md`。 |
-| `includeActions` | `true` | 允许生成 Action 章节；没有 `customActions` 时仍不会产生 `actions.md`。 |
-| `includeAboutThis` | `true` | 生成 `this-context.md`。 |
-| `includeBaseRules` | `true` | 包含 core 基础规则；关闭后仍保留模式规则、物料规则、框架规则和自定义 `rules`。 |
-| `rules` | `[]` | 追加项目规则。合并顺序是物料规则、框架规则、项目规则。 |
+| `isSkill` | `true` | Uses the Skill prefix and no-mock-data-without-evidence rule; generally should not be set to `false`. |
+| `includeJsonSchema` | `true` | Generate full `json-schema.md`. |
+| `includeSnippets` | `true` | Generate `schema-snippets.md` including material and custom snippets. |
+| `includeExamples` | `true` | Generate `examples.md` including material and custom examples. |
+| `includeActions` | `true` | Allow Action section generation; `actions.md` is still not produced without `customActions`. |
+| `includeAboutThis` | `true` | Generate `this-context.md`. |
+| `includeBaseRules` | `true` | Include core base rules; when disabled, mode rules, material rules, framework rules, and custom `rules` are still retained. |
+| `rules` | `[]` | Append project-specific rules. Merge order: material rules, framework rules, project rules. |
 
-完整可运行配置见 [`config.json`](./config.json)。需要接入自定义组件、Snippet、示例或 Action 时，
-按上面的字段说明补充到 `promptCustomConfig` 即可。
+A fully runnable config is at [`config.json`](./config.json). To integrate custom components, snippets, examples, or Actions,
+add them to `promptCustomConfig` following the field descriptions above.
 
-Angular NG 物料示例见 [`config.ng.json`](./config.ng.json)：`framework` 设为 `"angular"`，
-`materialsMetaModule` 指向 Angular 物料包，formatter 自动使用 `TiCard` 作为根节点包裹组件：
+For Angular NG materials, see [`config.ng.json`](./config.ng.json): set `framework` to `"angular"`,
+point `materialsMetaModule` to the Angular material package, and the formatter automatically uses `TiCard`
+as the root wrapper component:
 
 ```bash
 npx @opentiny/genui-sdk-skill-generator --config config.ng.json
 ```
 
-## 本仓库维护
+## Repository Maintenance
 
 ```bash
 pnpm --filter @opentiny/genui-sdk-skill-generator generate:skill
 ```
 
-会把 skill 写到本地 [`example/genui-schema-json`](./example/genui-schema-json)，便于对照 CLI 输出。该目录由生成器产生，不提交到 git。
+This writes the skill to the local [`example/genui-schema-json`](./example/genui-schema-json) directory
+for CLI output comparison. This directory is generated by the tool and not committed to git.
 
-切换 `referenceSubdir` 后，旧生成目录需手动清理；`prune` 仅清理当前生成目录中的过期文件，不会跨目录删除内容。
+After changing `referenceSubdir`, manually clean up the old generated directory; `prune` only cleans
+outdated files in the current generated subdirectory, not across directories.
 
-开发验证：执行 `pnpm --filter @opentiny/genui-sdk-skill-generator test`，会自动构建 core 与 Vue 物料依赖后运行测试。
+To verify: run `pnpm --filter @opentiny/genui-sdk-skill-generator test`, which automatically builds
+core and Vue material dependencies before running tests.
 
-`tgCustomConfig` 保留为兼容别名；同时提供时以 `promptCustomConfig` 为准。
+`tgCustomConfig` is retained as a compatibility alias; when both are provided, `promptCustomConfig` takes precedence.
