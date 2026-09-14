@@ -1,5 +1,11 @@
 import { type Type } from '@angular/core';
 import {
+  NgComponentOutlet,
+  NgForOf,
+  NgIf,
+  NgTemplateOutlet,
+} from '@angular/common';
+import {
   MATERIALS_CONTEXT_KEY,
   type AutoApplyDirectivePattern,
   type IRendererMaterials,
@@ -26,6 +32,10 @@ import {
   ɵNgSelectMultipleOption,
 } from '@angular/forms';
 import { LogDirective } from '../buildin/log.directive';
+import { SchemaDeferredNgPlural } from '../buildin/schema-deferred-ng-plural';
+import { SchemaNgSwitch } from '../buildin/schema-ng-switch';
+import { SchemaNgSwitchCase, SchemaNgSwitchDefault } from '../buildin/schema-ng-switch-case';
+import { SchemaNgPluralCase } from '../buildin/schema-ng-plural-case';
 import { NgControlContainerHostBridge } from '../buildin/ng-control-container-host.directive';
 import { NgSelectOptionHostBridge } from '../buildin/ng-select-option-host.directive';
 import {
@@ -66,6 +76,17 @@ export const directiveMap: Record<string, Type<any>> = {
   required: RequiredValidator,
   email: EmailValidator,
   log: LogDirective,
+  // @angular/common structural / outlet directives (NgTemplate host path)
+  ngIf: NgIf,
+  ngFor: NgForOf,
+  ngForOf: NgForOf,
+  ngTemplateOutlet: NgTemplateOutlet,
+  ngComponentOutlet: NgComponentOutlet,
+  ngSwitch: SchemaNgSwitch,
+  ngSwitchCase: SchemaNgSwitchCase,
+  ngSwitchDefault: SchemaNgSwitchDefault,
+  ngPlural: SchemaDeferredNgPlural,
+  ngPluralCase: SchemaNgPluralCase,
 };
 
 /** 非 standalone 指令 -> 其声明导出的 NgModule（用于创建模块提供 DI 依赖） */
