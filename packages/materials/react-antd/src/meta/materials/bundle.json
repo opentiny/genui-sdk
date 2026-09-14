@@ -672,7 +672,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "日期值；双向绑定时需配合 onChange 更新 state"
+                      "zh_CN": "日期字符串（如 YYYY-MM-DD）"
                     }
                   },
                   {
@@ -698,14 +698,14 @@
                       "name": "date",
                       "type": "Object",
                       "description": {
-                        "zh_CN": "dayjs 日期对象，未选时为 null"
+                        "zh_CN": "内部日期对象，未选时为 null。禁止写入 state"
                       }
                     },
                     {
                       "name": "dateString",
                       "type": "string",
                       "description": {
-                        "zh_CN": "格式化后的日期字符串"
+                        "zh_CN": "格式化后的日期字符串。写入 state 时必须使用该参数，例如 this.state.formData.joinDate = dateString"
                       }
                     }
                   ],
