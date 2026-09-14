@@ -4,7 +4,7 @@ import type { PageContextValue } from './engine';
 
 type SchemaErrorBoundaryProps = PropsWithChildren<{
   componentName?: string;
-  resetKey?: string;
+  resetKey?: unknown;
   notifyContext?: PageContextValue;
 }>;
 
