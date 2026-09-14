@@ -52,8 +52,10 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     [setContext, getContext, contextApi],
   );
 
-  const invokePageOnUnmounted = useCallback((): void | Promise<void> => {
-    if (pageUnmountPromiseRef.current) return pageUnmountPromiseRef.current;
+  const invokePageOnUnmounted = useCallback(function invoke(): void | Promise<void> {
+    if (pageUnmountPromiseRef.current) {
+      return pageUnmountPromiseRef.current.then(() => invoke());
+    }
 
     const fn = pageOnUnmountedRef.current;
     pageOnUnmountedRef.current = null;
@@ -96,10 +98,10 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     let cancelled = false;
     const initializeSchema = () => {
       if (cancelled || !currentSchema || !pageInitSignature) return;
-      const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
-      if (cancelled) return;
-      pageOnUnmountedRef.current = onUnmounted;
       try {
+        const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
+        if (cancelled) return;
+        pageOnUnmountedRef.current = onUnmounted;
         const result = onMounted?.();
         if (result && typeof result.then === 'function') {
           void result.catch((error) => {
@@ -107,7 +109,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
           });
         }
       } catch (error) {
-        console.error('SchemaRenderer onMounted error:', error);
+        console.error('SchemaRenderer initialization error:', error);
       }
     };
 

@@ -1,6 +1,6 @@
 import { createElement, createRef } from 'react';
 import { act, render } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { SchemaRenderer, type SchemaRendererHandle } from '../src/RenderMain';
 
 const g = globalThis as Record<string, unknown>;
@@ -85,5 +85,46 @@ describe('SchemaRenderer life cycles', () => {
 
     expect(g.__nullUnmounted).toBe(true);
     delete g.__nullUnmounted;
+  });
+
+  it('handles initialization errors after an asynchronous onUnmounted', async () => {
+    let resolveUnmount!: () => void;
+    const initializationError = new Error('invalid state');
+    const invalidState = new Proxy(
+      { toJSON: () => ({}) },
+      {
+        ownKeys() {
+          throw initializationError;
+        },
+      },
+    );
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    g.__resolveBeforeInvalidSchema = () => new Promise<void>((resolve) => (resolveUnmount = resolve));
+
+    const first = {
+      componentName: 'Page',
+      state: { version: 1 },
+      children: [{ componentName: 'div' }],
+      lifeCycles: {
+        onUnmounted: {
+          type: 'JSFunction' as const,
+          value: 'function() { return globalThis.__resolveBeforeInvalidSchema(); }',
+        },
+      },
+    };
+    const invalid = {
+      componentName: 'Page',
+      state: invalidState,
+      children: [{ componentName: 'div' }],
+    };
+
+    const { rerender } = render(createElement(SchemaRenderer, { schema: first }));
+    rerender(createElement(SchemaRenderer, { schema: invalid }));
+    await act(async () => resolveUnmount());
+
+    expect(consoleError).toHaveBeenCalledWith('SchemaRenderer initialization error:', initializationError);
+
+    consoleError.mockRestore();
+    delete g.__resolveBeforeInvalidSchema;
   });
 });

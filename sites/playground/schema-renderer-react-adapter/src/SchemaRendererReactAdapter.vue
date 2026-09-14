@@ -39,14 +39,22 @@ function resolveIsJsonComplete() {
   return props.isJsonComplete ?? true;
 }
 
+function cloneSchema(rawSchema: Record<string, unknown>): Record<string, unknown> | null {
+  try {
+    return structuredClone(rawSchema) as Record<string, unknown>;
+  } catch (structuredCloneError) {
+    try {
+      return JSON.parse(JSON.stringify(rawSchema)) as Record<string, unknown>;
+    } catch (jsonCloneError) {
+      console.error('Failed to clone schema for the React renderer.', { structuredCloneError, jsonCloneError });
+      return null;
+    }
+  }
+}
+
 function buildContentProps(): ReactHostContentProps | null {
   const rawSchema = toRaw(props.schema);
-  let schema: Record<string, unknown>;
-  try {
-    schema = structuredClone(rawSchema) as Record<string, unknown>;
-  } catch {
-    schema = rawSchema;
-  }
+  const schema = cloneSchema(rawSchema);
   if (!schema?.componentName) return null;
   return {
     content: schema,
