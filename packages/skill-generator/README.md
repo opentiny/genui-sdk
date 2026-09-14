@@ -123,10 +123,11 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 | `materialsMetaModule` | `string` | 是 | 导出物料元数据的 ESM 模块路径，例如物料包构建后的 `dist/meta.js`。生成前必须可被 Node 动态导入。 |
 | `materialsMetaExport` | `string` | 否，`"materialsMeta"` | 物料模块的具名导出名称。 |
 | `skillDirs` | `string[]` | 是 | Skill 输出目录。生成章节写入每个目录；首个目录的 `SKILL.md` frontmatter 会复用于全部目录。 |
-| `skillBodyFormatter` | `string` | 否 | `SKILL.md` 附加正文 formatter。当前内置 `genui-schema-json`；只追加工作流与类型索引，不替换原始 `genPrompt` 前缀。 |
+| `skillBodyFormatter` | `string` | 否 | `SKILL.md` 附加正文 formatter。当前内置 `genui-schema-json`；只追加工作流与类型索引，不替换原始 `genPrompt` 前缀。根节点包裹组件名从 `materialsMeta.wrapperComponent` 动态获取，无需手写。 |
 | `referenceSubdir` | `string` | 否，`"generated"` | 生成章节在 `reference/` 下的子目录。推荐保持独立目录，避免覆盖手写文档。不能使用手写目录名 `components`、`examples`。 |
 | `syncComponentsIndex` | `boolean` | 否，`true` | 将按类型分组的白名单同步到 `reference/components.md`。空子目录时为保持 prompt 无损而跳过。 |
 | `prune` | `boolean` | 否，`true` | 删除生成子目录内本次未生成的旧文件。`referenceSubdir` 为空时必须设为 `false`。 |
+| `flatPrompt` | `boolean` | 否，`false` | 跳过 reference 章节拆分与写入，将完整 prompt 直接作为 `SKILL.md` 正文（不产出 `reference/` 目录）。适用于无需分片引用的场景。 |
 | `promptCustomConfig` | `object` | 否，`{}` | 透传给 core `genPrompt` 的自定义组件、Snippet、示例和 Action。 |
 | `promptOptions` | `object` | 否 | 控制 core prompt 章节。生成器仅默认设置 `isSkill=true`，其余沿用 core 默认值。 |
 
@@ -166,6 +167,13 @@ npx @opentiny/genui-sdk-skill-generator path/to/config.json
 
 完整可运行配置见 [`config.json`](./config.json)。需要接入自定义组件、Snippet、示例或 Action 时，
 按上面的字段说明补充到 `promptCustomConfig` 即可。
+
+Angular NG 物料示例见 [`config.ng.json`](./config.ng.json)：`framework` 设为 `"angular"`，
+`materialsMetaModule` 指向 Angular 物料包，formatter 自动使用 `TiCard` 作为根节点包裹组件：
+
+```bash
+npx @opentiny/genui-sdk-skill-generator --config config.ng.json
+```
 
 ## 本仓库维护
 
