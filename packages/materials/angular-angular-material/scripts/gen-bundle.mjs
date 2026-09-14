@@ -1266,7 +1266,8 @@ const components = [
     component: 'MatTable',
     nameZh: '数据表格',
     icon: 'table',
-    description: 'Material 数据表格；列用 MatTextColumn / MatTableColumn，行用 MatTableHeaderRow / MatTableDataRow',
+    description:
+      'Material 数据表格。列：ng-container+matColumnDef（可 sticky/stickyEnd）+ NgTemplate 单元格；行：matHeaderRowDef/matRowDef/matFooterRowDef（可 *Sticky）与 matNoDataRow；也可用 MatTextColumn。',
     docUrl: 'https://material.angular.dev/components/table/overview',
     groupName: '数据展示',
     keywords: 'table,表格',
@@ -1275,7 +1276,10 @@ const components = [
     properties: [
       arrayProp('dataSource', '数据源', '表格数据源（数组或 MatTableDataSource）'),
     ],
-    slots: defaultSlot('表格结构', '列定义与行定义 bridge'),
+    slots: defaultSlot(
+      '列与行定义',
+      'ng-container+matColumnDef、NgTemplate 行/空数据/页脚定义，或 MatTextColumn',
+    ),
   }),
   componentEntry({
     component: 'MatTextColumn',
@@ -1293,46 +1297,47 @@ const components = [
     ],
   }),
   componentEntry({
-    component: 'MatTableColumn',
-    nameZh: '表格列',
-    icon: 'table-column',
-    description: '自定义表格列；可放 NgTemplate（let.row）渲染单元格，否则按 name 读字段',
-    docUrl: 'https://material.angular.dev/components/table/overview',
-    groupName: '数据展示',
-    keywords: 'table-column,自定义列',
-    tags: 'table,数据',
-    isContainer: true,
-    properties: [
-      strProp('name', '列名', '列标识，对应 displayedColumns'),
-      strProp('headerText', '表头文案', '表头显示文本'),
-    ],
-    slots: defaultSlot('单元格模板', '可选 NgTemplate，上下文含 row'),
-  }),
-  componentEntry({
-    component: 'MatTableHeaderRow',
+    component: 'MatHeaderRow',
     nameZh: '表头行',
     icon: 'table-header',
-    description: 'MatTable 表头行定义 bridge（等价 *matHeaderRowDef）',
+    description: '表头行组件（mat-header-row），放在 matHeaderRowDef 的 NgTemplate 内',
     docUrl: 'https://material.angular.dev/components/table/overview',
     groupName: '数据展示',
     keywords: 'header-row,表头',
     tags: 'table,数据',
-    properties: [
-      arrayProp('columns', '列顺序', 'displayedColumns 列名数组'),
-    ],
   }),
   componentEntry({
-    component: 'MatTableDataRow',
+    component: 'MatRow',
     nameZh: '数据行',
     icon: 'table-row',
-    description: 'MatTable 数据行定义 bridge（等价 *matRowDef）',
+    description: '数据行组件（mat-row），放在 matRowDef 的 NgTemplate 内',
     docUrl: 'https://material.angular.dev/components/table/overview',
     groupName: '数据展示',
     keywords: 'data-row,数据行',
     tags: 'table,数据',
-    properties: [
-      arrayProp('columns', '列顺序', 'displayedColumns 列名数组'),
-    ],
+  }),
+  componentEntry({
+    component: 'MatFooterRow',
+    nameZh: '表尾行',
+    icon: 'table-footer',
+    description: '表尾行组件（mat-footer-row），放在 matFooterRowDef 的 NgTemplate 内',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'footer-row,表尾',
+    tags: 'table,数据',
+  }),
+  componentEntry({
+    component: 'MatFooterCell',
+    nameZh: '表尾单元格',
+    icon: 'table-cell',
+    description: '表尾单元格宿主（td + matFooterCell），放在 matFooterCellDef 的 NgTemplate 内',
+    docUrl: 'https://material.angular.dev/components/table/overview',
+    groupName: '数据展示',
+    keywords: 'footer-cell,表尾',
+    tags: 'table,数据',
+    isContainer: true,
+    properties: [],
+    slots: defaultSlot('单元格内容', '表尾文案'),
   }),
   componentEntry({
     component: 'MatSortHeader',
@@ -1783,8 +1788,9 @@ const snippets = [
                 'GenUI',
                 {
                   componentName: 'MatIcon',
-                  props: { fontIcon: 'cancel', matChipRemove: true },
+                  props: { matChipRemove: true },
                   directives: [{ directiveName: 'matChipRemove' }],
+                  children: 'cancel',
                 },
               ],
             },
@@ -1851,6 +1857,8 @@ const BASE_COMPONENTS = new Set([
   'MatButtonToggleGroup', 'MatButtonToggle',
   'MatCard', 'MatCardHeader', 'MatCardTitle', 'MatCardSubtitle', 'MatCardContent', 'MatCardActions',
   'MatCardFooter', 'MatCardTitleGroup',
+  'MatTable', 'MatTextColumn', 'MatHeaderRow', 'MatRow', 'MatFooterRow', 'MatHeaderCell', 'MatCell',
+  'MatFooterCell',
 ]);
 const PLUS_LAYOUT_COMPONENTS = new Set([
   'MatToolbar',
@@ -1873,7 +1881,6 @@ const PRO_DATA_COMPONENTS = new Set([
   'MatChipSet', 'MatChip', 'MatChipListbox', 'MatChipOption',
   'MatChipGrid', 'MatChipRow',
   'MatPaginator',
-  'MatTable', 'MatTextColumn', 'MatTableColumn', 'MatTableHeaderRow', 'MatTableDataRow',
   'MatSortHeader',
   'MatTree', 'MatTreeNode',
 ]);
@@ -1919,7 +1926,7 @@ const pickSnippetGroups = (groupNames) =>
           return MAX_FEEDBACK_COMPONENTS.has(name);
         }
         if (groupNames.includes('data-display')) {
-          return PRO_DATA_COMPONENTS.has(name);
+          return PRO_DATA_COMPONENTS.has(name) || BASE_COMPONENTS.has(name);
         }
         return true;
       }),
@@ -1928,10 +1935,24 @@ const pickSnippetGroups = (groupNames) =>
 
 const OUT_DIR = path.resolve(__dirname, '../projects/mat-materials/src/meta/materials');
 
+const tableSnippets = {
+  group: 'data-display',
+  label: { zh_CN: '数据展示' },
+  children: snippets.find((g) => g.group === 'data-display')?.children.filter((c) =>
+    BASE_COMPONENTS.has(c.snippetName),
+  ) ?? [],
+};
+
 const outputs = [
   {
     file: 'bundle.json',
-    bundle: makeBundle(pickComponents(BASE_COMPONENTS), pickSnippetGroups(['basic', 'form'])),
+    bundle: makeBundle(
+      pickComponents(BASE_COMPONENTS),
+      [
+        ...pickSnippetGroups(['basic', 'form']),
+        ...(tableSnippets.children.length ? [tableSnippets] : []),
+      ],
+    ),
   },
   {
     file: 'plus-layout.json',

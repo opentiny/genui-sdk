@@ -3947,6 +3947,498 @@
               }
             }
           }
+        },
+        {
+          "id": 66,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "数据表格"
+          },
+          "component": "MatTable",
+          "icon": "table",
+          "description": "Material 数据表格。列：ng-container+matColumnDef（可 sticky/stickyEnd）+ NgTemplate 单元格；行：matHeaderRowDef/matRowDef/matFooterRowDef（可 *Sticky）与 matNoDataRow；也可用 MatTextColumn。",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "table,表格",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTable",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "dataSource",
+                    "label": {
+                      "text": {
+                        "zh_CN": "数据源"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表格数据源（数组或 MatTableDataSource）"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "array",
+                    "widget": {
+                      "component": "ArrayConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "列与行定义"
+                },
+                "description": {
+                  "zh_CN": "ng-container+matColumnDef、NgTemplate 行/空数据/页脚定义，或 MatTextColumn"
+                }
+              }
+            }
+          }
+        },
+        {
+          "id": 67,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "文本列"
+          },
+          "component": "MatTextColumn",
+          "icon": "table-column",
+          "description": "简化的文本列定义（mat-text-column）",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "text-column,文本列",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatTextColumn",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "label": {
+                      "text": {
+                        "zh_CN": "列名"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "列标识，对应 displayedColumns"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "headerText",
+                    "label": {
+                      "text": {
+                        "zh_CN": "表头文案"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "表头显示文本"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  },
+                  {
+                    "property": "dataAccessor",
+                    "label": {
+                      "text": {
+                        "zh_CN": "取值"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "从行数据取值的字段名或访问器"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 68,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "表头行"
+          },
+          "component": "MatHeaderRow",
+          "icon": "table-header",
+          "description": "表头行组件（mat-header-row），放在 matHeaderRowDef 的 NgTemplate 内",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "header-row,表头",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatHeaderRow",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 69,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "数据行"
+          },
+          "component": "MatRow",
+          "icon": "table-row",
+          "description": "数据行组件（mat-row），放在 matRowDef 的 NgTemplate 内",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "data-row,数据行",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatRow",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 70,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "表尾行"
+          },
+          "component": "MatFooterRow",
+          "icon": "table-footer",
+          "description": "表尾行组件（mat-footer-row），放在 matFooterRowDef 的 NgTemplate 内",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "footer-row,表尾",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatFooterRow",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {}
+          }
+        },
+        {
+          "id": 71,
+          "version": "20.2.14",
+          "name": {
+            "zh_CN": "表尾单元格"
+          },
+          "component": "MatFooterCell",
+          "icon": "table-cell",
+          "description": "表尾单元格宿主（td + matFooterCell），放在 matFooterCellDef 的 NgTemplate 内",
+          "doc_url": "https://material.angular.dev/components/table/overview",
+          "screenshot": "",
+          "tags": "table,数据",
+          "keywords": "footer-cell,表尾",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@angular/material",
+            "exportName": "MatFooterCell",
+            "destructuring": false
+          },
+          "group": "数据展示",
+          "category": "angular-material",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": true,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": []
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [],
+            "events": {},
+            "slots": {
+              "default": {
+                "label": {
+                  "zh_CN": "单元格内容"
+                },
+                "description": {
+                  "zh_CN": "表尾文案"
+                }
+              }
+            }
+          }
         }
       ],
       "packages": [

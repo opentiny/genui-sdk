@@ -14,14 +14,14 @@
 
 ## Material Tiers
 
-与 ng-devui 物料包一致，按累积层级拆分（`base ⊂ plus ⊂ max ⊂ pro`）：
+按累积层级拆分（`base ⊂ plus ⊂ max ⊂ pro`）：
 
 | Tier | 运行时 / Meta | 内容 |
 |------|----------------|------|
-| **base** | `materials` / `materialsMeta` | 基础 + 表单 + `MatCard*`（含 Fab / Hint / Error） |
+| **base** | `materials` / `materialsMeta` | 基础 + 表单 + `MatCard*` + `MatTable*`（含 Fab / Hint / Error） |
 | **plus** | `plusMaterials` / `plusMaterialsMeta` | base + 布局/导航 + Datepicker / Autocomplete / Stepper |
 | **max** | `maxMaterials` / `maxMaterialsMeta` | plus + Progress + Menu |
-| **pro** | `proMaterials` / `proMaterialsMeta` | max + 碎片 / Table / Tree / Sort（全量） |
+| **pro** | `proMaterials` / `proMaterialsMeta` | max + 碎片 / Paginator / Tree / Sort（全量） |
 
 ```typescript
 import { proMaterials } from '@opentiny/genui-sdk-materials-angular-angular-material/materials';
@@ -42,7 +42,8 @@ import { proMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-
 - **表单组件**: `MatFormField`、`MatLabel`、`MatHint`、`MatError`、`MatCheckbox`、`MatSlideToggle`、`MatSlider`、`MatSelect`、`MatOption`、`MatRadioGroup`、`MatRadioButton`、`MatButtonToggleGroup`、`MatButtonToggle`、`MatAutocomplete`、`MatDatepicker`、`MatDateRangePicker`、`MatDatepickerToggle`、`MatTimepicker`、`MatTimepickerToggle`
 - **布局组件**: `MatCard*`、`MatToolbar`、`MatSidenav*`、`MatGridList`/`MatGridTile`、`MatList*` 变体、`MatAccordion`、`MatExpansionPanel*`
 - **导航组件**: `MatTabs`、`MatTab`、`MatTabNav`、`MatTabLink`、`MatTabNavPanel`、`MatStepper`、`MatStep`
-- **数据展示**: `MatChipSet`、`MatChip`、`MatChipListbox`、`MatChipOption`、`MatChipGrid`、`MatChipRow`、`MatPaginator`、`MatTable`、`MatTextColumn`、`MatTableColumn`、`MatTableHeaderRow`、`MatTableDataRow`、`MatSortHeader`、`MatTree`、`MatTreeNode`
+- **表格（base）**: `MatTable`、`MatTextColumn`、`MatHeaderRow`、`MatRow`、`MatFooterRow`、`MatHeaderCell`、`MatCell`、`MatFooterCell`
+- **数据展示（pro）**: `MatChipSet`、`MatChip`、`MatChipListbox`、`MatChipOption`、`MatChipGrid`、`MatChipRow`、`MatPaginator`、`MatSortHeader`、`MatTree`、`MatTreeNode`
 - **反馈组件**: `MatProgressSpinner`、`MatProgressBar`、`MatMenu`、`MatMenuItem`
 
 ### 指令
@@ -57,10 +58,14 @@ import { proMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-
 | `matMenuTriggerFor` | 菜单触发（值为 `MatMenu` 实例） |
 | `matChipRemove` / `matChipAvatar` / `matChipInputFor` | 碎片移除 / 头像 / 输入关联 |
 | `matSort` | 表格排序宿主 |
+| `matColumnDef` / `matHeaderCellDef` / `matCellDef` / `matFooterCellDef` | 列与单元格模板（NgTemplate / ng-container）；列可设 `sticky` / `stickyEnd` |
+| `matHeaderRowDef` / `matRowDef` / `matFooterRowDef` / `matNoDataRow` | 表头 / 数据 / 表尾 / 空数据行；行可设 `matHeaderRowDefSticky` / `matFooterRowDefSticky` |
+| `matHeaderCell` / `matCell` / `matFooterCell` | `th` / `td` 上的单元格宿主 |
 
 ## 已知限制
 
 - `MatDialog` / `MatSnackBar` / `MatBottomSheet` 为服务打开，不纳入 schema 根组件。
 - Menu / Autocomplete / Datepicker / ChipGrid 等需通过 `ref` + `JSExpression` 把组件实例传给触发指令。
-- `MatTable` 通过 `MatTextColumn` / `MatTableColumn` + `MatTableHeaderRow` / `MatTableDataRow` 使用；自定义单元格见 `MatTableColumn` + `NgTemplate`（`examples/grid.json`、demo `page.json`）。
+- `MatTable` 用 `ng-container` + `matColumnDef` 与 `NgTemplate` + 行/单元格结构指令；简单列可用 `MatTextColumn`（见 `examples/grid.json`、demo `page.json`）。Schema 里的 `ng-container` 是元素宿主占位（渲染器不能创建 Angular 注释型 ng-container）；native `table[mat-table]` 客户端通常不把列宿主投影进 DOM，一般无布局影响。
+- Sticky 需要外层可滚动容器（如 `max-height` + `overflow: auto`）。
 - `MatTree` 完整节点模板仍依赖数据源与结构指令。
