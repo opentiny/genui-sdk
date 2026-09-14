@@ -6,6 +6,9 @@ export interface LLMConfig {
   temperature: number;
 }
 
+/** 模板会话顶层消息类型：context-compress 为压缩摘要，其余为正常对话 */
+export type { ContextCompressMessageType } from './template-chat-utils/context-message';
+
 export interface ISchemaCardMessageItem {
   type: 'schema-card';
   content: string;
