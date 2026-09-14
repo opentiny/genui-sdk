@@ -35,6 +35,12 @@ export interface ISkillGenerateConfig {
   syncComponentsIndex?: boolean;
   /** 是否清理生成子目录中的过期文件；默认 true */
   prune?: boolean;
+  /**
+   * 是否生成不拆分的完整 prompt skill：跳过 reference 章节拆分与写入，
+   * 将完整 prompt（含 skillPrefix 与所有章节）直接作为 SKILL.md 正文。
+   * 默认 false。
+   */
+  flatPrompt?: boolean;
 }
 
 export interface ISkillGenerateCliOptions {
@@ -223,6 +229,7 @@ export async function runSkillGenerateCli(
     referenceSubdir: config.referenceSubdir,
     syncComponentsIndex: config.syncComponentsIndex,
     prune: config.prune,
+    flatPrompt: config.flatPrompt,
     formatSkillBody: config.skillBodyFormatter
       ? resolveSkillBodyFormatter(config.skillBodyFormatter)
       : undefined,

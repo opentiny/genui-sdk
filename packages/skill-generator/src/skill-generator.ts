@@ -122,6 +122,12 @@ export interface IGenerateSkillOptions {
   prune?: boolean;
   /** 无 SKILL.md 时使用的默认 frontmatter */
   defaultFrontmatter?: string;
+  /**
+   * 是否生成不拆分的完整 prompt skill：跳过 reference 章节拆分与写入，
+   * 将完整 prompt（含 skillPrefix 与所有章节）直接作为 SKILL.md 正文。
+   * 默认 false。
+   */
+  flatPrompt?: boolean;
 }
 
 export interface IGenerateSkillResult extends IGenSkillContent {
@@ -426,12 +432,19 @@ export function genSkillContent(
   materialsMeta: IMaterialsMeta,
   tgCustomConfig?: IGenPromptCustomConfig,
   promptOptions?: IGenPromptOptions,
+  options?: { flatPrompt?: boolean },
 ): IGenSkillContent {
-  const options: IGenPromptOptions = {
+  const mergedPromptOptions: IGenPromptOptions = {
     ...promptOptions,
     isSkill: promptOptions?.isSkill ?? true,
   };
-  const prompt = genPrompt(framework, materialsMeta, tgCustomConfig, options);
+  const prompt = genPrompt(framework, materialsMeta, tgCustomConfig, mergedPromptOptions);
+
+  // 不拆分分支：完整 prompt 直接作为 SKILL.md 正文，不产出 reference 章节
+  if (options?.flatPrompt) {
+    return { prompt, skillPrefix: prompt, sections: {}, sectionMarkers: [] };
+  }
+
   const sectionMarkers = extractReferenceSections(prompt);
   const skillPrefix = extractSkillPrefix(prompt, sectionMarkers);
   const sections = splitPromptSections(prompt, sectionMarkers);
@@ -854,6 +867,8 @@ export function writeSkillEntry(
     referenceSubdir?: string;
     componentGroups?: IComponentCategoryGroup[];
     wrapperComponent?: string;
+    /** 不拆分模式：完整 prompt 直接作为 SKILL.md 正文，跳过 formatter 与章节组装 */
+    fullPrompt?: string;
   } = {},
 ): void {
   if (skillDirs.length === 0) {
@@ -865,6 +880,11 @@ export function writeSkillEntry(
 
   for (const skillDir of skillDirs) {
     mkdirSync(skillDir, { recursive: true });
+    if (options.fullPrompt != null) {
+      const flatBody = options.fullPrompt.endsWith('\n') ? options.fullPrompt : `${options.fullPrompt}\n`;
+      writeFileSync(join(skillDir, 'SKILL.md'), `${frontmatter}${flatBody}`, 'utf8');
+      continue;
+    }
     const formattedBody = options.formatSkillBody?.(sectionMarkers, {
       skillDir,
       referenceSubdir: subdir,
@@ -898,6 +918,7 @@ export function generateSkillFiles(
     materialsMeta,
     options.promptCustomConfig ?? options.tgCustomConfig,
     options.promptOptions,
+    { flatPrompt: options.flatPrompt },
   );
 
   const referenceSubdir = normalizeReferenceSubdir(options.referenceSubdir ?? 'generated');
@@ -905,6 +926,25 @@ export function generateSkillFiles(
     materials: materialsMeta.materials,
     customComponents: (options.promptCustomConfig ?? options.tgCustomConfig)?.customComponents,
   });
+
+  if (options.flatPrompt) {
+    // 不拆分：完整 prompt 直接写入 SKILL.md，不产出 reference 章节
+    writeSkillEntry(options.skillDirs, skillPrefix, sectionMarkers, {
+      defaultFrontmatter: options.defaultFrontmatter,
+      referenceSubdir,
+      componentGroups,
+      wrapperComponent: materialsMeta.wrapperComponent,
+      fullPrompt: prompt,
+    });
+
+    return {
+      prompt,
+      skillPrefix,
+      sections,
+      sectionMarkers,
+      skillDirs: options.skillDirs,
+    };
+  }
 
   // 先落盘 generated/（及 components 类型索引），再写 SKILL，便于「存在才出链」含 generated 回退
   for (const skillDir of options.skillDirs) {

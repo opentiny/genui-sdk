@@ -618,4 +618,29 @@ description: test
     expect(existsSync(join(missingDir, 'SKILL.md'))).toBe(true);
     expect(() => ensureSkillFrontmatter(invalidDir)).toThrow(/YAML frontmatter/);
   });
+
+  it('flatPrompt 生成不拆分的完整 prompt skill，跳过 reference 章节', () => {
+    const skillDir = createTempDir('skill-flat-');
+    const result = generateSkillFiles(
+      'vue',
+      { materials: [], examples: [], whiteList: [] },
+      {
+        skillDirs: [skillDir],
+        flatPrompt: true,
+        tgCustomConfig: { customActions: [{ name: 'continueChat' }] },
+      },
+    );
+
+    // 不产出 reference 章节
+    expect(result.sectionMarkers).toEqual([]);
+    expect(result.sections).toEqual({});
+    expect(existsSync(join(skillDir, 'reference'))).toBe(false);
+
+    // SKILL.md 正文即完整 prompt（含 skillPrefix 与所有章节）
+    const content = readFileSync(join(skillDir, 'SKILL.md'), 'utf8');
+    const body = content.replace(/^---[\s\S]*?---\n\n?/, '');
+    expect(body).toBe(result.prompt);
+    expect(content).toContain('## 可用组件');
+    expect(content).toContain('## schemaJson 生成规则');
+  });
 });
