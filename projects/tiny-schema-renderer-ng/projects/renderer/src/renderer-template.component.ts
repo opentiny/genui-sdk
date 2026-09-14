@@ -16,6 +16,7 @@ import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
 import { SchemaRefDirective, SchemaRefTemplateDirective } from './schema-ref';
 import { SchemaTemplateContextDirective } from './schema-template-context.directive';
+import { SchemaTemplateDirectivesDirective } from './schema-template-directives.directive';
 import { ContentChildrenTrackDirective, ContentChildrenTrackTemplateDirective } from './content-children';
 
 @Pipe({
@@ -84,6 +85,7 @@ export class IsStringPipe implements PipeTransform {
     SchemaRefDirective,
     SchemaRefTemplateDirective,
     SchemaTemplateContextDirective,
+    SchemaTemplateDirectivesDirective,
     RenderNgContentDirective,
     BlockProjectedViewsDirective,
     ParseDataPipe,

@@ -77,6 +77,10 @@
                 ngSchemaTemplate
                 schemaTemplateContext
                 #templateCtx="schemaTemplateContext"
+                schemaTemplateDirectives
+                [schemaTemplateDirectiveTypes]="child.directives | autoApplyDirectives: child | getDirectives"
+                [schemaTemplateDirectiveProps]="context | parseData: child.props : scope"
+                [schemaTemplateParentInjector]="componentInjector || componentOutlet?.componentInjector"
                 [contentChildrenParent]="componentOutlet"
                 [contentChildrenRefName]="child.props?.refName"
                 [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
