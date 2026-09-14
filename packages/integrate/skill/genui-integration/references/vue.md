@@ -50,7 +50,7 @@ for await (const line of readSseLines(response.body)) {
 
 ## 按需导入
 
-`@opentiny/genui-sdk-vue` 提供 `chat`、`renderer`、`config-provider` 等子路径，可按需引入以减小打包体积。详见 [快速开始 - 按需引入](https://docs.opentiny.design/genui-sdk/guide/quick-start#按需引入)。
+`@opentiny/genui-sdk-vue` 提供 `chat`、`renderer`、`config-provider`、`code-generator` 等子路径，可按需引入以减小打包体积。详见 [快速开始 - 按需引入](https://docs.opentiny.design/genui-sdk/guide/quick-start#按需引入)。
 
 ## 兼容组件
 

@@ -25,6 +25,8 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 - **Type**: `IMaterials`
 - **Description**: OpenTiny Vue component map for [GenuiConfigProvider](../config-provider#materials). `miniMaterials` is a smaller set (without charts, etc.); `plusMaterials` targets full business pages (tree, dialog, timeline, etc.).
 
+All three materials objects ship with `themeFactory` (`light` / `dark` / `lite` themes, see [Materials Theme](./theme)); no extra setup is needed — just set the [GenuiConfigProvider](../config-provider#theme) `theme` prop to switch:
+
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
@@ -32,6 +34,14 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 ```vue
 <GenuiConfigProvider :materials="materials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
+Theme switching example (`light` / `dark` / `lite` / `auto`):
+
+```vue
+<GenuiConfigProvider :materials="materials" theme="dark">
   <GenuiChat />
 </GenuiConfigProvider>
 ```

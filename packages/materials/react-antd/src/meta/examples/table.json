@@ -1,0 +1,51 @@
+{
+  "componentName": "Page",
+  "state": {
+    "columns": [
+      {
+        "dataIndex": "id",
+        "title": "工号"
+      },
+      {
+        "dataIndex": "name",
+        "title": "姓名"
+      },
+      {
+        "dataIndex": "department",
+        "title": "部门"
+      }
+    ],
+    "tableData": []
+  },
+  "lifeCycles": {
+    "onMounted": {
+      "type": "JSFunction",
+      "value": "function onMounted() { this.state.tableData = [{ id: '001', name: '张三', department: '技术部' }, { id: '002', name: '李四', department: '市场部' }, { id: '003', name: '王五', department: '人事部' }]; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "员工列表（表格渲染）"
+      },
+      "children": [
+        {
+          "componentName": "AntTable",
+          "props": {
+            "columns": {
+              "type": "JSExpression",
+              "value": "this.state.columns"
+            },
+            "dataSource": {
+              "type": "JSExpression",
+              "value": "this.state.tableData"
+            },
+            "rowKey": "id",
+            "pagination": false
+          }
+        }
+      ]
+    }
+  ]
+}

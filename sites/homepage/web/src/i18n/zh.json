@@ -15,7 +15,9 @@
   "ability": {
     "visual": {
       "title": "超越文字的表达能力",
-      "subtitle": "以界面重构文字，打破文字表达壁垒，用可视化界面释放信息价值"
+      "subtitle": "以界面重构文字，打破文字表达壁垒，用可视化界面释放信息价值",
+      "before": "接入GenUI前",
+      "after": "接入GenUI后"
     },
     "interaction": {
       "title": "更加流畅的交互方式",

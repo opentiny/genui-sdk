@@ -40,6 +40,7 @@ export default defineConfig(({ mode }) => {
           'legacy-renderer': path.resolve(__dirname, './src/legacy-renderer/index.ts'),
           'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
           'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
+          'code-generator': path.resolve(__dirname, './src/code-generator/index.ts'),
         },
         formats: ['es'],
         fileName: (_, entryName) => `${entryName}.js`,
