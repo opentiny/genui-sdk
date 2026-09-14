@@ -54,6 +54,28 @@ const transformJSX = (code: string) => {
   // todo: 实现
   return code;
 };
+
+/**
+ * 缓存编译产物。`new Function` 的成本很高（每次 input 触发整树 CD 会重编译上百次），
+ * 而表达式 source（如 `this.state.formData.description`）是稳定的，编译一次即可复用。
+ * 编译出的函数通过 `with($scope)` 读 scope，每次调用只需传入新的 scope。
+ */
+const MAX_COMPILED_EXPR = 512;
+const compiledExprCache = new Map<string, Function>();
+
+const compileExpression = (expression: string): Function => {
+  let fn = compiledExprCache.get(expression);
+  if (fn === undefined) {
+    fn = newFn('$scope', `with($scope || {}) { return ${expression} }`);
+    // 简单兜底：schema 若动态生成表达式导致缓存无限增长，整体清空重来（极端场景）。
+    if (compiledExprCache.size >= MAX_COMPILED_EXPR) {
+      compiledExprCache.clear();
+    }
+    compiledExprCache.set(expression, fn);
+  }
+  return fn;
+};
+
 const parseExpression = (data: any, scope: any, ctx: any, isJsx = false) => {
   try {
     const mergeScope = {
@@ -69,7 +91,7 @@ const parseExpression = (data: any, scope: any, ctx: any, isJsx = false) => {
       }, {});
       expression = `(e) => {(${expression}).call(this, e, ${data.params.join(',')})}`;
     }
-    return newFn('$scope', `with($scope || {}) { return ${expression} }`).call(ctx, {
+    return compileExpression(expression).call(ctx, {
       ...mergeScope,
       ...params,
     });
