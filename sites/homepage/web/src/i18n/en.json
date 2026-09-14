@@ -15,7 +15,9 @@
   "ability": {
     "visual": {
       "title": "Beyond text expression",
-      "subtitle": "Rebuild text with UI, break expression barriers, and unlock information value through visual interfaces"
+      "subtitle": "Rebuild text with UI, break expression barriers, and unlock information value through visual interfaces",
+      "before": "Before GenUI",
+      "after": "After GenUI"
     },
     "interaction": {
       "title": "Smoother interaction",

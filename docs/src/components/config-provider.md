@@ -8,12 +8,12 @@
 
 ### theme
 
-- **类型**: `'dark' | 'lite' | 'light' | 'auto'`
+- **类型**: `string`
 - **必填**: 否
 - **默认值**: `'light'`
-- **说明**: 主题模式。
+- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料主题](./materials/theme)。
   - `'dark'`：深色主题
-  - `'lite'`：清新主题
+  - `'lite'`：清新主题（仅 OpenTiny Vue 物料）
   - `'light'`：浅色主题
   - `'auto'`：自动跟随浏览器
 

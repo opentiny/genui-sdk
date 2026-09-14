@@ -228,13 +228,14 @@ You are ready to try generative UI.
 
 ## Subpath Imports
 
-Besides the main entry, `@opentiny/genui-sdk-vue` provides subpath exports. Import only Chat or Renderer when needed to avoid bundling unused modules when tree-shaking is limited.
+Besides the main entry, `@opentiny/genui-sdk-vue` provides subpath exports. Import only Chat, Renderer, or the code generator when needed to avoid bundling unused modules when tree-shaking is limited.
 
 | Subpath | Use case | Main exports |
 | --- | --- | --- |
 | `@opentiny/genui-sdk-vue/chat` | Chat only | `GenuiChat` |
 | `@opentiny/genui-sdk-vue/renderer` | Renderer only (custom chat UI) | `GenuiRenderer` |
 | `@opentiny/genui-sdk-vue/config-provider` | Theme / i18n / materials container | `GenuiConfigProvider` |
+| `@opentiny/genui-sdk-vue/code-generator` | SchemaJSON → Vue SFC | [`generateCode`](../components/code-generator) |
 
 ```ts
 import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
@@ -243,6 +244,9 @@ import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materi
 
 // Renderer only
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+
+// Code generation only
+import { generateCode } from '@opentiny/genui-sdk-vue/code-generator';
 ```
 
 ::: tip
@@ -252,5 +256,6 @@ In v1.3.0, materials were decoupled from the SDK. If you need the built-in TinyV
 ## Related Docs
 
 - [GenuiChat API](../components/chat)
+- [generateCode](../components/code-generator) — SchemaJSON to Vue SFC
 - [Using Renderer](start-with-renderer)
 - [Examples](../examples/chat/custom-actions)

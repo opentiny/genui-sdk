@@ -371,12 +371,35 @@ function inferFirstOnly(propertyName: string): boolean {
 }
 
 /**
- * Property names declared by the compiled `viewQuery` fn — @ViewChild/@ViewChildren updates
+ * Property names declared by compiled `viewQuery` fns — @ViewChild/@ViewChildren updates
  * (`ctx.foo = _t`) and viewChild()/viewChildren() signals (`ɵɵviewQuerySignal(ctx.foo, ...)`).
  * Content patching must skip these: wiping e.g. TiDateComponent.dateEditComs breaks `focus()`.
- * Content-query signals live in the contentQueries fn, never here, so they stay patchable.
+ *
+ * Production bundles minify locals (`e.dateEditComs=t`) and instruction names
+ * (`Og(r._iconPrefixContainerSignal,`); property names usually survive. Inherited queries
+ * (TiDate ← TiDateBase) may live on the parent `ɵcmp.viewQuery` only — walk the prototype
+ * chain. Content-query signals live in `contentQueries`, never here, so they stay patchable.
+ *
+ * Note: runtime `ɵcmp` does not expose a `viewQueries` array — only the compiled `viewQuery`
+ * function is available, so property names are recovered by parsing that function source.
  */
 const viewQueryPropsByClass = new WeakMap<object, Set<string>>();
+
+function collectViewQueryPropertyNamesFromCtor(ctor: object, names: Set<string>): void {
+  const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
+  if (typeof viewQuery !== 'function') {
+    return;
+  }
+  const src = Function.prototype.toString.call(viewQuery);
+  // decorator @ViewChild/@ViewChildren: `ctx.foo = _t.first` or minified `r.trigger=o.first`
+  for (const name of ivyCtxProps(src, IVY_ASSIGN_RE)) {
+    names.add(name);
+  }
+  // signal viewChild(): `ɵɵviewQuerySignal(ctx.foo,` or minified `Og(r._iconPrefixContainerSignal,`
+  for (const name of ivyCtxProps(src, IVY_CALL_PROP_ARG_RE)) {
+    names.add(name);
+  }
+}
 
 function getViewQueryPropertyNames(instance: object): Set<string> {
   const ctor = instance.constructor as object;
@@ -385,20 +408,34 @@ function getViewQueryPropertyNames(instance: object): Set<string> {
     return names;
   }
   names = new Set<string>();
-  const viewQuery = (ctor as any)?.ɵcmp?.viewQuery;
-  if (typeof viewQuery === 'function') {
-    const src = Function.prototype.toString.call(viewQuery);
-    // decorator @ViewChild/@ViewChildren: `ctx.foo = _t.first` or minified `r.trigger=o.first`
-    for (const name of ivyCtxProps(src, IVY_ASSIGN_RE)) {
-      names.add(name);
-    }
-    // signal viewChild(): `ɵɵviewQuerySignal(ctx.foo,` or minified `Og(r._iconPrefixContainerSignal,`
-    for (const name of ivyCtxProps(src, IVY_CALL_PROP_ARG_RE)) {
-      names.add(name);
-    }
+  let current: object | null = ctor;
+  while (current && current !== Object && current !== Function && current !== Object.prototype) {
+    collectViewQueryPropertyNamesFromCtor(current, names);
+    current = Object.getPrototypeOf(current);
   }
   viewQueryPropsByClass.set(ctor, names);
   return names;
+}
+
+/** QueryLists Ivy already classified as view queries — never content-patch these. */
+function collectViewQueryLists(instance: object): Set<QueryList<unknown>> {
+  const viewLists = new Set<QueryList<unknown>>();
+  try {
+    const ctx = getLContext(instance);
+    const lView = ctx?.lView;
+    const lQueries = lView ? findLQueries(lView) : null;
+    if (!lView || !lQueries) {
+      return viewLists;
+    }
+    lQueries.queries.forEach((lQuery, index) => {
+      if (!isContentQueryIndex(lView, index) && lQuery.queryList instanceof QueryList) {
+        viewLists.add(lQuery.queryList);
+      }
+    });
+  } catch {
+    // getLContext can throw if instance is not in a live view yet.
+  }
+  return viewLists;
 }
 
 /** Discover content-query QueryLists on a component; skips view queries. */
@@ -440,12 +477,15 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
   }
 
   const viewQueryProps = getViewQueryPropertyNames(instance);
+  const viewQueryLists = collectViewQueryLists(instance);
   const shimBindings = hostShimBindings.get(instance);
   for (const key of Object.keys(instance as object)) {
     const value = (instance as any)[key];
     if (value instanceof QueryList) {
       // @ViewChildren fields are resolved by Angular — patching wipes matches (e.g. TiDate.dateEditComs).
-      if (viewQueryProps.has(key)) {
+      // Only skip when viewQuery source or LQueries classification identifies the list —
+      // never infer from length alone (a filled content query would then be skipped forever).
+      if (viewQueryProps.has(key) || viewQueryLists.has(value)) {
         continue;
       }
       if (seen.has(value)) {
@@ -469,10 +509,10 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       const node = getQuerySignalNode(value);
       // viewChild()/viewChildren() signals are resolved by Angular — never patch.
       // Content signals stay patchable.
-      if (viewQueryProps.has(key)) {
+      const queryList = node._queryList as QueryList<unknown>;
+      if (viewQueryProps.has(key) || viewQueryLists.has(queryList)) {
         continue;
       }
-      const queryList = node._queryList as QueryList<unknown>;
       const firstOnly = inferFirstOnly(key);
       const signalMeta = getSignalQueryMetadata(node);
       if (seen.has(queryList)) {
@@ -1324,11 +1364,27 @@ export function patchOutletContentQueries(
 
 /**
  * Compiled `ɵcmp.contentQueries` source is re-parsed per class to recover `@ContentChild` field
- * names. Ivy emits `ctx.foo = _t.first`; production minify rewrites locals (`r._formFieldControl=a.first`)
- * but keeps the property name. That name is not in query metadata, so toString is the only source.
- * Fail closed: when nothing matches, field-name binding is skipped. Cached per class.
+ * names. Ivy emits `ctx.foo = _t.first`; production minify rewrites locals
+ * (`r._formFieldControl=a.first`) but keeps the property name. Inherited queries may live on
+ * a parent class — walk the prototype chain. Order is base → subclass so index mapping matches
+ * Ivy LView content-query order. Runtime `ɵcmp` has no `queries` array — only the compiled
+ * `contentQueries` function is parsed. Fail closed: when nothing matches, field-name binding
+ * is skipped. Cached per class.
  */
 const contentChildFirstPropsByClass = new WeakMap<object, string[]>();
+
+function collectContentChildFirstPropsFromCtor(ctor: object, firstProps: string[]): void {
+  const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
+  if (typeof contentQueries !== 'function') {
+    return;
+  }
+  const src = Function.prototype.toString.call(contentQueries);
+  for (const name of ivyCtxProps(src, IVY_ASSIGN_FIRST_RE)) {
+    if (!firstProps.includes(name)) {
+      firstProps.push(name);
+    }
+  }
+}
 
 function getContentChildFirstProps(instance: object): string[] {
   const ctor = instance.constructor as object;
@@ -1336,11 +1392,16 @@ function getContentChildFirstProps(instance: object): string[] {
   if (cached) {
     return cached;
   }
+  // Collect subclass → base, then reverse so firstProps is base → subclass (LView order).
+  const chain: object[] = [];
+  let current: object | null = ctor;
+  while (current && current !== Object && current !== Function && current !== Object.prototype) {
+    chain.push(current);
+    current = Object.getPrototypeOf(current);
+  }
   const firstProps: string[] = [];
-  const contentQueries = (ctor as any)?.ɵcmp?.contentQueries;
-  if (typeof contentQueries === 'function') {
-    const src = Function.prototype.toString.call(contentQueries);
-    firstProps.push(...ivyCtxProps(src, IVY_ASSIGN_FIRST_RE));
+  for (let i = chain.length - 1; i >= 0; i--) {
+    collectContentChildFirstPropsFromCtor(chain[i], firstProps);
   }
   contentChildFirstPropsByClass.set(ctor, firstProps);
   return firstProps;
@@ -1359,12 +1420,17 @@ function bindDecoratorQueryPropertyNames(
     return;
   }
   // LView order: content signals + ContentChildren (named) + @ContentChild QueryLists (unnamed).
-  // Match the unnamed QueryLists to the compiled `_t.first` props in order.
+  // Match the unnamed QueryLists to the compiled `_t.first` props in base→subclass order.
+  // Only bind props that exist on this instance and are not already claimed.
+  const usedProps = new Set(
+    targets.map((t) => t.propertyName).filter((name): name is string => !!name),
+  );
+  const availableProps = firstProps.filter((prop) => prop in instance && !usedProps.has(prop));
   const unboundChildQueries = targets.filter(
     (t) => t.kind === 'query-list' && !t.propertyName,
   );
-  for (let i = 0; i < firstProps.length && i < unboundChildQueries.length; i++) {
-    unboundChildQueries[i].propertyName = firstProps[i];
+  for (let i = 0; i < availableProps.length && i < unboundChildQueries.length; i++) {
+    unboundChildQueries[i].propertyName = availableProps[i];
     unboundChildQueries[i].firstOnly = true;
   }
 }

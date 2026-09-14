@@ -64,6 +64,7 @@ export default defineConfig({
       fileName: 'index',
       formats: ['es']
     },
+    emitAssets: true,
     cssCodeSplit: false,
     rollupOptions: {
       external: [

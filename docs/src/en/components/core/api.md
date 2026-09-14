@@ -393,8 +393,67 @@ interface IMaterials {
   components?: Record<string, unknown>; // component name → runtime component
   requiredCompleteFieldSelectors?: string[]; // buffer-field selectors
   defaultPropsMap?: Record<string, any>; // default props map
+  themeFactory?: MaterialsThemeFactory; // materials theme factory, see IMaterialsTheme
   [key: string]: any;
 }
+```
+
+### IMaterialsTheme
+
+```typescript
+type ThemeColorScheme = 'light' | 'dark';
+
+interface IThemeDescriptor {
+  id: string; // theme name, e.g. 'light' / 'dark' / 'lite'
+  colorScheme?: ThemeColorScheme; // light/dark scheme of this theme
+}
+
+interface IThemeApplyContext {
+  systemColorScheme: ThemeColorScheme; // system light/dark scheme
+}
+
+type ThemeDisposer = () => void;
+
+interface IThemeApplyResult {
+  descriptor: IThemeDescriptor;
+  dispose?: ThemeDisposer; // dispose side effects
+  root?: unknown; // theme Root component wrapping the render tree
+}
+
+interface IMaterialsTheme {
+  themes?: IThemeDescriptor[]; // supported theme descriptions
+  apply(theme: string, ctx: IThemeApplyContext): IThemeApplyResult; // apply theme and return Root / disposer
+}
+
+type MaterialsThemeFactory = () => IMaterialsTheme; // materials theme factory, the type of IMaterials.themeFactory
+```
+
+### MergedMaterials
+
+```typescript
+type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
+  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+};
+```
+
+### mergeMaterials()
+
+Merges multiple materials configs (components, buffer-field selectors, default props, themes). Theme factories are deduplicated by reference, and the merged `themeFactory` is an array.
+
+- **Type**
+
+```typescript
+function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials
+```
+
+- **Example**
+
+```typescript
+import { mergeMaterials } from '@opentiny/genui-sdk-core';
+import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as elementMaterials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
+
+const merged = mergeMaterials(tinyMaterials, elementMaterials);
 ```
 
 ### IMaterialsMeta

@@ -225,13 +225,14 @@ html {
 
 ## 按需引入
 
-`@opentiny/genui-sdk-vue` 除主入口外，还提供按功能拆分的子路径导出。只需 Chat 或只需 Renderer 时，可从对应子路径引入，在构建工具对摇树不友好时，避免打入未使用的模块。
+`@opentiny/genui-sdk-vue` 除主入口外，还提供按功能拆分的子路径导出。只需 Chat、Renderer 或代码生成时，可从对应子路径引入，在构建工具对摇树不友好时，避免打入未使用的模块。
 
 | 子路径 | 适用场景 | 主要导出内容 |
 | --- | --- | --- |
 | `@opentiny/genui-sdk-vue/chat` | 仅需对话组件 | `GenuiChat` |
 | `@opentiny/genui-sdk-vue/renderer` | 仅需渲染器（自建对话 UI） | `GenuiRenderer` |
 | `@opentiny/genui-sdk-vue/config-provider` | 主题/国际化/物料配置容器 | `GenuiConfigProvider` |
+| `@opentiny/genui-sdk-vue/code-generator` | 将 SchemaJSON 转为 Vue SFC | [`generateCode`](../components/code-generator) |
 
 ```ts
 import { GenuiChat } from '@opentiny/genui-sdk-vue/chat';
@@ -240,6 +241,9 @@ import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materi
 
 // 仅使用 Renderer
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+
+// 仅使用代码生成
+import { generateCode } from '@opentiny/genui-sdk-vue/code-generator';
 ```
 
 ::: tip
@@ -249,5 +253,6 @@ import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
 ## 其他相关文档
 
 - 查看 [组件文档](../components/chat) 了解 `GenuiChat` 的详细 API
+- 查看 [generateCode](../components/code-generator) 了解如何将 SchemaJSON 转为 Vue SFC
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
 - 查看 [特性示例](../examples/chat/custom-actions) 学习高级用法

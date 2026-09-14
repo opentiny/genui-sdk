@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { UserConfig } from 'vitepress';
+import react from '@vitejs/plugin-react';
 import { vitepressDemoPlugin } from 'vitepress-demo-plugin';
 import { tabsMarkdownPlugin } from 'vitepress-plugin-tabs';
 
@@ -40,6 +41,13 @@ export const sharedConfig: UserConfig = {
     },
   },
   vite: {
+    plugins: [react({ include: /\.(jsx|tsx)$/ })],
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
+    optimizeDeps: {
+      include: ['react', 'react-dom', 'react/jsx-runtime', 'antd'],
+    },
     server: {
       host: '0.0.0.0',
       open: true,
