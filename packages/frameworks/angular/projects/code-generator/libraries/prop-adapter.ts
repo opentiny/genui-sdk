@@ -1,4 +1,5 @@
-import type { ICodegenDescription } from '../types';
+import type { Methods } from '@opentiny/genui-sdk-core';
+import type { IAngularTemplateAttr, ICodegenDescription } from '../types';
 
 /**
  * 组件库 prop 特判适配器上下文。
@@ -10,14 +11,16 @@ export interface IAngularPropContext {
   key: string;
   rawItem: unknown;
   props: Record<string, unknown>;
-  attrsArr: string[];
+  /** 当前元素已收集的模板属性(结构化,可读可改;最后一步才拼成字符串) */
+  attrsArr: IAngularTemplateAttr[];
   description: ICodegenDescription;
   state: Record<string, unknown>;
-  schemaMethods?: Record<string, { value: string }>;
+  /** 根节点的 methods 集合(出码时保证存在),适配器可往里提升函数 */
+  schemaMethods: Methods;
   /** 解析 prop 类型(JSExpression / JSFunction / JSSlot / literal) */
   resolvePropValueType: (value: unknown) => string;
-  /** 模板表达式清理:this.x / this.props.x → x */
-  cleanThisInTemplate: (value: string) => string;
+  /** 模板表达式清理:this.x → x(复用基类 replaceThis) */
+  replaceThis: (value: string) => string;
 }
 
 /**

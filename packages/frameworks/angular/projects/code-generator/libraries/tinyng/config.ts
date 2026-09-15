@@ -5,8 +5,8 @@ import { componentSelector, moduleRefMap, componentExtraSelector, libraryCompone
 
 /**
  * TinyNG 组件库专属配置:映射表来自物料包推导(map.ts)。
- * 组件库差异全部收敛为纯配置/策略,登记到 angular-code-generator.ts 的 BUILTIN_LIBRARIES 内置注册表
- * (使用方还可经 IAngularCodeGeneratorOptions.libraries 按实例注入其它库配置)。
+ * 组件库差异全部收敛为纯配置/策略。本配置是出码器的缺省库(angular-code-generator.ts 的 DEFAULT_LIBRARIES),
+ * 其它库经 IAngularCodeGeneratorOptions.libraries 按实例注入。
  * 说明:prop 形态类特判(如 TiPagination 的 pageSize 对象)已在物料包 meta/示例中直接写对,不再需要 propAdapters,
  * 故本库不再配置该项(prop-adapter.ts 抽象保留给未来确有形态重塑需求的组件库)。
  */

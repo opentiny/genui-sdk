@@ -91,6 +91,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       slotTemplates: [],
       slotFields: [],
       templateGeneratedMethods: [],
+      hoistedMethodNames: new Set(),
       templateMethodCounter: 0,
     };
   }

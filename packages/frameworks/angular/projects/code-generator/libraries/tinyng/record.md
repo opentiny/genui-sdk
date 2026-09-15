@@ -8,7 +8,7 @@
 | TiTable | `srcData.state` 归一化(字符串→对象 + 缺省字段补全) | 已删:物料包示例把 `srcData.state` 补成对象形式(见 meta/examples/grid.json、pagination.json) |
 | TiItem | `label` → `[label]="'姓名'"` 绑定形式(字符串/表达式均以更新相写入) | `transformChildren`(见 [config.ts](config.ts)) |
 | TiPagination | `pageSizes`/`pageSize` → 单个 `pageSize` 对象 `{ options, size }` | 已删:物料包 meta 定义与示例改为单 `pageSize` 对象(见 meta/bundle.json、meta/examples/pagination.json) |
-| TiTable | `displayedData` 双向 / `srcData` 单绑(原特判,现通用规则覆盖) | `handleBinding` 通用 `model:true`(见[第 5 节](#5-modeltrue-双向约定非表单组件默认出--key)) |
+| TiTable | `displayedData` 双向 / `srcData` 单绑(原特判,现通用规则覆盖) | `handleBinding` 通用 `model:true`(见[第 5 节](#5-modeltrue-双向约定统一出-key)) |
 
 ## 启动测试界面
 
@@ -96,10 +96,10 @@ Angular 20 严格分离 renderView(创建)与 refreshView(更新):创建相只�
 
 **方案**:把 label 一律变成**方括号绑定**(编译为更新相的 `ɵɵproperty`),让它随其他输入在更新相写入,创建相不碰 setter → 不崩。`transformChildren`(见 [config.ts](config.ts))在 TiFormField 分支统一包装 TiItem 时,对字符串 label 包成单引号字面量表达式,让通用 handleBinding 输出:
 
-- 原本输出(崩):`<ti-item label="姓名" [required]="true">`(字符串字面量走 handleLiteralBinding 的裸属性分支)
+- 原本输出(崩):`<ti-item label="姓名" [required]="true">`(字符串字面量走 `resolveBindingRight` 的 static 分支)
 - 改为(不崩):`<ti-item [label]="'姓名'" [required]="true">`(包成 `{ type: 'JSExpression', value: "'姓名'" }` 后落入 `[key]="..."` 分支)
 
-字符串与表达式两种情形都覆盖:JSExpression label(`this.state.xxx` 等)原样保留,handleBinding 本就输出 `[label]="expr"`;数字/布尔/对象/数组字面量经 handleLiteralBinding 也落在 `[label]="..."` / `[label]='...'` 绑定上,均在更新相写入,无需特判。
+字符串与表达式两种情形都覆盖:JSExpression label(`this.state.xxx` 等)原样保留,handleBinding 本就输出 `[label]="expr"`;数字/布尔/对象/数组字面量经 `resolveBindingRight` 也落在 `[label]="..."` / `[label]='...'` 绑定上,均在更新相写入,无需特判。
 
 **转义顺序**(写入 value 时):先 `\` → `\\`,再 `'` → `\'`(Angular 表达式词法支持 `\'` 与 `\\`),最后 `"` → `&quot;`(产物落在外层双引号属性内,不提前闭合;HTML 实体解析先于表达式词法,还原回的 `"` 在单引号串内合法)。
 
@@ -146,19 +146,23 @@ AI 输出单对象 `pageSize` 后,落入通用绑定(`[pageSize]="pageSizeConfig
 
 ---
 
-## 5. `model:true` 双向约定:非表单组件默认出 `[(key)]`
+## 5. `model:true` 双向约定:统一出 `[(key)]`
 
-**约定**(`handleBinding`,见 [angular-code-generator.ts](../angular-code-generator.ts)):schema 中带 `model:true` 的 JSExpression 表示"该属性要双向同步"。Angular 生态的双向有两种实现形态,据此分流:
-
-| 组件形态 | 产物 | 依据 |
-| --- | --- | --- |
-| CVA 表单控件(`config.formComponents` 名单内) | `[(ngModel)]="expr"` | ngModel 是组件级指令,绑整值、不落单 prop |
-| 其余全部(默认) | `[(key)]="expr"` | banana-box 约定 `@Input key` + `@Output keyChange` |
+**约定**(`handleBinding`,见 [angular-code-generator.ts](../angular-code-generator.ts)):schema 中带 `model:true` 的 JSExpression 表示"该属性要双向同步",一律出 `[(key)]="expr"`(banana-box 约定 `@Input key` + `@Output keyChange`)。无 `model` 的 JSExpression 出单绑 `[key]="expr"`。
 
 `key` 为 rename 后的真实属性名,如 TiTable `displayedData` → `[(displayedData)]`。
 
-**为什么默认取 `[(key)]` 而非 `[(ngModel)]`**:绝大多数双向属性(表格 `displayedData` 等)遵循 `key/keyChange` 命名,一套通用规则即可覆盖,无需按 prop 逐条特判;只有 CVA 表单控件必须靠 `ngModel`(它是整组件机制,`model:true` 无法从 prop 键推断),故仅需在 `IAngularLibraryConfig.formComponents` 列出组件名集合。
+**表单控件同样走这条路**:ngModel 是 Angular 内置的**组件级指令**(绑整值、不落单 prop),CVA 控件(schema 中 `ngModel: { model: true }`)的 prop 键本身就写成 `ngModel`,故 `[(ngModel)]` 由本规则**自然产出**,无需出码器特判:
+
+| schema | 产物 |
+| --- | --- |
+| `ngModel: { model: true, value: ... }` | `[(ngModel)]="..."` |
+| `displayedData: { model: true, value: ... }` | `[(displayedData)]="..."` |
+| `srcData: { value: ... }`(无 `model`) | `[srcData]="..."` |
+
+> 曾按 `IAngularLibraryConfig.formComponents` 名单把 CVA 控件分流到硬编码的 `[(ngModel)]`,但该字段从未被任何库配置启用(TinyNG 也没配),且对键名为 `ngModel` 的 schema 两个分支输出完全相同 —— 属无效分支,已连同字段一并移除。若未来某库出现「`model:true` 但 prop 键非 `key/keyChange` 命名」的双向属性,再考虑恢复按库配置的特判入口。
 
 **连带删除**:原 `DisplayedDataAdapter`(TiTable displayedData 双向特判)与 `SrcDataAdapter`(srcData 强制单绑)被此规则取代 —— `displayedData` 现落入通用 `[(key)]`,`srcData`(无 `model`)落入通用 `[key]`,产物不变。原 `TiPagination` 两个 adapter(`pageSizes`/`pageSize` 合并为 `{ options, size }`)亦已删除 —— 该值形态改由物料包 meta/示例直接写对(见[第 4 节](#4-tipaginationpagesizes--pagesize-已统一为单个-pagesize-对象已在物料包修正出码器不再特判)),`prop-adapters.ts` 文件随之移除,`config.ts` 不再配置 `propAdapters`。若未来组件库确有通用规则无法覆盖的形态重塑特判,仍可复用 `prop-adapter.ts` 抽象按库注入。
 
-**注意**:依赖"AI 输出的 `model:true` 必然对应库中真实存在的 `key/keyChange` 双向属性"。当前无 TinyNG 表单控件出码样例,`formComponents` 留空;待需出表单控件时,需把 CVA 组件(TiInput/TiSelect/TiDate/…)加入名单,否则会被误当作 banana-box 出 `[(key)]` 而编译失败。
+**注意**:本规则依赖"schema 中 `model:true` 的 prop 键,就是目标组件真实存在的双向属性名"。AI 若把双向属性写到别的键上(如给 `TiSelect` 输出 `value: { model: true }`),会出成 `[(value)]` 而编译失败 —— 这类问题应回到物料包 meta/示例里把键名写对,而不是在出码器加特判。
+
