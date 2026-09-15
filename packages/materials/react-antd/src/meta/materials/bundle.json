@@ -106,7 +106,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "输入值；双向绑定时需配合 onChange 更新 state"
+                      "zh_CN": "输入值，需要更新 state 时需要配合 onChange"
                     }
                   },
                   {
@@ -168,7 +168,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "选中值；双向绑定时需配合 onChange 更新 state"
+                      "zh_CN": "选中值，需要更新 state 时需要配合 onChange"
                     }
                   },
                   {
@@ -506,7 +506,7 @@
                     "property": "checked",
                     "type": "boolean",
                     "description": {
-                      "zh_CN": "是否选中；双向绑定时需配合 onChange 更新 state"
+                      "zh_CN": "是否选中，需要更新 state 时需要配合 onChange"
                     }
                   },
                   {
