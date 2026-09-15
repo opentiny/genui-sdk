@@ -179,8 +179,7 @@ const toggleDevMode = () => {
   }
 
   &:focus-visible {
-    outline: 2px solid #1890ff;
-    outline-offset: 2px;
+    outline: none;
   }
 
   &.is-active {
