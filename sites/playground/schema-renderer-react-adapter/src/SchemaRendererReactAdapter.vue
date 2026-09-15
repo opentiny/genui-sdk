@@ -9,7 +9,7 @@ type CustomAction = {
 };
 
 type ReactHostComponent = React.ForwardRefExoticComponent<
-  { initial: ReactHostContentProps } & React.RefAttributes<ReactHostHandle>
+  { initial: ReactHostContentProps; onRendererReady?: () => void } & React.RefAttributes<ReactHostHandle>
 >;
 
 const props = defineProps<{
@@ -39,8 +39,22 @@ function resolveIsJsonComplete() {
   return props.isJsonComplete ?? true;
 }
 
+function cloneSchema(rawSchema: Record<string, unknown>): Record<string, unknown> | null {
+  try {
+    return structuredClone(rawSchema) as Record<string, unknown>;
+  } catch (structuredCloneError) {
+    try {
+      return JSON.parse(JSON.stringify(rawSchema)) as Record<string, unknown>;
+    } catch (jsonCloneError) {
+      console.error('Failed to clone schema for the React renderer.', { structuredCloneError, jsonCloneError });
+      return null;
+    }
+  }
+}
+
 function buildContentProps(): ReactHostContentProps | null {
-  const schema = structuredClone(toRaw(props.schema)) as Record<string, unknown>;
+  const rawSchema = toRaw(props.schema);
+  const schema = cloneSchema(rawSchema);
   if (!schema?.componentName) return null;
   return {
     content: schema,
@@ -78,6 +92,7 @@ async function syncReactProps() {
       React.createElement(Host, {
         ref: onHostReady,
         initial: next,
+        onRendererReady: flushPendingContext,
       }),
     );
   }

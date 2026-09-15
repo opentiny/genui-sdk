@@ -8,6 +8,19 @@ When used with `GenuiRenderer`, you typically need to inject component materials
 
 ## Props
 
+### theme
+
+- **Type**: `'light' | 'dark' | 'auto'`
+- **Required**: No
+- **Default**: `'light'`
+- **Description**: Sets the renderer color scheme. `auto` follows the system color-scheme preference.
+
+```tsx
+<GenuiConfigProvider theme="dark" materials={materials}>
+  <GenuiRenderer content={content} />
+</GenuiConfigProvider>
+```
+
 ### materials
 
 - **Type**: `IMaterials`

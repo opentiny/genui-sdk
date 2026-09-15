@@ -25,12 +25,12 @@ describe('SchemaRenderer materials isolation', () => {
         null,
         createElement(
           RendererContextProvider,
-          { 'render-settings': { materials: { components: { Mark: LabelA } } } },
+          { renderSettings: { materials: { components: { Mark: LabelA } } } },
           createElement(SchemaRenderer, { schema }),
         ),
         createElement(
           RendererContextProvider,
-          { 'render-settings': { materials: { components: { Mark: LabelB } } } },
+          { renderSettings: { materials: { components: { Mark: LabelB } } } },
           createElement(SchemaRenderer, { schema }),
         ),
       ),

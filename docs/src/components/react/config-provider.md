@@ -8,6 +8,19 @@
 
 ## Props
 
+### theme
+
+- **类型**: `'light' | 'dark' | 'auto'`
+- **必填**: 否
+- **默认值**: `'light'`
+- **说明**: 设置渲染器的颜色模式。`auto` 会跟随系统的深浅色偏好。
+
+```tsx
+<GenuiConfigProvider theme="dark" materials={materials}>
+  <GenuiRenderer content={content} />
+</GenuiConfigProvider>
+```
+
 ### materials
 
 - **类型**: `IMaterials`

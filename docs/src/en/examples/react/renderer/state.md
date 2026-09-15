@@ -53,7 +53,7 @@ const customActions = {
 
 #### Full example:
 
-<demo react="../../../../../demos/react/renderer/state.tsx" />
+<demo react="../../../../../demos/en/react/renderer/state.tsx" />
 
 ## Notes
 
