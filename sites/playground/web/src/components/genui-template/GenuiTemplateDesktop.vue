@@ -9,6 +9,8 @@ import SchemaJsonEditor from './SchemaJsonEditor.vue';
 import SchemaPreviewToolbar from './SchemaPreviewToolbar.vue';
 import { useTemplateContext } from './composables';
 import { isRenderableSchema } from './template-chat-utils';
+import { useSchemaDevMode } from './useSchemaDevMode';
+import { useSchemaRendererInspect } from './useSchemaRendererInspect';
 import { t } from '../../i18n';
 
 defineProps<{
@@ -17,6 +19,7 @@ defineProps<{
 
 const TinyCloseIcon = iconClose();
 const { schema, conversation, versionControl, editor, ui, actions } = useTemplateContext();
+const { isDevMode, insertComposerTag } = useSchemaDevMode();
 
 const rendererSchema = computed(() => {
   const preview = schema.currentPreviewSchema ?? schema.currentSchema;
@@ -27,6 +30,18 @@ const rendererSchemaKey = computed(() => {
   const preview = rendererSchema.value as Record<string, unknown> | null;
   const componentName = preview?.componentName ?? 'schema';
   return `${schema.currentCardId || 'preview'}-${String(componentName)}`;
+});
+
+const {
+  containerRef: rendererContainerRef,
+  highlight: inspectHighlight,
+  onMouseMove: handleRendererMouseMove,
+  onMouseLeave: handleRendererMouseLeave,
+  onClick: handleRendererInspectClick,
+} = useSchemaRendererInspect({
+  isDevMode,
+  schema: rendererSchema,
+  insertComposerTag,
 });
 </script>
 
@@ -70,13 +85,34 @@ const rendererSchemaKey = computed(() => {
       <div class="renderer-container-wrapper">
         <schema-preview-toolbar variant="desktop" />
         <div class="schema-renderer-body">
-          <schema-renderer
-            :key="rendererSchemaKey"
-            class="schema-renderer"
-            :content="rendererSchema"
-            :generating="false"
-            :is-json-complete="schema.currentPreviewSchemaComplete"
-          />
+          <div
+            ref="rendererContainerRef"
+            :class="['schema-renderer', { 'is-inspectable': isDevMode }]"
+            @mousemove="handleRendererMouseMove"
+            @mouseleave="handleRendererMouseLeave"
+            @click.capture="handleRendererInspectClick"
+          >
+            <schema-renderer
+              :key="rendererSchemaKey"
+              :content="rendererSchema"
+              :generating="false"
+              :is-json-complete="schema.currentPreviewSchemaComplete"
+            />
+          </div>
+          <div v-if="inspectHighlight" class="schema-inspect-overlay" aria-hidden="true">
+            <div
+              class="schema-inspect-highlight"
+              :class="{ 'is-label-inside': inspectHighlight.labelInside }"
+              :style="{
+                top: `${inspectHighlight.top}px`,
+                left: `${inspectHighlight.left}px`,
+                width: `${inspectHighlight.width}px`,
+                height: `${inspectHighlight.height}px`,
+              }"
+            >
+              <span class="schema-inspect-label">{{ inspectHighlight.label }}</span>
+            </div>
+          </div>
           <schema-version-history-panel :theme="theme" />
         </div>
       </div>
@@ -137,6 +173,49 @@ const rendererSchemaKey = computed(() => {
       padding: 20px;
       overflow: auto;
       box-sizing: border-box;
+
+      &.is-inspectable {
+        cursor: default;
+
+        :deep([data-id]) {
+          cursor: default;
+        }
+      }
+    }
+
+    .schema-inspect-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .schema-inspect-highlight {
+      position: absolute;
+      box-sizing: border-box;
+      border: 1px solid #00b578;
+      border-radius: 2px;
+      background: rgba(0, 181, 120, 0.1);
+
+      .schema-inspect-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateY(-100%);
+        padding: 0 6px;
+        border-radius: 4px 4px 4px 0;
+        background: #00b578;
+        color: #fff;
+        font-size: 12px;
+        line-height: 18px;
+        white-space: nowrap;
+      }
+
+      &.is-label-inside .schema-inspect-label {
+        transform: none;
+        border-radius: 0 0 4px 0;
+      }
     }
   }
 }
