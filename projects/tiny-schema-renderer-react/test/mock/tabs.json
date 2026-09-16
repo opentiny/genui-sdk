@@ -1,0 +1,196 @@
+{
+  "componentName": "Page",
+  "state": {
+    "activeTab": "basic",
+    "formData": {
+      "name": ""
+    }
+  },
+  "methods": {
+    "handleTabChange": {
+      "type": "JSFunction",
+      "value": "function handleTabChange(key) { this.state.activeTab = key; console.log('切换到标签:', key); }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "用户信息（Tabs 渲染）"
+      },
+      "children": [
+        {
+          "componentName": "AntTabs",
+          "props": {
+            "defaultActiveKey": "basic",
+            "activeKey": {
+              "type": "JSExpression",
+              "value": "this.state.activeTab"
+            },
+            "onChange": {
+              "type": "JSExpression",
+              "value": "this.handleTabChange"
+            },
+            "items": [
+              {
+                "key": "basic",
+                "label": "基本信息",
+                "children": {
+                  "type": "JSSlot",
+                  "value": [
+                    {
+                      "componentName": "h4",
+                      "props": {
+                        "style": "margin: 0 0 8px;"
+                      },
+                      "children": "个人信息"
+                    },
+                    {
+                      "componentName": "p",
+                      "props": {
+                        "style": "margin: 0; color: #6b7280;"
+                      },
+                      "children": "这里展示用户的基本信息，如姓名、部门等。"
+                    },
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "style": "margin-top: 12px;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "AntFormItem",
+                          "props": {
+                            "label": "姓名"
+                          },
+                          "children": [
+                            {
+                              "componentName": "AntInput",
+                              "props": {
+                                "placeholder": "请输入姓名",
+                                "value": {
+                                  "type": "JSExpression",
+                                  "value": "this.state.formData.name"
+                                },
+                                "onChange": {
+                                  "type": "JSFunction",
+                                  "value": "function(e) { this.state.formData.name = e.target.value; }"
+                                }
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "key": "detail",
+                "label": "详细信息",
+                "children": {
+                  "type": "JSSlot",
+                  "value": [
+                    {
+                      "componentName": "h4",
+                      "props": {
+                        "style": "margin: 0 0 8px;"
+                      },
+                      "children": "详细资料"
+                    },
+                    {
+                      "componentName": "p",
+                      "props": {
+                        "style": "margin: 0; color: #6b7280;"
+                      },
+                      "children": "这里展示用户的详细资料，如联系方式、地址等。"
+                    },
+                    {
+                      "componentName": "ul",
+                      "props": {
+                        "style": "margin: 12px 0 0; padding-left: 20px; color: #374151;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "li",
+                          "children": "邮箱：user@example.com"
+                        },
+                        {
+                          "componentName": "li",
+                          "children": "电话：13800138000"
+                        },
+                        {
+                          "componentName": "li",
+                          "children": "地址：北京市朝阳区"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "key": "settings",
+                "label": "设置",
+                "children": {
+                  "type": "JSSlot",
+                  "value": [
+                    {
+                      "componentName": "h4",
+                      "props": {
+                        "style": "margin: 0 0 8px;"
+                      },
+                      "children": "系统设置"
+                    },
+                    {
+                      "componentName": "p",
+                      "props": {
+                        "style": "margin: 0 0 12px; color: #6b7280;"
+                      },
+                      "children": "这里展示账号相关设置选项。"
+                    },
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "style": "display: flex; gap: 8px;"
+                      },
+                      "children": [
+                        {
+                          "componentName": "AntButton",
+                          "props": {
+                            "type": "primary"
+                          },
+                          "children": "保存设置"
+                        },
+                        {
+                          "componentName": "AntButton",
+                          "children": "恢复默认"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        {
+          "componentName": "p",
+          "props": {
+            "style": "margin: 16px 0 0; font-size: 13px; color: #9ca3af;"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "'当前激活标签：' + this.state.activeTab"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

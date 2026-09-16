@@ -3,17 +3,20 @@ import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 import { getComponent, getModuleRef } from './parser/material-getter';
 
-import { EmbeddedViewPipe } from './embedded-view.pipe';
+import { ProjectNgContentPipe } from './ng-content';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
-import { GetDirectivesPipe } from './get-directive.pipe';
+import { GetDirectivesPipe, GetDirectiveModulesPipe } from './get-directive.pipe';
 import { ComponentOutlet } from './component-outlet';
 import { ParseDataPipe } from './parse-data.pipe';
 import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
+import { SchemaRefDirective, SchemaRefTemplateDirective } from './schema-ref';
+import { SchemaTemplateContextDirective } from './schema-template-context.directive';
+import { ContentChildrenTrackDirective, ContentChildrenTrackTemplateDirective } from './content-children';
 
 @Pipe({
   name: 'getModuleRef',
@@ -54,7 +57,7 @@ export class IsArrayPipe implements PipeTransform {
   standalone: true,
 })
 export class IsStringPipe implements PipeTransform {
-  transform(value: any): boolean { 
+  transform(value: any): boolean {
     return typeof value === 'string';
   }
 }
@@ -64,27 +67,33 @@ export class IsStringPipe implements PipeTransform {
   standalone: true,
   imports: [
     CommonModule,
-    RendererDirective,  
+    RendererDirective,
     IsArrayPipe,
     IsStringPipe,
     GetComponentPipe,
     GetModuleRefPipe,
-    EmbeddedViewPipe,
+    ProjectNgContentPipe,
     LoopScopePipe,
     AttrAndEventDirective,
     PropsFilterPipe,
     GetDirectivesPipe,
+    GetDirectiveModulesPipe,
     ComponentOutlet,
+    ContentChildrenTrackDirective,
+    ContentChildrenTrackTemplateDirective,
+    SchemaRefDirective,
+    SchemaRefTemplateDirective,
+    SchemaTemplateContextDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,
-    AutoApplyDirectivesPipe,
+    AutoApplyDirectivesPipe,  
   ],
   templateUrl: './renderer-template.component.html',
   exportAs: 'rendererTemplate',
 })
 export class RendererTemplateComponent {
-  @ViewChild('rendererTemplate', {static: true})
+  @ViewChild('rendererTemplate', { static: true })
   public template!: TemplateRef<{
     schema: any;
     scope: any;

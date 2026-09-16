@@ -1,0 +1,220 @@
+{
+  "componentName": "Page",
+  "state": {
+    "count": 1,
+    "prefix": "A",
+    "log": "还未读取",
+    "items": [
+      { "id": 1, "name": "苹果" },
+      { "id": 2, "name": "香蕉" }
+    ]
+  },
+  "methods": {
+    "bump": {
+      "type": "JSFunction",
+      "value": "() => { this.state.count++; }"
+    },
+    "readCount": {
+      "type": "JSFunction",
+      "value": "() => { this.state.log = '箭头 this.state.count = ' + this.state.count; console.log(this.state.log) }"
+    },
+    "togglePrefix": {
+      "type": "JSFunction",
+      "value": "() => { this.state.prefix = this.state.prefix === 'A' ? 'B' : 'A'; }"
+    },
+    "delayedRead": {
+      "type": "JSFunction",
+      "value": "() => { this.state.log = '800ms 后读取，期间可先点 count++'; setTimeout(() => { this.state.log = '延迟箭头 this.state.count = ' + this.state.count; }, 800); }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "bind this 刷新验证",
+        "style": "max-width: 640px; margin: 0 auto;"
+      },
+      "children": [
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-banner"
+          },
+          "children": "箭头函数在解析时捕获 this。先点 count++ / 切换前缀（会换新 context），再点读取或列表标记，日志应是最新值而不是解析时的快照。"
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-section"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "箭头方法：刷新后再读 this.state"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-row"
+          },
+          "children": [
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.bump"
+                }
+              },
+              "children": "count++"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-value"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.count"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntButton",
+              "props": {
+                "type": "primary",
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.readCount"
+                }
+              },
+              "children": "读取箭头 this"
+            },
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.delayedRead"
+                }
+              },
+              "children": "延迟 800ms 再读"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-section"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": "循环 scope：列表 handler 里的 this"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-section-desc"
+              },
+              "children": "先切换前缀，再点某一行「标记」，日志应为 当前前缀-水果名"
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-row"
+          },
+          "children": [
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.togglePrefix"
+                }
+              },
+              "children": "切换前缀"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "op-value"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.prefix"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-row"
+          },
+          "loop": {
+            "type": "JSExpression",
+            "value": "this.state.items"
+          },
+          "loopArgs": ["item"],
+          "children": [
+            {
+              "componentName": "AntButton",
+              "props": {
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "() => { this.state.log = this.state.prefix + '-' + item.name; }"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "'标记 ' + item.name"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "submit-result"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "this.state.log"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

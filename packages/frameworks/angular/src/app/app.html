@@ -4,13 +4,15 @@
     <button (click)="handleSend()">发送</button>
   </div>
   <genui-config-provider [materials]="activeMaterials">
-    <genui-renderer [content]="schema">
-      <ng-template #header let-schema="schema">
-        卡片标题：{{ schema.componentName }}
-      </ng-template>
-      <ng-template #footer let-schema="schema">
-        <button (click)="handlePrint(schema)">打印schema</button>
-      </ng-template>
-    </genui-renderer>
+    <div class="demo-grid">
+        <genui-renderer [content]="schema">
+          <ng-template #header let-schema="schema">
+            卡片标题：{{ schema.componentName }}
+          </ng-template>
+          <ng-template #footer let-schema="schema">
+            <button (click)="handlePrint(schema)">打印schema</button>
+          </ng-template>
+        </genui-renderer>
+    </div>
   </genui-config-provider>
 </div>
