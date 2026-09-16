@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
 import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
 import { setCustomSettings } from './engine/use-custom-setting';
@@ -12,6 +12,8 @@ import { Loading } from './Loading';
 import { useRendererSettings } from './RendererContextProvider';
 import { MATERIALS } from './materials';
 import { NOTIFY } from './engine/notify';
+
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
@@ -30,6 +32,9 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const contextApi = useContext();
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
+  const pageUnmountPromiseRef = useRef<Promise<void> | null>(null);
+  const schemaRef = useRef<RootNode | null>(schema);
+  schemaRef.current = schema;
   const renderSettings = useRendererSettings();
   const { materials, notify, ...globalSettings } = renderSettings;
   setCustomSettings(globalSettings);
@@ -48,16 +53,33 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     [setContext, getContext, contextApi],
   );
 
-  const invokePageOnUnmounted = async () => {
+  const invokePageOnUnmounted = useCallback(function invoke(): void | Promise<void> {
+    if (pageUnmountPromiseRef.current) {
+      return pageUnmountPromiseRef.current.then(() => invoke());
+    }
+
     const fn = pageOnUnmountedRef.current;
     pageOnUnmountedRef.current = null;
     if (typeof fn !== 'function') return;
     try {
-      await fn();
+      const result = fn();
+      if (result && typeof result.then === 'function') {
+        const pending = result
+          .catch((error) => {
+            console.error('SchemaRenderer onUnmounted error:', error);
+          })
+          .finally(() => {
+            if (pageUnmountPromiseRef.current === pending) {
+              pageUnmountPromiseRef.current = null;
+            }
+          });
+        pageUnmountPromiseRef.current = pending;
+        return pending;
+      }
     } catch (error) {
       console.error('SchemaRenderer onUnmounted error:', error);
     }
-  };
+  }, []);
 
   /** 页面初始化签名：state/methods/refs/css/lifeCycles 变化时需重跑 init 与生命周期 */
   const pageInitSignature =
@@ -71,44 +93,52 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
         })
       : '';
 
-  useEffect(() => {
-    if (!schema || !pageInitSignature) return;
+  useIsomorphicLayoutEffect(() => {
+    const currentSchema = schemaRef.current;
 
     let cancelled = false;
-    (async () => {
-      await invokePageOnUnmounted();
-      if (cancelled) return;
-      const { onMounted, onUnmounted } = setSchema(schema, contextApi);
-      if (cancelled) return;
-      pageOnUnmountedRef.current = onUnmounted;
+    const initializeSchema = () => {
+      if (cancelled || !currentSchema || !pageInitSignature) return;
       try {
-        await onMounted?.();
+        const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
+        if (cancelled) return;
+        pageOnUnmountedRef.current = onUnmounted;
+        const result = onMounted?.();
+        if (result && typeof result.then === 'function') {
+          void result.catch((error) => {
+            console.error('SchemaRenderer onMounted error:', error);
+          });
+        }
       } catch (error) {
-        console.error('SchemaRenderer onMounted error:', error);
+        console.error('SchemaRenderer initialization error:', error);
       }
-    })();
+    };
+
+    const unmountResult = invokePageOnUnmounted();
+    if (unmountResult && typeof unmountResult.then === 'function') {
+      void unmountResult.then(initializeSchema);
+    } else {
+      initializeSchema();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [pageInitSignature, schema]);
-
-  const parentSchemaRef = useRef<RootNode | null>(schema);
-  parentSchemaRef.current = schema;
+  }, [contextApi, invokePageOnUnmounted, pageInitSignature]);
 
   useEffect(() => {
     // TODO: 方案待讨论
     setDefaultSlotRenderer(
       (children, scope, _ctx) =>
         normalizeChildren(children as Node['children']).map((child, i) => (
-          <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={parentSchemaRef.current} />
+          <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={schemaRef.current} />
         )) as unknown[],
     );
 
     return () => {
       void invokePageOnUnmounted();
     };
-  }, []);
+  }, [invokePageOnUnmounted]);
 
   const rootChildrenSchema: Node = {
     componentName: 'div',

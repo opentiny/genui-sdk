@@ -49,12 +49,24 @@ describe('setSchema', () => {
     expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saved');
   });
 
-  it('setSchema clears external context until re-injected', () => {
+  it('setSchema preserves host context while replacing schema methods', () => {
     const contextApi = createContextApi();
-    contextApi.setContext({
-      callAction: (name: string) => name,
-      cardId: 'card-1',
-    });
+    const callAction = (name: string) => name;
+    contextApi.setContext({ callAction, cardId: 'card-1' });
+
+    setSchema(
+      {
+        methods: {
+          oldMethod: {
+            type: 'JSFunction',
+            value: "function() { return this.callAction('saveState'); }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+    );
 
     setSchema(
       {
@@ -70,15 +82,10 @@ describe('setSchema', () => {
       contextApi,
     );
 
-    expect(contextApi.getContext().callAction).toBeUndefined();
-    expect(contextApi.getContext().cardId).toBeUndefined();
-
-    contextApi.setContext({
-      callAction: (name: string) => (name === 'saveState' ? 'saved' : undefined),
-      cardId: 'card-1',
-    });
-
-    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saved');
+    expect(contextApi.getContext().callAction).toBe(callAction);
+    expect(contextApi.getContext().cardId).toBe('card-1');
+    expect(contextApi.getContext().oldMethod).toBeUndefined();
+    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saveState');
   });
 
   it('resetForm-style state assignment triggers re-render snapshot change', () => {
