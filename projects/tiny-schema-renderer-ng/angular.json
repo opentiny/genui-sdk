@@ -27,7 +27,16 @@
               }
             ],
             "styles": ["src/styles.less"],
-            "polyfills": ["zone.js"]
+            "polyfills": ["zone.js"],
+            "allowedCommonJsDependencies": [
+              "lodash",
+              "postcss-selector-parser",
+              "picocolors",
+              "nanoid/non-secure",
+              "source-map-js",
+              "url",
+              "color"
+            ]
           },
           "configurations": {
             "production": {
@@ -102,7 +111,16 @@
             "tsConfig": "projects/renderer-element/tsconfig.app.json",
             "inlineStyleLanguage": "less",
             "styles": ["projects/renderer-element/src/styles.less"],
-            "polyfills": ["zone.js"]
+            "polyfills": ["zone.js"],
+            "allowedCommonJsDependencies": [
+              "lodash",
+              "postcss-selector-parser",
+              "picocolors",
+              "nanoid/non-secure",
+              "source-map-js",
+              "url",
+              "color"
+            ]
           },
           "configurations": {
             "production": {
