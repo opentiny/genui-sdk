@@ -54,6 +54,28 @@ const transformJSX = (code: string) => {
   // todo: 实现
   return code;
 };
+
+/**
+ * 缓存编译产物。`new Function` 的成本很高（每次 input 触发整树 CD 会重编译上百次），
+ * 而表达式 source（如 `this.state.formData.description`）是稳定的，编译一次即可复用。
+ * 编译出的函数通过 `with($scope)` 读 scope，每次调用只需传入新的 scope。
+ */
+const MAX_COMPILED_EXPR = 512;
+const compiledExprCache = new Map<string, Function>();
+
+const compileExpression = (expression: string): Function => {
+  let fn = compiledExprCache.get(expression);
+  if (fn === undefined) {
+    fn = newFn('$scope', `with($scope || {}) { return ${expression} }`);
+    // 简单兜底：schema 若动态生成表达式导致缓存无限增长，整体清空重来（极端场景）。
+    if (compiledExprCache.size >= MAX_COMPILED_EXPR) {
+      compiledExprCache.clear();
+    }
+    compiledExprCache.set(expression, fn);
+  }
+  return fn;
+};
+
 const parseExpression = (data: any, scope: any, ctx: any, isJsx = false) => {
   try {
     const mergeScope = {
@@ -69,16 +91,17 @@ const parseExpression = (data: any, scope: any, ctx: any, isJsx = false) => {
       }, {});
       expression = `(e) => {(${expression}).call(this, e, ${data.params.join(',')})}`;
     }
-    return newFn('$scope', `with($scope || {}) { return ${expression} }`).call(ctx, {
+    return compileExpression(expression).call(ctx, {
       ...mergeScope,
       ...params,
     });
   } catch (err) {
     // 解析抛出异常，则再尝试解析 JSX 语法。如果解析 JSX 语法仍然出现错误，isJsx 变量会确保不会再次递归执行解析
-    if (!isJsx) {
-      return parseExpression(data, scope, ctx, true);
-    }
-    return undefined;
+    // if (!isJsx) {
+    //   return parseExpression(data, scope, ctx, true);
+    // }
+    // console.error(err);
+   throw err;
   }
 };
 // 解析函数字符串结构
@@ -138,7 +161,7 @@ export const generateFn = (innerFn: Function, context: any) => {
   };
 };
 
-// 解析JSX字符串为可执行函数
+// 解析JSX字符串为可执行函数（Angular 暂未实现 JSX transform）
 const parseJSXFunction = (data: any, ctx: any) => {
   try {
     const newValue = transformJSX(data.value);
@@ -150,11 +173,15 @@ const parseJSXFunction = (data: any, ctx: any) => {
       getComponent: (name: string) => getComponent(name, ctx),
     });
   } catch (error) {
-    Notify({
-      type: 'warning',
-      title: '函数声明解析报错',
-      message: (error as Error)?.message || '函数声明解析报错，请检查语法',
-    }, ctx);
+    console.error(error);
+    Notify(
+      {
+        type: 'warning',
+        title: '函数声明解析报错',
+        message: (error as Error)?.message || '函数声明解析报错，请检查语法',
+      },
+      ctx,
+    );
 
     return newFn();
   }
@@ -173,23 +200,29 @@ const parseJSFunction = (data: any, scope: any, ctx: any) => {
       return;
     }
     if (typeof scope === 'object' && Object.keys(scope).length > 0) {
-      return generateFn(
-        parseExpression(
-          {
-            type: JS_EXPRESSION,
-            value: data.value,
-          },
-          scope,
-          ctx,
-        ).bind(ctx),
+      // 扩充协议，支持在节点上声明函数
+      const parsed = parseExpression(
+        {
+          type: JS_EXPRESSION,
+          value: `(${data.value}).bind(this)`,
+        },
+        scope,
         ctx,
       );
+      return typeof parsed === 'function' ? generateFn(parsed, ctx) : parsed;
     }
     const innerFn = newFn(`return ${data.value}`).bind(ctx)();
     return generateFn(innerFn, ctx);
   } catch (error) {
     console.error(error);
-    return parseJSXFunction(data, ctx);
+    Notify(
+      {
+        type: 'warning',
+        title: '函数声明解析报错',
+        message: (error as Error)?.message || '函数声明解析报错，请检查语法',
+      },
+      ctx,
+    );
   }
 };
 

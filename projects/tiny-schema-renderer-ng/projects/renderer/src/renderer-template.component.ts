@@ -2,8 +2,13 @@ import { Component, Injector, Pipe, PipeTransform, TemplateRef, Type, ViewChild,
 import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 import { getComponent, getModuleRef } from './parser/material-getter';
-
 import { ProjectNgContentPipe } from './ng-content';
+import {
+  BlockContentRefsDirective,
+  BlockProjectedViewsDirective,
+  ProjectedViews,
+  RenderNgContentDirective,
+} from './block';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
@@ -16,6 +21,7 @@ import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
 import { RendererDirective } from './renderer.directive';
 import { SchemaRefDirective, SchemaRefTemplateDirective } from './schema-ref';
 import { SchemaTemplateContextDirective } from './schema-template-context.directive';
+import { SchemaTemplateDirectivesDirective } from './schema-template-directives.directive';
 import { ContentChildrenTrackDirective, ContentChildrenTrackTemplateDirective } from './content-children';
 
 @Pipe({
@@ -84,6 +90,10 @@ export class IsStringPipe implements PipeTransform {
     SchemaRefDirective,
     SchemaRefTemplateDirective,
     SchemaTemplateContextDirective,
+    SchemaTemplateDirectivesDirective,
+    RenderNgContentDirective,
+    BlockContentRefsDirective,
+    BlockProjectedViewsDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,
@@ -101,6 +111,8 @@ export class RendererTemplateComponent {
     template: TemplateRef<any>;
     viewContainerRef: ViewContainerRef;
     injector: Injector | undefined;
+    contentChildrenIndex?: number;
+    projectedViews: ProjectedViews | null;
   }>;
   constructor(private contextService: RendererContextService) {}
 
