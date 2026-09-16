@@ -27,13 +27,15 @@ function genPrompt(
 | `framework` | `IGenPromptFramework` \| `IGenPromptFrameworkConfig` | Yes | Framework name (e.g. `'Vue'`) or custom framework config; string form merges that framework’s default rules |
 | `materialsMeta` | [`IMaterialsMeta`](#imaterialsmeta) | Yes | Materials metadata, usually imported from a materials package `meta` entry |
 | `tgCustomConfig` | [`IGenPromptCustomConfig`](#igenpromptcustomconfig) | No | Custom components, snippets, examples, and actions |
-| `options` | [`IGenPromptOptions`](#igenpromptoptions) | No | Toggle prompt sections and append extra rules |
+| `options` | [`IGenPromptOptions`](#igenpromptoptions) | No | Select Generate / Builder mode, toggle prompt sections, and append rules |
 
 - **Returns**: `string` — the assembled system prompt
 
 - **Details**
 
-A prompt typically includes: prefix, available components, JSON Schema, examples, snippets, About This, actions, and generation rules. Use `options` to include or omit sections.
+A prompt typically includes: prefix, available components, JSON Schema, examples, snippets, About This, actions, and rules. `options.mode` defaults to `'generate'`, which asks the model for a complete `schemaJson`. Set it to `'builder'` to reuse the same materials context while asking the model to return a `jsonPatch` against the current schemaJSON. The two modes use mutually exclusive output contracts.
+
+Builder mode supports `builder.includePatchSchema`, `builder.includeExamples`, and `builder.validationLevel`. The current schemaJSON is dynamic request context and should be provided in the user message instead of being embedded in the system prompt.
 
 - **Example**
 
@@ -61,6 +63,13 @@ const prompt = genPrompt(
   },
   { includeJsonSchema: false },
 );
+
+const builderPrompt = genPrompt('Vue', materialsMeta, undefined, {
+  mode: 'builder',
+  builder: {
+    validationLevel: 'strict',
+  },
+});
 ```
 
 ### PatternExtractor
