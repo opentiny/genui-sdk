@@ -11,7 +11,7 @@
 - **类型**: `string`
 - **必填**: 否
 - **默认值**: `'light'`
-- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料主题](./materials/theme)。
+- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包的 `runtimeFactory` 结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料运行时](./core/api#imaterialsruntime)。
   - `'dark'`：深色主题
   - `'lite'`：清新主题（仅 OpenTiny Vue 物料）
   - `'light'`：浅色主题
@@ -49,7 +49,7 @@
 - **类型**: `string`
 - **必填**: 否
 - **默认值**: `'zh_CN'`
-- **说明**: 设置语言环境。支持 `'zh_CN'`（简体中文）和 `'en_US'`（英文）。会同步 GenUI 文案；若同时传入带 `i18n` 的 `materials`，还会调用 `materials.i18n.setLocale`，并按需包裹 `LocaleProvider` / `LocaleProviders`，以切换物料组件库内置文案。
+- **说明**: 设置语言环境。支持 `'zh_CN'`（简体中文）和 `'en_US'`（英文）。会同步 GenUI 文案；若物料提供 `runtimeFactory`，ConfigProvider 还会把新的 `locale` 传给运行时，由组件库唯一的运行时根组件同步其内置文案。
 
 ```vue
 <template>
@@ -99,9 +99,9 @@ const customI18n: I18nMessages = {
 
 ### materials
 
-- **类型**: `IMaterials`
+- **类型**: `MergedMaterials`（单个 `IMaterials` 也可直接传入）
 - **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时需要配置）
-- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。
+- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。物料可通过 `runtimeFactory` 声明组件库运行时；ConfigProvider 会创建并缓存运行时实例，首次渲染及主题、语言或系统亮暗色变化时调用 `apply()`，并用稳定的 `root` 包裹内容。
 
 ```vue
 <template>

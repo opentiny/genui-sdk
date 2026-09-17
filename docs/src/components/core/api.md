@@ -388,25 +388,18 @@ interface IChatMessage {
 ### IMaterials
 
 ```typescript
-interface IMaterialsI18n {
-  setLocale(locale: string): void; // GenUI 语种：zh_CN / en_US
-  LocaleProvider?: unknown; // 可选 locale 包裹组件
-  LocaleProviders?: unknown[]; // 多包嵌套时优先使用
-}
-
 interface IMaterials {
   components?: Record<string, unknown>; // 组件名 → 运行时组件
   requiredCompleteFieldSelectors?: string[]; // 缓冲字段选择器
   defaultPropsMap?: Record<string, any>; // 组件默认 Props 映射
-  i18n?: IMaterialsI18n; // 可选：组件库内置文案
-  themeFactory?: MaterialsThemeFactory; // 物料主题工厂，见 IMaterialsTheme
+  runtimeFactory?: MaterialsRuntimeFactory; // 物料运行时工厂
   [key: string]: any;
 }
 ```
 
-`i18n` 由 `GenuiConfigProvider` 的 `locale` 驱动，详见 [国际化配置](../../examples/config-provider/i18n)。
+`runtimeFactory` 由 `GenuiConfigProvider` 调度，在同一个运行时中统一处理组件库的主题、国际化和根 Provider。详见 [国际化配置](../../examples/config-provider/i18n)。
 
-### IMaterialsTheme
+### IMaterialsRuntime
 
 ```typescript
 type ThemeColorScheme = 'light' | 'dark';
@@ -416,42 +409,50 @@ interface IThemeDescriptor {
   colorScheme?: ThemeColorScheme; // 该主题对应的亮暗色系
 }
 
-interface IThemeApplyContext {
+interface IMaterialsRuntimeConfig {
+  theme: string;
+  locale: string;
+}
+
+interface IMaterialsRuntimeContext {
   systemColorScheme: ThemeColorScheme; // 系统亮暗色
 }
 
-type ThemeDisposer = () => void;
-
-interface IThemeApplyResult {
-  descriptor: IThemeDescriptor;
-  dispose?: ThemeDisposer; // 回收副作用
-  root?: unknown; // 包裹渲染树的主题 Root 组件
+interface IMaterialsRuntimeApplyResult {
+  theme?: IThemeDescriptor; // 实际生效的主题
 }
 
-interface IMaterialsTheme {
-  themes?: IThemeDescriptor[]; // 支持的主题描述
-  apply(theme: string, ctx: IThemeApplyContext): IThemeApplyResult; // 应用主题并返回 Root / 回收函数
+interface IMaterialsRuntime {
+  readonly themes?: readonly IThemeDescriptor[]; // 支持的主题描述
+  readonly root?: unknown; // 稳定的根组件，统一持有组件库 Provider
+  apply(
+    config: Readonly<IMaterialsRuntimeConfig>,
+    context: Readonly<IMaterialsRuntimeContext>,
+  ): IMaterialsRuntimeApplyResult;
+  dispose?(): void; // 运行时移除或 ConfigProvider 卸载时回收副作用
 }
 
-type MaterialsThemeFactory = () => IMaterialsTheme; // 物料主题工厂，IMaterials.themeFactory 的类型
+type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 ```
+
+`apply()` 在运行时首次创建时就会调用，此后 `theme`、`locale` 或系统亮暗色变化时会再次调用。`root` 应在工厂创建运行时实例时确定，并在该实例生命周期内保持稳定；需要组件库 Provider 时，由这个根组件同时承载主题与国际化配置。
 
 ### MergedMaterials
 
 ```typescript
-type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
-  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+type MergedMaterials = Omit<IMaterials, 'runtimeFactory'> & {
+  runtimeFactory?: MaterialsRuntimeFactory | MaterialsRuntimeFactory[];
 };
 ```
 
 ### mergeMaterials()
 
-合并多个物料配置（组件、缓冲字段选择器、默认 props、主题），主题按引用去重，合并后的 `themeFactory` 为数组。
+合并多个物料配置（组件、缓冲字段选择器、默认 props、运行时）。运行时工厂按引用去重，合并后的 `runtimeFactory` 为数组，并保持首次出现的顺序。
 
 - **类型**
 
 ```typescript
-function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials
+function mergeMaterials(...sources: (IMaterials | MergedMaterials | undefined)[]): MergedMaterials
 ```
 
 - **示例**

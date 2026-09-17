@@ -23,9 +23,9 @@
 ## materials / miniMaterials / plusMaterials
 
 - **类型**: `IMaterials`
-- **说明**: OpenTiny Vue 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。`miniMaterials` 为精简组件集（不含图表等）；`plusMaterials` 面向完整业务页（树、弹窗、时间线等）。已内置 `materials.i18n`，随 ConfigProvider 的 `locale` 切换组件库文案，见 [国际化配置](../../examples/config-provider/i18n)。
+- **说明**: OpenTiny Vue 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。`miniMaterials` 为精简组件集（不含图表等）；`plusMaterials` 面向完整业务页（树、弹窗、时间线等）。
 
-三个物料对象均内置 `themeFactory`（`light` / `dark` / `lite` 主题，见 [物料主题](./theme)），无需额外配置，直接设置 [GenuiConfigProvider](../config-provider#theme) 的 `theme` 即可切换：
+三个物料对象复用同一个 `runtimeFactory`，由一个稳定的 OpenTiny Vue Runtime Root 同时处理主题和组件库国际化。支持 `light` / `dark` / `lite` 主题，并随 [GenuiConfigProvider](../config-provider) 的 `locale` 切换组件库文案。详见 [物料运行时](../core/api#imaterialsruntime) 与 [国际化配置](../../examples/config-provider/i18n)。无需额外配置，直接设置 ConfigProvider 的 `theme` 和 `locale` 即可：
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
