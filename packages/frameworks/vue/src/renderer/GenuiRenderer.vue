@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, inject, nextTick, onErrorCaptured, provide, shallowRef } from 'vue';
+import { ref, watch, computed, inject, nextTick, onErrorCaptured, provide, shallowRef, reactive } from 'vue';
 // @ts-ignore
 import SchemaRenderer, { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
@@ -31,17 +31,34 @@ const callAction = (actionName: string, params: any) => {
 
 const materials = inject<IMaterials>(GENUI_MATERIALS, {});
 const genuiConfig = inject(GENUI_CONFIG, null);
-const customSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
+const parentSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
 
-watch(() => props.customComponents, (newVal) => {
-  // TODO:  1、materials.components更新后，customComponents会丢失 2、旧的customComponents没有被移除
-  if (materials.components) {
-    Object.assign(materials.components, newVal);
-  }
-}, { immediate: true });
+const instanceSettings = reactive<Record<string, any>>({
+  ...(parentSettings && typeof parentSettings === 'object' ? parentSettings : {}),
+  materials: {},
+});
 
-customSettings.materials = materials;
-provide(RENDERER_SETTINGS_KEY, customSettings);
+watch(
+  () => [parentSettings, materials, props.customComponents],
+  () => {
+    const parent = parentSettings && typeof parentSettings === 'object' ? parentSettings : {};
+    for (const key of Object.keys(instanceSettings)) {
+      delete instanceSettings[key];
+    }
+    Object.assign(instanceSettings, parent, {
+      materials: {
+        ...materials,
+        components: {
+          ...(materials?.components || {}),
+          ...(props.customComponents || {}),
+        },
+      },
+    });
+  },
+  { immediate: true, deep: true },
+);
+
+provide(RENDERER_SETTINGS_KEY, instanceSettings);
 
 const deltaPatcher = shallowRef(null);
 
