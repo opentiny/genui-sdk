@@ -399,11 +399,70 @@ interface IMaterials {
   requiredCompleteFieldSelectors?: string[]; // 缓冲字段选择器
   defaultPropsMap?: Record<string, any>; // 组件默认 Props 映射
   i18n?: IMaterialsI18n; // 可选：组件库内置文案
+  themeFactory?: MaterialsThemeFactory; // 物料主题工厂，见 IMaterialsTheme
   [key: string]: any;
 }
 ```
 
 `i18n` 由 `GenuiConfigProvider` 的 `locale` 驱动，详见 [国际化配置](../../examples/config-provider/i18n)。
+
+### IMaterialsTheme
+
+```typescript
+type ThemeColorScheme = 'light' | 'dark';
+
+interface IThemeDescriptor {
+  id: string; // 主题名，如 'light' / 'dark' / 'lite'
+  colorScheme?: ThemeColorScheme; // 该主题对应的亮暗色系
+}
+
+interface IThemeApplyContext {
+  systemColorScheme: ThemeColorScheme; // 系统亮暗色
+}
+
+type ThemeDisposer = () => void;
+
+interface IThemeApplyResult {
+  descriptor: IThemeDescriptor;
+  dispose?: ThemeDisposer; // 回收副作用
+  root?: unknown; // 包裹渲染树的主题 Root 组件
+}
+
+interface IMaterialsTheme {
+  themes?: IThemeDescriptor[]; // 支持的主题描述
+  apply(theme: string, ctx: IThemeApplyContext): IThemeApplyResult; // 应用主题并返回 Root / 回收函数
+}
+
+type MaterialsThemeFactory = () => IMaterialsTheme; // 物料主题工厂，IMaterials.themeFactory 的类型
+```
+
+### MergedMaterials
+
+```typescript
+type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
+  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+};
+```
+
+### mergeMaterials()
+
+合并多个物料配置（组件、缓冲字段选择器、默认 props、主题），主题按引用去重，合并后的 `themeFactory` 为数组。
+
+- **类型**
+
+```typescript
+function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials
+```
+
+- **示例**
+
+```typescript
+import { mergeMaterials } from '@opentiny/genui-sdk-core';
+import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { materials as elementMaterials } from '@opentiny/genui-sdk-materials-vue-element-plus/materials';
+
+const merged = mergeMaterials(tinyMaterials, elementMaterials);
+```
 
 ### IMaterialsMeta
 

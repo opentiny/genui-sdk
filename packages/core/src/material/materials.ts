@@ -1,3 +1,5 @@
+import type { MaterialsThemeFactory } from './materials-theme';
+
 export type IMaterialComponent = unknown;
 
 export type IMaterialsMap = Record<string, IMaterialComponent>;
@@ -17,12 +19,17 @@ export interface IMaterials {
   requiredCompleteFieldSelectors?: string[];
   defaultPropsMap?: Record<string, any>;
   i18n?: IMaterialsI18n;
+  themeFactory?: MaterialsThemeFactory;
   [key: string]: any;
 }
 
+export type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
+  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+};
+
 /** Invoke materials.i18n.setLocale when present. */
 export function applyMaterialsLocale(
-  materials: IMaterials | undefined | null,
+  materials: IMaterials | MergedMaterials | undefined | null,
   locale: string,
 ): void {
   const trimLocale = locale?.trim?.() ?? locale;

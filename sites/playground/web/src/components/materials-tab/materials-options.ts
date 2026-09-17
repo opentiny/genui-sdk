@@ -5,11 +5,12 @@ import { PlaygroundMode } from '../../constants';
 export const FRAMEWORK_OPTIONS = [
   { name: 'Vue', textKey: 'materials.frameworkVue' },
   { name: 'Angular', textKey: 'materials.frameworkAngular' },
+  { name: 'React', textKey: 'materials.frameworkReact' },
 ];
 
 export function getFrameworkOptions(mode: PlaygroundMode) {
   if (mode === PlaygroundMode.Builder) {
-    return FRAMEWORK_OPTIONS.filter((item) => item.name !== 'Angular');
+    return FRAMEWORK_OPTIONS.filter((item) => item.name === 'Vue');
   }
   return [...FRAMEWORK_OPTIONS];
 }
@@ -17,12 +18,19 @@ export function getFrameworkOptions(mode: PlaygroundMode) {
 export const componentLibOptionsByFramework = {
   Vue: ['TinyVue', 'ElementPlus'],
   Angular: ['TinyNg'],
+  React: ['Antd'],
 };
 
 export const MATERIAL_THEME_OPTIONS = [
   { textKey: 'materials.themeLight', value: 'light' },
   { textKey: 'materials.themeDark', value: 'dark' },
   { textKey: 'materials.themeLite', value: 'lite' },
+  { textKey: 'materials.themeAuto', value: 'auto' },
+];
+
+export const ELEMENT_PLUS_THEME_OPTIONS = [
+  { textKey: 'materials.themeLight', value: 'light' },
+  { textKey: 'materials.themeDark', value: 'dark' },
   { textKey: 'materials.themeAuto', value: 'auto' },
 ];
 
@@ -35,6 +43,7 @@ export const MATERIAL_THEME_COLOR_MAP = {
 export const defaultComponentLib = {
   Vue: 'TinyVue',
   Angular: 'TinyNg',
+  React: 'Antd',
 };
 
 export interface MaterialsCache {
@@ -42,8 +51,13 @@ export interface MaterialsCache {
   componentLib?: unknown;
 }
 
+const VALID_FRAMEWORKS = ['Vue', 'Angular', 'React'];
+
 function validateMaterialsCache(cache: MaterialsCache): { framework: string; componentLib: string } {
-  const framework = cache.framework === 'Angular' ? 'Angular' : 'Vue';
+  const framework =
+    typeof cache.framework === 'string' && VALID_FRAMEWORKS.includes(cache.framework)
+      ? cache.framework
+      : 'Vue';
 
   const allowedLibs = componentLibOptionsByFramework[framework] ?? [];
   const componentLib =
@@ -61,7 +75,7 @@ export function useMaterialsConfig(initialCache: MaterialsCache = {}) {
   const _componentLib = ref<string>(validated.componentLib);
 
   function setFramework(name: string): void {
-    if (name !== 'Vue' && name !== 'Angular') {
+    if (!VALID_FRAMEWORKS.includes(name)) {
       return;
     }
     _framework.value = name;

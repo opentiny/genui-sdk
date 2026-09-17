@@ -15,7 +15,7 @@
 ## materials
 
 - **类型**: `IMaterials`
-- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。已内置 `materials.i18n`，随 ConfigProvider 的 `locale` 切换组件库文案（含 `ElConfigProvider`），见 [国际化配置](../../examples/config-provider/i18n)。
+- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。已内置 `materials.i18n`，可随 ConfigProvider 的 `locale` 切换组件库文案（含 `ElConfigProvider`），见 [国际化配置](../../examples/config-provider/i18n)；同时内置 `themeFactory`（`light` / `dark` 主题，见 [物料主题](./theme)），设置 [GenuiConfigProvider](../config-provider#theme) 的 `theme` 即可切换：
 
 ```typescript
 import 'element-plus/dist/index.css';
@@ -25,6 +25,12 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 ```vue
 <GenuiConfigProvider :materials="materials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
+```vue
+<GenuiConfigProvider :materials="materials" theme="dark">
   <GenuiChat />
 </GenuiConfigProvider>
 ```

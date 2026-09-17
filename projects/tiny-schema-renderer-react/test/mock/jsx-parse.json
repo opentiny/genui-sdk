@@ -1,0 +1,80 @@
+{
+  "componentName": "Page",
+  "state": {
+    "rows": [
+      { "id": "1", "name": "GFD科技有限公司", "city": "福州" },
+      { "id": "2", "name": "WWW科技有限公司", "city": "深圳" }
+    ],
+    "log": "操作列由 JSFunction 返回 JSX，点击删除验证 this.getComponent / this.removeRow"
+  },
+  "methods": {
+    "removeRow": {
+      "type": "JSFunction",
+      "value": "function removeRow(id) { this.state.rows = this.state.rows.filter((row) => row.id !== id); this.state.log = '已删除 id=' + id; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "AntCard",
+      "props": {
+        "title": "JSX 解析示例",
+        "style": "max-width: 720px; margin: 0 auto;"
+      },
+      "children": [
+        {
+          "componentName": "div",
+          "props": {
+            "className": "op-banner"
+          },
+          "children": "操作列用 JSX 渲染按钮，点击删除后表格和底部日志会一起更新。"
+        },
+        {
+          "componentName": "AntTable",
+          "props": {
+            "rowKey": "id",
+            "pagination": false,
+            "size": "small",
+            "dataSource": {
+              "type": "JSExpression",
+              "value": "this.state.rows"
+            },
+            "columns": [
+              {
+                "title": "名称",
+                "dataIndex": "name"
+              },
+              {
+                "title": "城市",
+                "dataIndex": "city"
+              },
+              {
+                "title": "操作",
+                "render": {
+                  "type": "JSFunction",
+                  "value": "function render(_, row) {\n  return <AntButton type=\"primary\" danger onClick={() => this.removeRow(row.id)}>删除</AntButton>\n}"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "submit-result"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "this.state.log"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
