@@ -1,48 +1,13 @@
-import {
-  getMaterialsLocaleProviders,
-  type IMaterials,
-  type IMaterialsI18n,
-  type MergedMaterials,
-} from './materials';
-import type { MaterialsThemeFactory } from './materials-theme';
+import type { IMaterials, MergedMaterials } from './materials';
+import type { MaterialsRuntimeFactory } from './materials-runtime';
 
-function composeMaterialsI18n(adapters: IMaterialsI18n[]): IMaterialsI18n | undefined {
-  if (adapters.length <= 1) {
-    return adapters[0];
-  }
+const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'runtimeFactory'];
 
-  const providers = adapters.flatMap((adapter) => getMaterialsLocaleProviders(adapter));
-
-  const composed: IMaterialsI18n = {
-    setLocale(locale: string) {
-      adapters.forEach((adapter) => adapter.setLocale(locale));
-    },
-  };
-
-  if (providers.length === 1) {
-    composed.LocaleProvider = providers[0];
-  } else if (providers.length > 1) {
-    // Nest order matches mergeMaterials argument order (outer → inner).
-    composed.LocaleProviders = providers;
-  }
-
-  return composed;
-}
-const handleKeys = [
-  'components',
-  'requiredCompleteFieldSelectors',
-  'defaultPropsMap',
-  'i18n',
-  'themeFactory',
-];
-
-export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
+export function mergeMaterials(...sources: (IMaterials | MergedMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
   const requiredCompleteFieldSelectors: string[] = [];
   const defaultPropsMap: Record<string, any> = {};
-  const themes: MaterialsThemeFactory[] = [];
-  const seenThemes = new Set<MaterialsThemeFactory>();
-  const i18nAdapters: IMaterialsI18n[] = [];
+  const runtimeFactories = new Set<MaterialsRuntimeFactory>();
   const extra: Record<string, unknown> = {};
 
   for (const src of sources) {
@@ -56,15 +21,11 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     Object.assign(defaultPropsMap, src.defaultPropsMap ?? {});
-    if (src.i18n) {
-      i18nAdapters.push(src.i18n);
-    }
-    if (src.themeFactory) {
-      const factories = Array.isArray(src.themeFactory) ? src.themeFactory : [src.themeFactory];
+    if (src.runtimeFactory) {
+      const factories = Array.isArray(src.runtimeFactory) ? src.runtimeFactory : [src.runtimeFactory];
       for (const factory of factories) {
-        if (factory && !seenThemes.has(factory)) {
-          seenThemes.add(factory);
-          themes.push(factory);
+        if (factory) {
+          runtimeFactories.add(factory);
         }
       }
     }
@@ -82,13 +43,8 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
     ...extra,
   };
 
-  if (themes.length > 0) {
-    merged.themeFactory = themes;
-  }
-
-  const mergedI18n = composeMaterialsI18n(i18nAdapters);
-  if (mergedI18n) {
-    merged.i18n = mergedI18n;
+  if (runtimeFactories.size > 0) {
+    merged.runtimeFactory = [...runtimeFactories];
   }
 
   return merged;

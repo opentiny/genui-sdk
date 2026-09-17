@@ -1,8 +1,7 @@
 import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-sdk-core';
 import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '../meta';
 import { components } from './components';
-import { materialsI18n } from './i18n';
-import { themeFactory } from './theme';
+import { runtimeFactory } from './runtime';
 
 const baseRequiredCompleteFieldSelectors = [
   '[componentName=TinyNumeric] > props > controlsPosition',
@@ -27,22 +26,19 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors: standardRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
-  i18n: materialsI18n,
-  themeFactory,
+  runtimeFactory,
 };
 
 export const miniMaterials: IMaterials = {
   components,
   requiredCompleteFieldSelectors: baseRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(miniMaterialsMeta),
-  i18n: materialsI18n,
-  themeFactory,
+  runtimeFactory,
 };
 
 export const plusMaterials: IMaterials = {
   components,
   requiredCompleteFieldSelectors: plusRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(plusMaterialsMeta),
-  i18n: materialsI18n,
-  themeFactory,
+  runtimeFactory,
 };

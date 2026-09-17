@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot';
 import {
-  applyMaterialsLocale,
-  getMaterialsLocaleProviders,
-  type IMaterialsTheme,
-  type MaterialsThemeFactory,
+  type IMaterialsRuntime,
+  type IMaterialsRuntimeApplyResult,
+  type MaterialsRuntimeFactory,
   type MergedMaterials,
-  type IThemeApplyResult,
   type ThemeColorScheme,
 } from '@opentiny/genui-sdk-core';
 import {
@@ -22,7 +20,6 @@ import {
   type Component,
   type PropType,
   type VNode,
-  type VNodeChild,
 } from 'vue';
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
@@ -51,29 +48,32 @@ provide(GENUI_I18N, i18n);
 
 const { theme: mediaTheme } = useMediaTheme();
 
-const themeFactories = computed<MaterialsThemeFactory[]>(() => {
-  const themeFactory = props.materials?.themeFactory;
-  if (!themeFactory) {
+const runtimeFactories = computed<MaterialsRuntimeFactory[]>(() => {
+  const runtimeFactory = props.materials?.runtimeFactory;
+  if (!runtimeFactory) {
     return [];
   }
-  return Array.isArray(themeFactory) ? themeFactory : [themeFactory];
+  const factories = Array.isArray(runtimeFactory) ? runtimeFactory : [runtimeFactory];
+  return [...new Set(factories)];
 });
 
-const themeInstances = new Map<MaterialsThemeFactory, IMaterialsTheme>();
+const runtimeInstances = new Map<MaterialsRuntimeFactory, IMaterialsRuntime>();
 
-function resolveThemeInstances(factories: MaterialsThemeFactory[]) {
-  for (const key of themeInstances.keys()) {
-    if (!factories.includes(key)) {
-      themeInstances.delete(key);
+function resolveRuntimeInstances(factories: MaterialsRuntimeFactory[]): IMaterialsRuntime[] {
+  for (const [factory, runtime] of runtimeInstances) {
+    if (!factories.includes(factory)) {
+      runtime.dispose?.();
+      runtimeInstances.delete(factory);
     }
   }
+
   return factories.map((factory) => {
-    let instance = themeInstances.get(factory);
-    if (!instance) {
-      instance = factory();
-      themeInstances.set(factory, instance);
+    let runtime = runtimeInstances.get(factory);
+    if (!runtime) {
+      runtime = factory();
+      runtimeInstances.set(factory, runtime);
     }
-    return instance;
+    return runtime;
   });
 }
 
@@ -89,9 +89,13 @@ const genuiConfig = computed(() => ({
 provide(GENUI_CONFIG, genuiConfig);
 
 const internalMaterials = {};
-watch(() => props.materials, (newVal) => {
-  Object.assign(internalMaterials, newVal);
-}, { immediate: true });
+watch(
+  () => props.materials,
+  (newVal) => {
+    Object.assign(internalMaterials, newVal);
+  },
+  { immediate: true },
+);
 
 provide(GENUI_MATERIALS, internalMaterials);
 
@@ -119,96 +123,47 @@ watch(
   { immediate: true },
 );
 
-const ThemeRoots = defineComponent({
-  name: 'ThemeRoots',
+const RuntimeRoots = defineComponent({
+  name: 'MaterialsRuntimeRoots',
   props: {
     roots: { type: Array as PropType<Component[]>, required: true },
   },
   setup(props, { slots }) {
     return () => {
       const children = slots.default?.() ?? [];
-      return props.roots.reduceRight<VNode | VNode[]>(
-        (acc, root) => h(root, {}, () => acc),
-        children,
-      );
+      return props.roots.reduceRight<VNode | VNode[]>((acc, root) => h(root, {}, () => acc), children);
     };
   },
 });
 
-const themeRoots = shallowRef<Component[]>([]);
-
-let applied: IThemeApplyResult[] = [];
-
-function clearTheme() {
-  const pending = applied;
-  applied = [];
-  pending.forEach((item) => item.dispose?.());
-}
+const runtimeRoots = shallowRef<Component[]>([]);
 
 watch(
-  () => [props.locale, props.materials] as const,
-  () => {
-    if (props.locale) {
-      applyMaterialsLocale(props.materials, props.locale);
-    }
-  },
-  { immediate: true },
-);
-
-const materialsLocaleProvider = computed(() => {
-  const providers = getMaterialsLocaleProviders(props.materials?.i18n);
-  if (providers.length === 0) {
-    return 'div';
-  }
-  if (providers.length === 1) {
-    return providers[0] as object;
-  }
-
-  return defineComponent({
-    name: 'GenuiMaterialsLocaleProviders',
-    setup(_, { slots }) {
-      return () =>
-        providers.reduceRight<VNodeChild>((children, Provider) => {
-          return h(Provider as object, null, {
-            default: () => children,
-          });
-        }, slots.default?.());
-    },
-  });
-});
-
-watch(
-  () => [themeFactories.value, theme.value, mediaTheme.value, props.id] as const,
-  ([factories, themeValue, systemColorScheme]) => {
-    const apis = resolveThemeInstances(factories);
-    clearTheme();
-    const results: IThemeApplyResult[] = [];
+  () => [runtimeFactories.value, theme.value, props.locale, mediaTheme.value] as const,
+  ([factories, themeValue, locale, systemColorScheme]) => {
+    const runtimes = resolveRuntimeInstances(factories);
+    const results: IMaterialsRuntimeApplyResult[] = [];
     const roots: Component[] = [];
 
-    for (const api of apis) {
-      const result = api.apply(themeValue, { systemColorScheme });
-      if (result.root) {
-        roots.push(result.root as Component);
+    for (const runtime of runtimes) {
+      const result = runtime.apply({ theme: themeValue, locale }, { systemColorScheme });
+      if (runtime.root) {
+        roots.push(runtime.root as Component);
       }
       results.push(result);
-      applied.push(result);
     }
 
-    themeRoots.value = roots;
+    runtimeRoots.value = roots;
     colorScheme.value =
-      results.find((result) => result.descriptor.colorScheme)?.descriptor.colorScheme ??
-      (themeValue === 'auto'
-        ? systemColorScheme
-        : themeValue === 'dark'
-          ? 'dark'
-          : 'light');
+      results.find((result) => result.theme?.colorScheme)?.theme?.colorScheme ??
+      (themeValue === 'auto' ? systemColorScheme : themeValue === 'dark' ? 'dark' : 'light');
   },
   { immediate: true },
 );
 
 onBeforeUnmount(() => {
-  clearTheme();
-  themeInstances.clear();
+  runtimeInstances.forEach((runtime) => runtime.dispose?.());
+  runtimeInstances.clear();
 });
 
 const robotProviderProps = computed(() => ({
@@ -220,11 +175,9 @@ const robotProviderProps = computed(() => ({
 <template>
   <div :id="props.id" class="tg-config-provider">
     <ThemeProvider v-bind="robotProviderProps">
-      <ThemeRoots :roots="themeRoots">
-        <component :is="materialsLocaleProvider">
-          <slot />
-        </component>
-      </ThemeRoots>
+      <RuntimeRoots :roots="runtimeRoots">
+        <slot />
+      </RuntimeRoots>
     </ThemeProvider>
   </div>
 </template>
