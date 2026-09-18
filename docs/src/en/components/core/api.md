@@ -393,12 +393,14 @@ interface IMaterials {
   components?: Record<string, unknown>; // component name → runtime component
   requiredCompleteFieldSelectors?: string[]; // buffer-field selectors
   defaultPropsMap?: Record<string, any>; // default props map
-  themeFactory?: MaterialsThemeFactory; // materials theme factory, see IMaterialsTheme
+  runtimeFactory?: MaterialsRuntimeFactory; // materials runtime factory
   [key: string]: any;
 }
 ```
 
-### IMaterialsTheme
+`runtimeFactory` is orchestrated by `GenuiConfigProvider`. One runtime handles the UI library's theme, locale, and root provider together. See [Internationalization](../../examples/config-provider/i18n).
+
+### IMaterialsRuntime
 
 ```typescript
 type ThemeColorScheme = 'light' | 'dark';
@@ -408,42 +410,50 @@ interface IThemeDescriptor {
   colorScheme?: ThemeColorScheme; // light/dark scheme of this theme
 }
 
-interface IThemeApplyContext {
+interface IMaterialsRuntimeConfig {
+  theme: string;
+  locale: string;
+}
+
+interface IMaterialsRuntimeContext {
   systemColorScheme: ThemeColorScheme; // system light/dark scheme
 }
 
-type ThemeDisposer = () => void;
-
-interface IThemeApplyResult {
-  descriptor: IThemeDescriptor;
-  dispose?: ThemeDisposer; // dispose side effects
-  root?: unknown; // theme Root component wrapping the render tree
+interface IMaterialsRuntimeApplyResult {
+  theme?: IThemeDescriptor; // effective theme
 }
 
-interface IMaterialsTheme {
-  themes?: IThemeDescriptor[]; // supported theme descriptions
-  apply(theme: string, ctx: IThemeApplyContext): IThemeApplyResult; // apply theme and return Root / disposer
+interface IMaterialsRuntime {
+  readonly themes?: readonly IThemeDescriptor[]; // supported themes
+  readonly root?: unknown; // stable root component that owns the UI-library provider
+  apply(
+    config: Readonly<IMaterialsRuntimeConfig>,
+    context: Readonly<IMaterialsRuntimeContext>,
+  ): IMaterialsRuntimeApplyResult;
+  dispose?(): void; // clean up when removed or when ConfigProvider unmounts
 }
 
-type MaterialsThemeFactory = () => IMaterialsTheme; // materials theme factory, the type of IMaterials.themeFactory
+type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 ```
+
+`apply()` runs when the runtime is first created, then runs again whenever `theme`, `locale`, or the system color scheme changes. Define `root` when the factory creates the runtime and keep it stable for that runtime instance. If the UI library needs a provider, this single root should carry both theme and locale configuration.
 
 ### MergedMaterials
 
 ```typescript
-type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
-  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+type MergedMaterials = Omit<IMaterials, 'runtimeFactory'> & {
+  runtimeFactory?: MaterialsRuntimeFactory | MaterialsRuntimeFactory[];
 };
 ```
 
 ### mergeMaterials()
 
-Merges multiple materials configs (components, buffer-field selectors, default props, themes). Theme factories are deduplicated by reference, and the merged `themeFactory` is an array.
+Merges multiple materials configs (components, buffer-field selectors, default props, and runtimes). Runtime factories are deduplicated by reference. The merged `runtimeFactory` is an array in first-seen order.
 
 - **Type**
 
 ```typescript
-function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials
+function mergeMaterials(...sources: (IMaterials | MergedMaterials | undefined)[]): MergedMaterials
 ```
 
 - **Example**

@@ -119,9 +119,9 @@ const temperature = ref(0.7); // [!code ++]
 
 ## Materials and Theme with GenuiConfigProvider
 
-Both materials and theme are configured via `GenuiConfigProvider`: `materials` injects UI components, and `theme` controls the appearance.
+Both materials and theme are configured through `GenuiConfigProvider`: `materials` injects UI components, and `theme` controls the appearance. Official materials use one `runtimeFactory` for both theme and locale configuration. One stable runtime root owns the UI-library provider, so the application does not need another UI-library config provider.
 
-Built-in theme options:
+The official OpenTiny Vue materials support these themes:
 
 - `'dark'`: dark theme
 - `'lite'`: fresh theme

@@ -15,7 +15,7 @@
 ## materials
 
 - **类型**: `IMaterials`
-- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。内置 `themeFactory`（`light` / `dark` 主题，见 [物料主题](./theme)），设置 [GenuiConfigProvider](../config-provider#theme) 的 `theme` 即可切换：
+- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。内置 `runtimeFactory`，由一个稳定的 Runtime Root 持有 `ElConfigProvider`，统一处理 `light` / `dark` 主题与组件库 locale，避免两个 Provider 相互覆盖。详见 [物料运行时](../core/api#imaterialsruntime) 与 [国际化配置](../../examples/config-provider/i18n)。设置 ConfigProvider 的 `theme` 和 `locale` 即可切换：
 
 ```typescript
 import 'element-plus/dist/index.css';

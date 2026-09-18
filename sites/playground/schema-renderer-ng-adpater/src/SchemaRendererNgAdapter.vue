@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, ref } from 'vue';
+import { nextTick, onActivated, onDeactivated, ref, watch } from 'vue';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/polyfills.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/main.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/styles.css';
@@ -18,6 +18,8 @@ const props = defineProps<{
   customComponentsModule?: Record<string, any>;
   customActions?: Record<string, any>;
   requiredCompleteFieldSelectors?: string[];
+  /** Playground / GenUI locale (zh_CN / en_US); remount CE when it changes */
+  locale?: string;
 }>();
 
 /**
@@ -28,8 +30,16 @@ const props = defineProps<{
  *
  * Unmount on deactivate / remount on activate so Vue creates a fresh CE and
  * re-binds props.
+ *
+ * Also remount when locale changes so TinyNG re-reads window.tiLocale.
  */
 const mounted = ref(true);
+
+async function remount() {
+  mounted.value = false;
+  await nextTick();
+  mounted.value = true;
+}
 
 onDeactivated(() => {
   mounted.value = false;
@@ -38,4 +48,14 @@ onDeactivated(() => {
 onActivated(() => {
   mounted.value = true;
 });
+
+watch(
+  () => props.locale,
+  (locale, previous) => {
+    if (previous === undefined || locale === previous) {
+      return;
+    }
+    remount();
+  },
+);
 </script>

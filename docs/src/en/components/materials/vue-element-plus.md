@@ -15,7 +15,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials). Ships with `themeFactory` (`light` / `dark` themes, see [Materials Theme](./theme)); set the [GenuiConfigProvider](../config-provider#theme) `theme` prop to switch:
+- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials). Its `runtimeFactory` exposes one stable Runtime Root that owns `ElConfigProvider` and handles both `light` / `dark` themes and the UI-library locale, preventing separate providers from overwriting each other. See [Materials Runtime](../core/api#imaterialsruntime) and [Internationalization](../../examples/config-provider/i18n). Set ConfigProvider's `theme` and `locale` props to switch them:
 
 ```typescript
 import 'element-plus/dist/index.css';
