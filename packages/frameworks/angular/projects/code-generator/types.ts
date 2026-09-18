@@ -13,22 +13,34 @@ export interface IStateAccessorDefinition {
   setterExpr?: string;
 }
 
-/** JSSlot 生成的原生 ng-template 片段(Angular) */
-export interface ICodegenSlotTemplate {
-  /** ng-template 引用变量名(不含 #),如 'slot0' */
-  ref: string;
-  /** 作用域参数名,如 ['row'],映射为 ng-template 的 let-row 声明 */
-  params: string[];
-  /** ng-template 体(Angular 模板字符串) */
-  body: string;
-}
-
-/** 含 JSSlot 而被提升为组件类字段的属性,由 ngOnInit 组装 TemplateRef 引用 */
-export interface ICodegenSlotField {
-  /** 组件类字段名,如 'columns' */
+/**
+ * schema 的 `props.ref` 在组件类侧的全部产物:一条查询声明 + 一处 ngAfterViewInit 接线。
+ * (`props.refName` 不产生本结构——它只是模板局部的 #name,组件类不需要知道。)
+ */
+export interface IViewChildRef {
+  /** 模板引用变量名(不含 #),同时是模板里 `#name` 与查询键 */
+  queryName: string;
+  /** 组件类字段名,默认同 queryName;与既有类成员重名时经 avoidDuplicateString 改名 */
   fieldName: string;
-  /** 待组装的数据(内部 JSSlot 已替换为 #QUOTES_START#this.slotN#QUOTES_END# 占位) */
-  item: Record<string, unknown>;
+  /** 字段类型:ElementRef / TemplateRef<any> / 物料组件类名 / any */
+  fieldType: string;
+  /** fieldType 为物料组件类名时,该类的 npm 包名(buildImports 需把它并入该包的 import 行) */
+  fieldTypePackage?: string;
+  /** ngAfterViewInit 里的赋值目标(不含 this.),如 'refs.myInput' */
+  assignTo: string;
+  /**
+   * 单例还是集合:
+   * - 'viewChild' —— 一个位置一个实例,`@ViewChild` 取回后直接赋给 refs;
+   * - 'viewChildren' —— 循环节点上的 `this.refs.x[loopIndex]`,Angular 没有「按下标逐格写入」的
+   *   等价物,改为 `@ViewChildren` 收回有序集合、整组写进 refs(顺序即 `*ngFor` 的迭代顺序)。
+   */
+  kind?: 'viewChild' | 'viewChildren';
+  /**
+   * refs 里存的是宿主元素还是查询结果本身。原生标签的查询结果是 ElementRef,而 refs 要放 DOM 元素
+   * (对齐渲染器 resolveSchemaRefValue 的 location.nativeElement),故取值时需再取一层 .nativeElement。
+   * 物料组件给的是组件实例、NgTemplate 给的是 TemplateRef,两者都为 false 或缺省。
+   */
+  unwrapNative?: boolean;
 }
 
 export interface ICodegenDescription {
@@ -36,8 +48,8 @@ export interface ICodegenDescription {
   iconComponents: { componentNames: string[]; exportNames: string[] };
   internalTypes: Set<string>;
   stateAccessors: IStateAccessorDefinition[];
-  slotTemplates: ICodegenSlotTemplate[];
-  slotFields: ICodegenSlotField[];
+  /** props.ref 收集到的 @ViewChild 声明与 ngAfterViewInit 赋值目标 */
+  viewChildRefs: IViewChildRef[];
   /** 事件绑定自动生成的组件类方法(如 __handle1),随元数据走,避免实例字段需手动重置 */
   templateGeneratedMethods: string[];
   /**
@@ -110,8 +122,13 @@ export interface IFrameworkCodeGenerator<TParams, TResult> {
 
 /**
  * Angular 组件库配置——组件库专属信息以纯配置/策略注入,而非子类覆盖。
- * 不同组件库(TinyNG、Angular Material、PrimeNG 等)各提供一份配置对象,
- * 经 IAngularCodeGeneratorOptions.libraries 按实例注入(TinyNG 为缺省项,不传即启用)。
+ *
+ * 配置对象**住在各物料包自己的层级**,由物料包导出(如 TinyNG 的
+ * `@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator` 导出 TINYNG_CONFIG);
+ * 出码器只消费,不自带任何组件库实现。经 IAngularCodeGeneratorOptions.libraries 按实例注入
+ * (缺省落 DEFAULT_LIBRARIES,当前即上述物料包配置)。
+ *
+ * 本接口不是类的静态成员,也没有单例语义——每次构造都会展开成本实例专属的 libraryConfigs。
  */
 export interface IAngularLibraryConfig {
   /** 组件名 → HTML 标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' } */
@@ -122,15 +139,20 @@ export interface IAngularLibraryConfig {
   libraryPackage: string;
   /** 原生 HTML 元素上的额外指令选择器（如 TiButton → 'tiButton'）。Angular Material 等库不需要此字段 */
   componentExtraSelector?: Record<string, string>;
+  /**
+   * 组件名 → 组件类名（如 { TiTable: 'TiTableComponent' }），仅供 props.ref 的 @ViewChild 字段类型推导。
+   * 该类型必须能从 libraryPackage 具名导入（buildImports 会把它并入该包的 import 行）。
+   */
+  componentExportMap?: Record<string, string>;
   /** 标准 HTML void 元素之外的额外自闭合标签，如 ['ti-image'] */
   extraVoidElements?: string[];
   /** 组件级 prop 黑名单——这些 prop 在模板中不生成。如 { TiTable: ['border', 'stripe'] } */
   propBlacklist?: Record<string, string[]>;
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键)。当前 TinyNG 无使用;通用能力保留给后续组件库 */
   propRename?: Record<string, Record<string, string>>;
-  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。通用规则覆盖不了的值形态重塑才配置(当前 TinyNG 未使用,见 libraries/tinyng/record.md) */
+  /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。通用规则覆盖不了的值形态重塑才配置(当前 TinyNG 未使用,见物料包的 src/code-generator/record.md) */
   propAdapters?: AngularPropAdapter[];
-  /** 组件库全部组件名集合,供「组件库识别」比对 schema;缺省取 componentSelector 的键 */
+  /** 组件库全部组件名集合,供 resolveConfig 按组件名路由到所属库;缺省取 componentSelector 的键 */
   libraryComponents?: Set<string>;
   /** 组件库专属 state 预处理(遍历/序列化前);各库只处理自己关心的 state 结构,顺序无关 */
   transformState?: (state: Record<string, unknown>) => void;
@@ -141,7 +163,7 @@ export interface IAngularLibraryConfig {
   ) => NodeSchema[] | NodeSchema | string | undefined;
 }
 
-export type ICodeGeneratorResult = ICodePanel & { errors: { message: string }[] };
+export type ICodeGeneratorResult = ICodePanel;
 
 export interface IVueCodeGeneratorOptions {
   enableCompileValidation?: boolean;
@@ -152,15 +174,43 @@ export interface IAngularCodeGeneratorOptions {
   /** prettier 格式化参数,覆盖默认值;仅 formatWithPrettier 开启时生效 */
   prettierOpts?: Record<string, unknown>;
   /**
-   * 激活的组件库列表,数组顺序即组件名路由的优先级顺序;缺省(含空数组)仅启用内置 TinyNG。
-   * 一个 schema 可混用多库组件:按序查 libraryComponents → componentSelector → moduleRefMap,
-   * 首个命中该组件的库胜出,全部未命中则兜底第一个库。
+   * 激活的组件库列表,**必传**——不传或传空数组会在构造器直接抛错。
+   * 配置从对应物料包的 `code-generator` 子出口 import 后传入(见上面接口说明),
+   * 出码器本身不带任何组件库配置,也不 import 任何物料包。
+   *
+   * 数组顺序即组件名路由的优先级顺序:一个 schema 可混用多库组件,按序查
+   * libraryComponents → componentSelector → moduleRefMap,首个命中该组件的库胜出,
+   * 全部未命中则兜底第一个库。
    * 硬约定:跨库组件名 / NgModule 类名需全局唯一(同名模块无法在单文件里不 alias 同时 import)。
    * 自定义库的 componentSelector / moduleRefMap / componentExtraSelector / libraryComponents
    * 必须经 deriveLibraryMaps(该库自己的物料包 materials) 推导,不可手写
-   * (推导依赖导入物料包时对 Angular 编译器元数据的写入,见 libraries/derive-library-maps.ts)。
+   * (推导读的是物料包的 Angular 编译器元数据 ɵcmp.selectors,该工具随配置一并住在物料包内,
+   * 见 @opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator 的 derive-library-maps)。
    */
-  libraries?: IAngularLibraryConfig[];
+  libraries: IAngularLibraryConfig[];
+}
+
+/**
+ * buildImports 的 @angular/core 具名导入门控——逐项独立,既不漏 import 也不 import 未使用的符号。
+ * 每项都对应一处实际产出的类体代码,由调用方按「类体里到底出现了什么」计算。
+ */
+export interface IAngularCoreImportNeeds {
+  /** 组件是否声明了 @Output(当前恒为 false,保留给后续事件输出) */
+  outputs?: boolean;
+  /** 是否产出 ngOnInit */
+  init?: boolean;
+  /** 是否产出 ngAfterViewInit */
+  afterViewInit?: boolean;
+  /** 是否产出 ngOnDestroy */
+  destroy?: boolean;
+  /** 是否产出 @ViewChild 声明 */
+  viewChild?: boolean;
+  /** 是否产出 @ViewChildren 声明(为真时同时需要 QueryList 类型) */
+  viewChildren?: boolean;
+  /** 是否有字段类型用到 ElementRef */
+  elementRef?: boolean;
+  /** 是否有字段类型用到 TemplateRef */
+  templateRef?: boolean;
 }
 
 /** Angular 类体段落定义——buildAngularComponentSource 按定义顺序拼接组件类成员 */

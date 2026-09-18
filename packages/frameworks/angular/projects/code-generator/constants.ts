@@ -9,7 +9,7 @@ export const [JS_EXPRESSION, JS_FUNCTION, JS_SLOT] = [
   'JSSlot'
 ]
 
-/** 原生 HTML 标签集合,供「组件库识别」从 schema 组件名中排除原生元素 */
+/** 原生 HTML 标签集合,用于区分「原生元素」与「物料组件」:决定 ref 字段类型,也决定是否走物料组件分支 */
 export const HTML_TAGS: Set<string> = new Set([
   'a', 'abbr', 'address', 'area', 'article', 'aside', 'audio',
   'b', 'base', 'bdi', 'bdo', 'blockquote', 'body', 'br', 'button',

@@ -9,10 +9,11 @@ import type {
   AngularBindingKind,
   IAngularTemplateAttr,
   IAngularClassSectionDefinition,
+  IAngularCoreImportNeeds,
   ICodeGeneratorResult,
+  IViewChildRef,
 } from './types';
 import type { IAngularPropContext } from './libraries/prop-adapter';
-import { TINYNG_CONFIG } from './libraries/tinyng/config';
 import { capitalize, hyphenate, toEventKey, unwrapExpression } from './utils';
 import { CodeGeneratorBase } from './code-generator-base';
 
@@ -28,19 +29,49 @@ const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
   htmlWhitespaceSensitivity: 'ignore',
 };
 
-/** 缺省激活的组件库:未传 options.libraries 或传空数组时启用 */
-const DEFAULT_LIBRARIES: IAngularLibraryConfig[] = [TINYNG_CONFIG];
+/** schema 中代表 <ng-template> 的 componentName。小写 template 是原生 HTML 标签,不在此列 */
+const NG_TEMPLATE_SCHEMA_NAME = 'NgTemplate';
 
+/**
+ * Angular 出码器——把 schema 出成 Angular 单文件组件。
+ *
+ * 组件库差异全部经构造选项 `libraries` 注入,实例化前先从对应物料包的 `code-generator`
+ * 子出口 import 配置:
+ *
+ * ```ts
+ * import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
+ *
+ * const result = await new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] })
+ *   .generate({ pageInfo: { schema } });
+ * ```
+ *
+ * 刻意**不提供 static create / static generateCode**:配置是实例的、必传的,一个"不带参数就能
+ * 拿到实例"的静态入口必然要内置某个库做缺省,那就把出码器重新绑死在某个物料包上了。
+ * 换库只换调用方那一行 import。
+ */
 export class AngularCodeGenerator extends CodeGeneratorBase {
 
-  /** 激活的组件库(数组顺序即路由优先级),缺省仅内置 TinyNG;多库混合出码时按组件名路由(resolveConfig) */
+  /** 本实例激活的组件库(数组顺序即路由优先级);多库混合出码时按组件名路由(resolveConfig) */
   protected readonly libraryConfigs: readonly IAngularLibraryConfig[];
   private readonly prettierOpts: Record<string, unknown>;
 
-  constructor(options: IAngularCodeGeneratorOptions = {}) {
+  /**
+   * @param options.libraries 组件库配置,**必传**。从对应物料包的 `code-generator` 子出口
+   *   import 后传入即可出该物料的码,如:
+   *   `new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] })`。
+   *   出码器本身不带任何组件库配置,也不 import 任何物料包——换库只换调用方那一行 import。
+   */
+  constructor(options: IAngularCodeGeneratorOptions) {
     super();
 
-    this.libraryConfigs = [...(options.libraries?.length ? options.libraries : DEFAULT_LIBRARIES)];
+    if (!options?.libraries?.length) {
+      throw new Error(
+        'AngularCodeGenerator 需要至少一个组件库配置:请先从对应物料包的 code-generator 子出口 import 配置,' +
+          '再经 options.libraries 传入,如 new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] })。',
+      );
+    }
+
+    this.libraryConfigs = [...options.libraries];
     this.prettierOpts = {
       ...DEFAULT_PRETTIER_OPTS,
       ...(options.prettierOpts ?? {}),
@@ -62,16 +93,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return this.libraryConfigs[0];
   }
 
-  /** 创建出码器;未指定 libraries 时默认启用内置 TinyNG,传多库数组可混合出码 */
-  static create(options: IAngularCodeGeneratorOptions = {}): AngularCodeGenerator {
-    return new AngularCodeGenerator(options);
-  }
-
-  /** 默认(opentiny-ng)出码入口,对外保持唯一 API */
-  static generateCode(params: ICodeGeneratorParams): Promise<ICodeGeneratorResult> {
-    return new AngularCodeGenerator().generate(params);
-  }
-
   protected get voidElements(): string[] {
     const extra = new Set<string>();
     for (const config of this.libraryConfigs) {
@@ -88,6 +109,27 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return this.resolveConfig(componentName).componentExtraSelector?.[componentName];
   }
 
+
+  protected isNgTemplateComponent(componentName: string | undefined): boolean {
+    return componentName === NG_TEMPLATE_SCHEMA_NAME;
+  }
+
+  /**
+   * 空模板节点守卫:ng-template 既无 children 又无 props.let 时整节点丢弃。
+   * Angular 允许 `<ng-template></ng-template>`,但它不出现在渲染结果里,产出只会是噪音。
+   */
+  protected isEmptyTemplateNode(
+    componentName: string | undefined,
+    props: Record<string, unknown>,
+    children: unknown,
+  ): boolean {
+    if (!this.isNgTemplateComponent(componentName)) {
+      return false;
+    }
+    const hasChildren = Array.isArray(children) ? children.length > 0 : !!children;
+    return !hasChildren;
+  }
+
   /** 以临时 internalTypes 集合执行 fn,结束后恢复外层集合,避免借道改写共享引用 */
   protected withLocalInternalTypes<T>(
     description: ICodegenDescription,
@@ -100,31 +142,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     } finally {
       description.internalTypes = prev;
     }
-  }
-
-  /** 组件库识别:递归收集 schema 中出现的全部组件名(含原生 HTML 标签与 Text 等特殊节点) */
-  protected collectSchemaComponentNames(schema: CardSchema): Set<string> {
-    const names = new Set<string>();
-    const walk = (node: unknown) => {
-      if (!node || typeof node !== 'object') return;
-      const item = node as NodeSchema;
-      if (item.componentName) names.add(item.componentName);
-      const children = item.children;
-      if (Array.isArray(children)) children.forEach((child) => walk(child));
-      else walk(children);
-    };
-    walk(schema);
-    return names;
-  }
-
-  /** 当前组件库拥有的组件名集合,用于识别 schema 是否使用该库;缺省取 componentSelector 的键,物料包全量组件经 config 注入 */
-  protected getLibraryComponentNames(): Set<string> {
-    const merged = new Set<string>();
-    for (const config of this.libraryConfigs) {
-      const libSet = config.libraryComponents ?? new Set(Object.keys(config.componentSelector));
-      for (const name of libSet) merged.add(name);
-    }
-    return merged;
   }
 
   /** 库专属 prop 特判:按 config.propAdapters 顺序尝试,首个命中者消费该 prop(见 libraries/prop-adapter.ts) */
@@ -167,16 +184,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
   protected buildImports(
     description: ICodegenDescription,
-    needs: {
-      /** 组件是否声明了 @Output(当前恒为 false,保留给后续事件输出) */
-      outputs?: boolean;
-      /** 是否产出 ngOnInit */
-      init?: boolean;
-      /** 是否产出 ngOnDestroy */
-      destroy?: boolean;
-      /** 是否产出 ViewChild / TemplateRef(即含 JSSlot) */
-      slot?: boolean;
-    } = {},
+    needs: IAngularCoreImportNeeds = {},
   ): { importStatements: string; moduleNames: string[] } {
     const { componentSet } = description;
     const componentsInUse = [...componentSet];
@@ -200,6 +208,24 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       list.push(moduleName);
     });
 
+    // @ViewChild 的字段类型是物料组件类名时,该符号必须与 NgModule 落在同一条 import 里,
+    // 否则产物报 `Cannot find name 'TiTableComponent'`。
+    // 只并入 modulesByPackage(import 行);moduleNames 会进 @Component({imports:[…]}),
+    // 组件类名进去会编译报错,绝不能碰。
+    description.viewChildRefs.forEach((item) => {
+      if (!item.fieldTypePackage) {
+        return;
+      }
+      let list = modulesByPackage.get(item.fieldTypePackage);
+      if (!list) {
+        list = [];
+        modulesByPackage.set(item.fieldTypePackage, list);
+      }
+      if (!list.includes(item.fieldType)) {
+        list.push(item.fieldType);
+      }
+    });
+
     const lines: string[] = [];
 
     const coreImports = ['Component'];
@@ -209,11 +235,24 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     if (needs.init) {
       coreImports.push('OnInit');
     }
+    if (needs.afterViewInit) {
+      coreImports.push('AfterViewInit');
+    }
     if (needs.destroy) {
       coreImports.push('OnDestroy');
     }
-    if (needs.slot) {
-      coreImports.push('ViewChild', 'TemplateRef');
+    if (needs.viewChild) {
+      coreImports.push('ViewChild');
+    }
+    if (needs.viewChildren) {
+      coreImports.push('ViewChildren', 'QueryList');
+    }
+    // 字段类型用到的符号由已生成的声明串反查,避免「类型来源」与「导入清单」两处手工维护而漂移
+    if (needs.elementRef) {
+      coreImports.push('ElementRef');
+    }
+    if (needs.templateRef) {
+      coreImports.push('TemplateRef');
     }
     lines.push(`import { ${coreImports.join(', ')} } from '@angular/core';`);
     lines.push("import { CommonModule } from '@angular/common';");
@@ -226,16 +265,10 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return { importStatements: lines.join('\n'), moduleNames };
   }
 
-  /** 协议对象 → 模板表达式:取 value 并清洗 this. 前缀,value 缺失时兜底空串 */
-  protected toTemplateValue(item: { value?: string } | null | undefined): string {
-    return this.replaceThis(item?.value ?? '');
+  protected toTemplateValue(item: unknown): string {
+    return this.replaceThis((item as { value?: string } | null | undefined)?.value ?? '');
   }
 
-  /**
-   * 右值统一入口:任意形态的右值(schema 协议对象 / 字面量 / 函数)→ 属性等号右侧的完整片段(含引号与转义)。
-   * 返回 null 表示该属性不产出。
-   * 提升类副作用也在此完成:JSFunction → state 字段,JSSlot → 模板字段,返回值即引用它们的表达式。
-   */
   protected resolveBindingRight(
     kind: AngularBindingKind,
     key: string,
@@ -259,7 +292,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       return handler === null ? null : `"${handler}"`;
     }
 
-    // 直接以 JSSlot 形态出现的 prop 不产出绑定(保持原有分派结果)
     if (propType === JS_SLOT) {
       return null;
     }
@@ -270,7 +302,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
 
     if (propType === JS_EXPRESSION) {
-      return `"${this.toTemplateValue(rawValue as { value?: string })}"`;
+      return `"${this.toTemplateValue(rawValue)}"`;
     }
 
     // 剩余为字面量值，对象字面量需先探查是否内含 JSFunction / JSSlot
@@ -280,10 +312,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         return localTypes;
       });
 
-      if (localInternalTypes.has('JSSlot')) {
-        // 含作用域插槽: 引用 ng-template 的 TemplateRef,类字段初始化时机太早,
-        // 提升为组件类字段,由 ngOnInit 组装(现有 hoistPropToState 的目标 state 是类字段,此时 this.slotN 还是 undefined)
-        return `"${this.hoistPropToTemplateField(key, rawValue, description)}"`;
+      if (localInternalTypes.has(JS_SLOT)) {
+        // 对象里嵌了 JSSlot:整条属性不产出(内层 traverseState 已把 JSSlot 键静默丢弃)
+        return null;
       }
       if (localInternalTypes.has('JSFunction')) {
         return `"${this.hoistPropToState(key, rawValue, state)}"`;
@@ -296,11 +327,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return `"${rawValue}"`;
   }
 
-  /**
-   * 事件右值:JSFunction 提升为 __handleN 类方法;JSExpression 直接作为处理函数表达式。
-   * 只产出等号右侧的处理函数片段(事件名由左值的 renderBindingLeft 生成);
-   * `''` 表示空绑定 `(k)=""`,null 表示该属性不产出。
-   */
   protected handleEventBinding(
     item: { type?: string; value?: string; params?: string[] },
     description: ICodegenDescription,
@@ -360,11 +386,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return eventHandler;
   }
 
-  /**
-   * 绑定形态判定(只决定左值括号,不看右值怎么算):
-   * 事件看 `on` 前缀;双向看值内 `model` 标记;字面量字符串走静态属性,其余一律走属性绑定
-   * (JSFunction / JSSlot 值先提升为 state 或模板字段,产物仍是属性绑定)。
-   */
   protected resolveBindingKind(key: string, propType: string, rawValue: unknown): AngularBindingKind {
     if (this.isOnEventKey(key)) return 'event';
     if (propType === 'literal') return typeof rawValue === 'string' ? 'static' : 'property';
@@ -374,7 +395,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return 'property';
   }
 
-  /** 左值渲染:方括号=属性绑定,圆括号=事件绑定,方括号+圆括号=双向绑定,无括号=静态属性 */
   protected renderBindingLeft(kind: AngularBindingKind, key: string): string {
     switch (kind) {
       case 'static':
@@ -388,14 +408,135 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  /**
-   * 已收集的模板属性 → 拼进开标签的字符串(唯一的拼接点)。
-   * right 缺省即无值指令,只出名字(如原生元素上的 tiButton)。
-   */
   protected renderAttrs(attrs: IAngularTemplateAttr[]): string {
     return attrs
       .map((attr) => (attr.right === undefined ? attr.left : `${attr.left}=${attr.right}`))
       .join(' ');
+  }
+
+  protected handleLetBinding(
+    rawValue: unknown,
+    componentName: string,
+    attrsArr: IAngularTemplateAttr[],
+  ): void {
+    if (!this.isNgTemplateComponent(componentName)) {
+      return;
+    }
+    if (!rawValue || typeof rawValue !== 'object' || Array.isArray(rawValue)) {
+      return;
+    }
+    // "let": { "labelFromScope": "label", "myContext": "$implicit", "index": "index" }
+    Object.entries(rawValue as Record<string, unknown>).forEach(([localName, contextKey]) => {
+      attrsArr.push({ left: `let-${localName}`, right: `"${contextKey}"` });
+    });
+  }
+
+  protected handleRefBinding(
+    key: 'ref' | 'refName',
+    rawValue: unknown,
+    componentName: string,
+    attrsArr: IAngularTemplateAttr[],
+    description: ICodegenDescription,
+    inLoop: boolean,
+    indexVar: string | undefined,
+  ): void {
+    const parsed = this.parseRefName(key, rawValue);
+    if (!parsed) {
+      return;
+    }
+    const { name, subscript } = parsed;
+
+    if (key === 'ref') {
+      if (subscript && (!inLoop || subscript !== indexVar)) {
+        return;
+      }
+      if (!subscript && inLoop) {
+        return;
+      }
+    }
+
+    if (attrsArr.some((attr) => attr.left === `#${name}`)) {
+      return;
+    }
+    if (key === 'ref') {
+      if (description.viewChildRefs.some((item) => item.queryName === name)) {
+        return;
+      }
+      const { type, fromPackage, unwrapNative } = this.resolveRefFieldType(componentName);
+      description.viewChildRefs.push({
+        queryName: name,
+        fieldName: name,
+        fieldType: type,
+        fieldTypePackage: fromPackage,
+        assignTo: `refs.${name}`,
+        kind: subscript ? 'viewChildren' : 'viewChild',
+        unwrapNative,
+      });
+    }
+
+    // 无右值 无值属性形态
+    attrsArr.push({ left: `#${name}` });
+  }
+
+  protected parseRefName(
+    key: 'ref' | 'refName',
+    rawValue: unknown,
+  ): { name: string; subscript?: string } | null {
+    if (key === 'refName') {
+      return typeof rawValue === 'string' ? { name: rawValue } : null;
+    }
+
+    let value: unknown = rawValue;
+    if (value && typeof value === 'object') {
+      const expr = value as { type?: string; value?: unknown };
+      if (expr.type !== JS_EXPRESSION) {
+        return null;
+      }
+      value = expr.value;
+    }
+    if (typeof value !== 'string') {
+      return null;
+    }
+
+    // 1) 剥掉 this.refs 前缀
+    const trimmed = value.trim();
+    let rest: string | null = null;
+    if (trimmed.startsWith('this.refs.')) {
+      rest = trimmed.slice('this.refs.'.length);
+    } else if (trimmed.startsWith('refs.')) {
+      rest = trimmed.slice('refs.'.length);
+    }
+    if (rest === null) {
+      return null;
+    }
+
+    // 2) 剩下的要么是裸标识符,要么是 `标识符[索引]`
+    const bare = /^([A-Za-z_$][\w$]*)$/.exec(rest);
+    if (bare) {
+      return { name: bare[1] };
+    }
+    const indexed = /^([A-Za-z_$][\w$]*)\[([A-Za-z_$][\w$]*)\]$/.exec(rest);
+    // refs[index] → { name: 'refs', subscript: 'index' }
+    return indexed ? { name: indexed[1], subscript: indexed[2] } : null;
+  }
+
+  protected resolveRefFieldType(
+    componentName: string | undefined,
+  ): { type: string; fromPackage?: string; unwrapNative?: boolean } {
+    if (this.isNgTemplateComponent(componentName)) {
+      return { type: 'TemplateRef<any>' };
+    }
+    if (!componentName || HTML_TAGS.has(componentName) || this.voidElements.includes(componentName)) {
+      // 查询结果是 ElementRef,而 refs 要放 DOM 元素,取值时需再取一层
+      return { type: 'ElementRef', unwrapNative: true };
+    }
+    for (const config of this.libraryConfigs) { // 获取需要导入的组件类
+      const className = config.componentExportMap?.[componentName];
+      if (className) {
+        return { type: className, fromPackage: config.libraryPackage };
+      }
+    }
+    return { type: 'any' };
   }
 
   protected handleBinding(
@@ -405,9 +546,28 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     state: Record<string, unknown>,
     componentName: string,
     schemaMethods: Methods,
+    options: { inLoop?: boolean; indexVar?: string } = {},
   ): void {
     Object.entries(props).forEach(([rawKey, rawValue]) => {
       let key = rawKey === 'className' ? 'class' : rawKey;
+
+      // ref / refName / let 是 schema 接线属性,不是组件 @Input,故先于库配置的黑名单与重命名处理
+      if (key === 'let') {
+        this.handleLetBinding(rawValue, componentName ?? '', attrsArr);
+        return;
+      }
+      if (key === 'ref' || key === 'refName') {
+        this.handleRefBinding(
+          key,
+          rawValue,
+          componentName ?? '',
+          attrsArr,
+          description,
+          options.inLoop ?? false,
+          options.indexVar,
+        );
+        return;
+      }
 
       // 组件所属库配置(黑名单/重命名按库生效)
       const cfg = this.resolveConfig(componentName ?? '');
@@ -454,66 +614,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       return;
     }
     result.push((children as string) || '');
-  }
-
-  protected generateSlotTemplate(
-    item: Record<string, any>,
-    description: ICodegenDescription,
-    state: Record<string, unknown>,
-    schemaMethods: Methods,
-  ): string {
-    const result: string[] = [];
-    const { componentName, component: componentAlias, props = {}, children, condition } = item;
-    const comp = componentName || componentAlias || 'div';
-
-    if (comp === 'Text') {
-      const textProp = (props as Record<string, unknown>)['text'];
-      if (textProp && typeof textProp === 'object' && (textProp as { type?: string }).type === 'JSExpression') {
-        const textValue = (textProp as { value?: string }).value ?? '';
-        return `{{ ${this.replaceThis(textValue)} }}`;
-      }
-      return `{{ ${(props as Record<string, unknown>)['text'] || ''} }}`;
-    }
-
-    const tag = this.resolveComponentTag(comp);
-    description.componentSet.add(comp);
-
-    const attrsArr: IAngularTemplateAttr[] = [];
-
-    const extraDirective = this.resolveExtraDirective(comp);
-    if (extraDirective) {
-      attrsArr.push({ left: extraDirective });
-    }
-
-    if (condition) {
-      const conditionValue =
-        (condition as { type?: string; value?: string }).type
-          ? this.replaceThis((condition as { value?: string }).value ?? '') || condition
-          : condition;
-      attrsArr.push({ left: '*ngIf', right: `"${conditionValue}"` });
-    }
-
-    result.push(`<${tag} `);
-    this.handleBinding(props, attrsArr, description, state, comp, schemaMethods);
-    result.push(this.renderAttrs(attrsArr));
-
-    if (this.voidElements.includes(tag)) {
-      result.push(' />');
-    } else {
-      result.push('>');
-      if (Array.isArray(children)) {
-        result.push(
-          children.map((child) => this.generateSlotTemplate(child, description, state, schemaMethods)).join(''),
-        );
-      } else if ((children as { type?: string })?.type === 'JSExpression') {
-        result.push(`{{ ${this.replaceThis((children as { value?: string }).value ?? '')} }}`);
-      } else {
-        result.push((children as string) || '');
-      }
-      result.push(`</${tag}>`);
-    }
-
-    return result.join('');
   }
 
   protected transformStateType(
@@ -576,15 +676,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       current[prop] = `${start}${inlineFunc}${end}`;
       return;
     }
-    // JSSlot
-    const { value = [], params = ['row'] } = current[prop] || {};
-    // 生成 Angular 原生的 ng-template 片段(可编译),运行时通过 TemplateRef 引用。
-    // 作用域参数(params)映射为 ng-template 的 let- 声明,模板体内可直接引用。
-    const slotRef = `slot${description.slotTemplates.length}`; // slotTemplates 只增不改,length 即当前计数
-    const slotBody = (value as any[]).map((item) => this.generateSlotTemplate(item, description, rootState, methods)).join(''); // value可能不是数组呢？
-    description.slotTemplates.push({ ref: slotRef, params, body: slotBody });
-    // 用 QUOTES 标记包裹 this.slotN:JSON.stringify 后由 unwrapExpression 还原为对 TemplateRef 字段的引用
-    current[prop] = `${start}this.${slotRef}${end}`;
+    // JSSlot 落到这里即静默丢弃:不产出,也不改写 current[prop](避免 delete 在数组下标上留洞)。
+    // 调用方据此把整条属性丢掉——静默产出 `columns='{"type":"JSSlot",…}'` 比不产出更糟。
   }
 
   protected traverseState(
@@ -617,7 +710,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
     const styleAttr =
       typeof style === 'object' && (style as { type?: string }).type === 'JSExpression'
-        ? `[style]="${this.replaceThis((style as { value?: string }).value ?? '')}"`
+        ? `[style]="${this.toTemplateValue(style)}"`
         : `style="${String(style).replace(/"/g, '&quot;')}"`;
     return `<span ${styleAttr}>${interpolation}</span>`;
   }
@@ -625,7 +718,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   /** 文本插值 {{ }}:text 为字面量时转义单引号并兜底空串,JSExpression 时直接输出表达式 */
   protected buildTextInterpolation(text: unknown): string {
     if (text && typeof text === 'object' && (text as { type?: string }).type === 'JSExpression') {
-      return `{{ ${this.replaceThis((text as { value?: string }).value ?? '')} }}`;
+      return `{{ ${this.toTemplateValue(text)} }}`;
     }
     const escaped = String(text ?? '').replace(/'/g, "\\'");
     return `{{ '${escaped}' || '' }}`;
@@ -639,9 +732,12 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     schemaMethods: Methods,
   ): string {
     const result: string[] = [];
-    const { componentName, loop, loopArgs = ['item'], condition, props = {}, children, slot } = schema; // 子组件没有css属性，所以不解构
+    const { componentName, loop, loopArgs = ['item'], condition, props = {}, children } = schema; // 子组件没有css属性，所以不解构
 
-    if (this.isEmptySlotNode(componentName, children)) {
+    // 判断是不是NgTemplate
+    const isTemplate = this.isNgTemplateComponent(componentName);
+
+    if (this.isEmptyTemplateNode(componentName, props as Record<string, unknown>, children)) {
       return '';
     }
 
@@ -653,20 +749,22 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     let component: string;
     if (isRootNode) {
       component = 'div';
+    } else if (isTemplate) { // 因为使用ng-template不用记录import，所以不走下面的else分支
+      component = 'ng-template';
     } else {
       // 组件名 → HTML 标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' }
-      component = this.resolveComponentTag(componentName || 'div'); 
+      component = this.resolveComponentTag(componentName || 'div');
     }
 
-    if (!isRootNode && componentName) {
-      // 用于记录要import 哪些组件
-      description.componentSet.add(componentName); 
+    if (!isRootNode && componentName && !isTemplate) {
+      // 用于记录要import 哪些组件(ng-template 无模块可 import,加进去会产出不存在的 NgTemplateModule)
+      description.componentSet.add(componentName);
     }
 
     const attrsArr: IAngularTemplateAttr[] = [];
 
     // 语义不对
-    const extraDirective = componentName ? this.resolveExtraDirective(componentName) : undefined;
+    const extraDirective = componentName && !isTemplate ? this.resolveExtraDirective(componentName) : undefined;
     if (extraDirective) {
       attrsArr.push({ left: extraDirective });
     }
@@ -675,7 +773,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     let ngForAttr: IAngularTemplateAttr | undefined;
     if (loop) {
       const loopData = (loop as { type?: string; value?: string }).type
-        ? this.replaceThis((loop as { value?: string }).value ?? '')
+        ? this.toTemplateValue(loop)
         : JSON.stringify(loop).replace(/"/g, '&quot;'); // loop 为字面量数组时的兜底序列化
 
       const itemVar = loopArgs[0] || 'item';
@@ -691,7 +789,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       const conditionObj = condition as { type?: string; value?: string; kind?: string };
       const conditionValue =
         isObjectCondition && conditionObj.type
-          ? this.replaceThis(conditionObj.value ?? '')
+          ? this.toTemplateValue(conditionObj)
           : condition;
 
       ngIfAttr = { left: '*ngIf', right: `"${conditionValue}"` };
@@ -710,7 +808,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     result.push(`\n<${component} `);
 
     // 处理元素属性
-    this.handleBinding(props as Record<string, unknown>, attrsArr, description, state, componentName, schemaMethods);
+    this.handleBinding(props as Record<string, unknown>, attrsArr, description, state, componentName, schemaMethods, {
+      inLoop: !!loop,
+      indexVar: loop ? loopArgs[1] : undefined,
+    });
+
     result.push(this.renderAttrs(attrsArr));
 
     
@@ -730,7 +832,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         result,
         schemaMethods,
       );
-      result.push(this.generateSlotContent(slot, state, description, schemaMethods)); // 没有slot
+      // 节点的 slot 字段不产出:Angular 没有插槽概念,改由 NgTemplate + props.let 表达作用域模板
       result.push(`</${component}>`);
     }
 
@@ -739,71 +841,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
 
     return result.join('');
-  }
-
-  /**
-   * 生成插槽渲染内容（顶层 slot 字段）。
-   *
-   * 协议中 slot 支持三种形态：
-   *  - string：默认插槽内容，直接输出
-   *  - JSSlot 包装：解包 value 后递归
-   *  - Record 具名插槽映射：{ header: "...", footer: "..." }，每个 key 生成一个投影容器
-   *  - 数组：插槽内容为组件列表，递归调用 generateTemplate 生成 Angular 模板
-   */
-  protected generateSlotContent(
-    slot: unknown,
-    state: Record<string, unknown>,
-    description: ICodegenDescription,
-    schemaMethods: Methods,
-  ): string {
-    if (slot == null || slot === '') {
-      return '';
-    }
-
-    // 字符串 → 默认插槽内容
-    if (typeof slot === 'string') {
-      return slot;
-    }
-
-    // 数组 → 插槽内容为组件列表（递归生成 Angular 模板）
-    if (Array.isArray(slot)) {
-      return slot
-        .map((item) =>
-          typeof item === 'string'
-            ? item
-            : this.generateTemplate(item as CardSchema, state, description, false, schemaMethods),
-        )
-        .join('');
-    }
-
-    if (typeof slot !== 'object') {
-      return '';
-    }
-
-    // JSSlot 包装 → 解包 value 后递归
-    if ((slot as { type?: string }).type === JS_SLOT) {
-      return this.generateSlotContent((slot as { value?: unknown }).value, state, description, schemaMethods);
-    }
-
-    // 具名插槽映射 { header: "...", footer: "..." } → 每个 key 生成一个投影容器
-    return Object.entries(slot as Record<string, unknown>)
-      .map(([slotName, content]) => this.generateNamedSlot(slotName, content, state, description, schemaMethods))
-      .join('');
-  }
-
-  /**
-   * 生成单个具名插槽。Angular 内容投影中具名插槽通过属性选择器匹配
-   * <ng-content select="[slotName]">，因此用带属性的容器包裹插槽内容。
-   */
-  protected generateNamedSlot(
-    slotName: string,
-    content: unknown,
-    state: Record<string, unknown>,
-    description: ICodegenDescription,
-    schemaMethods: Methods,
-  ): string {
-    const body = this.generateSlotContent(content, state, description, schemaMethods);
-    return `\n<div ${slotName}>${body}</div>`;
   }
 
   protected buildStateFields(
@@ -821,6 +858,57 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       return '';
     }
     return `state = ${stateStr};`;
+  }
+
+  /**
+   * 为每个 @ViewChild 字段定名:默认沿用 queryName,与现有类成员重名时经 avoidDuplicateString 改名。
+   * 只改类字段名;`#name` 查询键与 `refs.<name>` 契约保持不变。
+   */
+  protected resolveViewChildFieldNames(schema: CardSchema, codegenMeta: ICodegenDescription): void {
+    const existing: string[] = ['refs'];
+    if (/\bthis\.callAction\b/.test(JSON.stringify(schema))) {
+      existing.push('callAction');
+    }
+    Object.keys((schema.state ?? {}) as Record<string, unknown>).forEach((key) => existing.push(key));
+    Object.keys((schema.methods ?? {}) as Record<string, unknown>).forEach((key) => existing.push(key));
+    // 模板里自动生成的 __handleN 方法:从方法串首行签名里抠名字,避免与 ref 字段撞名
+    codegenMeta.templateGeneratedMethods.forEach((method) => {
+      const match = /^\s*(?:async\s+)?([A-Za-z_$][\w$]*)\s*\(/.exec(method);
+      if (match) {
+        existing.push(match[1]);
+      }
+    });
+
+    // item.fieldName是 @ViewChild 字段名
+    codegenMeta.viewChildRefs.forEach((item) => {
+      item.fieldName = this.avoidDuplicateString(existing, item.queryName);
+      existing.push(item.fieldName);
+    });
+  }
+
+  protected buildViewChildDecls(codegenMeta: ICodegenDescription): string {
+    return codegenMeta.viewChildRefs
+      .map((item) => (
+        item.kind === 'viewChildren'
+          ? `@ViewChildren('${item.queryName}') ${item.fieldName}!: QueryList<${item.fieldType}>;`
+          : `@ViewChild('${item.queryName}') ${item.fieldName}!: ${item.fieldType};`
+      ))
+      .join('\n\n  ');
+  }
+  
+  protected buildRefsField(schema: CardSchema, codegenMeta: ICodegenDescription): string {
+    const declared = (schema.refs ?? {}) as Record<string, unknown>;
+    if (!Object.keys(declared).length && !codegenMeta.viewChildRefs.length) {
+      return '';
+    }
+    const merged: Record<string, unknown> = { ...declared };
+    codegenMeta.viewChildRefs.forEach((item) => {
+      // props.ref有但this.refs没有的情况，就在this.refs里添加 aref: null 的键值对，后面再给this.refs.aref赋值
+      if (!(item.queryName in merged)) {
+        merged[item.queryName] = null;
+      }
+    });
+    return `refs: any = ${JSON.stringify(merged, null, 2)};`;
   }
 
   protected buildMethods(schema: CardSchema, description: ICodegenDescription): string {
@@ -847,13 +935,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return methodLines.join('\n\n  ');
   }
 
-  protected buildAngularComponentSource({
-    schema,
-    name,
-  }: {
-    schema: CardSchema;
-    name?: string;
-  }): string {
+  protected buildAngularComponentSource({ schema, name }: { schema: CardSchema; name?: string }): string {
     const codegenMeta = this.createCodegenMeta();
     // methods 表先补齐:模板生成期会把函数型 prop 提升进来,再由 buildMethods 统一产出类方法
     schema.methods ??= {};
@@ -861,7 +943,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     const needsCallAction = /\bthis\.callAction\b/.test(JSON.stringify(schema));
 
-    // 1) 模板:主模板 + 收集到的 JSSlot → ng-template 片段(Angular 编译器可正常编译其内容)
+    // 1) 模板:整棵 schema 一次生成(ng-template 作为普通节点在 children 里处理)
     const template = this.generateTemplate(
       schema,
       schema.state as Record<string, any>,
@@ -869,33 +951,40 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       true,
       schemaMethods
     );
-    const finalTemplate = `${template}${this.buildSlotTemplates(codegenMeta)}`; // 在children里处理
 
-    // 2)
+    // 2) 类体各段落。字段定名必须先于任何取名字的地方(模板里 refs.<name> 用的仍是 queryName)
+    this.resolveViewChildFieldNames(schema, codegenMeta);
     const viewChildDecls = this.buildViewChildDecls(codegenMeta);
-    const slotFieldDecls = this.buildSlotFieldDecls(codegenMeta);
+    const refsField = this.buildRefsField(schema, codegenMeta);
     const stateFields = this.buildStateFields(schema, codegenMeta, schemaMethods);
     const lifecycle = this.buildLifecycleMethods(codegenMeta, schema);
     const methods = this.buildMethods(schema, codegenMeta);
     const callActionMethod = this.buildCallActionMethod(needsCallAction);
 
-    // 3) imports 依赖类体成员是否为空(ngOnInit/ngOnDestroy 决定 OnInit/OnDestroy,slotTemplates 决定 ViewChild/TemplateRef)
+    // 3) imports 依赖类体里实际出现了什么(ngOnInit/ngOnDestroy 决定 OnInit/OnDestroy)
     const hasInit = !!lifecycle.init;
     const hasDestroy = !!lifecycle.destroy;
-    const hasSlot = codegenMeta.slotTemplates.length > 0;
+    const hasAfterViewInit = !!lifecycle.afterViewInit;
+    // 类型符号从已生成的声明串反查,避免「类型来源」与「导入清单」两处手工维护而漂移
+    const declarations = `${viewChildDecls}\n${refsField}\n${stateFields}`;
     const { importStatements, moduleNames } = this.buildImports(codegenMeta, {
       init: hasInit,
       destroy: hasDestroy,
-      slot: hasSlot,
+      afterViewInit: hasAfterViewInit,
+      viewChild: codegenMeta.viewChildRefs.some((item) => item.kind !== 'viewChildren'),
+      viewChildren: codegenMeta.viewChildRefs.some((item) => item.kind === 'viewChildren'),
+      elementRef: /\bElementRef\b/.test(declarations),
+      templateRef: /\bTemplateRef\b/.test(declarations),
     });
 
     // 4) 按段落定义顺序拼装类体
     const sections: IAngularClassSectionDefinition[] = [
       { id: 'viewChildDecls', build: () => viewChildDecls },
+      { id: 'refsField', build: () => refsField },
       { id: 'state', build: () => stateFields },
-      { id: 'slotFieldDecls', build: () => slotFieldDecls },
       { id: 'templateEventMethods', build: () => this.buildTemplateEventMethods(codegenMeta) },
       { id: 'ngOnInit', build: () => lifecycle.init },
+      { id: 'ngAfterViewInit', build: () => lifecycle.afterViewInit },
       { id: 'ngOnDestroy', build: () => lifecycle.destroy },
       { id: 'methods', build: () => methods },
       { id: 'callAction', build: () => callActionMethod },
@@ -905,7 +994,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     const selectorName = hyphenate(name || 'SchemaCard');
     const className = capitalize(name || 'SchemaCard');
     const ngImports = ['CommonModule', 'FormsModule', ...moduleNames].join(', ');
-    const implementedHooks = [hasInit && 'OnInit', hasDestroy && 'OnDestroy'].filter(Boolean).join(', ');
+    const implementedHooks = [hasInit && 'OnInit', hasAfterViewInit && 'AfterViewInit', hasDestroy && 'OnDestroy']
+      .filter(Boolean)
+      .join(', ');
     const implementsClause = implementedHooks ? ` implements ${implementedHooks}` : '';
 
     const stylesContent = (schema.css ?? '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
@@ -917,34 +1008,13 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       `  selector: 'app-${selectorName}',`,
       '  standalone: true,',
       `  imports: [${ngImports}],`,
-      `  template: \`${finalTemplate}\`,`,
+      `  template: \`${template}\`,`,
       `  styles: [\`${stylesContent}\`],`,
       '})',
       `export class ${className}Component${implementsClause} {`,
       classBody ? `  ${classBody}` : '',
       '}',
     ].join('\n');
-  }
-
-  /** 收集到的 JSSlot → ng-template 片段,追加到组件模板末尾(Angular 编译器可正常编译其内容) */
-  protected buildSlotTemplates(codegenMeta: ICodegenDescription): string {
-    return codegenMeta.slotTemplates
-      .map(({ ref, params, body }) => `\n<ng-template #${ref} ${params.map((p) => `let-${p}`).join(' ')}>\n${body}\n</ng-template>`)
-      .join('');
-  }
-
-  /** ng-template 引用声明(ViewChild),供组件类在运行时取得模板里的 #slotN 引用 */
-  protected buildViewChildDecls(codegenMeta: ICodegenDescription): string {
-    return codegenMeta.slotTemplates
-      .map(({ ref }) => `@ViewChild('${ref}', { static: true }) ${ref}!: TemplateRef<any>;`) // static不要写
-      .join('\n\n  ');
-  }
-
-  /** 含 JSSlot 属性的组件类字段声明(类字段初始化器执行时 ViewChild 未解析,由 ngOnInit 组装) */
-  protected buildSlotFieldDecls(codegenMeta: ICodegenDescription): string {
-    return codegenMeta.slotFields
-      .map(({ fieldName }) => `${fieldName}: any = [];`)
-      .join('\n  ');
   }
 
   /** 事件绑定自动生成的类方法(__handleN),来自 handleEventBinding 收集到元数据的方法串 */
@@ -961,28 +1031,47 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   /**
-   * 生命周期方法,两个钩子一并产出:
-   * - onMounted → ngOnInit,并在此组装 JSSlot 类字段(把占位引用 this.slotN 替换成 ng-template 的 TemplateRef);
-   * - onUnmounted → ngOnDestroy,只装生命周期体,不掺槽位组装。
-   * 空串表示该钩子不存在;调用方据此决定 import 哪些接口与 implements 子句。
+   * 单条 ref 的接线语句(不含 this. 前缀的推导由 assignTo/fieldName 自带)。
+   * - 单例:查询结果直接就是 refs 要的值,取不取 nativeElement 由 unwrapNative 决定;
+   * - 集合:一次查询收回整组有序实例(顺序即 *ngFor 的迭代顺序),整组写进 refs,
+   *   等价于渲染器侧 `refs.x[index] = instance` 的逐格写入;视图后增时(如 *ngIf 切换)
+   *   再靠 changes 通知重算一次,避免 refs 停留在首帧的快照上。
    */
+  protected buildRefAssignment(item: IViewChildRef): string {
+    // 原生元素要.nativeElement
+    const value = `this.${item.fieldName}${item.unwrapNative ? '.nativeElement' : ''}`;
+    if (item.kind !== 'viewChildren') {
+      return `this.${item.assignTo} = ${value};`;
+    }
+    const listValue = item.unwrapNative ? 'e.nativeElement' : 'e';
+    // 局部函数名按字段名派生(fieldName 已是合法标识符且互相去重),多个集合 ref 同处一个钩子也不会撞名
+    const sync = `sync${item.fieldName.charAt(0).toUpperCase()}${item.fieldName.slice(1)}`;
+    return [
+      `const ${sync} = () => {`,
+      `  this.${item.assignTo} = this.${item.fieldName}.toArray().map((e) => ${listValue});`,
+      `};`,
+      `${sync}();`,
+      `this.${item.fieldName}.changes.subscribe(${sync});`,
+    ].join('\n    ');
+  }
+
   protected buildLifecycleMethods(
     codegenMeta: ICodegenDescription,
     schema: CardSchema,
-  ): { init: string; destroy: string } {
-    const slotFieldInits = codegenMeta.slotFields
-      .map(({ fieldName, item }) => `this.${fieldName} = ${unwrapExpression(JSON.stringify(item))};`)
-      .join('\n    ');
-    const initBody = [this.buildLifecycleBody(schema, 'onMounted'), slotFieldInits].filter(Boolean).join('\n    ');
+  ): { init: string; destroy: string; afterViewInit: string } {
+    const initBody = this.buildLifecycleBody(schema, 'onMounted');
     const destroyBody = this.buildLifecycleBody(schema, 'onUnmounted');
+    const refAssignments = codegenMeta.viewChildRefs
+      .map((item) => this.buildRefAssignment(item))
+      .join('\n    ');
 
     return {
       init: initBody ? `ngOnInit(): void {\n    ${initBody}\n  }` : '',
       destroy: destroyBody ? `ngOnDestroy(): void {\n    ${destroyBody}\n  }` : '',
+      afterViewInit: refAssignments ? `ngAfterViewInit(): void {\n    ${refAssignments}\n  }` : '',
     };
   }
 
-  /** callAction 保留为 this.callAction(...) 调用，运行时通过 customActions 注入实现 */
   protected buildCallActionMethod(needsCallAction: boolean): string {
     return needsCallAction
       ? 'callAction(name: string, params?: unknown): void {\n' +
@@ -1033,13 +1122,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     methods[methodName] = item;
     description.hoistedMethodNames.add(methodName);
     return methodName;
-  }
-
-  /** 把值提升为组件类字段(ng-template 引用场景),返回模板中引用它的字段名 */
-  protected hoistPropToTemplateField(key: string, item: unknown, description: ICodegenDescription): string {
-    const fieldName = this.avoidDuplicateString(description.slotFields.map((f) => f.fieldName), key);
-    description.slotFields.push({ fieldName, item: item as Record<string, unknown> });
-    return fieldName;
   }
 
   protected async formatWithPrettier(source: string, prettierOpts: Record<string, unknown>): Promise<string> {
@@ -1093,19 +1175,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     const schema = JSON.parse(JSON.stringify(this.normalizeIncomingSchema(originSchema))) as CardSchema;
     const angularCode = this.buildAngularComponentSource({ schema, name });
     const panelName = `${hyphenate(name)}.component.ts`;
-    const compileErrors: { message: string }[] = [];
-
-    // 组件库识别:校验 schema 用到的组件是否都属于当前物料
-    const usedComponents = this.collectSchemaComponentNames(schema);
-    const knownComponents = this.getLibraryComponentNames();
-    const unknownComponents = [...usedComponents].filter(
-      (c) => !HTML_TAGS.has(c) && !['Text', 'Page', 'SchemaCard'].includes(c) && !knownComponents.has(c),
-    );
-    if (unknownComponents.length) {
-      compileErrors.push({
-        message: `组件库识别:以下组件不属于任何已启用组件库,请检查 schema:${unknownComponents.join(', ')}`,
-      });
-    }
 
     const panel: ICodePanel = {
       panelName,
@@ -1114,10 +1183,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       prettierOpts: { ...this.prettierOpts },
       type: 'page',
     };
-    const result: ICodeGeneratorResult = { ...panel, errors: compileErrors };
     if (formatWithPrettier) {
-      result.panelValue = await this.formatWithPrettier(result.panelValue, result.prettierOpts);
+      panel.panelValue = await this.formatWithPrettier(panel.panelValue, panel.prettierOpts);
     }
-    return result;
+    return panel;
   }
 }

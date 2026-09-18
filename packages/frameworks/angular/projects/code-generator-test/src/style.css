@@ -174,12 +174,3 @@ button:disabled {
   color: var(--danger);
 }
 
-.errors {
-  margin: 0;
-  padding: 0 14px 12px;
-  color: var(--danger);
-  font-family: 'Cascadia Code', Consolas, monospace;
-  font-size: 12px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-}

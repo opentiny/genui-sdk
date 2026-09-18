@@ -88,20 +88,11 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       iconComponents: { componentNames: [], exportNames: [] }, // 纯预留
       internalTypes: new Set(), // JS_EXPRESSION / JS_FUNCTION / JS_SLOT， 决定内联还是提升
       stateAccessors: [],
-      slotTemplates: [],
-      slotFields: [],
+      viewChildRefs: [],
       templateGeneratedMethods: [],
       hoistedMethodNames: new Set(),
       templateMethodCounter: 0,
     };
-  }
-
-  protected isEmptySlotNode(componentName: string | undefined, children: unknown): boolean {
-    return (
-      componentName === 'template' &&
-      !(children as { length?: number; type?: string })?.length &&
-      !(children as { length?: number; type?: string })?.type
-    );
   }
 
   protected normalizeIncomingSchema(origin: CardSchema | string | null | undefined): CardSchema {

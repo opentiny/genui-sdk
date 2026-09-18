@@ -165,3 +165,7 @@ packages/integrate/skill/genui-integration/references/materials/*-*.md
 
 # skill-generator CLI local preview; regenerate with generate:skill
 packages/skill-generator/example/
+
+# 出码验证用的 esbuild 产物(约 7MB,每次重建内容都变):由 headless/entry.ts 打包而来,
+# 只用于本地跑基线比对,不该进版本历史。精确到文件而非 *.cjs,避免误伤其它合法 .cjs。
+packages/frameworks/angular/projects/code-generator-test/headless/out.cjs

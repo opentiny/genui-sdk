@@ -45,12 +45,18 @@
       "types": "./dist/materials.d.ts",
       "import": "./dist/materials.js",
       "require": "./dist/materials.js"
+    },
+    "./code-generator": {
+      "types": "./dist/code-generator.d.ts",
+      "import": "./dist/code-generator.js",
+      "require": "./dist/code-generator.js"
     }
   },
   "scripts": {
     "build": "vite build"
   },
   "dependencies": {
+    "@angular/compiler": "^20.3.0",
     "@angular/core": "^20.3.0",
     "@opentiny/ng": "^1.0.3",
     "@opentiny/genui-sdk-core": "workspace:*"

@@ -1,5 +1,6 @@
 import './style.css';
-import { generateCode } from '../../code-generator/index';
+import { AngularCodeGenerator } from '../../code-generator/index';
+import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
 import { DEMO_SCHEMA } from './demo-schema';
 
 const $ = <T extends HTMLElement>(sel: string): T => {
@@ -15,7 +16,6 @@ const clearBtn = $<HTMLButtonElement>('#clear-btn');
 const copyBtn = $<HTMLButtonElement>('#copy-btn');
 const resultPre = $<HTMLPreElement>('#result-code');
 const statusEl = $<HTMLDivElement>('#status');
-const errorsEl = $<HTMLPreElement>('#errors');
 
 let currentCode = '';
 
@@ -37,20 +37,14 @@ async function runGenerate() {
   runBtn.disabled = true;
   runBtn.textContent = '出码中…';
   setStatus('');
-  errorsEl.textContent = '';
 
   try {
-    const result = await generateCode({
+    const result = await new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] }).generate({
       pageInfo: { schema: json as never, name: 'SchemaCard' },
     });
     currentCode = result.panelValue ?? '';
     resultPre.textContent = currentCode || '（生成结果为空）';
     setStatus(result.panelName ? `生成成功：${result.panelName}` : '生成成功');
-
-    const errors = result.errors ?? [];
-    if (errors.length) {
-      errorsEl.textContent = errors.map((e) => `• ${e.message}`).join('\n');
-    }
   } catch (e) {
     setStatus(`出码失败：${e instanceof Error ? e.message : String(e)}`, true);
     resultPre.textContent = '';
@@ -82,7 +76,6 @@ async function copyResult() {
 loadBtn.addEventListener('click', () => {
   schemaInput.value = JSON.stringify(DEMO_SCHEMA, null, 2);
   setStatus('');
-  errorsEl.textContent = '';
 });
 
 clearBtn.addEventListener('click', () => {
@@ -90,7 +83,6 @@ clearBtn.addEventListener('click', () => {
   resultPre.textContent = '暂无结果';
   currentCode = '';
   setStatus('');
-  errorsEl.textContent = '';
 });
 
 copyBtn.addEventListener('click', copyResult);
