@@ -14,7 +14,7 @@ export const toEventKey = (str: string): string => {
   const isOnUpdate = onUpdateRE.test(str);
   return isOnUpdate
     ? strRemovedPrefix.charAt(0).toLowerCase() + strRemovedPrefix.slice(1)
-    : hyphenate(strRemovedPrefix);
+    : strRemovedPrefix.toLowerCase();
 };
 
 export const unwrapExpression = (value: string): string =>
