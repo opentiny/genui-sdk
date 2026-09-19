@@ -31,6 +31,11 @@ export interface IAngularLibraryConfig {
   extraVoidElements?: string[];
   /** 组件级 prop 黑名单——这些 prop 在模板中不生成,如 { TiTable: ['border', 'stripe'] } */
   propBlacklist?: Record<string, string[]>;
+  /**
+   * 组件名 → 该组件**真实 @Output 名**数组(含继承自基类的),供出码器判定某个 prop 键
+   * 是不是事件绑定。必须由 deriveLibraryMaps 从组件 ɵcmp.outputs 推导,不可手写。
+   */
+  componentOutputs?: Record<string, string[]>;
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键) */
   propRename?: Record<string, Record<string, string>>;
   /** 组件库全部组件名集合,供出码器按组件名路由到所属库;缺省取 componentSelector 的键 */

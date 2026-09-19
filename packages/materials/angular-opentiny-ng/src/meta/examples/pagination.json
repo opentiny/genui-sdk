@@ -149,13 +149,13 @@
           "type": "JSExpression",
           "value": "this.state.total"
         },
-        "currentPageChange": {
+        "onCurrentPageChange": {
           "type": "JSFunction",
-          "value": "function(page) { this.state.currentPage = page }"
+          "value": "function(currentPage) { this.state.currentPage = currentPage }"
         },
-        "pageSizeChange": {
+        "onPageNumChange": {
           "type": "JSFunction",
-          "value": "function(size) { this.state.pageSizeConfig = { ...this.state.pageSizeConfig, size: size } }"
+          "value": "function(event) { this.state.pageSizeConfig = { ...this.state.pageSizeConfig, size: event.size } }"
         }
       }
     }

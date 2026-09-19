@@ -6,6 +6,23 @@
     "outDir": "./out-tsc/app",
     "types": []
   },
+  // 预览页(src/app/preview)要粘贴未经校验的出码产物,而产物必然过不了严格的模板检查:
+  // 实测 DEMO 产物同时报两类错 ——
+  //   [srcData]="state.srcData"  TS2322(state.srcData.state 缺 searched/sorted/paginated)
+  //   *ngFor 出的 row           TS2339(state.displayedData 推成 never[],row 即 never)
+  // 产物文件在 src 里、且被 preview.ts import,任何编译它的配置都躲不开,所以这一刀必须
+  // 落在**基座**上而不是只落 dev:否则 renderer-use 的 production 构建(ng build)会直接挂。
+  //
+  // fullTemplateTypeCheck 不能省:单把 strictTemplates 置 false 会掉进 "basic" 模式
+  // (checkTemplateBodies: false),整个应用(含 chat 页)的模板都不再检查。保留它则
+  // 模板表达式与成员拼写仍会检查,只是不再做严格赋值检查。
+  //
+  // 影响面:仅 renderer-use 这个应用(dev 与 production 都是)。genui-renderer 库走
+  // projects/renderer/tsconfig.lib*.json,不受影响。
+  "angularCompilerOptions": {
+    "strictTemplates": false,
+    "fullTemplateTypeCheck": true
+  },
   "include": [
     "src/**/*.ts"
   ],

@@ -15,6 +15,8 @@ import '@angular/compiler';
  *   - moduleRefMap           : 组件名 → NgModule 类名,如 TiTabs → TiTabModule
  *   - componentExportMap     : 组件名 → 组件类**公开导出名**,如 TiTable → TiTableComponent(供 props.ref 的
  *                              字段类型推导;注意取的是剥掉前导下划线的导出名,见 toExportName)
+ *   - componentOutputs       : 组件名 → 真实 @Output 名数组,如 TiPagination → [totalNumberChange,
+ *                              currentPageChange, ...](供出码器判定某个 prop 键是不是事件绑定)
  *   - libraryComponents      : 该库全部组件名集合(供出码器按组件名路由到所属库)
  *
  * 注意:部分组件在 TinyNG 中按「宿主原生元素 + 属性指令」使用(如 <button tiButton>、
@@ -36,12 +38,14 @@ export interface IAngularLibraryMaps {
   componentExtraSelector: Record<string, string>;
   moduleRefMap: Record<string, string>;
   componentExportMap: Record<string, string>;
+  componentOutputs: Record<string, string[]>;
   libraryComponents: Set<string>;
 }
 
-/** Angular 组件编译器元数据(ɵcmp)中的 selectors 结构:[tag, attr, cls] */
+/** 从 Angular 组件编译器元数据(ɵcmp)里读到的那部分:选择器与输出 */
 interface IAngularCmpMeta {
   selectors?: Array<[string, string, string]>;
+  outputs?: Record<string, string>;
 }
 
 const readCmpMeta = (cls: unknown): IAngularCmpMeta | undefined => (cls as any)?.['ɵcmp'];
@@ -66,14 +70,19 @@ export function deriveLibraryMaps(materials: IAngularMaterials): IAngularLibrary
   const componentExtraSelector: Record<string, string> = {};
   const moduleRefMap: Record<string, string> = {};
   const componentExportMap: Record<string, string> = {};
+  const componentOutputs: Record<string, string[]> = {};
 
   Object.entries(materials.components ?? {}).forEach(([name, cls]) => {
-    const entry = readCmpMeta(cls)?.selectors?.[0];
+    const meta = readCmpMeta(cls);
+    const entry = meta?.selectors?.[0];
     if (entry?.[0]) componentSelector[name] = entry[0];
 
     if (entry && typeof entry[1] === 'string' && entry[1]) {
       componentExtraSelector[name] = entry[1];
     }
+
+    const outputs = Object.keys(meta?.outputs ?? {});
+    if (outputs.length) componentOutputs[name] = outputs;
 
     const exportName = toExportName((cls as { name?: unknown })?.name);
     if (exportName) componentExportMap[name] = exportName;
@@ -88,6 +97,7 @@ export function deriveLibraryMaps(materials: IAngularMaterials): IAngularLibrary
     componentExtraSelector,
     moduleRefMap,
     componentExportMap,
+    componentOutputs,
     libraryComponents: new Set(Object.keys(materials.components ?? {})),
   };
 }

@@ -11,8 +11,14 @@ import type { IAngularLibraryConfig } from './types';
 /** 协议中表达式值的 type 字面量,与出码器包 constants.ts 的 JS_EXPRESSION 同值 */
 const JS_EXPRESSION = 'JSExpression';
 
-const { componentSelector, moduleRefMap, componentExtraSelector, componentExportMap, libraryComponents } =
-  deriveLibraryMaps(materials);
+const {
+  componentSelector,
+  moduleRefMap,
+  componentExtraSelector,
+  componentExportMap,
+  componentOutputs,
+  libraryComponents,
+} = deriveLibraryMaps(materials);
 
 /**
  * TinyNG 组件库专属出码配置。
@@ -32,6 +38,7 @@ export const TINYNG_CONFIG: IAngularLibraryConfig = {
   componentExportMap,
   extraVoidElements: ['ti-image'],
   propBlacklist: { TiTable: ['border', 'stripe'] },
+  componentOutputs,
   libraryComponents,
 
   /**

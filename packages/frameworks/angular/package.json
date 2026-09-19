@@ -11,6 +11,7 @@
     "ng": "ng",
     "start:server": "pnpm -F @opentiny/genui-sdk-server dev",
     "start": "concurrently \"pnpm start:server\" \"ng serve renderer-use\"",
+    "dev:pages": "concurrently -n codegen,preview -c cyan,green --kill-others-on-fail \"pnpm --dir projects/code-generator-test dev\" \"ng serve renderer-use\"",
     "prebuild": "ng build --project genui-renderer",
     "build": "ng build --project renderer-use",
     "prebuild:lib": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-ng build:lib && pnpm -F @opentiny/genui-sdk-materials-angular-opentiny-ng build",

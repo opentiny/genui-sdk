@@ -33,6 +33,19 @@ const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
 const NG_TEMPLATE_SCHEMA_NAME = 'NgTemplate';
 
 /**
+ * 不属于任何组件、由框架指令提供的 output 名。
+ *
+ * 出码器**无条件** import FormsModule 并列入 imports(见 buildImports),所以 `[(ngModel)]` 的
+ * `ngModelChange` 在任何模板里都能绑;但它挂在 NgModel 指令上,不在任何组件的 ɵcmp.outputs 里,
+ * 照 componentOutputs 查表必然查不到,只能在这里兜住。这类名字是 Angular 表单的、不是哪个组件库的,
+ * 故不放进物料包配置(否则每个物料包都得重复声明一遍)。
+ */
+const BUILTIN_OUTPUTS = new Set(['ngModelChange']);
+
+/** 事件键的 `on` 前缀形式:`onCurrentPageChange` → `CurrentPageChange`(只剥前缀,不动大小写) */
+const ON_PREFIXED_KEY_RE = /^on([A-Z]\w*)$/;
+
+/**
  * Angular 出码器——把 schema 出成 Angular 单文件组件。
  *
  * 组件库差异全部经构造选项 `libraries` 注入,实例化前先从对应物料包的 `code-generator`
@@ -386,7 +399,49 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return eventHandler;
   }
 
-  protected resolveBindingKind(key: string, propType: string, rawValue: unknown): AngularBindingKind {
+  /**
+   * 判定 prop 键是不是「真实事件输出」,命中则返回**模板里该写的真实输出名**(camelCase),否则 null。
+   *
+   * 判据是**查表**而不是看键名形状:表来自各库物料包的 componentOutputs(由组件 ɵcmp.outputs 推导)
+   * 加上 BUILTIN_OUTPUTS。两个候选依次查——
+   *   1. 键名本身:`currentPageChange` 就是 TiPagination 的真实 @Output 名,直接命中;
+   *   2. 键名剥掉 `on` 前缀:`onCurrentPageChange` 在 schema 里更常见(渲染器按 `on` + 输出名
+   *      去 bindProps 里取,见 component-outlet 的 toOnEventName,物料示例与 AI 产出都按这个约定写),
+   *      剥出来的名字同样命中。
+   *
+   * 两条只差一个前缀,查的是同一张表、同一个结论——**带不带 on 都是事件**,不是两种机制。
+   * 未命中(null)只说明"这个名字不是该组件的输出",由调用方按属性绑定处理;若它形如 onXxx,
+   * 还会落到下面原生 DOM 事件那条老路(onClick → (click))。这也是必须查表的原因:
+   * 光看键名形状无法区分 `onCurrentPageChange`(组件输出)与 `onClick`(原生 DOM 事件)。
+   */
+  protected resolveOutputName(
+    key: string,
+    componentName: string,
+    cfg: IAngularLibraryConfig,
+  ): string | null {
+    const stripped = ON_PREFIXED_KEY_RE.exec(key)?.[1];
+    const candidates = [
+      key,
+      stripped ? stripped.charAt(0).toLowerCase() + stripped.slice(1) : null,
+    ];
+    const outputs = cfg.componentOutputs?.[componentName];
+
+    for (const candidate of candidates) {
+      if (!candidate) continue;
+      if (outputs?.includes(candidate) || BUILTIN_OUTPUTS.has(candidate)) return candidate;
+    }
+    return null;
+  }
+
+  protected resolveBindingKind(
+    key: string,
+    propType: string,
+    rawValue: unknown,
+    outputName?: string | null,
+  ): AngularBindingKind {
+    // 键名命中真实 @Output 即为事件绑定(带不带 on 前缀都算,理由见 resolveOutputName)
+    if (outputName) return 'event';
+    // 未命中却是 onXxx 形状的,按原生 DOM 事件处理:onClick → (click)
     if (this.isOnEventKey(key)) return 'event';
     if (propType === 'literal') return typeof rawValue === 'string' ? 'static' : 'property';
     if (propType === JS_EXPRESSION) {
@@ -395,7 +450,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return 'property';
   }
 
-  protected renderBindingLeft(kind: AngularBindingKind, key: string): string {
+  protected renderBindingLeft(kind: AngularBindingKind, key: string, outputName?: string | null): string {
     switch (kind) {
       case 'static':
         return key;
@@ -404,7 +459,10 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       case 'twoWay':
         return `[(${key})]`;
       case 'event':
-        return `(${toEventKey(key)})`;
+        // 命中真实输出:原样用输出名,不做连字符化。@Output 名是 camelCase,而
+        // (current-page-change) 编译得过却永远不触发——圆括号里的陌生名字被当成 DOM 事件监听,
+        // 不经任何归一化去匹配组件的输出,于是错误是静默的(实测见 types.ts 的 componentOutputs 注释)
+        return `(${outputName ?? toEventKey(key)})`;
     }
   }
 
@@ -591,12 +649,14 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       // === Common Angular logic below ===
       // 左值决定括号,右值统一由 resolveBindingRight 产出(内部覆盖字面量/表达式/函数/插槽)
       const propType = this.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction' 'JSSlot'
-      const kind = this.resolveBindingKind(key, propType, rawValue);
+      // 键名是否命中该组件的真实 @Output(命中即事件绑定,与带不带 on 前缀无关)
+      const outputName = this.resolveOutputName(key, componentName ?? '', cfg);
+      const kind = this.resolveBindingKind(key, propType, rawValue, outputName);
       const right = this.resolveBindingRight(kind, key, rawValue, propType, description, state, schemaMethods);
       if (right === null) {
         return;
       }
-      attrsArr.push({ left: this.renderBindingLeft(kind, key), right });
+      attrsArr.push({ left: this.renderBindingLeft(kind, key, outputName), right });
     });
   }
 

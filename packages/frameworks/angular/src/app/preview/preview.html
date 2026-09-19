@@ -1,0 +1,24 @@
+<div class="preview-container">
+  <header class="preview-head">
+    <h1>出码实时预览</h1>
+    <p class="hint">
+      在
+      <a href="http://localhost:5175" target="_blank" rel="noopener">5175 出码页</a>
+      点「执行出码」→ 复制 → 整份覆盖
+      <code>src/app/preview/generated/schema-card.ts</code>
+      保存,本页会自动重新编译。
+    </p>
+    <p class="warn">
+      产物编不过时整个应用(含 <code>/</code> 的 chat 页)都会编不过 —— 页面变红就修好或还原
+      <code>generated/schema-card.ts</code>。完整错误列表在终端 <code>preview</code> 那一栏。
+    </p>
+  </header>
+
+  @if (componentType) {
+    <section class="preview-stage">
+      <ng-container [ngComponentOutlet]="componentType" />
+    </section>
+  } @else {
+    <p class="empty">在 generated/schema-card.ts 里没找到已编译的组件类(缺 ɵcmp)。</p>
+  }
+</div>

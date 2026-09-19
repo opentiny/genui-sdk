@@ -148,6 +148,22 @@ export interface IAngularLibraryConfig {
   extraVoidElements?: string[];
   /** 组件级 prop 黑名单——这些 prop 在模板中不生成。如 { TiTable: ['border', 'stripe'] } */
   propBlacklist?: Record<string, string[]>;
+  /**
+   * 组件名 → 该组件**真实 @Output 名**数组(含继承自基类的),如 TiPagination →
+   * ['totalNumberChange', 'currentPageChange', 'pageNumChange', 'pageUpdate', 'focus', 'blur', 'change']。
+   *
+   * 有了这张表,出码器才能回答「这个 prop 键到底是输入还是事件输出」——此前只能靠 `on` 前缀猜,
+   * 猜错的代价是两种,实测(ng build 真编译):
+   *   - 把 @Output 当 @Input 绑,产出 `[currentPageChange]="..."` → NG8002 编译报错,看得见;
+   *   - 给 `onCurrentPageChange` 这种 camelCase 输出名硬拼出 `(current-page-change)` → **编译不报错**
+   *     (圆括号里的陌生名字被 Angular 当成 DOM 事件监听),但它永远不触发:组件输出按精确名字匹配,
+   *     而 Angular 对圆括号里的名字不做连字符还原(dash→camel 归一化根本不存在)。
+   * 也就是说,没有这张表时后一种错误是**静默失效**,比编译报错更难发现。
+   *
+   * 必须由各库的 deriveLibraryMaps 从组件 ɵcmp.outputs 推导(读的是**模板可见名**,即对象键),
+   * 不可手写——手写的清单必然与组件库版本漂移。
+   */
+  componentOutputs?: Record<string, string[]>;
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键)。当前 TinyNG 无使用;通用能力保留给后续组件库 */
   propRename?: Record<string, Record<string, string>>;
   /** 组件级 prop 特判适配器列表,按序尝试,首个命中者消费该 prop。通用规则覆盖不了的值形态重塑才配置(当前 TinyNG 未使用,见物料包的 src/code-generator/record.md) */
