@@ -989,8 +989,14 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         ? key.slice(asyncPrefix.length)
         : key;
       const body = info.body;
+      // 形参显式标 any：产物要落在别人 strict 的 Angular 工程里，不标会撞 noImplicitAny
+      // （TS7006 Parameter 'file' implicitly has an 'any' type）。与 handleEventBinding /
+      // buildJSFunctionExpression 两处同约定，且必须标在**原型方法**上——这类方法的调用方
+      // 是模板事件绑定，形参个数由 handleEventBinding 按 schemaMethods 声明逐个对齐，故
+      // 只补类型、不动形参本身。
+      const paramsWithTypes = info.params.map((p) => `${p}?: any`).join(', ');
       // 返回类型省略，由 TS 从函数体推断（methods 可能被模板/事件消费返回值）
-      return `${asyncPrefix}${methodName}(${info.params.join(', ')}) { ${body} }`;
+      return `${asyncPrefix}${methodName}(${paramsWithTypes}) { ${body} }`;
     });
     return methodLines.join('\n\n  ');
   }
