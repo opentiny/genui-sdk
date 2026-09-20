@@ -1,6 +1,7 @@
 import type {
   IMaterialsRuntime,
   IMaterialsRuntimeApplyResult,
+  MaterialsLocaleId,
   MaterialsRuntimeFactory,
   MergedMaterials,
   ThemeColorScheme,
@@ -24,7 +25,7 @@ import {
 export interface UseMaterialsRuntimeOptions {
   materials: MaybeRefOrGetter<MergedMaterials | undefined>;
   theme: MaybeRefOrGetter<string | undefined>;
-  locale: MaybeRefOrGetter<string>;
+  locale: MaybeRefOrGetter<MaterialsLocaleId | undefined>;
   systemColorScheme: MaybeRefOrGetter<ThemeColorScheme>;
 }
 
@@ -91,7 +92,7 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
       [
         runtimeFactories.value,
         toValue(options.theme) || 'light',
-        toValue(options.locale),
+        toValue(options.locale) || 'zh_CN',
         toValue(options.systemColorScheme),
       ] as const,
     ([factories, theme, locale, systemColorScheme]) => {

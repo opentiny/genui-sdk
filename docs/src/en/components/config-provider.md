@@ -48,10 +48,10 @@ See [GenuiConfigProvider - Custom Theme](../examples/config-provider/custom-them
 
 ### locale
 
-- **Type**: `string`
+- **Type**: `MaterialsLocaleId` (`string`, recommended `zh_CN`)
 - **Required**: No
 - **Default**: `'zh_CN'`
-- **Description**: Sets the locale. Supported codes: `'zh_CN'` (Simplified Chinese) and `'en_US'` (English). This updates GenUI copy. If the materials provide `runtimeFactory`, ConfigProvider also passes the locale to that runtime, whose single root component updates the UI library's built-in copy.
+- **Description**: Locale. Prefer canonical `language_REGION` ids; the type is not a closed enum. GenUI Chat ships `'zh_CN'` and `'en_US'`. Each materials package declares its own `locales`. UI-library strings such as `zh-CN` / `zh-cn` stay in the package's private map. Do not pass `zh-CN`.
 
 ```vue
 <template>

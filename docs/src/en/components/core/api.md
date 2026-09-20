@@ -410,9 +410,15 @@ interface IThemeDescriptor {
   colorScheme?: ThemeColorScheme; // light/dark scheme of this theme
 }
 
+type MaterialsLocaleId = string; // recommended language_REGION, e.g. zh_CN; not a closed enum
+
+interface ILocaleDescriptor {
+  id: MaterialsLocaleId; // canonical language_REGION, e.g. zh_CN / pt_BR
+}
+
 interface IMaterialsRuntimeConfig {
   theme: string;
-  locale: string;
+  locale: MaterialsLocaleId; // recommended canonical id such as zh_CN; any string is allowed
 }
 
 interface IMaterialsRuntimeContext {
@@ -421,10 +427,12 @@ interface IMaterialsRuntimeContext {
 
 interface IMaterialsRuntimeApplyResult {
   theme?: IThemeDescriptor; // effective theme
+  locale?: ILocaleDescriptor; // effective locale
 }
 
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[]; // supported themes
+  readonly locales?: readonly ILocaleDescriptor[]; // canonical locale ids; may be a superset of GenUI Chat copy
   readonly root?: unknown; // stable root component that owns the UI-library provider
   apply(
     config: Readonly<IMaterialsRuntimeConfig>,
@@ -437,6 +445,8 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 ```
 
 `apply()` runs when the runtime is first created, then runs again whenever `theme`, `locale`, or the system color scheme changes. Define `root` when the factory creates the runtime and keep it stable for that runtime instance. If the UI library needs a provider, this single root should carry both theme and locale configuration.
+
+`ConfigProvider.locale` uses canonical ids (recommended `language_REGION` such as `zh_CN`). The type is an open string, so custom materials may pass `ja_JP` and similar. Each package declares its own `locales` subset. UI-library values such as `zh-CN` / `zh-cn` / `zhCN` belong in the materials' private map. The runtime matches the id in `apply()` and otherwise uses the first declared locale.
 
 ### MergedMaterials
 

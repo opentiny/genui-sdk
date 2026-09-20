@@ -46,10 +46,10 @@
 
 ### locale
 
-- **类型**: `string`
+- **类型**: `MaterialsLocaleId`（`string`，推荐 `zh_CN`）
 - **必填**: 否
 - **默认值**: `'zh_CN'`
-- **说明**: 设置语言环境。支持 `'zh_CN'`（简体中文）和 `'en_US'`（英文）。会同步 GenUI 文案；若物料提供 `runtimeFactory`，ConfigProvider 还会把新的 `locale` 传给运行时，由组件库唯一的运行时根组件同步其内置文案。
+- **说明**: 设置语言环境，推荐 `语言_地区` 规范 id，不限制为官方枚举。GenUI Chat 内置文案目前提供 `'zh_CN'`、`'en_US'`。物料 `locales` 自行声明支持的 id；组件库自己的 `zh-CN` / `zh-cn` 只存在于物料内部映射表。不要传入 `zh-CN`。
 
 ```vue
 <template>

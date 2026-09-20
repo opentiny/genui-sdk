@@ -513,11 +513,12 @@ When a UI library needs a config provider for theme or locale switching, integra
 ```typescript
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
+  readonly locales?: readonly ILocaleDescriptor[];
   readonly root?: unknown;
   apply(
-    config: Readonly<{ theme: string; locale: string }>,
+    config: Readonly<{ theme: string; locale: MaterialsLocaleId }>,
     context: Readonly<{ systemColorScheme: 'light' | 'dark' }>,
-  ): { theme?: IThemeDescriptor };
+  ): { theme?: IThemeDescriptor; locale?: ILocaleDescriptor };
   dispose?(): void;
 }
 
@@ -530,11 +531,13 @@ Follow these constraints when implementing a runtime:
 - `apply()` runs during initial setup, then runs again when `theme`, `locale`, or the system color scheme changes. Use reactive state captured by the runtime to pass updates to `root`.
 - Use `dispose()` only for runtime-level cleanup. ConfigProvider calls it when the factory is removed or the provider unmounts.
 - Material sets for the same UI library should reuse the same exported `runtimeFactory` reference. `mergeMaterials()` deduplicates factories by reference and nests roots from different UI libraries in merge order.
+- Declare supported languages in one `locales` list as `{ id, pack }` (canonical `language_REGION` id plus the UI-library pack). Pull `applyLocale` out of `apply()`, the same way theme resolution is extracted.
 
 Attach the factory to the materials object:
 
 ```typescript
 import type {
+  ILocaleDescriptor,
   IMaterials,
   IThemeDescriptor,
   MaterialsRuntimeFactory,
@@ -547,6 +550,16 @@ const themes: IThemeDescriptor[] = [
   { id: 'dark', colorScheme: 'dark' },
 ];
 
+const locales = [
+  { id: 'zh_CN', pack: 'zh-CN' },
+  { id: 'en_US', pack: 'en-US' },
+  { id: 'pt_BR', pack: 'pt-BR' },
+];
+
+function resolveLocale(locale: string) {
+  return locales.find((item) => item.id === locale) ?? locales[0];
+}
+
 export const runtimeFactory: MaterialsRuntimeFactory = () => {
   const theme = ref('light');
   const locale = ref('zh_CN');
@@ -557,8 +570,15 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
     },
   });
 
+  function applyLocale(localeId: string): ILocaleDescriptor {
+    const current = resolveLocale(localeId);
+    locale.value = current.pack;
+    return current;
+  }
+
   return {
     themes,
+    locales,
     root,
     apply(config, context) {
       const descriptor = themes.find((item) => item.id === config.theme) ?? {
@@ -566,8 +586,7 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
         colorScheme: context.systemColorScheme,
       };
       theme.value = descriptor.id;
-      locale.value = config.locale;
-      return { theme: descriptor };
+      return { theme: descriptor, locale: applyLocale(config.locale) };
     },
   };
 };

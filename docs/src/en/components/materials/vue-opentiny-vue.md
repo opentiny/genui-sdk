@@ -25,7 +25,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 - **Type**: `IMaterials`
 - **Description**: OpenTiny Vue component map for [GenuiConfigProvider](../config-provider#materials). `miniMaterials` is a smaller set (without charts, etc.); `plusMaterials` targets full business pages (tree, dialog, timeline, etc.).
 
-All three materials objects reuse one `runtimeFactory`. A stable OpenTiny Vue Runtime Root handles both the theme and UI-library locale. It supports `light`, `dark`, and `lite` themes and follows [GenuiConfigProvider](../config-provider)'s `locale`. See [Materials Runtime](../core/api#imaterialsruntime) and [Internationalization](../../examples/config-provider/i18n). No extra setup is required; set ConfigProvider's `theme` and `locale` props directly:
+All three materials objects reuse one `runtimeFactory`. A stable OpenTiny Vue Runtime Root handles both the theme and UI-library locale. It supports `light`, `dark`, and `lite` themes. UI-library locales are declared on `locales`: `zh_CN` / `en_US` / `es_LA` / `pt_BR` (the last two go beyond official GenUI Chat copy). `apply()` matches the id exactly; an unrecognized language falls back to the first item `zh_CN`. See [Materials Runtime](../core/api#imaterialsruntime) and [Internationalization](../../examples/config-provider/i18n). No extra setup is required; set ConfigProvider's `theme` and `locale` props directly:
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';

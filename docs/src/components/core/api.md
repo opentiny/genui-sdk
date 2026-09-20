@@ -409,9 +409,15 @@ interface IThemeDescriptor {
   colorScheme?: ThemeColorScheme; // 该主题对应的亮暗色系
 }
 
+type MaterialsLocaleId = string; // 推荐 language_REGION，如 zh_CN；不限制官方枚举
+
+interface ILocaleDescriptor {
+  id: MaterialsLocaleId; // 统一格式 language_REGION，如 zh_CN / pt_BR
+}
+
 interface IMaterialsRuntimeConfig {
   theme: string;
-  locale: string;
+  locale: MaterialsLocaleId; // 推荐 zh_CN 这种规范 id，可为任意字符串
 }
 
 interface IMaterialsRuntimeContext {
@@ -420,10 +426,12 @@ interface IMaterialsRuntimeContext {
 
 interface IMaterialsRuntimeApplyResult {
   theme?: IThemeDescriptor; // 实际生效的主题
+  locale?: ILocaleDescriptor; // 实际生效的语言
 }
 
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[]; // 支持的主题描述
+  readonly locales?: readonly ILocaleDescriptor[]; // 支持的规范语言 id，可多于 GenUI Chat 文案
   readonly root?: unknown; // 稳定的根组件，统一持有组件库 Provider
   apply(
     config: Readonly<IMaterialsRuntimeConfig>,
@@ -436,6 +444,8 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 ```
 
 `apply()` 在运行时首次创建时就会调用，此后 `theme`、`locale` 或系统亮暗色变化时会再次调用。`root` 应在工厂创建运行时实例时确定，并在该实例生命周期内保持稳定；需要组件库 Provider 时，由这个根组件同时承载主题与国际化配置。
+
+`ConfigProvider.locale` 使用规范 id（推荐 `zh_CN` 这种 `语言_地区`），类型是开放字符串，官方物料之外也可以传 `ja_JP` 等。`locales` 由各物料自行声明子集。组件库的 `zh-CN` / `zh-cn` / `zhCN` 放在物料内部映射表。物料在 `apply()` 里按 id 精确查找，未声明则回退列表第一项。
 
 ### MergedMaterials
 

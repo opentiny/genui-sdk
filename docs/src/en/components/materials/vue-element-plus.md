@@ -15,7 +15,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials). Its `runtimeFactory` exposes one stable Runtime Root that owns `ElConfigProvider` and handles both `light` / `dark` themes and the UI-library locale, preventing separate providers from overwriting each other. See [Materials Runtime](../core/api#imaterialsruntime) and [Internationalization](../../examples/config-provider/i18n). Set ConfigProvider's `theme` and `locale` props to switch them:
+- **Description**: Element Plus component map for [GenuiConfigProvider](../config-provider#materials). Its `runtimeFactory` exposes one stable Runtime Root that owns `ElConfigProvider` and handles both `light` / `dark` themes and the UI-library locale, preventing separate providers from overwriting each other. This package currently bundles `zh_CN` / `en_US` on `locales`. Add more `{ id, pack }` entries if you need extra Element Plus languages. See [Materials Runtime](../core/api#imaterialsruntime) and [Internationalization](../../examples/config-provider/i18n). Set ConfigProvider's `theme` and `locale` props to switch them:
 
 ```typescript
 import 'element-plus/dist/index.css';

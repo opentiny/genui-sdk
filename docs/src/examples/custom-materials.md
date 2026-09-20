@@ -507,11 +507,12 @@ interface IMaterialsMeta {
 ```typescript
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
+  readonly locales?: readonly ILocaleDescriptor[];
   readonly root?: unknown;
   apply(
-    config: Readonly<{ theme: string; locale: string }>,
+    config: Readonly<{ theme: string; locale: MaterialsLocaleId }>,
     context: Readonly<{ systemColorScheme: 'light' | 'dark' }>,
-  ): { theme?: IThemeDescriptor };
+  ): { theme?: IThemeDescriptor; locale?: ILocaleDescriptor };
   dispose?(): void;
 }
 
@@ -524,11 +525,13 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 - `apply()` 首次初始化时就会执行，此后 `theme`、`locale` 或系统亮暗色变化时再次执行。可通过闭包中的响应式状态把新配置传给 `root`。
 - `dispose()` 只负责回收运行时级副作用；ConfigProvider 移除该工厂或自身卸载时会调用它。
 - 同一组件库的多个物料集合应复用同一个导出的 `runtimeFactory` 引用。`mergeMaterials()` 会按引用去重，不同组件库的根组件则按合并顺序嵌套。
+- 用同一个 `locales` 数组声明规范 id 和组件库语言包（`{ id, pack }`）。`applyLocale` 从 `apply()` 里抽出，写法与主题解析对称。
 
 物料对象只需挂载工厂：
 
 ```typescript
 import type {
+  ILocaleDescriptor,
   IMaterials,
   IThemeDescriptor,
   MaterialsRuntimeFactory,
@@ -541,6 +544,16 @@ const themes: IThemeDescriptor[] = [
   { id: 'dark', colorScheme: 'dark' },
 ];
 
+const locales = [
+  { id: 'zh_CN', pack: 'zh-CN' },
+  { id: 'en_US', pack: 'en-US' },
+  { id: 'pt_BR', pack: 'pt-BR' },
+];
+
+function resolveLocale(locale: string) {
+  return locales.find((item) => item.id === locale) ?? locales[0];
+}
+
 export const runtimeFactory: MaterialsRuntimeFactory = () => {
   const theme = ref('light');
   const locale = ref('zh_CN');
@@ -551,8 +564,15 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
     },
   });
 
+  function applyLocale(localeId: string): ILocaleDescriptor {
+    const current = resolveLocale(localeId);
+    locale.value = current.pack;
+    return current;
+  }
+
   return {
     themes,
+    locales,
     root,
     apply(config, context) {
       const descriptor = themes.find((item) => item.id === config.theme) ?? {
@@ -560,8 +580,7 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
         colorScheme: context.systemColorScheme,
       };
       theme.value = descriptor.id;
-      locale.value = config.locale;
-      return { theme: descriptor };
+      return { theme: descriptor, locale: applyLocale(config.locale) };
     },
   };
 };

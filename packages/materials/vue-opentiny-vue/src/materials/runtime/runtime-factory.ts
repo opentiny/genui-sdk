@@ -1,9 +1,7 @@
-import type { IThemeDescriptor, MaterialsRuntimeFactory, ThemeColorScheme } from '@opentiny/genui-sdk-core';
-import { use as tinyUse, zhCN as tinyZhCN, enUS as tinyEnUS } from '@opentiny/vue-locale';
+import type { ILocaleDescriptor, IThemeDescriptor, MaterialsRuntimeFactory, ThemeColorScheme } from '@opentiny/genui-sdk-core';
+import { use as tinyUse, zhCN as tinyZhCN, enUS as tinyEnUS, esLA as tinyEsLA, ptBR as tinyPtBR } from '@opentiny/vue-locale';
 import { defineComponent, h, ref } from 'vue';
 import RuntimeRoot from './RuntimeRoot.vue';
-
-const ZH_CN = 'zh_CN';
 
 const themes: IThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
@@ -11,13 +9,30 @@ const themes: IThemeDescriptor[] = [
   { id: 'lite', colorScheme: 'light' },
 ];
 
-function resolveDescriptor(theme: string, systemColorScheme: ThemeColorScheme): IThemeDescriptor {
+const locales: Array<ILocaleDescriptor & { pack: unknown }> = [
+  { id: 'zh_CN', pack: tinyZhCN },
+  { id: 'en_US', pack: tinyEnUS },
+  { id: 'es_LA', pack: tinyEsLA },
+  { id: 'pt_BR', pack: tinyPtBR },
+];
+
+function resolveThemeDescriptor(theme: string, systemColorScheme: ThemeColorScheme): IThemeDescriptor {
   return (
     themes.find((item) => item.id === theme) ?? {
       id: systemColorScheme,
       colorScheme: systemColorScheme,
     }
   );
+}
+
+function resolveLocale(locale: string) {
+  return locales.find((item) => item.id === locale) ?? locales[0];
+}
+
+function applyLocale(localeId: string): ILocaleDescriptor {
+  const current = resolveLocale(localeId);
+  tinyUse(current.pack);
+  return current;
 }
 
 export const runtimeFactory: MaterialsRuntimeFactory = () => {
@@ -32,12 +47,12 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
 
   return {
     themes,
+    locales,
     root,
     apply(config, context) {
-      const descriptor = resolveDescriptor(config.theme, context.systemColorScheme);
-      theme.value = descriptor.id;
-      tinyUse(config.locale.trim() === ZH_CN ? tinyZhCN : tinyEnUS);
-      return { theme: descriptor };
+      const themeDescriptor = resolveThemeDescriptor(config.theme, context.systemColorScheme);
+      theme.value = themeDescriptor.id;
+      return { theme: themeDescriptor, locale: applyLocale(config.locale) };
     },
   };
 };

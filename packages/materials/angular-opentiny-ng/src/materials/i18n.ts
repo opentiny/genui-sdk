@@ -1,28 +1,30 @@
-import type { MaterialsRuntimeFactory } from '@opentiny/genui-sdk-core';
+import type { ILocaleDescriptor, MaterialsRuntimeFactory } from '@opentiny/genui-sdk-core';
+import { TiLocale } from '@opentiny/ng';
 
-const ZH_CN = 'zh_CN';
-const TI_ZH_CN = 'zh-CN';
-const TI_EN_US = 'en-US';
+const locales: Array<ILocaleDescriptor & { pack: string }> = [
+  { id: 'zh_CN', pack: 'zh-CN' },
+  { id: 'en_US', pack: 'en-US' },
+  { id: 'es_US', pack: 'es-US' },
+  { id: 'fr_FR', pack: 'fr-FR' },
+  { id: 'pt_BR', pack: 'pt-BR' },
+];
 
-type TiLocaleHost = Window & { tiLocale?: string };
+function resolveLocale(locale: string) {
+  return locales.find((item) => item.id === locale) ?? locales[0];
+}
 
-/**
- * TinyNG 将语言环境保存在 window.tiLocale，行为与 TiLocale.setLocale 一致。
- * 写入这个全局变量可以让 Vue playground 与 Angular CE bundle 保持同步，
- * 无需共享同一个 @opentiny/ng-locale 模块实例。
- */
-export function setLocale(locale: string): void {
-  const lang = locale.trim() === ZH_CN ? TI_ZH_CN : TI_EN_US;
-  if (typeof window !== 'undefined') {
-    (window as TiLocaleHost).tiLocale = lang;
-  }
+/** TinyNG 官方入口：TiLocale.setLocale 会写入 window.tiLocale（SSR 则写 global）。 */
+export function setLocale(locale: string): ILocaleDescriptor {
+  const current = resolveLocale(locale);
+  TiLocale.setLocale(current.pack);
+  return current;
 }
 
 export const runtimeFactory: MaterialsRuntimeFactory = () => {
   return {
+    locales,
     apply(config) {
-      setLocale(config.locale);
-      return {};
+      return { locale: setLocale(config.locale) };
     },
   };
 };
