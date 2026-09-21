@@ -7,9 +7,9 @@
  *   node headless/out.cjs path/to/schema.json --raw   # 关掉 prettier,便于区分是模板还是类体 parse 失败
  */
 import { readFileSync } from 'node:fs';
-import { AngularCodeGenerator } from '../../code-generator/index';
+import { AngularCodeGenerator } from '../../index';
 import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
-import { DEMO_SCHEMA } from '../src/demo-schema';
+import { DEMO_SCHEMA } from '../demo-schema';
 
 async function main(): Promise<void> {
   const schemaPath = process.argv[2];

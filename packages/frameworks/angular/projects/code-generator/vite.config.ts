@@ -10,6 +10,8 @@ const MATERIALS_CODEGEN_SRC = fileURLToPath(
 );
 
 export default defineConfig({
+  // src 下同时住着 5175 出码页(vite)和 4201 预览页(Angular),本配置只管前者。
+  root: 'src',
   resolve: {
     alias: [
       // 只拦子出口,别把 '@opentiny/genui-sdk-materials-angular-opentiny-ng' 根入口也改掉:

@@ -11,5 +11,6 @@
     "useDefineForClassFields": true,
     "types": []
   },
-  "include": ["src"]
+  // 只收 5175 出码页:同目录的 preview*.ts / generated 是 4201 那个 Angular app,归 src/tsconfig.app.json。
+  "include": ["src/main.ts", "src/demo-schema.ts", "src/headless/**/*.ts"]
 }

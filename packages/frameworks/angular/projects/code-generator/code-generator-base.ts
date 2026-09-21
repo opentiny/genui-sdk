@@ -67,15 +67,6 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       .replace(/\/\*[\s\S]*?\*\//g, '');
   }
 
-  /**
-   * 把嵌套函数/箭头函数的**形参列表与函数体**挖成等长空白，只留当前函数这一层的代码。
-   *
-   * 自由变量是"当前函数体这一层"的概念，绑定名也一样。不做这层收窄的话，同一个名字既是嵌套
-   * 回调形参、又是外层引用的模板变量时就会判错：`this.list.map((row) => row.age); total += row.age;`
-   * 里嵌套的 `row` 会让外层真正的 `row` 被当成已绑定而漏掉，模板就拿不到这个实参。
-   *
-   * 挖空而不是删除，是为了让下标与原文一致（便于调试时对照），挖掉的区域不会产生标识符。
-   */
   protected maskNestedFunctions(code: string): string {
     const chars = code.split('');
     const blank = (from: number, to: number) => {
@@ -236,8 +227,8 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
     return bound;
   }
 
+  // 从一个函数体里挑出“函数自己没声明、却引用到的变量”， 即由模板作用域引入的变量。
   protected extractFreeVariables(body: string): string[] {
-    // 先收窄到当前函数这一层作用域，再扫标识符和绑定名
     const scoped = this.maskNestedFunctions(this.stripLiterals(body));
     let cleaned = scoped
       .replace(/this\.\w+/g, '')
@@ -270,7 +261,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
     return {
       componentSet: new Set(),
       iconComponents: { componentNames: [], exportNames: [] }, // 纯预留
-      internalTypes: new Set(), // JS_EXPRESSION / JS_FUNCTION / JS_SLOT， 决定内联还是提升
+      internalTypes: new Set(),
       stateAccessors: [],
       viewChildRefs: [],
       templateGeneratedMethods: [],

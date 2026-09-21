@@ -1,5 +1,5 @@
 import './style.css';
-import { AngularCodeGenerator } from '../../code-generator/index';
+import { AngularCodeGenerator } from '../index';
 import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
 import { DEMO_SCHEMA } from './demo-schema';
 

@@ -19,12 +19,21 @@ Angular 代码出码器:把 AI 产出的页面 schema(`CardSchema`)转换为 Ang
 
 ```
 projects/code-generator/
+├── package.json  package-lock.json  node_modules/   # 包名 code-generator-dev;5175 页的工程文件,独立 npm 安装
+├── vite.config.ts                   #   同上,root 指向 src
+├── tsconfig.json                    #   同上,只收 5175 页那几个文件
 ├── code-generator-base.ts           # 类1:框架无关基类
 ├── angular-code-generator.ts        # 类2:Angular 特定,出码入口 + 库配置解析
 ├── types.ts                         # 公共类型(IAngularLibraryConfig 等)
 ├── index.ts                         # 对外导出(含 generateCode 入口)
-└── libraries/                       # 组件库相关抽象(不再有各库实现)
-    └── prop-adapter.ts              # 跨库:prop 适配器抽象(AngularPropAdapter)
+├── libraries/                       # 组件库相关抽象(不再有各库实现)
+│   └── prop-adapter.ts              # 跨库:prop 适配器抽象(AngularPropAdapter)
+└── src/                             # 两个页面同住,都不属于出码器实现本身
+    ├── index.html main.ts demo-schema.ts style.css        # 5175 出码页(vite,root 即本目录)
+    ├── preview.html preview-main.ts preview.ts preview.less   # 4201 预览页(Angular app)
+    ├── styles.less tsconfig.app.json #   同上:app 全局样式与它自己的 tsconfig
+    ├── generated/schema-card.ts     #   出码产物:5175 页复制它,4201 页渲染它
+    └── headless/entry.ts            # 无头跑法(不开浏览器)
 
 packages/materials/angular-opentiny-ng/src/code-generator/   # ← 各库实现住在物料包
 ├── config.ts                        #   TINYNG_CONFIG(库配置汇总)
