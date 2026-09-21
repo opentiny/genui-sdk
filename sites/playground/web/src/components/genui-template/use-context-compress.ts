@@ -243,6 +243,10 @@ export function useContextCompress(options: UseContextCompressOptions) {
         return;
       }
 
+      // 滚动更新：新摘要替换被合并的旧摘要，避免摘要消息叠积
+      if (plan.replaceIndex >= 0) {
+        targetMessages.splice(plan.replaceIndex, 1);
+      }
       const insertIndex = Math.min(plan.insertIndex, targetMessages.length);
       targetMessages.splice(insertIndex, 0, createContextCompressMessage(summary, generateId()));
       options.saveConversations();

@@ -3,11 +3,13 @@ import { templateChat } from '../template-chat-api';
 import type { LLMConfig } from '../chat.types';
 import { isContextCompressMessage } from './context-message';
 
-const COMPRESS_PROMPT_PREFIX = `【任务】
-将【对话历史】压缩为供后续页面生成模型继续工作的中文摘要，替代原文发送给模型。
-如果历史中包含“会话摘要”，那是之前某次压缩的产物：仅保留仍有效的信息并合并去重，较新的纠正/反馈替换旧内容，已失效的事项直接删除；不要原样全量抄录旧摘要。
+const COMPRESS_PROMPT_PREFIX = (summaryText: string, turnsText: string) => `【任务】
+将「当前摘要」与「新增对话」合并，更新为一版新的会话摘要，作为后续页面生成模型继续工作的唯一上下文。
 
-摘要长度：严格控制在 400 字以内。
+「当前摘要」是上一次压缩的产物：仅保留其中仍有效的信息，较新的纠正/反馈替换旧内容，已失效的事项直接删除；不要逐字抄录。
+「新增对话」是上次压缩之后发生的新内容：把其中影响后续工作的关键信息并入摘要。
+
+摘要长度：信息保真优先，尽量精简（一般 300~500 字，信息量大可适当放宽）；若摘要已较长，应主动压缩合并保持可读。
 
 必须保留：
 1. 用户当前目标、明确需求和约束；
@@ -24,7 +26,11 @@ const COMPRESS_PROMPT_PREFIX = `【任务】
 - 没有证据不得标记“已完成”；
 - 不得编造历史中不存在的信息。
 
-【对话历史】
+【当前摘要】
+${summaryText || '（无）'}
+
+【新增对话】
+${turnsText}
 `;
 
 const SCHEMA_HISTORY_ITEM_TYPES = new Set(['json-patch', 'schema-manual']);
@@ -58,10 +64,6 @@ export function serializeMessagesForCompress(messages: ChatMessage[]): string {
   return messages
     .filter((m) => m.role === 'user' || m.role === 'assistant')
     .map((m) => {
-      if (isContextCompressMessage(m)) {
-        const text = typeof m.content === 'string' ? m.content : '';
-        return `会话摘要: ${text}`;
-      }
       const roleLabel = m.role === 'user' ? '用户' : '助手';
       const structured = serializeStructuredMessages((m as unknown as { messages?: HistoryItem[] }).messages);
       const text = structured || (typeof m.content === 'string' ? m.content : '');
@@ -84,14 +86,17 @@ export async function compressConversationHistory(options: {
   signal?: AbortSignal;
 }): Promise<string> {
   const { url, messages, templateSchema, llmConfig, signal } = options;
-  const historyText = serializeMessagesForCompress(messages);
-  if (!historyText.trim()) {
+  const summaryMessage = messages.find(isContextCompressMessage);
+  const summaryText =
+    summaryMessage && typeof summaryMessage.content === 'string' ? summaryMessage.content : '';
+  const turnsText = serializeMessagesForCompress(messages.filter((m) => !isContextCompressMessage(m)));
+  if (!turnsText.trim()) {
     throw new Error('没有可压缩的会话内容');
   }
 
   const response = await templateChat({
     url,
-    messages: [{ role: 'user', content: COMPRESS_PROMPT_PREFIX + historyText }],
+    messages: [{ role: 'user', content: COMPRESS_PROMPT_PREFIX(summaryText, turnsText) }],
     signal: signal ?? new AbortController().signal,
     templateSchema,
     llmConfig,

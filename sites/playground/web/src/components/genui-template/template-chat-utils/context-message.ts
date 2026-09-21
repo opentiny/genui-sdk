@@ -65,14 +65,17 @@ export function findLatestContextCompressIndex(messages: ChatMessage[]): number 
 }
 
 export interface ContextCompressionPlan {
-  /** 需要交给模型生成新摘要的活动上下文 */
+  /** 需要交给模型生成新摘要的活动上下文（最新摘要 + 其后新增内容；无摘要时仅新增内容） */
   messages: ChatMessage[];
   /** 新摘要在完整历史中的插入位置；原始消息不会被删除 */
   insertIndex: number;
+  /** 被合并的旧摘要索引；-1 表示无（首轮压缩）。生成新摘要后应移除该条，避免摘要叠积 */
+  replaceIndex: number;
 }
 
 /**
- * 构造滚动压缩计划：压缩全部活动上下文，不保留原文。
+ * 构造滚动压缩计划：以最新摘要为种子，合并其后新增内容生成新摘要，
+ * 新摘要将替换旧摘要（首轮压缩无旧摘要，直接追加）。
  */
 export function getContextCompressionPlan(
   messages: ChatMessage[],
@@ -87,7 +90,11 @@ export function getContextCompressionPlan(
     return null;
   }
 
-  return { messages: messagesToCompress, insertIndex: messages.length };
+  return {
+    messages: messagesToCompress,
+    insertIndex: messages.length,
+    replaceIndex: latestCompressIndex,
+  };
 }
 
 /** 自最近一次压缩摘要起（含摘要）；无压缩时返回全部可见消息 */
