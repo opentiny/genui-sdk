@@ -4,7 +4,6 @@ import type { ComposerSegment } from './schema-composer';
 defineProps<{
   segments?: ComposerSegment[];
   content?: string;
-  selectedNodes?: { id: string; componentName: string }[];
 }>();
 </script>
 
@@ -16,14 +15,7 @@ defineProps<{
         <span v-else class="template-user-message__tag">{{ seg.tag.componentName }}</span>
       </template>
     </p>
-    <template v-else>
-      <p v-if="content" class="template-user-message__text">{{ content }}</p>
-      <div v-if="selectedNodes?.length" class="template-user-message__legacy-tags">
-        <span v-for="node in selectedNodes" :key="node.id" class="template-user-message__tag">
-          {{ node.componentName }}
-        </span>
-      </div>
-    </template>
+    <p v-else-if="content" class="template-user-message__text">{{ content }}</p>
   </div>
 </template>
 
@@ -42,13 +34,6 @@ defineProps<{
     color: var(--tr-text-primary, #191919);
     white-space: pre-wrap;
     word-break: break-word;
-  }
-
-  &__legacy-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 8px;
   }
 
   &__tag {

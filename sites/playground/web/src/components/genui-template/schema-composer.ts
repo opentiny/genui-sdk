@@ -1,16 +1,9 @@
 import type { UserItem } from '@opentiny/tiny-robot';
 import { formatSelectedNodesContext, type SelectedSchemaNode } from './schema-node-selection';
 
-export interface ComposerTag {
-  id: string;
-  componentName: string;
-  path: string;
-  node: Record<string, unknown>;
-}
-
 export type ComposerSegment =
   | { type: 'text'; value: string }
-  | { type: 'tag'; tag: ComposerTag };
+  | { type: 'tag'; tag: SelectedSchemaNode };
 
 export interface ComposerContent {
   segments: ComposerSegment[];
@@ -38,12 +31,7 @@ export function templateDataToSegments(
     if (node) {
       segments.push({
         type: 'tag',
-        tag: {
-          id: node.id,
-          componentName: node.componentName,
-          path: node.path,
-          node: node.node,
-        },
+        tag: node,
       });
     }
   }
@@ -66,12 +54,7 @@ export function segmentsToApiContent(segments: ComposerSegment[]): string {
   const tagById = new Map<string, SelectedSchemaNode>();
   for (const seg of segments) {
     if (seg.type === 'tag') {
-      tagById.set(seg.tag.id || seg.tag.componentName, {
-        id: seg.tag.id,
-        componentName: seg.tag.componentName,
-        path: seg.tag.path,
-        node: seg.tag.node,
-      });
+      tagById.set(seg.tag.id || seg.tag.componentName, seg.tag);
     }
   }
   const tags = [...tagById.values()];

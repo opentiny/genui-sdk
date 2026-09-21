@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
@@ -11,6 +11,7 @@ import { useTemplateContext } from './composables';
 import { isRenderableSchema } from './template-chat-utils';
 import { useSchemaDevMode } from './useSchemaDevMode';
 import { useSchemaRendererInspect } from './useSchemaRendererInspect';
+import type { SelectedSchemaNode } from './schema-node-selection';
 import { t } from '../../i18n';
 
 defineProps<{
@@ -19,7 +20,19 @@ defineProps<{
 
 const TinyCloseIcon = iconClose();
 const { schema, conversation, versionControl, editor, ui, actions } = useTemplateContext();
-const { isDevMode, insertComposerTag } = useSchemaDevMode();
+const { isDevMode } = useSchemaDevMode();
+const chatRef = ref<InstanceType<typeof GenuiTemplateChat> | null>(null);
+
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  chatRef.value?.insertComposerTag(node);
+};
+
+// 退出开发态时清空已点选的 composer 标签
+watch(isDevMode, (enabled) => {
+  if (!enabled) {
+    chatRef.value?.clearComposer();
+  }
+});
 
 const rendererSchema = computed(() => {
   const preview = schema.currentPreviewSchema ?? schema.currentSchema;
@@ -49,6 +62,7 @@ const {
   <div class="genui-schema-template">
     <div class="genui-schema-template-item chat-container">
       <genui-template-chat
+        ref="chatRef"
         v-if="conversation.isTemplateInit"
         v-show="!ui.schemaEditorVisible"
         class="genui-template-chat"

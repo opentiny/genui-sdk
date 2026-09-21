@@ -36,7 +36,6 @@ import {
 } from './template-chat-utils';
 import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
-import { useSchemaDevModeOptional } from './useSchemaDevMode';
 import { getComposerContent, segmentsToPlainText } from './schema-composer';
 import { createComposerTagController } from './composer-atomic-tags';
 import { createConversationComposerDrafts } from './conversation-composer-drafts';
@@ -60,7 +59,6 @@ const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
-const schemaDevMode = useSchemaDevModeOptional();
 const templateData = ref<UserItem[]>([]);
 const tagController = createComposerTagController<SelectedSchemaNode>();
 const selectedNodeMap = tagController.selectedNodeMap;
@@ -239,12 +237,10 @@ const messageRenderers = {
   'template-user': (props: {
     segments?: import('./schema-composer').ComposerSegment[];
     content?: string;
-    selectedNodes?: { id: string; componentName: string }[];
   }) =>
     h(TemplateUserMessageRenderer, {
       segments: props.segments,
       content: props.content,
-      selectedNodes: props.selectedNodes,
     }),
   'json-patch': createSchemaMessageRenderer('json-patch'),
   'schema-card': createSchemaMessageRenderer('schema-card'),
@@ -308,6 +304,8 @@ const clearComposer = () => {
   templateData.value = [];
   tagController.clear();
 };
+
+defineExpose({ insertComposerTag, clearComposer });
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -455,11 +453,6 @@ watch(() => messages.value, throttledScrollToBottom, { deep: true });
 
 onMounted(() => {
   emitter.on('notification', handleNotification);
-  schemaDevMode?.registerComposer({
-    insertTag: insertComposerTag,
-    getContent: () => getComposerContent(templateData.value, selectedNodeMap),
-    clear: clearComposer,
-  });
   if (senderContainer.value) {
     tagController.bind(senderContainer.value, () => {
       templateData.value = tagController.applyTemplateData(templateData.value);
@@ -469,7 +462,6 @@ onMounted(() => {
 
 onUnmounted(() => {
   emitter.off('notification', handleNotification);
-  schemaDevMode?.registerComposer(null);
   tagController.unbind();
 });
 </script>

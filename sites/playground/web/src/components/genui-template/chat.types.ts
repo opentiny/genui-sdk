@@ -69,7 +69,6 @@ export interface ITemplateUserMessageItem {
   type: 'template-user';
   segments: ComposerSegment[];
   content?: string;
-  selectedNodes?: { id: string; componentName: string }[];
 }
 
 export interface ICustomMessageItem {
