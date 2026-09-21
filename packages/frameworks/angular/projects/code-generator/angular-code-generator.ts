@@ -346,10 +346,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     schemaMethods: Methods,
   ): string | null {
     if (item?.type === JS_FUNCTION) {
-      const fnInfo = this.getFunctionInfo(item.value ?? '');  // 是否异步、参数、函数体
-      if (!fnInfo) {
-        return '';
-      }
+      const fnInfo = this.parseFunctionOrThrow(item.value ?? '');  // 是否异步、参数、函数体
 
       // JSFunction类型的value值是匿名函数，需要加名字。计数器走元数据，保证每次出码从 0 开始
       description.templateMethodCounter++;
@@ -974,16 +971,12 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   protected buildMethods(schema: CardSchema, description: ICodegenDescription): string {
     const { methods = {} } = schema;
     const methodLines = Object.entries(methods).map(([key, item]) => {
-      const info = this.getFunctionInfo(item.value);
-
       // 由 prop 提升来的函数:当值交给子组件,须箭头化以绑定 this
       if (description.hoistedMethodNames.has(key)) {
-        return info ? `${key} = ${this.buildJSFunctionExpression(item.value)};` : `${key} = ${item.value};`;
+        return `${key} = ${this.buildJSFunctionExpression(item.value)};`;
       }
 
-      if (!info) {
-        return `${key} = ${item.value};`;
-      }
+      const info = this.parseFunctionOrThrow(item.value);
       const asyncPrefix = info.type ? `${info.type} ` : '';
       const methodName = asyncPrefix && key.startsWith(asyncPrefix.trim())
         ? key.slice(asyncPrefix.length)
@@ -1092,8 +1085,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   protected buildLifecycleBody(schema: CardSchema, hook: 'onMounted' | 'onUnmounted'): string {
     const lifeCycles = schema.lifeCycles;
     const hookFn = lifeCycles?.[hook];
-    const fnInfo = hookFn ? this.getFunctionInfo(hookFn.value ?? '') : null;
-    return fnInfo ? fnInfo.body : '';
+    return hookFn ? this.parseFunctionOrThrow(hookFn.value ?? '').body : '';
   }
 
   /**
@@ -1154,19 +1146,79 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       .join('\n\n  ');
   }
 
+  
   /**
-   * 函数字符串 → 箭头函数表达式(用作类字段初始化器的右值)。
-   * 必须是箭头:这类函数是当「值」交给子组件的,真正调用方不是本组件,
-   * 只有箭头才能把函数体里的 this 锁在组件实例上。
+   * 解析函数字符串，失败即抛。支持两种形态：
+   *   1. `function 名字(...) { ... }` —— 交基类 getFunctionInfo（与 Vue 出码器共用，故不动它）；
+   *   2. 箭头函数 —— `(a, b) => { ... }` / `(a) => 表达式`，可带 `async` 前缀。
+   *
+   * 箭头是必须支持的形态：about-this.ts 给模型的 JSFunction 示例就是
+   * `(event) => this.hello(event, name)`，且该文件写明「事件绑定更推荐使用 JSFunction 模式」。
+   * 实测基类正则对上述**每一种**箭头形态都返回 null，所以"基类未命中即按箭头解析"不会误判。
+   *
+   * 此前每个调用点各写一套失败兜底——返回 ''、原样落成语义不同的类字段、原样包成表达式——行为互相
+   * 矛盾，且都对使用者不可见。最糟的一处产出 `(click)=""`：编译通过、点了没反应，让人去怀疑生成器
+   * 而不是 schema 写法。改为统一在此抛出，让无法解析的输入在出码当场暴露，并带上原始字符串便于定位。
    */
-  protected buildJSFunctionExpression(value: string): string {
-    const info = this.getFunctionInfo(value);
-    if (!info) {
-      return this.replaceThis(value);
+  protected parseFunctionOrThrow(fnStr: string): { type: string; params: string[]; body: string } {
+    const info = this.getFunctionInfo(fnStr);
+    if (info) {
+      return info;
     }
+    const arrowInfo = this.parseArrowFunction(fnStr);
+    if (arrowInfo) {
+      return arrowInfo;
+    }
+    throw new Error(
+      `[AngularCodeGenerator] 无法解析函数，仅支持 \`function 名字(...) { ... }\` 与箭头函数 \`(a) => ...\`：${fnStr}`,
+    );
+  }
+
+  /**
+   * 把箭头函数解析成与 getFunctionInfo 同形的 { type, params, body }。
+   *
+   * body 一律归一成**语句**：表达式体必须补 `return`——下游四处都把它内联进 `{ ... }`
+   * （buildMethods / handleEventBinding / buildLifecycleBody / buildJSFunctionExpression），
+   * 原样塞进去会退化成一条没有返回值的表达式语句，静默丢掉返回值。
+   *
+   * 形参只接受简单标识符：handleEventBinding 会把形参名直接当模板实参拼进 `(click)="..."`，
+   * 类型标注/解构/默认值在这里静默变形比直接抛错更难查。形态不符返回 null，由调用方统一报错。
+   */
+  protected parseArrowFunction(fnStr: string): { type: string; params: string[]; body: string } | null {
+    const source = fnStr.trim().replace(/;+\s*$/, '').trim();
+    const matched = /^(async\s+)?(?:\(([^()]*)\)|([A-Za-z_$][\w$]*))\s*=>\s*([\s\S]+)$/.exec(source);
+    if (!matched) {
+      return null;
+    }
+
+    const [, asyncKeyword, parenParams, bareParam, rawBody] = matched;
+    const params = (parenParams ?? bareParam ?? '')
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (!params.every((param) => /^[A-Za-z_$][\w$]*$/.test(param))) {
+      return null;
+    }
+
+    const body = rawBody.trim();
+    const type = asyncKeyword ? 'async' : '';
+    if (!body.startsWith('{')) {
+      // 表达式体：`(a) => a + 1` 与 `(a) => { return a + 1; }` 等价，补出 return
+      return { type, params, body: `return ${body};` };
+    }
+    if (!body.endsWith('}')) {
+      return null;
+    }
+    // 只剥最外层花括号，内层原样保留
+    return { type, params, body: body.slice(1, -1) };
+  }
+
+  // 只有箭头才能把函数体里的 this 锁在组件实例上。
+  protected buildJSFunctionExpression(value: string): string {
+    const info = this.parseFunctionOrThrow(value);
     const asyncPrefix = info.type ? `${info.type} ` : '';
     const body = info.body;
-    // 形参显式标 any:产物要落在别人 strict 的 Angular 工程里,不标会撞 noImplicitAny
+    // 形参显式标 any
     const paramsWithTypes = info.params.map((p) => `${p}?: any`).join(', ');
     return `${asyncPrefix}(${paramsWithTypes}) => { ${body} }`;
   }
