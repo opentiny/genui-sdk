@@ -982,13 +982,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         ? key.slice(asyncPrefix.length)
         : key;
       const body = info.body;
-      // 形参显式标 any：产物要落在别人 strict 的 Angular 工程里，不标会撞 noImplicitAny
-      // （TS7006 Parameter 'file' implicitly has an 'any' type）。与 handleEventBinding /
-      // buildJSFunctionExpression 两处同约定，且必须标在**原型方法**上——这类方法的调用方
-      // 是模板事件绑定，形参个数由 handleEventBinding 按 schemaMethods 声明逐个对齐，故
-      // 只补类型、不动形参本身。
       const paramsWithTypes = info.params.map((p) => `${p}?: any`).join(', ');
-      // 返回类型省略，由 TS 从函数体推断（methods 可能被模板/事件消费返回值）
+
       return `${asyncPrefix}${methodName}(${paramsWithTypes}) { ${body} }`;
     });
     return methodLines.join('\n\n  ');
@@ -1162,12 +1157,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
    */
   protected parseFunctionOrThrow(fnStr: string): { type: string; params: string[]; body: string } {
     const info = this.getFunctionInfo(fnStr);
-    if (info) {
-      return info;
-    }
-    const arrowInfo = this.parseArrowFunction(fnStr);
-    if (arrowInfo) {
-      return arrowInfo;
+    const parsed = info ?? this.parseArrowFunction(fnStr);
+    if (parsed) {
+      // 形参只留名字：`function(file: File)` 的类型标注会被下游拼成 `file: File?: any` 这种非法签名，
+      // 并且和自由变量的裸名对不上（`declaredParams.includes('file')` 为假），导致形参重复一遍
+      return { ...parsed, params: parsed.params.map((p) => p.split(/[:=]/)[0].trim()).filter(Boolean) };
     }
     throw new Error(
       `[AngularCodeGenerator] 无法解析函数，仅支持 \`function 名字(...) { ... }\` 与箭头函数 \`(a) => ...\`：${fnStr}`,

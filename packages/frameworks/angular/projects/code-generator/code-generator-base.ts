@@ -57,8 +57,189 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
     };
   }
 
+  /** 去掉字符串与注释：其中的关键字、箭头、花括号都不是代码 */
+  protected stripLiterals(source: string): string {
+    return source
+      .replace(/'(?:[^'\\]|\\.)*'/g, "''")
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/`(?:[^`\\]|\\.)*`/g, '``')
+      .replace(/\/\/[^\n]*/g, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '');
+  }
+
+  /**
+   * 把嵌套函数/箭头函数的**形参列表与函数体**挖成等长空白，只留当前函数这一层的代码。
+   *
+   * 自由变量是"当前函数体这一层"的概念，绑定名也一样。不做这层收窄的话，同一个名字既是嵌套
+   * 回调形参、又是外层引用的模板变量时就会判错：`this.list.map((row) => row.age); total += row.age;`
+   * 里嵌套的 `row` 会让外层真正的 `row` 被当成已绑定而漏掉，模板就拿不到这个实参。
+   *
+   * 挖空而不是删除，是为了让下标与原文一致（便于调试时对照），挖掉的区域不会产生标识符。
+   */
+  protected maskNestedFunctions(code: string): string {
+    const chars = code.split('');
+    const blank = (from: number, to: number) => {
+      for (let i = Math.max(0, from); i < to && i < chars.length; i++) {
+        chars[i] = ' ';
+      }
+    };
+    // 从 `{` 开始配平，返回配对 `}` 之后的下标
+    const afterBlock = (braceIndex: number): number => {
+      let depth = 0;
+      for (let i = braceIndex; i < chars.length; i++) {
+        if (chars[i] === '{') {
+          depth++;
+        } else if (chars[i] === '}' && --depth === 0) {
+          return i + 1;
+        }
+      }
+      return chars.length;
+    };
+    // 表达式体：挖到同层的 `,` `;` 或收尾括号为止
+    const afterExpression = (startIndex: number): number => {
+      let depth = 0;
+      for (let i = startIndex; i < chars.length; i++) {
+        if ('([{'.includes(chars[i])) {
+          depth++;
+        } else if (')]}'.includes(chars[i])) {
+          if (depth === 0) {
+            return i;
+          }
+          depth--;
+        } else if (depth === 0 && (chars[i] === ',' || chars[i] === ';')) {
+          return i;
+        }
+      }
+      return chars.length;
+    };
+    // 挖掉 from（跳过空白）之后紧跟的函数体，返回函数体之后的下标
+    const maskBody = (from: number): number => {
+      let start = from;
+      while (start < chars.length && chars[start] === ' ') {
+        start++;
+      }
+      const end = chars[start] === '{' ? afterBlock(start) : afterExpression(start);
+      blank(start, end);
+      return end;
+    };
+
+    let index = 0;
+    while (index < chars.length) {
+      if (chars[index] === '=' && chars[index + 1] === '>') {
+        // 向左回收形参：`a =>` 或 `(a, b) =>`
+        let cursor = index - 1;
+        while (cursor >= 0 && chars[cursor] === ' ') {
+          cursor--;
+        }
+        if (chars[cursor] === ')') {
+          let depth = 0;
+          for (let i = cursor; i >= 0; i--) {
+            if (chars[i] === ')') {
+              depth++;
+            } else if (chars[i] === '(' && --depth === 0) {
+              blank(i + 1, cursor);
+              break;
+            }
+          }
+        } else {
+          while (cursor >= 0 && /[\w$]/.test(chars[cursor])) {
+            cursor--;
+          }
+          blank(cursor + 1, index);
+        }
+        index = maskBody(index + 2);
+        continue;
+      }
+      if (code.startsWith('function', index) && !/[\w$.]/.test(code[index - 1] ?? '')) {
+        const parenStart = code.indexOf('(', index);
+        let end = -1;
+        if (parenStart !== -1) {
+          let depth = 0;
+          for (let i = parenStart; i < chars.length; i++) {
+            if (chars[i] === '(') {
+              depth++;
+            } else if (chars[i] === ')' && --depth === 0) {
+              end = maskBody(i + 1);
+              break;
+            }
+          }
+        }
+        if (end === -1) {
+          index++;
+          continue;
+        }
+        // 保留函数名（顶层具名函数是一处声明），只挖形参列表与函数体
+        blank(parenStart, end);
+        index = end;
+        continue;
+      }
+      index++;
+    }
+
+    return chars.join('');
+  }
+
+  /** 收集当前层自己绑定的名字：局部声明、具名类、catch 形参（嵌套函数的形参已被挖空） */
+  protected collectBoundNames(code: string): Set<string> {
+    const bound = new Set<string>();
+
+    // 按顶层逗号切分，跳过 {} [] () 内部的逗号
+    const splitTopLevel = (text: string): string[] => {
+      const parts: string[] = [];
+      let depth = 0;
+      let current = '';
+      for (const char of text) {
+        if ('{[('.includes(char)) {
+          depth++;
+        } else if ('}])'.includes(char)) {
+          depth--;
+        }
+        if (char === ',' && depth === 0) {
+          parts.push(current);
+          current = '';
+          continue;
+        }
+        current += char;
+      }
+      parts.push(current);
+      return parts;
+    };
+
+    // 从声明模式里取绑定名：`=` 右侧是初值/默认值，`{ key: alias }` 里带冒号的是属性名 key
+    const addPattern = (pattern: string) => {
+      const withoutInitializers = pattern.replace(/=[^,;}]*/g, '');
+      for (const match of withoutInitializers.matchAll(/([A-Za-z_$][\w$]*)\s*(:?)/g)) {
+        if (!match[2]) {
+          bound.add(match[1]);
+        }
+      }
+    };
+
+    // const / let / var，含 for...of / for...in 头部与解构
+    for (const match of code.matchAll(/\b(?:const|let|var)\s+/g)) {
+      const rest = code.slice((match.index ?? 0) + match[0].length);
+      // 截到语句结束；for 头部再截到 of / in
+      const statement = rest.split(/[;\n]/)[0].split(/\bof\b|\bin\b/)[0];
+      for (const declarator of splitTopLevel(statement)) {
+        addPattern(declarator.split('=')[0]);
+      }
+    }
+    // 具名函数/类声明（函数名留在原位，形参与函数体已被挖空）
+    for (const match of code.matchAll(/\b(?:function|class)\s+([A-Za-z_$][\w$]*)/g)) {
+      bound.add(match[1]);
+    }
+    // catch 形参
+    for (const match of code.matchAll(/\bcatch\s*\(([^)]*)\)/g)) {
+      addPattern(match[1]);
+    }
+
+    return bound;
+  }
+
   protected extractFreeVariables(body: string): string[] {
-    let cleaned = body
+    // 先收窄到当前函数这一层作用域，再扫标识符和绑定名
+    const scoped = this.maskNestedFunctions(this.stripLiterals(body));
+    let cleaned = scoped
       .replace(/this\.\w+/g, '')
       .replace(/'[^']*'/g, '')
       .replace(/"[^"]*"/g, '')
@@ -67,10 +248,13 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       .replace(/\.\w+/g, '')
       .replace(/\b\d+(\.\d+)?\b/g, '');
     const identifiers = cleaned.match(/\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g) || [];
+    const boundNames = this.collectBoundNames(scoped);
     const keywords = new Set([
       'if', 'else', 'for', 'while', 'do', 'switch', 'case', 'break', 'continue',
       'return', 'var', 'let', 'const', 'function', 'typeof', 'instanceof',
       'new', 'delete', 'void', 'yield', 'async', 'await', 'of', 'in',
+      'try', 'catch', 'finally', 'throw', 'debugger', 'with',
+      'this', 'super', 'import', 'export', 'enum',
       'true', 'false', 'null', 'undefined', 'NaN', 'Infinity',
       'console', 'Math', 'Date', 'JSON', 'Object', 'String', 'Number', 'Array',
       'parseInt', 'parseFloat', 'isNaN', 'isFinite', 'Error', 'Map', 'Set', 'Promise',
@@ -79,7 +263,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       'alert', 'fetch', 'setTimeout', 'setInterval', 'parse', 'stringify',
       'state', 'props', 'event', 'callback', 'index',
     ]);
-    return [...new Set(identifiers.filter((id) => !keywords.has(id)))];
+    return [...new Set(identifiers.filter((id) => !keywords.has(id) && !boundNames.has(id)))];
   }
 
   protected createCodegenMeta(): ICodegenDescription { // 
