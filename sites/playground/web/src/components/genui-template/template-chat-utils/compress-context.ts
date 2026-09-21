@@ -4,7 +4,11 @@ import type { LLMConfig } from '../chat.types';
 import { isContextCompressMessage } from './context-message';
 
 const COMPRESS_PROMPT_PREFIX = `【任务】
-将【对话历史】压缩为供后续页面生成模型继续工作的中文摘要。
+将【对话历史】压缩为供后续页面生成模型继续工作的中文摘要，替代原文发送给模型。
+如果历史中包含“会话摘要”，那是之前某次压缩的产物：仅保留仍有效的信息并合并去重，较新的纠正/反馈替换旧内容，已失效的事项直接删除；不要原样全量抄录旧摘要。
+
+摘要长度：严格控制在 400 字以内。
+
 必须保留：
 1. 用户当前目标、明确需求和约束；
 2. 已确认的设计或实现决策，以及被否决的方案；
@@ -12,19 +16,29 @@ const COMPRESS_PROMPT_PREFIX = `【任务】
 4. 尚未解决的问题和下一步工作；
 5. 后续对话中会用到的名称、ID 或关键值。
 
-使用“目标 / 已确认 / 已完成 / 待处理 / 关键上下文”几个简短小节；没有内容的小节可以省略。
-证据不足的写入待处理并标明待确认。
+输出固定使用以下小节（没有内容的小节直接省略，不要输出空标题）：
+目标 / 已确认 / 已完成 / 待处理 / 关键上下文
+
+注意事项：
+- 只记录与当前任务相关的不确定项；助手的猜测不得升级成用户要求；
+- 没有证据不得标记“已完成”；
+- 不得编造历史中不存在的信息。
 
 【对话历史】
 `;
 
-const SCHEMA_HISTORY_ITEM_TYPES = new Set(['schema-card', 'json-patch', 'schema-manual']);
+const SCHEMA_HISTORY_ITEM_TYPES = new Set(['json-patch', 'schema-manual']);
 const SKIP_HISTORY_ITEM_TYPES = new Set(['loading-text']);
 
 type HistoryItem = { type?: string; content?: string; input?: string };
 
 function serializeHistoryItem(item: HistoryItem): string {
   if (item.type && SKIP_HISTORY_ITEM_TYPES.has(item.type)) {
+    return '';
+  }
+  // Schema-card: 完整 JSON 快照。当前 templateSchema 已包含其状态，
+  // 用户意图已由 user 消息原文序列化，压缩层无需重复接收。
+  if (item.type?.startsWith('schema-card')) {
     return '';
   }
   if (item.type && SCHEMA_HISTORY_ITEM_TYPES.has(item.type)) {

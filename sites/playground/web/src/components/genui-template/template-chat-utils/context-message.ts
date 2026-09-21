@@ -122,6 +122,39 @@ export function getBackendChatMessages(messages: ChatMessage[]): ChatMessage[] {
     .filter((message): message is ChatMessage => message !== null);
 }
 
+/** 上下文 token 估算结果（按来源拆分，便于调参与日志观测） */
+export interface ContextTokenEstimate {
+  /** 对话消息（含压缩摘要）占用的 token */
+  messagesTokens: number;
+  /** 当前模板 Schema 占用的 token（后端会完整拼入 prompt，随页面复杂度增长） */
+  schemaTokens: number;
+  /** 消息 + Schema 合计（不含系统提示词等固定开销） */
+  totalTokens: number;
+}
+
+/**
+ * 估算单条消息占用的 token 数（粗略）：英文约 4 字符/token，中文约 1.5 字符/token，统一按 3 字符/token 折中。
+ * 只算顶层 content：assistant 的 content 是流式累积的模型原始输出全文，user 为输入文本；
+ * 结构化 messages 数组（schema-card 等）不会发给模型，不计入。
+ */
+function estimateMessageTokens(message: ChatMessage): number {
+  const content = typeof message.content === 'string' ? message.content : '';
+  return Math.ceil(content.length / 3) + 4; // +4 估算 role 等元数据开销
+}
+
+/**
+ * 估算最终发给模型的上下文 token 占用（消息 + 当前 Schema），用于自动压缩的窗口占用判断。
+ * 系统提示词与工具定义等固定开销由调用方叠加（前端拿不到精确值，需配置估算值）。
+ */
+export function estimateContextTokens(messages: ChatMessage[], templateSchema?: unknown): ContextTokenEstimate {
+  const messagesTokens = getBackendChatMessages(messages).reduce(
+    (sum, message) => sum + estimateMessageTokens(message),
+    0,
+  );
+  const schemaTokens = templateSchema ? Math.ceil(JSON.stringify(templateSchema).length / 3) : 0;
+  return { messagesTokens, schemaTokens, totalTokens: messagesTokens + schemaTokens };
+}
+
 /** 最后一条非压缩消息（流式 loading 等场景用） */
 export function getLastNonCompressMessage(messages: ChatMessage[]): ChatMessage | undefined {
   for (let i = messages.length - 1; i >= 0; i--) {

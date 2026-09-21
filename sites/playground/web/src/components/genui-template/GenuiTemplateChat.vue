@@ -270,16 +270,20 @@ const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
 const currentConversationId = computed(() => conversation.templateConversationState?.currentId);
 
+const { modelFeatures } = inject('playgroundContext') as any;
+
 const contextCompress = useContextCompress({
   messages,
   generating,
   currentConversationId,
+  templateSchema: computed(() => schema.currentSchema),
   getTemplateChatConfig: () => ({
     ...conversation.getTemplateChatBaseConfig(),
     templateSchema: schema.currentSchema,
   }),
   saveConversations: conversation.saveConversations,
   scrollToBottom,
+  contextWindowTokens: computed(() => modelFeatures.value?.contextWindow),
 });
 
 const {
@@ -290,6 +294,8 @@ const {
   compressedDividerText,
   compressingDividerText,
   canCompress,
+  shouldAutoCompress,
+  markRequestSent,
   reset: resetContextCompress,
 } = contextCompress;
 
@@ -357,6 +363,11 @@ const clearInputMessage = () => {
 const handleSendMessage = async () => {
   if (isCompressing.value) return;
 
+  if (shouldAutoCompress.value) {
+    // 发送前先压缩；失败时 compress 内部已通知用户，此处按降级策略继续发送原文
+    await compress();
+  }
+
   const messageContent = inputMessage.value;
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
@@ -376,6 +387,8 @@ const handleSendMessage = async () => {
   }
 
   prevSchema.value = JSON.stringify(schema.currentSchema);
+  // 记录发送时的估算快照，作为本次请求服务端真实 usage（prompt_tokens）的校准基线
+  markRequestSent();
   messageManager.value?.send();
   clearInputMessage();
   scrollToBottom();
