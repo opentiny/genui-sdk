@@ -1,5 +1,5 @@
 import type { UserItem } from '@opentiny/tiny-robot';
-import { formatSelectedNodesContext, type SelectedSchemaNode } from './schema-node-selection';
+import type { SelectedSchemaNode } from './schema-node-selection';
 
 export type ComposerSegment =
   | { type: 'text'; value: string }
@@ -47,21 +47,21 @@ export function segmentsToPlainText(segments: ComposerSegment[]): string {
 }
 
 export function segmentsToApiContent(segments: ComposerSegment[]): string {
-  const text = segments
-    .map((seg) => (seg.type === 'text' ? seg.value : ''))
-    .join('')
-    .trim();
-  const tagById = new Map<string, SelectedSchemaNode>();
+  const seenTagKeys = new Set<string>();
+  let content = '';
   for (const seg of segments) {
-    if (seg.type === 'tag') {
-      tagById.set(seg.tag.id || seg.tag.componentName, seg.tag);
+    if (seg.type === 'text') {
+      content += seg.value;
+      continue;
     }
+    const key = seg.tag.id || seg.tag.componentName;
+    if (seenTagKeys.has(key)) {
+      continue;
+    }
+    seenTagKeys.add(key);
+    content += `[id:${seg.tag.id || seg.tag.componentName}]`;
   }
-  const tags = [...tagById.values()];
-  if (!tags.length) {
-    return text;
-  }
-  return `${text}${formatSelectedNodesContext(tags)}`;
+  return content.trim();
 }
 
 export function getComposerContent(

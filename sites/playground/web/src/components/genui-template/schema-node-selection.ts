@@ -1,4 +1,3 @@
-import { t } from '../../i18n';
 import { findComponentPath, getComponentItem } from './template-chat-utils/schema-path';
 
 export interface SelectedSchemaNode {
@@ -30,15 +29,4 @@ export function selectedNodeFromSchemaById(
     path,
     node: node as Record<string, unknown>,
   };
-}
-
-export function formatSelectedNodesContext(nodes: SelectedSchemaNode[]): string {
-  if (!nodes.length) {
-    return '';
-  }
-  const blocks = nodes.map(
-    (node) =>
-      `- componentName: ${node.componentName}\n- id: ${node.id}\n- path: ${node.path}\n\`\`\`json\n${JSON.stringify(node.node, null, 2)}\n\`\`\``,
-  );
-  return `\n\n[${t('templateEditor.selectedComponents')}]\n${blocks.join('\n\n')}\n`;
 }
