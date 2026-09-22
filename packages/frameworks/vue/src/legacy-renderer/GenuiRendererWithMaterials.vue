@@ -1,22 +1,28 @@
 <script setup lang="ts">
+import { inject, provide } from 'vue';
 import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
-import GenuiConfigProvider from '../config-provider/ConfigProvider.vue';
+import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
+import { GENUI_CONFIG_PROVIDER } from '../config-provider/internal-injection-token';
 import GenuiRenderer from '../renderer/GenuiRenderer.vue';
 import type { IRendererProps, IRendererSlots } from '../renderer/renderer.types';
 
 defineProps<IRendererProps>();
 defineSlots<IRendererSlots>();
+const configProvider = inject(GENUI_CONFIG_PROVIDER, null);
+if (configProvider) {
+  configProvider.setMaterials(defaultMaterials);
+} else {
+  provide(GENUI_MATERIALS, defaultMaterials);
+}
 </script>
 
 <template>
-  <GenuiConfigProvider :materials="defaultMaterials">
-    <GenuiRenderer v-bind="$props">
-      <template v-if="$slots.header" #header="slotProps">
-        <slot name="header" v-bind="slotProps" />
-      </template>
-      <template v-if="$slots.footer" #footer="slotProps">
-        <slot name="footer" v-bind="slotProps" />
-      </template>
-    </GenuiRenderer>
-  </GenuiConfigProvider>
+  <GenuiRenderer v-bind="$props">
+    <template v-if="$slots.header" #header="slotProps">
+      <slot name="header" v-bind="slotProps" />
+    </template>
+    <template v-if="$slots.footer" #footer="slotProps">
+      <slot name="footer" v-bind="slotProps" />
+    </template>
+  </GenuiRenderer>
 </template>

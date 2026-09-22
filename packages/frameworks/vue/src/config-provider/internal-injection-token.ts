@@ -1,3 +1,8 @@
-import type { InjectionKey, ComputedRef } from 'vue';
+import type { InjectionKey } from 'vue';
+import type { IMaterials } from '@opentiny/genui-sdk-core';
 
-export const GENUI_THEME: InjectionKey<ComputedRef<string>> = Symbol('GENUI_THEME');
+export interface GenuiConfigProviderInstance {
+  setMaterials(materials: IMaterials): void;
+}
+
+export const GENUI_CONFIG_PROVIDER: InjectionKey<GenuiConfigProviderInstance> = Symbol('GENUI_CONFIG_PROVIDER');

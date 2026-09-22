@@ -6,6 +6,7 @@ import {
   type MergedMaterials,
   type IThemeApplyResult,
   type ThemeColorScheme,
+  type IMaterials,
 } from '@opentiny/genui-sdk-core';
 import {
   watch,
@@ -24,7 +25,7 @@ import {
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
-import { GENUI_THEME } from './internal-injection-token';
+import { GENUI_CONFIG_PROVIDER } from './internal-injection-token';
 import { useMediaTheme } from './use-media-theme';
 import type { NotifyHandler } from './notify.types';
 
@@ -49,8 +50,16 @@ provide(GENUI_I18N, i18n);
 
 const { theme: mediaTheme } = useMediaTheme();
 
+const legacyMaterials = shallowRef<IMaterials>();
+const materials = computed(() => props.materials ?? legacyMaterials.value);
+provide(GENUI_CONFIG_PROVIDER, {
+  setMaterials(value) {
+    legacyMaterials.value = value;
+  },
+});
+
 const themeFactories = computed<MaterialsThemeFactory[]>(() => {
-  const themeFactory = props.materials?.themeFactory;
+  const themeFactory = materials.value?.themeFactory;
   if (!themeFactory) {
     return [];
   }
@@ -75,10 +84,7 @@ function resolveThemeInstances(factories: MaterialsThemeFactory[]) {
   });
 }
 
-// Legacy 组件内置 Provider 时，沿用外层 Provider 指定的主题。
-const parentTheme = inject(GENUI_THEME, null);
-const theme = computed(() => props.theme || parentTheme?.value || 'light');
-provide(GENUI_THEME, theme);
+const theme = computed(() => props.theme || 'light');
 
 const colorScheme = ref<ThemeColorScheme>('light');
 
@@ -89,8 +95,8 @@ const genuiConfig = computed(() => ({
 
 provide(GENUI_CONFIG, genuiConfig);
 
-const internalMaterials = {};
-watch(() => props.materials, (newVal) => {
+const internalMaterials: IMaterials = {};
+watch(() => materials.value, (newVal) => {
   Object.assign(internalMaterials, newVal);
 }, { immediate: true });
 

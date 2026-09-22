@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { inject, provide, ref } from 'vue';
 import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
-import GenuiConfigProvider from '../config-provider/ConfigProvider.vue';
+import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
+import { GENUI_CONFIG_PROVIDER } from '../config-provider/internal-injection-token';
 import GenuiChat from '../chat/GenuiChat.vue';
 import type { IChatProps } from '../chat/chat.types';
 
 defineProps<IChatProps>();
 
 const chatRef = ref<InstanceType<typeof GenuiChat>>();
+const configProvider = inject(GENUI_CONFIG_PROVIDER, null);
+if (configProvider) {
+  configProvider.setMaterials(defaultMaterials);
+} else {
+  provide(GENUI_MATERIALS, defaultMaterials);
+}
 
 defineExpose(
   new Proxy({} as InstanceType<typeof GenuiChat>, {
@@ -21,11 +28,9 @@ defineExpose(
 </script>
 
 <template>
-  <GenuiConfigProvider :materials="defaultMaterials">
-    <GenuiChat ref="chatRef" v-bind="$props">
-      <template v-for="(_, name) in $slots" #[name]="slotProps">
-        <slot :name="name" v-bind="slotProps || {}" />
-      </template>
-    </GenuiChat>
-  </GenuiConfigProvider>
+  <GenuiChat ref="chatRef" v-bind="$props">
+    <template v-for="(_, name) in $slots" #[name]="slotProps">
+      <slot :name="name" v-bind="slotProps || {}" />
+    </template>
+  </GenuiChat>
 </template>
