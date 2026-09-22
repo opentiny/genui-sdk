@@ -6,8 +6,7 @@ export interface SchemaInspectHighlight {
   left: number;
   width: number;
   height: number;
-  label: string;
-  labelInside: boolean;
+  selected: boolean;
 }
 
 export function useSchemaRendererInspect(options: {
@@ -18,6 +17,7 @@ export function useSchemaRendererInspect(options: {
   const containerRef = ref<HTMLElement | null>(null);
   const highlight = ref<SchemaInspectHighlight | null>(null);
   let hoveredEl: HTMLElement | null = null;
+  let selectedEl: HTMLElement | null = null;
 
   const findInspectableElement = (target: EventTarget | null) => {
     let el = target as HTMLElement | null;
@@ -49,8 +49,7 @@ export function useSchemaRendererInspect(options: {
       left: rect.left - hostRect.left,
       width: rect.width,
       height: rect.height,
-      label: hoveredEl.tagName.toLowerCase(),
-      labelInside: top < 20,
+      selected: selectedEl === hoveredEl,
     };
   };
 
@@ -63,11 +62,17 @@ export function useSchemaRendererInspect(options: {
     if (!options.isDevMode.value) {
       return;
     }
-    setHovered(findInspectableElement(event.target));
+    const el = findInspectableElement(event.target);
+    if (el !== selectedEl) {
+      selectedEl = null;
+    }
+    setHovered(el);
   };
 
   const onMouseLeave = () => {
-    setHovered(null);
+    if (!selectedEl) {
+      setHovered(null);
+    }
   };
 
   const onClick = (event: MouseEvent) => {
@@ -84,6 +89,8 @@ export function useSchemaRendererInspect(options: {
     }
     event.preventDefault();
     event.stopPropagation();
+    selectedEl = el;
+    setHovered(el);
     options.insertComposerTag(node);
   };
 
@@ -107,6 +114,7 @@ export function useSchemaRendererInspect(options: {
     if (enabled) {
       addSyncListeners();
     } else {
+      selectedEl = null;
       setHovered(null);
       removeSyncListeners();
     }
@@ -115,6 +123,7 @@ export function useSchemaRendererInspect(options: {
   onBeforeUnmount(() => {
     removeSyncListeners();
     hoveredEl = null;
+    selectedEl = null;
     highlight.value = null;
   });
 

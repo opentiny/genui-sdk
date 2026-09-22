@@ -116,16 +116,14 @@ const {
           <div v-if="inspectHighlight" class="schema-inspect-overlay" aria-hidden="true">
             <div
               class="schema-inspect-highlight"
-              :class="{ 'is-label-inside': inspectHighlight.labelInside }"
+              :class="{ 'is-selected': inspectHighlight.selected }"
               :style="{
                 top: `${inspectHighlight.top}px`,
                 left: `${inspectHighlight.left}px`,
                 width: `${inspectHighlight.width}px`,
                 height: `${inspectHighlight.height}px`,
               }"
-            >
-              <span class="schema-inspect-label">{{ inspectHighlight.label }}</span>
-            </div>
+            ></div>
           </div>
           <schema-version-history-panel :theme="theme" />
         </div>
@@ -208,27 +206,11 @@ const {
     .schema-inspect-highlight {
       position: absolute;
       box-sizing: border-box;
-      border: 1px solid #00b578;
+      border: 1px dashed #1476ff;
       border-radius: 2px;
-      background: rgba(0, 181, 120, 0.1);
 
-      .schema-inspect-label {
-        position: absolute;
-        top: 0;
-        left: 0;
-        transform: translateY(-100%);
-        padding: 0 6px;
-        border-radius: 4px 4px 4px 0;
-        background: #00b578;
-        color: #fff;
-        font-size: 12px;
-        line-height: 18px;
-        white-space: nowrap;
-      }
-
-      &.is-label-inside .schema-inspect-label {
-        transform: none;
-        border-radius: 0 0 4px 0;
+      &.is-selected {
+        border-style: solid;
       }
     }
   }
