@@ -24,6 +24,7 @@ import {
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
+import { GENUI_THEME } from './internal-injection-token';
 import { useMediaTheme } from './use-media-theme';
 import type { NotifyHandler } from './notify.types';
 
@@ -74,7 +75,10 @@ function resolveThemeInstances(factories: MaterialsThemeFactory[]) {
   });
 }
 
-const theme = computed(() => props.theme || 'light');
+// Legacy 组件内置 Provider 时，沿用外层 Provider 指定的主题。
+const parentTheme = inject(GENUI_THEME, null);
+const theme = computed(() => props.theme || parentTheme?.value || 'light');
+provide(GENUI_THEME, theme);
 
 const colorScheme = ref<ThemeColorScheme>('light');
 
