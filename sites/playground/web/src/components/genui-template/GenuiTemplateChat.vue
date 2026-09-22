@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
+import { ref, watch, computed, reactive, h, inject, onMounted, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import '@opentiny/tiny-robot/dist/style.css';
@@ -38,7 +38,6 @@ import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
 import { getComposerContent, segmentsToPlainText } from './schema-composer';
 import { createComposerTagController } from './composer-atomic-tags';
-import { createConversationComposerDrafts } from './conversation-composer-drafts';
 import type { SelectedSchemaNode } from './schema-node-selection';
 import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
@@ -59,10 +58,25 @@ const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
-const templateData = ref<UserItem[]>([]);
 const tagController = createComposerTagController<SelectedSchemaNode>();
 const selectedNodeMap = tagController.selectedNodeMap;
-const conversationComposerDrafts = createConversationComposerDrafts<SelectedSchemaNode>();
+
+// 输入区草稿按会话索引（内存级，与 inputMessage 行为一致：切换会话保留、刷新丢失）。
+// 必须用 reactive 包装 Map：draft.items 的赋值才会触发 templateData computed 重算。
+const composerDrafts = reactive(new Map<string, { items: UserItem[]; nodes: Map<string, SelectedSchemaNode> }>());
+const currentComposerDraft = computed(() => {
+  const id = conversation.currentConversationId;
+  if (!id) {
+    return null;
+  }
+  let draft = composerDrafts.get(id);
+  if (!draft) {
+    draft = { items: [], nodes: new Map() };
+    composerDrafts.set(id, draft);
+  }
+  return draft;
+});
+const templateData = computed(() => currentComposerDraft.value?.items ?? []);
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -257,34 +271,27 @@ const inputMessage = computed({
 });
 
 watch(
-  () => [conversation.currentConversationId, messageManager.value] as const,
-  ([conversationId, manager], [previousConversationId, previousManager]) => {
-    if (previousConversationId) {
-      conversationComposerDrafts.save(
-        previousConversationId,
-        templateData.value,
-        selectedNodeMap,
-        previousManager?.inputMessage.value ?? '',
-      );
+  () => currentComposerDraft.value,
+  (draft, prevDraft) => {
+    if (prevDraft) {
+      prevDraft.nodes = new Map(tagController.selectedNodeMap);
     }
-
     tagController.clear();
-    const draft = conversationComposerDrafts.load(
-      conversationId ?? '',
-      manager?.inputMessage.value ?? '',
-    );
-    draft.selectedNodes.forEach(([id, node]) => tagController.trackTag(id, node));
-    templateData.value = draft.templateData;
+    draft?.nodes.forEach((node, id) => tagController.trackTag(id, node));
   },
 );
 
 const insertComposerTag = (node: SelectedSchemaNode) => {
-  if (!templateData.value.length) {
-    templateData.value = [{ type: 'text', content: inputMessage.value }];
+  const draft = currentComposerDraft.value;
+  if (!draft) {
+    return;
   }
+  const items: UserItem[] = draft.items.length
+    ? draft.items
+    : [{ type: 'text', content: inputMessage.value }];
   const id = generateId();
   tagController.trackTag(id, node);
-  templateData.value = [...templateData.value, { type: 'template', content: node.componentName, id }];
+  draft.items = [...items, { type: 'template', content: node.componentName, id }];
 };
 
 const SENDER_MAX_LENGTH = 20000;
@@ -295,13 +302,19 @@ const SENDER_MAX_LENGTH = 20000;
  * (tombstones enable undo) and only locks newly rendered template chips.
  */
 const handleTemplateDataUpdate = (value: UserItem[]) => {
-  templateData.value = tagController.applyTemplateData(value);
+  const draft = currentComposerDraft.value;
+  if (draft) {
+    draft.items = tagController.applyTemplateData(value);
+  }
 };
 
 const senderContainer = ref<HTMLElement>();
 
 const clearComposer = () => {
-  templateData.value = [];
+  const draft = currentComposerDraft.value;
+  if (draft) {
+    draft.items = [];
+  }
   tagController.clear();
 };
 
@@ -362,56 +375,42 @@ const clearInputMessage = () => {
 };
 
 const handleSendMessage = async () => {
-  const cardId = generateId();
-  schema.setCurrentCardId(cardId);
-
-  const snapshot = templateData.value.slice();
-  const hasTags = snapshot.some((item) => item.type === 'template');
-
-  if (hasTags) {
-    const composer = getComposerContent(snapshot, selectedNodeMap);
-    if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
-      return;
-    }
-    const userMessage: ChatMessage = {
-      role: 'user',
-      content: composer.apiContent,
-      messageId: cardId,
-      messages: [
-        {
-          type: 'template-user',
-          segments: composer.segments,
-        },
-      ],
-    };
-    messages.value.push(userMessage);
-
-    if (messages.value.length === 1 && messages.value[0].role === 'user') {
-      const currentConversationId = conversation.templateConversationState?.currentId;
-      if (currentConversationId) {
-        conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
-      }
-    }
-
-    prevSchema.value = JSON.stringify(schema.currentSchema);
-    messageManager.value?.send();
-    clearInputMessage();
-    scrollToBottom();
+  const draft = currentComposerDraft.value;
+  const snapshot: UserItem[] = draft?.items.length
+    ? draft.items
+    : inputMessage.value
+      ? [{ type: 'text', content: inputMessage.value }]
+      : [];
+  const composer = getComposerContent(snapshot, selectedNodeMap);
+  if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
     return;
   }
 
-  const messageContent = inputMessage.value;
+  const cardId = generateId();
+  schema.setCurrentCardId(cardId);
+
+  const hasTags = composer.segments.some((segment) => segment.type === 'tag');
   const userMessage: ChatMessage = {
     role: 'user',
-    content: messageContent,
+    content: composer.apiContent,
     messageId: cardId,
+    ...(hasTags
+      ? {
+          messages: [
+            {
+              type: 'template-user',
+              segments: composer.segments,
+            },
+          ],
+        }
+      : {}),
   };
   messages.value.push(userMessage);
 
   if (messages.value.length === 1 && messages.value[0].role === 'user') {
     const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
-      conversation.updateConversationTitle(currentConversationId, messageContent.substring(0, 20));
+      conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
     }
   }
 
@@ -455,7 +454,10 @@ onMounted(() => {
   emitter.on('notification', handleNotification);
   if (senderContainer.value) {
     tagController.bind(senderContainer.value, () => {
-      templateData.value = tagController.applyTemplateData(templateData.value);
+      const draft = currentComposerDraft.value;
+      if (draft) {
+        draft.items = tagController.applyTemplateData(draft.items);
+      }
     });
   }
 });
