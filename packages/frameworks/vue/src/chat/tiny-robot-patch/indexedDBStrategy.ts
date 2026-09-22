@@ -74,7 +74,6 @@ export class IndexedDBStrategy implements ConversationStorageStrategy {
       });
     } catch (error) {
       console.error('保存会话失败:', error);
-      throw error;
     }
   }
 

@@ -16,6 +16,11 @@
           "tags": "",
           "keywords": "",
           "devMode": "proCode",
+          "npm": {
+            "package": "@opentiny/vue-huicharts",
+            "exportName": "TinyHuichartsLine",
+            "destructuring": true
+          },
           "group": "chart",
           "category": "图表组件",
           "priority": 2,
@@ -324,12 +329,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsHistogram",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsHistogram",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -832,12 +834,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsBar",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsBar",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -1174,12 +1173,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsPie",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsPie",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -1446,12 +1442,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsRing",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsRing",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -1755,12 +1748,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsRadar",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsRadar",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -2067,12 +2057,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsFunnel",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsFunnel",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -2320,12 +2307,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsScatter",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsScatter",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -2634,12 +2618,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsWaterfall",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsWaterfall",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -2949,12 +2930,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsGauge",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsGauge",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -3292,12 +3270,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsGraph",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsGraph",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",
@@ -3498,12 +3473,9 @@
           "keywords": "",
           "devMode": "proCode",
           "npm": {
-            "destructuring": true,
-            "exportName": "TinyHuichartsProcess",
-            "name": "TinyVueHuicharts组件库",
             "package": "@opentiny/vue-huicharts",
-            "version": "3.22.0",
-            "script": "https://registry.npmmirror.com/@opentiny/vue-runtime/3.22/files/dist3/tiny-vue-huicharts.mjs"
+            "exportName": "TinyHuichartsProcess",
+            "destructuring": true
           },
           "group": "chart",
           "category": "图表组件",

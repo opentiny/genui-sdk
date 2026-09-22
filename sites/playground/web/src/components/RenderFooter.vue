@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { IRendererSlotsProps } from './common.types';
+import type { IRendererSlotsProps } from '@opentiny/genui-sdk-vue';
 import { iconCopy } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
 import { AutoTip } from '@opentiny/vue-directive';

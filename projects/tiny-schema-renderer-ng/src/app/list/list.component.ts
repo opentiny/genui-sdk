@@ -1,0 +1,104 @@
+import {
+  Component,
+  ContentChild,
+  ContentChildren,
+  QueryList,
+  TemplateRef,
+  contentChild,
+  contentChildren,
+} from '@angular/core';
+import { ListItemComponent } from './list-item.component';
+import { ListItemMarkerDirective } from './list-item-marker.directive';
+import { CommonModule } from '@angular/common';
+
+/**
+ * Demo material — normal pattern: bind QueryList / content queries in template.
+ * Does not call detectChanges(); renderer patch bridge is responsible for refreshing.
+ */
+@Component({
+  selector: 'app-list',
+  standalone: true,
+  imports: [
+    CommonModule
+  ],
+  template: `
+    <div class="demo-list">
+      <div class="demo-list__header">
+        <div>@ContentChildren length: {{ items.length }}</div>
+        <div>@ContentChild first: {{ firstItem?.label || '(none)' }}</div>
+        <div>contentChildren() length: {{ signalItems().length }}</div>
+        <div>contentChild() first: {{ signalFirst()?.label || '(none)' }}</div>
+        <div>contentChild('listHeader'): {{ namedHeader()?.label || '(none)' }}</div>
+        <div>contentChildren(Marker) length: {{ markers().length }}</div>
+        <div>contentChild('listItemMarker'): {{ namedMarker() ? 'yes' : '(none)' }}</div>
+        <div>descendantMarkers: {{ descendantMarkers?.length || '(none)' }}</div>
+      </div>
+      <div class="demo-list__projected-header">
+        <ng-content select="[header]"></ng-content>
+      </div>
+      <ul class="demo-list__body">
+        <ng-content></ng-content>
+      </ul>
+      <ul class="demo-list__extraItems">
+        @if (extraItemTemplate) {
+          @for (item of data; track item.label) {
+            <ng-container *ngTemplateOutlet="extraItemTemplate; context: { label: item.label }"></ng-container>
+          }
+        }
+      </ul>
+    </div>
+  `,
+  styles: [
+    `
+      .demo-list {
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #fff;
+      }
+      .demo-list__header {
+        padding: 8px 12px;
+        font-weight: 600;
+        background: #f3f4f6;
+        border-bottom: 1px solid #e5e7eb;
+        display: grid;
+        gap: 4px;
+        font-size: 13px;
+      }
+      .demo-list__projected-header:not(:empty) {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e5e7eb;
+        background: #eff6ff;
+      }
+      .demo-list__body {
+        margin: 0;
+        padding: 0;
+      }
+    `,
+  ],
+})
+export class ListComponent {
+  @ContentChildren(ListItemComponent) items!: QueryList<ListItemComponent>;
+  @ContentChild(ListItemComponent) firstItem?: ListItemComponent;
+  @ContentChild('item') extraItemTemplate?: TemplateRef<any>;
+  @ContentChild('item2') extraItemTemplate2?: TemplateRef<any>;
+  @ContentChildren(ListItemMarkerDirective, { descendants: true }) descendantMarkers?: QueryList<ListItemMarkerDirective>;
+  data = [
+    { label: 'item1' },
+    { label: 'item2' },
+    { label: 'item3' },
+  ];
+
+  readonly signalItems = contentChildren(ListItemComponent);
+  readonly signalFirst = contentChild(ListItemComponent);
+  /** String selector — matches schema child with `"props": { "refName": "listHeader" }` (like `#listHeader`). */
+  readonly namedHeader = contentChild<ListItemComponent>('listHeader');
+
+  /** Directive queries — matches host directives applied via schema.directives. */
+  readonly markers = contentChildren(ListItemMarkerDirective);
+  readonly namedMarker = contentChild<ListItemMarkerDirective>('listItemMarker');
+
+  public getLabels() {
+    return this.items.map(item => item.label);
+  }
+}

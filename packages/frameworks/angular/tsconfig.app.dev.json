@@ -11,7 +11,7 @@
         "./projects/renderer/src/public-api.ts"
       ],
       "@opentiny/tiny-schema-renderer-ng": [
-        "../../../projects/tiny-schema-renderer-ng/src/public_api.ts"
+        "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/public-api.ts"
       ]
     }
   },
@@ -19,6 +19,6 @@
     "src/**/*.ts",
     "projects/renderer/src/**/*.ts",
     "../../core/src/**/*.ts",
-    "../../../projects/tiny-schema-renderer-ng/src/**/*.ts",
+    "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/**/*.ts",
   ]
 }

@@ -16,6 +16,7 @@ import { t } from '../../i18n';
 const promptVariantLabelMap = {
   mini: 'model.promptVariantMini',
   standard: 'model.promptVariantStandard',
+  plus: 'model.promptVariantPlus',
 };
 
 const emit = defineEmits(['update:llmConfig', 'createNewTemplate', 'update-custom-examples']);
@@ -42,7 +43,7 @@ const updateModel = (model) => updateConfig({ model });
 
 const updateTemperature = (temperature) => updateConfig({ temperature });
 
-const promptVariantOptions = (['mini', 'standard']).map((key) => ({
+const promptVariantOptions = (['mini', 'standard', 'plus']).map((key) => ({
   value: key,
   label: t(promptVariantLabelMap[key] || key),
 }));
@@ -138,7 +139,7 @@ const createNewTemplate = () => {
     />
   </template>
   <div class="config-title prompt-title">
-    <span>{{ t('model.prompt') }}</span>
+    <span>{{ t('model.additionalPrompt') }}</span>
     <span>
       <tiny-button type="text" :icon="IconPlus" @click="showAddPromptBox = true"> </tiny-button>
     </span>

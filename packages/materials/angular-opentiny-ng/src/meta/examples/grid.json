@@ -221,30 +221,32 @@
         "title": "操作"
       }
     ],
-    "srcData": [
-      {
-        "name": "李四",
-        "id": "2",
-        "sex": "女",
-        "department": "技术部",
-        "protocolStart": "2019-05-15",
-        "email": "lisi@test.com"
-      },
-      {
-        "name": "王五",
-        "id": "3",
-        "sex": "男",
-        "department": "市场部",
-        "protocolStart": "2020-03-20",
-        "email": "wangwu@test.com"
-      }
-    ],
+    "srcData": {
+      "data": [
+        {
+          "name": "李四",
+          "id": "2",
+          "sex": "女",
+          "department": "技术部",
+          "protocolStart": "2019-05-15",
+          "email": "lisi@test.com"
+        },
+        {
+          "name": "王五",
+          "id": "3",
+          "sex": "男",
+          "department": "市场部",
+          "protocolStart": "2020-03-20",
+          "email": "wangwu@test.com"
+        }
+      ]
+    },
     "displayedData": []
   },
   "methods": {
     "deleteRow": {
       "type": "JSFunction",
-      "value": "function(row) { this.state.srcData = this.state.srcData.filter(item => item.id !== row.id) }"
+      "value": "function(row) { this.state.srcData.data = this.state.srcData.data.filter(item => item.id !== row.id) }"
     }
   },
   "dataSource": {

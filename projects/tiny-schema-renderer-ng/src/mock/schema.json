@@ -7,13 +7,21 @@
       "name": "张三"
     },
     "selectedHobbies": [],
+    "listItems": [
+      { "label": "第一项" },
+      { "label": "第二项" },
+      { "label": "第三项" }
+    ],
     "formData": {
       "name": "",
       "email": "",
       "phone": "",
       "department": "",
       "position": "",
-      "joinDate": null,
+      "joinDate": {
+        "type": "JSExpression",
+        "value": "new Date(2024, 0, 15)"
+      },
       "description": "",
       "gender": "",
       "agreement": false,
@@ -65,19 +73,217 @@
         "field": "email",
         "title": "邮箱"
       }
-    ]
+    ],
+    "templateDrivenForm": {
+      "username": "",
+      "email": "",
+      "age": 0,
+      "gender": "",
+      "city": "",
+      "bio": "",
+      "subscribe": false
+    }
   },
   "methods": {
     "handleReset": {
       "type": "JSFunction",
-      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '', department: '', position: '', joinDate: null, description: '', gender: '', agreement: false, hobbies: [] } }"
+      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '', department: '', position: '', joinDate: new Date(2024, 0, 15), description: '', gender: '', agreement: false, hobbies: [] } }"
     },
     "handleSubmit": {
       "type": "JSFunction",
       "value": "function handleSubmit() { console.log('表单提交数据:', this.state.formData) }"
+    },
+    "appendListItem": {
+      "type": "JSFunction",
+      "value": "function appendListItem() { var n = this.state.listItems.length + 1; this.state.listItems = this.state.listItems.concat([{ label: '第' + n + '项' }]) }"
+    },
+    "removeFirstListItem": {
+      "type": "JSFunction",
+      "value": "function removeFirstListItem() { this.state.listItems = this.state.listItems.slice(1) }"
     }
   },
+  "refs": {
+    "list": null
+  },
   "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "margin-bottom: 16px;"
+      },
+      "children": [
+        {
+          "componentName": "List",
+          "props": {
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.list"
+            },
+            "refName": "listComponent"
+          },
+          "children": [
+            {
+              "componentName": "NgTemplate",
+              "props": {
+                "refName": "item",
+                "let": {
+                  "label": "label"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "style": "color: #2563eb; font-weight: 600; display: block;",
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "label + '来自 contentChild(TemplateRef)'"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ListItem",
+              "loop": {
+                "type": "JSExpression",
+                "value": "this.state.listItems"
+              },
+              "loopArgs": ["item", "index"],
+              "directives": [
+                {
+                  "directiveName": "ListItemMarker"
+                }
+              ],
+              "props": {
+                "label": {
+                  "type": "JSExpression",
+                  "value": "item.label"
+                }
+              }
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "label": "自定义 TemplateRef"
+              },
+              "children": [
+                {
+                  "componentName": "NgTemplate",
+                  "props": {
+                    "refName": "listHeaderSlot"
+                  },
+                  "children": [
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "refName": "headerSpan",
+                        "style": "color: #7c3aed; font-weight: 700;"
+                      },
+                      "children": "HEADER SLOT"
+                    }
+                  ]
+                },
+                {
+                  "componentName": "NgTemplate",
+                  "props": {
+                    "refName": "itemBody",
+                    "let": {
+                      "labelFromScope": "label",
+                      "myContext": "$implicit",
+                      "index": "index"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "refName": "spanElement",
+                        "style": "color: #2563eb; font-weight: 600;"
+                      },
+                      "children": "哈哈哈来自 contentChild('itemBody')"
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "labelFromScope + myContext.hello + index"
+                        },
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "() => { console.log(spanElement, headerSpan) }"
+                        }
+                      },
+                      "directives": [
+                        {
+                          "directiveName": "ListItemMarker"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "refName": "listHeader",
+                "label": "命名头 (refName=listHeader)",
+                "header": true
+              }
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "label": "单度挂载指令"
+              },
+              "directives": [
+                {
+                  "directiveName": "ListItemMarker"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "primary",
+            "style": "margin-top: 8px; margin-right: 8px;",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.appendListItem"
+            }
+          },
+          "children": "在末尾增加一项"
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "danger",
+            "style": "margin-top: 8px;",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.removeFirstListItem"
+            }
+          },
+          "children": "去除第一项"
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "primary",
+            "style": "margin-top: 8px; margin-right: 8px;",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "() => { console.log(this.refs.list.getLabels()); console.log(listComponent.getLabels()); }"
+            }
+          },
+          "children": "打印所有子选项"
+        }
+      ]
+    },
     {
       "componentName": "div",
       "props": {},
@@ -874,6 +1080,218 @@
                   "children": "提交"
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "style": "padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px; margin-top: 24px;"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": "模板驱动表单（原生元素 + autoApply 指令）"
+        },
+        {
+          "componentName": "form",
+          "props": {
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.tdForm"
+            },
+            "style": "display: flex; flex-direction: column; gap: 12px; max-width: 420px;"
+          },
+          "children": [
+            {
+              "componentName": "input",
+              "props": {
+                "type": "text",
+                "name": "username",
+                "placeholder": "用户名（required）",
+                "required": true,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.username"
+                }
+              }
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "email",
+                "name": "email",
+                "placeholder": "邮箱（email）",
+                "email": true,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.email"
+                }
+              }
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "number",
+                "name": "age",
+                "placeholder": "年龄（number）",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.age"
+                }
+              }
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "style": "display: flex; gap: 16px;"
+              },
+              "children": [
+                {
+                  "componentName": "label",
+                  "children": [
+                    {
+                      "componentName": "input",
+                      "props": {
+                        "type": "radio",
+                        "name": "gender",
+                        "value": "male",
+                        "ngModel": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.templateDrivenForm.gender"
+                        }
+                      }
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "男"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "label",
+                  "children": [
+                    {
+                      "componentName": "input",
+                      "props": {
+                        "type": "radio",
+                        "name": "gender",
+                        "value": "female",
+                        "ngModel": {
+                          "type": "JSExpression",
+                          "model": true,
+                          "value": "this.state.templateDrivenForm.gender"
+                        }
+                      }
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "女"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "select",
+              "props": {
+                "name": "city",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.city"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": ""
+                  },
+                  "children": "请选择城市"
+                },
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": "beijing"
+                  },
+                  "children": "北京"
+                },
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": "shanghai"
+                  },
+                  "children": "上海"
+                },
+                {
+                  "componentName": "option",
+                  "props": {
+                    "value": "shenzhen"
+                  },
+                  "children": "深圳"
+                }
+              ]
+            },
+            {
+              "componentName": "textarea",
+              "props": {
+                "name": "bio",
+                "placeholder": "个人简介（textarea）",
+                "rows": 3,
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.templateDrivenForm.bio"
+                }
+              }
+            },
+            {
+              "componentName": "label",
+              "children": [
+                {
+                  "componentName": "input",
+                  "props": {
+                    "type": "checkbox",
+                    "name": "subscribe",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.templateDrivenForm.subscribe"
+                    }
+                  }
+                },
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "订阅邮件"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "TiButton",
+              "props": {
+                "color": "primary",
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "function() { var status = {}; this.refs.tdForm.querySelectorAll('[name]').forEach(function (el) { status[el.name] = { value: el.value, valid: el.classList.contains('ng-valid'), invalid: el.classList.contains('ng-invalid'), touched: el.classList.contains('ng-touched'), dirty: el.classList.contains('ng-dirty') }; }); console.log('模板驱动表单校验结果:', status); console.log('模板驱动表单数据:', this.state.templateDrivenForm); }"
+                }
+              },
+              "children": "打印表单数据"
             }
           ]
         }

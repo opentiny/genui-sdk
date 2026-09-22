@@ -26,6 +26,7 @@ import { buildOpenApiTools, previewOpenApiTools } from './openapi-tools/index.js
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
+import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -232,6 +233,7 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
+    componentLib: resolveComponentLib(playgroundConfig.framework, playgroundConfig.componentLib),
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
@@ -272,7 +274,8 @@ export function createChatGenui() {
     }
 
     const playgroundConfig = getPlaygroundConfig(playgroundStr);
-    const { mcpServers, framework, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
+    const { mcpServers, framework, componentLib, userAppendPrompt, agents, skills, openApiTools, promptVariant } = playgroundConfig;
+    const materialConfig = { promptVariant, componentLib };
 
     const llmConfigParams: LLMConfigParams = {
       model: playgroundConfig.model,
@@ -319,7 +322,7 @@ export function createChatGenui() {
       model,
       temperature,
       system:
-        genPlaygroundPrompt(framework, promptVariant, tgCustomConfig) +
+        genPlaygroundPrompt(framework, materialConfig, tgCustomConfig) +
         '\n' +
         specificPrompt +
         '\n' +

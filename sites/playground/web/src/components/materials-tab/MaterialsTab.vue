@@ -1,29 +1,70 @@
 <script setup>
 import { TinyRadioGroup, TinyRadio, TinyCheckbox } from '@opentiny/vue';
-import { ref, inject } from 'vue';
-import { ThemePreviewCard } from '../theme-preview';
+import { inject, computed, watch } from 'vue';
 import { t } from '../../i18n';
+import { PlaygroundMode } from '../../constants';
 import {
-  FRAMEWORK_OPTIONS,
-  COMPONENT_LIB_OPTIONS,
+  getFrameworkOptions,
+  componentLibOptionsByFramework,
   MATERIAL_THEME_OPTIONS,
-  MATERIAL_THEME_COLOR_MAP,
+  ELEMENT_PLUS_THEME_OPTIONS,
 } from './materials-options';
+import vueIcon from '../../assets/images/vue.svg';
+import angularIcon from '../../assets/images/angular.svg';
+import reactIcon from '../../assets/images/react.svg';
+import themeLight from '../../assets/images/theme-light.png';
+import themeDark from '../../assets/images/theme-dark.png';
+import themeLite from '../../assets/images/theme-lite.png';
+import themeAuto from '../../assets/images/theme-auto.png';
 
-defineProps({
+const themePreviewMap = {
+  light: themeLight,
+  dark: themeDark,
+  lite: themeLite,
+  auto: themeAuto,
+};
+
+const props = defineProps({
   theme: { type: String, default: 'light' },
+  currentMode: { type: String, default: PlaygroundMode.Chat },
 });
 
 const emit = defineEmits(['update:theme']);
 
-const { framework } = inject('playgroundContext');
-const componentLib = ref('TinyVue');
+const { framework, componentLib, setFramework, setComponentLib } = inject('playgroundContext');
+const frameworkOptions = computed(() => getFrameworkOptions(props.currentMode));
+const frameworkIconMap = {
+  Vue: vueIcon,
+  Angular: angularIcon,
+  React: reactIcon,
+};
 
-const setFramework = (name) => {
-  framework.value = name;
-  // Angular 不支持主题切换, 默认设置为 light 主题
-  if(name === 'Angular') {
-    emit('update:theme', MATERIAL_THEME_OPTIONS[0].value)
+const componentLibOptions = computed(() => componentLibOptionsByFramework[framework.value]);
+const themeOptions = computed(() =>
+  componentLib.value === 'ElementPlus' ? ELEMENT_PLUS_THEME_OPTIONS : MATERIAL_THEME_OPTIONS,
+);
+
+const componentLibModel = computed({
+  get: () => componentLib.value,
+  set: (val) => setComponentLib(val),
+});
+
+// 切换组件库后，若当前主题不被新库支持，回退到默认主题，避免没有主题卡片被选中
+watch(
+  () => componentLib.value,
+  (lib) => {
+    const options = lib === 'ElementPlus' ? ELEMENT_PLUS_THEME_OPTIONS : MATERIAL_THEME_OPTIONS;
+    if (!options.some((item) => item.value === props.theme)) {
+      emit('update:theme', options[0].value);
+    }
+  },
+);
+
+const handleSetFramework = (name) => {
+  setFramework(name);
+  // Angular 和 React 不支持主题切换, 默认设置为 light 主题
+  if (name === 'Angular' || name === 'React') {
+    emit('update:theme', MATERIAL_THEME_OPTIONS[0].value);
   }
 };
 </script>
@@ -33,33 +74,34 @@ const setFramework = (name) => {
     <div class="config-title">{{ t('materials.framework') }}</div>
     <div class="framework-group">
       <div
-        v-for="item in FRAMEWORK_OPTIONS"
+        v-for="item in frameworkOptions"
         :key="item.name"
         class="framework-btn"
         :class="{ 'framework-btn--active': framework === item.name }"
-        @click="setFramework(item.name)"
+        @click="handleSetFramework(item.name)"
         role="button"
         tabindex="0"
-        @keydown.enter="setFramework(item.name)"
-        @keydown.space.prevent="setFramework(item.name)"
+        @keydown.enter="handleSetFramework(item.name)"
+        @keydown.space.prevent="handleSetFramework(item.name)"
       >
-        <span class="framework-btn__icon">{{ item.icon }}</span>
-        <span class="framework-btn__name">{{ item.name }}</span>
+        <span class="framework-btn__icon">
+          <img :src="frameworkIconMap[item.name]" :alt="item.name" />
+        </span>
+        <span class="framework-btn__name">{{ t(item.textKey) }}</span>
       </div>
     </div>
 
-    <!-- TODO: 组件库切换暂时不支持 -->
-    <!-- <div class="config-title">{{ t('materials.componentLib') }}</div>
+    <div class="config-title">{{ t('materials.componentLib') }}</div>
     <div class="library-radio-group" role="radiogroup" :aria-label="t('materials.componentLib')">
-      <tiny-radio-group v-model="componentLib" class="library-radio-group__inner">
-        <tiny-radio v-for="item in COMPONENT_LIB_OPTIONS" :key="item" :label="item">{{ item }}</tiny-radio>
+      <tiny-radio-group v-model="componentLibModel" class="library-radio-group__inner">
+        <tiny-radio v-for="item in componentLibOptions" :key="item" :label="item">{{ item }}</tiny-radio>
       </tiny-radio-group>
-    </div> -->
+    </div>
 
-    <template v-if="framework === 'Vue'">
+    <template v-if="framework === 'Vue' && (componentLib === 'TinyVue' || componentLib === 'ElementPlus')">
       <div class="config-title">{{ t('materials.theme') }}</div>
       <div class="theme-card-group" role="radiogroup" :aria-label="t('materials.theme')">
-        <div v-for="item in MATERIAL_THEME_OPTIONS" :key="item.value" class="theme-card-item">
+        <div v-for="item in themeOptions" :key="item.value" class="theme-card-item">
           <div
             class="theme-card"
             :class="[`theme-card--${item.value}`, { 'theme-card--active': theme === item.value }]"
@@ -71,7 +113,7 @@ const setFramework = (name) => {
             @keydown.space.prevent="emit('update:theme', item.value)"
           >
             <tiny-checkbox v-if="theme === item.value" class="theme-card__check" :model-value="true" @click.stop />
-            <ThemePreviewCard :theme="item.value" :theme-colors="MATERIAL_THEME_COLOR_MAP[item.value]" />
+            <img class="theme-card__image" :src="themePreviewMap[item.value]" :alt="t(item.textKey)" />
           </div>
           <span class="theme-card__label" :class="{ 'theme-card__label--active': theme === item.value }">
             {{ t(item.textKey) }}
@@ -99,6 +141,7 @@ const setFramework = (name) => {
   }
 
   .framework-btn {
+    position: relative;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -115,13 +158,17 @@ const setFramework = (name) => {
   .framework-btn__icon {
     width: 28px;
     height: 28px;
-    border-radius: 50%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
     font-weight: 600;
     font-size: 14px;
+  }
+
+  .framework-btn__icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   .framework-btn__name {
@@ -131,17 +178,12 @@ const setFramework = (name) => {
   }
 
   .framework-btn--active {
-    border-color: #191919;
+    border-color: rgba(20, 118, 255, 1);
     background: transparent;
   }
 
   .framework-btn--active .framework-btn__icon {
-    background: #1476ff;
     color: #fff;
-  }
-
-  .framework-btn--active .framework-btn__name {
-    color: #1476ff;
   }
 
   .library-radio-group {
@@ -182,7 +224,6 @@ const setFramework = (name) => {
     box-sizing: border-box;
     border: 1px solid #e6e6e6;
     border-radius: 8px;
-    padding: 8px 8px 0;
     cursor: pointer;
     user-select: none;
     overflow: hidden;
@@ -204,11 +245,24 @@ const setFramework = (name) => {
     }
   }
 
+  .theme-card__image {
+    display: block;
+    width: 100%;
+    height: 96px;
+    border-radius: 6px;
+    object-fit: cover;
+  }
+
+  .theme-card-item:first-child .theme-card__image {
+    transform: scale(1.06);
+    transform-origin: center top;
+  }
+
   .theme-card__label {
     font-size: 12px;
     line-height: 1;
     color: #595959;
-    text-align: center;
+    padding-left: 8px;
   }
 
   .theme-card__label--active {
@@ -217,7 +271,7 @@ const setFramework = (name) => {
   }
 
   .theme-card--active {
-    border-color: #191919;
+    border-color: rgba(20, 118, 255, 1);
   }
 }
 </style>
