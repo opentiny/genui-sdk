@@ -304,9 +304,14 @@ const toShowMessage = (message: ChatMessage): BubbleProps => {
 };
 
 const showMessages = computed((): BubbleProps[] => {
+  // 旧摘要保留在历史中（刷新/版本回退可恢复上下文），每条摘要都显示分割线文案；
+  // 旧摘要仍需占据气泡位，保证 trailer 的 index 与原始消息列表一一对应。
   let list = messages.value.map((message) => {
     if (isContextCompressMessage(message)) {
-      return { role: 'compress', content: compressedDividerText.value } as BubbleProps;
+      return {
+        role: 'compress',
+        content: compressedDividerText.value,
+      } as BubbleProps;
     }
     return toShowMessage(message);
   });

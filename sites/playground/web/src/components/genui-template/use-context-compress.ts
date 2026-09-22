@@ -243,10 +243,9 @@ export function useContextCompress(options: UseContextCompressOptions) {
         return;
       }
 
-      // 滚动更新：新摘要替换被合并的旧摘要，避免摘要消息叠积
-      if (plan.replaceIndex >= 0) {
-        targetMessages.splice(plan.replaceIndex, 1);
-      }
+      // 追加式滚动摘要：新摘要追加到历史末尾，旧摘要全部保留。
+      // 旧摘要作为快照供「刷新」截断回退时恢复上下文（否则刷新到摘要之前就没有摘要可用了）；
+      // 模型请求只取最新摘要（getBackendChatMessages），旧摘要不参与上下文占用估算。
       const insertIndex = Math.min(plan.insertIndex, targetMessages.length);
       targetMessages.splice(insertIndex, 0, createContextCompressMessage(summary, generateId()));
       options.saveConversations();
