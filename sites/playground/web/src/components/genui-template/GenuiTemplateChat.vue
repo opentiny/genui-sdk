@@ -728,6 +728,10 @@ onUnmounted(() => {
   margin: 0 auto;
 
   :deep(.editor .genui-composer-chip-host) {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     cursor: default;
     user-select: none;
   }
