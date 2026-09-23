@@ -14,7 +14,7 @@
     "strictTemplates": false,
     "fullTemplateTypeCheck": true
   },
-  // 只收本 app:同目录的 main.ts / demo-schema.ts / headless 是 5175 出码页的,
+  // 只收本 app:同目录的 main.ts / headless 是 5175 出码页的,
   // 归工程根那份 tsconfig.json,收进来会被当 Angular 代码一起类型检查。
   "include": ["preview-main.ts", "preview.ts", "generated/**/*.ts"]
 }

@@ -1,5 +1,5 @@
 import type { CardSchema } from '@opentiny/genui-sdk-core';
-import type { IAngularLibraryExtension } from './libraries/library-extension';
+import type { IAngularMaterialsExtension } from './materials/materials-extension';
 
 export interface IComponentMapItem {
   componentName: string;
@@ -119,7 +119,7 @@ export interface IAngularAttributeSelector {
   value?: string;
 }
 
-export interface IAngularLibraryConfig {
+export interface IAngularMaterialsConfig {
   /** 组件名 → 宿主元素标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' } */
   elementSelector: Record<string, string>;
 
@@ -152,17 +152,17 @@ export interface IAngularLibraryConfig {
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键) */
   propRename?: Record<string, Record<string, string>>;
 
-  /** 组件库全部组件名集合,供 resolveConfig 按组件名路由到所属库 */
-  libraryComponents?: Set<string>;
+  /** 该物料包全部组件名集合,供 resolveConfig 按组件名路由到所属物料包 */
+  materialsComponents?: Set<string>;
 
-  extensions?: IAngularLibraryExtension[];
+  extensions?: IAngularMaterialsExtension[];
 }
 
 export type ICodeGeneratorResult = ICodePanel;
 
 export interface IAngularCodeGeneratorOptions {
   prettierOpts?: Record<string, unknown>;
-  libraries: IAngularLibraryConfig[];
+  materials: IAngularMaterialsConfig[];
 }
 
 export interface IAngularCoreImportNeeds {

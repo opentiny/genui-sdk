@@ -25,7 +25,7 @@ const downloadTextFile = (filename: string, text: string): void => {
 
 export const useGenerateAngularCode = () => {
   const exportAngularCode = async (schema: string | object): Promise<void> => {
-    const result = await new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] }).generate({
+    const result = await new AngularCodeGenerator({ materials: [TINYNG_CONFIG] }).generate({
       pageInfo: { schema: schema as never },
     });
 

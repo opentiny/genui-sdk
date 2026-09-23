@@ -4,7 +4,7 @@ import type {
   ICodeGeneratorParams,
   ICodegenDescription,
   ICodePanel,
-  IAngularLibraryConfig,
+  IAngularMaterialsConfig,
   IAngularAttributeSelector,
   IAngularCodeGeneratorOptions,
   AngularBindingKind,
@@ -29,74 +29,42 @@ const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
   htmlWhitespaceSensitivity: 'ignore',
 };
 
-/** schema 中代表 <ng-template> 的 componentName。小写 template 是原生 HTML 标签,不在此列 */
+
 const NG_TEMPLATE_SCHEMA_NAME = 'NgTemplate';
 
-/**
- * 不属于任何组件、由框架指令提供的 output 名。
- *
- * 出码器**无条件** import FormsModule 并列入 imports(见 buildImports),所以 `[(ngModel)]` 的
- * `ngModelChange` 在任何模板里都能绑;但它挂在 NgModel 指令上,不在任何组件的 ɵcmp.outputs 里,
- * 照 componentOutputs 查表必然查不到,只能在这里兜住。这类名字是 Angular 表单的、不是哪个组件库的,
- * 故不放进物料包配置(否则每个物料包都得重复声明一遍)。
- */
 const BUILTIN_OUTPUTS = new Set(['ngModelChange']);
 
 /** 事件键的 `on` 前缀形式:`onCurrentPageChange` → `CurrentPageChange`(只剥前缀,不动大小写) */
 const ON_PREFIXED_KEY_RE = /^on([A-Z]\w*)$/;
 
-/**
- * Angular 出码器——把 schema 出成 Angular 单文件组件。
- *
- * 组件库差异全部经构造选项 `libraries` 注入,实例化前先从对应物料包的 `code-generator`
- * 子出口 import 配置:
- *
- * ```ts
- * import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
- *
- * const result = await new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] })
- *   .generate({ pageInfo: { schema } });
- * ```
- *
- * 刻意**不提供 static create / static generateCode**:配置是实例的、必传的,一个"不带参数就能
- * 拿到实例"的静态入口必然要内置某个库做缺省,那就把出码器重新绑死在某个物料包上了。
- * 换库只换调用方那一行 import。
- */
 export class AngularCodeGenerator extends CodeGeneratorBase {
 
-  /** 本实例激活的组件库(数组顺序即路由优先级);多库混合出码时按组件名路由(resolveConfig) */
-  protected readonly libraryConfigs: readonly IAngularLibraryConfig[];
+  protected readonly materialsConfigs: readonly IAngularMaterialsConfig[];
   private readonly prettierOpts: Record<string, unknown>;
 
-  /**
-   * @param options.libraries 组件库配置,**必传**。从对应物料包的 `code-generator` 子出口
-   *   import 后传入即可出该物料的码,如:
-   *   `new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] })`。
-   *   出码器本身不带任何组件库配置,也不 import 任何物料包——换库只换调用方那一行 import。
-   */
   constructor(options: IAngularCodeGeneratorOptions) {
     super();
 
-    if (!options?.libraries?.length) {
+    if (!options?.materials?.length) {
       throw new Error(
-        'AngularCodeGenerator 需要至少一个组件库配置:请先从对应物料包的 code-generator 子出口 import 配置,' +
-          '再经 options.libraries 传入,如 new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] })。',
+        'AngularCodeGenerator 需要至少一个物料配置:请先从对应物料包的 code-generator 子出口 import 配置,' +
+          '再经 options.materials 传入,如 new AngularCodeGenerator({ materials: [TINYNG_CONFIG] })。',
       );
     }
 
-    this.libraryConfigs = [...options.libraries];
+    this.materialsConfigs = [...options.materials];
     this.prettierOpts = {
       ...DEFAULT_PRETTIER_OPTS,
       ...(options.prettierOpts ?? {}),
     };
   }
 
-  /** 组件名 → 激活库配置。单库直接返回;多库按激活顺序查,首个命中该组件的库胜出;未命中兜底第一个库 */
-  protected resolveConfig(componentName: string): IAngularLibraryConfig {
-    if (this.libraryConfigs.length === 1) return this.libraryConfigs[0];
-    for (const config of this.libraryConfigs) {
+  /** 组件名 → 激活的物料配置。单物料包直接返回;多物料包按激活顺序查,首个命中该组件的物料包胜出;未命中兜底第一个 */
+  protected resolveConfig(componentName: string): IAngularMaterialsConfig {
+    if (this.materialsConfigs.length === 1) return this.materialsConfigs[0];
+    for (const config of this.materialsConfigs) {
       if (
-        config.libraryComponents?.has(componentName) ||
+        config.materialsComponents?.has(componentName) ||
         config.elementSelector[componentName] ||
         config.attributeSelector?.[componentName] ||
         config.moduleRefMap[componentName]
@@ -104,12 +72,12 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         return config;
       }
     }
-    return this.libraryConfigs[0];
+    return this.materialsConfigs[0];
   }
 
   protected get voidElements(): string[] {
     const extra = new Set<string>();
-    for (const config of this.libraryConfigs) {
+    for (const config of this.materialsConfigs) {
       for (const tag of config.extraVoidElements ?? []) extra.add(tag);
     }
     return ['img', 'input', 'br', 'hr', 'link', ...extra];
@@ -163,8 +131,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   /**
-   * 库专属节点级特殊处理:按所属库的 config.extensions 顺序调用(见 libraries/library-extension.ts)。
-   * 这是出码器唯一的组件库扩展点,本类不认识任何具体库、也没有任何库的特判分支。
+   * 物料包专属节点级特殊处理:按所属物料包的 config.extensions 顺序调用(见 materials/materials-extension.ts)。
+   * 这是出码器唯一的物料扩展点,本类不认识任何具体物料包、也没有任何物料包的特判分支。
    *
    * 路由照旧走 resolveConfig —— 组件名在所有映射表里都没命中时会兜底第一个库,所以扩展实现必须
    * 自查 node.componentName,不能默认「轮到我 = 就是我的组件」。
@@ -181,7 +149,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       const returned = extension.transformNode?.(node) as unknown;
       if (returned !== undefined) {
         throw new Error(
-          `[AngularCodeGenerator] 组件库扩展 "${extension.name}" 的 transformNode 返回了值,` +
+          `[AngularCodeGenerator] 物料扩展 "${extension.name}" 的 transformNode 返回了值,` +
             `该钩子必须就地改写 node、不得返回值(返回值的写法不会生效),组件:${node.componentName ?? ''}`,
         );
       }
@@ -197,7 +165,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     const moduleNames: string[] = [];
     const seenModules = new Set<string>();
-    // 多组件库时模块按所属 npm 包分组,每个包生成一条 import;单库退化为原单行
+    // 多物料包时模块按所属 npm 包分组,每个包生成一条 import;单物料包退化为原单行
     const modulesByPackage = new Map<string, string[]>();
 
     componentsInUse.forEach((compName) => {
@@ -389,25 +357,10 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return eventHandler;
   }
 
-  /**
-   * 判定 prop 键是不是「真实事件输出」,命中则返回**模板里该写的真实输出名**(camelCase),否则 null。
-   *
-   * 判据是**查表**而不是看键名形状:表来自各库物料包的 componentOutputs(由组件 ɵcmp.outputs 推导)
-   * 加上 BUILTIN_OUTPUTS。两个候选依次查——
-   *   1. 键名本身:`currentPageChange` 就是 TiPagination 的真实 @Output 名,直接命中;
-   *   2. 键名剥掉 `on` 前缀:`onCurrentPageChange` 在 schema 里更常见(渲染器按 `on` + 输出名
-   *      去 bindProps 里取,见 component-outlet 的 toOnEventName,物料示例与 AI 产出都按这个约定写),
-   *      剥出来的名字同样命中。
-   *
-   * 两条只差一个前缀,查的是同一张表、同一个结论——**带不带 on 都是事件**,不是两种机制。
-   * 未命中(null)只说明"这个名字不是该组件的输出",由调用方按属性绑定处理;若它形如 onXxx,
-   * 还会落到下面原生 DOM 事件那条老路(onClick → (click))。这也是必须查表的原因:
-   * 光看键名形状无法区分 `onCurrentPageChange`(组件输出)与 `onClick`(原生 DOM 事件)。
-   */
   protected resolveOutputName(
     key: string,
     componentName: string,
-    cfg: IAngularLibraryConfig,
+    cfg: IAngularMaterialsConfig,
   ): string | null {
     const stripped = ON_PREFIXED_KEY_RE.exec(key)?.[1];
     const candidates = [
@@ -429,7 +382,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     rawValue: unknown,
     outputName?: string | null,
   ): AngularBindingKind {
-    // 键名命中真实 @Output 即为事件绑定(带不带 on 前缀都算,理由见 resolveOutputName)
+    // 键名命中真实 @Output 即为事件绑定(带不带 on 前缀都算)
     if (outputName) return 'event';
     // 未命中却是 onXxx 形状的,按原生 DOM 事件处理:onClick → (click)
     if (this.isOnEventKey(key)) return 'event';
@@ -449,9 +402,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       case 'twoWay':
         return `[(${key})]`;
       case 'event':
-        // 命中真实输出:原样用输出名,不做连字符化。@Output 名是 camelCase,而
-        // (current-page-change) 编译得过却永远不触发——圆括号里的陌生名字被当成 DOM 事件监听,
-        // 不经任何归一化去匹配组件的输出,于是错误是静默的(实测见 types.ts 的 componentOutputs 注释)
         return `(${outputName ?? toEventKey(key)})`;
     }
   }
@@ -578,7 +528,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       // 查询结果是 ElementRef,而 refs 要放 DOM 元素,取值时需再取一层
       return { type: 'ElementRef', unwrapNative: true };
     }
-    for (const config of this.libraryConfigs) { // 获取需要导入的组件类
+    for (const config of this.materialsConfigs) { // 获取需要导入的组件类
       const className = config.componentExportMap?.[componentName];
       if (className) {
         return { type: className, fromPackage: config.libraryPackage };

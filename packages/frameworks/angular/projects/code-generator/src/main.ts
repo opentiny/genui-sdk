@@ -1,7 +1,6 @@
 import './style.css';
 import { AngularCodeGenerator } from '../index';
 import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
-import { DEMO_SCHEMA } from './demo-schema';
 
 const $ = <T extends HTMLElement>(sel: string): T => {
   const el = document.querySelector<T>(sel);
@@ -11,7 +10,6 @@ const $ = <T extends HTMLElement>(sel: string): T => {
 
 const schemaInput = $<HTMLTextAreaElement>('#schema-input');
 const runBtn = $<HTMLButtonElement>('#run-btn');
-const loadBtn = $<HTMLButtonElement>('#load-demo-btn');
 const clearBtn = $<HTMLButtonElement>('#clear-btn');
 const copyBtn = $<HTMLButtonElement>('#copy-btn');
 const resultPre = $<HTMLPreElement>('#result-code');
@@ -39,7 +37,7 @@ async function runGenerate() {
   setStatus('');
 
   try {
-    const result = await new AngularCodeGenerator({ libraries: [TINYNG_CONFIG] }).generate({
+    const result = await new AngularCodeGenerator({ materials: [TINYNG_CONFIG] }).generate({
       pageInfo: { schema: json as never, name: 'SchemaCard' },
     });
     currentCode = result.panelValue ?? '';
@@ -73,11 +71,6 @@ async function copyResult() {
   }, 1500);
 }
 
-loadBtn.addEventListener('click', () => {
-  schemaInput.value = JSON.stringify(DEMO_SCHEMA, null, 2);
-  setStatus('');
-});
-
 clearBtn.addEventListener('click', () => {
   schemaInput.value = '';
   resultPre.textContent = '暂无结果';
@@ -93,6 +86,3 @@ schemaInput.addEventListener('keydown', (e) => {
     runGenerate();
   }
 });
-
-// 初始载入示例，方便直接测试
-loadBtn.click();

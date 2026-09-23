@@ -1,6 +1,6 @@
 import type { NodeSchema } from '@opentiny/genui-sdk-core';
 
-export interface IAngularLibraryExtension {
+export interface IAngularMaterialsExtension {
   /** 仅用于报错/调试定位,不参与组件名路由 */
   name: string;
   /** 节点级特殊处理:就地改写 node(通常是 node.children),不得返回值 */
@@ -16,7 +16,7 @@ export interface IAngularAttributeSelector {
   value?: string;
 }
 
-export interface IAngularLibraryConfig {
+export interface IAngularMaterialsConfig {
 
   /** 组件名 → 宿主元素标签选择器,如 { TiButton: 'button', TiSelect: 'ti-select' } */
   elementSelector: Record<string, string>;
@@ -48,8 +48,8 @@ export interface IAngularLibraryConfig {
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键) */
   propRename?: Record<string, Record<string, string>>;
 
-  /** 组件库全部组件名集合,供出码器按组件名路由到所属库;缺省取 elementSelector 的键 */
-  libraryComponents?: Set<string>;
+  /** 该物料包全部组件名集合,供出码器按组件名路由到所属物料包;缺省取 elementSelector 的键 */
+  materialsComponents?: Set<string>;
 
-  extensions?: IAngularLibraryExtension[];
+  extensions?: IAngularMaterialsExtension[];
 }

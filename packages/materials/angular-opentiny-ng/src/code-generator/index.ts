@@ -1,3 +1,3 @@
 export * from './types';
-export * from './derive-library-maps';
+export * from './derive-materials-maps';
 export * from './config';
