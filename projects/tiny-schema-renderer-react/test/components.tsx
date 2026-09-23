@@ -1,6 +1,7 @@
 import * as Antd from 'antd';
 import type { TabsProps } from 'antd';
 import { Fragment, type ComponentType } from 'react';
+import { AntDatePicker } from '../../../packages/materials/react-antd/src/materials/components/AntDatePickerWrap';
 
 const SKIP = new Set(['message', 'notification', 'unstableSetRender', 'version', 'theme', 'default']);
 
@@ -30,3 +31,4 @@ export const components: Record<string, ComponentType<any>> = Object.fromEntries
 
 components.AntFormItem = Antd.Form.Item;
 components.AntTabs = AntTabs;
+components.AntDatePicker = AntDatePicker;
