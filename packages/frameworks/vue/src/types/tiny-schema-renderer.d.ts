@@ -3,8 +3,8 @@ declare module '@opentiny/tiny-schema-renderer' {
 
   export default class SchemaRenderer {
     getContext(): any;
-    setContext(ctx: any): void;
-    setState(state: any): void;
+    setContext(ctx: any, clear?: boolean): void;
+    setState(state: any, clear?: boolean): void;
     [key: string]: any;
   }
 }
