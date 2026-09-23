@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { provide, ref } from 'vue';
+import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import GenuiChat from '../chat/GenuiChat.vue';
 import type { IChatProps } from '../chat/chat.types';

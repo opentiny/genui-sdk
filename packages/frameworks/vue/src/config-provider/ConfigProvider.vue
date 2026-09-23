@@ -6,7 +6,6 @@ import {
   type MergedMaterials,
   type IThemeApplyResult,
   type ThemeColorScheme,
-  type IMaterials,
 } from '@opentiny/genui-sdk-core';
 import {
   watch,
@@ -86,14 +85,10 @@ const genuiConfig = computed(() => ({
 
 provide(GENUI_CONFIG, genuiConfig);
 
-const internalMaterials: IMaterials = {};
-watch(
-  () => props.materials,
-  (newVal) => {
-    Object.assign(internalMaterials, newVal);
-  },
-  { immediate: true },
-);
+const internalMaterials = {};
+watch(() => props.materials, (newVal) => {
+  Object.assign(internalMaterials, newVal);
+}, { immediate: true });
 
 provide(GENUI_MATERIALS, internalMaterials);
 

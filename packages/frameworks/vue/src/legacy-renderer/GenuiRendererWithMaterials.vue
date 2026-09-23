@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { provide } from 'vue';
+import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import GenuiRenderer from '../renderer/GenuiRenderer.vue';
 import type { IRendererProps, IRendererSlots } from '../renderer/renderer.types';
 
 defineProps<IRendererProps>();
 defineSlots<IRendererSlots>();
-
 provide(GENUI_MATERIALS, defaultMaterials);
 </script>
 
