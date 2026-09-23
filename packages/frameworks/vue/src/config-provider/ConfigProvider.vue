@@ -25,7 +25,6 @@ import {
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
-import { GENUI_CONFIG_PROVIDER } from './internal-injection-token';
 import { useMediaTheme } from './use-media-theme';
 import type { NotifyHandler } from './notify.types';
 
@@ -50,16 +49,8 @@ provide(GENUI_I18N, i18n);
 
 const { theme: mediaTheme } = useMediaTheme();
 
-const legacyMaterials = shallowRef<IMaterials>();
-const materials = computed(() => props.materials ?? legacyMaterials.value);
-provide(GENUI_CONFIG_PROVIDER, {
-  setMaterials(value) {
-    legacyMaterials.value = value;
-  },
-});
-
 const themeFactories = computed<MaterialsThemeFactory[]>(() => {
-  const themeFactory = materials.value?.themeFactory;
+  const themeFactory = props.materials?.themeFactory;
   if (!themeFactory) {
     return [];
   }
@@ -96,9 +87,13 @@ const genuiConfig = computed(() => ({
 provide(GENUI_CONFIG, genuiConfig);
 
 const internalMaterials: IMaterials = {};
-watch(() => materials.value, (newVal) => {
-  Object.assign(internalMaterials, newVal);
-}, { immediate: true });
+watch(
+  () => props.materials,
+  (newVal) => {
+    Object.assign(internalMaterials, newVal);
+  },
+  { immediate: true },
+);
 
 provide(GENUI_MATERIALS, internalMaterials);
 

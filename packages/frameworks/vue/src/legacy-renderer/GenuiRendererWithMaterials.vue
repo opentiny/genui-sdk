@@ -1,19 +1,14 @@
 <script setup lang="ts">
-import { inject, provide } from 'vue';
 import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { provide } from 'vue';
 import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
-import { GENUI_CONFIG_PROVIDER } from '../config-provider/internal-injection-token';
 import GenuiRenderer from '../renderer/GenuiRenderer.vue';
 import type { IRendererProps, IRendererSlots } from '../renderer/renderer.types';
 
 defineProps<IRendererProps>();
 defineSlots<IRendererSlots>();
-const configProvider = inject(GENUI_CONFIG_PROVIDER, null);
-if (configProvider) {
-  configProvider.setMaterials(defaultMaterials);
-} else {
-  provide(GENUI_MATERIALS, defaultMaterials);
-}
+
+provide(GENUI_MATERIALS, defaultMaterials);
 </script>
 
 <template>
