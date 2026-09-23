@@ -17,8 +17,10 @@ describe('setSchema', () => {
         children: [],
       },
       contextApi,
-      () => {
-        contextDuringUnmount = contextApi.getContext();
+      {
+        invokePageOnUnmounted: () => {
+          contextDuringUnmount = contextApi.getContext();
+        },
       },
     );
 
@@ -138,7 +140,7 @@ describe('setSchema', () => {
     const contextApi = createContextApi();
     const before = contextApi.getContext();
 
-    const { onMounted } = await setSchema(
+    await setSchema(
       {
         state: { tableData: [] as unknown[] },
         lifeCycles: {
@@ -152,8 +154,6 @@ describe('setSchema', () => {
       },
       contextApi,
     );
-
-    await onMounted?.();
 
     expect(contextApi.getContext().state?.tableData).toEqual([{ id: '001' }]);
     expect(contextApi.getContext()).not.toBe(before);

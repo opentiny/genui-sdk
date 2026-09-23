@@ -76,37 +76,13 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       : '';
 
   useIsomorphicLayoutEffect(() => {
-    const currentSchema = schemaRef.current;
-
-    let cancelled = false;
-    const initializeSchema = async () => {
-      if (cancelled) return;
-
-      try {
-        if (!currentSchema || !pageInitSignature) {
-          await invokePageOnUnmounted();
-          return;
-        }
-
-        const { onMounted, onUnmounted } = await setSchema(currentSchema, contextApi, invokePageOnUnmounted);
-        if (cancelled) return;
-        pageOnUnmountedRef.current = onUnmounted;
-        try {
-          await onMounted?.();
-        } catch (error) {
-          console.error('SchemaRenderer onMounted error:', error);
-        }
-      } catch (error) {
-        console.error('SchemaRenderer initialization error:', error);
-      }
-    };
-
-    void initializeSchema();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [contextApi, invokePageOnUnmounted, pageInitSignature]);
+    void setSchema(schemaRef.current, contextApi, {
+      invokePageOnUnmounted,
+      setPageOnUnmounted: (fn) => {
+        pageOnUnmountedRef.current = fn;
+      },
+    });
+  }, [contextApi, pageInitSignature]);
 
   useEffect(() => {
     // TODO: 方案待讨论
@@ -120,7 +96,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     return () => {
       void invokePageOnUnmounted();
     };
-  }, [invokePageOnUnmounted]);
+  }, []);
 
   const rootChildrenSchema: Node = {
     componentName: 'div',

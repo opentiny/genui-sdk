@@ -1,5 +1,5 @@
-import { parseData, handleScopedCss } from './engine';
-import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
+import { handleScopedCss, parseData } from './engine';
+import { getPageLifeCycleFns, type LifeCycleFn, type LifeCycles } from './life-cycles';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
@@ -7,6 +7,28 @@ const schemaMethodKeys = new WeakMap<PageContextApi, Set<string>>();
 
 function reset(obj: Record<string, unknown>) {
   Object.keys(obj).forEach((key) => delete obj[key]);
+}
+
+function setPageCss(content: string | undefined, id: string) {
+  if (!content || typeof document === 'undefined') {
+    return;
+  }
+
+  let styleSheet = document.getElementById(id);
+  if (!styleSheet) {
+    styleSheet = document.createElement('style');
+    styleSheet.id = id;
+    document.head.appendChild(styleSheet);
+  }
+
+  handleScopedCss(id, content).then(
+    (scopedCss) => {
+      styleSheet.textContent = scopedCss.css;
+    },
+    (error) => {
+      console.error('SchemaRenderer scope css error:', error);
+    },
+  );
 }
 
 export function setMethods(data: Record<string, unknown> = {}, contextApi: PageContextApi, clear?: boolean) {
@@ -68,40 +90,49 @@ export function setRefs(data: Record<string, unknown> | undefined, contextApi: P
 type PageLifeCycleFns = ReturnType<typeof getPageLifeCycleFns>;
 type InvokePageOnUnmounted = () => void | Promise<void>;
 
+export interface SetSchemaOptions {
+  invokePageOnUnmounted?: InvokePageOnUnmounted;
+  setPageOnUnmounted?: (fn: LifeCycleFn | null) => void;
+}
+
 export async function setSchema(
-  schema: CardSchema,
+  schema: CardSchema | null,
   contextApi: PageContextApi,
-  invokePageOnUnmounted?: InvokePageOnUnmounted,
-): Promise<PageLifeCycleFns> {
-  const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
-  const nextContext = { ...contextApi.getContext() };
-  delete nextContext.state;
-  delete nextContext.refs;
-  contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId }, true);
+  options: SetSchemaOptions = {},
+): Promise<PageLifeCycleFns | undefined> {
+  const { invokePageOnUnmounted, setPageOnUnmounted } = options;
 
-  setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
-  setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
-  setRefs(schema.refs as Record<string, unknown> | undefined, contextApi, true);
-
-  await invokePageOnUnmounted?.();
-
-  if (schema.css && typeof document !== 'undefined') {
-    const id = contextApi.getContext().cssScopeId!;
-    let el = document.getElementById(id);
-    if (!el) {
-      el = document.createElement('style');
-      el.id = id;
-      document.head.appendChild(el);
+  try {
+    if (!schema || !Object.keys(schema).length) {
+      await invokePageOnUnmounted?.();
+      return;
     }
-    handleScopedCss(id, schema.css).then(
-      (scopedCss) => {
-        el!.textContent = scopedCss.css;
-      },
-      (error) => {
-        console.error('SchemaRenderer scope css error:', error);
-      },
-    );
-  }
 
-  return getPageLifeCycleFns(schema.lifeCycles as LifeCycles | undefined, contextApi.getContext);
+    const cssScopeId =
+      contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+    const nextContext = { ...contextApi.getContext() };
+    delete nextContext.state;
+    delete nextContext.refs;
+    contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId }, true);
+
+    setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
+    setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
+    setRefs(schema.refs as Record<string, unknown> | undefined, contextApi, true);
+
+    await invokePageOnUnmounted?.();
+
+    setPageCss(schema.css, cssScopeId);
+
+    const lifeCycleFns = getPageLifeCycleFns(schema.lifeCycles as LifeCycles | undefined, contextApi.getContext);
+    setPageOnUnmounted?.(lifeCycleFns.onUnmounted);
+    try {
+      await lifeCycleFns.onMounted?.();
+    } catch (error) {
+      console.error('SchemaRenderer onMounted error:', error);
+    }
+
+    return lifeCycleFns;
+  } catch (error) {
+    console.error('SchemaRenderer initialization error:', error);
+  }
 }
