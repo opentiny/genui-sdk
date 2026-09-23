@@ -34,7 +34,7 @@ function generateSkillFiles(
 
 - **Return value**
 
-Returns [`IGenerateSkillResult`](#igenerateskillresult), which contains the complete Prompt, split result, and resolved output directories. This function is synchronous and throws immediately when writing or validation fails.
+Returns [`IGenerateSkillResult`](#igenerateskillresult), which contains the complete Prompt, split result, and caller-provided output directories. Relative paths remain relative. This function is synchronous and throws immediately when writing or validation fails.
 
 - **Details**
 
@@ -42,7 +42,7 @@ By default, generation performs these steps:
 
 1. Calls `genPrompt` from the core package with `isSkill` enabled by default.
 2. Losslessly splits Prompt sections headed by `##` into `reference/generated/`.
-3. Creates component detail files by category and synchronizes the allowlist index in `reference/components.md`.
+3. Creates component detail files by category when the components section contains a parseable JSON fence, then synchronizes the allowlist index in `reference/components.md`.
 4. Preserves YAML frontmatter from the first output directory's existing `SKILL.md`, then writes every output directory.
 5. Reads the generated files from disk and verifies that they reconstruct the original Prompt byte for byte.
 
@@ -204,7 +204,7 @@ interface ISkillGenerateConfig {
 | `prune` | `true` | Whether to remove stale files from the current generated directory |
 | `flatPrompt` | `false` | Whether to write the complete Prompt directly to `SKILL.md` |
 
-`referenceSubdir` must be a safe relative path and cannot use the handwritten `components` or `examples` directories or their descendants. If it is an empty string, `prune` must also be `false`.
+`referenceSubdir` must be a safe relative path and cannot use the handwritten `components` or `examples` directories or their descendants. If it is an empty string, `prune` must also be `false`; generated fragments then own paths directly under `reference/`, including `reference/components.md`, so an existing handwritten component index is not preserved.
 
 ### Other CLI APIs
 
@@ -249,7 +249,7 @@ interface IGenerateSkillOptions {
 | `promptCustomConfig` | — | Custom configuration passed to core `genPrompt` |
 | `promptOptions` | `{ isSkill: true }` | Controls Prompt sections; only `isSkill: true` is added when not explicitly set |
 | `formatSkillBody` | — | Formatter that appends content after the original Prompt prefix |
-| `referenceSubdir` | `'generated'` | Safe relative directory under `reference/` for generated fragments |
+| `referenceSubdir` | `'generated'` | Safe relative directory under `reference/` for generated fragments; empty mode owns the direct fragment paths, including `reference/components.md` |
 | `syncComponentsIndex` | `true` | Whether to maintain the handwritten-layer `reference/components.md` index |
 | `prune` | `true` | Whether to remove stale files in the current generated directory; it never cleans across directories |
 | `defaultFrontmatter` | Built-in `genui-schema-json` frontmatter | YAML frontmatter used when the first directory has no `SKILL.md` |
@@ -340,7 +340,7 @@ Use these APIs to build a custom generation pipeline. Prefer `generateSkillFiles
 | API | Description |
 |-----|-------------|
 | `ensureSkillFrontmatter(skillSourceDir, defaultFrontmatter?)` | Reads `SKILL.md` frontmatter, creating the file from the default when it does not exist |
-| `writeReferenceFiles(skillDir, sections, options?)` | Writes lossless fragments, component category details, and the component index |
+| `writeReferenceFiles(skillDir, sections, options?)` | Writes lossless fragments, component category details, and the component index; empty-subdirectory mode treats `components.md` as an owned generated fragment rather than a preserved handwritten index |
 | `writeSkillEntry(skillDirs, skillPrefix, markers, options?)` | Reuses frontmatter from the first directory and writes the entry file to one or more directories |
 | `removeStaleReferenceFiles(dir, sectionFiles)` | Removes files absent from the current generation list while preserving subdirectories |
 
@@ -357,7 +357,7 @@ Use these APIs to build a custom generation pipeline. Prefer `generateSkillFiles
 | `writeComponentCategoryFiles(outputDir, files, prune?)` | Writes categorized detail files and optionally removes stale files |
 | `resolveHandwrittenCategoryLinks(skillDir)` | Collects links to existing handwritten component-category docs |
 | `buildComponentsIndex(whitelist, detailRelPath?, groups?, handwrittenLinks?)` | Builds the categorized `components.md` body |
-| `syncComponentsIndex(skillDir, detail, detailRelPath?, groups?)` | Updates the managed block in `components.md` while preserving handwritten content outside it |
+| `syncComponentsIndex(skillDir, detail, detailRelPath?, groups?)` | Updates the managed block in `components.md`; appends one when no managed markers exist, or replaces the legacy `## 可用组件` heading and all following content |
 
 `COMPONENT_CATEGORY_DOCS` exports the id, filename, and heading metadata for the built-in categories.
 
@@ -365,6 +365,6 @@ Use these APIs to build a custom generation pipeline. Prefer `generateSkillFiles
 
 - Reference filenames must be `.md` files in the current directory and cannot contain absolute paths, path separators, control characters, or Windows reserved names.
 - `referenceSubdir` cannot escape `reference/` or target the handwritten `components/` and `examples/` directories.
-- `prune` is prohibited when `referenceSubdir` is empty to prevent deletion of handwritten reference files.
-- `syncComponentsIndex()` only rewrites content between its managed markers; it refuses to overwrite files with missing, duplicated, or misordered markers.
+- `prune` is prohibited when `referenceSubdir` is empty to prevent deletion of handwritten reference files. Empty mode owns the generated fragment paths directly under `reference/` and does not preserve `reference/components.md` as a handwritten index.
+- `syncComponentsIndex()` rewrites content between valid managed markers. When no markers exist, it appends a managed block; for a legacy file containing `## 可用组件`, it replaces that heading and all following content. Missing counterpart markers, duplicate or misordered markers, and a legacy allowlist without its required heading are rejected as invalid states.
 - A formatter may only append after the original Prompt prefix. After generation, all fragments are checked to ensure that they still reconstruct the `genPrompt` output byte for byte.
