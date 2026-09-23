@@ -13,7 +13,7 @@ Angular 代码出码器:把 AI 产出的页面 schema(`CardSchema`)转换为 Ang
 
 激活列表不是类静态成员、也没有单例语义——每次构造都会展开出一份本实例专属的列表,使用方可以按需追加或替换库配置。不传时落到 `DEFAULT_LIBRARIES`(当前即物料包提供的 TinyNG 配置)。
 
-> 配置为什么放物料包:那 5 张映射表读的是**该物料包自己的** Angular 编译器元数据(`ɵcmp.selectors`),放在自己家里推导最不容易与物料包演进漂移;策略字段(`transformChildren` 等)也全是该库自己的约定。
+> 配置为什么放物料包:那些映射表读的是**该物料包自己的** Angular 编译器元数据(`ɵcmp.selectors`),放在自己家里推导最不容易与物料包演进漂移;节点级特殊处理(`extensions`)也全是该库自己的约定。
 
 ## 目录结构
 
@@ -27,7 +27,7 @@ projects/code-generator/
 ├── types.ts                         # 公共类型(IAngularLibraryConfig 等)
 ├── index.ts                         # 对外导出(含 generateCode 入口)
 ├── libraries/                       # 组件库相关抽象(不再有各库实现)
-│   └── prop-adapter.ts              # 跨库:prop 适配器抽象(AngularPropAdapter)
+│   └── library-extension.ts         # 跨库:唯一的库扩展点 IAngularLibraryExtension
 └── src/                             # 两个页面同住,都不属于出码器实现本身
     ├── index.html main.ts demo-schema.ts style.css        # 5175 出码页(vite,root 即本目录)
     ├── preview.html preview-main.ts preview.ts preview.less   # 4201 预览页(Angular app)
@@ -64,14 +64,14 @@ new AngularCodeGenerator({
 }).generate({ pageInfo: { schema } });
 ```
 
-> 注入的 `IAngularLibraryConfig` 中,`componentSelector` / `moduleRefMap` / `componentExtraSelector` / `componentExportMap` / `libraryComponents` 五项必须经 `deriveLibraryMaps(该库自己的物料包 materials)` 推导,不要手写——推导读的是物料包的 Angular 编译器元数据(`ɵcmp.selectors`),手写映射会随物料包演进静默漂移。该工具随配置一并住在物料包内(见上文目录结构)。
+> 注入的 `IAngularLibraryConfig` 中,`elementSelector` / `moduleRefMap` / `attributeSelector` / `componentExportMap` / `libraryComponents` 五项必须经 `deriveLibraryMaps(该库自己的物料包 materials)` 推导,不要手写——推导读的是物料包的 Angular 编译器元数据(`ɵcmp.selectors`),手写映射会随物料包演进静默漂移。该工具随配置一并住在物料包内(见上文目录结构)。
 >
 > 物料包侧的配置结构是一份**结构副本**(物料包是已发布包,不能反向依赖 private 且无 npm 产物的出码器包)。契约由**出码器侧强制**:把该配置赋给 `IAngularLibraryConfig[]` 时若结构漂移,会在出码器包编译期报 `TS2322`。
 
 ### 多组件库混合出码
 
 - 向 `options.libraries` 传**配置数组**即可同时启用多个组件库,一个 schema 可混用各库组件。
-- 组件名到库的**路由规则**:按数组顺序查 `libraryComponents` → `componentSelector` → `moduleRefMap`,首个命中该组件的库胜出;全部未命中则兜底第一个库。
+- 组件名到库的**路由规则**:按数组顺序查 `libraryComponents` → `elementSelector` → `attributeSelector` → `moduleRefMap`,首个命中该组件的库胜出;全部未命中则兜底第一个库。
 - 模块 import 按各库的 `libraryPackage` **分组生成多条 import**;组件的 `imports` 数组包含全部启用库的模块。
 - 硬约定:**跨库组件名 / NgModule 类名需全局唯一**(同名模块无法在单文件里不 alias 同时 import)。
 - 缺省不传 = 只启用内置 TinyNG;新增库不会隐式改变默认出码。
@@ -146,13 +146,23 @@ schema 里用 `componentName: "NgTemplate"` 表达 `<ng-template>`,`props.let` �
 
 1. materials 目录下建物料包(components/modules 命名导出);
 2. 在该物料包内建 `src/code-generator/`:把 `derive-library-maps.ts`(约 70 行纯函数)连同配置一起复制过去,调用 `deriveLibraryMaps(本包 materials)` 推导 5 张映射表;
-3. 仿 `config.ts` 定义 `IAngularLibraryConfig`(结构副本见 `types.ts`,契约由出码器侧编译期强制);
+3. 仿 `config.ts` 定义 `IAngularLibraryConfig`(结构副本见 `types.ts`,契约由出码器侧编译期强制);**只有当该库确实有节点级特殊处理时**,才按 `libraries/library-extension.ts` 的 `IAngularLibraryExtension` 写一个 `extensions` 项,没有需求就整项不写;
 4. 物料包 `vite.config.ts` 加一个 `code-generator` entry、`package.json` 加 `./code-generator` 子出口;
 5. 由使用方经 `IAngularCodeGeneratorOptions.libraries` 按实例注入;若该库应成为缺省库,再改 `angular-code-generator.ts` 顶部那一行 import 与 `DEFAULT_LIBRARIES`。
 
 > 出码器包**不再参与新增组件库**:它不持有任何库的名字,也不需要改 `libraries/`。
 
-> 形态类 prop 问题一律先在物料包 meta/示例里写对(见 `angular-opentiny-ng/src/code-generator/record.md`),出码器不做特判;仅当确有通用规则无法覆盖的形态重塑需求时,才复用 `prop-adapter.ts` 抽象实现并按 `propAdapters` 注入(当前 TinyNG 未使用)。
+> 形态类 prop 问题一律先在物料包 meta/示例里写对(见 `angular-opentiny-ng/src/code-generator/record.md`),出码器不做特判。
+
+### 唯一的库扩展点:`extensions[].transformNode`
+
+出码器**不为任何组件库保留特判分支**。某库真需要重塑节点(如 TinyNG 把 `TiFormField` 的子节点包成 `TiItem`)时,由该物料包把这段逻辑写成 `IAngularLibraryExtension` 放进配置的 `extensions` 数组,出码器在渲染每个非自闭合节点时按序调用。三条约定:
+
+- **就地改写 `node`,不得返回值**。改的是 `node.children` 这类槽位;`return node.children.map(...)` 能通过编译但不会生效,出码器发现返回值会当场抛错(出码器没有 errors 通道,静默失效只能等 Angular 运行期崩)。
+- **必须自查 `node.componentName`**:扩展“只为该组件所属库”调用,但路由走 `resolveConfig`,组件名在所有映射表里都没命中时会**兜底第一个库**。
+- **调用时机在本节点 attrs 渲染之后**,所以改本节点的 `props` 不影响本节点,用途是重塑**子节点**。
+
+出码器只在调用点重读 `node.children`,改完立刻递归;没配 `extensions` 的库这条路径完全空转。
 
 ## 组件特殊用法
 

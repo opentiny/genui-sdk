@@ -30,37 +30,35 @@ import {
   template: `
       <div>
         <ti-card>
-          <h3 style="font-size: 18px; font-weight: bold; margin-bottom: 24px; text-align: center;">员工信息登记表</h3>
-          <ti-formfield labelWidth="100px">
+          <h2 style="text-align: center; margin-bottom: 24px;">员工信息登记表</h2>
+          <ti-formfield labelWidth="120px">
             <ti-item [label]="'姓名'" [required]="true">
               <input tiText placeholder="请输入姓名" [(ngModel)]="state.formData.name" />
             </ti-item>
-            <ti-item [label]="'性别'" [required]="true">
-              <ti-radio-group [(ngModel)]="state.formData.gender" [items]="state.genderOptions"></ti-radio-group>
+            <ti-item [label]="'邮箱'" [required]="true">
+              <input tiText placeholder="请输入邮箱" [(ngModel)]="state.formData.email" />
             </ti-item>
-            <ti-item [label]="'部门'" [required]="true">
+            <ti-item [label]="'性别'">
+              <ti-radio-group
+                [(ngModel)]="state.formData.gender"
+                [items]='[{"label":"男","value":"male"},{"label":"女","value":"female"}]'
+              ></ti-radio-group>
+            </ti-item>
+            <ti-item [label]="'部门'">
               <ti-select
                 placeholder="请选择部门"
                 [(ngModel)]="state.formData.department"
-                [options]="state.departmentOptions"
+                [options]='[{"label":"技术部","value":"tech"},{"label":"市场部","value":"marketing"},{"label":"人事部","value":"hr"},{"label":"财务部","value":"finance"}]'
               ></ti-select>
             </ti-item>
-            <ti-item [label]="'出生日期'" [required]="true">
-              <ti-date placeholder="请选择日期" format="yyyy-MM-dd" [(ngModel)]="state.formData.birthDate"></ti-date>
+            <ti-item [label]="'入职日期'">
+              <ti-date placeholder="请选择日期" format="yyyy-MM-dd" [(ngModel)]="state.formData.startDate"></ti-date>
             </ti-item>
-            <ti-item [label]="'邮箱'" [required]="true">
-              <input tiText placeholder="请输入邮箱地址" [(ngModel)]="state.formData.email" />
-            </ti-item>
-            <ti-item [label]="'协议'">
-              <input
-                tiCheckbox
-                type="checkbox"
-                label="我已阅读并同意《员工信息收集协议》"
-                [(ngModel)]="state.formData.agreement"
-              />
+            <ti-item [label]="' '">
+              <input tiCheckbox type="checkbox" label="我同意用户协议" [(ngModel)]="state.formData.agreement" />
             </ti-item>
           </ti-formfield>
-          <div style="display: flex; gap: 12px; justify-content: center; margin-top: 24px;">
+          <div style="display: flex; gap: 16px; margin-top: 24px; justify-content: center;">
             <button tiButton color="primary" (click)="handleSubmit()">提交</button>
             <button tiButton color="default" (click)="handleReset()">重置</button>
           </div>
@@ -73,61 +71,21 @@ export class SchemaCardComponent {
   state = {
     formData: {
       name: '',
-      gender: '',
-      department: '',
-      birthDate: '',
       email: '',
+      department: '',
+      startDate: '',
+      gender: '',
       agreement: false
-    },
-    genderOptions: [
-      {
-        label: '男',
-        value: 'male'
-      },
-      {
-        label: '女',
-        value: 'female'
-      }
-    ],
-    departmentOptions: [
-      {
-        label: '技术部',
-        value: 'tech'
-      },
-      {
-        label: '市场部',
-        value: 'market'
-      },
-      {
-        label: '人事部',
-        value: 'hr'
-      },
-      {
-        label: '财务部',
-        value: 'finance'
-      }
-    ]
+    }
   }
 
   handleSubmit() {
-    if (
-      !this.state.formData.name ||
-      !this.state.formData.gender ||
-      !this.state.formData.department ||
-      !this.state.formData.birthDate ||
-      !this.state.formData.email
-    ) {
-      return
-    }
-    if (!this.state.formData.agreement) {
-      return
-    }
-    this.callAction('saveState')
-    this.callAction('continueChat', { message: '提交表单' })
+    console.log(this.state.formData)
+    this.callAction('continueChat', { message: '提交成功' })
   }
 
   handleReset() {
-    this.state.formData = { name: '', gender: '', department: '', birthDate: '', email: '', agreement: false }
+    this.state.formData = { name: '', email: '', department: '', startDate: '', gender: '', agreement: false }
   }
 
   callAction(name: string, params?: unknown): void {

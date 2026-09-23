@@ -12,60 +12,60 @@ import type { IAngularLibraryConfig } from './types';
 const JS_EXPRESSION = 'JSExpression';
 
 const {
-  componentSelector,
+  elementSelector,
   moduleRefMap,
-  componentExtraSelector,
+  attributeSelector,
   componentExportMap,
   componentOutputs,
   libraryComponents,
 } = deriveLibraryMaps(materials);
 
-/**
- * TinyNG 组件库专属出码配置。
- *
- * 这份配置**住在物料包自己家里**(原在出码器包 libraries/tinyng/config.ts):
- * 5 张映射表由本包自己的 materials 对象现推,策略字段(transformChildren 等)也是本库自己的约定,
- * 故不存在"配置与物料包漂移"的可能。出码器只负责消费,不再持有任何组件库的名字。
- *
- * 说明:prop 形态类特判(如 TiPagination 的 pageSize 对象)已在物料包 meta/示例中直接写对,
- * 不再需要 propAdapters,故本库不配置该项。
- */
 export const TINYNG_CONFIG: IAngularLibraryConfig = {
-  componentSelector,
+  elementSelector,
+  attributeSelector,
   moduleRefMap,
   libraryPackage: '@opentiny/ng',
-  componentExtraSelector,
   componentExportMap,
-  extraVoidElements: ['ti-image'],
   propBlacklist: { TiTable: ['border', 'stripe'] },
   componentOutputs,
   libraryComponents,
 
-  /**
-   * TiFormField 的直接子节点统一包装为 TiItem(库的表单布局约定);
-   * 同时把 TiItem 的字符串 label 转成绑定形式 [label]="'姓名'",避免静态属性
-   * label="姓名" 在视图创建相写 input(TiItemComponent.setItemLabel 在创建相调用
-   * detectChanges() 触发 Angular 20 断言崩溃)。字符串与 JSExpression
-   * 两种情形都要求以更新相写入的 [label]= 绑定输出。
-   */
-  transformChildren: (componentName, children) => {
-    if (componentName === 'TiFormField' && Array.isArray(children)) {
-      return children.map((child) => {
-        const childSchema = child as NodeSchema;
-        const item: NodeSchema =
-          childSchema.componentName === 'TiItem'
-            ? childSchema
-            : ({ componentName: 'TiItem', children: [childSchema] } as NodeSchema);
-
-        const props = item.props as Record<string, unknown> | undefined;
-        const label = props?.label;
-        if (typeof label === 'string') {
-          const escaped = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
-          props!.label = { type: JS_EXPRESSION, value: `'${escaped}'` };
+  extensions: [
+    {
+      name: 'tinyng:ti-form-field',
+      /**
+       * TiFormField 的直接子节点统一包装为 TiItem(库的表单布局约定);
+       * 同时把 TiItem 的字符串 label 转成绑定形式 [label]="'姓名'",避免静态属性
+       * label="姓名" 在视图创建相写 input(TiItemComponent.setItemLabel 在创建相调用
+       * detectChanges() 触发 Angular 20 断言崩溃)。字符串与 JSExpression
+       * 两种情形都要求以更新相写入的 [label]= 绑定输出。
+       *
+       * 注意是**就地改写 node.children**,不要写成 `return node.children.map(...)`:
+       * 钩子签名的返回位置是 void,TS 会放行有返回值的实现,那样改写会被静默丢弃
+       * (出码器为此加了运行期守卫,会在出码当场抛错)。
+       *
+       * 组件名要自查:出码器按 resolveConfig 路由,组件名没命中任何映射表时会兜底第一个库,
+       * 那时本扩展也会被调用。
+       */
+      transformNode: (node) => {
+        if (node.componentName !== 'TiFormField' || !Array.isArray(node.children)) {
+          return;
         }
-        return item;
-      });
-    }
-    return undefined;
-  },
+        node.children = node.children.map((child) => {
+          const item: NodeSchema =
+            child.componentName === 'TiItem'
+              ? child
+              : ({ componentName: 'TiItem', children: [child] } as NodeSchema);
+
+          const props = item.props as Record<string, unknown> | undefined;
+          const label = props?.label;
+          if (typeof label === 'string') {
+            const escaped = label.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            props!.label = { type: JS_EXPRESSION, value: `'${escaped}'` };
+          }
+          return item;
+        });
+      },
+    },
+  ],
 };

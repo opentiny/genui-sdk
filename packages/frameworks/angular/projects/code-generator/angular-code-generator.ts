@@ -5,6 +5,7 @@ import type {
   ICodegenDescription,
   ICodePanel,
   IAngularLibraryConfig,
+  IAngularAttributeSelector,
   IAngularCodeGeneratorOptions,
   AngularBindingKind,
   IAngularTemplateAttr,
@@ -13,7 +14,6 @@ import type {
   ICodeGeneratorResult,
   IViewChildRef,
 } from './types';
-import type { IAngularPropContext } from './libraries/prop-adapter';
 import { capitalize, hyphenate, toEventKey, unwrapExpression } from './utils';
 import { CodeGeneratorBase } from './code-generator-base';
 
@@ -97,7 +97,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     for (const config of this.libraryConfigs) {
       if (
         config.libraryComponents?.has(componentName) ||
-        config.componentSelector[componentName] ||
+        config.elementSelector[componentName] ||
+        config.attributeSelector?.[componentName] ||
         config.moduleRefMap[componentName]
       ) {
         return config;
@@ -115,11 +116,15 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   protected resolveComponentTag(componentName: string): string {
-    return this.resolveConfig(componentName).componentSelector[componentName] || hyphenate(componentName);
+    return this.resolveConfig(componentName).elementSelector[componentName] || hyphenate(componentName);
   }
 
-  protected resolveExtraDirective(componentName: string): string | undefined {
-    return this.resolveConfig(componentName).componentExtraSelector?.[componentName];
+  /**
+   * 组件名 → 宿主元素上要挂的属性选择器(选择器是属性型的组件靠它命中,如 TiButton 渲染成 <button tiButton>)。
+   * `value` 为 undefined 的是裸属性,只出属性名不出值。
+   */
+  protected resolveAttributeSelectors(componentName: string): IAngularAttributeSelector[] {
+    return this.resolveConfig(componentName).attributeSelector?.[componentName] ?? [];
   }
 
 
@@ -157,42 +162,30 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
   }
 
-  /** 库专属 prop 特判:按 config.propAdapters 顺序尝试,首个命中者消费该 prop(见 libraries/prop-adapter.ts) */
-  protected processLibrarySpecificProp(
-    componentName: string,
-    key: string,
-    rawItem: unknown,
-    props: Record<string, unknown>,
-    attrsArr: IAngularTemplateAttr[],
-    description: ICodegenDescription,
-    state: Record<string, unknown>,
-    schemaMethods: Methods,
-  ): boolean {
-    const adapters = this.resolveConfig(componentName).propAdapters ?? [];
-    if (!adapters.length) {
-      return false;
+  /**
+   * 库专属节点级特殊处理:按所属库的 config.extensions 顺序调用(见 libraries/library-extension.ts)。
+   * 这是出码器唯一的组件库扩展点,本类不认识任何具体库、也没有任何库的特判分支。
+   *
+   * 路由照旧走 resolveConfig —— 组件名在所有映射表里都没命中时会兜底第一个库,所以扩展实现必须
+   * 自查 node.componentName,不能默认「轮到我 = 就是我的组件」。
+   *
+   * 返回值守卫:钩子签名是 `(node) => void`,而 TS 允许把有返回值的函数赋给 void 返回位置,于是
+   * `return node.children.map(...)` 这种写法**能编译通过却静默什么都不做**。ICodeGeneratorResult 没有
+   * errors 通道,漏包一层 TiItem 只能等 Angular 运行期在目标组件上崩出来,很难倒查到出码这一步。
+   * 故与 parseFunctionOrThrow 同款:当场抛错,让不生效的扩展在出码当场暴露。
+   */
+  protected applyNodeExtensions(node: NodeSchema): void {
+    const extensions = this.resolveConfig(node.componentName ?? '').extensions ?? [];
+    for (const extension of extensions) {
+      // as unknown:钩子声明返回 void,断言掉后才能把「实际返回值」拿出来判断
+      const returned = extension.transformNode?.(node) as unknown;
+      if (returned !== undefined) {
+        throw new Error(
+          `[AngularCodeGenerator] 组件库扩展 "${extension.name}" 的 transformNode 返回了值,` +
+            `该钩子必须就地改写 node、不得返回值(返回值的写法不会生效),组件:${node.componentName ?? ''}`,
+        );
+      }
     }
-    const ctx: IAngularPropContext = {
-      componentName,
-      key,
-      rawItem,
-      props,
-      attrsArr,
-      description,
-      state,
-      schemaMethods,
-      resolvePropValueType: (value) => this.resolvePropValueType(value),
-      replaceThis: (value) => this.replaceThis(value),
-    };
-    return adapters.some((adapter) => adapter.tryHandle(ctx));
-  }
-
-  /** 库专属 children 变换,经 config.transformChildren 注入(见 types.ts);未配置时原样返回 */
-  protected processLibrarySpecificChildren(
-    componentName: string,
-    children: NodeSchema[] | NodeSchema | string | undefined,
-  ): NodeSchema[] | NodeSchema | string | undefined {
-    return this.resolveConfig(componentName).transformChildren?.(componentName, children);
   }
 
   protected buildImports(
@@ -638,11 +631,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         key = rename;
       }
 
-      // 特殊属性处理
-      if (this.processLibrarySpecificProp(componentName ?? '', key, rawValue, props, attrsArr, description, state, schemaMethods)) {
-        return;
-      }
-
       // === Common Angular logic below ===
       // 左值决定括号,右值统一由 resolveBindingRight 产出(内部覆盖字面量/表达式/函数/插槽)
       const propType = this.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction' 'JSSlot'
@@ -658,7 +646,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   protected recurseChildren(
-    children: NodeSchema[] | NodeSchema | string | undefined,
+    children: NodeSchema['children'],
     state: Record<string, unknown>,
     description: ICodegenDescription,
     result: string[],
@@ -809,7 +797,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     } else if (isTemplate) { // 因为使用ng-template不用记录import，所以不走下面的else分支
       component = 'ng-template';
     } else {
-      // 组件名 → HTML 标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' }
+      // 组件名 → 宿主元素标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' }
       component = this.resolveComponentTag(componentName || 'div');
     }
 
@@ -820,10 +808,10 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     const attrsArr: IAngularTemplateAttr[] = [];
 
-    // 语义不对
-    const extraDirective = componentName && !isTemplate ? this.resolveExtraDirective(componentName) : undefined;
-    if (extraDirective) {
-      attrsArr.push({ left: extraDirective });
+    const extraAttrs = componentName && !isTemplate ? this.resolveAttributeSelectors(componentName) : [];
+    for (const { name, value } of extraAttrs) {
+      // 带值的属性选择器(如 [type=text])必须连值一起输出,否则匹配不到该组件
+      attrsArr.push(value === undefined ? { left: name } : { left: name, right: `"${value}"` });
     }
 
     // 处理循环渲染
@@ -872,23 +860,16 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     result.push(this.renderAttrs(attrsArr));
 
-    
     if (this.voidElements.includes(component)) { // 自闭合元素
       result.push(' />');
     } else { // 非自闭合元素
       result.push('>');
 
-      // 库特定的 children 预处理(经 config.transformChildren 注入)
-      const transformedChildren = this.processLibrarySpecificChildren(componentName ?? '', children); // 没有
-      
-      //递归处理子元素 
-      this.recurseChildren( // 命名
-        transformedChildren ?? children as NodeSchema[] | NodeSchema | string | undefined,
-        state,
-        description,
-        result,
-        schemaMethods,
-      );
+      // 库专属的节点级特殊处理(经 config.extensions 注入):就地改写 schema,典型是换掉 schema.children
+      this.applyNodeExtensions(schema);
+
+      // 递归处理子元素。必须重读 schema.children:扩展改的是节点对象上的槽位,不是上面解构出的局部变量
+      this.recurseChildren(schema.children, state, description, result, schemaMethods);
       // 节点的 slot 字段不产出:Angular 没有插槽概念,改由 NgTemplate + props.let 表达作用域模板
       result.push(`</${component}>`);
     }
@@ -906,9 +887,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     methods: Methods,
   ): string {
     const { state = {} } = schema;
-    for (const config of this.libraryConfigs) {
-      config.transformState?.(state); // 物料专属预处理(各库只碰自己关心的 state 结构,顺序无关)
-    }
     this.traverseState(state as Record<string, any>, description, state, methods);
     const stateStr = unwrapExpression(JSON.stringify(state, null, 2));
     if (!stateStr || stateStr === '{}') {
