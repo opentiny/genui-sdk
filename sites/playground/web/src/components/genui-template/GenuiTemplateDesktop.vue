@@ -31,7 +31,6 @@ const generating = computed(() =>
     : false,
 );
 
-// 历史版本的 schema 不允许点选修改
 const isLatestVersion = computed(() => {
   const cardId = schema.currentCardId;
   return !cardId || versionControl.isLatestSchemaVersionCard(cardId);
@@ -43,21 +42,12 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
   chatRef.value?.insertComposerTag(node);
 };
 
-// 关闭预览面板时退出开发态（已点选标签保留，可再次开启继续点选；仅版本切换时清空，见下方 watch）
 watch(
   () => ui.rendererPanelVisible,
   (visible) => {
     if (!visible && isDevMode.value) {
       isDevMode.value = false;
     }
-  },
-);
-
-// 版本切换后已点选标签指向旧 schema 节点，清空标签（保留文字草稿）
-watch(
-  () => schema.currentCardId,
-  () => {
-    chatRef.value?.clearComposerTags();
   },
 );
 

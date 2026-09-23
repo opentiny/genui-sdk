@@ -61,8 +61,6 @@ const { schema, conversation, versionControl, stream, emitter } = useTemplateCon
 const tagController = createComposerTagController<SelectedSchemaNode>();
 const selectedNodeMap = tagController.selectedNodeMap;
 
-// 输入区草稿按会话索引，切换会话时标签草稿完整恢复
-// （文字由每会话独立的 inputMessage 天然保留，无需在此处理）。
 const composerDrafts = reactive(new Map<string, { items: UserItem[] }>());
 const currentComposerDraft = computed(() => {
   const id = conversation.currentConversationId;
@@ -73,12 +71,13 @@ const currentComposerDraft = computed(() => {
   if (!draft) {
     draft = { items: [] };
     composerDrafts.set(id, draft);
-    // reactive(Map) 内部存原始对象，须取回响应式代理，否则依赖追踪断裂
     draft = composerDrafts.get(id)!;
   }
   return draft;
 });
-const templateData = computed(() => currentComposerDraft.value?.items ?? []);
+const templateData = computed(() => {
+  return currentComposerDraft.value?.items ?? [];
+});
 
 const {
   handleSchemaJsonChanged,
