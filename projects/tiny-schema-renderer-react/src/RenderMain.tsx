@@ -76,7 +76,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       : '';
 
   useIsomorphicLayoutEffect(() => {
-    void setSchema(schemaRef.current, contextApi, {
+    setSchema(schemaRef.current, contextApi, {
       invokePageOnUnmounted,
       setPageOnUnmounted: (fn) => {
         pageOnUnmountedRef.current = fn;
@@ -94,7 +94,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     );
 
     return () => {
-      void invokePageOnUnmounted();
+      invokePageOnUnmounted();
     };
   }, []);
 
