@@ -20,13 +20,8 @@ defineProps<{
 </template>
 
 <style scoped lang="less">
+/* 卡片视觉（padding/背景/圆角/阴影）由外层 tr-bubble__content 提供，这里只负责内容排版 */
 .template-user-message {
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: var(--tr-bubble-content-bg, #fff);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  box-sizing: border-box;
-
   &__text {
     margin: 0;
     font-size: 14px;

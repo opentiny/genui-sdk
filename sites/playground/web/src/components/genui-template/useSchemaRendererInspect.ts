@@ -13,11 +13,14 @@ export function useSchemaRendererInspect(options: {
   isDevMode: Ref<boolean>;
   schema: Ref<Record<string, unknown> | null>;
   insertComposerTag: (node: SelectedSchemaNode) => void;
+  selectable?: Ref<boolean>;
 }) {
   const containerRef = ref<HTMLElement | null>(null);
   const highlight = ref<SchemaInspectHighlight | null>(null);
   let hoveredEl: HTMLElement | null = null;
   let selectedEl: HTMLElement | null = null;
+
+  const isSelectable = () => !options.selectable || options.selectable.value;
 
   const findInspectableElement = (target: EventTarget | null) => {
     let el = target as HTMLElement | null;
@@ -58,8 +61,13 @@ export function useSchemaRendererInspect(options: {
     updateHighlight();
   };
 
+  const clearInspectState = () => {
+    selectedEl = null;
+    setHovered(null);
+  };
+
   const onMouseMove = (event: MouseEvent) => {
-    if (!options.isDevMode.value) {
+    if (!options.isDevMode.value || !isSelectable()) {
       return;
     }
     const el = findInspectableElement(event.target);
@@ -76,7 +84,7 @@ export function useSchemaRendererInspect(options: {
   };
 
   const onClick = (event: MouseEvent) => {
-    if (!options.isDevMode.value || !options.schema.value) {
+    if (!options.isDevMode.value || !isSelectable() || !options.schema.value) {
       return;
     }
     const el = findInspectableElement(event.target);
@@ -114,11 +122,19 @@ export function useSchemaRendererInspect(options: {
     if (enabled) {
       addSyncListeners();
     } else {
-      selectedEl = null;
-      setHovered(null);
+      clearInspectState();
       removeSyncListeners();
     }
   });
+
+  if (options.selectable) {
+    watch(options.selectable, (selectable) => {
+      // 点选被禁用（开始生成 / 切到历史版本）时清掉残留的悬停与选中高亮
+      if (!selectable) {
+        clearInspectState();
+      }
+    });
+  }
 
   onBeforeUnmount(() => {
     removeSyncListeners();

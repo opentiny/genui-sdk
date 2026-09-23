@@ -61,9 +61,9 @@ const { schema, conversation, versionControl, stream, emitter } = useTemplateCon
 const tagController = createComposerTagController<SelectedSchemaNode>();
 const selectedNodeMap = tagController.selectedNodeMap;
 
-// 输入区草稿按会话索引（内存级，与 inputMessage 行为一致：切换会话保留、刷新丢失）。
-// 必须用 reactive 包装 Map：draft.items 的赋值才会触发 templateData computed 重算。
-const composerDrafts = reactive(new Map<string, { items: UserItem[]; nodes: Map<string, SelectedSchemaNode> }>());
+// 输入区草稿按会话索引，切换会话时标签草稿完整恢复
+// （文字由每会话独立的 inputMessage 天然保留，无需在此处理）。
+const composerDrafts = reactive(new Map<string, { items: UserItem[] }>());
 const currentComposerDraft = computed(() => {
   const id = conversation.currentConversationId;
   if (!id) {
@@ -71,12 +71,15 @@ const currentComposerDraft = computed(() => {
   }
   let draft = composerDrafts.get(id);
   if (!draft) {
-    draft = { items: [], nodes: new Map() };
+    draft = { items: [] };
     composerDrafts.set(id, draft);
+    // reactive(Map) 内部存原始对象，须取回响应式代理，否则依赖追踪断裂
+    draft = composerDrafts.get(id)!;
   }
   return draft;
 });
 const templateData = computed(() => currentComposerDraft.value?.items ?? []);
+
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -270,16 +273,13 @@ const inputMessage = computed({
   },
 });
 
-watch(
-  () => currentComposerDraft.value,
-  (draft, prevDraft) => {
-    if (prevDraft) {
-      prevDraft.nodes = new Map(tagController.selectedNodeMap);
-    }
-    tagController.clear();
-    draft?.nodes.forEach((node, id) => tagController.trackTag(id, node));
-  },
-);
+// 版本切换后已点选标签指向旧 schema 节点，剥除标签项（保留文字草稿）
+const clearComposerTags = () => {
+  const draft = currentComposerDraft.value;
+  if (draft?.items.length) {
+    draft.items = draft.items.filter((item) => item.type !== 'template');
+  }
+};
 
 const insertComposerTag = (node: SelectedSchemaNode) => {
   const draft = currentComposerDraft.value;
@@ -296,11 +296,7 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
 
 const SENDER_MAX_LENGTH = 20000;
 
-/**
- * TrSender 0.3.3 still treats template chips as editable text. Until it owns
- * atomic tags, this controller keeps templateData + selectedNodeMap in sync
- * (tombstones enable undo) and only locks newly rendered template chips.
- */
+// TrSender 仍将 template chips 当作可编辑文本，这里保持 templateData 与 selectedNodeMap 同步
 const handleTemplateDataUpdate = (value: UserItem[]) => {
   const draft = currentComposerDraft.value;
   if (draft) {
@@ -318,7 +314,7 @@ const clearComposer = () => {
   tagController.clear();
 };
 
-defineExpose({ insertComposerTag, clearComposer });
+defineExpose({ insertComposerTag, clearComposer, clearComposerTags });
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));

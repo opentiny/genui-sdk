@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
+import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import SchemaVersionHistoryPanel from './SchemaVersionHistoryPanel.vue';
 import SchemaJsonEditor from './SchemaJsonEditor.vue';
@@ -23,16 +24,42 @@ const { schema, conversation, versionControl, editor, ui, actions } = useTemplat
 const { isDevMode } = useSchemaDevMode();
 const chatRef = ref<InstanceType<typeof GenuiTemplateChat> | null>(null);
 
+const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
+const generating = computed(() =>
+  messageManager.value
+    ? GeneratingStatus.includes(messageManager.value.messageState.status)
+    : false,
+);
+
+// 历史版本的 schema 不允许点选修改
+const isLatestVersion = computed(() => {
+  const cardId = schema.currentCardId;
+  return !cardId || versionControl.isLatestSchemaVersionCard(cardId);
+});
+
+const inspectSelectable = computed(() => isDevMode.value && !generating.value && isLatestVersion.value);
+
 const insertComposerTag = (node: SelectedSchemaNode) => {
   chatRef.value?.insertComposerTag(node);
 };
 
-// 退出开发态时清空已点选的 composer 标签
-watch(isDevMode, (enabled) => {
-  if (!enabled) {
-    chatRef.value?.clearComposer();
-  }
-});
+// 关闭预览面板时退出开发态（已点选标签保留，可再次开启继续点选；仅版本切换时清空，见下方 watch）
+watch(
+  () => ui.rendererPanelVisible,
+  (visible) => {
+    if (!visible && isDevMode.value) {
+      isDevMode.value = false;
+    }
+  },
+);
+
+// 版本切换后已点选标签指向旧 schema 节点，清空标签（保留文字草稿）
+watch(
+  () => schema.currentCardId,
+  () => {
+    chatRef.value?.clearComposerTags();
+  },
+);
 
 const rendererSchema = computed(() => {
   const preview = schema.currentPreviewSchema ?? schema.currentSchema;
@@ -55,6 +82,7 @@ const {
   isDevMode,
   schema: rendererSchema,
   insertComposerTag,
+  selectable: inspectSelectable,
 });
 </script>
 
@@ -101,7 +129,10 @@ const {
         <div class="schema-renderer-body">
           <div
             ref="rendererContainerRef"
-            :class="['schema-renderer', { 'is-inspectable': isDevMode }]"
+            :class="[
+              'schema-renderer',
+              { 'is-inspectable': isDevMode, 'is-inspect-locked': isDevMode && !inspectSelectable },
+            ]"
             @mousemove="handleRendererMouseMove"
             @mouseleave="handleRendererMouseLeave"
             @click.capture="handleRendererInspectClick"
@@ -191,6 +222,13 @@ const {
 
         :deep([data-id]) {
           cursor: default;
+        }
+      }
+
+      // 检查态开启但点选不可用（AI 生成中 / 预览历史版本）：视觉提示不可点选
+      &.is-inspect-locked {
+        :deep([data-id]) {
+          cursor: not-allowed;
         }
       }
     }
