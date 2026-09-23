@@ -6,7 +6,7 @@ import { SchemaRenderer, type SchemaRendererHandle } from '../src/RenderMain';
 const g = globalThis as Record<string, unknown>;
 
 describe('SchemaRenderer life cycles', () => {
-  it('invokes old onUnmounted before applying the next schema, and does not run the new one immediately', async () => {
+  it('invokes old onUnmounted while applying the next schema, and does not run the new one immediately', async () => {
     const first = {
       componentName: 'Page',
       children: [{ componentName: 'div' }],
@@ -40,7 +40,7 @@ describe('SchemaRenderer life cycles', () => {
     expect(g.__secondUnmounted).toBe(true);
   });
 
-  it('waits for an asynchronous onUnmounted before initializing the next schema', async () => {
+  it('initializes the next context before waiting for an asynchronous onUnmounted', async () => {
     let resolveUnmount!: () => void;
     g.__asyncUnmount = () => new Promise<void>((resolve) => (resolveUnmount = resolve));
     const rendererRef = createRef<SchemaRendererHandle>();
@@ -59,9 +59,10 @@ describe('SchemaRenderer life cycles', () => {
     };
 
     const { rerender } = render(createElement(SchemaRenderer, { ref: rendererRef, schema: first }));
+    await new Promise((r) => setTimeout(r, 0));
     rerender(createElement(SchemaRenderer, { ref: rendererRef, schema: second }));
 
-    expect(rendererRef.current?.getContext().state).toEqual({ version: 1 });
+    expect(rendererRef.current?.getContext().state).toEqual({ version: 2 });
     await act(async () => resolveUnmount());
     expect(rendererRef.current?.getContext().state).toEqual({ version: 2 });
 
@@ -78,6 +79,7 @@ describe('SchemaRenderer life cycles', () => {
     };
 
     const { rerender } = render(createElement(SchemaRenderer, { schema }));
+    await new Promise((r) => setTimeout(r, 0));
     expect(g.__nullUnmounted).toBeUndefined();
 
     rerender(createElement(SchemaRenderer, { schema: null }));
@@ -87,8 +89,7 @@ describe('SchemaRenderer life cycles', () => {
     delete g.__nullUnmounted;
   });
 
-  it('handles initialization errors after an asynchronous onUnmounted', async () => {
-    let resolveUnmount!: () => void;
+  it('handles initialization errors before invoking onUnmounted', async () => {
     const initializationError = new Error('invalid state');
     const invalidState = new Proxy(
       { toJSON: () => ({}) },
@@ -99,7 +100,7 @@ describe('SchemaRenderer life cycles', () => {
       },
     );
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    g.__resolveBeforeInvalidSchema = () => new Promise<void>((resolve) => (resolveUnmount = resolve));
+    g.__invalidSchemaUnmounted = vi.fn();
 
     const first = {
       componentName: 'Page',
@@ -108,7 +109,7 @@ describe('SchemaRenderer life cycles', () => {
       lifeCycles: {
         onUnmounted: {
           type: 'JSFunction' as const,
-          value: 'function() { return globalThis.__resolveBeforeInvalidSchema(); }',
+          value: 'function() { globalThis.__invalidSchemaUnmounted(); }',
         },
       },
     };
@@ -119,12 +120,14 @@ describe('SchemaRenderer life cycles', () => {
     };
 
     const { rerender } = render(createElement(SchemaRenderer, { schema: first }));
+    await new Promise((r) => setTimeout(r, 0));
     rerender(createElement(SchemaRenderer, { schema: invalid }));
-    await act(async () => resolveUnmount());
+    await new Promise((r) => setTimeout(r, 0));
 
     expect(consoleError).toHaveBeenCalledWith('SchemaRenderer initialization error:', initializationError);
+    expect(g.__invalidSchemaUnmounted).not.toHaveBeenCalled();
 
     consoleError.mockRestore();
-    delete g.__resolveBeforeInvalidSchema;
+    delete g.__invalidSchemaUnmounted;
   });
 });

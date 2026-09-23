@@ -32,7 +32,6 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const contextApi = useContext();
   const { context, getContext, setContext } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
-  const pageUnmountPromiseRef = useRef<Promise<void> | null>(null);
   const schemaRef = useRef<RootNode | null>(schema);
   schemaRef.current = schema;
   const renderSettings = useRendererSettings();
@@ -53,29 +52,12 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     [setContext, getContext, contextApi],
   );
 
-  const invokePageOnUnmounted = useCallback(function invoke(): void | Promise<void> {
-    if (pageUnmountPromiseRef.current) {
-      return pageUnmountPromiseRef.current.then(() => invoke());
-    }
-
+  const invokePageOnUnmounted = useCallback(async () => {
     const fn = pageOnUnmountedRef.current;
     pageOnUnmountedRef.current = null;
     if (typeof fn !== 'function') return;
     try {
-      const result = fn();
-      if (result && typeof result.then === 'function') {
-        const pending = result
-          .catch((error) => {
-            console.error('SchemaRenderer onUnmounted error:', error);
-          })
-          .finally(() => {
-            if (pageUnmountPromiseRef.current === pending) {
-              pageUnmountPromiseRef.current = null;
-            }
-          });
-        pageUnmountPromiseRef.current = pending;
-        return pending;
-      }
+      await fn();
     } catch (error) {
       console.error('SchemaRenderer onUnmounted error:', error);
     }
@@ -97,29 +79,29 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     const currentSchema = schemaRef.current;
 
     let cancelled = false;
-    const initializeSchema = () => {
-      if (cancelled || !currentSchema || !pageInitSignature) return;
+    const initializeSchema = async () => {
+      if (cancelled) return;
+
       try {
-        const { onMounted, onUnmounted } = setSchema(currentSchema, contextApi);
+        if (!currentSchema || !pageInitSignature) {
+          await invokePageOnUnmounted();
+          return;
+        }
+
+        const { onMounted, onUnmounted } = await setSchema(currentSchema, contextApi, invokePageOnUnmounted);
         if (cancelled) return;
         pageOnUnmountedRef.current = onUnmounted;
-        const result = onMounted?.();
-        if (result && typeof result.then === 'function') {
-          void result.catch((error) => {
-            console.error('SchemaRenderer onMounted error:', error);
-          });
+        try {
+          await onMounted?.();
+        } catch (error) {
+          console.error('SchemaRenderer onMounted error:', error);
         }
       } catch (error) {
         console.error('SchemaRenderer initialization error:', error);
       }
     };
 
-    const unmountResult = invokePageOnUnmounted();
-    if (unmountResult && typeof unmountResult.then === 'function') {
-      void unmountResult.then(initializeSchema);
-    } else {
-      initializeSchema();
-    }
+    void initializeSchema();
 
     return () => {
       cancelled = true;

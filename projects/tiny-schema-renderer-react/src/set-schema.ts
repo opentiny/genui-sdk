@@ -65,7 +65,14 @@ export function setRefs(data: Record<string, unknown> | undefined, contextApi: P
   Object.assign(refs, (parseData(data, {}, contextApi.getContext()) as Record<string, unknown>) || {});
 }
 
-export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
+type PageLifeCycleFns = ReturnType<typeof getPageLifeCycleFns>;
+type InvokePageOnUnmounted = () => void | Promise<void>;
+
+export async function setSchema(
+  schema: CardSchema,
+  contextApi: PageContextApi,
+  invokePageOnUnmounted?: InvokePageOnUnmounted,
+): Promise<PageLifeCycleFns> {
   const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
   const nextContext = { ...contextApi.getContext() };
   delete nextContext.state;
@@ -75,6 +82,8 @@ export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
   setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
   setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
   setRefs(schema.refs as Record<string, unknown> | undefined, contextApi, true);
+
+  await invokePageOnUnmounted?.();
 
   if (schema.css && typeof document !== 'undefined') {
     const id = contextApi.getContext().cssScopeId!;

@@ -5,6 +5,27 @@ import { setSchema } from '../src/set-schema';
 import bindThisSchema from '../test/mock/bind-this.json';
 
 describe('setSchema', () => {
+  it('invokes old onUnmounted after initializing the next context and refs', async () => {
+    const contextApi = createContextApi();
+    let contextDuringUnmount: ReturnType<typeof contextApi.getContext> | undefined;
+
+    await setSchema(
+      {
+        state: { version: 2 },
+        refs: { form: 'next-form' },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+      () => {
+        contextDuringUnmount = contextApi.getContext();
+      },
+    );
+
+    expect(contextDuringUnmount?.state).toEqual({ version: 2 });
+    expect(contextDuringUnmount?.refs).toEqual({ form: 'next-form' });
+  });
+
   it('methods execute with latest context via parsed.call(contextApi.getContext())', () => {
     const contextApi = createContextApi();
     setSchema(
@@ -117,7 +138,7 @@ describe('setSchema', () => {
     const contextApi = createContextApi();
     const before = contextApi.getContext();
 
-    const { onMounted } = setSchema(
+    const { onMounted } = await setSchema(
       {
         state: { tableData: [] as unknown[] },
         lifeCycles: {
