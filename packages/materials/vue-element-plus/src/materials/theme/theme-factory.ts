@@ -25,6 +25,9 @@ function resolveDescriptor(
   );
 }
 
+/**
+ * @experimental 实验特性，API 可能在后续版本中发生变更。
+ */
 export function themeFactory(): IMaterialsTheme {
 
   const theme = ref('light');
