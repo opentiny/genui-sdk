@@ -5,8 +5,24 @@ import {
 import type { ChatCompletionRequest } from '@opentiny/tiny-robot-kit';
 import { templateChat } from './template-chat-api';
 import { getBackendChatMessages, getLastUserMessage } from './template-chat-utils';
+import { segmentsToDisplayText, type ComposerSegment } from './schema-composer';
 import { createTemplateResponseHandlers } from './template-response-handlers';
+import type { ITemplateUserMessageItem } from './chat.types';
 import type { LLMConfig } from './chat.types';
+
+/** 有 template-user segments 时用展示文本（标签为 [id:xxx]）作为卡片标题 input，避免内联标记进入历史面板 */
+function resolveDisplayInput(
+  lastUserMessage: { content?: unknown; messages?: unknown } | undefined,
+): string {
+  const items = lastUserMessage?.messages as ITemplateUserMessageItem[] | undefined;
+  const segments: ComposerSegment[] | undefined = items?.find(
+    (item) => item.type === 'template-user',
+  )?.segments;
+  if (segments?.length) {
+    return segmentsToDisplayText(segments);
+  }
+  return String(lastUserMessage?.content ?? '');
+}
 
 export interface ITemplateModelProviderOptions {
   url: string;
@@ -60,7 +76,7 @@ export class TemplateModelProvider extends CustomModelProvider {
     super.setupStreamContext(context, request);
     const lastUserMessage = getLastUserMessage(request.messages);
     context.messageId = String(lastUserMessage?.messageId ?? '');
-    context.input = String(lastUserMessage?.content ?? '');
+    context.input = resolveDisplayInput(lastUserMessage);
     context.emitter = this.emitter;
     context.requestId = Math.random().toString(36).substring(2, 10);
   }
