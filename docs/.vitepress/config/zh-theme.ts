@@ -75,6 +75,10 @@ export const zhThemeConfig: DefaultTheme.Config = {
         items: [{ text: 'API 文档', link: '/components/core/api' }],
       },
       {
+        text: 'Skill Generator 文档',
+        items: [{ text: 'API 文档', link: '/components/skill-generator/api' }],
+      },
+      {
         text: '物料包文档',
         items: [
           { text: 'Vue OpenTiny Vue', link: '/components/materials/vue-opentiny-vue' },
