@@ -32,9 +32,10 @@ const DEFAULT_PRETTIER_OPTS: Record<string, unknown> = {
 
 const NG_TEMPLATE_SCHEMA_NAME = 'NgTemplate';
 
+// onNgModelChange不能直接去掉on 转成小写会报错
 const BUILTIN_OUTPUTS = new Set(['ngModelChange']);
 
-/** 事件键的 `on` 前缀形式:`onCurrentPageChange` → `CurrentPageChange`(只剥前缀,不动大小写) */
+// 事件键的 `on` 前缀形式
 const ON_PREFIXED_KEY_RE = /^on([A-Z]\w*)$/;
 
 export class AngularCodeGenerator extends CodeGeneratorBase {
@@ -59,7 +60,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     };
   }
 
-  /** 组件名 → 激活的物料配置。单物料包直接返回;多物料包按激活顺序查,首个命中该组件的物料包胜出;未命中兜底第一个 */
+  // 组件名 → 对应的物料配置。
   protected resolveConfig(componentName: string): IAngularMaterialsConfig {
     if (this.materialsConfigs.length === 1) return this.materialsConfigs[0];
     for (const config of this.materialsConfigs) {
@@ -87,10 +88,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return this.resolveConfig(componentName).elementSelector[componentName] || hyphenate(componentName);
   }
 
-  /**
-   * 组件名 → 宿主元素上要挂的属性选择器(选择器是属性型的组件靠它命中,如 TiButton 渲染成 <button tiButton>)。
-   * `value` 为 undefined 的是裸属性,只出属性名不出值。
-   */
+  // 组件名 → 宿主元素上要挂的属性选择器(选择器是属性型的组件靠它命中
   protected resolveAttributeSelectors(componentName: string): IAngularAttributeSelector[] {
     return this.resolveConfig(componentName).attributeSelector?.[componentName] ?? [];
   }
@@ -100,13 +98,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return componentName === NG_TEMPLATE_SCHEMA_NAME;
   }
 
-  /**
-   * 空模板节点守卫:ng-template 既无 children 又无 props.let 时整节点丢弃。
-   * Angular 允许 `<ng-template></ng-template>`,但它不出现在渲染结果里,产出只会是噪音。
-   */
+  // 空模板节点守卫:ng-template 无 children 时整节点丢弃。
   protected isEmptyTemplateNode(
     componentName: string | undefined,
-    props: Record<string, unknown>,
     children: unknown,
   ): boolean {
     if (!this.isNgTemplateComponent(componentName)) {
@@ -114,20 +108,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
     const hasChildren = Array.isArray(children) ? children.length > 0 : !!children;
     return !hasChildren;
-  }
-
-  /** 以临时 internalTypes 集合执行 fn,结束后恢复外层集合,避免借道改写共享引用 */
-  protected withLocalInternalTypes<T>(
-    description: ICodegenDescription,
-    fn: (localTypes: Set<string>) => T,
-  ): T {
-    const prev = description.internalTypes;
-    description.internalTypes = new Set(prev);
-    try {
-      return fn(description.internalTypes);
-    } finally {
-      description.internalTypes = prev;
-    }
   }
 
   /**
@@ -279,18 +259,20 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       return `"${this.toTemplateValue(rawValue)}"`;
     }
 
-    // 剩余为字面量值，对象字面量需先探查是否内含 JSFunction / JSSlot
+    // 剩余为字面量值，对象字面量需先探查是否内含 JSFunction
     if (rawValue && typeof rawValue === 'object') {
-      const localInternalTypes = this.withLocalInternalTypes(description, (localTypes) => {
-        this.traverseState(rawValue as Record<string, unknown>, description, state, schemaMethods ?? {});
-        return localTypes;
-      });
+      // 这一趟遍历顺带就地改写内层 JSFunction,返回值报告命中的类型
+      const internalTypes = this.traverseValue(
+        rawValue as Record<string, unknown>,
+        description,
+        state,
+        schemaMethods ?? {},
+      );
 
-      if (localInternalTypes.has(JS_SLOT)) {
-        // 对象里嵌了 JSSlot:整条属性不产出(内层 traverseState 已把 JSSlot 键静默丢弃)
+      if (internalTypes.has(JS_SLOT)) {
         return null;
       }
-      if (localInternalTypes.has('JSFunction')) {
+      if (internalTypes.has(JS_FUNCTION)) {
         return `"${this.hoistPropToState(key, rawValue, state)}"`;
       }
 
@@ -611,13 +593,21 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     result.push((children as string) || '');
   }
 
+  /**
+   * 就地改写 current[prop]:JSExpression / JSFunction 转成 #QUOTES_START#…#QUOTES_END# 串。
+   * 返回命中的协议类型(未命中返回 null)——调用方据此决定整条属性怎么产出:
+   *
+   *   JS_SLOT      Angular 没有插槽概念,current[prop] 原样不动,由调用方丢弃整条属性
+   *   JS_FUNCTION  内层函数已就地箭头函数化,调用方把整条属性提升进 state、模板里按名字引用
+   *   其余         state 根遍历只关心改写,不关心返回值
+   */
   protected transformStateType(
     current: Record<string, any>,
     prop: string,
     description: ICodegenDescription,
     rootState: Record<string, any>,
     methods: Methods,
-  ): void {
+  ): string | null {
     const stateEntry = current[prop];
     if (stateEntry?.accessor) {
       const getterValue = stateEntry.accessor.getter?.value ?? 'function() {}';
@@ -640,16 +630,15 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       } else {
         delete current[prop];
       }
-      return;
+      return null;
     }
 
     const builtInTypes = [JS_EXPRESSION, JS_FUNCTION, JS_SLOT];
     const { type } = current[prop] || {};
     if (!builtInTypes.includes(type)) {
-      return;
+      return null;
     }
 
-    description.internalTypes.add(type);
     const { start, end } = UNWRAP_QUOTES;
 
     if (type === JS_EXPRESSION) { // js表达式 加#QUOTES_START# 和 #QUOTES_END# 把js表达式结构对象转化为函数字符串
@@ -657,7 +646,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       current[prop] = computed
         ? `${start}computed(${value.replace(/this\./g, '')})${end}`
         : `${start}${value.replace(/this\./g, '')}${end}`;
-      return;
+      return JS_EXPRESSION;
     }
 
     if (type === JS_FUNCTION) { // 箭头函数化， 把函数结构对象转化为函数字符串
@@ -665,35 +654,44 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       const info = this.getFunctionInfo(value);
       if (!info) {
         current[prop] = `${start}${typeof value === 'string' ? value.replace(/this\./g, '') : ''}${end}`;
-        return;
+        return JS_FUNCTION;
       }
       const inlineFunc = `${info.type} (${info.params.join(',')}) => { ${info.body.replace(/this\./g, '')} }`;
       current[prop] = `${start}${inlineFunc}${end}`;
-      return;
+      return JS_FUNCTION;
     }
+
     // JSSlot 落到这里即静默丢弃:不产出,也不改写 current[prop](避免 delete 在数组下标上留洞)。
     // 调用方据此把整条属性丢掉——静默产出 `columns='{"type":"JSSlot",…}'` 比不产出更糟。
+    return JS_SLOT;
   }
 
-  protected traverseState(
-    state: Record<string, any> | any[] | null,
+  // 遍历某条 prop 的右值——逐键就地改写,
+  // 并把命中的协议类型收进 internalTypes。返回值是 internalTypes。
+  protected traverseValue(
+    value: Record<string, any> | any[] | null,
     description: ICodegenDescription,
     rootState: Record<string, any>,
     methods: Methods,
-  ): void {
-    if (typeof state !== 'object' || state === null) {
-      return;
+    internalTypes: Set<string> = new Set<string>(),
+  ): Set<string> {
+    if (typeof value !== 'object' || value === null) {
+      return internalTypes;
     }
-    if (Array.isArray(state)) {
-      state.forEach((item) => this.traverseState(item, description, rootState, methods));
-      return;
+    if (Array.isArray(value)) {
+      value.forEach((item) => this.traverseValue(item, description, rootState, methods, internalTypes));
+      return internalTypes;
     }
-    Object.keys(state).forEach((prop) => {
-      if (Object.prototype.hasOwnProperty.call(state, prop)) {
-        this.transformStateType(state, prop, description, rootState, methods);
-        this.traverseState(state[prop], description, rootState, methods);
+    Object.keys(value).forEach((prop) => {
+      if (Object.prototype.hasOwnProperty.call(value, prop)) {
+        const matchedType = this.transformStateType(value, prop, description, rootState, methods);
+        if (matchedType !== null) {
+          internalTypes.add(matchedType);
+        }
+        this.traverseValue(value[prop], description, rootState, methods, internalTypes);
       }
     });
+    return internalTypes;
   }
 
   /** Text 文本节点生成:有 style 时包一层 <span>,无 style 时保持纯插值 */
@@ -837,7 +835,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     methods: Methods,
   ): string {
     const { state = {} } = schema;
-    this.traverseState(state as Record<string, any>, description, state, methods);
+    this.traverseValue(state as Record<string, any>, description, state, methods);
     const stateStr = unwrapExpression(JSON.stringify(state, null, 2));
     if (!stateStr || stateStr === '{}') {
       return '';

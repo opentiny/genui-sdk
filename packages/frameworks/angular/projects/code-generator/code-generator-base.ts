@@ -261,7 +261,6 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
     return {
       componentSet: new Set(),
       iconComponents: { componentNames: [], exportNames: [] }, // 纯预留
-      internalTypes: new Set(),
       stateAccessors: [],
       viewChildRefs: [],
       templateGeneratedMethods: [],

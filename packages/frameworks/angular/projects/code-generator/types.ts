@@ -41,7 +41,6 @@ export interface IViewChildRef {
 export interface ICodegenDescription {
   componentSet: Set<string>;
   iconComponents: { componentNames: string[]; exportNames: string[] };
-  internalTypes: Set<string>;
   stateAccessors: IStateAccessorDefinition[];
 
   /** props.ref 收集到的 @ViewChild 声明与 ngAfterViewInit 赋值目标 */
