@@ -1,5 +1,6 @@
 import { defineAsyncComponent, h } from 'vue';
 import { cardIdSymbol, type GenuiChat } from '@opentiny/genui-sdk-vue';
+import { locale } from '../i18n';
 
 const GenuiRendererNg = defineAsyncComponent(() =>
   import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
@@ -36,6 +37,7 @@ export function getMessageRendererAngular(instance: InstanceType<typeof GenuiCha
         requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
         generating: instance.lastSchemaCardId === schemaCardProps.id ? instance.generating : false,
         customActions,
+        locale,
         key: schemaCardProps.id,
       }),
     );

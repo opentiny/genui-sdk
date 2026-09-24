@@ -117,9 +117,10 @@ const temperature = ref(0.7); // [!code ++]
 
 ## 通过 GenuiConfigProvider 配置物料与主题
 
-物料与主题都通过 `GenuiConfigProvider` 配置：`materials` 注入组件物料，`theme` 控制界面主题。
+物料与主题都通过 `GenuiConfigProvider` 配置：`materials` 注入组件物料，`theme` 控制界面主题。官方物料通过一个 `runtimeFactory` 同时接收主题与语言配置，并由同一个稳定的运行时根组件持有组件库 Provider，因此应用层不需要再额外包裹组件库 ConfigProvider。
 
-内置主题选项：
+OpenTiny Vue 官方物料支持以下主题：
+
 - `'dark'`：深色主题
 - `'lite'`：清新主题
 - `'light'`：浅色主题（默认）

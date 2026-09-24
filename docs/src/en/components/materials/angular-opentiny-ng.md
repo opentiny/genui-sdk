@@ -11,11 +11,12 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 | `.` | `materials`, `materialsMeta` |
 | `./materials` | `materials` |
 | `./meta` | `materialsMeta` |
+| `./i18n` | `setLocale`, `runtimeFactory` |
 
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: OpenTiny NG component map for ConfigProvider.
+- **Description**: OpenTiny NG component map for ConfigProvider. Its `runtimeFactory` declares `zh_CN` / `en_US` / `es_US` / `fr_FR` / `pt_BR` on `locales`. `apply()` / `setLocale()` match the canonical id and call `TiLocale.setLocale`. This runtime needs no `root` and does not manage themes. If an Angular Custom Element sits outside the Vue `GenuiConfigProvider`, import and call `setLocale()` from `./i18n` when the host locale changes.
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';

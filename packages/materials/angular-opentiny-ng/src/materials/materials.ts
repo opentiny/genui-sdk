@@ -3,11 +3,9 @@ import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-s
 import { materialsMeta } from '../meta';
 import { autoApplyDirectives, directives } from './directives';
 import { components, modules } from './components';
+import { runtimeFactory } from './i18n';
 
-export type AutoApplyDirectivePattern = Record<
-  string,
-  (schema: any, context?: Record<PropertyKey, any>) => boolean
->;
+export type AutoApplyDirectivePattern = Record<string, (schema: any, context?: Record<PropertyKey, any>) => boolean>;
 
 export interface INgMaterials extends IMaterials {
   modules?: Record<string, Type<any>>;
@@ -21,4 +19,5 @@ export const materials: INgMaterials = {
   directives,
   autoApplyDirectives,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+  runtimeFactory,
 };

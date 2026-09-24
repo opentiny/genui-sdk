@@ -13,7 +13,7 @@ When used with `GenuiRenderer` or `GenuiChat`, you typically need to inject comp
 - **Type**: `string`
 - **Required**: No
 - **Default**: `'light'`
-- **Description**: Theme mode. Accepts any string (including `auto`), resolved by the materials package together with the system `colorScheme`. The framework no longer limits the enum, and different materials may support different theme sets: e.g. the OpenTiny Vue materials ship with `light` / `dark` / `lite`, while the Element Plus materials ship with `light` / `dark`. See [Materials Theme](../materials/theme).
+- **Description**: Theme mode. Accepts any string (including `auto`) and is resolved by the materials package's `runtimeFactory` together with the system `colorScheme`. The framework no longer limits the enum, and different materials may support different theme sets: e.g. the OpenTiny Vue materials ship with `light` / `dark` / `lite`, while the Element Plus materials ship with `light` / `dark`. See [Materials Runtime](./core/api#imaterialsruntime).
   - `'dark'`: Dark theme
   - `'lite'`: Lite theme (OpenTiny Vue materials only)
   - `'light'`: Light theme
@@ -48,14 +48,14 @@ See [GenuiConfigProvider - Custom Theme](../examples/config-provider/custom-them
 
 ### locale
 
-- **Type**: `string`
+- **Type**: `MaterialsLocaleId` (`string`, recommended `zh_CN`)
 - **Required**: No
 - **Default**: `'zh_CN'`
-- **Description**: Sets the component locale. Supported language codes include `'zh_CN'` (Simplified Chinese) and `'en_US'` (English).
+- **Description**: Locale. Prefer canonical `language_REGION` ids; the type is not a closed enum. GenUI Chat ships `'zh_CN'` and `'en_US'`. Each materials package declares its own `locales`. UI-library strings such as `zh-CN` / `zh-cn` stay in the package's private map. Do not pass `zh-CN`.
 
 ```vue
 <template>
-  <GenuiConfigProvider locale="en_US">
+  <GenuiConfigProvider :materials="materials" locale="en_US">
     <GenuiChat :url="url" />
   </GenuiConfigProvider>
 </template>
@@ -101,9 +101,9 @@ See [GenuiConfigProvider - i18n Configuration](../examples/config-provider/i18n)
 
 ### materials
 
-- **Type**: `IMaterials`
+- **Type**: `MergedMaterials` (a single `IMaterials` object is also accepted)
 - **Required**: No (required when using `GenuiRenderer` / `GenuiChat`)
-- **Description**: Component materials for the renderer. Usually pass materials from a materials package, e.g. the `materials` object from `@opentiny/genui-sdk-materials-vue-opentiny-vue`.
+- **Description**: Component materials for the renderer. Usually pass materials from a materials package, e.g. the `materials` object from `@opentiny/genui-sdk-materials-vue-opentiny-vue`. Materials may declare a UI-library runtime through `runtimeFactory`. ConfigProvider creates and caches the runtime instance, calls `apply()` initially and when theme, locale, or the system color scheme changes, and wraps the content with the stable `root`.
 
 ```vue
 <template>

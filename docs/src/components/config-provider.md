@@ -11,7 +11,7 @@
 - **类型**: `string`
 - **必填**: 否
 - **默认值**: `'light'`
-- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料主题](./materials/theme)。
+- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包的 `runtimeFactory` 结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料运行时](./core/api#imaterialsruntime)。
   - `'dark'`：深色主题
   - `'lite'`：清新主题（仅 OpenTiny Vue 物料）
   - `'light'`：浅色主题
@@ -46,14 +46,14 @@
 
 ### locale
 
-- **类型**: `string`
+- **类型**: `MaterialsLocaleId`（`string`，推荐 `zh_CN`）
 - **必填**: 否
 - **默认值**: `'zh_CN'`
-- **说明**: 设置组件的语言环境。支持的语言代码包括 `'zh_CN'`（简体中文）和 `'en_US'`（英文）。
+- **说明**: 设置语言环境，推荐 `语言_地区` 规范 id，不限制为官方枚举。GenUI Chat 内置文案目前提供 `'zh_CN'`、`'en_US'`。物料 `locales` 自行声明支持的 id；组件库自己的 `zh-CN` / `zh-cn` 只存在于物料内部映射表。不要传入 `zh-CN`。
 
 ```vue
 <template>
-  <GenuiConfigProvider locale="en_US">
+  <GenuiConfigProvider :materials="materials" locale="en_US">
     <GenuiChat :url="url" />
   </GenuiConfigProvider>
 </template>
@@ -99,9 +99,9 @@ const customI18n: I18nMessages = {
 
 ### materials
 
-- **类型**: `IMaterials`
+- **类型**: `MergedMaterials`（单个 `IMaterials` 也可直接传入）
 - **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时需要配置）
-- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。
+- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。物料可通过 `runtimeFactory` 声明组件库运行时；ConfigProvider 会创建并缓存运行时实例，首次渲染及主题、语言或系统亮暗色变化时调用 `apply()`，并用稳定的 `root` 包裹内容。
 
 ```vue
 <template>

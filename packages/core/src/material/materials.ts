@@ -1,4 +1,4 @@
-import type { MaterialsThemeFactory } from './materials-theme';
+import type { MaterialsRuntimeFactory } from './materials-runtime';
 
 export type IMaterialComponent = unknown;
 
@@ -8,10 +8,10 @@ export interface IMaterials {
   components?: IMaterialsMap;
   requiredCompleteFieldSelectors?: string[];
   defaultPropsMap?: Record<string, any>;
-  themeFactory?: MaterialsThemeFactory;
+  runtimeFactory?: MaterialsRuntimeFactory;
   [key: string]: any;
 }
 
-export type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
-  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+export type MergedMaterials = Omit<IMaterials, 'runtimeFactory'> & {
+  runtimeFactory?: MaterialsRuntimeFactory | MaterialsRuntimeFactory[];
 };
