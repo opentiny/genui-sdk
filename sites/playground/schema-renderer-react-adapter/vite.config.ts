@@ -16,6 +16,11 @@ export default defineConfig({
         'react-dom',
         '@opentiny/genui-sdk-react',
       ],
+      onwarn(warning, warn) {
+        // antd 各组件带 "use client"，库模式打包时 Rollup 会忽略该指令并告警
+        if (warning.code === 'MODULE_LEVEL_DIRECTIVE') return;
+        warn(warning);
+      },
     },
   },
 });

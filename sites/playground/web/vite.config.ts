@@ -68,6 +68,11 @@ export default defineConfig(({ command }) => {
     },
     build: {
       rollupOptions: {
+        onwarn(warning, warn) {
+          // @vueuse/core 产物里 #__PURE__ 注释位置 Rollup 无法识别，会丢弃后继续打包
+          if (warning.code === 'INVALID_ANNOTATION') return;
+          warn(warning);
+        },
         output: {
           manualChunks: createManualChunks(),
           chunkFileNames: 'assets/[name]-[hash].js',
