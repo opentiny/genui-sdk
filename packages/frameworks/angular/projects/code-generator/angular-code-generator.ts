@@ -272,6 +272,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       if (internalTypes.has(JS_SLOT)) {
         return null;
       }
+      // 如果右值对象里又有函数，则将对象里的函数格式规范化，并把对象放在state里
       if (internalTypes.has(JS_FUNCTION)) {
         return `"${this.hoistPropToState(key, rawValue, state)}"`;
       }
@@ -730,7 +731,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     // 判断是不是NgTemplate
     const isTemplate = this.isNgTemplateComponent(componentName);
 
-    if (this.isEmptyTemplateNode(componentName, props as Record<string, unknown>, children)) {
+    if (this.isEmptyTemplateNode(componentName, children)) {
       return '';
     }
 
@@ -745,7 +746,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     } else if (isTemplate) { // 因为使用ng-template不用记录import，所以不走下面的else分支
       component = 'ng-template';
     } else {
-      // 组件名 → 宿主元素标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' }
+      // 组件名 → 宿主元素标签选择器
       component = this.resolveComponentTag(componentName || 'div');
     }
 
