@@ -299,20 +299,17 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
 
 const SENDER_MAX_LENGTH = 20000;
 
-// 参考 chat 模式图片上传的数据层校验：组件标签文本被改写时，还原回选中的组件名
 const handleTemplateDataUpdate = (value: UserItem[]) => {
   const draft = currentComposerDraft.value;
   if (!draft) {
     return;
   }
-  draft.items = value.map((item) => {
+  draft.items = value.filter((item) => {
     if (item.type === 'template') {
       const node = selectedNodeMap.get((item as any).id as string);
-      if (node && (item as any).content !== node.componentName) {
-        return { ...item, content: node.componentName };
-      }
+      return !node || (item as any).content === node.componentName;
     }
-    return item;
+    return true;
   });
 };
 

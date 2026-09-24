@@ -72,7 +72,6 @@ defineProps<{
     white-space: nowrap;
   }
 
-  /* hover 预览（PreviewTag 浮层内的最小组件信息） */
   &__preview {
     display: flex;
     flex-direction: column;
@@ -90,7 +89,6 @@ defineProps<{
     }
   }
 
-  /* 全屏查看（PreviewTag overlay 内的组件信息） */
   &__fullscreen {
     display: flex;
     flex-direction: column;
