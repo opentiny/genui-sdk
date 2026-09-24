@@ -567,6 +567,10 @@ onUnmounted(() => {
   margin-top: 8px;
 }
 
+:deep(.editor-container [data-type='block']) {
+  white-space: nowrap;
+}
+
 :deep(.tr-bubble.placement-start) {
   .tr-bubble__content {
     padding: 0;
