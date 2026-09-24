@@ -35,6 +35,10 @@
       "types": "./dist/legacy-chat.d.ts",
       "import": "./dist/legacy-chat.js"
     },
+    "./legacy-config-provider": {
+      "types": "./dist/legacy-config-provider.d.ts",
+      "import": "./dist/legacy-config-provider.js"
+    },
     "./renderer": {
       "types": "./dist/renderer.d.ts",
       "import": "./dist/renderer.js"
