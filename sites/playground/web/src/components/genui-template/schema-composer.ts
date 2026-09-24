@@ -3,7 +3,7 @@ import type { SelectedSchemaNode } from './schema-node-selection';
 
 export type ComposerSegment =
   | { type: 'text'; value: string }
-  | { type: 'tag'; tag: SelectedSchemaNode };
+  | { type: 'node'; value: SelectedSchemaNode };
 
 export interface ComposerContent {
   segments: ComposerSegment[];
@@ -30,8 +30,8 @@ export function templateDataToSegments(
     const node = item.id ? nodeMap.get(item.id) : undefined;
     if (node) {
       segments.push({
-        type: 'tag',
-        tag: node,
+        type: 'node',
+        value: node,
       });
     }
   }
@@ -41,7 +41,7 @@ export function templateDataToSegments(
 
 export function segmentsToPlainText(segments: ComposerSegment[]): string {
   return segments
-    .map((seg) => (seg.type === 'text' ? seg.value : seg.tag.componentName))
+    .map((seg) => (seg.type === 'text' ? seg.value : seg.value.componentName))
     .join('')
     .trim();
 }
@@ -52,36 +52,33 @@ export function segmentsToPlainText(segments: ComposerSegment[]): string {
  */
 export function segmentsToDisplayText(segments: ComposerSegment[]): string {
   return segments
-    .map((seg) => (seg.type === 'text' ? seg.value : `[id:${seg.tag.id || seg.tag.componentName}]`))
+    .map((seg) => (seg.type === 'text' ? seg.value : `[id:${seg.value.id || seg.value.componentName}]`))
     .join('')
     .trim();
 }
 
 /**
- * 点选组件在 API 内容中的内联标记：id 来自发送时正在预览的 schema；
- * componentName + props 让模型在标记位置直接获得组件上下文（全量 schemaJson 由服务端另行追加）。
+ * 点选组件在 API 内容中的 JSON 标记：每个组件在其原位置内联为一个独立的 JSON 对象
+ * （仅含 id），不组装树；组件名/props 由服务端追加的全量 schemaJson 按 id 定位获取。
  */
-function formatSelectedComponentMarker(tag: SelectedSchemaNode): string {
-  const props = (tag.node as { props?: unknown } | undefined)?.props;
-  const propsPart = props && typeof props === 'object' ? ` props=${JSON.stringify(props)}` : '';
-  return `[选中组件 id="${tag.id || tag.componentName}" componentName="${tag.componentName}"${propsPart}]`;
-}
 
 export function segmentsToApiContent(segments: ComposerSegment[]): string {
-  const seenTagKeys = new Set<string>();
+  const seenKeys = new Set<string>();
   let content = '';
+
   for (const seg of segments) {
     if (seg.type === 'text') {
       content += seg.value;
       continue;
     }
-    const key = seg.tag.id || seg.tag.componentName;
-    if (seenTagKeys.has(key)) {
+    const key = seg.value.id || seg.value.componentName;
+    if (seenKeys.has(key)) {
       continue;
     }
-    seenTagKeys.add(key);
-    content += formatSelectedComponentMarker(seg.tag);
+    seenKeys.add(key);
+    content += JSON.stringify({ id: key });
   }
+
   return content.trim();
 }
 
@@ -96,7 +93,7 @@ export function getComposerContent(
   );
   const isEmpty =
     segments.length === 0 ||
-    (!segments.some((seg) => seg.type === 'tag') &&
+    (!segments.some((seg) => seg.type === 'node') &&
       segments.every((seg) => seg.type === 'text' && !seg.value.trim()));
   return {
     segments,

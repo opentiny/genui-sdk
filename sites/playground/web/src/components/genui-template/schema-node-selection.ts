@@ -3,8 +3,6 @@ import { findComponentPath, getComponentItem } from './template-chat-utils/schem
 export interface SelectedSchemaNode {
   id: string;
   componentName: string;
-  path: string;
-  node: Record<string, unknown>;
 }
 
 export function selectedNodeFromSchemaById(
@@ -26,7 +24,5 @@ export function selectedNodeFromSchemaById(
   return {
     id,
     componentName,
-    path,
-    node: node as Record<string, unknown>,
   };
 }

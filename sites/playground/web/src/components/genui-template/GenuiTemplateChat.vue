@@ -394,7 +394,7 @@ const handleSendMessage = async () => {
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
 
-  const hasTags = composer.segments.some((segment) => segment.type === 'tag');
+  const hasTags = composer.segments.some((segment) => segment.type === 'node');
   const userMessage: ChatMessage = {
     role: 'user',
     content: composer.apiContent,
