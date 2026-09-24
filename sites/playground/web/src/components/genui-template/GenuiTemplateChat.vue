@@ -37,7 +37,6 @@ import {
 import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
 import { getComposerContent, segmentsToPlainText } from './schema-composer';
-import { createComposerTagController } from './composer-atomic-tags';
 import type { SelectedSchemaNode } from './schema-node-selection';
 import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
@@ -58,8 +57,7 @@ const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
-const tagController = createComposerTagController<SelectedSchemaNode>();
-const selectedNodeMap = tagController.selectedNodeMap;
+const selectedNodeMap = new Map<string, SelectedSchemaNode>();
 
 const composerDrafts = reactive(new Map<string, { items: UserItem[] }>());
 const currentComposerDraft = computed(() => {
@@ -75,8 +73,14 @@ const currentComposerDraft = computed(() => {
   }
   return draft;
 });
-const templateData = computed(() => {
-  return currentComposerDraft.value?.items ?? [];
+const templateData = computed({
+  get: () => currentComposerDraft.value?.items ?? [],
+  set: (value: UserItem[]) => {
+    const draft = currentComposerDraft.value;
+    if (draft) {
+      draft.items = value;
+    }
+  },
 });
 
 const {
@@ -289,28 +293,34 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
     ? draft.items
     : [{ type: 'text', content: inputMessage.value }];
   const id = generateId();
-  tagController.trackTag(id, node);
+  selectedNodeMap.set(id, node);
   draft.items = [...items, { type: 'template', content: node.componentName, id }];
 };
 
 const SENDER_MAX_LENGTH = 20000;
 
-// TrSender 仍将 template chips 当作可编辑文本，这里保持 templateData 与 selectedNodeMap 同步
+// 参考 chat 模式图片上传的数据层校验：组件标签文本被改写时，还原回选中的组件名
 const handleTemplateDataUpdate = (value: UserItem[]) => {
   const draft = currentComposerDraft.value;
-  if (draft) {
-    draft.items = tagController.applyTemplateData(value);
+  if (!draft) {
+    return;
   }
+  draft.items = value.map((item) => {
+    if (item.type === 'template') {
+      const node = selectedNodeMap.get((item as any).id as string);
+      if (node && (item as any).content !== node.componentName) {
+        return { ...item, content: node.componentName };
+      }
+    }
+    return item;
+  });
 };
-
-const senderContainer = ref<HTMLElement>();
 
 const clearComposer = () => {
   const draft = currentComposerDraft.value;
   if (draft) {
     draft.items = [];
   }
-  tagController.clear();
 };
 
 defineExpose({ insertComposerTag, clearComposer, clearComposerTags });
@@ -447,19 +457,10 @@ watch(() => messages.value, throttledScrollToBottom, { deep: true });
 
 onMounted(() => {
   emitter.on('notification', handleNotification);
-  if (senderContainer.value) {
-    tagController.bind(senderContainer.value, () => {
-      const draft = currentComposerDraft.value;
-      if (draft) {
-        draft.items = tagController.applyTemplateData(draft.items);
-      }
-    });
-  }
 });
 
 onUnmounted(() => {
   emitter.off('notification', handleNotification);
-  tagController.unbind();
 });
 </script>
 
@@ -474,7 +475,7 @@ onUnmounted(() => {
         <span>{{ t('app.emptyTitle') }}</span>
       </div>
     </div>
-    <div class="sender-container" ref="senderContainer">
+    <div class="sender-container">
       <div
         :class="['scroll-to-bottom-button', { 'is-generating': generating }]"
         v-show="!isLastMessageInBottom"
@@ -484,7 +485,7 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
-        :template-data="templateData"
+        v-model:template-data="templateData"
         :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating"
@@ -725,15 +726,6 @@ onUnmounted(() => {
 .tiny-sender {
   width: 80%;
   margin: 0 auto;
-
-  :deep(.editor .genui-composer-chip-host) {
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    cursor: default;
-    user-select: none;
-  }
 }
 
 .footer-text {
