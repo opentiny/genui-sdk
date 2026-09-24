@@ -1,4 +1,4 @@
-<ng-template #rendererTemplate let-schema="schema" let-scope="scope" let-parent="parent" let-template="template" let-viewContainerRef="viewContainerRef" let-injector="injector" let-internalAttributes="internalAttributes" let-contentChildrenIndex="contentChildrenIndex">
+<ng-template #rendererTemplate let-schema="schema" let-scope="scope" let-parent="parent" let-template="template" let-viewContainerRef="viewContainerRef" let-injector="injector" let-internalAttributes="internalAttributes" let-contentChildrenIndex="contentChildrenIndex" let-projectedViews="projectedViews">
   <ng-container *ngIf="schema.condition ?? true">
     <ng-container *ngIf="(context | parseData: schema.loop : scope) | isArray; else singleTemplate">
       <ng-container *ngFor="let item of context | parseData: schema.loop : scope; let index = index">
@@ -40,6 +40,8 @@
           {
             children: schema.children,
             scope: mergeScope,
+            parent: schema,
+            projectedViews: projectedViews
           } | projectNgContent: childrenTemplate : viewContainerRef : (schema.componentName | getComponent)
         "
         [schemaRefScope]="mergeScope"
@@ -60,16 +62,26 @@
         #componentOutlet="componentOutlet"
       ></ng-template>
 
-      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes">
-        <ng-container *ngIf="(children | isArray) && !!componentOutlet?.componentInjector">
+      <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes" let-componentInjector="componentInjector" let-parentSchema="parent" let-projectedViews="projectedViews">
+        <ng-container *ngIf="(children | isArray) && !!(componentInjector || componentOutlet?.componentInjector)">
           <ng-container *ngFor="let child of children; let childIndex = index">
-            <!-- Schema NgTemplate → real <ng-template> in projectableNodes; ngSchemaTemplate registers it for ContentChild(TemplateRef).
+            <ng-template [ngTemplateOutlet]="child.componentName === 'NgTemplate' 
+              ? ngTemplate 
+              : (child.componentName === 'NgContent' 
+                ? projectedNodes
+                : normalChild)
+             "></ng-template>
+             <!-- Schema NgTemplate → real <ng-template> in projectableNodes; ngSchemaTemplate registers it for ContentChild(TemplateRef).
                  Order key (slotIndexes * SCHEMA_INDEX_STRIDE) keeps schema declaration order across slots/loops. -->
-            <ng-container *ngIf="child.componentName === 'NgTemplate'; else normalChild">
+            <ng-template #ngTemplate>
               <ng-template
                 ngSchemaTemplate
                 schemaTemplateContext
                 #templateCtx="schemaTemplateContext"
+                schemaTemplateDirectives
+                [schemaTemplateDirectiveTypes]="child.directives | autoApplyDirectives: child | getDirectives"
+                [schemaTemplateDirectiveProps]="context | parseData: child.props : scope"
+                [schemaTemplateParentInjector]="componentInjector || componentOutlet?.componentInjector"
                 [contentChildrenParent]="componentOutlet"
                 [contentChildrenRefName]="child.props?.refName"
                 [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
@@ -78,30 +90,37 @@
                 [schemaTemplateLet]="context | parseData: child.props?.let : scope"
                 [schemaTemplateScope]="scope"
               >
-                <ng-container *ngIf="(child.children | isArray)">
-                  <ng-container *ngFor="let c of child.children">
-                    <ng-template
-                      rendererTemplate
-                      [schema]="c"
-                      [scope]="templateCtx.resolve()"
-                      [parent]="child"
-                      [template]="template"
-                      [injector]="componentOutlet.componentInjector"
-                    ></ng-template>
-                  </ng-container>
-                </ng-container>
-                <ng-container *ngIf="child.children | isString">{{ child.children }}</ng-container>
+                <ng-template
+                  [ngTemplateOutlet]="childrenTemplate"
+                  [ngTemplateOutletContext]="{
+                    children: child.children,
+                    scope: templateCtx.resolve(),
+                    parent: child,
+                    componentInjector: componentInjector || componentOutlet?.componentInjector,
+                    projectedViews: projectedViews
+                  }"
+                ></ng-template>
               </ng-template>
-            </ng-container>
+            </ng-template>
+            <ng-template #projectedNodes>
+              <ng-container *ngIf="child.condition ?? true">
+                <ng-container
+                  renderNgContent
+                  [projectableViews]="projectedViews"
+                  [select]="child.props?.select">
+                </ng-container>
+              </ng-container>
+            </ng-template>
             <ng-template #normalChild>
               <ng-template
                 rendererTemplate
                 [schema]="child"
                 [scope]="scope"
-                [parent]="schema"
+                [parent]="parentSchema"
                 [template]="template"
-                [injector]="componentOutlet.componentInjector"
+                [injector]="componentInjector || componentOutlet?.componentInjector"
                 [contentChildrenIndex]="(slotIndexes?.[childIndex] ?? childIndex) * 10000"
+                [projectedViews]="projectedViews"
               ></ng-template>
             </ng-template>
           </ng-container>

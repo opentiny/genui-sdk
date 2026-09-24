@@ -1,0 +1,312 @@
+{
+  "componentName": "Page",
+  "state": {
+    "formData": {
+      "username": "",
+      "email": "demo@example.com",
+      "age": 18,
+      "gender": "male",
+      "subscribe": true,
+      "city": { "code": "shanghai", "name": "上海" },
+      "street": "南京西路 100 号"
+    }
+  },
+  "methods": {
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function handleSubmit() { console.log('ngSubmit this.state.formData', this.state.formData) }"
+    },
+    "handleReset": {
+      "type": "JSFunction",
+      "value": "function handleReset() { this.state.formData.username = ''; this.state.formData.email = ''; this.state.formData.age = 0; this.state.formData.gender = ''; this.state.formData.subscribe = false; this.state.formData.city = null; this.state.formData.street = ''; }"
+    }
+  },
+  "props": {
+    "style": "padding: 24px; max-width: 720px; font-family: system-ui, sans-serif; color: #0f172a;"
+  },
+  "children": [
+    {
+      "componentName": "h2",
+      "props": { "style": "margin: 0 0 8px;" },
+      "children": "渲染器 DI flags 案例"
+    },
+    {
+      "componentName": "p",
+      "props": { "style": "margin: 0 0 16px; color: #475569; font-size: 14px;" },
+      "children": "self：同节点 CVA / required / email。host：ngModel 与 option ngValue 的同元素桥。skipSelf+host：ngModelGroup 子类去掉 host。无 host 的 skipSelf：下方 FormDump 直接读父 ControlContainer。"
+    },
+    {
+      "componentName": "form",
+      "props": {
+        "style": "display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px;",
+        "onNgSubmit": {
+          "type": "JSExpression",
+          "value": "this.handleSubmit"
+        }
+      },
+      "children": [
+        {
+          "componentName": "label",
+          "props": { "style": "display: flex; flex-direction: column; gap: 4px; font-size: 13px;" },
+          "children": [
+            {
+              "componentName": "span",
+              "children": "用户名（self: required + DefaultValueAccessor；host: ngModel → NgForm）"
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "text",
+                "name": "username",
+                "placeholder": "必填",
+                "required": true,
+                "style": "padding: 8px;",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.username"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "label",
+          "props": { "style": "display: flex; flex-direction: column; gap: 4px; font-size: 13px;" },
+          "children": [
+            {
+              "componentName": "span",
+              "children": "邮箱（self: email 校验器）"
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "email",
+                "name": "email",
+                "placeholder": "email",
+                "email": true,
+                "style": "padding: 8px;",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.email"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "label",
+          "props": { "style": "display: flex; flex-direction: column; gap: 4px; font-size: 13px;" },
+          "children": [
+            {
+              "componentName": "span",
+              "children": "年龄（self: NumberValueAccessor）"
+            },
+            {
+              "componentName": "input",
+              "props": {
+                "type": "number",
+                "name": "age",
+                "style": "padding: 8px;",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.age"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": { "style": "display: flex; gap: 16px; font-size: 13px;" },
+          "children": [
+            {
+              "componentName": "label",
+              "children": [
+                {
+                  "componentName": "input",
+                  "props": {
+                    "type": "radio",
+                    "name": "gender",
+                    "value": "male",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.gender"
+                    }
+                  }
+                },
+                { "componentName": "span", "children": " 男" }
+              ]
+            },
+            {
+              "componentName": "label",
+              "children": [
+                {
+                  "componentName": "input",
+                  "props": {
+                    "type": "radio",
+                    "name": "gender",
+                    "value": "female",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.gender"
+                    }
+                  }
+                },
+                { "componentName": "span", "children": " 女" }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "ngModelGroup": "address",
+            "style": "display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #f8fafc; border: 1px dashed #94a3b8; border-radius: 6px;"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": { "style": "font-size: 13px; font-weight: 600;" },
+              "children": "ngModelGroup=\"address\"（host + skipSelf → SchemaNgModelGroup）"
+            },
+            {
+              "componentName": "label",
+              "props": { "style": "display: flex; flex-direction: column; gap: 4px; font-size: 13px;" },
+              "children": [
+                {
+                  "componentName": "span",
+                  "children": "城市（host: option ngValue 对象）"
+                },
+                {
+                  "componentName": "select",
+                  "props": {
+                    "name": "city",
+                    "style": "padding: 8px;",
+                    "compareWith": {
+                      "type": "JSExpression",
+                      "value": "function (a, b) { return a && b ? a.code === b.code : a === b; }"
+                    },
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.city"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "option",
+                      "props": { "value": "" },
+                      "children": "请选择城市"
+                    },
+                    {
+                      "componentName": "option",
+                      "props": {
+                        "ngValue": {
+                          "type": "JSExpression",
+                          "value": "{ code: 'beijing', name: '北京' }"
+                        }
+                      },
+                      "children": "北京"
+                    },
+                    {
+                      "componentName": "option",
+                      "props": {
+                        "ngValue": {
+                          "type": "JSExpression",
+                          "value": "{ code: 'shanghai', name: '上海' }"
+                        }
+                      },
+                      "children": "上海"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "label",
+              "props": { "style": "display: flex; flex-direction: column; gap: 4px; font-size: 13px;" },
+              "children": [
+                { "componentName": "span", "children": "街道" },
+                {
+                  "componentName": "input",
+                  "props": {
+                    "type": "text",
+                    "name": "street",
+                    "style": "padding: 8px;",
+                    "ngModel": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.street"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "FormDump",
+              "props": {
+                "title": "组内 skipSelf（无 host）→ 应为 SchemaNgModelGroup，controls: city, street"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "label",
+          "props": { "style": "font-size: 13px;" },
+          "children": [
+            {
+              "componentName": "input",
+              "props": {
+                "type": "checkbox",
+                "name": "subscribe",
+                "ngModel": {
+                  "type": "JSExpression",
+                  "model": true,
+                  "value": "this.state.formData.subscribe"
+                }
+              }
+            },
+            { "componentName": "span", "children": " 订阅邮件" }
+          ]
+        },
+        {
+          "componentName": "FormDump",
+          "props": {
+            "title": "表单 skipSelf（无 host）→ 应为 NgForm，controls 含 address 分组"
+          }
+        },
+        {
+          "componentName": "div",
+          "props": { "style": "display: flex; gap: 8px;" },
+          "children": [
+            {
+              "componentName": "button",
+              "props": {
+                "type": "submit",
+                "style": "padding: 8px 14px; background: #2563eb; color: #fff; border: 0; border-radius: 6px;"
+              },
+              "children": "提交 ngSubmit"
+            },
+            {
+              "componentName": "button",
+              "props": {
+                "type": "button",
+                "style": "padding: 8px 14px; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff;",
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.handleReset"
+                }
+              },
+              "children": "重置"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
