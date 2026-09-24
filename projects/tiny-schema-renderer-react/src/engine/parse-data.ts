@@ -159,7 +159,7 @@ const parseList: ParseHandler[] = [
   { type: isJSFunction, parseFunc: (d, s, c) => parseJSFunction(d as { type: string; value: string }, s, c) },
   { type: isJSResource, parseFunc: (d, s, c) => parseExpression(d as { type: string; value: string }, s, c) },
   { type: isJSSlot, parseFunc: (d, s, c) => parseJSSlot(d as { type: string; value: unknown }, s, c) },
-  { type: isString, parseFunc: (d) => (d as string).trim() },
+  { type: isString, parseFunc: (d) => d },
   { type: isArray, parseFunc: (d, s, c) => (d as unknown[]).map((item) => parseData(item, s, c)) },
   { type: isFunction, parseFunc: (d, _s, c) => (d as (...args: unknown[]) => unknown).bind(getBindCtx(c)) },
   { type: isObject, parseFunc: (d, s, c) => parseObjectData(d as Record<string, unknown>, s, c) },
