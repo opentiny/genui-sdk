@@ -1,11 +1,12 @@
 import { Component, type Type } from '@angular/core';
 import { NgComponentOutlet } from '@angular/common';
-import * as generated from './generated/schema-card';
+import { bootstrapApplication } from '@angular/platform-browser';
+import * as generated from '../generated/schema-card';
 
 /**
- * 出码实时预览页。
+ * 出码实时预览页(4201)。
  *
- * 用法:在 5175 的出码页点「执行出码」→ 复制结果 → 整份覆盖
+ * 用法:在 5175 的出码页(../gen-page)点「执行出码」→ 复制结果 → 整份覆盖
  * `projects/code-generator/src/generated/schema-card.ts` 保存 → 本页由 Angular
  * dev server 重新编译(整页刷新)后渲染出新结果。
  *
@@ -13,8 +14,8 @@ import * as generated from './generated/schema-card';
  * ɵcmp(仓库里已有同款判法,见 renderer 的 material-getter.ts、get-directive.pipe.ts)。
  * 这样出码时改了 pageInfo.name(类名随之变)也不用回来改本文件。
  *
- * 本 app 只编译 preview*.ts 与 generated/(见 src/tsconfig.app.json 的 include):
- * 产物编不过时只有本页变红,同目录的 5175 出码页不受牵连 —— 当初和 chat 页同在
+ * 本 app 只编译本目录与 ../generated/(见本目录 tsconfig.app.json 的 include):
+ * 产物编不过时只有本页变红,5175 出码页(../gen-page)不受牵连 —— 当初和 chat 页同在
  * renderer-use 里时,产物编不过会把整个应用一起拖挂。变红就修好或还原 generated/。
  */
 const componentType =
@@ -57,3 +58,7 @@ const componentType =
 export class Preview {
   protected readonly componentType = componentType ?? null;
 }
+
+// 启动放在本文件末尾(原本是独立的 preview-main.ts):本 app 只有这一个页面,
+// 单独一个 5 行的入口文件只换来一个要同步维护的路径;angular.json 的 browser 直接指这里。
+bootstrapApplication(Preview).catch((err: unknown) => console.error(err));

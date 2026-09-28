@@ -210,11 +210,11 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "browser": "projects/code-generator/src/preview-main.ts",
-            "index": "projects/code-generator/src/preview.html",
-            "tsConfig": "projects/code-generator/src/tsconfig.app.json",
+            "browser": "projects/code-generator/src/preview/preview.ts",
+            "index": "projects/code-generator/src/preview/preview.html",
+            "tsConfig": "projects/code-generator/src/preview/tsconfig.app.json",
             "inlineStyleLanguage": "less",
-            "styles": ["projects/code-generator/src/styles.less"],
+            "styles": ["projects/code-generator/src/preview/styles.less"],
             "polyfills": ["zone.js"]
           },
           "configurations": {

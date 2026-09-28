@@ -1,5 +1,5 @@
 import './style.css';
-import { AngularCodeGenerator } from '../index';
+import { AngularCodeGenerator } from '../../index';
 import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
 
 const $ = <T extends HTMLElement>(sel: string): T => {

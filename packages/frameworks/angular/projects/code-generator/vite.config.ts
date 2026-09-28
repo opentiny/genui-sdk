@@ -10,8 +10,15 @@ const MATERIALS_CODEGEN_SRC = fileURLToPath(
 );
 
 export default defineConfig({
-  // src 下同时住着 5175 出码页(vite)和 4201 预览页(Angular),本配置只管前者。
-  root: 'src',
+  // src 下住着两套 app:本配置只管 5175 出码页(src/gen-page/);4201 预览页在 src/preview/,
+  // 归 angular.json 的 code-generator-preview。
+  root: 'src/gen-page',
+  build: {
+    // 默认 outDir 是 <root>/dist,会把构建产物落进 src/ 里(已被 .gitignore 的 dist 规则忽略,
+    // 但会在编辑器里堆出一大片噪音)。挪到工程根,与源文件分开。
+    outDir: '../../dist',
+    emptyOutDir: true, // outDir 在 root 之外,vite 不会自动清空,得显式要求
+  },
   resolve: {
     alias: [
       // 只拦子出口,别把 '@opentiny/genui-sdk-materials-angular-opentiny-ng' 根入口也改掉:

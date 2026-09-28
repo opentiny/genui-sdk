@@ -1,7 +1,7 @@
 /* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
 /* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
-  "extends": "../../../tsconfig.json",
+  "extends": "../../../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/app",
     "types": []
@@ -14,7 +14,7 @@
     "strictTemplates": false,
     "fullTemplateTypeCheck": true
   },
-  // 只收本 app:同目录的 main.ts / headless 是 5175 出码页的,
-  // 归工程根那份 tsconfig.json,收进来会被当 Angular 代码一起类型检查。
-  "include": ["preview-main.ts", "preview.ts", "generated/**/*.ts"]
+  // 只收本 app:main.ts 在 ../gen-page、headless 在 ../headless,都归工程根那份 tsconfig.json,
+  // 收进来会被当 Angular 代码一起类型检查。generated/ 留在 src 根下(人工覆盖产物的固定路径)。
+  "include": ["preview.ts", "../generated/**/*.ts"]
 }
