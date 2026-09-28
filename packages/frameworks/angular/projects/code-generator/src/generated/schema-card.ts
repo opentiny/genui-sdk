@@ -1,67 +1,36 @@
 import { Component } from '@angular/core'
 import { CommonModule } from '@angular/common'
 import { FormsModule } from '@angular/forms'
-import {
-  TiCardModule,
-  TiFormfieldModule,
-  TiTextModule,
-  TiRadioModule,
-  TiSelectModule,
-  TiDateModule,
-  TiCheckboxModule,
-  TiButtonModule
-} from '@opentiny/ng'
+import { TiCardModule, TiTableModule, TiButtonModule } from '@opentiny/ng'
 
 @Component({
   selector: 'app-schema-card',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    TiCardModule,
-    TiFormfieldModule,
-    TiTextModule,
-    TiRadioModule,
-    TiSelectModule,
-    TiDateModule,
-    TiCheckboxModule,
-    TiButtonModule
-  ],
+  imports: [CommonModule, FormsModule, TiCardModule, TiTableModule, TiButtonModule],
   template: `
       <div>
         <ti-card>
-          <h2 style="text-align: center; margin-bottom: 24px;">员工信息登记表</h2>
-          <ti-formfield labelWidth="120px">
-            <ti-item [label]="'姓名'" [required]="true">
-              <input tiText placeholder="请输入姓名" [(ngModel)]="state.formData.name" />
-            </ti-item>
-            <ti-item [label]="'邮箱'" [required]="true">
-              <input tiText placeholder="请输入邮箱" [(ngModel)]="state.formData.email" />
-            </ti-item>
-            <ti-item [label]="'性别'">
-              <ti-radio-group
-                [(ngModel)]="state.formData.gender"
-                [items]='[{"label":"男","value":"male"},{"label":"女","value":"female"}]'
-              ></ti-radio-group>
-            </ti-item>
-            <ti-item [label]="'部门'">
-              <ti-select
-                placeholder="请选择部门"
-                [(ngModel)]="state.formData.department"
-                [options]='[{"label":"技术部","value":"tech"},{"label":"市场部","value":"marketing"},{"label":"人事部","value":"hr"},{"label":"财务部","value":"finance"}]'
-              ></ti-select>
-            </ti-item>
-            <ti-item [label]="'入职日期'">
-              <ti-date placeholder="请选择日期" format="yyyy-MM-dd" [(ngModel)]="state.formData.startDate"></ti-date>
-            </ti-item>
-            <ti-item [label]="' '">
-              <input tiCheckbox type="checkbox" label="我同意用户协议" [(ngModel)]="state.formData.agreement" />
-            </ti-item>
-          </ti-formfield>
-          <div style="display: flex; gap: 16px; margin-top: 24px; justify-content: center;">
-            <button tiButton color="primary" (click)="handleSubmit()">提交</button>
-            <button tiButton color="default" (click)="handleReset()">重置</button>
-          </div>
+          <h3 style="margin-bottom: 16px;">订单管理</h3>
+          <ti-table [srcData]="state.srcData" [(displayedData)]="state.displayedData" [columns]="state.columns">
+            <table>
+              <thead>
+                <tr>
+                  <th *ngFor="let column of state.columns">{{ column.title }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let row of state.displayedData">
+                  <td>{{ row.orderNo }}</td>
+                  <td>{{ row.customer }}</td>
+                  <td>{{ row.amount }}</td>
+                  <td>{{ row.status }}</td>
+                  <td>
+                    <button tiButton color="danger" size="small" (click)="__handle1(row)">{{ '删除 ' + row.orderNo }}</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </ti-table>
         </ti-card>
       </div>
   `,
@@ -69,29 +38,63 @@ import {
 })
 export class SchemaCardComponent {
   state = {
-    formData: {
-      name: '',
-      email: '',
-      department: '',
-      startDate: '',
-      gender: '',
-      agreement: false
-    }
+    srcData: {
+      data: [
+        {
+          orderNo: 'A001',
+          customer: '张三',
+          amount: 1280,
+          status: '已发货'
+        },
+        {
+          orderNo: 'A002',
+          customer: '李四',
+          amount: 3560,
+          status: '待付款'
+        },
+        {
+          orderNo: 'A003',
+          customer: '王五',
+          amount: 2400,
+          status: '已完成'
+        }
+      ],
+      state: {
+        searched: false,
+        sorted: false,
+        paginated: false
+      }
+    },
+    displayedData: [],
+    columns: [
+      {
+        field: 'orderNo',
+        title: '订单号'
+      },
+      {
+        field: 'customer',
+        title: '客户'
+      },
+      {
+        field: 'amount',
+        title: '金额'
+      },
+      {
+        field: 'status',
+        title: '状态'
+      },
+      {
+        field: 'actions',
+        title: '操作'
+      }
+    ]
   }
 
-  handleSubmit() {
-    console.log(this.state.formData)
-    this.callAction('continueChat', { message: '提交成功' })
+  __handle1(row?: any) {
+    console.log(row.orderNo)
   }
 
-  handleReset() {
-    this.state.formData = { name: '', email: '', department: '', startDate: '', gender: '', agreement: false }
-  }
-
-  callAction(name: string, params?: unknown): void {
-    console.warn(
-      `[GenUI] callAction("${name}") is available at runtime via customActions; implement it for exported code.`,
-      params
-    )
+  handleDelete(row?: any) {
+    console.log(row.orderNo)
   }
 }

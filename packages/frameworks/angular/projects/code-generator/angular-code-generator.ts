@@ -1,5 +1,5 @@
 import type { CardSchema, JSFunction, Methods, NodeSchema } from '@opentiny/genui-sdk-core';
-import { HTML_TAGS, JS_EXPRESSION, JS_FUNCTION, JS_SLOT, UNWRAP_QUOTES } from './constants';
+import { JS_EXPRESSION, JS_FUNCTION, JS_SLOT, UNWRAP_QUOTES } from './constants';
 import type {
   ICodeGeneratorParams,
   ICodegenDescription,
@@ -13,6 +13,7 @@ import type {
   IAngularCoreImportNeeds,
   ICodeGeneratorResult,
   IViewChildRef,
+  ILoopScope,
 } from './types';
 import { capitalize, hyphenate, toEventKey, unwrapExpression } from './utils';
 import { CodeGeneratorBase } from './code-generator-base';
@@ -60,16 +61,21 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     };
   }
 
-  // 组件名 → 对应的物料配置。
+  /** 该物料包是否声明过这个组件名——组件路由与 ref 类型判据共用同一张命中表 */
+  protected configDeclaresComponent(config: IAngularMaterialsConfig, componentName: string): boolean {
+    return Boolean(
+      config.materialsComponents?.has(componentName) ||
+        config.elementSelector[componentName] ||
+        config.attributeSelector?.[componentName] ||
+        config.moduleRefMap[componentName],
+    );
+  }
+
+  /** 组件名 → 对应的物料配置。 */
   protected resolveConfig(componentName: string): IAngularMaterialsConfig {
     if (this.materialsConfigs.length === 1) return this.materialsConfigs[0];
     for (const config of this.materialsConfigs) {
-      if (
-        config.materialsComponents?.has(componentName) ||
-        config.elementSelector[componentName] ||
-        config.attributeSelector?.[componentName] ||
-        config.moduleRefMap[componentName]
-      ) {
+      if (this.configDeclaresComponent(config, componentName)) {
         return config;
       }
     }
@@ -262,12 +268,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     // 剩余为字面量值，对象字面量需先探查是否内含 JSFunction
     if (rawValue && typeof rawValue === 'object') {
       // 这一趟遍历顺带就地改写内层 JSFunction,返回值报告命中的类型
-      const internalTypes = this.traverseValue(
-        rawValue as Record<string, unknown>,
-        description,
-        state,
-        schemaMethods ?? {},
-      );
+      const internalTypes = this.traverseValue(rawValue as Record<string, unknown>, description);
 
       if (internalTypes.has(JS_SLOT)) {
         return null;
@@ -418,9 +419,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     componentName: string,
     attrsArr: IAngularTemplateAttr[],
     description: ICodegenDescription,
-    inLoop: boolean,
-    indexVar: string | undefined,
+    loopScope: ILoopScope,
   ): void {
+    // "this.refs.myInput" ==> {name: myInput}
+    // "this.refs.xxx[loopIndex]" ==> {name: xxx, subscript: loopIndex}
+    // "refName" ==> {name: refName}
     const parsed = this.parseRefName(key, rawValue);
     if (!parsed) {
       return;
@@ -428,10 +431,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     const { name, subscript } = parsed;
 
     if (key === 'ref') {
-      if (subscript && (!inLoop || subscript !== indexVar)) {
+      // 下标必须是**当前模板作用域里可见**的循环索引变量:本节点的,或任意外层循环的
+      if (subscript && (!loopScope.inLoop || !loopScope.indexVars.includes(subscript))) {
         return;
       }
-      if (!subscript && inLoop) {
+      if (!subscript && loopScope.inLoop) {
         return;
       }
     }
@@ -507,17 +511,18 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     if (this.isNgTemplateComponent(componentName)) {
       return { type: 'TemplateRef<any>' };
     }
-    if (!componentName || HTML_TAGS.has(componentName) || this.voidElements.includes(componentName)) {
-      // 查询结果是 ElementRef,而 refs 要放 DOM 元素,取值时需再取一层
-      return { type: 'ElementRef', unwrapNative: true };
-    }
-    for (const config of this.materialsConfigs) { // 获取需要导入的组件类
-      const className = config.componentExportMap?.[componentName];
-      if (className) {
-        return { type: className, fromPackage: config.libraryPackage };
+    if (componentName && this.materialsConfigs.some((c) => this.configDeclaresComponent(c, componentName))) {
+      for (const config of this.materialsConfigs) { // 获取需要导入的组件类
+        const className = config.componentExportMap?.[componentName];
+        if (className) {
+          return { type: className, fromPackage: config.libraryPackage };
+        }
       }
+      // 声明过物料但推不出组件类名(componentExportMap 未覆盖):仍是实例语义,不能加 nativeElement
+      return { type: 'any' };
     }
-    return { type: 'any' };
+    // 查询结果是 ElementRef,而 refs 要放 DOM 元素,取值时需再取一层
+    return { type: 'ElementRef', unwrapNative: true };
   }
 
   protected handleBinding(
@@ -527,30 +532,22 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     state: Record<string, unknown>,
     componentName: string,
     schemaMethods: Methods,
-    options: { inLoop?: boolean; indexVar?: string } = {},
+    loopScope: ILoopScope = { inLoop: false, indexVars: [] },
   ): void {
     Object.entries(props).forEach(([rawKey, rawValue]) => {
       let key = rawKey === 'className' ? 'class' : rawKey;
 
-      // ref / refName / let 是 schema 接线属性,不是组件 @Input,故先于库配置的黑名单与重命名处理
+      // ref / refName / let 是 schema 接线属性,不是组件 @Input
       if (key === 'let') {
         this.handleLetBinding(rawValue, componentName ?? '', attrsArr);
         return;
       }
       if (key === 'ref' || key === 'refName') {
-        this.handleRefBinding(
-          key,
-          rawValue,
-          componentName ?? '',
-          attrsArr,
-          description,
-          options.inLoop ?? false,
-          options.indexVar,
-        );
+        this.handleRefBinding(key, rawValue, componentName ?? '', attrsArr, description, loopScope);
         return;
       }
 
-      // 组件所属库配置(黑名单/重命名按库生效)
+      // 组件名 -> 组件所属的 物料配置
       const cfg = this.resolveConfig(componentName ?? '');
 
       // 有时候ai会输出一些组件不存在的属性，把它们列在黑名单里
@@ -558,16 +555,15 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         return;
       }
 
-      // ai输出的属性名和组件合法属性名不同 就要rename
+      // ai输出的属性名和组件合法属性名不同 就rename
       const rename = cfg.propRename?.[componentName ?? '']?.[key];
       if (rename) {
         key = rename;
       }
 
-      // === Common Angular logic below ===
-      // 左值决定括号,右值统一由 resolveBindingRight 产出(内部覆盖字面量/表达式/函数/插槽)
-      const propType = this.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction' 'JSSlot'
-      // 键名是否命中该组件的真实 @Output(命中即事件绑定,与带不带 on 前缀无关)
+      // 左值决定括号,右值统一由 resolveBindingRight 产出(内部覆盖字面量/表达式/函数)
+      const propType = this.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction'
+      // 键名不带on的是否命中该组件的真实 @Output(命中即事件绑定)
       const outputName = this.resolveOutputName(key, componentName ?? '', cfg);
       const kind = this.resolveBindingKind(key, propType, rawValue, outputName);
       const right = this.resolveBindingRight(kind, key, rawValue, propType, description, state, schemaMethods);
@@ -584,10 +580,20 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     description: ICodegenDescription,
     result: string[],
     schemaMethods: Methods,
+    loopScope: ILoopScope = { inLoop: false, indexVars: [] },
   ): void {
     if (Array.isArray(children)) {
       result.push(
-        children.map((child) => this.generateTemplate(child as CardSchema, state, description, false, schemaMethods)).join(''),
+        children
+          .map((child) => this.generateTemplate(child as CardSchema, state, description, false, schemaMethods, loopScope))
+          .join(''),
+      );
+      return;
+    }
+    // 对象形态的 children 走兜底:不能落到下面的 `as string` 上——那会让对象被 JS 隐式 String() 成 "[object Object]"
+    if (children && typeof children === 'object') {
+      result.push(
+        this.generateObjectChildren(children as unknown as NodeSchema, state, description, schemaMethods, loopScope),
       );
       return;
     }
@@ -595,19 +601,43 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   /**
-   * 就地改写 current[prop]:JSExpression / JSFunction 转成 #QUOTES_START#…#QUOTES_END# 串。
-   * 返回命中的协议类型(未命中返回 null)——调用方据此决定整条属性怎么产出:
-   *
-   *   JS_SLOT      Angular 没有插槽概念,current[prop] 原样不动,由调用方丢弃整条属性
-   *   JS_FUNCTION  内层函数已就地箭头函数化,调用方把整条属性提升进 state、模板里按名字引用
-   *   其余         state 根遍历只关心改写,不关心返回值
+   * 非数组 children 的兜底。协议上 children 只有数组与字符串两种,运行时还会遇到对象形态:
+   * 「漏写数组括号的单节点」与「协议节点」。这两类照字面量落模板会变成 "[object Object]",
+   * 所以在此按能否表达成内容分别处理,表达不出来的丢弃(不产出垃圾文本)。
    */
+  protected generateObjectChildren(
+    children: NodeSchema,
+    state: Record<string, unknown>,
+    description: ICodegenDescription,
+    schemaMethods: Methods,
+    loopScope: ILoopScope = { inLoop: false, indexVars: [] },
+  ): string {
+    const protocolType = (children as { type?: string }).type;
+
+    // JSExpression:还原成插值,与 Text 节点的 text 走同一套(buildTextInterpolation 的表达式分支)
+    if (protocolType === JS_EXPRESSION) {
+      return this.buildTextInterpolation(children);
+    }
+
+    // JSFunction / JSSlot 作为内容无处安放:前者只有事件绑定一种用法,后者按 README §4 的约定全链路丢弃
+    if (protocolType === JS_FUNCTION || protocolType === JS_SLOT) {
+      return '';
+    }
+
+    // 漏写数组括号的单节点:当作该节点唯一的孩子重新生成
+    if (typeof (children as { componentName?: unknown }).componentName === 'string') {
+      return this.generateTemplate(children as CardSchema, state, description, false, schemaMethods, loopScope);
+    }
+
+    return '';
+  }
+
+
+  // 就地改写 current[prop]:JSExpression / JSFunction 转成 #QUOTES_START#…#QUOTES_END# 串。
   protected transformStateType(
     current: Record<string, any>,
     prop: string,
     description: ICodegenDescription,
-    rootState: Record<string, any>,
-    methods: Methods,
   ): string | null {
     const stateEntry = current[prop];
     if (stateEntry?.accessor) {
@@ -662,34 +692,33 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       return JS_FUNCTION;
     }
 
-    // JSSlot 落到这里即静默丢弃:不产出,也不改写 current[prop](避免 delete 在数组下标上留洞)。
-    // 调用方据此把整条属性丢掉——静默产出 `columns='{"type":"JSSlot",…}'` 比不产出更糟。
+    // JSSlot 落到这里即静默丢弃
     return JS_SLOT;
   }
 
-  // 遍历某条 prop 的右值——逐键就地改写,
-  // 并把命中的协议类型收进 internalTypes。返回值是 internalTypes。
+  /**
+   * 遍历某个值(prop 的右值,或根 state)——逐键就地改写,
+   * 并把命中的协议类型收进 internalTypes。返回值是 internalTypes。
+   */
   protected traverseValue(
     value: Record<string, any> | any[] | null,
     description: ICodegenDescription,
-    rootState: Record<string, any>,
-    methods: Methods,
     internalTypes: Set<string> = new Set<string>(),
   ): Set<string> {
     if (typeof value !== 'object' || value === null) {
       return internalTypes;
     }
     if (Array.isArray(value)) {
-      value.forEach((item) => this.traverseValue(item, description, rootState, methods, internalTypes));
+      value.forEach((item) => this.traverseValue(item, description, internalTypes));
       return internalTypes;
     }
     Object.keys(value).forEach((prop) => {
       if (Object.prototype.hasOwnProperty.call(value, prop)) {
-        const matchedType = this.transformStateType(value, prop, description, rootState, methods);
+        const matchedType = this.transformStateType(value, prop, description);
         if (matchedType !== null) {
           internalTypes.add(matchedType);
         }
-        this.traverseValue(value[prop], description, rootState, methods, internalTypes);
+        this.traverseValue(value[prop], description, internalTypes);
       }
     });
     return internalTypes;
@@ -709,13 +738,28 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return `<span ${styleAttr}>${interpolation}</span>`;
   }
 
-  /** 文本插值 {{ }}:text 为字面量时转义单引号并兜底空串,JSExpression 时直接输出表达式 */
   protected buildTextInterpolation(text: unknown): string {
     if (text && typeof text === 'object' && (text as { type?: string }).type === 'JSExpression') {
       return `{{ ${this.toTemplateValue(text)} }}`;
     }
     const escaped = String(text ?? '').replace(/'/g, "\\'");
-    return `{{ '${escaped}' || '' }}`;
+    return `{{ '${escaped}' }}`;
+  }
+
+  /**
+   * 本节点向下的循环作用域。`*ngFor` 建的是模板作用域,子节点照旧看得见 `item` / `index`
+   * (表达式路径一直依赖这点),所以带 loop 的节点要把自己的上下文并进祖先的继续往下传,
+   * 下标由外到内累积 —— 嵌套循环里引用外层索引的内层 ref 因此仍然合法。
+   */
+  protected resolveLoopScope(loop: NodeSchema['loop'], loopArgs: string[], parent: ILoopScope): ILoopScope {
+    if (!loop) {
+      return parent;
+    }
+    const indexVar = loopArgs[1];
+    return {
+      inLoop: true,
+      indexVars: indexVar ? [...parent.indexVars, indexVar] : parent.indexVars,
+    };
   }
 
   protected generateTemplate(
@@ -724,6 +768,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     description: ICodegenDescription,
     isRootNode: boolean,
     schemaMethods: Methods,
+    parentLoopScope: ILoopScope = { inLoop: false, indexVars: [] },
   ): string {
     const result: string[] = [];
     const { componentName, loop, loopArgs = ['item'], condition, props = {}, children } = schema; // 子组件没有css属性，所以不解构
@@ -751,7 +796,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     }
 
     if (!isRootNode && componentName && !isTemplate) {
-      // 用于记录要import 哪些组件(ng-template 无模块可 import,加进去会产出不存在的 NgTemplateModule)
+      // 用于记录要import 哪些组件
       description.componentSet.add(componentName);
     }
 
@@ -801,11 +846,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     result.push(`\n<${component} `);
 
+    // 本节点及子节点可见的循环作用域:属性绑定与子树递归用的是同一份
+    const loopScope = this.resolveLoopScope(loop, loopArgs, parentLoopScope);
+
     // 处理元素属性
-    this.handleBinding(props as Record<string, unknown>, attrsArr, description, state, componentName, schemaMethods, {
-      inLoop: !!loop,
-      indexVar: loop ? loopArgs[1] : undefined,
-    });
+    this.handleBinding(props as Record<string, unknown>, attrsArr, description, state, componentName, schemaMethods, loopScope);
 
     result.push(this.renderAttrs(attrsArr));
 
@@ -818,7 +863,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       this.applyNodeExtensions(schema);
 
       // 递归处理子元素。必须重读 schema.children:扩展改的是节点对象上的槽位,不是上面解构出的局部变量
-      this.recurseChildren(schema.children, state, description, result, schemaMethods);
+      this.recurseChildren(schema.children, state, description, result, schemaMethods, loopScope);
       // 节点的 slot 字段不产出:Angular 没有插槽概念,改由 NgTemplate + props.let 表达作用域模板
       result.push(`</${component}>`);
     }
@@ -833,10 +878,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   protected buildStateFields(
     schema: CardSchema,
     description: ICodegenDescription,
-    methods: Methods,
   ): string {
     const { state = {} } = schema;
-    this.traverseValue(state as Record<string, any>, description, state, methods);
+    this.traverseValue(state as Record<string, any>, description);
     const stateStr = unwrapExpression(JSON.stringify(state, null, 2));
     if (!stateStr || stateStr === '{}') {
       return '';
@@ -937,7 +981,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     this.resolveViewChildFieldNames(schema, codegenMeta);
     const viewChildDecls = this.buildViewChildDecls(codegenMeta);
     const refsField = this.buildRefsField(schema, codegenMeta);
-    const stateFields = this.buildStateFields(schema, codegenMeta, schemaMethods);
+    const stateFields = this.buildStateFields(schema, codegenMeta);
     const lifecycle = this.buildLifecycleMethods(codegenMeta, schema);
     const methods = this.buildMethods(schema, codegenMeta);
     const callActionMethod = this.buildCallActionMethod(needsCallAction);
@@ -1068,31 +1112,144 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       .join('\n\n  ');
   }
 
-  
-  /**
-   * 解析函数字符串，失败即抛。支持两种形态：
-   *   1. `function 名字(...) { ... }` —— 交基类 getFunctionInfo（与 Vue 出码器共用，故不动它）；
-   *   2. 箭头函数 —— `(a, b) => { ... }` / `(a) => 表达式`，可带 `async` 前缀。
-   *
-   * 箭头是必须支持的形态：about-this.ts 给模型的 JSFunction 示例就是
-   * `(event) => this.hello(event, name)`，且该文件写明「事件绑定更推荐使用 JSFunction 模式」。
-   * 实测基类正则对上述**每一种**箭头形态都返回 null，所以"基类未命中即按箭头解析"不会误判。
-   *
-   * 此前每个调用点各写一套失败兜底——返回 ''、原样落成语义不同的类字段、原样包成表达式——行为互相
-   * 矛盾，且都对使用者不可见。最糟的一处产出 `(click)=""`：编译通过、点了没反应，让人去怀疑生成器
-   * 而不是 schema 写法。改为统一在此抛出，让无法解析的输入在出码当场暴露，并带上原始字符串便于定位。
-   */
   protected parseFunctionOrThrow(fnStr: string): { type: string; params: string[]; body: string } {
     const info = this.getFunctionInfo(fnStr);
     const parsed = info ?? this.parseArrowFunction(fnStr);
     if (parsed) {
       // 形参只留名字：`function(file: File)` 的类型标注会被下游拼成 `file: File?: any` 这种非法签名，
       // 并且和自由变量的裸名对不上（`declaredParams.includes('file')` 为假），导致形参重复一遍
-      return { ...parsed, params: parsed.params.map((p) => p.split(/[:=]/)[0].trim()).filter(Boolean) };
+      const params = parsed.params.map((p) => p.split(/[:=]/)[0].trim()).filter(Boolean);
+      return { ...parsed, params, body: this.rewriteBindThis(parsed.body) };
     }
     throw new Error(
       `[AngularCodeGenerator] 无法解析函数，仅支持 \`function 名字(...) { ... }\` 与箭头函数 \`(a) => ...\`：${fnStr}`,
     );
+  }
+
+  protected rewriteBindThis(body: string): string {
+    let result = '';
+    let index = 0;
+    while (index < body.length) {
+      // 当前位置是不是字符串 或 注释的开头， 是就返回这一整段结束后的下标，改写器不处理 [index, literalEnd]范围内的东西。
+      const literalEnd = this.skipLiteral(body, index);
+      if (literalEnd > index) {
+        result += body.slice(index, literalEnd);
+        index = literalEnd;
+        continue;
+      }
+      // 只有命中 function(…) {…}.bind(this) 形式的才改
+      const rewritten = this.rewriteBoundFunction(body, index);
+      if (rewritten) {
+        result += rewritten.text;
+        index = rewritten.end;
+        continue;
+      }
+      // 不改写时逐字符前进：嵌套在里层的那些仍在后续轮次里被处理
+      result += body[index];
+      index++;
+    }
+    return result;
+  }
+
+  // "methods": {
+  //   "handleSave": {
+  //     "type": "JSFunction",
+  //     "value": "function() { var updatedList = this.state.userList.map(function(item, index) { var inputRef = this.refs.inputs[index]; if (inputRef) { item.name = inputRef.value; } return item; }.bind(this)); this.state.userList = updatedList; this.callAction('saveState'); this.callAction('continueChat', { message: '批量编辑已保存' }); }"
+  //   }
+  // }
+  // function () { … this.x … }.bind(this) 会报错	TS2683
+  // 改成 () => { … this.x … }
+  protected rewriteBoundFunction(source: string, from: number): { text: string; end: number } | null {
+    if (!source.startsWith('function', from) || /[\w$.]/.test(source[from - 1] ?? '')) {
+      return null;
+    }
+    const afterKeyword = source[from + 'function'.length];
+    if (afterKeyword && /[\w$]/.test(afterKeyword)) {
+      return null; // `functionXxx`
+    }
+    const paramsStart = this.skipSpace(source, from + 'function'.length);
+    if (source[paramsStart] !== '(') {
+      return null;
+    }
+    const paramsEnd = this.matchBracket(source, paramsStart, '(', ')');
+    if (paramsEnd < 0) {
+      return null;
+    }
+    const bodyStart = this.skipSpace(source, paramsEnd + 1);
+    if (source[bodyStart] !== '{') {
+      return null;
+    }
+    const bodyEnd = this.matchBracket(source, bodyStart, '{', '}');
+    if (bodyEnd < 0) {
+      return null;
+    }
+    const bindStart = this.skipSpace(source, bodyEnd + 1);
+    const bound = /^\.bind\s*\(\s*this\s*\)/.exec(source.slice(bindStart));
+    if (!bound) {
+      return null;
+    }
+    const inner = source.slice(bodyStart + 1, bodyEnd);
+    if (/\barguments\b/.test(this.stripLiterals(inner))) {
+      return null; // 箭头没有自己的 arguments
+    }
+    const params = source.slice(paramsStart + 1, paramsEnd);
+    return {
+      text: `(${params}) => {${this.rewriteBindThis(inner)}}`,
+      end: bindStart + bound[0].length,
+    };
+  }
+
+  /** index 处是字符串 / 模板串 / 注释时返回它之后的下标，否则 -1（基类 stripLiterals 会改变长度，没法据此按原位切） */
+  protected skipLiteral(source: string, index: number): number {
+    const quote = source[index];
+    if (quote === "'" || quote === '"' || quote === '`') {
+      for (let cursor = index + 1; cursor < source.length; cursor++) {
+        if (source[cursor] === '\\') {
+          cursor++;
+        } else if (source[cursor] === quote) {
+          return cursor + 1;
+        }
+      }
+      return source.length;
+    }
+    if (quote !== '/') {
+      return -1;
+    }
+    if (source[index + 1] === '/') {
+      const lineEnd = source.indexOf('\n', index);
+      return lineEnd < 0 ? source.length : lineEnd;
+    }
+    if (source[index + 1] === '*') {
+      const commentEnd = source.indexOf('*/', index + 2);
+      return commentEnd < 0 ? source.length : commentEnd + 2;
+    }
+    return -1;
+  }
+
+  /** 配平括号：返回与 from 处 open 配对的 close 下标；扫到结尾仍未配平返回 -1 */
+  protected matchBracket(source: string, from: number, open: string, close: string): number {
+    let depth = 0;
+    for (let index = from; index < source.length; index++) {
+      const literalEnd = this.skipLiteral(source, index);
+      if (literalEnd > index) {
+        index = literalEnd - 1; // 字面量里的括号不参与配平
+        continue;
+      }
+      if (source[index] === open) {
+        depth++;
+      } else if (source[index] === close && --depth === 0) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  protected skipSpace(source: string, from: number): number {
+    let index = from;
+    while (index < source.length && /\s/.test(source[index])) {
+      index++;
+    }
+    return index;
   }
 
   /**

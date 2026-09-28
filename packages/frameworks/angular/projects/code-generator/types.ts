@@ -34,8 +34,14 @@ export interface IViewChildRef {
   assignTo: string;
 
   kind?: 'viewChild' | 'viewChildren';
-  /** 原生标签ElementRef, 取值时需再取一层 .nativeElement。*/
+  /** 未注册物料的组件名(原生标签等动态标签)查询结果是 ElementRef, 取值时需再取一层 .nativeElement。*/
   unwrapNative?: boolean;
+}
+
+
+export interface ILoopScope {
+  inLoop: boolean;
+  indexVars: string[];
 }
 
 export interface ICodegenDescription {

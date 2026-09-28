@@ -4272,7 +4272,7 @@
           },
           "component": "TiSlider",
           "icon": "slider",
-          "description": "通过拖动滑块在一个固定区间内进行选择",
+          "description": "通过拖动滑块在一个固定区间内进行选择, 注意：滑块靠撑满所在容器才有轨道；放在 display:flex 的行里时必须自己声明宽度，例如 props 里加 \"style \": \"flex: 1; min-width: 0;\"，否则轨道会塌成 0 宽",
           "doc_url": "https://www.opentiny.design/tiny-ng/components/slider",
           "screenshot": "",
           "tags": "slider,滑块,滑动选择",

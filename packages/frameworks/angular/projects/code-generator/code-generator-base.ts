@@ -252,7 +252,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       'emit', 'push', 'pop', 'filter', 'map', 'find', 'forEach', 'reduce', 'sort',
       'slice', 'splice', 'join', 'includes', 'indexOf', 'length', 'keys', 'values',
       'alert', 'fetch', 'setTimeout', 'setInterval', 'parse', 'stringify',
-      'state', 'props', 'event', 'callback', 'index',
+      'state', 'props', 'event', 'callback',
     ]);
     return [...new Set(identifiers.filter((id) => !keywords.has(id) && !boundNames.has(id)))];
   }

@@ -74,7 +74,7 @@ new AngularCodeGenerator({
 
 ## schema 约定:模板作用域与引用
 
-Angular **没有插槽(slot)概念**——只有 `ng-content` 投影与 `ng-template` 模板。因此协议里的 `JSSlot` 在出码侧不被表达,`slot` 字段与 JSSlot 值的属性都会被静默丢弃(出码器不报错,见下)。取而代之的是下面两条约定。
+Angular **没有插槽(slot)概念**——只有 `ng-content` 投影与 `ng-template` 模板。因此协议里的 `JSSlot` 在出码侧不被表达,`slot` 字段与 JSSlot 值的属性都会被静默丢弃(出码器不报错,见下)。取而代之的是下面三条约定。
 
 ### 1. 作用域模板:`NgTemplate` + `props.let`
 
@@ -111,55 +111,27 @@ schema 里用 `componentName: "NgTemplate"` 表达 `<ng-template>`,`props.let` �
 | --- | --- | --- |
 | `props.refName: 'localInput'` | `#localInput` | 无(仅模板局部引用) |
 | `props.ref: { type:'JSExpression', value:'this.refs.myTable' }` | `#myTable` | `@ViewChild('myTable') myTable!: TiTableComponent` + `refs` 字段 + `ngAfterViewInit` 赋值 |
-| 同上,但节点带 `loop`(值形如 `this.refs.loopInputs[index]`) | `#loopInputs` | `@ViewChildren('loopInputs') loopInputs!: QueryList<ElementRef>` + 整组写进 `refs` |
+| 同上,但下标是**作用域内可见的循环索引**(值形如 `this.refs.loopInputs[index]`;`loop` 在本节点或任一祖先节点上都算) | `#loopInputs` | `@ViewChildren('loopInputs') loopInputs!: QueryList<ElementRef>` + 整组写进 `refs` |
 
-字段类型按 **ref 值的实际形态**推导,与渲染器 `resolveSchemaRefValue` 一致:
+字段类型按 **ref 值的实际形态**推导,与渲染器 `resolveSchemaRefValue` **同一判据**——判"这个名字注册过物料吗",而不是判"componentName 是不是原生标签":
 
-- 原生标签 → `ElementRef`(运行时给的是 `location.nativeElement`)
-- 物料组件 → 该组件类名(运行时给的是组件实例),类名与所属 npm 包由 `componentExportMap` 推出,并与 NgModule **并入同一条 import 行**
+- 注册过物料(名字命中 `materialsComponents` / `elementSelector` / `attributeSelector` / `moduleRefMap`) → 该组件类名(运行时给的是组件实例),类名与所属 npm 包由 `componentExportMap` 推出,并与 NgModule **并入同一条 import 行**
+- 没注册(原生标签、以及渲染器会兜底建 `NativeElementComponent` 的其它动态标签名) → `ElementRef` + `.nativeElement`(运行时给的是 `location.nativeElement`)
 - `ng-template` → `TemplateRef<any>`
 
-`props.ref` 的值是**赋值目标**而非读取值——渲染器把它重写成 `(instance) => <值> = instance`——所以 refs 里收的是「原生标签给 DOM 元素、物料组件给组件实例」。而查询拿回的永远是 `ElementRef` / 组件实例 / `TemplateRef`,故原生标签那一支**赋值时还要再取一层 `.nativeElement`**,否则 `refs.x.value` 这类按元素写的消费代码会落空。这条结论在 `resolveRefFieldType` 里固化成 `unwrapNative`,不靠事后比较类型名字符串判断。
+判据**为什么不能按标签走**:TinyNG 的 24 个物料里有 5 个的宿主标签恰恰就是原生标签(`TiText` / `TiCheckbox` / `TiRadio` → `input`、`TiTextArea` → `textarea`、`TiButton` → `button`),但那些名字在画布里命中的是物料、ref 值是组件实例。一旦按"标签是原生 DOM"去展开,同一份 schema 在画布与出码产物里就会拿到两个不同的东西(画布给实例、产物给 DOM 元素),而且波及的是最常用的那几个组件。
+
+取值写法因此分两类:未注册名的 ref 直接取(`refs.myBox.value`),物料 ref 再取一层 `.nativeElement`(`refs.inputs[index].nativeElement.value`)——`TiBaseComponent` 运行期就把它挂在实例上(`this.nativeElement = hostRef.nativeElement`),画布与产物两侧都取得到。
+
+`props.ref` 的值是**赋值目标**而非读取值——渲染器把它重写成 `(instance) => <值> = instance`——所以 refs 里收的是「未注册名给 DOM 元素、物料名给组件实例」。而查询拿回的永远是 `ElementRef` / 组件实例 / `TemplateRef`,故未注册名那一支**赋值时还要再取一层 `.nativeElement`**,否则 `refs.x.value` 这类按元素写的消费代码会落空。这条结论在 `resolveRefFieldType` 里固化成 `unwrapNative`,不靠事后比较类型名字符串判断。
 
 循环上的 ref 走 `@ViewChildren` + `QueryList`:Angular 没有「按下标逐格写入」的等价物,改为一次查询收回有序集合、整组写进 refs(`.toArray()` 的顺序即 `*ngFor` 的迭代顺序,索引语义因此等价),并订阅 `changes`,让 `refs` 随视图增减同步、不停在首帧快照上。
 
-两条判定门槛:
+两条判定门槛(按**模板作用域**判断,不按节点自己带不带 `loop`——`*ngFor` 建的是模板作用域,子节点照旧看得见 `item` / `index`,表达式路径一直依赖这点;见 `resolveLoopScope`。作用域里可见的索引变量由外到内累积,嵌套循环里引用外层索引的内层 ref 因此合法):
 
-- 裸名字 + 循环 → **丢弃**。N 个迭代争抢同一个 `@ViewChild`,查询只命中第一个,语义无解(`#name` 也不能插值成 `#name_0`,N 在出码期未知)。
-- `refs.x[下标]` 里的下标必须**正好是节点的循环索引变量**(`props.ref` 用 `loopArgs[1]`,且该变量确实声明了)→ 否则丢弃。字典形态(`refs.map[item.id]`)与循环外的下标都无从表达。
+- 裸名字 + 作用域内有循环 → **丢弃**。N 个迭代争抢同一个 `@ViewChild`,查询只命中第一个,语义无解(`#name` 也不能插值成 `#name_0`,N 在出码期未知)。
+- `refs.x[下标]` 里的下标必须是**作用域内可见的循环索引变量**(本节点的 `loopArgs[1]`,或任意外层循环声明的)→ 否则丢弃。字典形态(`refs.map[item.id]`)与作用域外的下标都无从表达。
 
 `props.refName` 不受循环所限:它只是模板局部的 `#name`,`*ngFor` 里每迭代独立、天然合法。
 
 `refs` 字段标注 `any`,而不是 `Record<string, any>`:后者是索引签名,在开启 `noPropertyAccessFromIndexSignature` 的工程里 `this.refs.x` 会报 TS4111,而 `refs.x` 正是本特性对外承诺的读写形态(schema 的方法体里也是这么写的);`any` 同时避免对象字面量把 `refs.x` 推成 `null` 字面量类型。字段名与已有类成员撞名时经 `avoidDuplicateString` 改名,`#name` 查询键与 `refs.<name>` 契约保持不变。
-
-### 3. 出码器不报错
-
-出码器只负责产出代码,**不收集也不返回任何诊断**:`ICodeGeneratorResult` 就是生成的代码面板,没有 `errors` 字段。schema 中不支持或丢弃的形态(JSSlot 值、嵌套 JSSlot 的对象值、节点级 `slot` 字段、state 里的 JSSlot、循环节点上的 `ref`、非法 `refName` 等)一律静默丢弃,不再有任何出口回报。
-
-原因:Angular 侧无从判断这些形态是否真的「错」——比如 `props.let` 的右值是宿主运行时经 `ngTemplateOutletContext` 提供的上下文键,模板自身作用域里没有它,编译期校验只会全是误报。schema 的合法性由生成 schema 的一侧负责。
-
-## 新增物料包
-
-1. materials 目录下建物料包(components/modules 命名导出);
-2. 在该物料包内建 `src/code-generator/`:把 `derive-materials-maps.ts`(约 70 行纯函数)连同配置一起复制过去,调用 `deriveMaterialsMaps(本包 materials)` 推导 5 张映射表;
-3. 仿 `config.ts` 定义 `IAngularMaterialsConfig`(结构副本见 `types.ts`,契约由出码器侧编译期强制);**只有当该物料包确实有节点级特殊处理时**,才按 `materials/materials-extension.ts` 的 `IAngularMaterialsExtension` 写一个 `extensions` 项,没有需求就整项不写;
-4. 物料包 `vite.config.ts` 加一个 `code-generator` entry、`package.json` 加 `./code-generator` 子出口;
-5. 由使用方经 `IAngularCodeGeneratorOptions.materials` 按实例注入(没有缺省配置,不传即抛错)。
-
-> 出码器包**不再参与新增物料包**:它不持有任何物料包的名字,也不需要改 `materials/`。
-
-> 形态类 prop 问题一律先在物料包 meta/示例里写对(见 `angular-opentiny-ng/src/code-generator/record.md`),出码器不做特判。
-
-### 唯一的物料扩展点:`extensions[].transformNode`
-
-出码器**不为任何物料包保留特判分支**。某物料包真需要重塑节点(如 TinyNG 把 `TiFormField` 的子节点包成 `TiItem`)时,由该物料包把这段逻辑写成 `IAngularMaterialsExtension` 放进配置的 `extensions` 数组,出码器在渲染每个非自闭合节点时按序调用。三条约定:
-
-- **就地改写 `node`,不得返回值**。改的是 `node.children` 这类槽位;`return node.children.map(...)` 能通过编译但不会生效,出码器发现返回值会当场抛错(出码器没有 errors 通道,静默失效只能等 Angular 运行期崩)。
-- **必须自查 `node.componentName`**:扩展“只为该组件所属物料包”调用,但路由走 `resolveConfig`,组件名在所有映射表里都没命中时会**兜底第一个物料包**。
-- **调用时机在本节点 attrs 渲染之后**,所以改本节点的 `props` 不影响本节点,用途是重塑**子节点**。
-
-出码器只在调用点重读 `node.children`,改完立刻递归;没配 `extensions` 的物料包这条路径完全空转。
-
-## 组件特殊用法
-
-各物料包对特定组件的特殊处理原因与示例(如 `<ti-pagination>` 的 `total`→`totalNumber`、`TiFormField` 子节点包裹成 `TiItem` 等),记录在物料包 `angular-opentiny-ng/src/code-generator/{config.ts,record.md}` 的注释里。JSSlot 相关的历史特殊处理已随插槽语义一并移除(见上文「schema 约定」)。
