@@ -57,7 +57,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*"
+    "@babel/standalone": "^7.28.5",
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "postcss": "^8.5.6",
+    "postcss-selector-parser": "^7.1.0"
   },
   "peerDependencies": {
     "react": ">=18",

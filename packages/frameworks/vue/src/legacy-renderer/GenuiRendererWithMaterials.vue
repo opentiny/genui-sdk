@@ -5,7 +5,9 @@ import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import GenuiRenderer from '../renderer/GenuiRenderer.vue';
 import type { IRendererProps, IRendererSlots } from '../renderer/renderer.types';
 
-defineProps<IRendererProps>();
+withDefaults(defineProps<IRendererProps>(), {
+  isJsonComplete: true,
+});
 defineSlots<IRendererSlots>();
 provide(GENUI_MATERIALS, defaultMaterials);
 </script>
