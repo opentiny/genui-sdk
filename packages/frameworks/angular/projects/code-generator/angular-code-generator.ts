@@ -1054,13 +1054,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return hookFn ? this.parseFunctionOrThrow(hookFn.value ?? '').body : '';
   }
 
-  /**
-   * 单条 ref 的接线语句(不含 this. 前缀的推导由 assignTo/fieldName 自带)。
-   * - 单例:查询结果直接就是 refs 要的值,取不取 nativeElement 由 unwrapNative 决定;
-   * - 集合:一次查询收回整组有序实例(顺序即 *ngFor 的迭代顺序),整组写进 refs,
-   *   等价于渲染器侧 `refs.x[index] = instance` 的逐格写入;视图后增时(如 *ngIf 切换)
-   *   再靠 changes 通知重算一次,避免 refs 停留在首帧的快照上。
-   */
   protected buildRefAssignment(item: IViewChildRef): string {
     // 原生元素要.nativeElement
     const value = `this.${item.fieldName}${item.unwrapNative ? '.nativeElement' : ''}`;
@@ -1252,16 +1245,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return index;
   }
 
-  /**
-   * 把箭头函数解析成与 getFunctionInfo 同形的 { type, params, body }。
-   *
-   * body 一律归一成**语句**：表达式体必须补 `return`——下游四处都把它内联进 `{ ... }`
-   * （buildMethods / handleEventBinding / buildLifecycleBody / buildJSFunctionExpression），
-   * 原样塞进去会退化成一条没有返回值的表达式语句，静默丢掉返回值。
-   *
-   * 形参只接受简单标识符：handleEventBinding 会把形参名直接当模板实参拼进 `(click)="..."`，
-   * 类型标注/解构/默认值在这里静默变形比直接抛错更难查。形态不符返回 null，由调用方统一报错。
-   */
   protected parseArrowFunction(fnStr: string): { type: string; params: string[]; body: string } | null {
     const source = fnStr.trim().replace(/;+\s*$/, '').trim();
     const matched = /^(async\s+)?(?:\(([^()]*)\)|([A-Za-z_$][\w$]*))\s*=>\s*([\s\S]+)$/.exec(source);
