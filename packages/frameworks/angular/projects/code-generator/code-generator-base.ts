@@ -67,6 +67,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
       .replace(/\/\*[\s\S]*?\*\//g, '');
   }
 
+  // 把函数里的嵌套函数的 形参、函数体替换成空格。 避免干扰最外层函数的自由变量提取，自由变量即函数内模板作用域下的变量
   protected maskNestedFunctions(code: string): string {
     const chars = code.split('');
     const blank = (from: number, to: number) => {
@@ -170,7 +171,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
     return chars.join('');
   }
 
-  /** 收集当前层自己绑定的名字：局部声明、具名类、catch 形参（嵌套函数的形参已被挖空） */
+  // 收集当前层自己绑定的名字：局部声明、具名类、catch 形参（嵌套函数的形参已被挖空）
   protected collectBoundNames(code: string): Set<string> {
     const bound = new Set<string>();
 

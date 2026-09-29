@@ -1,9 +1,8 @@
 import type { NodeSchema } from '@opentiny/genui-sdk-core';
 
 export interface IAngularMaterialsExtension {
-  /** 仅用于报错/调试定位,不参与组件名路由 */
   name: string;
-  /** 节点级特殊处理:就地改写 node(通常是 node.children),不得返回值 */
+  /** 节点级特殊处理:就地改写 node */
   transformNode?: (node: NodeSchema) => void;
 }
 
@@ -42,7 +41,7 @@ export interface IAngularMaterialsConfig {
   /** 组件级 prop 黑名单——这些 prop 在模板中不生成,如 { TiTable: ['border', 'stripe'] } */
   propBlacklist?: Record<string, string[]>;
 
-  /** 组件名 → 该组件**真实 @Output 名**数组(含继承自基类的),供出码器判定某个 prop 键 */
+  /** 组件名 → 该组件真实 Output 名 */
   componentOutputs?: Record<string, string[]>;
 
   /** 组件级 prop 键名重命名(schema 键 → 组件真实键) */

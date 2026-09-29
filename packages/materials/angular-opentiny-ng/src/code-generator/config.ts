@@ -5,7 +5,6 @@ import { materials } from '../materials';
 import { deriveMaterialsMaps } from './derive-materials-maps';
 import type { IAngularMaterialsConfig } from './types';
 
-/** 协议中表达式值的 type 字面量,与出码器包 constants.ts 的 JS_EXPRESSION 同值 */
 const JS_EXPRESSION = 'JSExpression';
 
 const {
