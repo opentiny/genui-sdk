@@ -3537,6 +3537,8 @@
             "rootSelector": "",
             "shortcuts": {
               "properties": [
+                "active",
+                "disabled"
               ]
             },
             "contextMenu": {
@@ -3564,6 +3566,50 @@
                   "zh_CN": "基础属性"
                 },
                 "content": [
+                  {
+                    "property": "active",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否激活"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "卡片是否激活"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "disabled",
+                    "label": {
+                      "text": {
+                        "zh_CN": "是否禁用"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "卡片是否禁用"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
                 ],
                 "description": {
                   "zh_CN": ""
@@ -3708,6 +3754,28 @@
                     "type": "string",
                     "widget": {
                       "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "batchSend",
+                    "label": {
+                      "text": {
+                        "zh_CN": "多文件上传"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "是否一次上传多个文件，默认一次上传一个文件"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
                       "props": {
                       }
                     }
