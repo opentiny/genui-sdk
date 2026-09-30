@@ -143,26 +143,29 @@
         },
         "pageSize": {
           "type": "JSExpression",
-          "value": "this.state.pageSize"
+          "value": "this.state.pageSizeConfig"
         },
-        "total": {
+        "totalNumber": {
           "type": "JSExpression",
           "value": "this.state.total"
         },
-        "currentPageChange": {
+        "onCurrentPageChange": {
           "type": "JSFunction",
-          "value": "function(page) { this.state.currentPage = page }"
+          "value": "function(currentPage) { this.state.currentPage = currentPage }"
         },
-        "pageSizeChange": {
+        "onPageNumChange": {
           "type": "JSFunction",
-          "value": "function(size) { this.state.pageSize = size }"
+          "value": "function(event) { this.state.pageSizeConfig = { ...this.state.pageSizeConfig, size: event.size } }"
         }
       }
     }
   ],
   "state": {
     "currentPage": 1,
-    "pageSize": 10,
+    "pageSizeConfig": {
+      "options": [10, 20, 50, 100],
+      "size": 10
+    },
     "total": 100,
     "columns": [
       {
@@ -202,7 +205,12 @@
           "department": "市场部",
           "email": "wangwu@test.com"
         }
-      ]
+      ],
+      "state": {
+        "searched": false,
+        "sorted": false,
+        "paginated": true
+      }
     },
     "displayedData": []
   },

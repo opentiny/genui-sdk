@@ -1,0 +1,13 @@
+{
+  "name": "code-generator-dev",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.2"
+  }
+}

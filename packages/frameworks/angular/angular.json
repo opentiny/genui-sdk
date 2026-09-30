@@ -195,6 +195,69 @@
           }
         }
       }
+    },
+    "code-generator-preview": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "less"
+        }
+      },
+      "root": "projects/code-generator/src",
+      "sourceRoot": "projects/code-generator/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/code-generator/src/preview/preview.ts",
+            "index": "projects/code-generator/src/preview/preview.html",
+            "tsConfig": "projects/code-generator/src/preview/tsconfig.app.json",
+            "inlineStyleLanguage": "less",
+            "styles": ["projects/code-generator/src/preview/styles.less"],
+            "polyfills": ["zone.js"]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "8MB",
+                  "maximumError": "16MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "none",
+              "sourceMap": true
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "port": 4201
+          },
+          "configurations": {
+            "production": {
+              "buildTarget": "code-generator-preview:build:production"
+            },
+            "development": {
+              "buildTarget": "code-generator-preview:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        }
+      }
     }
   },
   "cli": {

@@ -860,42 +860,6 @@
                       "props": {
                       }
                     }
-                  },
-                  {
-                    "property": "size",
-                    "label": {
-                      "text": {
-                        "zh_CN": "表格尺寸"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "表格尺寸"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "string",
-                    "widget": {
-                      "component": "SelectConfigurator",
-                      "props": {
-                        "options": [
-                          {
-                            "label": "small",
-                            "value": "small"
-                          },
-                          {
-                            "label": "medium",
-                            "value": "medium"
-                          },
-                          {
-                            "label": "large",
-                            "value": "large"
-                          }
-                        ]
-                      }
-                    }
                   }
                 ],
                 "description": {
@@ -1419,28 +1383,6 @@
                   "returns": {
                   }
                 }
-              },
-              "onVisibleChange": {
-                "label": {
-                  "zh_CN": "下拉框显示/隐藏事件"
-                },
-                "description": {
-                  "zh_CN": "下拉框显示或隐藏时触发"
-                },
-                "type": "event",
-                "functionInfo": {
-                  "params": [
-                    {
-                      "name": "visible",
-                      "type": "boolean",
-                      "description": {
-                        "zh_CN": "是否显示"
-                      }
-                    }
-                  ],
-                  "returns": {
-                  }
-                }
               }
             },
             "slots": {
@@ -1487,7 +1429,6 @@
             "shortcuts": {
               "properties": [
                 "ngModel",
-                "placeholder",
                 "format"
               ]
             },
@@ -1539,28 +1480,6 @@
                     }
                   },
                   {
-                    "property": "placeholder",
-                    "label": {
-                      "text": {
-                        "zh_CN": "占位文本"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "输入框占位文本"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "string",
-                    "widget": {
-                      "component": "I18nConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
                     "property": "format",
                     "label": {
                       "text": {
@@ -1605,7 +1524,7 @@
                     }
                   },
                   {
-                    "property": "clearable",
+                    "property": "clearIcon",
                     "label": {
                       "text": {
                         "zh_CN": "是否可清空"
@@ -1701,7 +1620,7 @@
               "properties": [
                 "currentPage",
                 "pageSize",
-                "total"
+                "totalNumber"
               ]
             },
             "contextMenu": {
@@ -1755,26 +1674,26 @@
                     "property": "pageSize",
                     "label": {
                       "text": {
-                        "zh_CN": "每页条数"
+                        "zh_CN": "每页条数配置"
                       }
                     },
                     "description": {
-                      "zh_CN": "每页显示的数据条数"
+                      "zh_CN": "每页显示条数配置对象，必须给一个对象，形如 { options: [10, 20, 50, 100], size: 10 }。其中 options 是可选每页条数数组，size 是当前每页条数。组件用单个 pageSize 输入接收该对象，没有 pageSizes 属性，不要把选项列表单独写成 pageSizes"
                     },
                     "required": true,
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
                     "labelPosition": "left",
-                    "type": "number",
+                    "type": "object",
                     "widget": {
-                      "component": "NumberConfigurator",
+                      "component": "ObjectConfigurator",
                       "props": {
                       }
                     }
                   },
                   {
-                    "property": "total",
+                    "property": "totalNumber",
                     "label": {
                       "text": {
                         "zh_CN": "总条数"
@@ -1791,50 +1710,6 @@
                     "type": "number",
                     "widget": {
                       "component": "NumberConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "pageSizes",
-                    "label": {
-                      "text": {
-                        "zh_CN": "每页条数选项"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "每页条数选项数组"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "array",
-                    "widget": {
-                      "component": "ArrayConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "layout",
-                    "label": {
-                      "text": {
-                        "zh_CN": "布局"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "组件布局，子组件名用逗号分隔"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "string",
-                    "widget": {
-                      "component": "InputConfigurator",
                       "props": {
                       }
                     }
@@ -1868,21 +1743,21 @@
                   }
                 }
               },
-              "onPageSizeChange": {
+              "onPageNumChange": {
                 "label": {
                   "zh_CN": "每页条数改变事件"
                 },
                 "description": {
-                  "zh_CN": "每页条数改变时触发"
+                  "zh_CN": "操作下拉框改变每页显示条数时触发"
                 },
                 "type": "event",
                 "functionInfo": {
                   "params": [
                     {
-                      "name": "pageSize",
-                      "type": "number",
+                      "name": "event",
+                      "type": "TiPaginationEvent",
                       "description": {
-                        "zh_CN": "每页条数"
+                        "zh_CN": "分页更新参数，含 currentPage、size、totalNumber"
                       }
                     }
                   ],
@@ -3168,7 +3043,7 @@
                     }
                   },
                   {
-                    "property": "activeText",
+                    "property": "onText",
                     "label": {
                       "text": {
                         "zh_CN": "打开时的文字描述"
@@ -3190,7 +3065,7 @@
                     }
                   },
                   {
-                    "property": "inactiveText",
+                    "property": "offText",
                     "label": {
                       "text": {
                         "zh_CN": "关闭时的文字描述"
@@ -3448,8 +3323,8 @@
             "rootSelector": "",
             "shortcuts": {
               "properties": [
-                "content",
-                "placement"
+                "tiTip",
+                "tiTipPosition"
               ]
             },
             "contextMenu": {
@@ -3478,7 +3353,7 @@
                 },
                 "content": [
                   {
-                    "property": "content",
+                    "property": "tiTip",
                     "label": {
                       "text": {
                         "zh_CN": "提示内容"
@@ -3500,7 +3375,7 @@
                     }
                   },
                   {
-                    "property": "placement",
+                    "property": "tiTipPosition",
                     "label": {
                       "text": {
                         "zh_CN": "出现位置"
@@ -3572,7 +3447,7 @@
                     }
                   },
                   {
-                    "property": "trigger",
+                    "property": "tiTipTrigger",
                     "label": {
                       "text": {
                         "zh_CN": "触发方式"
@@ -3662,9 +3537,8 @@
             "rootSelector": "",
             "shortcuts": {
               "properties": [
-                "shadow",
-                "bordered",
-                "hoverable"
+                "active",
+                "disabled"
               ]
             },
             "contextMenu": {
@@ -3693,50 +3567,14 @@
                 },
                 "content": [
                   {
-                    "property": "shadow",
+                    "property": "active",
                     "label": {
                       "text": {
-                        "zh_CN": "阴影效果"
+                        "zh_CN": "是否激活"
                       }
                     },
                     "description": {
-                      "zh_CN": "卡片阴影效果"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "string",
-                    "widget": {
-                      "component": "SelectConfigurator",
-                      "props": {
-                        "options": [
-                          {
-                            "label": "always",
-                            "value": "always"
-                          },
-                          {
-                            "label": "hover",
-                            "value": "hover"
-                          },
-                          {
-                            "label": "never",
-                            "value": "never"
-                          }
-                        ]
-                      }
-                    }
-                  },
-                  {
-                    "property": "bordered",
-                    "label": {
-                      "text": {
-                        "zh_CN": "是否显示边框"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "是否显示卡片边框"
+                      "zh_CN": "卡片是否激活"
                     },
                     "required": false,
                     "readOnly": false,
@@ -3751,14 +3589,14 @@
                     }
                   },
                   {
-                    "property": "hoverable",
+                    "property": "disabled",
                     "label": {
                       "text": {
-                        "zh_CN": "悬停效果"
+                        "zh_CN": "是否禁用"
                       }
                     },
                     "description": {
-                      "zh_CN": "鼠标悬停时是否显示阴影效果"
+                      "zh_CN": "卡片是否禁用"
                     },
                     "required": false,
                     "readOnly": false,
@@ -3847,8 +3685,7 @@
             "rootSelector": "",
             "shortcuts": {
               "properties": [
-                "action",
-                "multiple",
+                "url",
                 "accept"
               ]
             },
@@ -3878,7 +3715,7 @@
                 },
                 "content": [
                   {
-                    "property": "action",
+                    "property": "url",
                     "label": {
                       "text": {
                         "zh_CN": "上传地址"
@@ -3895,28 +3732,6 @@
                     "type": "string",
                     "widget": {
                       "component": "InputConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "multiple",
-                    "label": {
-                      "text": {
-                        "zh_CN": "是否支持多选"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "是否支持多选文件"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "boolean",
-                    "widget": {
-                      "component": "CheckBoxConfigurator",
                       "props": {
                       }
                     }
@@ -3944,23 +3759,23 @@
                     }
                   },
                   {
-                    "property": "limit",
+                    "property": "batchSend",
                     "label": {
                       "text": {
-                        "zh_CN": "最大上传数量"
+                        "zh_CN": "多文件上传"
                       }
                     },
                     "description": {
-                      "zh_CN": "最大允许上传文件数量"
+                      "zh_CN": "是否一次上传多个文件，默认一次上传一个文件"
                     },
                     "required": false,
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
                     "labelPosition": "left",
-                    "type": "number",
+                    "type": "boolean",
                     "widget": {
-                      "component": "NumberConfigurator",
+                      "component": "CheckBoxConfigurator",
                       "props": {
                       }
                     }
@@ -3972,7 +3787,7 @@
               }
             ],
             "events": {
-              "onSuccess": {
+              "onSuccessItems": {
                 "label": {
                   "zh_CN": "上传成功事件"
                 },
@@ -3983,17 +3798,10 @@
                 "functionInfo": {
                   "params": [
                     {
-                      "name": "response",
-                      "type": "any",
-                      "description": {
-                        "zh_CN": "服务器响应数据"
-                      }
-                    },
-                    {
                       "name": "file",
                       "type": "File",
                       "description": {
-                        "zh_CN": "上传的文件对象"
+                        "zh_CN": "上传成功的文件对象"
                       }
                     }
                   ],
@@ -4001,7 +3809,7 @@
                   }
                 }
               },
-              "onError": {
+              "onErrorItems": {
                 "label": {
                   "zh_CN": "上传失败事件"
                 },
@@ -4012,17 +3820,10 @@
                 "functionInfo": {
                   "params": [
                     {
-                      "name": "error",
-                      "type": "Error",
-                      "description": {
-                        "zh_CN": "错误信息"
-                      }
-                    },
-                    {
                       "name": "file",
                       "type": "File",
                       "description": {
-                        "zh_CN": "上传的文件对象"
+                        "zh_CN": "上传失败的文件对象"
                       }
                     }
                   ],
@@ -4074,8 +3875,6 @@
             "rootSelector": "",
             "shortcuts": {
               "properties": [
-                "vertical",
-                "labelPosition",
                 "labelWidth"
               ]
             },
@@ -4104,64 +3903,6 @@
                   "zh_CN": "基础属性"
                 },
                 "content": [
-                  {
-                    "property": "vertical",
-                    "label": {
-                      "text": {
-                        "zh_CN": "垂直布局"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "是否垂直排列表单项"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "true | null",
-                    "widget": {
-                      "component": "CheckBoxConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "labelPosition",
-                    "label": {
-                      "text": {
-                        "zh_CN": "标签位置"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "表单标签的位置"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "string",
-                    "widget": {
-                      "component": "SelectConfigurator",
-                      "props": {
-                        "options": [
-                          {
-                            "label": "left",
-                            "value": "left"
-                          },
-                          {
-                            "label": "right",
-                            "value": "right"
-                          },
-                          {
-                            "label": "top",
-                            "value": "top"
-                          }
-                        ]
-                      }
-                    }
-                  },
                   {
                     "property": "labelWidth",
                     "label": {
@@ -4243,9 +3984,7 @@
             "rootSelector": "",
             "shortcuts": {
               "properties": [
-                "span",
-                "offset",
-                "gutter"
+                "colspan"
               ]
             },
             "contextMenu": {
@@ -4274,7 +4013,7 @@
                 },
                 "content": [
                   {
-                    "property": "span",
+                    "property": "colspan",
                     "label": {
                       "text": {
                         "zh_CN": "栅格占据的列数"
@@ -4282,50 +4021,6 @@
                     },
                     "description": {
                       "zh_CN": "栅格占据的列数，共24列"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "number",
-                    "widget": {
-                      "component": "NumberConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "offset",
-                    "label": {
-                      "text": {
-                        "zh_CN": "栅格左侧的间隔格数"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "栅格左侧的间隔格数"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "number",
-                    "widget": {
-                      "component": "NumberConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "gutter",
-                    "label": {
-                      "text": {
-                        "zh_CN": "栅格间隔"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "栅格间隔，单位px"
                     },
                     "required": false,
                     "readOnly": false,
@@ -4509,7 +4204,6 @@
             "shortcuts": {
               "properties": [
                 "ngModel",
-                "placeholder",
                 "format"
               ]
             },
@@ -4556,28 +4250,6 @@
                     "type": "array",
                     "widget": {
                       "component": "ArrayConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "placeholder",
-                    "label": {
-                      "text": {
-                        "zh_CN": "占位文本, 数组类型，示例：`['开始日期占位文本', '结束日期占位文本']`"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "输入框占位文本"
-                    },
-                    "required": false,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "Array",
-                    "widget": {
-                      "component": "I18nConfigurator",
                       "props": {
                       }
                     }
@@ -4668,7 +4340,7 @@
           },
           "component": "TiSlider",
           "icon": "slider",
-          "description": "通过拖动滑块在一个固定区间内进行选择",
+          "description": "通过拖动滑块在一个固定区间内进行选择, 注意：滑块靠撑满所在容器才有轨道；放在 display:flex 的行里时必须自己声明宽度，例如 props 里加 \"style \": \"flex: 1; min-width: 0;\"，否则轨道会塌成 0 宽",
           "doc_url": "https://www.opentiny.design/tiny-ng/components/slider",
           "screenshot": "",
           "tags": "slider,滑块,滑动选择",
@@ -4914,7 +4586,6 @@
             "shortcuts": {
               "properties": [
                 "ngModel",
-                "count",
                 "disabled"
               ]
             },
@@ -4954,28 +4625,6 @@
                       "zh_CN": "评分的当前值"
                     },
                     "required": true,
-                    "readOnly": false,
-                    "disabled": false,
-                    "cols": 12,
-                    "labelPosition": "left",
-                    "type": "number",
-                    "widget": {
-                      "component": "NumberConfigurator",
-                      "props": {
-                      }
-                    }
-                  },
-                  {
-                    "property": "count",
-                    "label": {
-                      "text": {
-                        "zh_CN": "星星总数"
-                      }
-                    },
-                    "description": {
-                      "zh_CN": "评分星星的总数"
-                    },
-                    "required": false,
                     "readOnly": false,
                     "disabled": false,
                     "cols": 12,
@@ -5690,9 +5339,7 @@
                     "type": "JSExpression",
                     "model": true,
                     "value": "this.state.rateValue"
-                  },
-                  "count": 5,
-                  "allowHalf": false
+                  }
                 },
                 "directives": [
                   {
@@ -6008,8 +5655,11 @@
                 "componentName": "TiPagination",
                 "props": {
                   "currentPage": 1,
-                  "pageSize": 10,
-                  "total": 100
+                  "pageSize": {
+                    "options": [10, 20, 50, 100],
+                    "size": 10
+                  },
+                  "totalNumber": 100
                 }
               }
             }
