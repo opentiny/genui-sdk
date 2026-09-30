@@ -15,7 +15,7 @@ import type {
   IViewChildRef,
   ILoopScope,
 } from './types';
-import { capitalize, hyphenate, toEventKey, unwrapExpression } from './utils';
+import { capitalize, escapeTemplateLiteral, hyphenate, toEventKey, unwrapExpression } from './utils';
 import { CodeGeneratorBase } from './code-generator-base';
 
 /** Angular 出码默认 prettier 参数(parser 为 typescript;模板部分单独用 parser 'angular') */
@@ -87,7 +87,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     for (const config of this.materialsConfigs) {
       for (const tag of config.extraVoidElements ?? []) extra.add(tag);
     }
-    return ['img', 'input', 'br', 'hr', 'link', ...extra];
+    return [
+      'area', 'base', 'br', 'col', 'embed', 'hr', 'img',
+      'input', 'link', 'meta', 'param', 'source', 'track', 'wbr',
+      ...extra,
+    ];
   }
 
   protected resolveComponentTag(componentName: string): string {
@@ -116,18 +120,6 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return !hasChildren;
   }
 
-  /**
-   * 物料包专属节点级特殊处理:按所属物料包的 config.extensions 顺序调用(见 materials/materials-extension.ts)。
-   * 这是出码器唯一的物料扩展点,本类不认识任何具体物料包、也没有任何物料包的特判分支。
-   *
-   * 路由照旧走 resolveConfig —— 组件名在所有映射表里都没命中时会兜底第一个库,所以扩展实现必须
-   * 自查 node.componentName,不能默认「轮到我 = 就是我的组件」。
-   *
-   * 返回值守卫:钩子签名是 `(node) => void`,而 TS 允许把有返回值的函数赋给 void 返回位置,于是
-   * `return node.children.map(...)` 这种写法**能编译通过却静默什么都不做**。ICodeGeneratorResult 没有
-   * errors 通道,漏包一层 TiItem 只能等 Angular 运行期在目标组件上崩出来,很难倒查到出码这一步。
-   * 故与 parseFunctionOrThrow 同款:当场抛错,让不生效的扩展在出码当场暴露。
-   */
   protected applyNodeExtensions(node: NodeSchema): void {
     const extensions = this.resolveConfig(node.componentName ?? '').extensions ?? [];
     for (const extension of extensions) {
@@ -226,7 +218,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   protected toTemplateValue(item: unknown): string {
-    return this.replaceThis((item as { value?: string } | null | undefined)?.value ?? '');
+    return this.replaceThis((item as { value?: string } | null | undefined)?.value ?? '')
+      .replace(/"/g, '&quot;');
   }
 
   protected resolveBindingRight(
@@ -305,8 +298,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
       // 方法形参 = 声明形参 + 模板自由变量 + 额外参数
       const sigParams = [...new Set([...declaredParams, ...freeVars, ...extendParams])];
-      // 模板调用：声明了形参时，第一个声明形参由 $event 填充
-      const templateArgs = [...new Set([...(declaredParams.length > 0 ? ['$event'] : []), ...freeVars, ...extendParams])];
+      // 模板实参
+      const templateArgs = sigParams.map((v, i) => (i === 0 && declaredParams.length > 0 ? '$event' : v));
 
       const asyncPrefix = fnInfo.type ? `${fnInfo.type} ` : '';
 
@@ -590,7 +583,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       );
       return;
     }
-    // 对象形态的 children 走兜底:不能落到下面的 `as string` 上——那会让对象被 JS 隐式 String() 成 "[object Object]"
+
     if (children && typeof children === 'object') {
       result.push(
         this.generateObjectChildren(children as unknown as NodeSchema, state, description, schemaMethods, loopScope),
@@ -966,6 +959,8 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     schema.methods ??= {};
     const schemaMethods = schema.methods;
 
+    schema.state ??= {};
+
     const needsCallAction = /\bthis\.callAction\b/.test(JSON.stringify(schema));
 
     // 1) 模板:整棵 schema 一次生成(ng-template 作为普通节点在 children 里处理)
@@ -1024,7 +1019,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       .join(', ');
     const implementsClause = implementedHooks ? ` implements ${implementedHooks}` : '';
 
-    const stylesContent = (schema.css ?? '').replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+    const stylesContent = escapeTemplateLiteral(schema.css);
 
     return [
       importStatements,
@@ -1033,7 +1028,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       `  selector: 'app-${selectorName}',`,
       '  standalone: true,',
       `  imports: [${ngImports}],`,
-      `  template: \`${template}\`,`,
+      `  template: \`${escapeTemplateLiteral(template)}\`,`,
       `  styles: [\`${stylesContent}\`],`,
       '})',
       `export class ${className}Component${implementsClause} {`,

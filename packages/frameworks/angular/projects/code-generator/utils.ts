@@ -18,7 +18,8 @@ export const toEventKey = (str: string): string => {
 };
 
 export const unwrapExpression = (value: string): string =>
-  value.replace(new RegExp(`"${start}(.*?)${end}"`, 'g'), (match, p1) =>
-    p1.replace(/\\"/g, '"').replace(/\\r\\n|\\r|\\n/g, ''),
-  );
+  value.replace(new RegExp(`"${start}(.*?)${end}"`, 'g'), (_full, p1) => JSON.parse(`"${p1}"`));
 
+
+export const escapeTemplateLiteral = (text: string | undefined = ''): string =>
+  text.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
