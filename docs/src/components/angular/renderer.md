@@ -173,10 +173,10 @@ export class GenuiExample {
 
 #### 说明
 
-- 如果使用非`standalone`组件需要搭配`customComponentsModule`使用.
-- 组件相关描述信息需要调用接口时候传给后台服务，大模型能配套僧成该组件的协议JSON数据
-- ⚠️ 限制：动态渲染技术目前不支持使用`@ContentChild`、`@ContentChildren`查询的组件
-
+- 如果使用非 `standalone` 组件，需要搭配 `customComponentsModule` 使用。
+- 组件相关描述信息需要在调用接口时传给后台服务，大模型才能据此生成该组件的协议 JSON 数据。
+- `@ContentChild` / `@ContentChildren` 查询通过运行时补丁实现支持（best-effort），可解析动态创建组件上的 `QueryList` 与 `contentChild()` / `contentChildren()` 信号，并按 schema 声明顺序返回结果；部分基于类型/复杂选择器的查询谓词可能无法完全还原，存在边界情况。
+- 投影 `ng-content` 内容当前仅支持静态投影，并支持 `select` 选择器内容选择投影；对于惰性投影目前无法良好支持
 
 ### customComponentsModule
 
@@ -222,7 +222,7 @@ export class GenuiExample {
 
 - **类型**: `Record<string, Type<any>>`
 - **必填**: 否
-- **说明**: 自定义指令归属模块映射表，用于扩展指令列表。
+- **说明**: 自定义指令映射表，用于扩展可用的指令列表。
 
 ```ts
 import { Component } from '@angular/core';
@@ -255,8 +255,45 @@ export class GenuiExample {
   };
 }
 ```
-
 ⚠️ 限制说明： 受限于 `ViewContainerRef.createComponent` API，目前只支持 `standalone` 的指令
+非 `standalone` 指令需要额外登记其声明所在的 `NgModule`（通过 `customDirectivesModule` 输入或全局 `directiveModuleRef`），渲染器据此创建模块并为指令提供 DI 依赖，并将指令标记为 `standalone`。
+
+
+### customDirectivesModule
+
+- **类型**: `Record<string, Type<any>>`
+- **必填**: 否
+- **说明**: 非 `standalone` 指令到其声明 `NgModule` 的映射表。渲染器通过 `createNgModule` 创建对应模块，为指令提供模块级 DI 依赖。
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { MyCustomDirective, MyCustomDirectiveModule } from './my-custom-directive';
+
+@Component({
+  imports: [GenuiRenderer],
+  template: `
+    <genui-renderer [content]="schemaContent" [customDirectives]="customDirectives" [customDirectivesModule]="customDirectivesModule"> </genui-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'div',
+        directives: [{ directiveName: 'MyCustomDirective' }],
+      },
+    ],
+  };
+  customDirectives = {
+    MyCustomDirective: MyCustomDirective,
+  };
+  customDirectivesModule = {
+    MyCustomDirective: MyCustomDirectiveModule,
+  };
+}
+```
 
 ### customActions
 

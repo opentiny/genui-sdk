@@ -10,12 +10,12 @@ When used with `GenuiRenderer` or `GenuiChat`, you typically need to inject comp
 
 ### theme
 
-- **Type**: `'dark' | 'lite' | 'light' | 'auto'`
+- **Type**: `string`
 - **Required**: No
 - **Default**: `'light'`
-- **Description**: Theme mode.
+- **Description**: Theme mode. Accepts any string (including `auto`), resolved by the materials package together with the system `colorScheme`. The framework no longer limits the enum, and different materials may support different theme sets: e.g. the OpenTiny Vue materials ship with `light` / `dark` / `lite`, while the Element Plus materials ship with `light` / `dark`. See [Materials Theme](../materials/theme).
   - `'dark'`: Dark theme
-  - `'lite'`: Lite theme
+  - `'lite'`: Lite theme (OpenTiny Vue materials only)
   - `'light'`: Light theme
   - `'auto'`: Follow the browser preference automatically
 

@@ -38,7 +38,7 @@ ${JSON.stringify(actionDefinitions, null, 2)}
       "value": "function() { this.callAction('continueChat', { message: '继续对话' }); }"
     }
   },
-  "children": ["点击继续对话"]
+  "children": "点击继续对话"
 }
 \`\`\`
 

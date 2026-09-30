@@ -11,10 +11,13 @@ on:
           - '@opentiny/genui-sdk-server'
           - '@opentiny/genui-sdk-vue'
           - '@opentiny/genui-sdk-angular'
+          - '@opentiny/genui-sdk-react'
           - '@opentiny/genui-sdk-core'
           - '@opentiny/genui-sdk-materials-vue-opentiny-vue'
           - '@opentiny/genui-sdk-materials-vue-element-plus'
           - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
+          - '@opentiny/genui-sdk-integration-skill'
+          - '@opentiny/genui-sdk-materials-react-antd'
       version:
         description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
         required: true
@@ -41,6 +44,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      NPM_TAG: ${{ github.event.inputs.npm_tag }}
     permissions:
       contents: write
       id-token: write
@@ -69,6 +74,13 @@ jobs:
           fi
           echo "✓ 版本号格式正确: $VERSION"
 
+      - name: Validate npm tag
+        run: |
+          case "$NPM_TAG" in
+            latest|beta|alpha) ;;
+            *) echo "::error::无效的 npm 标签: $NPM_TAG"; exit 1 ;;
+          esac
+
       - name: Resolve package config
         id: pkg
         run: |
@@ -93,6 +105,13 @@ jobs:
               echo "filter=@opentiny/genui-sdk-angular" >> "$GITHUB_OUTPUT"
               echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/frameworks/angular/output" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-react)
+              echo "pkg_json=packages/frameworks/react/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/frameworks/react/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-react" >> "$GITHUB_OUTPUT"
+              echo "build_script=build:lib:npm" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/frameworks/react" >> "$GITHUB_OUTPUT"
               ;;
             @opentiny/genui-sdk-core)
               echo "pkg_json=packages/core/package.json" >> "$GITHUB_OUTPUT"
@@ -121,6 +140,20 @@ jobs:
               echo "filter=@opentiny/genui-sdk-materials-angular-opentiny-ng" >> "$GITHUB_OUTPUT"
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/materials/angular-opentiny-ng" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-integration-skill)
+              echo "pkg_json=packages/integrate/skill/genui-integration/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/integrate/skill/genui-integration/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-integration-skill" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/integrate/skill/genui-integration" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-materials-react-antd)
+              echo "pkg_json=packages/materials/react-antd/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/materials/react-antd/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-materials-react-antd" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/materials/react-antd" >> "$GITHUB_OUTPUT"
               ;;
             *)
               echo "::error::未知包: ${{ github.event.inputs.package }}"
@@ -163,7 +196,7 @@ jobs:
 
       - name: Publish to npm
         working-directory: ${{ steps.pkg.outputs.publish_dir }}
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Create and push tag
         run: |

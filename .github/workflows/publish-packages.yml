@@ -26,7 +26,7 @@ on:
           - beta
           - alpha
       publish_optional_packages:
-        description: '同时发布 core 与物料包（vue-opentiny / vue-element-plus / angular）'
+        description: '同时发布 core 与物料包（vue-opentiny / vue-element-plus / angular / react-antd）'
         required: false
         default: false
         type: boolean
@@ -34,6 +34,8 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    env:
+      NPM_TAG: ${{ github.event.inputs.npm_tag }}
     permissions:
       contents: write
       id-token: write
@@ -62,6 +64,13 @@ jobs:
           fi
           echo "✓ 版本号格式正确: $VERSION"
 
+      - name: Validate npm tag
+        run: |
+          case "$NPM_TAG" in
+            latest|beta|alpha) ;;
+            *) echo "::error::无效的 npm 标签: $NPM_TAG"; exit 1 ;;
+          esac
+
       - name: Checkout (with submodules)
         uses: actions/checkout@v4
         with:
@@ -86,11 +95,14 @@ jobs:
           node ./scripts/update-package-version.js packages/server/package.json "$VERSION"
           node ./scripts/update-package-version.js packages/frameworks/vue/package.json "$VERSION"
           node ./scripts/update-package-version.js packages/frameworks/angular/package.json "$VERSION"
+          node ./scripts/update-package-version.js packages/frameworks/react/package.json "$VERSION"
+          node ./scripts/update-package-version.js packages/integrate/skill/genui-integration/package.json "$VERSION"
           if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
             node ./scripts/update-package-version.js packages/core/package.json "$VERSION"
             node ./scripts/update-package-version.js packages/materials/vue-opentiny-vue/package.json "$VERSION"
             node ./scripts/update-package-version.js packages/materials/vue-element-plus/package.json "$VERSION"
             node ./scripts/update-package-version.js packages/materials/angular-opentiny-ng/package.json "$VERSION"
+            node ./scripts/update-package-version.js packages/materials/react-antd/package.json "$VERSION"
           fi
 
       - name: Build Core
@@ -109,6 +121,10 @@ jobs:
         if: github.event.inputs.publish_optional_packages == 'true'
         run: pnpm --filter @opentiny/genui-sdk-materials-angular-opentiny-ng build
 
+      - name: Build React Ant Design materials
+        if: github.event.inputs.publish_optional_packages == 'true'
+        run: pnpm --filter @opentiny/genui-sdk-materials-react-antd build
+
       - name: Build Server
         run: pnpm --filter @opentiny/genui-sdk-server build:lib:npm
 
@@ -118,14 +134,20 @@ jobs:
       - name: Build Angular
         run: pnpm --filter @opentiny/genui-sdk-angular build:lib:npm
 
+      - name: Build React
+        run: pnpm --filter @opentiny/genui-sdk-react build:lib:npm
+
+      - name: Build Integration Skill
+        run: pnpm --filter @opentiny/genui-sdk-integration-skill build
+
       - name: Sync workspace deps for publish
         env:
           FETCH_NPM_TAG: ${{ github.event.inputs.fetch_npm_tag }}
           PUBLISH_VERSION: ${{ github.event.inputs.version }}
         run: |
-          PUBLISH_PKG_JSONS="packages/server/output/package.json,packages/frameworks/vue/package.json,packages/frameworks/angular/output/package.json"
+          PUBLISH_PKG_JSONS="packages/server/output/package.json,packages/frameworks/vue/package.json,packages/frameworks/angular/output/package.json,packages/frameworks/react/package.json,packages/integrate/skill/genui-integration/package.json"
           if [ "${{ github.event.inputs.publish_optional_packages }}" = "true" ]; then
-            PUBLISH_PKG_JSONS="${PUBLISH_PKG_JSONS},packages/core/package.json,packages/materials/vue-opentiny-vue/package.json,packages/materials/vue-element-plus/package.json,packages/materials/angular-opentiny-ng/package.json"
+            PUBLISH_PKG_JSONS="${PUBLISH_PKG_JSONS},packages/core/package.json,packages/materials/vue-opentiny-vue/package.json,packages/materials/vue-element-plus/package.json,packages/materials/angular-opentiny-ng/package.json,packages/materials/react-antd/package.json"
           fi
           export PUBLISH_PKG_JSONS
           node ./scripts/ci-replace-workspace-deps.js
@@ -136,34 +158,47 @@ jobs:
       - name: Publish Core to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/core
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Vue materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/vue-opentiny-vue
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Element Plus materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/vue-element-plus
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Angular materials to npm
         if: github.event.inputs.publish_optional_packages == 'true'
         working-directory: packages/materials/angular-opentiny-ng
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
+
+      - name: Publish React Ant Design materials to npm
+        if: github.event.inputs.publish_optional_packages == 'true'
+        working-directory: packages/materials/react-antd
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish server to npm
         working-directory: packages/server/output
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Vue to npm
         working-directory: packages/frameworks/vue
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Publish Angular to npm
         working-directory: packages/frameworks/angular/output
-        run: pnpm publish --no-git-checks --access public --tag ${{ github.event.inputs.npm_tag }}
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
+
+      - name: Publish React to npm
+        working-directory: packages/frameworks/react
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
+
+      - name: Publish Integration Skill to npm
+        working-directory: packages/integrate/skill/genui-integration
+        run: pnpm publish --no-git-checks --access public --tag "$NPM_TAG"
 
       - name: Create and push tags
         run: |

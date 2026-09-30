@@ -13,6 +13,6 @@ export const materialsMeta: IMaterialsMeta = {
   materials: metaMaterials,
   wrapperComponent: 'TiCard',
   whiteList,
-  examples: filterExamples(['form', 'info', 'grid', 'tabs', 'pagination']),
+  examples: filterExamples(['form', 'info', 'grid', 'tabs', 'pagination', 'refs']),
   rules: [],
 };

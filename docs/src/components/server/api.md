@@ -20,23 +20,33 @@ interface IStartServerOptions {
   port?: number;
   /** 端口被占用时的最大尝试次数，默认 10 */
   maxAttempts?: number;
+  /**
+   * 启动时固定的物料元数据；传入后用于生成 system prompt。
+   * 不传则按请求 tinygenui.framework 选择内置物料：
+   * - Vue → `@opentiny/genui-sdk-materials-vue-opentiny-vue`
+   * - Angular → `@opentiny/genui-sdk-materials-angular-opentiny-ng`
+   * - 其他 / 未传 framework → 默认 Vue 物料
+   */
+  materialsMeta?: IMaterialsMeta;
 }
 ```
 
 - **详细信息**
 
-创建一个 Express 应用并启用 CORS，自动注册对话路由（`/chat/completions`）。如果指定端口被占用，会自动尝试下一个端口（最多尝试 `maxAttempts` 次）。启动成功后会在控制台输出服务器地址。
+创建一个 Express 应用并启用 CORS，自动注册对话路由（`/chat/completions`）。如果指定端口被占用，会自动尝试下一个端口（最多尝试 `maxAttempts` 次）。启动成功后会在控制台输出服务器地址。物料在启动时通过 `materialsMeta` 固定，请求侧无法切换；未配置时按请求 `framework` 映射内置物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular）。
 
 - **示例**
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10,
+  materialsMeta,
 });
 ```
 
@@ -59,18 +69,27 @@ interface IEquipChatCompletionsOptions {
   apiKey: string;
   /** API 基础 URL */
   baseURL: string;
+  /**
+   * 启动时固定的物料元数据；传入后用于生成 system prompt。
+   * 不传则按请求 tinygenui.framework 选择内置物料：
+   * - Vue → `@opentiny/genui-sdk-materials-vue-opentiny-vue`
+   * - Angular → `@opentiny/genui-sdk-materials-angular-opentiny-ng`
+   * - 其他 / 未传 framework → 默认 Vue 物料
+   */
+  materialsMeta?: IMaterialsMeta;
 }
 ```
 
 - **详细信息**
 
-创建一个对话请求的实例，创建请求处理器，并将处理器注册到指定的路由路径（POST 方法）。
+创建一个对话请求的实例，创建请求处理器，并将处理器注册到指定的路由路径（POST 方法）。物料在装备路由时通过 `materialsMeta` 固定；未配置时按请求 `framework` 映射内置物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular）。
 
 - **示例**
 
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 
 const app = express();
 
@@ -78,6 +97,7 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
+  materialsMeta,
 });
 
 app.listen(3000);

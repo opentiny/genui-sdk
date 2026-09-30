@@ -14,11 +14,19 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@opentiny/genui-sdk-vue": "workspace:*",
     "@opentiny/genui-sdk-angular": "workspace:*",
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*"
+    "@opentiny/genui-sdk-materials-react-antd": "workspace:*",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/genui-sdk-react": "workspace:*",
+    "@opentiny/genui-sdk-vue": "workspace:*"
   },
   "devDependencies": {
+    "@types/react": "^18.3.29",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "antd": "^5.29.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "vitepress": "^1.6.3",
     "vitepress-demo-plugin": "^1.4.1",
     "vitepress-plugin-tabs": "^0.7.3"

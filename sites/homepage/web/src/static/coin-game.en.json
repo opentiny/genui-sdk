@@ -1,0 +1,230 @@
+{
+  "componentName": "Page",
+  "state": {
+    "myMoney": 100,
+    "opponentMoney": 100,
+    "rounds": 0,
+    "gameOver": false,
+    "loser": "",
+    "history": [],
+    "chartData": [],
+    "winAmount": 1,
+    "loseAmount": 10,
+    "tossCount": 3
+  },
+  "methods": {
+    "simulateAll": {
+      "type": "JSFunction",
+      "value": "function() { this.resetGame(); if (this.state.winAmount <= 0 && this.state.loseAmount <= 0) { return; } while (!this.state.gameOver) { const opponentWins = Math.random() < (1 - Math.pow(0.5, this.state.tossCount)); if (opponentWins) { this.state.myMoney -= this.state.winAmount; this.state.opponentMoney += this.state.winAmount; } else { this.state.myMoney += this.state.loseAmount; this.state.opponentMoney -= this.state.loseAmount; } this.state.rounds += 1; this.state.history.push({ round: this.state.rounds, result: opponentWins ? 'Opponent wins' : 'You win', myMoney: this.state.myMoney, opponentMoney: this.state.opponentMoney }); this.state.chartData.push({ round: this.state.rounds, myMoney: this.state.myMoney, opponentMoney: this.state.opponentMoney }); if (this.state.myMoney <= 0) { this.state.gameOver = true; this.state.loser = 'You'; } else if (this.state.opponentMoney <= 0) { this.state.gameOver = true; this.state.loser = 'Opponent'; } } }"
+    },
+    "resetGame": {
+      "type": "JSFunction",
+      "value": "function() { this.state.myMoney = 100; this.state.opponentMoney = 100; this.state.rounds = 0; this.state.gameOver = false; this.state.loser = ''; this.state.history = []; this.state.chartData = []; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "h2",
+          "children": "Coin Game Simulator - Configurable Parameters"
+        },
+        {
+          "componentName": "p",
+          "children": "Rules: The opponent tosses N coins; if at least one lands heads, the opponent wins X yuan; otherwise you win and the opponent pays you Y yuan. Both start with 100 yuan. See who goes broke first."
+        },
+        {
+          "componentName": "TinyForm",
+          "props": {
+            "labelWidth": "120px",
+            "labelPosition": "left"
+          },
+          "children": [
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": "Opponent win amount"
+              },
+              "children": [
+                {
+                  "componentName": "TinyNumeric",
+                  "props": {
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.winAmount"
+                    },
+                    "min": 0,
+                    "step": 1
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": "Opponent lose amount"
+              },
+              "children": [
+                {
+                  "componentName": "TinyNumeric",
+                  "props": {
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.loseAmount"
+                    },
+                    "min": 0,
+                    "step": 1
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "TinyFormItem",
+              "props": {
+                "label": "Coins tossed in a row"
+              },
+              "children": [
+                {
+                  "componentName": "TinyNumeric",
+                  "props": {
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.tossCount"
+                    },
+                    "min": 1,
+                    "step": 1
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display: flex; gap: 20px; margin: 16px 0;"
+          },
+          "children": [
+            {
+              "componentName": "TinyCard",
+              "props": {
+                "title": "Your funds"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.myMoney + ' yuan'"
+                    },
+                    "style": "font-size: 24px; font-weight: bold;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "TinyCard",
+              "props": {
+                "title": "Opponent funds"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.opponentMoney + ' yuan'"
+                    },
+                    "style": "font-size: 24px; font-weight: bold;"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "TinyButton",
+              "props": {
+                "text": "Simulate until broke",
+                "type": "primary",
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "function() { this.simulateAll(); }"
+                }
+              }
+            },
+            {
+              "componentName": "TinyButton",
+              "props": {
+                "text": "Reset game",
+                "type": "default",
+                "style": "margin-left: 10px;",
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "function() { this.resetGame(); }"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "condition": {
+            "type": "JSExpression",
+            "value": "this.state.gameOver"
+          },
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "h3",
+              "children": {
+                "type": "JSExpression",
+                "value": "'Game over! ' + this.state.loser + ' went broke first! Rounds played: ' + this.state.rounds"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyHuichartsLine",
+          "condition": {
+            "type": "JSExpression",
+            "value": "this.state.gameOver"
+          },
+          "props": {
+            "options": {
+              "theme": "hdesign-light",
+              "padding": [50, 30, 50, 20],
+              "legend": {
+                "show": true,
+                "icon": "line"
+              },
+              "data": {
+                "type": "JSExpression",
+                "value": "this.state.chartData"
+              },
+              "xAxis": {
+                "data": "round"
+              },
+              "yAxis": {
+                "name": "Funds (yuan)"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

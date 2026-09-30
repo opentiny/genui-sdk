@@ -2,13 +2,20 @@ import type {
   ChatCompletionResponse,
   ChatCompletionCreateParamsBase,
   IChatCompletionCreateParams,
+  IChatCompletionsConfig,
   IRequestOptions,
 } from "./types";
 import { requestTransform } from "./request-transform";
 
 export abstract class ChatCompletions<T = ChatCompletionResponse, R = ChatCompletionResponse> {
+  protected readonly materialsMeta?: IChatCompletionsConfig['materialsMeta'];
+
+  constructor(config?: IChatCompletionsConfig) {
+    this.materialsMeta = config?.materialsMeta;
+  }
+
   protected async preTransform(params: IChatCompletionCreateParams): Promise<ChatCompletionCreateParamsBase> {
-    return requestTransform(params);
+    return requestTransform(params, { materialsMeta: this.materialsMeta });
   }
   protected async postTransform(response: T): Promise<R> {
     return response as unknown as R;
@@ -33,4 +40,3 @@ export abstract class ChatCompletions<T = ChatCompletionResponse, R = ChatComple
     options?: IRequestOptions
   ): Promise<T>;
 }
-

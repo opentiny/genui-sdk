@@ -1,3 +1,4 @@
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tsconfigPaths from 'vite-jsconfig-paths';
@@ -11,7 +12,7 @@ const VENDOR_CHUNKS = new Set([
   'opentiny-genui-sdk-vue',
   'opentiny-tiny-robot',
   'opentiny-tiny-robot-kit',
-  'opentiny-tiny-robot-svgs'
+  'opentiny-tiny-robot-svgs',
 ]);
 
 function createManualChunks() {
@@ -34,6 +35,7 @@ function createManualChunks() {
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   const plugins = [
+    react({ include: /schema-renderer-react-adapter/ }),
     vue({
       template: {
         compilerOptions: {
@@ -58,6 +60,9 @@ export default defineConfig(({ command }) => {
   return {
     envDir: './env',
     plugins,
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
     optimizeDeps: {
       exclude: ['monaco-editor', 'monaco-editor-vue3'],
     },

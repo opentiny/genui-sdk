@@ -16,31 +16,30 @@ import { CommonModule } from '@angular/common';
 import { LoadingComponent } from './loading.component';
 import { RendererTemplateComponent } from './renderer-template.component';
 import { RendererDirective } from './renderer.directive';
+import { ContentChildrenService } from './content-children';
 import { RENDERER_SETTINGS, type NotifyHandler } from './renderer-settings';
 
 function reset(obj: any) {
   Object.keys(obj).forEach((key) => delete obj[key]);
-};
+}
 
 @Component({
   selector: 'tiny-schema-renderer',
   standalone: true,
   imports: [
     CommonModule,
-    // Renderer,
     LoadingComponent,
     RendererTemplateComponent,
     RendererDirective,
   ],
-  providers: [RendererContextService],
+  providers: [RendererContextService, ContentChildrenService],
   template: `
     <ng-container *ngIf="pageSchema.children?.length">
-      <!-- <schema-renderer [schema]="rootSchema" [parent]="pageSchema"></schema-renderer> -->
       <renderer-template #rendererTemplateComponent></renderer-template>
       <ng-template
         rendererTemplate
         [schema]="rootSchema"
-        [scope]="{}"
+        [scope]="scope"
         [parent]="pageSchema"
         [template]="rendererTemplateComponent.template"
       ></ng-template>
@@ -55,6 +54,9 @@ export class RendererMain implements OnDestroy {
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
+  refs: Record<string, any> = {};
+  /** Page-level template scope — props.refName writes locals here (and into loop mergeScopes). */
+  scope: Record<string, any> = {};
   cssScopeId: string = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
@@ -78,8 +80,9 @@ export class RendererMain implements OnDestroy {
     // TODO：export这些方法到custom element的方式待优化
     this.el.nativeElement.detectChanges = () => this.detectChanges();
     this.el.nativeElement.setContext = (context: any) => this.contextService.setContext(context);
-    this.el.nativeElement.getContext = () => this.contextService.getContext()
+    this.el.nativeElement.getContext = () => this.contextService.getContext();
     this.el.nativeElement.setState = (state: any) => this._setState(state);
+    this.el.nativeElement.setRefs = (refs: any) => this.setRefs(refs);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -153,6 +156,21 @@ export class RendererMain implements OnDestroy {
     });
   }
 
+  public setRefs(refs: any) {
+    this._setRefs(refs);
+  }
+
+  private _setRefs(data: any, clear: boolean = false) {
+    clear && reset(this.refs);
+    if (!this.pageSchema.refs) {
+      this.pageSchema.refs = data;
+    }
+    Object.assign(this.refs, parseData(data, {}, this.contextService.getContext()) || {});
+    this.contextService.setContext({
+      refs: this.refs,
+    });
+  }
+
   private async setSchema(data: any) {
     if (!data || !Object.keys(data).length) {
       return;
@@ -160,12 +178,15 @@ export class RendererMain implements OnDestroy {
     const newSchema = JSON.parse(JSON.stringify(data));
     const context = {
       state: this.state,
+      refs: this.refs,
       cssScopeId: this.cssScopeId,
     };
     this.contextService.setContext(context, true);
     this.applyRendererSettings();
     this.setMethods(newSchema.methods || {}, true);
     this._setState(newSchema.state || {}, true);
+    this._setRefs(newSchema.refs || {}, true);
+    reset(this.scope);
 
     await this.invokePageOnUnmounted();
 
@@ -181,9 +202,12 @@ export class RendererMain implements OnDestroy {
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     try {
+      // Create outlets (and sync props.ref) before page onMounted so this.refs.* is ready.
+      this.ngZone.run(() => {
+        this.cdr.detectChanges();
+      });
       await onMountedFn?.();
       this.pageOnUnmounted = onUnmountedFn;
-      this.ngZone.run(() => this.cdr.detectChanges());
     } catch (error) {
       console.error('RendererMain onMounted error:', error);
     }

@@ -12,80 +12,48 @@
       "componentName": "div",
       "props": {
         "className": "component-base-style",
-        "style": "width: 374px; background: #f5f5f5;border-radius: 12px;line-height:2;font-size:14px;padding: 20px 0;"
+        "style": "width: 374px; background: #f5f5f5;border-radius: 12px;line-height:2;font-size:14px;padding: 20px;"
       },
       "children": [
         {
-          "componentName": "TinyLayout",
+          "componentName": "div",
           "props": {
-            "className": "component-base-style"
+            "style": "display:flex;gap:12px;margin-bottom:8px;"
           },
           "children": [
             {
-              "componentName": "TinyRow",
-              "children": [
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 3
-                  },
-                  "children": [
-                    {
-                      "componentName": "Text",
-                      "props": {
-                        "text": "姓名"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 9
-                  },
-                  "children": [
-                    {
-                      "componentName": "Text",
-                      "props": {
-                        "text": "张三"
-                      }
-                    }
-                  ]
-                }
-              ]
+              "componentName": "Text",
+              "props": {
+                "style": "width: 48px;flex-shrink:0;",
+                "text": "姓名"
+              }
             },
             {
-              "componentName": "TinyRow",
-              "children": [
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 3
-                  },
-                  "children": [
-                    {
-                      "componentName": "Text",
-                      "props": {
-                        "text": "电话"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "componentName": "TinyCol",
-                  "props": {
-                    "span": 9
-                  },
-                  "children": [
-                    {
-                      "componentName": "Text",
-                      "props": {
-                        "text": "18856254558"
-                      }
-                    }
-                  ]
-                }
-              ]
+              "componentName": "Text",
+              "props": {
+                "text": "张三"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "style": "display:flex;gap:12px;"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "style": "width: 48px;flex-shrink:0;",
+                "text": "电话"
+              }
+            },
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "18856254558"
+              }
             }
           ]
         }

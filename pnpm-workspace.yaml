@@ -7,6 +7,8 @@ packages:
   - '!packages/server/output/**'
   - '!packages/frameworks/angular/**/*'
   - '!projects/tiny-schema-renderer-ng/**/*'
+  - '!projects/*.worktrees'
+  - '!projects/*.worktrees/**'
 
 patchedDependencies:
   ai@6.0.116: patches/ai@6.0.116.patch

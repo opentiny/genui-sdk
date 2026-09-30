@@ -158,3 +158,10 @@ _site/
 .hermes/skills/
 .openclaw/skills/
 .config/opencode/skills/
+
+# genui-integration skill: copied from docs at build time, not committed
+packages/integrate/skill/genui-integration/examples/
+packages/integrate/skill/genui-integration/references/materials/*-*.md
+
+# skill-generator CLI local preview; regenerate with generate:skill
+packages/skill-generator/example/
