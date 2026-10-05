@@ -1,16 +1,23 @@
-import { CdkCellOutlet } from '@angular/cdk/table';
-import { MatTable } from '@angular/material/table';
+import { CdkCellOutlet, CdkFooterRowDef, CdkHeaderRowDef, CdkRowDef } from '@angular/cdk/table';
 import { ɵgetDirectives, type EmbeddedViewRef, type ViewContainerRef } from '@angular/core';
+import { MatTable } from '@angular/material/table';
 
 type CellOutletHost = { _viewContainer: ViewContainerRef };
+
+type ColumnDefLike = {
+  headerCell?: { template?: unknown };
+  cell?: { template?: unknown };
+};
 
 type MatTableRenderHost = {
   _render: () => void;
   _cacheRowDefs: () => void;
   _cacheColumnDefs: () => void;
+  _columnDefsByName?: { forEach: (fn: (col: ColumnDefLike, id: string) => void) => void };
   _headerRowDefs: unknown[];
   _footerRowDefs: unknown[];
   _rowDefs: unknown[];
+  _headerRowDefChanged?: boolean;
   _renderRow: (
     outlet: { viewContainer: ViewContainerRef },
     rowDef: { template: unknown },
@@ -21,11 +28,18 @@ type MatTableRenderHost = {
   _getCellTemplates: (rowDef: unknown) => unknown[];
   _getRenderedRows: (rowOutlet: { viewContainer: ViewContainerRef }) => HTMLElement[];
   _headerRowOutlet?: { viewContainer: ViewContainerRef };
-  _footerRowOutlet?: { viewContainer: ViewContainerRef };
   _rowOutlet?: { viewContainer: ViewContainerRef };
   _changeDetectorRef: { markForCheck: () => void };
 };
 
+type RowDefDifferHost = {
+  columns?: unknown;
+  _columnsDiffer?: { diff: (value: unknown) => unknown };
+  _differs?: { find: (value: unknown) => { create: () => { diff: (value: unknown) => unknown } } };
+};
+
+const DECLARED_COLUMNS = Symbol('genuiDeclaredColumns');
+const READY_COLUMNS_KEY = Symbol('genuiReadyColumnsKey');
 const ROW_HOST_SELECTOR = [
   'tr[mat-header-row]',
   'tr[mat-row]',
@@ -38,43 +52,26 @@ const ROW_HOST_SELECTOR = [
   'tr.mat-mdc-footer-row',
 ].join(',');
 
+let patched = false;
+
 function isRowHostElement(node: Node | null | undefined): node is HTMLElement {
-  if (!node || node.nodeType !== Node.ELEMENT_NODE) {
-    return false;
-  }
-  const el = node as HTMLElement;
-  const tag = el.tagName;
-  return (
-    tag === 'TR'
-    || tag === 'MAT-HEADER-ROW'
-    || tag === 'MAT-ROW'
-    || tag === 'MAT-FOOTER-ROW'
-    || el.hasAttribute('mat-header-row')
-    || el.hasAttribute('mat-row')
-    || el.hasAttribute('mat-footer-row')
-  );
+  return !!node && node.nodeType === Node.ELEMENT_NODE && (node as HTMLElement).matches(ROW_HOST_SELECTOR);
 }
 
-/**
- * Schema row templates wrap `MatHeaderRow`/`MatRow` in `ngTemplateOutlet`, so
- * `viewRef.rootNodes[0]` is often a comment — StickyStyler then crashes on
- * `row.children.length`. Resolve the real row host inside the embedded view.
- */
+/** Schema NgTemplate makes `rootNodes[0]` a comment; StickyStyler needs the real row host. */
 function findRenderedRowElement(viewRef: EmbeddedViewRef<object>): HTMLElement | null {
   for (const node of viewRef.rootNodes) {
     if (isRowHostElement(node)) {
       return node;
     }
     if (node?.nodeType === Node.ELEMENT_NODE) {
-      const nested = (node as HTMLElement).querySelector?.(ROW_HOST_SELECTOR);
+      const nested = (node as HTMLElement).querySelector(ROW_HOST_SELECTOR);
       if (nested) {
         return nested as HTMLElement;
       }
     }
   }
-  // Outlet may leave the row as a sibling of comment anchors under the same parent.
-  const anchor = viewRef.rootNodes.find((n) => n?.parentNode) ?? null;
-  const parent = anchor?.parentNode;
+  const parent = viewRef.rootNodes.find((n) => n?.parentNode)?.parentNode;
   if (parent) {
     for (const child of Array.from(parent.childNodes) as Node[]) {
       if (isRowHostElement(child)) {
@@ -85,41 +82,122 @@ function findRenderedRowElement(viewRef: EmbeddedViewRef<object>): HTMLElement |
   return null;
 }
 
-let patched = false;
-
-function detectChangesView(vc: ViewContainerRef | undefined, index = -1): void {
-  if (!vc?.length) {
-    return;
+function coerceColumnList(value: unknown): unknown[] {
+  if (Array.isArray(value)) {
+    return value;
   }
-  const i = index < 0 ? vc.length - 1 : index;
-  const view = vc.get(i) as EmbeddedViewRef<object> | null;
-  view?.detectChanges();
+  if (value == null || value === '') {
+    return [];
+  }
+  if (typeof value === 'string') {
+    return value.split(/[\s,]+/).filter(Boolean);
+  }
+  return [];
 }
 
+function readyColumnIds(table: MatTableRenderHost): string[] {
+  const ids: string[] = [];
+  table._columnDefsByName?.forEach((col, id) => {
+    if (col?.headerCell?.template && col?.cell?.template) {
+      ids.push(String(id));
+    }
+  });
+  return ids;
+}
+
+/** `displayedColumns` is complete early; only stamp column defs that already have templates. */
+function syncRowDefColumns(rowDef: unknown, readyIds: string[], resetDiffer: boolean): void {
+  const def = rowDef as RowDefDifferHost & { [DECLARED_COLUMNS]?: unknown[] };
+  def[DECLARED_COLUMNS] ??= coerceColumnList(def.columns);
+  const declared = def[DECLARED_COLUMNS] ?? [];
+  const readySet = new Set(readyIds);
+  def.columns = (declared.length ? declared.map(String) : readyIds).filter((id) => readySet.has(id));
+  if (resetDiffer) {
+    def._columnsDiffer = undefined;
+  }
+}
+
+/**
+ * Schema binds `matHeaderRowDef` / `matRowDefColumns`, so CDK never creates
+ * `_columnsDiffer` and `_renderUpdatedColumns` crashes on `.diff()`.
+ */
+function patchRowDefColumnsDiffer(): void {
+  for (const ctor of [CdkHeaderRowDef, CdkRowDef, CdkFooterRowDef]) {
+    let proto: { getColumnsDiff?: () => unknown } | null = ctor.prototype;
+    for (let depth = 0; proto && depth < 6; depth++) {
+      if (typeof proto.getColumnsDiff === 'function') {
+        wrapGetColumnsDiff(proto);
+        break;
+      }
+      proto = Object.getPrototypeOf(proto);
+    }
+  }
+}
+
+function wrapGetColumnsDiff(proto: { getColumnsDiff?: () => unknown }): void {
+  const original = proto.getColumnsDiff;
+  if (typeof original !== 'function' || (original as { __genuiPatched?: boolean }).__genuiPatched) {
+    return;
+  }
+  const patchedFn = function patchedGetColumnsDiff(this: RowDefDifferHost) {
+    this.columns = coerceColumnList(this.columns);
+    if (!this._columnsDiffer && this._differs) {
+      this._columnsDiffer = this._differs.find(this.columns).create();
+      this._columnsDiffer.diff(this.columns);
+      return null;
+    }
+    if (!this._columnsDiffer) {
+      return null;
+    }
+    return original.call(this);
+  };
+  (patchedFn as { __genuiPatched?: boolean }).__genuiPatched = true;
+  proto.getColumnsDiff = patchedFn;
+}
+
+function findCdkCellOutletOnNode(node: Node | null | undefined): CdkCellOutlet | null {
+  if (!node) {
+    return null;
+  }
+  try {
+    for (const dir of ɵgetDirectives(node as Element) ?? []) {
+      if (dir instanceof CdkCellOutlet) {
+        return dir;
+      }
+    }
+  } catch {
+    // Comment / text nodes throw.
+  }
+  return null;
+}
+
+/** Outlet sits on the row's inner ng-container (often a comment), not the `tr`. */
 function cellOutletForRowView(view: EmbeddedViewRef<object> | null | undefined): CellOutletHost | null {
   if (!view) {
     return null;
   }
   const rowEl = findRenderedRowElement(view);
-  if (!rowEl) {
-    return null;
+  const fromRow = findCdkCellOutletOnNode(rowEl)
+    ?? (rowEl
+      ? Array.from(rowEl.childNodes)
+          .map((node) => findCdkCellOutletOnNode(node))
+          .find((dir): dir is CdkCellOutlet => !!dir)
+      : null);
+  if (fromRow) {
+    return fromRow as unknown as CellOutletHost;
   }
-  try {
-    for (const dir of ɵgetDirectives(rowEl) ?? []) {
-      if (dir instanceof CdkCellOutlet) {
-        return dir as unknown as CellOutletHost;
-      }
+  for (const node of view.rootNodes) {
+    const fromRoot = findCdkCellOutletOnNode(node);
+    if (fromRoot) {
+      return fromRoot as unknown as CellOutletHost;
     }
-  } catch {
-    // Non-Angular nodes throw.
   }
   return null;
 }
 
 /**
- * Stamp cell templates into this row's {@link CdkCellOutlet}.
- * Do not use {@link CdkCellOutlet.mostRecentCellOutlet}: it is process-wide, so a
- * second playground CE (json2) would append cells into the previous table (json1).
+ * Stamp into this row only. Do not use {@link CdkCellOutlet.mostRecentCellOutlet}
+ * (process-wide; a second table would append into the first).
  */
 function stampCellsIntoOutlet(
   table: MatTableRenderHost,
@@ -130,57 +208,87 @@ function stampCellsIntoOutlet(
   if (!cellOutlet) {
     return;
   }
-  for (const cellTemplate of table._getCellTemplates(rowDef)) {
-    const cellView = cellOutlet._viewContainer.createEmbeddedView(
-      cellTemplate as never,
-      context,
-    );
+  let templates: unknown[];
+  try {
+    templates = table._getCellTemplates(rowDef) ?? [];
+  } catch {
+    return;
+  }
+  const vc = cellOutlet._viewContainer;
+  if (vc.length === templates.length) {
+    return;
+  }
+  vc.clear();
+  for (const cellTemplate of templates) {
+    const cellView = vc.createEmbeddedView(cellTemplate as never, context);
     cellView.detectChanges();
   }
   table._changeDetectorRef.markForCheck();
 }
 
+function restampOutletRows(
+  table: MatTableRenderHost,
+  outlet: { viewContainer: ViewContainerRef } | undefined,
+  rowDef: unknown,
+): void {
+  const vc = outlet?.viewContainer;
+  if (!vc || !rowDef) {
+    return;
+  }
+  for (let i = 0; i < vc.length; i++) {
+    const view = vc.get(i) as EmbeddedViewRef<object> | null;
+    if (view) {
+      stampCellsIntoOutlet(table, rowDef, view.context as object, cellOutletForRowView(view));
+    }
+  }
+}
+
 /**
- * Schema children (row/column defs) are created after the MatTable outlet is ready.
- * Native MatTable throws "Missing definitions for header, footer, and row" on that
- * first empty `_render`. Skip until ContentChildren patch fills the defs.
- *
- * Schema `NgTemplate` wraps row/cell hosts in `ngTemplateOutlet`, so
- * `createEmbeddedView(rowDef.template)` does not synchronously construct
- * `MatHeaderRow`/`MatRow`/`CdkCellOutlet`. We detectChanges the new row view first.
- *
- * Critical: data rows go through the viewRepeater → `_renderCellTemplateForItem`
- * without `_renderRow`. DetectChanges the new row so its CdkCellOutlet exists,
- * then stamp into that row only.
- *
- * Patch the real MatTable prototype so we keep Material's providers / DI intact.
+ * Schema children land after MatTable's first `_render` (skip empty defs).
+ * NgTemplate does not sync-construct MatHeaderRow/CdkCellOutlet — detectChanges
+ * the row, then stamp cells into that row's outlet.
  */
 export function patchMatTableDeferredRender(): void {
   if (patched) {
     return;
   }
   patched = true;
+  patchRowDefColumnsDiffer();
 
-  const proto = MatTable.prototype as unknown as MatTableRenderHost;
+  const proto = MatTable.prototype as unknown as MatTableRenderHost & {
+    [READY_COLUMNS_KEY]?: string;
+  };
   const originalRender = proto._render;
   if (typeof originalRender !== 'function') {
     return;
   }
 
-  proto._render = function patchedRender(this: MatTableRenderHost) {
+  proto._render = function patchedRender(this: typeof proto) {
     this._cacheRowDefs();
     this._cacheColumnDefs();
-    if (
-      !this._headerRowDefs.length &&
-      !this._footerRowDefs.length &&
-      !this._rowDefs.length
-    ) {
+    const ready = readyColumnIds(this);
+    const readyKey = ready.join('\0');
+    const columnsGrew = !!this[READY_COLUMNS_KEY] && this[READY_COLUMNS_KEY] !== readyKey;
+    this[READY_COLUMNS_KEY] = readyKey;
+    const allRowDefs = [
+      ...(this._headerRowDefs ?? []),
+      ...(this._rowDefs ?? []),
+      ...(this._footerRowDefs ?? []),
+    ];
+    for (const def of allRowDefs) {
+      syncRowDefColumns(def, ready, columnsGrew);
+    }
+    if (!allRowDefs.length) {
       return;
+    }
+    if (columnsGrew) {
+      this._headerRowDefChanged = false;
+      restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
+      restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
     }
     return originalRender.call(this);
   };
 
-  // Header / footer rows (and any path that uses _renderRow).
   proto._renderRow = function patchedRenderRow(
     this: MatTableRenderHost,
     outlet: { viewContainer: ViewContainerRef },
@@ -188,28 +296,22 @@ export function patchMatTableDeferredRender(): void {
     index: number,
     context: object = {},
   ) {
-    const view = outlet.viewContainer.createEmbeddedView(
-      rowDef.template as never,
-      context,
-      index,
-    );
-    // Construct MatHeaderRow/MatRow + CdkCellOutlet inside schema NgTemplate.
+    const view = outlet.viewContainer.createEmbeddedView(rowDef.template as never, context, index);
     view.detectChanges();
     stampCellsIntoOutlet(this, rowDef, context, cellOutletForRowView(view));
     return view;
   };
 
-  // Data rows: viewRepeater inserts the row view, then calls this (not _renderRow).
   proto._renderCellTemplateForItem = function patchedRenderCells(
     this: MatTableRenderHost,
     rowDef: unknown,
     context: object,
   ) {
     const vc = this._rowOutlet?.viewContainer;
-    detectChangesView(vc);
     const view = vc?.length
       ? (vc.get(vc.length - 1) as EmbeddedViewRef<object> | null)
       : null;
+    view?.detectChanges();
     stampCellsIntoOutlet(this, rowDef, context, cellOutletForRowView(view));
   };
 
@@ -221,10 +323,7 @@ export function patchMatTableDeferredRender(): void {
     const vc = rowOutlet.viewContainer;
     for (let i = 0; i < vc.length; i++) {
       const viewRef = vc.get(i) as EmbeddedViewRef<object> | null;
-      if (!viewRef) {
-        continue;
-      }
-      const rowEl = findRenderedRowElement(viewRef);
+      const rowEl = viewRef && findRenderedRowElement(viewRef);
       if (rowEl) {
         renderedRows.push(rowEl);
       }

@@ -66,6 +66,6 @@ The host app still needs Angular Material runtime setup (`provideAnimations`, th
 
 - `MatDialog` / `MatSnackBar` / `MatBottomSheet` are service-driven and are not schema root components.
 - Menu / Autocomplete / Datepicker / ChipGrid need `ref` + `JSExpression` to pass the component instance into the trigger directive.
-- Use `MatTable` with `ng-container` + `matColumnDef` and `NgTemplate` structural row/cell directives; simple columns can use `MatTextColumn` (see `examples/grid.json` and the demo `page.json`). Schema `ng-container` is an element host placeholder (the renderer cannot create Angular's comment-based `ng-container`); with native `table[mat-table]` the client often does not project column hosts into the DOM, so layout is usually unaffected.
+- Use `MatTable` with `ng-container` + `matColumnDef` and `NgTemplate` structural row/cell directives; simple columns can use `MatTextColumn` (see `examples/grid.json` and the demo `page.json`). For streaming schemas, **emit `matHeaderRowDef` / `matRowDef` before column defs** so the table can render as columns arrive. Schema `ng-container` is an element host placeholder (the renderer cannot create Angular's comment-based `ng-container`); with native `table[mat-table]` the client often does not project column hosts into the DOM, so layout is usually unaffected.
 - Sticky columns/rows need a scrollable wrapper (e.g. `max-height` + `overflow: auto`).
 - Full `MatTree` node templates still rely on data sources and structural directives.

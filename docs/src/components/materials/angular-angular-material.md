@@ -66,6 +66,6 @@ import { proMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-angular-
 
 - `MatDialog` / `MatSnackBar` / `MatBottomSheet` 为服务打开，不纳入 schema 根组件。
 - Menu / Autocomplete / Datepicker / ChipGrid 等需通过 `ref` + `JSExpression` 把组件实例传给触发指令。
-- `MatTable` 用 `ng-container` + `matColumnDef` 与 `NgTemplate` + 行/单元格结构指令；简单列可用 `MatTextColumn`（见 `examples/grid.json`、demo `page.json`）。Schema 里的 `ng-container` 是元素宿主占位（渲染器不能创建 Angular 注释型 ng-container）；native `table[mat-table]` 客户端通常不把列宿主投影进 DOM，一般无布局影响。
+- `MatTable` 用 `ng-container` + `matColumnDef` 与 `NgTemplate` + 行/单元格结构指令；简单列可用 `MatTextColumn`（见 `examples/grid.json`、demo `page.json`）。流式生成时 **先写 `matHeaderRowDef` / `matRowDef`，再写各列**，表格才能边出列边渲染。Schema 里的 `ng-container` 是元素宿主占位（渲染器不能创建 Angular 注释型 ng-container）；native `table[mat-table]` 客户端通常不把列宿主投影进 DOM，一般无布局影响。
 - Sticky 需要外层可滚动容器（如 `max-height` + `overflow: auto`）。
 - `MatTree` 完整节点模板仍依赖数据源与结构指令。

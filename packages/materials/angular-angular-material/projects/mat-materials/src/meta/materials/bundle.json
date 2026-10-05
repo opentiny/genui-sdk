@@ -3989,7 +3989,7 @@
           },
           "component": "MatTable",
           "icon": "table",
-          "description": "Material 数据表格。列：ng-container+matColumnDef（可 sticky/stickyEnd）+ NgTemplate 单元格；行：matHeaderRowDef/matRowDef/matFooterRowDef（可 *Sticky）与 matNoDataRow；也可用 MatTextColumn。",
+          "description": "Material 数据表格。children 顺序：先 matHeaderRowDef/matRowDef/matFooterRowDef/matNoDataRow，再 ng-container+matColumnDef（可 sticky/stickyEnd）+ NgTemplate 单元格；也可用 MatTextColumn。",
           "doc_url": "https://material.angular.dev/components/table/overview",
           "screenshot": "",
           "tags": "table,数据",
