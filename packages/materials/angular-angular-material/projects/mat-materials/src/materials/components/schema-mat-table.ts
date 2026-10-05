@@ -1,4 +1,4 @@
-import { CdkCellOutlet, CdkFooterRowDef, CdkHeaderRowDef, CdkRowDef } from '@angular/cdk/table';
+import { CdkCellOutlet, CdkFooterRowDef, CdkHeaderRowDef, CdkRowDef, CdkTextColumn } from '@angular/cdk/table';
 import { ɵgetDirectives, type EmbeddedViewRef, type ViewContainerRef } from '@angular/core';
 import { MatTable } from '@angular/material/table';
 
@@ -155,6 +155,26 @@ function wrapGetColumnsDiff(proto: { getColumnsDiff?: () => unknown }): void {
   proto.getColumnsDiff = patchedFn;
 }
 
+/** Schema binds `name` after ngOnInit; CDK default header does `name[0].toUpperCase()`. */
+function patchTextColumnDefaultHeader(): void {
+  const proto = CdkTextColumn.prototype as {
+    _createDefaultHeaderText?: () => string;
+    name?: string;
+  };
+  const original = proto._createDefaultHeaderText;
+  if (typeof original !== 'function' || (original as { __genuiPatched?: boolean }).__genuiPatched) {
+    return;
+  }
+  const patchedFn = function patchedCreateDefaultHeaderText(this: { name?: string }) {
+    if (this.name == null || this.name === '') {
+      return '';
+    }
+    return original.call(this);
+  };
+  (patchedFn as { __genuiPatched?: boolean }).__genuiPatched = true;
+  proto._createDefaultHeaderText = patchedFn;
+}
+
 function findCdkCellOutletOnNode(node: Node | null | undefined): CdkCellOutlet | null {
   if (!node) {
     return null;
@@ -254,6 +274,7 @@ export function patchMatTableDeferredRender(): void {
   }
   patched = true;
   patchRowDefColumnsDiffer();
+  patchTextColumnDefaultHeader();
 
   const proto = MatTable.prototype as unknown as MatTableRenderHost & {
     [READY_COLUMNS_KEY]?: string;
