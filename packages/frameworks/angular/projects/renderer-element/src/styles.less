@@ -36,10 +36,10 @@ genui-renderer-ng-element {
   @import (multiple, inline) '@angular/material/prebuilt-themes/azure-blue.css';
 }
 
-/* After postbuild unwraps `html`/`body` onto this host, keep the CE canvas white.
-   Do not flatten surface-container tokens — Page / toolbar / cards need them. */
+/* After postbuild unwraps `html`/`body` onto this host, keep the CE canvas
+   transparent so playground cards show through. Cards / overlays stay opaque. */
 genui-renderer-ng-element {
-  --mat-sys-background: #ffffff;
+  --mat-sys-background: transparent;
   --mat-sys-surface: #ffffff;
   --mat-sys-surface-dim: #ffffff;
   --mat-sys-surface-bright: #ffffff;
@@ -50,7 +50,7 @@ genui-renderer-ng-element {
   --mat-sys-surface-container-highest: #ffffff;
   --mat-sys-surface-variant: #ffffff;
   color-scheme: light;
-  background-color: #ffffff;
+  background-color: transparent;
   display: block;
 }
 
