@@ -1,19 +1,21 @@
+import '@opentiny/genui-sdk-materials-angular-angular-material/patch';
+
 import { createApplication } from '@angular/platform-browser';
 import { createCustomElement } from '@angular/elements';
 import { provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { GenuiRenderer, GENUI_MATERIALS } from '@opentiny/genui-sdk-angular';
-import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
+import { provideNativeDateAdapter } from '@angular/material/core';
+import { GenuiRendererElementHost } from './genui-renderer-element-host';
 
 const ELEMENT_TAG = 'genui-renderer-ng-element';
 createApplication({
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideAnimations(),
-    { provide: GENUI_MATERIALS, useValue: materials },
-  ]
+    provideNativeDateAdapter(),
+  ],
 }).then((appRef) => {
-  const elementCtor = createCustomElement(GenuiRenderer, {
+  const elementCtor = createCustomElement(GenuiRendererElementHost, {
     injector: appRef.injector,
   });
   if (!customElements.get(ELEMENT_TAG)) {
