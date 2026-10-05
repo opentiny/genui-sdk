@@ -12,6 +12,18 @@
       ],
       "@opentiny/tiny-schema-renderer-ng": [
         "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/public-api.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-angular-material": [
+        "../../materials/angular-angular-material/projects/mat-materials/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-angular-material/materials": [
+        "../../materials/angular-angular-material/projects/mat-materials/src/materials/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-angular-material/meta": [
+        "../../materials/angular-angular-material/projects/mat-materials/src/meta/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-angular-angular-material/patch": [
+        "../../materials/angular-angular-material/projects/mat-materials/src/patch.ts"
       ]
     }
   },
@@ -20,5 +32,6 @@
     "projects/renderer/src/**/*.ts",
     "../../core/src/**/*.ts",
     "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/**/*.ts",
+    "../../materials/angular-angular-material/projects/mat-materials/src/**/*.ts"
   ]
 }

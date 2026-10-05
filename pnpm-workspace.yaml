@@ -10,6 +10,8 @@ packages:
   - '!projects/*.worktrees'
   - '!projects/*.worktrees/**'
   - '!packages/materials/angular-angular-material/projects/**'
+  - '!packages/materials/angular-angular-material/dist-ng'
+  - '!packages/materials/angular-angular-material/dist-ng/**'
 
 patchedDependencies:
   ai@6.0.116: patches/ai@6.0.116.patch
