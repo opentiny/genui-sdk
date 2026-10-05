@@ -157,6 +157,7 @@ export class RendererMain implements OnDestroy {
   get rootSchema() {
     return {
       componentName: 'div',
+      props: this.pageSchema.props,
       children: this.pageSchema.children,
     };
   }

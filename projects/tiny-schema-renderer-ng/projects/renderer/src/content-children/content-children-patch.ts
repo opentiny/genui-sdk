@@ -417,6 +417,47 @@ function getViewQueryPropertyNames(instance: object): Set<string> {
   return names;
 }
 
+/**
+ * Property names declared by compiled `contentQueries` fns (`ctx._allDrawers = _t`).
+ * Instance QueryLists that are NOT listed here are internal (e.g. MatDrawerContainer._drawers)
+ * and must not be content-patched — Material then calls `drawer._animationStarted.pipe`.
+ */
+const contentQueryPropsByClass = new WeakMap<object, Set<string>>();
+
+function collectContentQueryPropertyNamesFromCtor(ctor: object, names: Set<string>): void {
+  const contentQueries =
+    (ctor as any)?.ɵcmp?.contentQueries ?? (ctor as any)?.ɵdir?.contentQueries;
+  if (typeof contentQueries !== 'function') {
+    return;
+  }
+  const src = Function.prototype.toString.call(contentQueries);
+  for (const name of ivyCtxProps(src, IVY_ASSIGN_RE)) {
+    names.add(name);
+  }
+  for (const name of ivyCtxProps(src, IVY_ASSIGN_FIRST_RE)) {
+    names.add(name);
+  }
+  for (const name of ivyCtxProps(src, IVY_CALL_PROP_ARG_RE)) {
+    names.add(name);
+  }
+}
+
+function getContentQueryPropertyNames(instance: object): Set<string> {
+  const ctor = instance.constructor as object;
+  let names = contentQueryPropsByClass.get(ctor);
+  if (names) {
+    return names;
+  }
+  names = new Set<string>();
+  let current: object | null = ctor;
+  while (current && current !== Object && current !== Function && current !== Object.prototype) {
+    collectContentQueryPropertyNamesFromCtor(current, names);
+    current = Object.getPrototypeOf(current);
+  }
+  contentQueryPropsByClass.set(ctor, names);
+  return names;
+}
+
 /** QueryLists Ivy already classified as view queries — never content-patch these. */
 function collectViewQueryLists(instance: object): Set<QueryList<unknown>> {
   const viewLists = new Set<QueryList<unknown>>();
@@ -478,6 +519,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
 
   const viewQueryProps = getViewQueryPropertyNames(instance);
   const viewQueryLists = collectViewQueryLists(instance);
+  const contentQueryProps = getContentQueryPropertyNames(instance);
   const shimBindings = hostShimBindings.get(instance);
   for (const key of Object.keys(instance as object)) {
     const value = (instance as any)[key];
@@ -486,6 +528,11 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       // Only skip when viewQuery source or LQueries classification identifies the list —
       // never infer from length alone (a filled content query would then be skipped forever).
       if (viewQueryProps.has(key) || viewQueryLists.has(value)) {
+        continue;
+      }
+      // Manual QueryLists (MatDrawerContainer._drawers) are filled from another ContentChildren
+      // list. Patching them with every descendant makes `_watchDrawerToggle` see non-drawers.
+      if (contentQueryProps.size > 0 && !contentQueryProps.has(key) && !seen.has(value)) {
         continue;
       }
       if (seen.has(value)) {
@@ -1098,6 +1145,20 @@ function syncHostSignalShims(
   return changed;
 }
 
+function resetQueryListIfChanged(
+  queryList: QueryList<unknown>,
+  results: unknown[],
+): boolean {
+  const prev = queryList.toArray();
+  if (sameQueryResults(prev, results)) {
+    return false;
+  }
+  // reset() clears dirty so the next CD won't re-wipe via ɵɵqueryRefresh.
+  queryList.reset(results);
+  queryList.notifyOnChanges();
+  return true;
+}
+
 /** Patch one content query (QueryList only; signal shims synced via {@link syncHostSignalShims}). */
 export function patchContentQuery(
   target: ContentQueryPatchTarget,
@@ -1105,14 +1166,7 @@ export function patchContentQuery(
   descendantOutlets?: ComponentOutlet[] | null,
 ): boolean {
   const results = resolvePatchResults(target, parentOutlet, descendantOutlets);
-  const prev = target.queryList.toArray();
-  const changed = !sameQueryResults(prev, results);
-
-  if (changed) {
-    // reset() clears dirty so the next CD won't re-wipe via ɵɵqueryRefresh.
-    target.queryList.reset(results);
-    target.queryList.notifyOnChanges();
-  }
+  const changed = resetQueryListIfChanged(target.queryList, results);
 
   if (
     target.kind === 'signal' &&
@@ -1133,51 +1187,215 @@ export function patchContentQuery(
   return changed;
 }
 
-/**
- * Collect content queries along the directive inheritance chain (e.g. MatColumnDef → CdkColumnDef).
- *
- * After Ivy linking, `ɵdir.queries` is often stripped and only `contentQueries(rf, ctx)` remains
- * (see CdkColumnDef). Parse that function for predicates + `ctx.prop = _t.first` assignments.
- */
-function collectDirectiveQueryDefs(ctor: Type<unknown>): Array<{
+type HostDirectiveQueryDef = {
   propertyName: string;
   predicate: unknown;
   firstOnly: boolean;
   descendants: boolean;
-}> {
-  const results: Array<{
-    propertyName: string;
-    predicate: unknown;
-    firstOnly: boolean;
-    descendants: boolean;
-  }> = [];
-  const seen = new Set<string>();
+};
+
+function isUsableQueryPredicate(predicate: unknown): boolean {
+  if (predicate == null) {
+    return false;
+  }
+  if (typeof predicate === 'function') {
+    return true;
+  }
+  if (predicate instanceof InjectionToken) {
+    return true;
+  }
+  if (Array.isArray(predicate)) {
+    return predicate.some((item) => isUsableQueryPredicate(item));
+  }
+  // String locators (`contentChild('foo')`) are real selectors, not minified class names.
+  return typeof predicate === 'string';
+}
+
+/** Field names Ivy assigns in `contentQueries` (`ctx.cell = _t.first`). Types come from TView. */
+function contentQueryFieldNames(contentQueries: Function): { names: string[]; firstOnly: Set<string> } {
+  const src = Function.prototype.toString.call(contentQueries);
+  const firstProps = ivyCtxProps(src, IVY_ASSIGN_FIRST_RE);
+  const assignProps = ivyCtxProps(src, IVY_ASSIGN_RE);
+  return {
+    names: firstProps.length ? firstProps : assignProps,
+    firstOnly: new Set(firstProps),
+  };
+}
+
+function collectContentQueryFieldNames(ctor: Type<unknown>): { names: string[]; firstOnly: Set<string> } {
+  const names: string[] = [];
+  const firstOnly = new Set<string>();
   let current: Type<unknown> | null | undefined = ctor;
   let depth = 0;
   while (current && depth < 8) {
-    const dir = (current as Type<unknown> & { ɵdir?: { queries?: any[]; contentQueries?: Function } })
-      .ɵdir;
+    const dir = (current as Type<unknown> & { ɵdir?: { contentQueries?: Function } }).ɵdir;
+    if (typeof dir?.contentQueries === 'function') {
+      const fields = contentQueryFieldNames(dir.contentQueries);
+      for (const name of fields.names) {
+        if (!names.includes(name)) {
+          names.push(name);
+        }
+      }
+      for (const name of fields.firstOnly) {
+        firstOnly.add(name);
+      }
+    }
+    const proto = Object.getPrototypeOf(current.prototype);
+    const nextCtor = proto?.constructor as Type<unknown> | undefined;
+    if (!nextCtor || nextCtor === Object || nextCtor === current) {
+      break;
+    }
+    current = nextCtor;
+    depth++;
+  }
+  return { names, firstOnly };
+}
+
+function getDirectiveIndexOnTNode(instance: object): number | null {
+  try {
+    const ctx = getLContext(instance);
+    const lView = ctx?.lView;
+    const nodeIndex = ctx?.nodeIndex;
+    if (!lView || nodeIndex == null) {
+      return null;
+    }
+    const tNode = lView[1]?.data?.[nodeIndex] as
+      | { directiveStart?: number; directiveEnd?: number }
+      | undefined;
+    const start = tNode?.directiveStart;
+    const end = tNode?.directiveEnd;
+    if (typeof start === 'number' && typeof end === 'number') {
+      for (let i = start; i < end; i++) {
+        if (lView[i] === instance) {
+          return i - start;
+        }
+      }
+    }
+    const native = ctx.native ?? lView[nodeIndex];
+    if (native != null) {
+      const dirs = ɵgetDirectives(native as Node);
+      const idx = dirs.indexOf(instance as never);
+      if (idx >= 0) {
+        return idx;
+      }
+    }
+  } catch {
+    // Host may not be attached yet.
+  }
+  return null;
+}
+
+function contentQueryIndexesForDirective(
+  lView: any,
+  dirIndex: number | null,
+): { indexes: number[]; filtered: boolean } {
+  const indexes: number[] = [];
+  const contentQueries = lView?.[1]?.contentQueries;
+  if (Array.isArray(contentQueries) && dirIndex != null) {
+    for (let i = 0; i < contentQueries.length; i += 2) {
+      if (contentQueries[i + 1] === dirIndex) {
+        indexes.push(contentQueries[i]);
+      }
+    }
+    if (indexes.length) {
+      return { indexes, filtered: true };
+    }
+  }
+  const queries = getTQueries(lView)?.queries ?? [];
+  for (let i = 0; i < queries.length; i++) {
+    if (isContentQueryIndex(lView, i)) {
+      indexes.push(i);
+    }
+  }
+  return { indexes, filtered: false };
+}
+
+/**
+ * Host-directive `@ContentChild` predicates are the live Types stored on TView
+ * (`tQuery.metadata.predicate`). Matching uses `instanceof`, not minified names.
+ */
+function collectQueryDefsFromLView(instance: object, ctor: Type<unknown>): HostDirectiveQueryDef[] {
+  try {
+    const ctx = getLContext(instance);
+    const lView = ctx?.lView;
+    if (!lView) {
+      return [];
+    }
+    const tQueries = getTQueries(lView)?.queries;
+    if (!Array.isArray(tQueries) || !tQueries.length) {
+      return [];
+    }
+    const fields = collectContentQueryFieldNames(ctor);
+    const dirIndex = getDirectiveIndexOnTNode(instance);
+    const { indexes, filtered } = contentQueryIndexesForDirective(lView, dirIndex);
+    const owned = indexes.filter((index) => isContentQueryIndex(lView, index));
+    if (!owned.length) {
+      return [];
+    }
+    if (!filtered && owned.length !== fields.names.length) {
+      return [];
+    }
+    const results: HostDirectiveQueryDef[] = [];
+    for (let i = 0; i < owned.length && i < fields.names.length; i++) {
+      const tQuery = tQueries[owned[i]];
+      const predicate = tQuery?.metadata?.predicate;
+      if (!isUsableQueryPredicate(predicate)) {
+        continue;
+      }
+      const propertyName = fields.names[i];
+      const flags = tQuery?.metadata?.flags ?? 0;
+      results.push({
+        propertyName,
+        predicate,
+        firstOnly: fields.firstOnly.has(propertyName) || fields.firstOnly.size > 0,
+        descendants: !!(flags & QUERY_FLAG_DESCENDANTS),
+      });
+    }
+    return results;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Collect content queries along the directive inheritance chain (e.g. MatColumnDef → CdkColumnDef).
+ *
+ * After Ivy linking, `ɵdir.queries` is often stripped. Recover Types from the live TView
+ * (or leftover `ɵdir.queries` Type predicates) and match with `instanceof`.
+ */
+function collectDirectiveQueryDefs(ctor: Type<unknown>, instance?: object): HostDirectiveQueryDef[] {
+  const results: HostDirectiveQueryDef[] = [];
+  const seen = new Set<string>();
+  if (instance) {
+    for (const q of collectQueryDefsFromLView(instance, ctor)) {
+      if (seen.has(q.propertyName)) {
+        continue;
+      }
+      seen.add(q.propertyName);
+      results.push(q);
+    }
+  }
+  let current: Type<unknown> | null | undefined = ctor;
+  let depth = 0;
+  while (current && depth < 8) {
+    const dir = (current as Type<unknown> & { ɵdir?: { queries?: any[] } }).ɵdir;
     if (Array.isArray(dir?.queries)) {
       for (const q of dir!.queries!) {
         const propertyName = typeof q?.propertyName === 'string' ? q.propertyName : null;
         if (!propertyName || seen.has(propertyName)) {
           continue;
         }
+        const predicate = q.predicate ?? null;
+        if (!isUsableQueryPredicate(predicate)) {
+          continue;
+        }
         seen.add(propertyName);
         results.push({
           propertyName,
-          predicate: q.predicate ?? null,
+          predicate,
           firstOnly: !!q.first,
           descendants: !!q.descendants,
         });
-      }
-    } else if (typeof dir?.contentQueries === 'function') {
-      for (const q of parseDirectiveContentQueries(dir.contentQueries)) {
-        if (seen.has(q.propertyName)) {
-          continue;
-        }
-        seen.add(q.propertyName);
-        results.push(q);
       }
     }
     const proto = Object.getPrototypeOf(current.prototype);
@@ -1189,45 +1407,6 @@ function collectDirectiveQueryDefs(ctor: Type<unknown>): Array<{
     depth++;
   }
   return results;
-}
-
-/**
- * Recover `@ContentChild` metadata from a linked `ɵdir.contentQueries` function.
- * Predicate is the identifier name string (e.g. `"CdkCellDef"`) — {@link pickMatchFromTemplateDirectives}
- * resolves it against live directive instances by constructor / provide name.
- */
-function parseDirectiveContentQueries(contentQueries: Function): Array<{
-  propertyName: string;
-  predicate: unknown;
-  firstOnly: boolean;
-  descendants: boolean;
-}> {
-  const src = Function.prototype.toString.call(contentQueries);
-  const predicates: Array<{ name: string; flags: number }> = [];
-  const predRe =
-    /contentQuery\s*\(\s*[^,]+,\s*([A-Za-z_$][\w$]*)\s*,\s*(\d+)\s*\)/g;
-  for (const m of src.matchAll(predRe)) {
-    predicates.push({ name: m[1], flags: Number(m[2]) || 0 });
-  }
-  const firstProps = ivyCtxProps(src, IVY_ASSIGN_FIRST_RE);
-  const assignProps = ivyCtxProps(src, IVY_ASSIGN_RE);
-  const props = firstProps.length ? firstProps : assignProps;
-  const firstSet = new Set(firstProps);
-  const out: Array<{
-    propertyName: string;
-    predicate: unknown;
-    firstOnly: boolean;
-    descendants: boolean;
-  }> = [];
-  for (let i = 0; i < props.length && i < predicates.length; i++) {
-    out.push({
-      propertyName: props[i],
-      predicate: predicates[i].name,
-      firstOnly: firstSet.has(props[i]) || firstProps.length > 0,
-      descendants: !!(predicates[i].flags & QUERY_FLAG_DESCENDANTS),
-    });
-  }
-  return out;
 }
 
 /**
@@ -1245,11 +1424,26 @@ function patchHostDirectiveContentQueries(
     if (candidate === parentOutlet.componentInstance) {
       continue;
     }
-    const queryDefs = collectDirectiveQueryDefs(candidate.constructor as Type<unknown>);
+    const listTargets = discoverContentQueryTargets(candidate);
+    for (const target of listTargets) {
+      if (patchContentQuery(target, parentOutlet, descendantOutlets)) {
+        changed = true;
+      }
+    }
+    if (syncHostFieldsFromContentQueryTargets(candidate, listTargets)) {
+      changed = true;
+    }
+    const patchedProps = new Set(
+      listTargets.map((target) => target.propertyName).filter((name): name is string => !!name),
+    );
+    const queryDefs = collectDirectiveQueryDefs(candidate.constructor as Type<unknown>, candidate);
     if (!queryDefs.length) {
       continue;
     }
     for (const q of queryDefs) {
+      if (patchedProps.has(q.propertyName)) {
+        continue;
+      }
       const results = resolvePatchResults(
         {
           kind: 'query-list',
@@ -1264,15 +1458,22 @@ function patchHostDirectiveContentQueries(
         parentOutlet,
         descendantOutlets,
       );
-      const next = q.firstOnly ? (results[0] ?? null) : results;
       const current = (candidate as Record<string, unknown>)[q.propertyName];
-      if (q.firstOnly) {
-        if (!sameSlotValue(current, next)) {
-          (candidate as Record<string, unknown>)[q.propertyName] = next;
+      if (current instanceof QueryList) {
+        const next = q.firstOnly ? results.slice(0, 1) : results;
+        if (resetQueryListIfChanged(current, next)) {
           changed = true;
         }
-      } else if (!sameQueryResults(Array.isArray(current) ? current : [], results)) {
-        (candidate as Record<string, unknown>)[q.propertyName] = results;
+        continue;
+      }
+      // Scalar `@ContentChild` fields (e.g. MatColumnDef.cell). Never replace a
+      // QueryList with a plain array — Material calls `.toArray()` / `.changes.pipe()`.
+      if (!q.firstOnly) {
+        continue;
+      }
+      const next = results[0] ?? null;
+      if (!sameSlotValue(current, next)) {
+        (candidate as Record<string, unknown>)[q.propertyName] = next;
         changed = true;
       }
     }
@@ -1339,7 +1540,7 @@ export function patchOutletContentQueries(
   const hostDirKey = getOutletQueryCandidates(parentOutlet)
     .filter((c) => c !== parentInstance)
     .map((c) =>
-      collectDirectiveQueryDefs(c.constructor as Type<unknown>)
+      collectDirectiveQueryDefs(c.constructor as Type<unknown>, c)
         .map((q) => {
           const v = (c as Record<string, unknown>)[q.propertyName];
           const label =
@@ -1452,6 +1653,13 @@ function syncHostFieldsFromContentQueryTargets(
     const current = (instance as any)[prop];
     // @ContentChildren: host field IS the QueryList — already updated by reset().
     if (current === target.queryList) {
+      continue;
+    }
+    if (!target.firstOnly) {
+      // A previous patch may have overwritten the QueryList with a plain array
+      // (`_buttonToggles.toArray is not a function`). Put the live list back.
+      (instance as any)[prop] = target.queryList;
+      changed = true;
       continue;
     }
     // @ContentChild: host field holds the single match (or null).
