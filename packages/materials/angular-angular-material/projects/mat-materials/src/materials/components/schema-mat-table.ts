@@ -1,6 +1,6 @@
 import { CdkCellOutlet } from '@angular/cdk/table';
 import { MatTable } from '@angular/material/table';
-import type { EmbeddedViewRef, ViewContainerRef } from '@angular/core';
+import { ɵgetDirectives, type EmbeddedViewRef, type ViewContainerRef } from '@angular/core';
 
 type CellOutletHost = { _viewContainer: ViewContainerRef };
 
@@ -96,17 +96,37 @@ function detectChangesView(vc: ViewContainerRef | undefined, index = -1): void {
   view?.detectChanges();
 }
 
+function cellOutletForRowView(view: EmbeddedViewRef<object> | null | undefined): CellOutletHost | null {
+  if (!view) {
+    return null;
+  }
+  const rowEl = findRenderedRowElement(view);
+  if (!rowEl) {
+    return null;
+  }
+  try {
+    for (const dir of ɵgetDirectives(rowEl) ?? []) {
+      if (dir instanceof CdkCellOutlet) {
+        return dir as unknown as CellOutletHost;
+      }
+    }
+  } catch {
+    // Non-Angular nodes throw.
+  }
+  return null;
+}
+
 /**
- * Stamp cell templates into the current {@link CdkCellOutlet.mostRecentCellOutlet}.
- * Schema cell templates also wrap content in `ngTemplateOutlet`, so each cell view
- * needs detectChanges for `th`/`td` hosts to appear.
+ * Stamp cell templates into this row's {@link CdkCellOutlet}.
+ * Do not use {@link CdkCellOutlet.mostRecentCellOutlet}: it is process-wide, so a
+ * second playground CE (json2) would append cells into the previous table (json1).
  */
-function stampCellsIntoMostRecentOutlet(
+function stampCellsIntoOutlet(
   table: MatTableRenderHost,
   rowDef: unknown,
   context: object,
+  cellOutlet: CellOutletHost | null,
 ): void {
-  const cellOutlet = CdkCellOutlet.mostRecentCellOutlet as CellOutletHost | null;
   if (!cellOutlet) {
     return;
   }
@@ -130,9 +150,8 @@ function stampCellsIntoMostRecentOutlet(
  * `MatHeaderRow`/`MatRow`/`CdkCellOutlet`. We detectChanges the new row view first.
  *
  * Critical: data rows go through the viewRepeater → `_renderCellTemplateForItem`
- * without `_renderRow`. After the header was stamped, `mostRecentCellOutlet` still
- * points at the header; without CD on the new data row, every data cell is stamped
- * into the header (everything looks "projected" into one horizontal strip).
+ * without `_renderRow`. DetectChanges the new row so its CdkCellOutlet exists,
+ * then stamp into that row only.
  *
  * Patch the real MatTable prototype so we keep Material's providers / DI intact.
  */
@@ -176,7 +195,7 @@ export function patchMatTableDeferredRender(): void {
     );
     // Construct MatHeaderRow/MatRow + CdkCellOutlet inside schema NgTemplate.
     view.detectChanges();
-    stampCellsIntoMostRecentOutlet(this, rowDef, context);
+    stampCellsIntoOutlet(this, rowDef, context, cellOutletForRowView(view));
     return view;
   };
 
@@ -186,10 +205,12 @@ export function patchMatTableDeferredRender(): void {
     rowDef: unknown,
     context: object,
   ) {
-    // Must CD the newest data-row view so its CdkCellOutlet replaces the header's
-    // stale mostRecentCellOutlet before we stamp cells.
-    detectChangesView(this._rowOutlet?.viewContainer);
-    stampCellsIntoMostRecentOutlet(this, rowDef, context);
+    const vc = this._rowOutlet?.viewContainer;
+    detectChangesView(vc);
+    const view = vc?.length
+      ? (vc.get(vc.length - 1) as EmbeddedViewRef<object> | null)
+      : null;
+    stampCellsIntoOutlet(this, rowDef, context, cellOutletForRowView(view));
   };
 
   proto._getRenderedRows = function patchedGetRenderedRows(
