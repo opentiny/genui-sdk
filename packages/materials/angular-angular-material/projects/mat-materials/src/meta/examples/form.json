@@ -191,7 +191,7 @@
             {
               "componentName": "MatButton",
               "props": {
-                "appearance": "filled",
+                "matButton": "filled",
                 "color": "primary",
                 "onClick": {
                   "type": "JSExpression",
@@ -203,7 +203,7 @@
             {
               "componentName": "MatButton",
               "props": {
-                "appearance": "outlined",
+                "matButton": "outlined",
                 "onClick": {
                   "type": "JSExpression",
                   "value": "this.handleReset"

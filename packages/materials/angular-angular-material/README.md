@@ -21,7 +21,13 @@ providers: [
 ]
 ```
 
-and an Angular Material theme, e.g. `@angular/material/prebuilt-themes/indigo-pink.css`.
+and an Angular Material **M3** theme (system tokens such as `--mat-sys-corner-full`). For example:
+
+```css
+@import '@angular/material/prebuilt-themes/azure-blue.css';
+```
+
+Do not use M2 prebuilt themes like `indigo-pink.css` with Angular Material 20 — they set button radius to `4px` and override the pill shape.
 
 ## Quick Start
 

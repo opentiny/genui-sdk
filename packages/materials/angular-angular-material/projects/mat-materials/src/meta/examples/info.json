@@ -72,7 +72,7 @@
             {
               "componentName": "MatButton",
               "props": {
-                "appearance": "filled",
+                "matButton": "filled",
                 "color": "primary"
               },
               "children": "编辑"

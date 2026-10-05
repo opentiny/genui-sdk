@@ -187,7 +187,7 @@ const components = [
     keywords: 'button,按钮,点击',
     tags: 'button,按钮,基础组件',
     properties: [
-      selectProp('appearance', '外观', '按钮外观：text、filled、elevated、outlined、tonal', ['text', 'filled', 'elevated', 'outlined', 'tonal'], { defaultValue: 'filled' }),
+      selectProp('matButton', '外观', '按钮外观：text、filled、elevated、outlined、tonal', ['text', 'filled', 'elevated', 'outlined', 'tonal'], { defaultValue: 'filled' }),
       selectProp('color', '颜色', '主题色：primary、accent、warn', colorOptions, { defaultValue: 'primary' }),
       boolProp('disabled', '禁用', '是否禁用按钮', { defaultValue: false }),
       boolProp('disableRipple', '禁用涟漪', '是否禁用点击涟漪效果'),
@@ -486,6 +486,7 @@ const components = [
     isContainer: true,
     properties: [
       strProp('ngModel', '选中值', '当前选中的值（双向绑定）', { widget: 'ObjectConfigurator' }),
+      selectProp('appearance', '外观', '按钮开关组外观：standard、legacy', ['standard', 'legacy'], { defaultValue: 'standard' }),
       boolProp('multiple', '多选', '是否允许多选'),
       boolProp('disabled', '禁用', '是否禁用'),
     ],
@@ -1466,7 +1467,7 @@ const snippets = [
         snippetName: 'MatButton',
         schema: {
           componentName: 'MatButton',
-          props: { appearance: 'filled', color: 'primary' },
+          props: { matButton: 'filled', color: 'primary' },
           children: '按钮',
         },
       },

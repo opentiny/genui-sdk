@@ -67,7 +67,7 @@
                 },
                 "content": [
                   {
-                    "property": "appearance",
+                    "property": "matButton",
                     "label": {
                       "text": {
                         "zh_CN": "外观"
@@ -3085,6 +3085,39 @@
                     }
                   },
                   {
+                    "property": "appearance",
+                    "label": {
+                      "text": {
+                        "zh_CN": "外观"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "按钮开关组外观：standard、legacy"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectConfigurator",
+                      "props": {
+                        "options": [
+                          {
+                            "label": "standard",
+                            "value": "standard"
+                          },
+                          {
+                            "label": "legacy",
+                            "value": "legacy"
+                          }
+                        ]
+                      }
+                    },
+                    "defaultValue": "standard"
+                  },
+                  {
                     "property": "multiple",
                     "label": {
                       "text": {
@@ -4468,7 +4501,7 @@
               "schema": {
                 "componentName": "MatButton",
                 "props": {
-                  "appearance": "filled",
+                  "matButton": "filled",
                   "color": "primary"
                 },
                 "children": "按钮"
