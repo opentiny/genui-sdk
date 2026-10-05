@@ -17,7 +17,7 @@ export function getFrameworkOptions(mode: PlaygroundMode) {
 
 export const componentLibOptionsByFramework = {
   Vue: ['TinyVue', 'ElementPlus'],
-  Angular: ['TinyNg'],
+  Angular: ['TinyNg', 'AngularMaterial'],
   React: ['Antd'],
 };
 
