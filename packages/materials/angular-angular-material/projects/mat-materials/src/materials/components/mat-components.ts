@@ -1,3 +1,4 @@
+import '../../schema-adapt/register-schema-types';
 import { Type } from '@angular/core';
 import { MatButton, MatIconButton } from '@angular/material/button';
 import { MatCard, MatCardHeader } from '@angular/material/card';
@@ -14,7 +15,7 @@ import { MatOption } from '@angular/material/core';
 import { MatRadioButton } from '@angular/material/radio';
 import { MatSelect } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MatSlider } from '@angular/material/slider';
+import { SchemaMatSlider } from '../../schema-adapt/dynamic-crash/schema-mat-slider';
 import { MatButtonToggle } from '@angular/material/button-toggle';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { MatToolbar } from '@angular/material/toolbar';
@@ -31,7 +32,7 @@ export const components: Record<string, Type<any>> = {
   MatLabel: matNativeElementComponentFactory('mat-label'),
   MatCheckbox,
   MatSlideToggle,
-  MatSlider,
+  MatSlider: SchemaMatSlider,
   MatSelect,
   MatOption,
   MatRadioGroup: matNativeElementComponentFactory('mat-radio-group'),

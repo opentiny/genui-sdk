@@ -1,3 +1,4 @@
+import '../schema-adapt/register-schema-types';
 import { buildMaterialDefaultValueMap } from '@opentiny/genui-sdk-core';
 import { materialsMeta } from '../meta';
 import { basicComponents, basicModules } from './components/basic-components';
