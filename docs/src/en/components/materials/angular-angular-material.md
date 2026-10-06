@@ -8,7 +8,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 
 | Entry | Exports |
 |------|------|
-| `.` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials`, matching `*MaterialsMeta`, `applyMaterialPatch` |
+| `.` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials`, matching `*MaterialsMeta` |
 | `./materials` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials` |
 | `./meta` | `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta` |
 

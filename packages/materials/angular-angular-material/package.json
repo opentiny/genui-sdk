@@ -45,11 +45,6 @@
       "types": "./dist/materials.d.ts",
       "import": "./dist/materials.js",
       "require": "./dist/materials.js"
-    },
-    "./patch": {
-      "types": "./dist/patch.d.ts",
-      "import": "./dist/patch.js",
-      "require": "./dist/patch.js"
     }
   },
   "scripts": {

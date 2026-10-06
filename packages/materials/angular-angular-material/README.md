@@ -58,10 +58,9 @@ import { proMaterials } from '@opentiny/genui-sdk-materials-angular-angular-mate
 
 | Export Path | Exports | Description |
 |-------------|---------|-------------|
-| `@opentiny/genui-sdk-materials-angular-angular-material` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials`, `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta`, `applyMaterialPatch` | Unified entry |
+| `@opentiny/genui-sdk-materials-angular-angular-material` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials`, `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta` | Unified entry |
 | `.../meta` | `materialsMeta`, `plusMaterialsMeta`, `maxMaterialsMeta`, `proMaterialsMeta` | For `genPrompt()` |
 | `.../materials` | `materials`, `plusMaterials`, `maxMaterials`, `proMaterials` | For `genui-config-provider [materials]` |
-| `.../patch` | side-effect / `applyMaterialPatch` | Runtime patches for Material form-field edge cases |
 
 ## Material Tiers
 

@@ -1,5 +1,3 @@
-import '@opentiny/genui-sdk-materials-angular-angular-material/patch';
-
 import { createApplication } from '@angular/platform-browser';
 import { createCustomElement } from '@angular/elements';
 import { provideZoneChangeDetection } from '@angular/core';

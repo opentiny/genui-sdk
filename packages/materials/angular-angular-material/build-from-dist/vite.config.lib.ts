@@ -15,7 +15,6 @@ export default defineConfig({
         './index.ts',
         './materials.ts',
         './meta.ts',
-        './patch.ts',
         '../projects/mat-materials/src/meta/index.ts',
       ],
       compilerOptions: {
@@ -33,7 +32,6 @@ export default defineConfig({
         // 由外层 vite 直接从源码打包
         meta: path.resolve(__dirname, './meta.ts'),
         materials: path.resolve(__dirname, './materials.ts'),
-        patch: path.resolve(__dirname, './patch.ts'),
       },
       formats: ['es'],
       fileName: (_format, entryName) => `${entryName}.js`,

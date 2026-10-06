@@ -8,7 +8,7 @@
 
 | 入口 | 导出 |
 |------|------|
-| `.` | `materials`、`plusMaterials`、`maxMaterials`、`proMaterials`、对应 `*MaterialsMeta`、`applyMaterialPatch` |
+| `.` | `materials`、`plusMaterials`、`maxMaterials`、`proMaterials`、对应 `*MaterialsMeta` |
 | `./materials` | `materials`、`plusMaterials`、`maxMaterials`、`proMaterials` |
 | `./meta` | `materialsMeta`、`plusMaterialsMeta`、`maxMaterialsMeta`、`proMaterialsMeta` |
 
