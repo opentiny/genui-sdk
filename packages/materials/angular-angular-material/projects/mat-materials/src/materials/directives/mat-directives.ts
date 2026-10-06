@@ -1,35 +1,18 @@
 import '../../schema-adapt/register-schema-types';
-import { Directive, inject, Type } from '@angular/core';
+import { Type } from '@angular/core';
 import { MatInput } from '@angular/material/input';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatBadge } from '@angular/material/badge';
 import { MatLabel } from '@angular/material/form-field';
 import { MatCardActions, MatCardContent, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
-import { MatExpansionPanel, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { MatExpansionPanelTitle } from '@angular/material/expansion';
 import { MatRadioGroup } from '@angular/material/radio';
 import { MatSliderRangeThumb, MatSliderThumb } from '@angular/material/slider';
 import { SchemaMatButtonToggleGroup } from '../../schema-adapt/dynamic-timing/schema-mat-button-toggle-group';
+import { MatExpansionPanelParentBridge } from '../../schema-adapt/host-inject/mat-expansion-panel-parent.bridge';
 import type { AutoApplyDirectivePattern } from '../materials';
 
-/**
- * Host directive on MatExpansionPanelHeader.
- *
- * Header injects MatExpansionPanel with `{ host: true }`, which only sees providers on the
- * header host itself. Schema children are created before projection, so the panel is not
- * a DOM ancestor yet. This directive re-provides the panel from the parent injector onto
- * the header host so the `{ host: true }` lookup succeeds.
- */
-@Directive({
-  selector: '[matExpansionPanelParent]',
-  standalone: true,
-  providers: [
-    {
-      provide: MatExpansionPanel,
-      useFactory: () => inject(MatExpansionPanel, { skipSelf: true }),
-    },
-  ],
-})
-export class MatExpansionPanelParentBridge {}
+export { MatExpansionPanelParentBridge } from '../../schema-adapt/host-inject/mat-expansion-panel-parent.bridge';
 
 export const directives: Record<string, Type<any>> = {
   matInput: MatInput,

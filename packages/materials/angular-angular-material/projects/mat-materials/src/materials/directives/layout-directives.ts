@@ -1,9 +1,8 @@
-import { Directive, inject, Type } from '@angular/core';
+import { Type } from '@angular/core';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatDatepickerInput } from '@angular/material/datepicker';
 import {
   MatAccordion,
-  MatExpansionPanel,
   MatExpansionPanelActionRow,
   MatExpansionPanelDescription,
   MatExpansionPanelTitle,
@@ -17,27 +16,10 @@ import {
 } from '@angular/material/list';
 import { MatStepperNext, MatStepperPrevious } from '@angular/material/stepper';
 import { MatTimepickerInput } from '@angular/material/timepicker';
+import { MatExpansionPanelParentBridge } from '../../schema-adapt/host-inject/mat-expansion-panel-parent.bridge';
 import type { AutoApplyDirectivePattern } from '../types';
 
-/**
- * Host directive on MatExpansionPanelHeader.
- *
- * Header injects MatExpansionPanel with `{ host: true }`, which only sees providers on the
- * header host itself. Schema children are created before projection, so the panel is not
- * a DOM ancestor yet. This directive re-provides the panel from the parent injector onto
- * the header host so the `{ host: true }` lookup succeeds.
- */
-@Directive({
-  selector: '[matExpansionPanelParent]',
-  standalone: true,
-  providers: [
-    {
-      provide: MatExpansionPanel,
-      useFactory: () => inject(MatExpansionPanel, { skipSelf: true }),
-    },
-  ],
-})
-export class MatExpansionPanelParentBridge {}
+export { MatExpansionPanelParentBridge } from '../../schema-adapt/host-inject/mat-expansion-panel-parent.bridge';
 
 /** plus：布局 / Expansion Host bridge / 表单增强触发器 */
 export const layoutDirectives: Record<string, Type<any>> = {
