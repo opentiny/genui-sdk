@@ -1,3 +1,4 @@
+import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatFormField } from '@angular/material/form-field';
 import { MatSlider } from '@angular/material/slider';
 import { EMPTY } from 'rxjs';
@@ -163,6 +164,7 @@ export function applyMaterialPatch(): boolean {
   patchNotchedOutlineClassFix();
   patchFormFieldNotchUpgrade();
   patchMatSliderThumbTiming();
+  patchMatButtonToggleGroupValue();
   patchMatTableDeferredRender();
   patched = true;
   return true;
@@ -205,5 +207,101 @@ function patchMatSliderThumbTiming(): void {
     }
     this.__genuiSliderPending = false;
     originalInit.call(this);
+  };
+}
+
+/**
+ * Material 组的模型在 `_rawValue`，`value` getter 读的是 `_selectionModel`。
+ * CE 里 writeValue 时常发生在 QueryList 为空时：原实现 `this.value = x` 会
+ * `valueChange.emit(undefined)`，把 ngModel 冲掉。开发态 QueryList 往往已经就绪，
+ * 所以 4200 看起来正常、5174 不行。流式场景子节点晚到，走 `_isPrechecked(_rawValue)`。
+ */
+let buttonTogglePatched = false;
+
+function getMatButtonToggleRawValue(group: any): unknown {
+  if (group._rawValue !== undefined) {
+    return group._rawValue;
+  }
+  if (group._value !== undefined) {
+    return group._value;
+  }
+  return group.value;
+}
+
+function syncMatButtonToggleChecked(group: any): void {
+  const list = group?._buttonToggles;
+  const count = list?.length ?? 0;
+  if (!count) {
+    return;
+  }
+  const raw = getMatButtonToggleRawValue(group);
+  if (raw === undefined || raw === null || raw === '') {
+    return;
+  }
+  const token = `${count}:${group.multiple ? JSON.stringify(raw) : String(raw)}`;
+  if (group.__genuiToggleToken === token) {
+    return;
+  }
+  const selected = group.multiple
+    ? new Set(Array.isArray(raw) ? raw : [])
+    : new Set([raw]);
+  const apply = (toggle: any) => {
+    const next = selected.has(toggle.value);
+    if (toggle._checked !== next) {
+      toggle._checked = next;
+      toggle._changeDetectorRef?.markForCheck?.();
+    }
+  };
+  if (typeof list.forEach === 'function') {
+    list.forEach(apply);
+  } else {
+    Array.from(list).forEach(apply);
+  }
+  const model = group._selectionModel;
+  if (model && typeof model.clear === 'function' && typeof model.select === 'function') {
+    model.clear();
+    const checked: any[] = [];
+    if (typeof list.forEach === 'function') {
+      list.forEach((toggle: any) => {
+        if (toggle._checked) {
+          checked.push(toggle);
+        }
+      });
+    }
+    if (checked.length) {
+      model.select(...checked);
+    }
+  }
+  group.__genuiToggleToken = token;
+}
+
+function patchMatButtonToggleGroupValue(): void {
+  if (buttonTogglePatched) {
+    return;
+  }
+  const proto = MatButtonToggleGroup?.prototype as any;
+  if (!proto) {
+    return;
+  }
+  buttonTogglePatched = true;
+  const originalWriteValue = proto.writeValue;
+  proto.writeValue = function (this: any, value: any) {
+    const count = this._buttonToggles?.length ?? 0;
+    if ((value === undefined || value === null) && !count) {
+      return;
+    }
+    this._rawValue = value;
+    if (!count) {
+      this._changeDetector?.markForCheck?.();
+      return;
+    }
+    originalWriteValue?.call(this, value);
+    this._rawValue = value;
+    syncMatButtonToggleChecked(this);
+  };
+  const originalChecked = proto.ngAfterContentChecked;
+  proto.ngAfterContentChecked = function (this: any) {
+    originalChecked?.call(this);
+    syncMatButtonToggleChecked(this);
   };
 }
