@@ -8,11 +8,7 @@
       "agreed": true,
       "view": "list",
       "score": 80,
-      "remark": "负责前端物料与渲染器",
-      "city": {
-        "code": "shanghai",
-        "name": "上海"
-      }
+      "remark": "负责前端物料与渲染器"
     },
     "skillTags": [
       "前端",
@@ -130,7 +126,7 @@
     },
     "handleReset": {
       "type": "JSFunction",
-      "value": "function handleReset() { this.state.formData.name = ''; this.state.formData.department = ''; this.state.formData.remark = ''; this.state.formData.sex = ''; this.state.formData.view = ''; this.state.formData.city = null; this.state.formData.agreed = false; this.state.formData.enabled = false; this.state.formData.score = 0; }"
+      "value": "function handleReset() { this.state.formData.name = ''; this.state.formData.department = ''; this.state.formData.remark = ''; this.state.formData.sex = ''; this.state.formData.view = ''; this.state.formData.agreed = false; this.state.formData.enabled = false; this.state.formData.score = 0; }"
     },
     "handleDelete": {
       "type": "JSFunction",
@@ -339,66 +335,6 @@
                                     "value": "finance"
                                   },
                                   "children": "财务部"
-                                }
-                              ]
-                            }
-                          ]
-                        },
-                        {
-                          "componentName": "div",
-                          "props": {
-                            "ngModelGroup": "address"
-                          },
-                          "children": [
-                            {
-                              "componentName": "label",
-                              "props": {
-                                "style": "display: block; margin-bottom: 8px; font-weight: 500;"
-                              },
-                              "children": "城市"
-                            },
-                            {
-                              "componentName": "select",
-                              "props": {
-                                "name": "city",
-                                "style": "width: 100%; padding: 8px;",
-                                "compareWith": {
-                                  "type": "JSExpression",
-                                  "value": "function (a, b) { return a && b ? a.code === b.code : a === b; }"
-                                },
-                                "ngModel": {
-                                  "type": "JSExpression",
-                                  "model": true,
-                                  "value": "this.state.formData.city"
-                                }
-                              },
-                              "children": [
-                                {
-                                  "componentName": "option",
-                                  "props": {
-                                    "value": ""
-                                  },
-                                  "children": "请选择城市"
-                                },
-                                {
-                                  "componentName": "option",
-                                  "props": {
-                                    "ngValue": {
-                                      "type": "JSExpression",
-                                      "value": "{ code: 'beijing', name: '北京' }"
-                                    }
-                                  },
-                                  "children": "北京"
-                                },
-                                {
-                                  "componentName": "option",
-                                  "props": {
-                                    "ngValue": {
-                                      "type": "JSExpression",
-                                      "value": "{ code: 'shanghai', name: '上海' }"
-                                    }
-                                  },
-                                  "children": "上海"
                                 }
                               ]
                             }
