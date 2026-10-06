@@ -1,3 +1,4 @@
+import '../../schema-adapt/register-schema-types';
 import { Directive, inject, Type } from '@angular/core';
 import { MatInput } from '@angular/material/input';
 import { MatTooltip } from '@angular/material/tooltip';
@@ -6,8 +7,8 @@ import { MatLabel } from '@angular/material/form-field';
 import { MatCardActions, MatCardContent, MatCardSubtitle, MatCardTitle } from '@angular/material/card';
 import { MatExpansionPanel, MatExpansionPanelTitle } from '@angular/material/expansion';
 import { MatRadioGroup } from '@angular/material/radio';
-import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatSliderRangeThumb, MatSliderThumb } from '@angular/material/slider';
+import { SchemaMatButtonToggleGroup } from '../../schema-adapt/dynamic-timing/schema-mat-button-toggle-group';
 import type { AutoApplyDirectivePattern } from '../materials';
 
 /**
@@ -42,7 +43,7 @@ export const directives: Record<string, Type<any>> = {
   matExpansionPanelTitle: MatExpansionPanelTitle,
   matExpansionPanelParent: MatExpansionPanelParentBridge,
   matRadioGroup: MatRadioGroup,
-  matButtonToggleGroup: MatButtonToggleGroup,
+  matButtonToggleGroup: SchemaMatButtonToggleGroup,
   matSliderThumb: MatSliderThumb,
   matSliderStartThumb: MatSliderRangeThumb,
   matSliderEndThumb: MatSliderRangeThumb,
@@ -57,7 +58,7 @@ export const directives: Record<string, Type<any>> = {
 (MatCardActions['ɵdir'] as any).standalone = true;
 (MatExpansionPanelTitle['ɵdir'] as any).standalone = true;
 (MatRadioGroup['ɵdir'] as any).standalone = true;
-(MatButtonToggleGroup['ɵdir'] as any).standalone = true;
+(SchemaMatButtonToggleGroup['ɵdir'] as any).standalone = true;
 
 export const autoApplyDirectives: AutoApplyDirectivePattern = {
   // 原生 input/textarea 元素声明 matInput: true 时自动挂载 MatInput 指令，

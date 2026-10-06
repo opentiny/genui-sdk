@@ -1,6 +1,7 @@
+import '../../schema-adapt/register-schema-types';
 import { Type } from '@angular/core';
 import { MatBadge } from '@angular/material/badge';
-import { MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { SchemaMatButtonToggleGroup } from '../../schema-adapt/dynamic-timing/schema-mat-button-toggle-group';
 import {
   MatCardActions,
   MatCardAvatar,
@@ -35,7 +36,7 @@ export const baseDirectives: Record<string, Type<any>> = {
   matCardImage: MatCardImage,
   matCardAvatar: MatCardAvatar,
   matRadioGroup: MatRadioGroup,
-  matButtonToggleGroup: MatButtonToggleGroup,
+  matButtonToggleGroup: SchemaMatButtonToggleGroup,
   matSliderThumb: MatSliderThumb,
   matSliderStartThumb: MatSliderRangeThumb,
   matSliderEndThumb: MatSliderRangeThumb,
@@ -54,7 +55,7 @@ export const baseDirectives: Record<string, Type<any>> = {
 (MatCardImage['ɵdir'] as any).standalone = true;
 (MatCardAvatar['ɵdir'] as any).standalone = true;
 (MatRadioGroup['ɵdir'] as any).standalone = true;
-(MatButtonToggleGroup['ɵdir'] as any).standalone = true;
+(SchemaMatButtonToggleGroup['ɵdir'] as any).standalone = true;
 
 export const baseAutoApplyDirectives: AutoApplyDirectivePattern = {
   matInput: (schema: any) => schema?.props?.matInput === true,
