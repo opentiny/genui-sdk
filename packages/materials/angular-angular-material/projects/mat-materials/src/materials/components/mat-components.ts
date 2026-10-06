@@ -5,7 +5,8 @@ import { MatCard, MatCardHeader } from '@angular/material/card';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatDivider } from '@angular/material/divider';
 import { MatExpansionPanel, MatExpansionPanelHeader } from '@angular/material/expansion';
-import { MatFormField } from '@angular/material/form-field';
+import { SchemaMatFormField } from '../../schema-adapt/dynamic-crash/schema-mat-form-field';
+import { SchemaMatSlider } from '../../schema-adapt/dynamic-crash/schema-mat-slider';
 import { MatIcon } from '@angular/material/icon';
 import { MatList, MatListItem } from '@angular/material/list';
 import { MatPaginator } from '@angular/material/paginator';
@@ -15,7 +16,6 @@ import { MatOption } from '@angular/material/core';
 import { MatRadioButton } from '@angular/material/radio';
 import { MatSelect } from '@angular/material/select';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { SchemaMatSlider } from '../../schema-adapt/dynamic-crash/schema-mat-slider';
 import { MatButtonToggle } from '@angular/material/button-toggle';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { MatToolbar } from '@angular/material/toolbar';
@@ -28,7 +28,7 @@ export const components: Record<string, Type<any>> = {
   MatIconButton,
   MatIcon,
   MatDivider,
-  MatFormField,
+  MatFormField: SchemaMatFormField,
   MatLabel: matNativeElementComponentFactory('mat-label'),
   MatCheckbox,
   MatSlideToggle,
