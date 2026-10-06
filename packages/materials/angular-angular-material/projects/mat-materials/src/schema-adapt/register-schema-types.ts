@@ -2,9 +2,13 @@ import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatFormField } from '@angular/material/form-field';
 import { MatSlider } from '@angular/material/slider';
 import {
+  MatFooterRow,
   MatFooterRowDef,
+  MatHeaderRow,
   MatHeaderRowDef,
+  MatRow,
   MatRowDef,
+  MatTable,
   MatTextColumn,
 } from '@angular/material/table';
 import { adoptStandaloneType } from './adopt-standalone-type';
@@ -13,6 +17,12 @@ import { SchemaMatHeaderRowDef, SchemaMatFooterRowDef, SchemaMatRowDef } from '.
 import { SchemaMatSlider } from './dynamic-crash/schema-mat-slider';
 import { SchemaMatTextColumn } from './dynamic-crash/schema-mat-text-column';
 import { SchemaMatButtonToggleGroup } from './dynamic-timing/schema-mat-button-toggle-group';
+import {
+  SchemaMatFooterRow,
+  SchemaMatHeaderRow,
+  SchemaMatRow,
+  SchemaMatTable,
+} from './dynamic-timing/schema-mat-table';
 
 /**
  * Re-apply after ng-packagr assigns ɵcmp/ɵdir on decorated subclasses.
@@ -21,6 +31,10 @@ import { SchemaMatButtonToggleGroup } from './dynamic-timing/schema-mat-button-t
 adoptStandaloneType(SchemaMatSlider, MatSlider);
 adoptStandaloneType(SchemaMatFormField, MatFormField);
 adoptStandaloneType(SchemaMatButtonToggleGroup, MatButtonToggleGroup);
+adoptStandaloneType(SchemaMatTable, MatTable);
+adoptStandaloneType(SchemaMatHeaderRow, MatHeaderRow);
+adoptStandaloneType(SchemaMatRow, MatRow);
+adoptStandaloneType(SchemaMatFooterRow, MatFooterRow);
 adoptStandaloneType(SchemaMatTextColumn, MatTextColumn);
 adoptStandaloneType(SchemaMatHeaderRowDef, MatHeaderRowDef);
 adoptStandaloneType(SchemaMatRowDef, MatRowDef);

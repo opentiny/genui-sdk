@@ -26,15 +26,18 @@ export function matNativeElementComponentFactory(tagName: string) {
  * Flex-element table CSS (`mat-header-cell { flex:1 }`) does not apply to `th`/`td`.
  * MatTextColumn and our schemas use `th`/`td`, which only layout correctly inside a real
  * `<table>` + `<tr>` (table-cell display).
+ *
+ * Always clone ɵcmp onto this `component` so official MatTable/MatHeaderRow selectors stay intact.
  */
 export function preferNativeHtmlTableHost<T>(component: Type<T>): Type<T> {
-  const def = (component as Type<T> & { ɵcmp?: { selectors?: unknown[][] } }).ɵcmp;
-  const selectors = def?.selectors;
+  const def = (component as Type<T> & { ɵcmp?: { selectors?: unknown[][]; type?: unknown } }).ɵcmp;
+  if (!def) {
+    return component;
+  }
+  const selectors = def.selectors;
   if (!Array.isArray(selectors) || selectors.length < 2) {
     return component;
   }
-  // Native form is `['table', 'mat-table', '']` / `['tr', 'mat-header-row', '']`
-  // (length > 1). Custom-element form is `['mat-table']`.
   const nativeIdx = selectors.findIndex(
     (sel) => Array.isArray(sel) && sel.length > 1 && typeof sel[0] === 'string',
   );
@@ -44,6 +47,9 @@ export function preferNativeHtmlTableHost<T>(component: Type<T>): Type<T> {
   const next = selectors.slice();
   const [native] = next.splice(nativeIdx, 1);
   next.unshift(native);
-  def!.selectors = next;
+  const cmp = Object.create(def);
+  cmp.selectors = next;
+  cmp.type = component;
+  (component as Type<T> & { ɵcmp: unknown }).ɵcmp = cmp;
   return component;
 }

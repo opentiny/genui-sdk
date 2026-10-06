@@ -1,31 +1,27 @@
 import '../../schema-adapt/register-schema-types';
 import { Type } from '@angular/core';
-import {
-  MatFooterRow,
-  MatHeaderRow,
-  MatRow,
-  MatTable,
-} from '@angular/material/table';
 import { SchemaMatTextColumn } from '../../schema-adapt/dynamic-crash/schema-mat-text-column';
+import {
+  SchemaMatFooterRow,
+  SchemaMatHeaderRow,
+  SchemaMatRow,
+  SchemaMatTable,
+} from '../../schema-adapt/dynamic-timing/schema-mat-table';
 import {
   matNativeElementComponentFactory,
   preferNativeHtmlTableHost,
 } from '../native-element';
 
 /**
- * base：MatTable。官方组件（首帧空 row-def 由 runtime-patch 延迟）；列/行用官方结构指令 + SchemaMatTextColumn。
- * 宿主优先原生 `table`/`tr`，以便 `th`/`td`（含 MatTextColumn）走 table-cell 布局。
- *
- * Schema `ng-container` + `matColumnDef`：Angular 真 `ng-container` 是注释节点，不是元素。
- * 渲染器只能 `createComponent` 出元素宿主；在 native `MatTable` 客户端模板里默认没有
- * catch-all `ng-content`，列宿主通常不进 DOM，ContentChildren 仍能匹配，故一般无布局问题。
+ * base：SchemaMatTable（动态列/行 stamp）。列/行结构指令 + SchemaMatTextColumn。
+ * 宿主优先原生 `table`/`tr`（只改 schema 子类 ɵcmp 副本）。
  */
 export const tableComponents: Record<string, Type<any>> = {
-  MatTable: preferNativeHtmlTableHost(MatTable),
+  MatTable: preferNativeHtmlTableHost(SchemaMatTable),
   MatTextColumn: SchemaMatTextColumn,
-  MatHeaderRow: preferNativeHtmlTableHost(MatHeaderRow),
-  MatRow: preferNativeHtmlTableHost(MatRow),
-  MatFooterRow: preferNativeHtmlTableHost(MatFooterRow),
+  MatHeaderRow: preferNativeHtmlTableHost(SchemaMatHeaderRow),
+  MatRow: preferNativeHtmlTableHost(SchemaMatRow),
+  MatFooterRow: preferNativeHtmlTableHost(SchemaMatFooterRow),
   MatHeaderCell: matNativeElementComponentFactory('th'),
   MatCell: matNativeElementComponentFactory('td'),
   MatFooterCell: matNativeElementComponentFactory('td'),
