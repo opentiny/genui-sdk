@@ -1,18 +1,19 @@
+import '../../schema-adapt/register-schema-types';
 import { Type } from '@angular/core';
 import {
   MatFooterRow,
   MatHeaderRow,
   MatRow,
   MatTable,
-  MatTextColumn,
 } from '@angular/material/table';
+import { SchemaMatTextColumn } from '../../schema-adapt/dynamic-crash/schema-mat-text-column';
 import {
   matNativeElementComponentFactory,
   preferNativeHtmlTableHost,
 } from '../native-element';
 
 /**
- * base：MatTable。官方组件（首帧空 row-def 由 runtime-patch 延迟）；列/行用官方结构指令 + MatTextColumn。
+ * base：MatTable。官方组件（首帧空 row-def 由 runtime-patch 延迟）；列/行用官方结构指令 + SchemaMatTextColumn。
  * 宿主优先原生 `table`/`tr`，以便 `th`/`td`（含 MatTextColumn）走 table-cell 布局。
  *
  * Schema `ng-container` + `matColumnDef`：Angular 真 `ng-container` 是注释节点，不是元素。
@@ -21,7 +22,7 @@ import {
  */
 export const tableComponents: Record<string, Type<any>> = {
   MatTable: preferNativeHtmlTableHost(MatTable),
-  MatTextColumn,
+  MatTextColumn: SchemaMatTextColumn,
   MatHeaderRow: preferNativeHtmlTableHost(MatHeaderRow),
   MatRow: preferNativeHtmlTableHost(MatRow),
   MatFooterRow: preferNativeHtmlTableHost(MatFooterRow),

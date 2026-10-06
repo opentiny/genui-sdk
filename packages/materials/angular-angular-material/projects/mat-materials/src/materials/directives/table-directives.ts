@@ -1,3 +1,4 @@
+import '../../schema-adapt/register-schema-types';
 import { Type } from '@angular/core';
 import {
   MatCell,
@@ -5,13 +6,15 @@ import {
   MatColumnDef,
   MatFooterCell,
   MatFooterCellDef,
-  MatFooterRowDef,
   MatHeaderCell,
   MatHeaderCellDef,
-  MatHeaderRowDef,
   MatNoDataRow,
-  MatRowDef,
 } from '@angular/material/table';
+import {
+  SchemaMatFooterRowDef,
+  SchemaMatHeaderRowDef,
+  SchemaMatRowDef,
+} from '../../schema-adapt/dynamic-crash/schema-mat-row-defs';
 import type { AutoApplyDirectivePattern } from '../types';
 
 /** base：MatTable 结构指令 */
@@ -20,9 +23,9 @@ export const tableDirectives: Record<string, Type<any>> = {
   matHeaderCellDef: MatHeaderCellDef,
   matCellDef: MatCellDef,
   matFooterCellDef: MatFooterCellDef,
-  matHeaderRowDef: MatHeaderRowDef,
-  matRowDef: MatRowDef,
-  matFooterRowDef: MatFooterRowDef,
+  matHeaderRowDef: SchemaMatHeaderRowDef,
+  matRowDef: SchemaMatRowDef,
+  matFooterRowDef: SchemaMatFooterRowDef,
   matNoDataRow: MatNoDataRow,
   matHeaderCell: MatHeaderCell,
   matCell: MatCell,
@@ -33,9 +36,9 @@ export const tableDirectives: Record<string, Type<any>> = {
 (MatHeaderCellDef['ɵdir'] as any).standalone = true;
 (MatCellDef['ɵdir'] as any).standalone = true;
 (MatFooterCellDef['ɵdir'] as any).standalone = true;
-(MatHeaderRowDef['ɵdir'] as any).standalone = true;
-(MatRowDef['ɵdir'] as any).standalone = true;
-(MatFooterRowDef['ɵdir'] as any).standalone = true;
+(SchemaMatHeaderRowDef['ɵdir'] as any).standalone = true;
+(SchemaMatRowDef['ɵdir'] as any).standalone = true;
+(SchemaMatFooterRowDef['ɵdir'] as any).standalone = true;
 (MatNoDataRow['ɵdir'] as any).standalone = true;
 (MatHeaderCell['ɵdir'] as any).standalone = true;
 (MatCell['ɵdir'] as any).standalone = true;
