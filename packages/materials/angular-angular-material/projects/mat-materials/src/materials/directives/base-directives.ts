@@ -13,7 +13,7 @@ import {
 } from '@angular/material/card';
 import { MatError, MatHint, MatLabel, MatPrefix, MatSuffix } from '@angular/material/form-field';
 import { MatInput } from '@angular/material/input';
-import { MatRadioGroup } from '@angular/material/radio';
+import { SchemaMatRadioGroup } from '../../schema-adapt/dynamic-timing/schema-mat-radio-group';
 import { MatSliderRangeThumb, MatSliderThumb } from '@angular/material/slider';
 import { MatTooltip } from '@angular/material/tooltip';
 import type { AutoApplyDirectivePattern } from '../types';
@@ -35,7 +35,7 @@ export const baseDirectives: Record<string, Type<any>> = {
   matCardFooter: MatCardFooter,
   matCardImage: MatCardImage,
   matCardAvatar: MatCardAvatar,
-  matRadioGroup: MatRadioGroup,
+  matRadioGroup: SchemaMatRadioGroup,
   matButtonToggleGroup: SchemaMatButtonToggleGroup,
   matSliderThumb: MatSliderThumb,
   matSliderStartThumb: MatSliderRangeThumb,
@@ -54,7 +54,7 @@ export const baseDirectives: Record<string, Type<any>> = {
 (MatCardFooter['ɵdir'] as any).standalone = true;
 (MatCardImage['ɵdir'] as any).standalone = true;
 (MatCardAvatar['ɵdir'] as any).standalone = true;
-(MatRadioGroup['ɵdir'] as any).standalone = true;
+(SchemaMatRadioGroup['ɵdir'] as any).standalone = true;
 (SchemaMatButtonToggleGroup['ɵdir'] as any).standalone = true;
 
 export const baseAutoApplyDirectives: AutoApplyDirectivePattern = {
