@@ -40,11 +40,15 @@ type MatTableRenderHost = {
   _footerRowDefs: unknown[];
   _rowDefs: unknown[];
   _headerRowDefChanged?: boolean;
+  _footerRowDefChanged?: boolean;
   _getCellTemplates: (rowDef: unknown) => unknown[];
   _headerRowOutlet?: { viewContainer: ViewContainerRef };
+  _footerRowOutlet?: { viewContainer: ViewContainerRef };
   _rowOutlet?: { viewContainer: ViewContainerRef };
   _changeDetectorRef: { markForCheck: () => void };
   _addStickyColumnStyles?: (rows: HTMLElement[], rowDef: unknown) => void;
+  updateStickyHeaderRowStyles?: () => void;
+  updateStickyFooterRowStyles?: () => void;
 };
 
 type RowDefDifferHost = {
@@ -54,6 +58,7 @@ type RowDefDifferHost = {
 
 const DECLARED_COLUMNS = Symbol('genuiDeclaredColumns');
 const READY_COLUMNS_KEY = Symbol('genuiReadyColumnsKey');
+const STAMPED_TEMPLATES = Symbol('genuiStampedTemplates');
 const ROW_HOST_SELECTOR = [
   'tr[mat-header-row]',
   'tr[mat-row]',
@@ -184,6 +189,22 @@ function cellOutletForRowView(view: EmbeddedViewRef<object> | null | undefined):
   return null;
 }
 
+function stampedTemplatesMatch(
+  cellOutlet: CellOutletHost & { [STAMPED_TEMPLATES]?: unknown[] },
+  templates: unknown[],
+): boolean {
+  const prev = cellOutlet[STAMPED_TEMPLATES];
+  if (!prev || prev.length !== templates.length) {
+    return false;
+  }
+  for (let i = 0; i < templates.length; i++) {
+    if (prev[i] !== templates[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function stampCellsIntoOutlet(
   table: MatTableRenderHost,
   rowDef: unknown,
@@ -199,8 +220,11 @@ function stampCellsIntoOutlet(
   } catch {
     return;
   }
-  const vc = cellOutlet._viewContainer;
-  if (vc.length === templates.length) {
+  const outlet = cellOutlet as CellOutletHost & { [STAMPED_TEMPLATES]?: unknown[] };
+  const vc = outlet._viewContainer;
+  // Same length is not enough: streaming can replace matHeaderCellDef / matCellDef
+  // TemplateRefs in place while fingerprint trackBy keeps the row view alive.
+  if (vc.length === templates.length && stampedTemplatesMatch(outlet, templates)) {
     return;
   }
   vc.clear();
@@ -208,6 +232,7 @@ function stampCellsIntoOutlet(
     const cellView = vc.createEmbeddedView(cellTemplate as never, context);
     cellView.detectChanges();
   }
+  outlet[STAMPED_TEMPLATES] = templates;
   table._changeDetectorRef.markForCheck();
 }
 
@@ -258,23 +283,33 @@ tableProto._render = function (this: MatTableRenderHost & { [READY_COLUMNS_KEY]?
     return;
   }
   const needRestamp = columnsGrew || renderedColumnsChanged;
-  if (needRestamp) {
-    restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
-  }
+  // Always attempt stamp: no-ops when length + TemplateRef identity match.
+  restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
+  restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
+  restampOutletRows(this, this._footerRowOutlet, this._footerRowDefs[0]);
   const headerVc = this._headerRowOutlet?.viewContainer;
   const headerMissing =
     ready.length > 0 &&
     (this._headerRowDefs?.length ?? 0) > 0 &&
     !(headerVc?.length);
-  if (headerMissing) {
-    // Do not clear `_headerRowDefChanged`. A previous empty-column render already
-    // consumed it; without this, official `_render` never `_forceRenderHeaderRows`
-    // and native `<thead>` stays `display:none`.
-    this._headerRowDefChanged = true;
-  } else if (needRestamp && headerVc?.length) {
-    restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
+  // Force official header/footer rebuild whenever columns grow or were empty —
+  // not only when the outlet is vacant (empty first paint already consumed
+  // `_headerRowDefChanged` and can leave native `<thead>` at display:none).
+  if (needRestamp || headerMissing) {
+    if ((this._headerRowDefs?.length ?? 0) > 0) {
+      this._headerRowDefChanged = true;
+    }
+    if ((this._footerRowDefs?.length ?? 0) > 0) {
+      this._footerRowDefChanged = true;
+    }
   }
   officialTable._render.call(this);
+  if (ready.length > 0 && (this._headerRowDefs?.length ?? 0) > 0) {
+    this.updateStickyHeaderRowStyles?.();
+  }
+  if (ready.length > 0 && (this._footerRowDefs?.length ?? 0) > 0) {
+    this.updateStickyFooterRowStyles?.();
+  }
 };
 
 tableProto._renderRow = function (

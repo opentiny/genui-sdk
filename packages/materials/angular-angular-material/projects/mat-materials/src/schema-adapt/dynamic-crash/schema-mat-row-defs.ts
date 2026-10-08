@@ -33,10 +33,13 @@ function coerceColumnList(value: unknown): unknown[] {
 
 function getColumnsDiffSafe(this: RowDefDifferHost, original: () => unknown): unknown {
   this.columns = coerceColumnList(this.columns);
+  // Empty baseline so a cleared/missing differ still reports current columns as
+  // inserted (SchemaMatTable clears `_columnsDiffer` when ready columns change).
+  // Priming with `this.columns` then returning null swallowed that change and
+  // blocked official `_forceRenderHeaderRows`.
   if (!this._columnsDiffer && this._differs) {
-    this._columnsDiffer = this._differs.find(this.columns).create();
-    this._columnsDiffer.diff(this.columns);
-    return null;
+    this._columnsDiffer = this._differs.find([]).create();
+    this._columnsDiffer.diff([]);
   }
   if (!this._columnsDiffer) {
     return null;
