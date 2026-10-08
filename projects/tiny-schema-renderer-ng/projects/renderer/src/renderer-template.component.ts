@@ -119,4 +119,20 @@ export class RendererTemplateComponent {
   get context() {
     return this.contextService.getContext();
   }
+
+  /**
+   * Keep schema child views stable across streaming delta patches.
+   * Without trackBy, a new `children` array identity remounts every sibling
+   * (MatButtonToggle checkmark CSS then replays on each recreate).
+   */
+  trackBySchemaChild(index: number, child: unknown): string {
+    if (child == null) {
+      return `empty:${index}`;
+    }
+    if (typeof child === 'string') {
+      return `text:${index}`;
+    }
+    const node = child as { id?: string; componentName?: string };
+    return String(node.id ?? `${node.componentName ?? 'node'}:${index}`);
+  }
 }
