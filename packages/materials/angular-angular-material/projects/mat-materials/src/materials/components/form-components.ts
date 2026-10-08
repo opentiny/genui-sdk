@@ -1,6 +1,6 @@
 import '../../schema-adapt/register-schema-types';
 import { Type } from '@angular/core';
-import { MatButtonToggle } from '@angular/material/button-toggle';
+import { SchemaMatButtonToggle } from '../../schema-adapt/dynamic-timing/schema-mat-button-toggle';
 import { MatCheckbox } from '@angular/material/checkbox';
 import { MatOption } from '@angular/material/core';
 import { MatRadioButton } from '@angular/material/radio';
@@ -24,7 +24,7 @@ export const formComponents: Record<string, Type<any>> = {
   MatRadioGroup: matNativeElementComponentFactory('mat-radio-group'),
   MatRadioButton,
   MatButtonToggleGroup: matNativeElementComponentFactory('mat-button-toggle-group'),
-  MatButtonToggle,
+  MatButtonToggle: SchemaMatButtonToggle,
 };
 
 export const formModules: Record<string, Type<any>> = {};

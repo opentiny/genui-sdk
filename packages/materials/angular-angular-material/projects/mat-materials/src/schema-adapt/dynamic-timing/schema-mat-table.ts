@@ -226,9 +226,20 @@ tableProto._render = function (this: MatTableRenderHost & { [READY_COLUMNS_KEY]?
     return;
   }
   if (columnsGrew) {
-    this._headerRowDefChanged = false;
-    restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
     restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
+  }
+  const headerVc = this._headerRowOutlet?.viewContainer;
+  const headerMissing =
+    ready.length > 0 &&
+    (this._headerRowDefs?.length ?? 0) > 0 &&
+    !(headerVc?.length);
+  if (headerMissing) {
+    // Do not clear `_headerRowDefChanged`. A previous empty-column render already
+    // consumed it; without this, official `_render` never `_forceRenderHeaderRows`
+    // and native `<thead>` stays `display:none`.
+    this._headerRowDefChanged = true;
+  } else if (columnsGrew && headerVc?.length) {
+    restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
   }
   officialTable._render.call(this);
 };

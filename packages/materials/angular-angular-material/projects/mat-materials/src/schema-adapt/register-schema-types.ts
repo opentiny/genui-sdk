@@ -1,4 +1,4 @@
-import { MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatFormField } from '@angular/material/form-field';
 import { MatRadioGroup } from '@angular/material/radio';
 import { MatSlider } from '@angular/material/slider';
@@ -17,8 +17,9 @@ import { SchemaMatFormField } from './dynamic-crash/schema-mat-form-field';
 import { SchemaMatHeaderRowDef, SchemaMatFooterRowDef, SchemaMatRowDef } from './dynamic-crash/schema-mat-row-defs';
 import { SchemaMatSlider } from './dynamic-crash/schema-mat-slider';
 import { SchemaMatTextColumn } from './dynamic-crash/schema-mat-text-column';
+import { SchemaMatButtonToggle } from './dynamic-timing/schema-mat-button-toggle';
 import { SchemaMatButtonToggleGroup } from './dynamic-timing/schema-mat-button-toggle-group';
-import { SchemaMatRadioGroup } from './dynamic-timing/schema-mat-radio-group';
+import { installSchemaMatRadioGroupHostHeal, SchemaMatRadioGroup } from './dynamic-timing/schema-mat-radio-group';
 import {
   SchemaMatFooterRow,
   SchemaMatHeaderRow,
@@ -33,7 +34,9 @@ import {
 adoptStandaloneType(SchemaMatSlider, MatSlider);
 adoptStandaloneType(SchemaMatFormField, MatFormField);
 adoptStandaloneType(SchemaMatButtonToggleGroup, MatButtonToggleGroup);
+adoptStandaloneType(SchemaMatButtonToggle, MatButtonToggle);
 adoptStandaloneType(SchemaMatRadioGroup, MatRadioGroup);
+installSchemaMatRadioGroupHostHeal();
 adoptStandaloneType(SchemaMatTable, MatTable);
 adoptStandaloneType(SchemaMatHeaderRow, MatHeaderRow);
 adoptStandaloneType(SchemaMatRow, MatRow);

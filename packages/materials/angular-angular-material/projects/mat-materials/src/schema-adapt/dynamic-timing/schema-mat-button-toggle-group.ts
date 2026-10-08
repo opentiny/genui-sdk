@@ -3,12 +3,13 @@ import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 
 /**
  * 原因：动态渲染不抛错但行为错（CVA / QueryList 错拍）。
- * 官方假设：writeValue 时 `_buttonToggles` 已有子项；value getter 读 `_selectionModel`。
- * schema 时序：组上 ngModel 常在 QueryList 为空时 writeValue。原 `this.value = x` 会
- * valueChange.emit(undefined)。子到齐后需按 `_rawValue` 静默同步 `_checked`。
+ * 官方 `value` setter / writeValue → `_setSelectionByValue` 每次先 `_clearSelection()`。
+ * `_syncButtonToggle(..., false)`（checked setter、ngOnDestroy）会把还该选中的项摘掉。
+ * 勾选 UI 读 `_isSelected`，CSS 对 `.mat-button-toggle-checked` 做 width 动画，所以会闪。
  *
- * DI：空宿主 + 本指令拆开后，子 MatButtonToggle 仍注入 MatButtonToggleGroup token，
- * adoptStandaloneType 会在本类 ɵdir.providers 上 provide 官方 token。
+ * 空列表时官方还会 valueChange.emit(undefined) 写回 ngModel。
+ *
+ * DI：adoptStandaloneType 把官方 token alias 到本类。
  * @Directive 仅满足 NG2007；selector/providers 由 adoptStandaloneType 换成官方 ɵdir。
  */
 @Directive({
@@ -17,23 +18,106 @@ import { MatButtonToggleGroup } from '@angular/material/button-toggle';
 })
 export class SchemaMatButtonToggleGroup extends MatButtonToggleGroup {
   override writeValue(value: any): void {
-    const count = (this as any)._buttonToggles?.length ?? 0;
-    (this as any)._rawValue = value;
-    if (!count) {
-      (this as any)._changeDetector?.markForCheck?.();
-      return;
+    if (sameToggleValue(getMatButtonToggleRawValue(this), value)) {
+      if (selectionAlreadyMatches(this, value)) {
+        return;
+      }
     }
-    super.writeValue(value);
     (this as any)._rawValue = value;
-    syncMatButtonToggleChecked(this);
+    applyMatButtonToggleSelection(this, value);
   }
 
   override ngAfterContentInit(): void {
     super.ngAfterContentInit();
     const list = (this as any)._buttonToggles;
-    list?.changes?.subscribe(() => syncMatButtonToggleChecked(this));
-    syncMatButtonToggleChecked(this);
+    list?.changes?.subscribe(() => applyMatButtonToggleSelection(this, getMatButtonToggleRawValue(this)));
+    applyMatButtonToggleSelection(this, getMatButtonToggleRawValue(this));
   }
+}
+
+const officialValue = Object.getOwnPropertyDescriptor(MatButtonToggleGroup.prototype, 'value');
+Object.defineProperty(SchemaMatButtonToggleGroup.prototype, 'value', {
+  get: officialValue?.get,
+  set: function (this: MatButtonToggleGroup, newValue: unknown) {
+    if (sameToggleValue(getMatButtonToggleRawValue(this), newValue) && selectionAlreadyMatches(this, newValue)) {
+      return;
+    }
+    (this as any)._setSelectionByValue(newValue);
+  },
+  enumerable: true,
+  configurable: true,
+});
+
+(SchemaMatButtonToggleGroup.prototype as any)._setSelectionByValue = function (this: MatButtonToggleGroup, value: unknown) {
+  if (sameToggleValue(getMatButtonToggleRawValue(this), value) && selectionAlreadyMatches(this, value)) {
+    return;
+  }
+  (this as any)._rawValue = value;
+  if (!(this as any)._buttonToggles?.length) {
+    return;
+  }
+  applyMatButtonToggleSelection(this, value);
+};
+
+(SchemaMatButtonToggleGroup.prototype as any)._syncButtonToggle = function (
+  this: MatButtonToggleGroup,
+  toggle: any,
+  select: boolean,
+  isUserInput = false,
+) {
+  if (!isUserInput && !select && shouldKeepToggleSelected(this as any, toggle)) {
+    toggle._checked = true;
+    const model = (this as any)._selectionModel;
+    if (model && !model.isSelected(toggle)) {
+      model.select(toggle);
+    }
+    return;
+  }
+  const model = (this as any)._selectionModel;
+  const selected = !!model?.isSelected?.(toggle);
+  if (!!select === selected && !!toggle._checked === !!select) {
+    return;
+  }
+  if (!this.multiple && select && this.selected && this.selected !== toggle) {
+    const prev: any = this.selected;
+    prev._checked = false;
+    model?.deselect?.(prev);
+    prev._changeDetectorRef?.markForCheck?.();
+  }
+  toggle._checked = !!select;
+  if (model) {
+    if (select) {
+      model.select(toggle);
+    } else {
+      model.deselect(toggle);
+    }
+  }
+  toggle._changeDetectorRef?.markForCheck?.();
+  if (isUserInput) {
+    (this as any)._emitChangeEvent?.(toggle);
+    (this as any)._onTouched?.();
+  }
+};
+
+function shouldKeepToggleSelected(group: any, toggle: { value?: unknown }): boolean {
+  const raw = getMatButtonToggleRawValue(group);
+  if (raw === undefined || raw === null || raw === '') {
+    return false;
+  }
+  if (group.multiple) {
+    return Array.isArray(raw) && raw.some((item: unknown) => Object.is(item, toggle.value));
+  }
+  return Object.is(raw, toggle.value);
+}
+
+function sameToggleValue(a: unknown, b: unknown): boolean {
+  if (Object.is(a, b)) {
+    return true;
+  }
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((item, i) => Object.is(item, b[i]));
+  }
+  return false;
 }
 
 function getMatButtonToggleRawValue(group: any): unknown {
@@ -46,27 +130,49 @@ function getMatButtonToggleRawValue(group: any): unknown {
   return group.value;
 }
 
-function syncMatButtonToggleChecked(group: any): void {
-  const list = group?._buttonToggles;
-  const count = list?.length ?? 0;
-  if (!count) {
-    return;
-  }
-  const raw = getMatButtonToggleRawValue(group);
+function wantedValues(group: any, raw: unknown): Set<unknown> | null {
   if (raw === undefined || raw === null || raw === '') {
+    return null;
+  }
+  if (group.multiple) {
+    return new Set(Array.isArray(raw) ? raw : []);
+  }
+  return new Set([raw]);
+}
+
+/** Patch selection in place. Never clear-all — the checkmark binds to `_isSelected`. */
+function applyMatButtonToggleSelection(group: any, raw: unknown): void {
+  const list = group?._buttonToggles;
+  if (!list?.length) {
     return;
   }
-  const token = `${count}:${group.multiple ? JSON.stringify(raw) : String(raw)}`;
-  if (group.__genuiToggleToken === token) {
+  const wanted = wantedValues(group, raw);
+  if (!wanted) {
     return;
   }
-  const selected = group.multiple
-    ? new Set(Array.isArray(raw) ? raw : [])
-    : new Set([raw]);
+  if (selectionAlreadyMatches(group, raw)) {
+    group.__genuiAppliedRaw = raw;
+    return;
+  }
+  const rawChanged = !sameToggleValue(group.__genuiAppliedRaw, raw);
+  const model = group._selectionModel;
   const apply = (toggle: any) => {
-    const next = selected.has(toggle.value);
-    if (toggle._checked !== next) {
-      toggle._checked = next;
+    const next = wanted.has(toggle.value);
+    const selected = !!model?.isSelected?.(toggle);
+    if (next) {
+      toggle._checked = true;
+    }
+    if (!model) {
+      return;
+    }
+    if (next && !selected) {
+      model.select(toggle);
+      toggle._changeDetectorRef?.markForCheck?.();
+    } else if (!next && selected && rawChanged) {
+      // Group value actually moved. If raw is unchanged, a child `value` that is
+      // still streaming may temporarily miss `wanted` — do not drop the check.
+      toggle._checked = false;
+      model.deselect(toggle);
       toggle._changeDetectorRef?.markForCheck?.();
     }
   };
@@ -75,20 +181,28 @@ function syncMatButtonToggleChecked(group: any): void {
   } else {
     Array.from(list).forEach(apply);
   }
-  const model = group._selectionModel;
-  if (model && typeof model.clear === 'function' && typeof model.select === 'function') {
-    model.clear();
-    const checked: any[] = [];
-    if (typeof list.forEach === 'function') {
-      list.forEach((toggle: any) => {
-        if (toggle._checked) {
-          checked.push(toggle);
-        }
-      });
-    }
-    if (checked.length) {
-      model.select(...checked);
-    }
+  group.__genuiAppliedRaw = raw;
+}
+
+function selectionAlreadyMatches(group: any, raw: unknown): boolean {
+  const list = group?._buttonToggles;
+  const wanted = wantedValues(group, raw);
+  if (!list?.length || !wanted) {
+    return false;
   }
-  group.__genuiToggleToken = token;
+  const model = group._selectionModel;
+  let matches = true;
+  const check = (toggle: any) => {
+    const next = wanted.has(toggle.value);
+    const selected = !!model?.isSelected?.(toggle);
+    if (toggle._checked !== next || selected !== next) {
+      matches = false;
+    }
+  };
+  if (typeof list.forEach === 'function') {
+    list.forEach(check);
+  } else {
+    Array.from(list).forEach(check);
+  }
+  return matches;
 }
