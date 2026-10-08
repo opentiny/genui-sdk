@@ -5,6 +5,8 @@ import { EMPTY } from 'rxjs';
 /**
  * 原因 A：动态渲染会抛错 — ContentChild(MatFormFieldControl) 首帧为空。
  * 原因 B：mat-label 晚于 NotchedOutline init，`--no-label` 把 floating label 藏死。
+ * 原因 C：noop → 真实 control / 晚到的 ngModel 时，OnPush 下 `[floating]` 仍停在 false，
+ * label 不浮起。`upgradeNotchedOutline` 只修 notch，需补 markForCheck。
  * `_control` 与 notch 只打在本子类，不改官方 MatFormField.prototype。
  */
 @Component({
@@ -14,8 +16,11 @@ import { EMPTY } from 'rxjs';
 })
 export class SchemaMatFormField extends MatFormField {
   override ngAfterContentChecked(): void {
+    const prevType = (this as any)._previousControl?.controlType as string | undefined;
     super.ngAfterContentChecked();
-    upgradeNotchedOutline((this as any)._elementRef?.nativeElement as HTMLElement | undefined);
+    const host = (this as any)._elementRef?.nativeElement as HTMLElement | undefined;
+    upgradeNotchedOutline(host);
+    maybeMarkFloatingLabel(this, prevType, host);
   }
 }
 
@@ -79,4 +84,40 @@ function upgradeNotchedOutline(host: HTMLElement | null | undefined): void {
       outline.classList.add('mdc-notched-outline--upgraded');
     }
   });
+}
+
+/**
+ * Refresh OnPush `[floating]` when control attaches late or float DOM drifts.
+ * Setting `floatingLabel.floating` updates the MDC float class; markForCheck
+ * covers the noop → real-control case where the bound value was still false.
+ */
+function maybeMarkFloatingLabel(field: MatFormField, prevType: string | undefined, host?: HTMLElement): void {
+  const control = (field as any)._control;
+  if (!control || control.controlType === 'genui-noop') {
+    return;
+  }
+  const shouldFloat =
+    typeof (field as any)._shouldLabelFloat === 'function' ? !!(field as any)._shouldLabelFloat() : false;
+  const floatingLabel = (field as any)._floatingLabel as
+    | { floating: boolean; element?: HTMLElement }
+    | undefined;
+  const controlChanged = prevType !== control.controlType;
+  let dirty = controlChanged;
+
+  if (floatingLabel && floatingLabel.floating !== shouldFloat) {
+    floatingLabel.floating = shouldFloat;
+    dirty = true;
+  }
+
+  const labelEl =
+    floatingLabel?.element ?? (host?.querySelector?.('.mdc-floating-label') as HTMLElement | null | undefined);
+  const floated = !!labelEl?.classList?.contains('mdc-floating-label--float-above');
+  if (labelEl && shouldFloat !== floated) {
+    labelEl.classList.toggle('mdc-floating-label--float-above', shouldFloat);
+    dirty = true;
+  }
+
+  if (dirty) {
+    (field as any)._changeDetectorRef?.markForCheck?.();
+  }
 }
