@@ -368,12 +368,23 @@ export async function startBenchUi(preferredPort = 3847): Promise<void> {
           sendJson(res, 409, { ok: false, error: 'Benchmark already running' });
           return;
         }
+        let reservationReleased = false;
+        const releaseReservation = () => {
+          if (reservationReleased) return;
+          reservationReleased = true;
+          if (runState === 'running') runState = 'idle';
+        };
+        req.on('close', () => {
+          // Client disconnected before the request stream completed; readBody()
+          // will never settle, so release the reservation to avoid a stuck 409.
+          if (!req.readableEnded) releaseReservation();
+        });
         let form: BenchUiFormPayload;
         try {
           const raw = await readBody(req);
           form = JSON.parse(raw || '{}') as BenchUiFormPayload;
         } catch {
-          runState = 'idle';
+          releaseReservation();
           sendJson(res, 400, { ok: false, error: 'Invalid JSON body' });
           return;
         }
