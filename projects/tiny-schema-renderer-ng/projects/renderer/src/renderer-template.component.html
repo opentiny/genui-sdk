@@ -63,7 +63,7 @@
       ></ng-template>
 
       <ng-template #childrenTemplate let-children="children" let-scope="scope" let-slotIndexes="slotIndexes" let-componentInjector="componentInjector" let-parentSchema="parent" let-projectedViews="projectedViews">
-        <ng-container *ngIf="(children | isArray) && !!(componentInjector || componentOutlet?.componentInjector)">
+        <ng-container *ngIf="(children | isArray) && !!(componentInjector || componentOutlet?.componentInjector)" [schemaTrackChildren]="children">
           <ng-container *ngFor="let child of children; let childIndex = index; trackBy: trackBySchemaChild">
             <ng-template [ngTemplateOutlet]="child.componentName === 'NgTemplate' 
               ? ngTemplate 

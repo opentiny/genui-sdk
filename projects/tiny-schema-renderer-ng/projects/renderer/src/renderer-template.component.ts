@@ -1,4 +1,17 @@
-import { Component, Injector, Pipe, PipeTransform, TemplateRef, Type, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  Component,
+  Directive,
+  DoCheck,
+  Injector,
+  Input,
+  Pipe,
+  PipeTransform,
+  TemplateRef,
+  Type,
+  ViewChild,
+  ViewContainerRef,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
 import { getComponent, getModuleRef } from './parser/material-getter';
@@ -68,6 +81,24 @@ export class IsStringPipe implements PipeTransform {
   }
 }
 
+/**
+ * Assigns ngFor track keys when schema children gain new object refs.
+ * Runs in DoCheck with a cheap "already keyed?" scan — not a template expression.
+ */
+@Directive({
+  selector: '[schemaTrackChildren]',
+  standalone: true,
+})
+export class SchemaTrackChildrenDirective implements DoCheck {
+  @Input('schemaTrackChildren') children: unknown;
+
+  private readonly host = inject(RendererTemplateComponent);
+
+  ngDoCheck(): void {
+    this.host.ensureSchemaChildTrackKeysIfNeeded(this.children);
+  }
+}
+
 @Component({
   selector: 'renderer-template',
   standalone: true,
@@ -94,10 +125,11 @@ export class IsStringPipe implements PipeTransform {
     RenderNgContentDirective,
     BlockContentRefsDirective,
     BlockProjectedViewsDirective,
+    SchemaTrackChildrenDirective,
     ParseDataPipe,
     ApplyDefaultPropsPipe,
     MergeObjectPipe,
-    AutoApplyDirectivesPipe,  
+    AutoApplyDirectivesPipe,
   ],
   templateUrl: './renderer-template.component.html',
   exportAs: 'rendererTemplate',
@@ -115,8 +147,17 @@ export class RendererTemplateComponent {
     projectedViews: ProjectedViews | null;
   }>;
 
-  /** Stable identity for schema node objects across array inserts/moves. */
-  private readonly childTrackKeys = new WeakMap<object, number>();
+  /**
+   * Stable ngFor keys (no per-component branches).
+   *
+   * 1) Same object ref → keep prior key (in-place delta / moves).
+   * 2) Else structural fingerprint from componentName + directive names +
+   *    primitive props (generic; not matColumnDef-specific). Unique among
+   *    siblings → stable across mid-array inserts even when refs are replaced.
+   * 3) Duplicate fingerprints (e.g. toggles before `value` streams in) →
+   *    disambiguate with index so same-slot replacement still reuses the view.
+   */
+  private readonly childTrackKeys = new WeakMap<object, string>();
   private childTrackSeq = 0;
 
   constructor(private contextService: RendererContextService) {}
@@ -125,16 +166,66 @@ export class RendererTemplateComponent {
     return this.contextService.getContext();
   }
 
-  /**
-   * Keep schema child views stable across streaming delta patches.
-   * Without trackBy, a new `children` array identity remounts every sibling.
-   *
-   * Key by schema `id` when present; otherwise by object identity (WeakMap)
-   * plus `componentName` so in-place type changes remount, while mid-array
-   * inserts that move the same node keep the view.
-   *
-   * Arrow property: NgForOf calls `_trackByFn` without a receiver.
-   */
+  /** Fast path: skip assign unless a child object is missing a key. */
+  ensureSchemaChildTrackKeysIfNeeded(children: unknown): void {
+    if (!Array.isArray(children) || !children.length) {
+      return;
+    }
+    for (const child of children) {
+      if (child && typeof child === 'object' && !this.childTrackKeys.has(child)) {
+        this.assignSchemaChildTrackKeys(children);
+        return;
+      }
+    }
+  }
+
+  private assignSchemaChildTrackKeys(children: unknown[]): void {
+    const used = new Set<string>();
+    for (const child of children) {
+      if (child && typeof child === 'object') {
+        const key = this.childTrackKeys.get(child);
+        if (key != null) {
+          used.add(key);
+        }
+      }
+    }
+
+    const fingerprints: (string | null)[] = children.map((child) => {
+      if (!child || typeof child !== 'object' || this.childTrackKeys.has(child)) {
+        return null;
+      }
+      return fingerprintSchemaChild(child);
+    });
+    const fpCount = new Map<string, number>();
+    for (const fp of fingerprints) {
+      if (fp) {
+        fpCount.set(fp, (fpCount.get(fp) ?? 0) + 1);
+      }
+    }
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (!child || typeof child !== 'object' || this.childTrackKeys.has(child)) {
+        continue;
+      }
+      const node = child as { id?: string };
+      if (node.id != null && node.id !== '') {
+        const key = String(node.id);
+        this.childTrackKeys.set(child, key);
+        used.add(key);
+        continue;
+      }
+      const fp = fingerprints[i] ?? `node:${i}`;
+      let candidate = (fpCount.get(fp) ?? 0) > 1 ? `${fp}@${i}` : fp;
+      if (used.has(candidate)) {
+        candidate = `${fp}#${++this.childTrackSeq}`;
+      }
+      this.childTrackKeys.set(child, candidate);
+      used.add(candidate);
+    }
+  }
+
+  /** Arrow property: NgForOf calls `_trackByFn` without a receiver. */
   trackBySchemaChild = (index: number, child: unknown): string => {
     if (child == null) {
       return `empty:${index}`;
@@ -145,15 +236,29 @@ export class RendererTemplateComponent {
     if (typeof child !== 'object') {
       return `node:${index}`;
     }
-    const node = child as { id?: string; componentName?: string };
-    if (node.id != null && node.id !== '') {
-      return String(node.id);
-    }
-    let seq = this.childTrackKeys.get(child);
-    if (seq == null) {
-      seq = ++this.childTrackSeq;
-      this.childTrackKeys.set(child, seq);
-    }
-    return `${node.componentName ?? 'node'}:${seq}`;
+    return this.childTrackKeys.get(child) ?? fingerprintSchemaChild(child);
   };
+}
+
+/** componentName + directives + primitive props — identity without component switches. */
+function fingerprintSchemaChild(child: object): string {
+  const node = child as {
+    componentName?: string;
+    directives?: { directiveName?: string }[];
+    props?: Record<string, unknown>;
+  };
+  const name = node.componentName ?? 'node';
+  const dirs = (node.directives ?? [])
+    .map((d) => d.directiveName)
+    .filter((d): d is string => !!d)
+    .join('+');
+  const props = node.props ?? {};
+  const propParts: string[] = [];
+  for (const key of Object.keys(props).sort()) {
+    const value = props[key];
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      propParts.push(`${key}:${value}`);
+    }
+  }
+  return `${name}|${dirs}|${propParts.join(',')}`;
 }
