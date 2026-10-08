@@ -6,6 +6,7 @@ import { formComponents, formModules } from './components/form-components';
 import { tableComponents, tableModules } from './components/table-components';
 import { baseAutoApplyDirectives, baseDirectives } from './directives/base-directives';
 import { tableAutoApplyDirectives, tableDirectives } from './directives/table-directives';
+import { baseRequiredCompleteFieldSelectors } from './required-complete-field-selectors';
 import type { IMatMaterials } from './types';
 
 export type { AutoApplyDirectivePattern, IMatMaterials } from './types';
@@ -19,5 +20,6 @@ export const materials: IMatMaterials = {
   modules: { ...basicModules, ...formModules, ...tableModules },
   directives: { ...baseDirectives, ...tableDirectives },
   autoApplyDirectives: { ...baseAutoApplyDirectives, ...tableAutoApplyDirectives },
+  requiredCompleteFieldSelectors: baseRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
 };

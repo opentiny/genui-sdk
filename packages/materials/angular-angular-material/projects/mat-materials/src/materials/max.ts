@@ -4,6 +4,7 @@ import type { IMatMaterials } from './types';
 import { plusMaterials } from './plus';
 import { feedbackComponents, feedbackModules } from './components/feedback-components';
 import { feedbackAutoApplyDirectives, feedbackDirectives } from './directives/feedback-directives';
+import { maxRequiredCompleteFieldSelectors } from './required-complete-field-selectors';
 
 /**
  * max 物料：plus + 反馈指示器（Progress）+ Menu。
@@ -14,5 +15,6 @@ export const maxMaterials: IMatMaterials = {
   modules: { ...plusMaterials.modules, ...feedbackModules },
   directives: { ...plusMaterials.directives, ...feedbackDirectives },
   autoApplyDirectives: { ...plusMaterials.autoApplyDirectives, ...feedbackAutoApplyDirectives },
+  requiredCompleteFieldSelectors: maxRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(maxMaterialsMeta),
 };

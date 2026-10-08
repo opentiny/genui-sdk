@@ -25,7 +25,7 @@ const activeMaterials = mergeMaterials(tinyNgMaterials, angularMaterialMaterials
         [customComponents]="customComponents"
         [customComponentsModule]="customComponentsModule"
         [customActions]="customActions"
-        [requiredCompleteFieldSelectors]="requiredCompleteFieldSelectors"
+        [requiredCompleteFieldSelectors]="completeFieldSelectors"
         [isJsonComplete]="isJsonComplete"
       />
     </genui-config-provider>
@@ -44,4 +44,13 @@ export class GenuiRendererElementHost {
   @Input() isJsonComplete?: boolean;
 
   protected readonly activeMaterials = activeMaterials;
+
+  protected get completeFieldSelectors(): string[] {
+    const fromMaterials = this.activeMaterials.requiredCompleteFieldSelectors ?? [];
+    const extra = this.requiredCompleteFieldSelectors ?? [];
+    if (!extra.length) {
+      return fromMaterials;
+    }
+    return [...fromMaterials, ...extra];
+  }
 }
