@@ -67,8 +67,8 @@ function processRule(id: string, rule: Rule) {
     return
   }
   processedRules.add(rule)
-  rule.selector = selectorParser((selectorRoot) => {
-    selectorRoot.each((selector) => {
+  rule.selector = selectorParser((selectorRoot: any) => {
+    selectorRoot.each((selector: any) => {
       rewriteSelector(id, selector, selectorRoot)
     })
   }).processSync(rule.selector)
@@ -78,7 +78,7 @@ function rewriteSelector(id: string, selector: selectorParser.Selector, selector
   let node: selectorParser.Node | null = null
   let shouldInject = true
   // find the last child node to insert attribute selector
-  selector.each((n): false | void => {
+  selector.each((n: any): false | void => {
     // DEPRECATED ">>>" and "/deep/" combinator
     if (n.type === 'combinator' && (n.value === '>>>' || n.value === '/deep/')) {
       n.value = ' '

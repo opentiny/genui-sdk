@@ -175,7 +175,8 @@ export class GenuiExample {
 
 - Non-`standalone` components must be used together with `customComponentsModule`.
 - Component metadata must be sent to the backend service when calling the API so the model can generate matching protocol JSON for the component.
-- ⚠️ Limitation: Dynamic rendering does not currently support components queried via `@ContentChild` or `@ContentChildren`.
+- `@ContentChild` / `@ContentChildren` queries are supported via a best-effort runtime patch: it resolves `QueryList` and `contentChild()` / `contentChildren()` signals on dynamically created components, returning results in schema declaration order. Some type-based or complex selector predicates may not be fully recoverable, leaving edge cases.
+- Projected `ng-content` content currently supports only static projection, including content selection via the `select` selector; lazy projection is not yet well supported.
 
 
 ### customComponentsModule
@@ -257,6 +258,43 @@ export class GenuiExample {
 ```
 
 ⚠️ Limitation: Due to the `ViewContainerRef.createComponent` API, only `standalone` directives are currently supported.
+Non-`standalone` directives require registering their declaring `NgModule` (via the `customDirectivesModule` input or the global `directiveModuleRef`) so the renderer can create the module and provide DI dependencies for the directive, and marking the directive as `standalone`.
+
+### customDirectivesModule
+
+- **Type**: `Record<string, Type<any>>`
+- **Required**: No
+- **Description**: Map from non-`standalone` directive names to their declaring `NgModule`. The renderer creates the module via `createNgModule` to provide module-level DI dependencies for the directive.
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { MyCustomDirective, MyCustomDirectiveModule } from './my-custom-directive';
+
+@Component({
+  imports: [GenuiRenderer],
+  template: `
+    <genui-renderer [content]="schemaContent" [customDirectives]="customDirectives" [customDirectivesModule]="customDirectivesModule"> </genui-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'div',
+        directives: [{ directiveName: 'MyCustomDirective' }],
+      },
+    ],
+  };
+  customDirectives = {
+    MyCustomDirective: MyCustomDirective,
+  };
+  customDirectivesModule = {
+    MyCustomDirective: MyCustomDirectiveModule,
+  };
+}
+```
 
 ### customActions
 

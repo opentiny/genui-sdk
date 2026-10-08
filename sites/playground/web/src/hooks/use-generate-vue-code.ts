@@ -1,5 +1,5 @@
 import type { IMaterialsMeta, IMaterialsProtocol } from '@opentiny/genui-sdk-core';
-import { generateCode as generateVueCode } from '@opentiny/genui-sdk-vue';
+import { generateCode as generateVueCode } from '@opentiny/genui-sdk-vue/code-generator';
 import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 type IComponentMapItem = {

@@ -103,10 +103,6 @@ const titleContent = computed(() => {
             <dt>{{ t('finishInfo.time') }}</dt>
             <dd>{{ createdLabel }}</dd>
           </div>
-          <div v-if="durationLabel" class="stat-row stat-row--emphasis">
-            <dt>{{ t('finishInfo.duration') }}</dt>
-            <dd>{{ durationLabel }}</dd>
-          </div>
           <div v-if="ttfbLabel" class="stat-row">
             <dt>{{ t('finishInfo.ttfb') }}</dt>
             <dd>{{ ttfbLabel }}</dd>
@@ -114,6 +110,10 @@ const titleContent = computed(() => {
           <div v-if="renderDurationLabel" class="stat-row">
             <dt>{{ t('finishInfo.renderDuration') }}</dt>
             <dd>{{ renderDurationLabel }}</dd>
+          </div>
+          <div v-if="durationLabel" class="stat-row stat-row--emphasis">
+            <dt>{{ t('finishInfo.duration') }}</dt>
+            <dd>{{ durationLabel }}</dd>
           </div>
           <template v-if="usage">
             <div v-if="usage.prompt_tokens != null" class="stat-row">

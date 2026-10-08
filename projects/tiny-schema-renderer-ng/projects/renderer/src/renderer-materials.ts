@@ -11,6 +11,8 @@ export interface IRendererMaterials {
   components?: Record<string, Type<any>>;
   modules?: Record<string, Type<any>>;
   directives?: Record<string, Type<any>>;
+  /** 非 standalone 指令对应的 NgModule，renderer 据此创建模块以提供其 DI 依赖 */
+  directivesModuleMap?: Record<string, Type<any>>;
   autoApplyDirectives?: AutoApplyDirectivePattern;
   defaultPropsMap?: DefaultPropsMap;
 }

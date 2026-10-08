@@ -20,23 +20,33 @@ interface IStartServerOptions {
   port?: number;
   /** Max attempts when port is in use, default 10 */
   maxAttempts?: number;
+  /**
+   * Materials metadata fixed at startup for system prompt generation.
+   * If omitted, built-in materials are selected by request tinygenui.framework:
+   * - Vue → `@opentiny/genui-sdk-materials-vue-opentiny-vue`
+   * - Angular → `@opentiny/genui-sdk-materials-angular-opentiny-ng`
+   * - Other / missing framework → Vue materials by default
+   */
+  materialsMeta?: IMaterialsMeta;
 }
 ```
 
 - **Details**
 
-Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console.
+Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping (Vue → OpenTiny Vue, Angular → OpenTiny Angular).
 
 - **Example**
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10,
+  materialsMeta,
 });
 ```
 
@@ -59,18 +69,27 @@ interface IEquipChatCompletionsOptions {
   apiKey: string;
   /** API base URL */
   baseURL: string;
+  /**
+   * Materials metadata fixed when equipping the route for system prompt generation.
+   * If omitted, built-in materials are selected by request tinygenui.framework:
+   * - Vue → `@opentiny/genui-sdk-materials-vue-opentiny-vue`
+   * - Angular → `@opentiny/genui-sdk-materials-angular-opentiny-ng`
+   * - Other / missing framework → Vue materials by default
+   */
+  materialsMeta?: IMaterialsMeta;
 }
 ```
 
 - **Details**
 
-Creates a chat completion request instance, builds a request handler, and registers it on the specified route (POST).
+Creates a chat completion request instance, builds a request handler, and registers it on the specified route (POST). Materials are fixed via `materialsMeta` when equipping the route. When omitted, they follow the request `framework` mapping (Vue → OpenTiny Vue, Angular → OpenTiny Angular).
 
 - **Example**
 
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 
 const app = express();
 
@@ -78,6 +97,7 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
+  materialsMeta,
 });
 
 app.listen(3000);

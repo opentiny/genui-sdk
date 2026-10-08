@@ -2,7 +2,7 @@ import { modifyChatBody as continueGeneratingBodyModifier } from '../continue-wr
 import type { OpenApiToolServiceConfig } from '../components/common.types';
 import { defaultComponentLib } from '../components/materials-tab';
 
-type MaterialsMetaVariantKey = 'mini' | 'standard';
+type MaterialsMetaVariantKey = 'mini' | 'standard' | 'plus';
 export interface IMcpServerConfig {
   name: string;
   url: string;
@@ -43,7 +43,7 @@ export type IOpenApiToolServiceConfig = OpenApiToolServiceConfig;
 export interface IPlaygroundConfig {
   mcpServers: IMcpServerConfig[];
   framework: string;
-  componentLib?: 'TinyVue' | 'ElementPlus' | 'TinyNg';
+  componentLib?: 'TinyVue' | 'ElementPlus' | 'TinyNg' | 'Antd';
   promptList: string[];
   model: string;
   temperature: number;

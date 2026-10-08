@@ -15,7 +15,7 @@
 ## materials
 
 - **类型**: `IMaterials`
-- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。
+- **说明**: Element Plus 组件映射，注入 [GenuiConfigProvider](../config-provider#materials)。内置 `themeFactory`（`light` / `dark` 主题，见 [物料主题](./theme)），设置 [GenuiConfigProvider](../config-provider#theme) 的 `theme` 即可切换：
 
 ```typescript
 import 'element-plus/dist/index.css';
@@ -25,6 +25,12 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 ```vue
 <GenuiConfigProvider :materials="materials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
+
+```vue
+<GenuiConfigProvider :materials="materials" theme="dark">
   <GenuiChat />
 </GenuiConfigProvider>
 ```

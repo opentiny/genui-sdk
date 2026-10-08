@@ -72,12 +72,14 @@ export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10, // Max retries when port is in use
+  materialsMeta,
 });
 ```
 
@@ -86,6 +88,7 @@ startServer({
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import cors from 'cors';
 
 const app = express();
@@ -95,6 +98,7 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
+  materialsMeta, // If omitted, default materials are selected by request framework (Vue → OpenTiny Vue, Angular → OpenTiny Angular)
 });
 
 app.listen(3000);

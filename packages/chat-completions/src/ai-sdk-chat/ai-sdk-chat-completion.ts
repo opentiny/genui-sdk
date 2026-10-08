@@ -3,7 +3,7 @@ import { createOpenAI, type OpenAIProvider } from '@ai-sdk/openai';
 import { createAnthropic, type AnthropicProvider } from '@ai-sdk/anthropic';
 import { createDeepSeek, type DeepSeekProvider } from '@ai-sdk/deepseek';
 import type { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions';
-import type { AsyncIterableStream, ChatCompletionChunk, IRequestOptions } from '../types';
+import type { AsyncIterableStream, ChatCompletionChunk, IChatCompletionsConfig, IRequestOptions } from '../types';
 import { openaiCompatibleTransformChunk } from './openai-compatible-transform';
 import { ChatCompletions } from '../chat-completions';
 import { createAsyncIterableStream } from './async-iterable-stream';
@@ -34,8 +34,8 @@ export class AiSdkChatCompletions extends ChatCompletions<AsyncIterableStream<Te
   protected readonly providerInstance: ProviderInstance;
   protected modelInstance: LanguageModel;
 
-  constructor({ apiKey, baseURL, provider }: { apiKey: string; baseURL: string; provider: ProviderType }) {
-    super();
+  constructor({ apiKey, baseURL, provider, materialsMeta }: IDefaultModelProviderConfig & { baseURL: string } & IChatCompletionsConfig) {
+    super({ materialsMeta });
     const providerCreator = providerMap[provider];
     this.providerInstance = providerCreator({
       apiKey,

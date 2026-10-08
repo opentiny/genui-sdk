@@ -17,7 +17,9 @@ export default defineConfig({
     dts({
       rollupTypes: true,
     }),
-    cssInjectedByJsPlugin(),
+    cssInjectedByJsPlugin({
+      jsAssetsFilterFunction: (chunk) => chunk.fileName === 'materials.js',
+    }),
   ],
   build: {
     lib: {
@@ -31,7 +33,13 @@ export default defineConfig({
     },
     sourcemap: true,
     rollupOptions: {
-      external: externalPackages.map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
+      external: (id) => {
+        const bareId = id.split('?')[0];
+        if (bareId === 'element-plus/theme-chalk/dark/css-vars.css') {
+          return false;
+        }
+        return externalPackages.some((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`).test(id));
+      },
     },
   },
 });
