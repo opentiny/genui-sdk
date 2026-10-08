@@ -82,6 +82,50 @@ describe('skill-generator', () => {
     expect(extractSkillPrefix(prompt, markers) + markers.map(({ file }) => sections[file]).join('')).toBe(prompt);
   });
 
+  it('extractReferenceSections 忽略围栏代码块内的二级标题', () => {
+    const prompt = [
+      '# 技能说明',
+      '',
+      '## 卡片示例',
+      '',
+      '```md',
+      '## 这是代码里的标题',
+      '```',
+      '',
+      '## schemaJson 生成规则',
+      '',
+      'rules',
+      '',
+    ].join('\n');
+
+    const markers = extractReferenceSections(prompt);
+    expect(markers.map(({ title }) => title)).toEqual(['卡片示例', 'schemaJson 生成规则']);
+
+    const sections = splitPromptSections(prompt, markers);
+    expect(sections['examples.md']).toContain('## 这是代码里的标题');
+    expect(extractSkillPrefix(prompt, markers) + markers.map(({ file }) => sections[file]).join('')).toBe(
+      prompt,
+    );
+  });
+
+  it('CRLF 下围栏代码块内的标题同样被忽略', () => {
+    const prompt = [
+      '## 卡片示例',
+      '',
+      '~~~',
+      '## 不是章节',
+      '~~~',
+      '',
+      '## schemaJson 生成规则',
+      '',
+    ].join('\r\n');
+
+    expect(extractReferenceSections(prompt).map(({ title }) => title)).toEqual([
+      '卡片示例',
+      'schemaJson 生成规则',
+    ]);
+  });
+
   it('无标题的旧白名单拒绝覆盖手写内容', () => {
     const dir = createTempDir('skill-handwritten-');
     mkdirSync(join(dir, 'reference'));
@@ -558,6 +602,34 @@ description: test
     expect(() =>
       writeReferenceFiles(skillDir, { 'rules.md': 'rules' }, { referenceSubdir: '.' }),
     ).toThrow(/不能启用 prune/);
+  });
+
+  it('referenceSubdir 为空时拒绝覆盖内容不同的已有 components.md', () => {
+    const skillDir = createTempDir('skill-root-components-');
+    mkdirSync(join(skillDir, 'reference'), { recursive: true });
+    const indexPath = join(skillDir, 'reference', 'components.md');
+    const handwritten = '# 手写索引\n\n必须使用以下支持的 componentName：`Old`\n';
+    writeFileSync(indexPath, handwritten, 'utf8');
+
+    expect(() =>
+      writeReferenceFiles(
+        skillDir,
+        { 'components.md': '## 可用组件\n\n必须使用以下支持的 componentName：`TinyForm`\n' },
+        { referenceSubdir: '', prune: false },
+      ),
+    ).toThrow(/拒绝覆盖/);
+    expect(readFileSync(indexPath, 'utf8')).toBe(handwritten);
+  });
+
+  it('referenceSubdir 为空时允许重复写入相同内容', () => {
+    const skillDir = createTempDir('skill-root-components-repeat-');
+    const section = '## 可用组件\n\n必须使用以下支持的 componentName：`TinyForm`\n';
+
+    writeReferenceFiles(skillDir, { 'components.md': section }, { referenceSubdir: '', prune: false });
+    expect(() =>
+      writeReferenceFiles(skillDir, { 'components.md': section }, { referenceSubdir: '', prune: false }),
+    ).not.toThrow();
+    expect(readFileSync(join(skillDir, 'reference', 'components.md'), 'utf8')).toBe(section);
   });
 
   it('writeReferenceFiles 拒绝不安全的章节文件名', () => {
