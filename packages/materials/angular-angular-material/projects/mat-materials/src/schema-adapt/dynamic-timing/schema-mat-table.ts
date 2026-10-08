@@ -13,6 +13,10 @@ import {
  * 单元格 stamp 用 process-wide `CdkCellOutlet.mostRecentCellOutlet`。
  * schema 时序：子节点晚到，首帧 defs 为空；NgTemplate 根是 comment；多表会串 outlet。
  *
+ * 原因 F：流式时 `rowDef.columns` 仍含未注册列名，官方 `_addStickyColumnStyles`
+ * `columnDefs.map(d => d.sticky)` 在 prod（不抛 unknown column）读到 undefined 崩掉。
+ * 缺列时跳过本帧 sticky，且不得写回 `rowDef.columns`（否则会滤空列导致表不渲染）。
+ *
  * 私有方法只挂在本子类 prototype 上，不改 MatTable.prototype。
  *
  * 原因 E：原生 table 布局。preferNativeHtmlTableHost 只改这些子类的 ɵcmp 副本。
@@ -28,7 +32,10 @@ type MatTableRenderHost = {
   _render: () => void;
   _cacheRowDefs: () => void;
   _cacheColumnDefs: () => void;
-  _columnDefsByName?: { forEach: (fn: (col: ColumnDefLike, id: string) => void) => void };
+  _columnDefsByName?: {
+    forEach: (fn: (col: ColumnDefLike, id: string) => void) => void;
+    get: (id: string) => ColumnDefLike | undefined;
+  };
   _headerRowDefs: unknown[];
   _footerRowDefs: unknown[];
   _rowDefs: unknown[];
@@ -37,6 +44,7 @@ type MatTableRenderHost = {
   _headerRowOutlet?: { viewContainer: ViewContainerRef };
   _rowOutlet?: { viewContainer: ViewContainerRef };
   _changeDetectorRef: { markForCheck: () => void };
+  _addStickyColumnStyles?: (rows: HTMLElement[], rowDef: unknown) => void;
 };
 
 type RowDefDifferHost = {
@@ -109,12 +117,30 @@ function readyColumnIds(table: MatTableRenderHost): string[] {
 }
 
 function syncRowDefColumns(rowDef: unknown, readyIds: string[], resetDiffer: boolean): void {
-  const def = rowDef as RowDefDifferHost & { [DECLARED_COLUMNS]?: unknown[] };
-  def[DECLARED_COLUMNS] ??= coerceColumnList(def.columns);
+  const def = rowDef as RowDefDifferHost & { [DECLARED_COLUMNS]?: string[] };
+  const current = coerceColumnList(def.columns).map(String);
   const declared = def[DECLARED_COLUMNS] ?? [];
+  const declaredBefore = declared.join('\0');
+  const declaredSet = new Set(declared);
+  // `displayedColumns` streams as a growing array; first paint may only see ["name"].
+  // Do not freeze that snapshot. Refresh when binding brings new ids. Ignore shrinks
+  // from our own ready-filter writes (subset of declared).
+  const isSubsetOfDeclared =
+    declared.length > 0 &&
+    current.length <= declared.length &&
+    current.every((id) => declaredSet.has(id));
+  if (!declared.length && current.length) {
+    def[DECLARED_COLUMNS] = current;
+  } else if (current.length && !isSubsetOfDeclared) {
+    def[DECLARED_COLUMNS] = current;
+  }
+  const finalDeclared = def[DECLARED_COLUMNS] ?? [];
   const readySet = new Set(readyIds);
-  def.columns = (declared.length ? declared.map(String) : readyIds).filter((id) => readySet.has(id));
-  if (resetDiffer) {
+  const next = (finalDeclared.length ? finalDeclared : readyIds).filter((id) => readySet.has(id));
+  const declaredGrew = declaredBefore !== finalDeclared.join('\0');
+  const columnsChanged = next.join('\0') !== current.join('\0');
+  def.columns = next;
+  if (resetDiffer || declaredGrew || columnsChanged) {
     def._columnsDiffer = undefined;
   }
 }
@@ -219,13 +245,20 @@ tableProto._render = function (this: MatTableRenderHost & { [READY_COLUMNS_KEY]?
     ...(this._rowDefs ?? []),
     ...(this._footerRowDefs ?? []),
   ];
+  let renderedColumnsChanged = false;
   for (const def of allRowDefs) {
+    const before = coerceColumnList((def as RowDefDifferHost).columns).join('\0');
     syncRowDefColumns(def, ready, columnsGrew);
+    const after = coerceColumnList((def as RowDefDifferHost).columns).join('\0');
+    if (before !== after) {
+      renderedColumnsChanged = true;
+    }
   }
   if (!allRowDefs.length) {
     return;
   }
-  if (columnsGrew) {
+  const needRestamp = columnsGrew || renderedColumnsChanged;
+  if (needRestamp) {
     restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
   }
   const headerVc = this._headerRowOutlet?.viewContainer;
@@ -238,7 +271,7 @@ tableProto._render = function (this: MatTableRenderHost & { [READY_COLUMNS_KEY]?
     // consumed it; without this, official `_render` never `_forceRenderHeaderRows`
     // and native `<thead>` stays `display:none`.
     this._headerRowDefChanged = true;
-  } else if (columnsGrew && headerVc?.length) {
+  } else if (needRestamp && headerVc?.length) {
     restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
   }
   officialTable._render.call(this);
@@ -285,6 +318,20 @@ tableProto._getRenderedRows = function (
     }
   }
   return renderedRows;
+};
+
+tableProto._addStickyColumnStyles = function (
+  this: MatTableRenderHost,
+  rows: HTMLElement[],
+  rowDef: unknown,
+): void {
+  const map = this._columnDefsByName;
+  const names = coerceColumnList((rowDef as RowDefDifferHost | undefined)?.columns);
+  // Incomplete column set → skip sticky this frame only. Do not mutate rowDef.columns.
+  if (!map || names.some((id) => !map.get(String(id)))) {
+    return;
+  }
+  officialTable._addStickyColumnStyles.call(this, rows, rowDef);
 };
 
 export class SchemaMatHeaderRow extends MatHeaderRow {}
