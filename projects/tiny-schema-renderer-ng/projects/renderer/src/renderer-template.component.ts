@@ -114,6 +114,11 @@ export class RendererTemplateComponent {
     contentChildrenIndex?: number;
     projectedViews: ProjectedViews | null;
   }>;
+
+  /** Stable identity for schema node objects across array inserts/moves. */
+  private readonly childTrackKeys = new WeakMap<object, number>();
+  private childTrackSeq = 0;
+
   constructor(private contextService: RendererContextService) {}
 
   get context() {
@@ -122,17 +127,33 @@ export class RendererTemplateComponent {
 
   /**
    * Keep schema child views stable across streaming delta patches.
-   * Without trackBy, a new `children` array identity remounts every sibling
-   * (MatButtonToggle checkmark CSS then replays on each recreate).
+   * Without trackBy, a new `children` array identity remounts every sibling.
+   *
+   * Key by schema `id` when present; otherwise by object identity (WeakMap)
+   * plus `componentName` so in-place type changes remount, while mid-array
+   * inserts that move the same node keep the view.
+   *
+   * Arrow property: NgForOf calls `_trackByFn` without a receiver.
    */
-  trackBySchemaChild(index: number, child: unknown): string {
+  trackBySchemaChild = (index: number, child: unknown): string => {
     if (child == null) {
       return `empty:${index}`;
     }
     if (typeof child === 'string') {
       return `text:${index}`;
     }
+    if (typeof child !== 'object') {
+      return `node:${index}`;
+    }
     const node = child as { id?: string; componentName?: string };
-    return String(node.id ?? `${node.componentName ?? 'node'}:${index}`);
-  }
+    if (node.id != null && node.id !== '') {
+      return String(node.id);
+    }
+    let seq = this.childTrackKeys.get(child);
+    if (seq == null) {
+      seq = ++this.childTrackSeq;
+      this.childTrackKeys.set(child, seq);
+    }
+    return `${node.componentName ?? 'node'}:${seq}`;
+  };
 }
