@@ -79,6 +79,10 @@ export const enThemeConfig: DefaultTheme.Config = {
         items: [{ text: 'API Docs', link: '/en/components/core/api' }],
       },
       {
+        text: 'Skill Generator',
+        items: [{ text: 'API Reference', link: '/en/components/skill-generator/api' }],
+      },
+      {
         text: 'Materials',
         items: [
           { text: 'Vue OpenTiny Vue', link: '/en/components/materials/vue-opentiny-vue' },
