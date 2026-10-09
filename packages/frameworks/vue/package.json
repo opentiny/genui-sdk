@@ -50,6 +50,10 @@
     "./transform-jsx": {
       "types": "./dist/transform-jsx.d.ts",
       "import": "./dist/transform-jsx.js"
+    },
+    "./code-generator": {
+      "types": "./dist/code-generator.d.ts",
+      "import": "./dist/code-generator.js"
     }
   },
   "type": "module",

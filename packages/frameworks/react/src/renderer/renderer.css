@@ -1,0 +1,16 @@
+.schema-render-container {
+  position: relative;
+  color: var(--tv-color-text, #191919);
+}
+
+.schema-render-container:has(.loading-warp):after {
+  display: none;
+}
+
+.schema-render-container .loading-warp.loading-warp {
+  display: none;
+}
+
+.schema-render-container .loading-warp .loading {
+  display: none;
+}

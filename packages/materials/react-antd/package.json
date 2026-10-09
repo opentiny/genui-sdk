@@ -1,0 +1,73 @@
+{
+  "name": "@opentiny/genui-sdk-materials-react-antd",
+  "version": "1.0.0",
+  "description": "GenUI React materials package based on Ant Design",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/materials/react-antd"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "generative-ui",
+    "opentiny",
+    "react",
+    "antd",
+    "materials"
+  ],
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:*",
+    "antd": "^5.24.0"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "escape-string-regexp": "^1.0.5",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.8.2",
+    "vite": "^6.0.0",
+    "vite-plugin-dts": "^4.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
+    },
+    "./meta": {
+      "import": "./dist/meta.js",
+      "types": "./dist/meta.d.ts",
+      "require": "./dist/meta.js"
+    },
+    "./materials": {
+      "import": "./dist/materials.js",
+      "types": "./dist/materials.d.ts",
+      "require": "./dist/materials.js"
+    }
+  }
+}
