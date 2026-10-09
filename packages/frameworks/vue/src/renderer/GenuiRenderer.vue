@@ -147,6 +147,29 @@ watch(
     immediate: true,
   },
 );
+
+function setState(state: Record<string, any>) {
+  rendererInstance.value?.setState(state);
+}
+
+function getState() {
+  return rendererInstance.value?.getContext()?.state;
+}
+
+function getContext() {
+  return rendererInstance.value?.getContext();
+}
+
+function setContext(context: Record<string, any>) {
+  rendererInstance.value?.setContext(context);
+}
+
+defineExpose({
+  setState,
+  getState,
+  getContext,
+  setContext,
+});
 </script>
 
 <template>
