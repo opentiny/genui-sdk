@@ -4,6 +4,39 @@
 
 仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
 
+## 兼容组件 GenuiLegacyConfigProvider
+
+::: warning 物料配置（自 1.3.0 起）
+`GenuiConfigProvider` 进行了物料解耦重构，不再内置组件物料，新项目应通过 `materials` 属性显式传入物料。
+
+若需保持旧版行为，请改用 `GenuiLegacyConfigProvider`（`@opentiny/genui-sdk-vue/legacy-config-provider`）。
+:::
+
+`GenuiLegacyConfigProvider` 内置 OpenTiny 默认物料，适用于未显式配置 `materials` 的旧项目迁移。它支持 `GenuiConfigProvider` 除 `materials` 外的其他 Props；如果需要自定义物料，请使用 `GenuiConfigProvider`。
+
+```vue
+<template>
+  <GenuiConfigProvider theme="light">
+    <GenuiRenderer :content="schemaContent" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { GenuiLegacyConfigProvider as GenuiConfigProvider } from '@opentiny/genui-sdk-vue/legacy-config-provider';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+
+const schemaContent = {
+  componentName: 'Page',
+  children: [
+    {
+      componentName: 'TinyButton',
+      props: { text: '提交', type: 'primary' },
+    },
+  ],
+};
+</script>
+```
+
 ## Props
 
 ### theme
