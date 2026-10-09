@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
+import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import SchemaVersionHistoryPanel from './SchemaVersionHistoryPanel.vue';
 import SchemaJsonEditor from './SchemaJsonEditor.vue';
 import SchemaPreviewToolbar from './SchemaPreviewToolbar.vue';
 import { useTemplateContext } from './composables';
 import { isRenderableSchema } from './template-chat-utils';
+import { useSchemaDevMode } from './useSchemaDevMode';
+import { useSchemaRendererInspect } from './useSchemaRendererInspect';
+import type { SelectedSchemaNode } from './schema-node-selection';
 import { t } from '../../i18n';
 
 defineProps<{
@@ -17,6 +21,35 @@ defineProps<{
 
 const TinyCloseIcon = iconClose();
 const { schema, conversation, versionControl, editor, ui, actions } = useTemplateContext();
+const { isDevMode } = useSchemaDevMode();
+const chatRef = ref<InstanceType<typeof GenuiTemplateChat> | null>(null);
+
+const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
+const generating = computed(() =>
+  messageManager.value
+    ? GeneratingStatus.includes(messageManager.value.messageState.status)
+    : false,
+);
+
+const isLatestVersion = computed(() => {
+  const cardId = schema.currentCardId;
+  return !cardId || versionControl.isLatestSchemaVersionCard(cardId);
+});
+
+const inspectSelectable = computed(() => isDevMode.value && !generating.value && isLatestVersion.value);
+
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  chatRef.value?.insertComposerTag(node);
+};
+
+watch(
+  () => ui.rendererPanelVisible,
+  (visible) => {
+    if (!visible && isDevMode.value) {
+      isDevMode.value = false;
+    }
+  },
+);
 
 const rendererSchema = computed(() => {
   const preview = schema.currentPreviewSchema ?? schema.currentSchema;
@@ -28,12 +61,26 @@ const rendererSchemaKey = computed(() => {
   const componentName = preview?.componentName ?? 'schema';
   return `${schema.currentCardId || 'preview'}-${String(componentName)}`;
 });
+
+const {
+  containerRef: rendererContainerRef,
+  highlight: inspectHighlight,
+  onMouseMove: handleRendererMouseMove,
+  onMouseLeave: handleRendererMouseLeave,
+  onClick: handleRendererInspectClick,
+} = useSchemaRendererInspect({
+  isDevMode,
+  schema: rendererSchema,
+  insertComposerTag,
+  selectable: inspectSelectable,
+});
 </script>
 
 <template>
   <div class="genui-schema-template">
     <div class="genui-schema-template-item chat-container">
       <genui-template-chat
+        ref="chatRef"
         v-if="conversation.isTemplateInit"
         v-show="!ui.schemaEditorVisible"
         class="genui-template-chat"
@@ -70,13 +117,35 @@ const rendererSchemaKey = computed(() => {
       <div class="renderer-container-wrapper">
         <schema-preview-toolbar variant="desktop" />
         <div class="schema-renderer-body">
-          <schema-renderer
-            :key="rendererSchemaKey"
-            class="schema-renderer"
-            :content="rendererSchema"
-            :generating="false"
-            :is-json-complete="schema.currentPreviewSchemaComplete"
-          />
+          <div
+            ref="rendererContainerRef"
+            :class="[
+              'schema-renderer',
+              { 'is-inspectable': isDevMode, 'is-inspect-locked': isDevMode && !inspectSelectable },
+            ]"
+            @mousemove="handleRendererMouseMove"
+            @mouseleave="handleRendererMouseLeave"
+            @click.capture="handleRendererInspectClick"
+          >
+            <schema-renderer
+              :key="rendererSchemaKey"
+              :content="rendererSchema"
+              :generating="false"
+              :is-json-complete="schema.currentPreviewSchemaComplete"
+            />
+          </div>
+          <div v-if="inspectHighlight" class="schema-inspect-overlay" aria-hidden="true">
+            <div
+              class="schema-inspect-highlight"
+              :class="{ 'is-selected': inspectHighlight.selected }"
+              :style="{
+                top: `${inspectHighlight.top}px`,
+                left: `${inspectHighlight.left}px`,
+                width: `${inspectHighlight.width}px`,
+                height: `${inspectHighlight.height}px`,
+              }"
+            ></div>
+          </div>
           <schema-version-history-panel :theme="theme" />
         </div>
       </div>
@@ -137,6 +206,40 @@ const rendererSchemaKey = computed(() => {
       padding: 20px;
       overflow: auto;
       box-sizing: border-box;
+
+      &.is-inspectable {
+        cursor: default;
+
+        :deep([data-id]) {
+          cursor: default;
+        }
+      }
+
+      // 检查态开启但点选不可用（AI 生成中 / 预览历史版本）：视觉提示不可点选
+      &.is-inspect-locked {
+        :deep([data-id]) {
+          cursor: not-allowed;
+        }
+      }
+    }
+
+    .schema-inspect-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .schema-inspect-highlight {
+      position: absolute;
+      box-sizing: border-box;
+      border: 1px dashed #1476ff;
+      border-radius: 2px;
+
+      &.is-selected {
+        border-style: solid;
+      }
     }
   }
 }
