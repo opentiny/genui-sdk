@@ -54,7 +54,7 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 - **TinyVue 配置**：如果用户询问 TinyVue 组件库配置：
   1. 说明 TinyVue 是 GenUI SDK 的物料系统的一部分
-  2. 引导查看 `references/materials/index.md` 及 [快速开始 - 物料与主题](https://docs.opentiny.design/genui-sdk/guide/quick-start#通过-genuiconfigprovider-配置物料与主题)
+  2. 引导查看 `references/materials/index.md` 及 [快速开始 - 物料与主题](./references/guides/quick-start.md#通过-genuiconfigprovider-配置物料与主题)
   3. 提供 `GenuiConfigProvider` 的使用示例
 
 - **主题切换**：如果用户询问深色模式或主题：
@@ -127,12 +127,12 @@ GenUI SDK 使用服务器发送事件（SSE）和 OpenAI 兼容格式。LLM 在�
 ### 模式 1：GenuiChat（仅 Vue，推荐快速开始）
 - **适用场景**：快速构建完整的聊天界面
 - **特点**：开箱即用，包含会话管理、流式传输、生成状态
-- **详细指南**：见 `references/vue.md` 模式 1 概况，操作步骤见 [快速开始](https://docs.opentiny.design/genui-sdk/guide/quick-start)
+- **详细指南**：见 `references/vue.md` 模式 1 概况，操作步骤见 [快速开始](./references/guides/quick-start.md)
 
 ### 模式 2：GenuiRenderer（Vue 和 Angular，自定义 UI）
 - **适用场景**：构建自定义聊天界面或与现有 UI 集成
 - **特点**：更灵活的控制，需要自己处理流式数据
-- **详细指南**：见 `references/vue.md` 或 `references/angular.md` 模式 2 概况；Vue 见 [使用 Renderer 组件](https://docs.opentiny.design/genui-sdk/guide/start-with-renderer)，Angular 见 [Angular Renderer 指南](https://docs.opentiny.design/genui-sdk/guide/angular/start-with-renderer)
+- **详细指南**：见 `references/vue.md` 或 `references/angular.md` 模式 2 概况；Vue 见 [使用 Renderer 组件](./references/guides/start-with-renderer.md)，Angular 见 [Angular Renderer 指南](./references/guides/angular-start-with-renderer.md)
 
 ### 模式 3：Server 集成
 - **适用场景**：代理 LLM 调用的后端服务

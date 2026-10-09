@@ -1,6 +1,6 @@
 # Vue 集成指南
 
-本指南涵盖将 GenUI SDK 集成到 Vue 3 项目中的选型与 skill 增量说明。安装与逐步操作见在线文档。
+本指南涵盖将 GenUI SDK 集成到 Vue 3 项目中的选型与 skill 增量说明。安装与逐步操作见 `./guides/` 下的同步指南。
 
 ## 集成模式
 
@@ -8,13 +8,13 @@
 
 - **概况**：集成对话组件，内置会话管理、流式返回与生成状态；须通过 `GenuiConfigProvider` 注入 `materials`。
 - **适用**：最快落地完整 AI 聊天界面。
-- **详细步骤**：[快速开始](https://docs.opentiny.design/genui-sdk/guide/quick-start)
+- **详细步骤**：[快速开始](./guides/quick-start.md)
 
 ### 模式 2：GenuiRenderer（自定义 UI）
 
 - **概况**：`GenuiRenderer` 只负责将 schema 渲染为 UI；需自建输入、消息流，并自行完成 **SSE 帧解析** 与 **schema 文本提取**（两步分离，不可混用）。
 - **适用**：需要完全自定义界面或与现有 UI 深度集成。
-- **详细步骤**：[使用 Renderer 组件](https://docs.opentiny.design/genui-sdk/guide/start-with-renderer)
+- **详细步骤**：[使用 Renderer 组件](./guides/start-with-renderer.md)
 
 ## 流式数据处理流程
 
@@ -29,7 +29,7 @@
 > SSE 解析 = 传输层（OpenAI 兼容格式）；PatternExtractor = 内容层（从 LLM 文本中提取 schema / markdown）。
 
 ```typescript
-// 伪代码骨架 — 完整实现见在线文档
+// 伪代码骨架 — 完整实现见 ./guides/start-with-renderer.md
 const patternExtractor = new PatternExtractor({
   onNormalWrite: () => {},
   onHandledWrite: (schemaChunk) => { schema.value += schemaChunk; },
@@ -46,15 +46,38 @@ for await (const line of readSseLines(response.body)) {
 // 5: generating.value = false
 ```
 
-完整参考实现见 [fetch-schema-stream 示例](https://docs.opentiny.design/genui-sdk/guide/start-with-renderer#使用-fetch-请求服务-处理流式返回) 及 skill 内 [`../examples/renderer/`](../examples/renderer/) 示例（构建时从 docs 同步）。
+完整参考实现见 [`fetch-schema-stream` 示例](./guides/start-with-renderer.md#使用-fetch-请求服务-处理流式返回) 及 skill 内 [`../examples/renderer/`](../examples/renderer/) 示例（构建时从 docs 同步）。
 
 ## 按需导入
 
-`@opentiny/genui-sdk-vue` 提供 `chat`、`renderer`、`config-provider`、`code-generator` 等子路径，可按需引入以减小打包体积。详见 [快速开始 - 按需引入](https://docs.opentiny.design/genui-sdk/guide/quick-start#按需引入)。
+`@opentiny/genui-sdk-vue` 提供 `chat`、`renderer`、`config-provider`、`code-generator` 等子路径，可按需引入以减小打包体积。详见 [快速开始 - 按需引入](./guides/quick-start.md#按需引入)。
 
 ## 兼容组件
 
-v1.3.0 起物料与核心解耦；从更早版本升级且希望零配置迁移时，可使用内置默认物料的 Legacy 组件（无需 `GenuiConfigProvider`）。详见 [GenuiChat Legacy 兼容说明](https://docs.opentiny.design/genui-sdk/components/chat#兼容组件-genuilegacychat)。
+## 兼容组件
+
+v1.3.0 起物料与核心解耦：`GenuiChat` 不再包含组件物料，需使用 `GenuiConfigProvider` 注入（见上文模式 1）。
+
+从更早版本升级且希望零配置迁移时，可使用 `GenuiLegacyChat`——内置 OpenTiny 默认物料，无需 `GenuiConfigProvider`：
+
+```vue
+<template>
+  <GenuiChat ref="chatRef" url="https://your-chat-backend/api" />
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiLegacyChat as GenuiChat } from '@opentiny/genui-sdk-vue';
+
+const chatRef = ref<InstanceType<typeof GenuiLegacyChat> | null>(null);
+
+function sendMessage() {
+  chatRef.value?.setInputMessage('你好');
+}
+</script>
+```
+
+其余 Props、Slots、Methods 与 `GenuiChat` 一致（见[组件文档](https://docs.opentiny.design/genui-sdk/components/chat)）。Legacy 组件仅用于旧项目迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
 
 ## 常见问题
 

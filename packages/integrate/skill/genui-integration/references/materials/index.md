@@ -2,7 +2,7 @@
 
 GenUI SDK 自 v1.3.0 起将核心 SDK 与 UI 物料解耦，需通过 `GenuiConfigProvider` 注入物料。本目录汇总官方物料包与可选方案。
 
-类型定义（`IMaterials`、`IMaterialsMeta`）见 [Core API 在线文档](https://docs.opentiny.design/genui-sdk/components/core/api)。
+类型定义（`IMaterials`、`IMaterialsMeta`、`IMaterialsTheme`）见 [Core API](../guides/core-api.md)（构建时从 docs 同步）。
 
 ## 官方物料（默认推荐）
 
@@ -25,6 +25,11 @@ GenUI SDK 自 v1.3.0 起将核心 SDK 与 UI 物料解耦，需通过 `GenuiConf
 - **miniMaterials**：前后端须一致——前端注入 `miniMaterials`，服务端 `genPrompt` 使用 `miniMaterialsMeta`。
 - **Legacy 组件**：仅用于迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
 
-## 在线文档
+## 各物料包专页
 
-完整物料包文档：https://docs.opentiny.design/genui-sdk/components/materials/
+- Vue OpenTiny Vue：[vue-opentiny-vue.md](./vue-opentiny-vue.md)
+- Vue Element Plus：[vue-element-plus.md](./vue-element-plus.md)
+- Angular OpenTiny NG：[angular-opentiny-ng.md](./angular-opentiny-ng.md)
+- React Ant Design：[react-antd.md](./react-antd.md)
+
+在线版：https://docs.opentiny.design/genui-sdk/components/materials/

@@ -35,6 +35,7 @@ npm install @opentiny/genui-sdk-integration-skill
 | 路径 | 源 |
 |------|-----|
 | `examples/` | `docs/src/examples/` |
+| `references/guides/` | `docs/src/guide/`（quick-start、start-with-renderer、angular/*）及 `docs/src/components/core/api.md`；同步时清理 VitePress 语法（tabs/tip 容器、`[!code]` 标注、截图） |
 | `references/materials/` 专页（`vue-*.md` / `angular-*.md`） | `docs/src/components/materials/` |
 
 本地开发：改 docs 后在本包执行 `npm run build`。  
