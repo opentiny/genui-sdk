@@ -44,7 +44,7 @@ function resolveModelInfoById(providerModelsData: Record<string, any> | null, mo
 }
 
 /**
- * 与 playground chat-genui 对齐：通过 ProviderModelMapper 解析模型并生成 AI SDK 模型实例。
+ * 按模型清单解析 AI SDK 模型实例，供基准在线生成样本。
  * @param modelName 业务配置中的模型名称（例如 DeepSeek-V3.2）
  */
 export async function resolveAiSdkModelForBench(modelName: string) {

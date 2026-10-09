@@ -5,6 +5,9 @@ import { fileURLToPath } from 'node:url';
 /** 与 `main.ts`、`.env` 同级：packages/benchmarks */
 const benchmarksPackageDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 
+/** 未配置环境变量时的默认清单（仓库内相对 benchmarks 包根） */
+const DEFAULT_MAAS_MODELS_RELATIVE = path.join('..', '..', 'sites', 'playground', 'server', 'maas-models.json');
+
 /**
  * 读取环境变量并 trim；`undefined`、空串、仅空白视为未设置。
  */
@@ -16,24 +19,25 @@ function envTrimmed(key: string): string | undefined {
 }
 
 /**
- * 解析 `BENCH_MAAS_MODELS_PATH` 指向的 `maas-models.json` 绝对路径（相对 benchmarks 包根或绝对路径）。
- * 与 {@link listMaasManifestModelNames}、`resolveAiSdkModelForBench` 使用同一清单文件。
+ * 解析 `maas-models.json` 绝对路径。
+ * 优先 `BENCH_MAAS_MODELS_PATH`；未设置时回退到仓库默认相对路径。
  */
 export function resolveMaasModelsJsonPath(): string {
-  const configured = envTrimmed('BENCH_MAAS_MODELS_PATH');
-  if (configured === undefined) {
-    throw new Error(
-      'BENCH_MAAS_MODELS_PATH is not set (or is blank). Set it in packages/benchmarks/.env to the maas-models.json path: absolute, or relative to the benchmarks package root (next to main.ts).',
-    );
-  }
+  const configured = envTrimmed('BENCH_MAAS_MODELS_PATH') ?? DEFAULT_MAAS_MODELS_RELATIVE;
   const absolute = path.isAbsolute(configured)
     ? configured
     : path.resolve(benchmarksPackageDir, configured);
-  return path.normalize(absolute);
+  const normalized = path.normalize(absolute);
+  if (!fs.existsSync(normalized)) {
+    throw new Error(
+      `maas-models.json not found at ${normalized}. Set BENCH_MAAS_MODELS_PATH in packages/benchmarks/.env (absolute, or relative to the benchmarks package root).`,
+    );
+  }
+  return normalized;
 }
 
 /**
- * 读取 `maas-models.json` 中全部模型的 `name`（与 playground / resolveAiSdkModelForBench 的展示名一致）。
+ * 读取 `maas-models.json` 中全部模型的 `name`（与 resolveAiSdkModelForBench 使用的展示名一致）。
  */
 export function listMaasManifestModelNames(): string[] {
   const filePath = resolveMaasModelsJsonPath();

@@ -1,9 +1,9 @@
 import type { LlmBenchmarkSampleCase } from '../framework/index';
 
 /**
- * 上下文场景：上下文理解与延续能力。
+ * GenUI 上下文场景：历史含真实 schemaJson 对话（来自演练场录制）。
  */
-export const contextualLlmBenchmarkSampleCases: LlmBenchmarkSampleCase[] = [
+export const contextualGenuiLlmBenchmarkSampleCases: LlmBenchmarkSampleCase[] = [
   {
     id: 'context-login-form',
     messages: [
