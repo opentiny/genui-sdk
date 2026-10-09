@@ -1,0 +1,18 @@
+{
+  "componentName": "ContentRefListItem",
+  "inputs": {},
+  "outputs": {},
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "padding: 6px 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;"
+      },
+      "children": [
+        {
+          "componentName": "NgContent"
+        }
+      ]
+    }
+  ]
+}
