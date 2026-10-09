@@ -1,8 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { ChatCompletionRequest } from '@opentiny/tiny-robot-kit';
 import { CustomModelProvider, type ICustomModelChatOptions } from '../CustomModelProvider';
-import { defaultResponseHandlers, type IResponseHandler } from '../response-handler';
-import type { IStreamData } from '@opentiny/genui-sdk-core';
+import { defaultResponseHandlers } from '../response-handler';
 
 const request = {
   messages: [{ role: 'user', content: 'hi' }],
@@ -65,6 +64,20 @@ describe('CustomModelProvider 非流式（完整响应）', () => {
     expect(result.finishInfo.model).toBe('test-model');
     expect(result.finishInfo.created).toBe(1700000000);
     expect(result.finishInfo.usage).toEqual({ prompt_tokens: 11, completion_tokens: 22, total_tokens: 33 });
+  });
+
+  it('上游没报告 finish_reason 时不补成 stop', async () => {
+    const body = buildCompletion({ content: '被截断的内容' });
+    delete (body.choices[0] as { finish_reason?: string }).finish_reason;
+
+    const provider = new TestProvider(body);
+    const result: any = await provider.chat(request);
+
+    // 缺失 = 上游没说（报错 / 断流 / 网关没透传），不能谎报成"完整结束"
+    expect(result.finishInfo.choices[0].finish_reason).toBeNull();
+    expect(result.choices[0].finish_reason).toBeNull();
+    // AssistantFooter 的续写按钮判断：!== 'stop' 才出现
+    expect(result.finishInfo.choices[0].finish_reason).not.toBe('stop');
   });
 
   it('整段 content 一次性切成 markdown 与 schema-card', async () => {
@@ -158,25 +171,25 @@ describe('CustomModelProvider 非流式（完整响应）', () => {
     expect(chunkSpy).not.toHaveBeenCalled();
   });
 
-  it('未实现 complete 的自定义 handler 仍能收到按切面分发的数据', async () => {
-    const seen: string[] = [];
-    const legacyHandler: IResponseHandler<IStreamData> = {
-      name: 'legacy',
-      match: (data) => Boolean(data.choices?.[0]?.delta?.content),
-      handler: (data) => {
-        seen.push(data.choices?.[0]?.delta?.content as string);
-        return true;
-      },
-    };
+  it('自定义 handler 里，只有实现了 complete 的才进非流式', async () => {
+    const legacyMatch = vi.fn(() => true);
+    const legacyHandler = vi.fn(() => true);
+    const complete = vi.fn();
 
-    const provider = new TestProvider(buildCompletion({ content: 'legacy 也要工作' }));
-    provider.setResponseHandlers([...defaultResponseHandlers, legacyHandler]);
+    const provider = new TestProvider(buildCompletion({ content: 'hi' }));
+    provider.setResponseHandlers([
+      ...defaultResponseHandlers,
+      { name: 'legacy', match: legacyMatch, handler: legacyHandler },
+      { name: 'completer', match: () => false, handler: () => false, complete },
+    ]);
 
-    const result: any = await provider.chat(request);
+    await provider.chat(request);
 
-    expect(seen).toEqual(['legacy 也要工作']);
-    // 回退路径与内置 content handler 并存，互不影响
-    expect(result.messages).toEqual([{ type: 'markdown', content: 'legacy 也要工作' }]);
+    // 流式的 match / handler 不是非流式的入口，未实现 complete 的 handler 一律跳过
+    expect(legacyMatch).not.toHaveBeenCalled();
+    expect(legacyHandler).not.toHaveBeenCalled();
+    expect(complete).toHaveBeenCalledTimes(1);
+    expect((complete.mock.calls[0][0] as any).content).toBe('hi');
   });
 
   it('请求失败时通知 handler 并向上抛错', async () => {

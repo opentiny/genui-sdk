@@ -87,11 +87,6 @@ export interface IChatProps {
   url?: string;
   model?: string;
   temperature?: number;
-  /**
-   * 是否使用流式响应，默认 true。
-   * 设为 false 时后端返回完整的 chat.completion，SDK 会一次拿到整条 message 后直接渲染
-   * （不会拆成增量，因此也没有逐字出现的中间态）。
-   */
   stream?: boolean;
   messages?: IMessage[];
   chatConfig?: IChatConfig;

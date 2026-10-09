@@ -32,7 +32,8 @@ export interface UseMessageOptions {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onReceiveData?: <T = any>(data: T, messages: Ref<ChatMessage[]>, preventDefault: () => void) => void;
     onFinish?: (
-      finishReason: string | undefined,
+      /** 结束原因。null / undefined 表示上游没报告（报错、断流、网关没透传），不等于 'stop' */
+      finishReason: string | null | undefined,
       context: { messages: Ref<ChatMessage[]>; messageState: Reactive<MessageState> },
       preventDefault: () => void,
     ) => void;
@@ -131,7 +132,7 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
     const onFinish = options.events?.onFinish;
     let defaultPrevented = false;
     if (onFinish) {
-      onFinish(response.choices?.[0]?.finish_reason ?? 'stop', { messages, messageState }, () => {
+      onFinish(response.choices?.[0]?.finish_reason, { messages, messageState }, () => {
         defaultPrevented = true;
       });
     }

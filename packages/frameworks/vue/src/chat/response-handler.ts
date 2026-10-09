@@ -24,12 +24,6 @@ export interface IResponseHandler<T> {
     handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
   ) => void;
   end?: (context: any) => void;
-  /**
-   * 非流式入口：一次性拿到完整的响应 message（而非逐块 delta），应对整段内容做一次性渲染。
-   * 注意 match 在这里不参与判断，实现方需自行判断本次响应是否含自己负责的切面；
-   * 也无需像 handler 那样靠返回 true 中断链 —— 完整响应没有"内容还不够，先存着"的延迟需求。
-   * 未实现该钩子的 handler，会由 CustomModelProvider 退化为按切面分发单个 IStreamData（兼容用）。
-   */
   complete?: (data: ICompleteData, context: any) => void;
 }
 
@@ -81,8 +75,6 @@ function onToolResult(
   chatMessage: IChatMessage,
   addToolCallContext: boolean,
 ) {
-  // 逐个处理：流式下每个结果各占一块 chunk（数组长度为 1），非流式下服务端会把所有 step 的
-  // 结果平铺进同一个数组——只取 [0] 会让第 2..N 个工具永远停在 running。
   toolCallsResult.forEach((toolCallResult) => {
     const {
       id,
@@ -300,14 +292,13 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       context.chatMessage.finishInfo = data;
       return true;
     },
-    // 非流式：finishInfo 由完整响应直接组装，保留 chunk 形状供 FinishInfo / AssistantFooter 读取
     complete: (data: ICompleteData, context: any) => {
       context.chatMessage.finishInfo = {
         id: data.id,
         object: data.object,
         model: data.model,
         created: data.created,
-        choices: [{ index: 0, finish_reason: data.finish_reason ?? 'stop' }],
+        choices: [{ index: 0, finish_reason: data.finish_reason ?? null }],
         usage: data.usage,
       };
     },

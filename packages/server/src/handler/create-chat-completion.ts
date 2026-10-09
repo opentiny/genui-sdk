@@ -61,9 +61,7 @@ export function createChatCompletionHandler(config: IChatCompletionHandlerConfig
       const rawBody = await getRawBody(req, { encoding: 'utf-8' });
       const reqBody: ChatCompletionCreateParamsBase = JSON.parse(rawBody);
 
-      // fetch-chat-completions 内部是 `stream: options?.stream ?? true`，
-      // 不显式传下去，客户端发来的 stream: false 会被默认值 true 覆盖。
-      const stream = reqBody.stream !== false; // null / undefined 仍按流式，保持原有默认
+      const stream = reqBody.stream !== false;
       const response = await chatCompletions(reqBody, { signal: abortController.signal, stream });
 
       if (!response.ok || !response.body) {
@@ -72,8 +70,6 @@ export function createChatCompletionHandler(config: IChatCompletionHandlerConfig
         throw new GenUIChatAPIError(message, response.status, response.statusText, String(response.status));
       }
 
-      // 按上游实际返回的 content-type 分流，而不是按请求里的 stream 标志 ——
-      // 这样即使某个上游在 stream: true 下返回了 JSON，也能正确转发。
       const contentType = response.headers.get('content-type') ?? 'application/json';
       if (contentType.includes('text/event-stream')) {
         res.setHeader('Content-Type', 'text/event-stream');
@@ -82,8 +78,6 @@ export function createChatCompletionHandler(config: IChatCompletionHandlerConfig
         readable.on('error', (err: Error) => handleStreamError(err, res));
         readable.pipe(res);
       } else {
-        // 非流式：上游返回的是完整的 chat.completion JSON，原样转发，
-        // 客户端 CustomModelProvider 会直接 response.json() 解析它。
         res.statusCode = response.status;
         res.setHeader('Content-Type', contentType);
         res.end(await response.text());

@@ -7,7 +7,6 @@ import type {
   IChatMessage,
   ICompleteData,
   IStreamData,
-  IStreamDelta,
 } from '@opentiny/genui-sdk-core';
 import { toCompleteData, type IResponseHandler, type ICompleteResponseJson } from './response-handler';
 
@@ -88,10 +87,6 @@ export class CustomModelProvider extends BaseModelProvider {
     });
   }
 
-  /**
-   * 非流式请求：完整响应一次到齐后直接渲染，不拆成流式增量。
-   * 与 chatStream 的差别仅在数据来源 —— 这里把整个 message 交给 handler 的 complete 入口。
-   */
   async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
     const context: any = {};
     this.setupStreamContext(context, request);
@@ -106,8 +101,6 @@ export class CustomModelProvider extends BaseModelProvider {
       throw error;
     }
 
-    // onData 在这条路径上没有消费方（非流式是一次性返回，没有增量通道），传空实现即可。
-    // init.start 会把消息挂在 context.chatMessage 上，后续 handler 都往它身上写。
     this.handlerStart(context, {
       onData: () => {},
       onDone: () => {},
@@ -134,7 +127,7 @@ export class CustomModelProvider extends BaseModelProvider {
             reasoning_content: message.reasoning_content,
             tool_calls: message.tool_calls,
           },
-          finish_reason: choice.finish_reason ?? 'stop',
+          finish_reason: choice.finish_reason ?? null,
         },
       ],
       usage: json.usage,
@@ -145,59 +138,10 @@ export class CustomModelProvider extends BaseModelProvider {
     } as ChatCompletionResponse & IChatMessage;
   }
 
-  /**
-   * 把完整响应分发给各 response handler。
-   *
-   * 按数组顺序单趟遍历，不能调整成「先跑所有 complete 再跑回退」—— handler 之间靠共享 context 协作
-   * （例如 playground 的 movePartialSchemaJsonToLastMessage 依赖自己排在 overlapEliminator / content 之前），位置即契约。
-   */
   private handleCompleteResponse(data: ICompleteData, context: any) {
     for (const handler of this.responseHandlers) {
-      if (handler.complete) {
-        handler.complete(data, context);
-        continue;
-      }
-      this.dispatchAspects(handler, data, context);
+      handler.complete?.(data, context);
     }
-  }
-
-  /**
-   * 兼容回退：给尚未实现 complete 的自定义 handler 按切面分发单个 IStreamData。
-   *
-   * 这里不构造 chat.completion.chunk 信封、不做 JSON 序列化往返，只是复用既有的 match / handler 契约。
-   * 与流式的一点差异：不按 handler 返回值中断。流式的中断用于「内容还不够，先存着」的延迟场景，
-   * 而完整响应一次到齐，没有需要延迟的内容。
-   */
-  private dispatchAspects(handler: IResponseHandler<IStreamData>, data: ICompleteData, context: any) {
-    for (const delta of this.toAspectDeltas(data)) {
-      const streamData: IStreamData = { choices: [{ index: 0, delta }] };
-      if (handler.match(streamData, context)) {
-        handler.handler(streamData, context);
-      } else if (handler.notMatchHandler) {
-        handler.notMatchHandler(streamData, context);
-      }
-    }
-  }
-
-  /**
-   * 完整响应按切面拆出候选增量，顺序与流式下这些切面的到达顺序一致。
-   * content 只在真值时生成 —— 空串在流式下也不会产生 content chunk。
-   */
-  private toAspectDeltas(data: ICompleteData): IStreamDelta[] {
-    const deltas: IStreamDelta[] = [];
-    if (data.reasoning_content) {
-      deltas.push({ reasoning_content: data.reasoning_content });
-    }
-    if (data.tool_calls?.length) {
-      deltas.push({ tool_calls: data.tool_calls });
-    }
-    if (data.tool_calls_result?.length) {
-      deltas.push({ tool_calls_result: data.tool_calls_result });
-    }
-    if (data.content) {
-      deltas.push({ content: data.content });
-    }
-    return deltas;
   }
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {

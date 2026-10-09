@@ -59,7 +59,6 @@ export interface IStreamData {
 
 /**
  * 非流式（完整）响应的渲染数据，作为 IResponseHandler.complete 的入参。
- * 与 IStreamData 的分工：IStreamData 承载逐块增量，ICompleteData 承载一次到齐的完整 message。
  */
 export interface ICompleteData {
   id?: string;
