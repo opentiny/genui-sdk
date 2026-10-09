@@ -76,7 +76,7 @@ export default function Example() {
 
 #### Full Example
 
-<demo react="../../../../../demos/react/renderer/custom-actions-open-page.tsx" />
+<demo react="../../../../../demos/en/react/renderer/custom-actions-open-page.tsx" />
 
 ### Example 2: Show Live Form Binding
 
@@ -119,7 +119,7 @@ export default function Example() {
 
 #### Full Example
 
-<demo react="../../../../../demos/react/renderer/custom-actions-form.tsx" />
+<demo react="../../../../../demos/en/react/renderer/custom-actions-form.tsx" />
 
 ## Send Custom Actions to the Server
 

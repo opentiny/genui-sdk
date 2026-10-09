@@ -28,7 +28,7 @@ export function App() {
         </nav>
       </header>
       <main className="app-content">
-        <RendererContextProvider render-settings={renderSettings}>
+        <RendererContextProvider renderSettings={renderSettings}>
           <SchemaRenderer schema={current.schema} />
         </RendererContextProvider>
       </main>

@@ -339,6 +339,7 @@ export function useTemplateVersionControl() {
     schemaVersionHistoryGroups,
     flatSchemaVersionHistoryEntries,
     currentHistoryEntry,
+    isLatestSchemaVersionCard,
     getMessageByCardId,
     writeNewVersion,
     previewVersion,

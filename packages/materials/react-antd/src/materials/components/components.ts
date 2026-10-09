@@ -2,7 +2,6 @@ import {
   Button,
   Card,
   Checkbox,
-  DatePicker,
   Form,
   Input,
   Modal,
@@ -14,6 +13,7 @@ import {
 import type { IMaterialsMap } from '@opentiny/genui-sdk-core';
 
 import { AntTabsWrap } from './AntTabsWrap';
+import { AntDatePicker } from './AntDatePickerWrap';
 
 export const components: IMaterialsMap = {
   AntButton: Button,
@@ -28,5 +28,5 @@ export const components: IMaterialsMap = {
   AntSwitch: Switch,
   AntCheckbox: Checkbox,
   AntRadio: Radio,
-  AntDatePicker: DatePicker,
+  AntDatePicker,
 };

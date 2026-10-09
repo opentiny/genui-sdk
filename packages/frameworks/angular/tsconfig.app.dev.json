@@ -3,22 +3,22 @@
 {
   "extends": "./tsconfig.app.json",
   "compilerOptions": {
-    // "paths": {
-    //   "@opentiny/genui-sdk-core": [
-    //     "../../core/src/index.ts"
-    //   ],
-    //   "@opentiny/genui-sdk-angular": [
-    //     "./projects/renderer/src/public-api.ts"
-    //   ],
-    //   "@opentiny/tiny-schema-renderer-ng": [
-    //     "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/public-api.ts"
-    //   ]
-    // }
+    "paths": {
+      "@opentiny/genui-sdk-core": [
+        "../../core/src/index.ts"
+      ],
+      "@opentiny/genui-sdk-angular": [
+        "./projects/renderer/src/public-api.ts"
+      ],
+      "@opentiny/tiny-schema-renderer-ng": [
+        "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/public-api.ts"
+      ]
+    }
   },
   "include": [
     "src/**/*.ts",
-    // "projects/renderer/src/**/*.ts",
-    // "../../core/src/**/*.ts",
-    // "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/**/*.ts",
+    "projects/renderer/src/**/*.ts",
+    "../../core/src/**/*.ts",
+    "../../../projects/tiny-schema-renderer-ng/projects/renderer/src/**/*.ts",
   ]
 }

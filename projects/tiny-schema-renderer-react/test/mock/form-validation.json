@@ -4,7 +4,8 @@
     "formData": {
       "name": "",
       "email": "",
-      "phone": ""
+      "phone": "",
+      "joinDate": ""
     },
     "submitResult": ""
   },
@@ -18,7 +19,7 @@
     },
     "handleReset": {
       "type": "JSFunction",
-      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '' }; this.state.submitResult = ''; this.refs.formRef.setFieldsValue({ name: '', email: '', phone: '' }); }"
+      "value": "function handleReset() { this.state.formData = { name: '', email: '', phone: '', joinDate: '' }; this.state.submitResult = ''; this.refs.formRef.setFieldsValue({ name: '', email: '', phone: '', joinDate: '' }); }"
     }
   },
   "children": [
@@ -111,6 +112,32 @@
                   "componentName": "AntInput",
                   "props": {
                     "placeholder": "请输入手机号"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "入职日期",
+                "name": "joinDate",
+                "getValueFromEvent": {
+                  "type": "JSFunction",
+                  "value": "function(date, dateString) { return dateString; }"
+                },
+                "rules": [
+                  {
+                    "required": true,
+                    "message": "请选择入职日期"
+                  }
+                ]
+              },
+              "children": [
+                {
+                  "componentName": "AntDatePicker",
+                  "props": {
+                    "placeholder": "请选择入职日期",
+                    "style": "width: 100%;"
                   }
                 }
               ]

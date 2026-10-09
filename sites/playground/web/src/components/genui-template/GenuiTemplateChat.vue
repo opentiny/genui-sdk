@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
+import { ref, watch, computed, reactive, h, inject, onMounted, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import '@opentiny/tiny-robot/dist/style.css';
@@ -14,7 +14,7 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleProps, BubbleRoleConfig } from '@opentiny/tiny-robot';
+import type { BubbleProps, BubbleRoleConfig, UserItem } from '@opentiny/tiny-robot';
 import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
@@ -30,7 +30,6 @@ import {
   finalizePendingSchemaCard,
   findLatestPendingSchemaCard,
   findSchemaCardByCardId,
-  generateIdForComponents,
   getLastNonCompressMessage,
   getLastUserMessage,
   isContextCompressMessage,
@@ -38,7 +37,11 @@ import {
   resolveJsonPatchApplyFailed,
   setJsonPatchApplyResult,
 } from './template-chat-utils';
+import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
+import { getComposerContent, segmentsToPlainText } from './schema-composer';
+import type { SelectedSchemaNode } from './schema-node-selection';
+import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
 import { useContextCompress } from './use-context-compress';
 import AssistantFooter from './TemplateAssistantFooter.vue';
@@ -58,6 +61,32 @@ const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
+const selectedNodeMap = new Map<string, SelectedSchemaNode>();
+
+const composerDrafts = reactive(new Map<string, { items: UserItem[] }>());
+const currentComposerDraft = computed(() => {
+  const id = conversation.currentConversationId;
+  if (!id) {
+    return null;
+  }
+  let draft = composerDrafts.get(id);
+  if (!draft) {
+    draft = { items: [] };
+    composerDrafts.set(id, draft);
+    draft = composerDrafts.get(id)!;
+  }
+  return draft;
+});
+const templateData = computed({
+  get: () => currentComposerDraft.value?.items ?? [],
+  set: (value: UserItem[]) => {
+    const draft = currentComposerDraft.value;
+    if (draft) {
+      draft.items = value;
+    }
+  },
+});
+
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
@@ -243,6 +272,14 @@ const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schem
 
 const messageRenderers = {
   markdown: markdownRenderer,
+  'template-user': (props: {
+    segments?: import('./schema-composer').ComposerSegment[];
+    content?: string;
+  }) =>
+    h(TemplateUserMessageRenderer, {
+      segments: props.segments,
+      content: props.content,
+    }),
   'json-patch': createSchemaMessageRenderer('json-patch'),
   'schema-card': createSchemaMessageRenderer('schema-card'),
   'schema-manual': createSchemaMessageRenderer('schema-manual'),
@@ -256,6 +293,52 @@ const inputMessage = computed({
     }
   },
 });
+
+// 版本切换后已点选标签指向旧 schema 节点，剥除标签项（保留文字草稿）
+const clearComposerTags = () => {
+  const draft = currentComposerDraft.value;
+  if (draft?.items.length) {
+    draft.items = draft.items.filter((item) => item.type !== 'template');
+  }
+};
+
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  const draft = currentComposerDraft.value;
+  if (!draft) {
+    return;
+  }
+  const items: UserItem[] = draft.items.length
+    ? draft.items
+    : [{ type: 'text', content: inputMessage.value }];
+  const id = generateId();
+  selectedNodeMap.set(id, node);
+  draft.items = [...items, { type: 'template', content: node.componentName, id }];
+};
+
+const SENDER_MAX_LENGTH = 20000;
+
+const handleTemplateDataUpdate = (value: UserItem[]) => {
+  const draft = currentComposerDraft.value;
+  if (!draft) {
+    return;
+  }
+  draft.items = value.filter((item) => {
+    if (item.type === 'template') {
+      const node = selectedNodeMap.get((item as any).id as string);
+      return !node || (item as any).content === node.componentName;
+    }
+    return true;
+  });
+};
+
+const clearComposer = () => {
+  const draft = currentComposerDraft.value;
+  if (draft) {
+    draft.items = [];
+  }
+};
+
+defineExpose({ insertComposerTag, clearComposer, clearComposerTags });
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -359,6 +442,7 @@ const showMessages = computed((): BubbleProps[] => {
 
 const clearInputMessage = () => {
   inputMessage.value = '';
+  clearComposer();
 };
 
 const handleSendMessage = async () => {
@@ -369,21 +453,42 @@ const handleSendMessage = async () => {
     await compress();
   }
 
-  const messageContent = inputMessage.value;
+  const draft = currentComposerDraft.value;
+  const snapshot: UserItem[] = draft?.items.length
+    ? draft.items
+    : inputMessage.value
+      ? [{ type: 'text', content: inputMessage.value }]
+      : [];
+  const composer = getComposerContent(snapshot, selectedNodeMap);
+  if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
+    return;
+  }
+
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
 
+  const hasTags = composer.segments.some((segment) => segment.type === 'node');
   const userMessage: ChatMessage = {
     role: 'user',
-    content: messageContent,
+    content: composer.apiContent,
     messageId: cardId,
+    ...(hasTags
+      ? {
+          messages: [
+            {
+              type: 'template-user',
+              segments: composer.segments,
+            },
+          ],
+        }
+      : {}),
   };
   messages.value.push(userMessage);
 
   if (messages.value.length === 1 && messages.value[0].role === 'user') {
     const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
-      conversation.updateConversationTitle(currentConversationId, messageContent.substring(0, 20));
+      conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
     }
   }
 
@@ -410,11 +515,12 @@ const handleNotification = (event: INotificationPayload) => {
     applyFailed = resolveJsonPatchApplyFailed(card, messages.value);
     setJsonPatchApplyResult(applyFailed ? 'failed' : 'success', messages.value, cardId);
   }
-  const preview = schema.currentPreviewSchema;
+  let preview = schema.currentPreviewSchema;
   if (preview && !applyFailed) {
-    generateIdForComponents(preview);
+    preview = finalizeSchemaPreview(preview, schema);
+  } else {
+    schema.setCurrentSchema(preview);
   }
-  schema.setCurrentSchema(preview);
   finalizePendingSchemaCard(messages.value, {
     cardId: cardId || undefined,
     ...(applyFailed || !preview ? {} : { schema: preview }),
@@ -461,11 +567,13 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
+        v-model:template-data="templateData"
         :placeholder="isCompressing ? t('template.compressPlaceholder') : generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating || isCompressing"
         :showWordLimit="true"
-        :maxLength="20000"
+        :maxLength="SENDER_MAX_LENGTH"
+        @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="() => (isCompressing ? resetContextCompress() : messageManager?.abortRequest())"
@@ -542,6 +650,10 @@ onUnmounted(() => {
 
 :deep(.tr-bubble__loading) {
   margin-top: 8px;
+}
+
+:deep(.editor-container [data-type='block']) {
+  white-space: nowrap;
 }
 
 :deep(.tr-bubble.placement-start) {

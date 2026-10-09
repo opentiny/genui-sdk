@@ -1,5 +1,6 @@
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IMessageItem } from '../chat.types';
+import type { SelectedSchemaNode } from '../schema-node-selection';
 import { normalizeManualEditInputs } from './schema-input-ids';
 import { t } from '../../../i18n';
 
@@ -103,6 +104,39 @@ function getMessagesSinceLatestCompress(messages: ChatMessage[]): ChatMessage[] 
   }
   const tail = messages.slice(compressIndex + 1).filter((m) => !isContextCompressMessage(m));
   return [messages[compressIndex], ...tail];
+}
+
+/**
+ * 旧格式 tag 段（{type:'tag', tag}）迁移为 node 段（{type:'node', value}），
+ * 兼容 ComposerSegment 类型升级前持久化的历史会话；返回是否发生变更。
+ */
+export function normalizeTemplateUserSegments(messages: ChatMessage[] | undefined): boolean {
+  if (!messages?.length) {
+    return false;
+  }
+
+  let changed = false;
+  for (const message of messages) {
+    const items = (message as { messages?: IMessageItem[] }).messages;
+    if (!Array.isArray(items)) {
+      continue;
+    }
+    for (const item of items) {
+      if (item.type !== 'template-user' || !Array.isArray(item.segments)) {
+        continue;
+      }
+      item.segments = item.segments.map((seg) => {
+        if ((seg as { type?: string }).type === 'tag') {
+          changed = true;
+          const { tag } = seg as unknown as { type: 'tag'; tag: SelectedSchemaNode };
+          return { type: 'node', value: tag };
+        }
+        return seg;
+      });
+    }
+  }
+
+  return changed;
 }
 
 function toBackendChatMessage(message: ChatMessage): ChatMessage | null {

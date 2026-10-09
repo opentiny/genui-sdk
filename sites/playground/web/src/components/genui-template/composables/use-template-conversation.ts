@@ -8,6 +8,7 @@ import {
   findLatestSchemaInConversation,
   repairAllStalePendingSchemaCards,
   normalizeManualSchemaSaveMessages,
+  normalizeTemplateUserSegments,
 } from '../template-chat-utils';
 import { t } from '../../../i18n';
 
@@ -58,7 +59,10 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
           const loadedMessages = conversationKit.value!.getCurrentConversation()?.messages;
           const repairedPending = repairAllStalePendingSchemaCards(loadedMessages);
           const normalizedManual = normalizeManualSchemaSaveMessages(loadedMessages);
-          if (repairedPending || normalizedManual) {
+          const normalizedSegments = normalizeTemplateUserSegments(
+            conversations.flatMap((conversation) => conversation.messages ?? []),
+          );
+          if (repairedPending || normalizedManual || normalizedSegments) {
             conversationKit.value!.saveConversations();
           }
           onLoaded?.(loadedMessages);

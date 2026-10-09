@@ -123,7 +123,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
         }
       } else {
         json = (raw as Record<string, unknown>) || {};
-        isCompleted = props.generating ? false : (props.isJsonComplete ?? true);
+        isCompleted = props.isJsonComplete ?? true;
       }
 
       if (!isCompleted && json && 'lifeCycles' in json) {
@@ -131,7 +131,6 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
         json = rest;
       }
 
-      // TODO: 检查一下nextKey是否必要
       const nextKey = JSON.stringify(json) + String(isCompleted);
       if (!props.generating && contentKeyRef.current === nextKey) return;
       contentKeyRef.current = nextKey;
@@ -145,7 +144,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     }, [displaySchema, updateContextAndState]);
 
     return (
-      <RendererContextProvider render-settings={renderSettings}>
+      <RendererContextProvider renderSettings={renderSettings}>
         <div className="genui-renderer-container schema-render-container">
           <SchemaRenderer
             ref={setRendererRef}

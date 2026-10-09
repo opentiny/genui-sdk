@@ -3,7 +3,8 @@
     "formData": {
       "name": "",
       "email": "",
-      "department": ""
+      "department": "",
+      "joinDate": ""
     }
   },
   "methods": {
@@ -112,6 +113,28 @@
                     "onChange": {
                       "type": "JSFunction",
                       "value": "function(value) { this.state.formData.department = value; }"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "AntFormItem",
+              "props": {
+                "label": "Join date"
+              },
+              "children": [
+                {
+                  "componentName": "AntDatePicker",
+                  "props": {
+                    "placeholder": "Select join date",
+                    "value": {
+                      "type": "JSExpression",
+                      "value": "this.state.formData.joinDate"
+                    },
+                    "onChange": {
+                      "type": "JSFunction",
+                      "value": "function(date, dateString) { this.state.formData.joinDate = dateString; }"
                     }
                   }
                 }

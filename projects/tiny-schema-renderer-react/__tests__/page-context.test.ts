@@ -5,6 +5,29 @@ import { setSchema } from '../src/set-schema';
 import bindThisSchema from '../test/mock/bind-this.json';
 
 describe('setSchema', () => {
+  it('invokes old onUnmounted after initializing the next context and refs', async () => {
+    const contextApi = createContextApi();
+    let contextDuringUnmount: ReturnType<typeof contextApi.getContext> | undefined;
+
+    await setSchema(
+      {
+        state: { version: 2 },
+        refs: { form: 'next-form' },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+      {
+        invokePageOnUnmounted: () => {
+          contextDuringUnmount = contextApi.getContext();
+        },
+      },
+    );
+
+    expect(contextDuringUnmount?.state).toEqual({ version: 2 });
+    expect(contextDuringUnmount?.refs).toEqual({ form: 'next-form' });
+  });
+
   it('methods execute with latest context via parsed.call(contextApi.getContext())', () => {
     const contextApi = createContextApi();
     setSchema(
@@ -49,12 +72,24 @@ describe('setSchema', () => {
     expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saved');
   });
 
-  it('setSchema clears external context until re-injected', () => {
+  it('setSchema preserves host context while replacing schema methods', () => {
     const contextApi = createContextApi();
-    contextApi.setContext({
-      callAction: (name: string) => name,
-      cardId: 'card-1',
-    });
+    const callAction = (name: string) => name;
+    contextApi.setContext({ callAction, cardId: 'card-1' });
+
+    setSchema(
+      {
+        methods: {
+          oldMethod: {
+            type: 'JSFunction',
+            value: "function() { return this.callAction('saveState'); }",
+          },
+        },
+        componentName: 'Page',
+        children: [],
+      },
+      contextApi,
+    );
 
     setSchema(
       {
@@ -70,15 +105,10 @@ describe('setSchema', () => {
       contextApi,
     );
 
-    expect(contextApi.getContext().callAction).toBeUndefined();
-    expect(contextApi.getContext().cardId).toBeUndefined();
-
-    contextApi.setContext({
-      callAction: (name: string) => (name === 'saveState' ? 'saved' : undefined),
-      cardId: 'card-1',
-    });
-
-    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saved');
+    expect(contextApi.getContext().callAction).toBe(callAction);
+    expect(contextApi.getContext().cardId).toBe('card-1');
+    expect(contextApi.getContext().oldMethod).toBeUndefined();
+    expect((contextApi.getContext().handleSubmit as () => string)()).toBe('saveState');
   });
 
   it('resetForm-style state assignment triggers re-render snapshot change', () => {
@@ -110,7 +140,7 @@ describe('setSchema', () => {
     const contextApi = createContextApi();
     const before = contextApi.getContext();
 
-    const { onMounted } = setSchema(
+    await setSchema(
       {
         state: { tableData: [] as unknown[] },
         lifeCycles: {
@@ -124,8 +154,6 @@ describe('setSchema', () => {
       },
       contextApi,
     );
-
-    await onMounted?.();
 
     expect(contextApi.getContext().state?.tableData).toEqual([{ id: '001' }]);
     expect(contextApi.getContext()).not.toBe(before);

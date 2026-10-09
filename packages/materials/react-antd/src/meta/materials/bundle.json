@@ -106,14 +106,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "输入值，可用 model:true 双向绑定"
-                    }
-                  },
-                  {
-                    "property": "modelValue",
-                    "type": "string",
-                    "description": {
-                      "zh_CN": "输入值（modelValue 别名）"
+                      "zh_CN": "输入值，需要更新 state 时需要配合 onChange"
                     }
                   },
                   {
@@ -175,7 +168,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "选中值，可用 model:true 双向绑定"
+                      "zh_CN": "选中值，需要更新 state 时需要配合 onChange"
                     }
                   },
                   {
@@ -263,7 +256,7 @@
         },
         {
           "component": "AntFormItem",
-          "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 modelValue 或 value（model:true），不要设置 name 属性",
+          "description": "Ant Design 表单项，包含 label 与输入控件。数据绑定请在子组件（AntInput/AntSelect 等）上使用 value 或 checked，并通过 onChange 更新 state，不要设置 name 属性",
           "npm": {
             "package": "antd",
             "exportName": "Form.Item",
@@ -513,7 +506,7 @@
                     "property": "checked",
                     "type": "boolean",
                     "description": {
-                      "zh_CN": "是否选中，可用 model:true 双向绑定"
+                      "zh_CN": "是否选中，需要更新 state 时需要配合 onChange"
                     }
                   },
                   {
@@ -679,7 +672,7 @@
                     "property": "value",
                     "type": "string",
                     "description": {
-                      "zh_CN": "日期值，可用 model:true 双向绑定"
+                      "zh_CN": "日期字符串（如 YYYY-MM-DD）"
                     }
                   },
                   {
@@ -705,14 +698,14 @@
                       "name": "date",
                       "type": "Object",
                       "description": {
-                        "zh_CN": "dayjs 日期对象，未选时为 null"
+                        "zh_CN": "内部日期对象，未选时为 null。禁止写入 state"
                       }
                     },
                     {
                       "name": "dateString",
                       "type": "string",
                       "description": {
-                        "zh_CN": "格式化后的日期字符串"
+                        "zh_CN": "格式化后的日期字符串。写入 state 时必须使用该参数，例如 this.state.formData.joinDate = dateString"
                       }
                     }
                   ],
