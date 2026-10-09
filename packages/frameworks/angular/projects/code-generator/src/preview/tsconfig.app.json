@@ -1,0 +1,20 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "../../../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  // 本 app 编译的是未经校验的出码产物,严格赋值检查必然误报
+  // ([srcData] 因 state.srcData.state 缺 searched/sorted/paginated 报 TS2322)。
+  // fullTemplateTypeCheck 不能省:只置 strictTemplates 为 false 会掉进 basic 模式,
+  // 模板表达式与成员拼写都不再检查。
+  "angularCompilerOptions": {
+    "strictTemplates": false,
+    "fullTemplateTypeCheck": true
+  },
+  // 只收本 app:main.ts 在 ../gen-page、headless 在 ../headless,都归工程根那份 tsconfig.json,
+  // 收进来会被当 Angular 代码一起类型检查。generated/ 留在 src 根下(人工覆盖产物的固定路径)。
+  "include": ["preview.ts", "../generated/**/*.ts"]
+}

@@ -167,3 +167,9 @@ packages/integrate/skill/genui-integration/references/materials/*-*.md
 
 # skill-generator CLI local preview; regenerate with generate:skill
 packages/skill-generator/example/
+
+packages/frameworks/angular/projects/code-generator/src/headless/out.cjs
+
+packages/frameworks/angular/projects/code-generator/TEST-PROMPTS.md
+
+packages/frameworks/angular/projects/code-generator/src/headless/

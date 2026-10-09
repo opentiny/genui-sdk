@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "useDefineForClassFields": true,
+    "types": []
+  },
+  // 只收 5175 出码页:src/preview/ 与 src/generated/ 是 4201 那个 Angular app,
+  // 归 src/preview/tsconfig.app.json。
+  "include": ["src/gen-page/main.ts", "src/headless/**/*.ts"]
+}

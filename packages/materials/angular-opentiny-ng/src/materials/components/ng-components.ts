@@ -45,6 +45,7 @@ import {
   TiTextareaModule,
 } from '@opentiny/ng';
 
+(TiButtonComponent['ɵcmp'] as any).selectors[0][0] = 'button';
 (TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 (TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
 (TiRadioComponent['ɵcmp'] as any).selectors[0][0] = 'input';

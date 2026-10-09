@@ -230,6 +230,9 @@ importers:
       postcss-selector-parser:
         specifier: ^7.1.0
         version: 7.1.0
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
       rxjs:
         specifier: ~7.8.0
         version: 7.8.2
@@ -478,6 +481,9 @@ importers:
 
   packages/materials/angular-opentiny-ng:
     dependencies:
+      '@angular/compiler':
+        specifier: ^20.3.0
+        version: 20.3.15
       '@angular/core':
         specifier: ^20.3.0
         version: 20.3.15(@angular/compiler@20.3.15)(rxjs@7.8.2)(zone.js@0.15.1)
@@ -1331,6 +1337,9 @@ importers:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../../packages/core
+      '@opentiny/genui-sdk-materials-angular-opentiny-ng':
+        specifier: workspace:*
+        version: link:../../../packages/materials/angular-opentiny-ng
       '@opentiny/genui-sdk-materials-vue-element-plus':
         specifier: workspace:*
         version: link:../../../packages/materials/vue-element-plus

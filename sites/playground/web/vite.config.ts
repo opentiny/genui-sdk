@@ -1,9 +1,14 @@
+import { fileURLToPath, URL } from 'node:url';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tsconfigPaths from 'vite-jsconfig-paths';
 import { nodePolyfills } from 'vite-plugin-node-polyfills';
 import { viteGitCommitHashPlugin } from 'vite-commit-hash-plugin';
+
+const ANGULAR_CODE_GENERATOR_ALIAS = fileURLToPath(
+  new URL('../../../packages/frameworks/angular/projects/code-generator/index.ts', import.meta.url),
+);
 
 /** 单独拆包的依赖（chunk 名），其余 node_modules 进 vendor；@opentiny/vue* 统一为 opentiny-vue */
 const VENDOR_CHUNKS = new Set([
@@ -61,6 +66,9 @@ export default defineConfig(({ command }) => {
     envDir: './env',
     plugins,
     resolve: {
+      alias: {
+        '@opentiny/genui-angular-code-generator': ANGULAR_CODE_GENERATOR_ALIAS,
+      },
       dedupe: ['react', 'react-dom'],
     },
     optimizeDeps: {

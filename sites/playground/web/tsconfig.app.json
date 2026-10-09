@@ -8,7 +8,13 @@
     "noUnusedParameters": false,
     "erasableSyntaxOnly": false,
     "noFallthroughCasesInSwitch": true,
-    "lib": ["ES2023", "DOM", "DOM.Iterable"]
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "baseUrl": "./",
+    "paths": {
+      "@opentiny/genui-angular-code-generator": [
+        "../../../packages/frameworks/angular/projects/code-generator/index.ts"
+      ]
+    }
   },
   "include": [
     "src/**/*"
