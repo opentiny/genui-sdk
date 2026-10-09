@@ -1,8 +1,15 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
-import type { IGenPromptSnippet, IGenPromptExample, IChatMessage, IStreamData, IStreamDelta } from '@opentiny/genui-sdk-core';
-import type { IResponseHandler } from './response-handler';
+import type {
+  IGenPromptSnippet,
+  IGenPromptExample,
+  IChatMessage,
+  ICompleteData,
+  IStreamData,
+  IStreamDelta,
+} from '@opentiny/genui-sdk-core';
+import { toCompleteData, type IResponseHandler, type ICompleteResponseJson } from './response-handler';
 
 async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handler: (data: string) => void) {
   let buffer = '';
@@ -81,18 +88,35 @@ export class CustomModelProvider extends BaseModelProvider {
     });
   }
 
+  /**
+   * 非流式请求：完整响应一次到齐后直接渲染，不拆成流式增量。
+   * 与 chatStream 的差别仅在数据来源 —— 这里把整个 message 交给 handler 的 complete 入口。
+   */
   async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
-    let response: Response;
+    const context: any = {};
+    this.setupStreamContext(context, request);
+
+    let json: ICompleteResponseJson;
     try {
-      response = await this.getData(request);
+      this.handlerBeforeRequest(context);
+      const response = await this.getData(request);
+      json = await response.json();
     } catch (error) {
+      this.handlerRequestError(context, error);
       throw error;
     }
-    const json = await response.json();
 
-    // 将非流式伪装成流式
-    const chatMessage = this.buildChatMessageFromResponse(json, request);
+    // onData 在这条路径上没有消费方（非流式是一次性返回，没有增量通道），传空实现即可。
+    // init.start 会把消息挂在 context.chatMessage 上，后续 handler 都往它身上写。
+    this.handlerStart(context, {
+      onData: () => {},
+      onDone: () => {},
+      onError: () => {},
+    });
+    this.handleCompleteResponse(toCompleteData(json), context);
+    this.handlerEnd(context);
 
+    const chatMessage: IChatMessage = context.chatMessage;
     const choice = json.choices?.[0] ?? {};
     const message = choice.message ?? {};
 
@@ -121,63 +145,59 @@ export class CustomModelProvider extends BaseModelProvider {
     } as ChatCompletionResponse & IChatMessage;
   }
 
-  private buildChatMessageFromResponse(json: any, request: ChatCompletionRequest): IChatMessage {
-    const message = json.choices?.[0]?.message ?? {};
+  /**
+   * 把完整响应分发给各 response handler。
+   *
+   * 按数组顺序单趟遍历，不能调整成「先跑所有 complete 再跑回退」—— handler 之间靠共享 context 协作
+   * （例如 playground 的 movePartialSchemaJsonToLastMessage 依赖自己排在 overlapEliminator / content 之前），位置即契约。
+   */
+  private handleCompleteResponse(data: ICompleteData, context: any) {
+    for (const handler of this.responseHandlers) {
+      if (handler.complete) {
+        handler.complete(data, context);
+        continue;
+      }
+      this.dispatchAspects(handler, data, context);
+    }
+  }
 
-    const context: any = {};
-    this.setupStreamContext(context, request);
+  /**
+   * 兼容回退：给尚未实现 complete 的自定义 handler 按切面分发单个 IStreamData。
+   *
+   * 这里不构造 chat.completion.chunk 信封、不做 JSON 序列化往返，只是复用既有的 match / handler 契约。
+   * 与流式的一点差异：不按 handler 返回值中断。流式的中断用于「内容还不够，先存着」的延迟场景，
+   * 而完整响应一次到齐，没有需要延迟的内容。
+   */
+  private dispatchAspects(handler: IResponseHandler<IStreamData>, data: ICompleteData, context: any) {
+    for (const delta of this.toAspectDeltas(data)) {
+      const streamData: IStreamData = { choices: [{ index: 0, delta }] };
+      if (handler.match(streamData, context)) {
+        handler.handler(streamData, context);
+      } else if (handler.notMatchHandler) {
+        handler.notMatchHandler(streamData, context);
+      }
+    }
+  }
 
-    let chatMessage!: IChatMessage;
-    this.handlerStart(context, {
-      onData: (data: IChatMessage) => {
-        chatMessage = data;
-      },
-      onDone: () => {},
-      onError: () => {},
-    });
-
-    const base = {
-      id: json.id,
-      object: 'chat.completion.chunk',
-      model: json.model,
-      created: json.created,
-    };
-
+  /**
+   * 完整响应按切面拆出候选增量，顺序与流式下这些切面的到达顺序一致。
+   * content 只在真值时生成 —— 空串在流式下也不会产生 content chunk。
+   */
+  private toAspectDeltas(data: ICompleteData): IStreamDelta[] {
     const deltas: IStreamDelta[] = [];
-    if (message.reasoning_content) {
-      deltas.push({ reasoning_content: message.reasoning_content });
+    if (data.reasoning_content) {
+      deltas.push({ reasoning_content: data.reasoning_content });
     }
-    if (message.tool_calls?.length) {
-      deltas.push({ tool_calls: message.tool_calls });
+    if (data.tool_calls?.length) {
+      deltas.push({ tool_calls: data.tool_calls });
     }
-    if (message.tool_calls_result?.length) {
-      deltas.push({ tool_calls_result: message.tool_calls_result });
+    if (data.tool_calls_result?.length) {
+      deltas.push({ tool_calls_result: data.tool_calls_result });
     }
-    if (message.content) {
-      deltas.push({ content: message.content });
+    if (data.content) {
+      deltas.push({ content: data.content });
     }
-    for (const delta of deltas) {
-      this.handlerChunk(
-        JSON.stringify({
-          ...base,
-          choices: [{ index: 0, delta, finish_reason: null }],
-        }),
-        context,
-      );
-    }
-
-    this.handlerChunk(
-      JSON.stringify({
-        ...base,
-        choices: [{ index: 0, delta: {}, finish_reason: json.choices?.[0]?.finish_reason ?? 'stop' }],
-        usage: json.usage,
-      }),
-      context,
-    );
-
-    this.handlerEnd(context);
-
-    return chatMessage;
+    return deltas;
   }
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {

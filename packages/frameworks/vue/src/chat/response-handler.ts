@@ -1,4 +1,11 @@
-import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor } from '@opentiny/genui-sdk-core';
+import {
+  IChatMessage,
+  ICompleteData,
+  IMessageItem,
+  IStreamDelta,
+  IStreamData,
+  PatternExtractor,
+} from '@opentiny/genui-sdk-core';
 import { ThinkTagWrapPattern } from './think-tag-wrap-pattern';
 import { reactive, readonly, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,10 +24,54 @@ export interface IResponseHandler<T> {
     handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
   ) => void;
   end?: (context: any) => void;
+  /**
+   * 非流式入口：一次性拿到完整的响应 message（而非逐块 delta），应对整段内容做一次性渲染。
+   * 注意 match 在这里不参与判断，实现方需自行判断本次响应是否含自己负责的切面；
+   * 也无需像 handler 那样靠返回 true 中断链 —— 完整响应没有"内容还不够，先存着"的延迟需求。
+   * 未实现该钩子的 handler，会由 CustomModelProvider 退化为按切面分发单个 IStreamData（兼容用）。
+   */
+  complete?: (data: ICompleteData, context: any) => void;
+}
+
+/** OpenAI chat.completion 的线上形状（非流式） */
+export interface ICompleteResponseJson {
+  id?: string;
+  object?: string;
+  model?: string;
+  created?: number;
+  choices?: {
+    index?: number;
+    message?: {
+      content?: string;
+      reasoning_content?: string;
+      tool_calls?: IStreamDelta['tool_calls'];
+      tool_calls_result?: IStreamDelta['tool_calls_result'];
+    };
+    finish_reason?: string | null;
+  }[];
+  usage?: IStreamData['usage'];
 }
 
 const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
+};
+
+/** 把非流式的完整响应摊平成 ICompleteData，与 getStreamDelta 相对 */
+export const toCompleteData = (json: ICompleteResponseJson): ICompleteData => {
+  const choice = json.choices?.[0];
+  const message = choice?.message ?? {};
+  return {
+    id: json.id,
+    object: json.object,
+    model: json.model,
+    created: json.created,
+    content: message.content,
+    reasoning_content: message.reasoning_content,
+    tool_calls: message.tool_calls,
+    tool_calls_result: message.tool_calls_result,
+    finish_reason: choice?.finish_reason,
+    usage: json.usage,
+  };
 };
 
 function onToolResult(
@@ -30,12 +81,18 @@ function onToolResult(
   chatMessage: IChatMessage,
   addToolCallContext: boolean,
 ) {
-  const {
-    id,
-    function: { arguments: args, result },
-  } = toolCallsResult[0];
-  const toolCallItem = toolCallIdMap[id];
-  if (toolCallItem) {
+  // 逐个处理：流式下每个结果各占一块 chunk（数组长度为 1），非流式下服务端会把所有 step 的
+  // 结果平铺进同一个数组——只取 [0] 会让第 2..N 个工具永远停在 running。
+  toolCallsResult.forEach((toolCallResult) => {
+    const {
+      id,
+      function: { arguments: args, result },
+    } = toolCallResult;
+    const toolCallItem = toolCallIdMap[id];
+    if (!toolCallItem) {
+      return;
+    }
+
     toolCallItem.status = 'success';
     toolCallItem.content = JSON.stringify({ arguments: args, result }, null, 2);
 
@@ -55,7 +112,7 @@ function onToolResult(
           toolResult: JSON.stringify(result),
         }) + '\n\n';
     }
-  }
+  });
 }
 
 function onToolCall(
@@ -173,6 +230,38 @@ function watchReasoningEnd(context: any) {
   );
 }
 
+// —— 以下四个切面处理函数同时服务两条路径 ——
+// 流式：handler 逐块传入 delta；非流式：complete 把完整 message 一次性包成一个 delta 传入。
+// 因此它们不关心「一次还是多次」，只关心「这一段内容是什么」。
+
+function applyReasoning(delta: IStreamDelta, context: any) {
+  context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
+  if (!context.handleReasoning) {
+    watchReasoningEnd(context);
+    context.handleReasoning = true;
+  }
+}
+
+function applyToolCalls(delta: IStreamDelta, context: any) {
+  onToolCall(delta.tool_calls, delta, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
+}
+
+function applyToolResults(delta: IStreamDelta, context: any) {
+  onToolResult(
+    delta.tool_calls_result,
+    delta,
+    context.toolCallIdMap,
+    context.chatMessage,
+    context.chatConfig.addToolCallContext,
+  );
+}
+
+function applyContent(delta: IStreamDelta, context: any) {
+  context.delta = delta;
+  context.patternExtractor.handleContent(delta.content);
+  context.chatMessage.content += delta.content;
+}
+
 export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
   {
     name: 'init',
@@ -211,6 +300,17 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       context.chatMessage.finishInfo = data;
       return true;
     },
+    // 非流式：finishInfo 由完整响应直接组装，保留 chunk 形状供 FinishInfo / AssistantFooter 读取
+    complete: (data: ICompleteData, context: any) => {
+      context.chatMessage.finishInfo = {
+        id: data.id,
+        object: data.object,
+        model: data.model,
+        created: data.created,
+        choices: [{ index: 0, finish_reason: data.finish_reason ?? 'stop' }],
+        usage: data.usage,
+      };
+    },
   },
   {
     name: 'reasoning',
@@ -219,13 +319,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return Boolean(delta.reasoning_content);
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
-      if (!context.handleReasoning) {
-        watchReasoningEnd(context);
-        context.handleReasoning = true;
-      }
+      applyReasoning(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.reasoning_content) return;
+      applyReasoning({ reasoning_content: data.reasoning_content }, context);
     },
     start: (
       context: any,
@@ -248,9 +347,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return delta.tool_calls?.length > 0;
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      onToolCall(delta.tool_calls, delta, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
+      applyToolCalls(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.tool_calls?.length) return;
+      applyToolCalls({ tool_calls: data.tool_calls }, context);
     },
     start: (
       context: any,
@@ -267,15 +369,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return delta.tool_calls_result?.length > 0;
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      onToolResult(
-        delta.tool_calls_result,
-        delta,
-        context.toolCallIdMap,
-        context.chatMessage,
-        context.chatConfig.addToolCallContext,
-      );
+      applyToolResults(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.tool_calls_result?.length) return;
+      applyToolResults({ tool_calls_result: data.tool_calls_result }, context);
     },
   },
   {
@@ -285,11 +384,15 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return Boolean(delta.content);
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      context.delta = delta;
-      context.patternExtractor.handleContent(delta.content);
-      context.chatMessage.content += delta.content;
+      applyContent(getStreamDelta(data), context);
       return true;
+    },
+    // 非流式：整段内容一次性交给同一个 patternExtractor。
+    // 注意 extractor 由 start 创建，这里只负责喂内容 —— playground 会在 start 之后覆盖
+    // patternExtractor.onHandledWrite（按 framework 决定 schema-card 类型），所以不能在 complete 里重建它。
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.content) return;
+      applyContent({ content: data.content }, context);
     },
     start: (
       context: any,
