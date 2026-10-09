@@ -3,4 +3,4 @@ export {
   jsonPatchSchema,
   type JsonPatch,
   type JsonPatchOperation,
-} from '@opentiny/genui-sdk-core';
+} from './schema';
