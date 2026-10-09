@@ -36,7 +36,10 @@ export type {
 } from './component-categories';
 
 /** 匹配 prompt 顶层二级标题（行首 `## `，不含 `###`） */
-const PROMPT_SECTION_HEADING_RE = /^## .+?\r?$/gm;
+const PROMPT_SECTION_HEADING_RE = /^## .+$/;
+
+/** 匹配围栏代码块边界（最多 3 个前导空格的 ``` 或 ~~~ 围栏） */
+const CODE_FENCE_RE = /^ {0,3}(`{3,}|~{3,})(.*)$/;
 
 /** 手写 reference 目录；不能用作 referenceSubdir，否则默认 prune 会清掉其中的补充文档 */
 const HANDWRITTEN_REFERENCE_DIRS = new Set(['components', 'examples']);
@@ -265,20 +268,43 @@ export function assignReferenceFiles(
 
 /**
  * 从 genPrompt 输出中提取顶层 `##` 章节标记。
+ * 围栏代码块（``` 或 ~~~）内的 `##` 行属于代码内容，不作为章节标记。
  *
  * @param prompt - genPrompt 生成的完整提示词
  * @returns 按出现顺序排列的章节标记列表
  */
 export function extractReferenceSections(prompt: string): IPromptSectionMarker[] {
   const markers: Array<Omit<IPromptSectionMarker, 'file'>> = [];
+  let fence: { char: string; length: number } | null = null;
+  let index = 0;
 
-  for (const match of prompt.matchAll(PROMPT_SECTION_HEADING_RE)) {
-    const marker = match[0].replace(/\r$/, '');
-    markers.push({
-      marker,
-      title: marker.replace(/^##\s+/, ''),
-      index: match.index ?? 0,
-    });
+  for (const rawLine of prompt.split('\n')) {
+    const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine;
+    const fenceMatch = CODE_FENCE_RE.exec(line);
+
+    if (fenceMatch) {
+      const [, fenceMark, info] = fenceMatch;
+      if (!fence) {
+        // 反引号围栏的 info 中不能出现反引号，否则该行不是合法的围栏起始行
+        if (fenceMark[0] !== '`' || !info.includes('`')) {
+          fence = { char: fenceMark[0], length: fenceMark.length };
+        }
+      } else if (
+        fenceMark[0] === fence.char &&
+        fenceMark.length >= fence.length &&
+        !info.trim()
+      ) {
+        fence = null;
+      }
+    } else if (!fence && PROMPT_SECTION_HEADING_RE.test(line)) {
+      markers.push({
+        marker: line,
+        title: line.replace(/^##\s+/, ''),
+        index,
+      });
+    }
+
+    index += rawLine.length + 1;
   }
 
   return assignReferenceFiles(markers);
@@ -806,6 +832,21 @@ export function writeReferenceFiles(
   }
 
   const referenceDir = join(skillDir, 'reference');
+
+  // 空子目录模式下 components.md 分片与手写索引路径重合，且没有受管区块保护手写内容；
+  // 内容不一致时拒绝覆盖，避免静默丢弃已有的手写组件索引。
+  const generatedComponents = sections['components.md'];
+  if (!referenceSubdir && generatedComponents) {
+    const indexPath = join(referenceDir, 'components.md');
+    if (existsSync(indexPath) && readFileSync(indexPath, 'utf8') !== generatedComponents) {
+      throw new Error(
+        `referenceSubdir 为空时 reference/components.md 由生成的 Prompt 分片占用，` +
+          `拒绝覆盖内容不同的已有文件以免丢失手写索引: ${indexPath}。` +
+          `请改用非空 referenceSubdir（如 generated），或先移除/改名该文件。`,
+      );
+    }
+  }
+
   const outputDir = referenceSubdir ? join(referenceDir, referenceSubdir) : referenceDir;
   mkdirSync(outputDir, { recursive: true });
 

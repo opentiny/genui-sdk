@@ -204,7 +204,7 @@ interface ISkillGenerateConfig {
 | `prune` | `true` | 是否清理当前生成目录中的过期文件 |
 | `flatPrompt` | `false` | 是否将完整 Prompt 直接写入 `SKILL.md` |
 
-`referenceSubdir` 必须是安全的相对路径，且不能使用手写目录 `components`、`examples` 或它们的子路径。若传空字符串，必须同时设置 `prune: false`；此时生成分片会直接写入 `reference/` 下的同名路径。仅当本次包含非空的 `components.md` 分片时才会写入 `reference/components.md`；否则已有的手写组件索引保持不变。
+`referenceSubdir` 必须是安全的相对路径，且不能使用手写目录 `components`、`examples` 或它们的子路径。若传空字符串，必须同时设置 `prune: false`；此时生成分片会直接占用 `reference/` 下的路径（包括 `reference/components.md`），因此不会把已有的手写组件索引作为受管索引保留：仅当本次生成本身包含非空的 `components.md` 分片时，才会在已有 `reference/components.md` 内容不同时直接抛错，而不是覆盖（内容相同则允许，以保证重复生成幂等）；若本次没有 `components.md` 分片，则已有文件保持不变且不会报错。
 
 ### 其他 CLI API
 
@@ -249,7 +249,7 @@ interface IGenerateSkillOptions {
 | `promptCustomConfig` | — | 传给 core `genPrompt` 的自定义配置 |
 | `promptOptions` | `{ isSkill: true }` | 控制 Prompt 章节；未显式设置时仅补上 `isSkill: true` |
 | `formatSkillBody` | — | 在原始 Prompt 前缀后追加正文的 formatter |
-| `referenceSubdir` | `'generated'` | 生成分片在 `reference/` 下的安全相对目录；空模式直接写入分片路径，只有非空 `components.md` 分片才会写入 `reference/components.md` |
+| `referenceSubdir` | `'generated'` | 生成分片在 `reference/` 下的安全相对目录；空模式直接占用分片路径，包括 `reference/components.md`，且仅在本次包含非空 `components.md` 分片时拒绝覆盖已有且内容不同的文件 |
 | `syncComponentsIndex` | `true` | 是否维护手写层的 `reference/components.md` 索引 |
 | `prune` | `true` | 是否清理当前生成目录内的过期文件，不会跨目录清理 |
 | `defaultFrontmatter` | 内置 `genui-schema-json` frontmatter | 首个目录没有 `SKILL.md` 时使用的 YAML frontmatter |
@@ -340,7 +340,7 @@ interface IComponentCategoryFile {
 | API | 说明 |
 |-----|------|
 | `ensureSkillFrontmatter(skillSourceDir, defaultFrontmatter?)` | 读取 `SKILL.md` frontmatter；文件不存在时用默认值创建 |
-| `writeReferenceFiles(skillDir, sections, options?)` | 写入无损分片、组件分类详情与组件索引；空子目录模式仅在 `components.md` 分片非空时写入该生成文件，否则不改动已有的手写索引 |
+| `writeReferenceFiles(skillDir, sections, options?)` | 写入无损分片、组件分类详情与组件索引；空子目录模式将非空的 `components.md` 视为占用该路径的生成分片，拒绝覆盖内容不同的已有文件，而非保留手写索引；分片缺失时不改动已有文件 |
 | `writeSkillEntry(skillDirs, skillPrefix, markers, options?)` | 复用首个目录的 frontmatter，向一个或多个目录写入入口文件 |
 | `removeStaleReferenceFiles(dir, sectionFiles)` | 删除目录中不在本次生成列表内的文件，但保留子目录 |
 
@@ -365,6 +365,6 @@ interface IComponentCategoryFile {
 
 - reference 文件名必须是当前目录中的 `.md` 文件，不能包含绝对路径、路径分隔符、控制字符或 Windows 保留名称。
 - `referenceSubdir` 不能逃出 `reference/`，也不能指向手写的 `components/`、`examples/` 目录。
-- `referenceSubdir` 为空时禁止启用 `prune`，避免删除手写 reference 文件。空模式会直接写入 `reference/` 下的生成分片路径；只有本次生成非空的 `components.md` 分片时才会覆盖 `reference/components.md`，分片缺失时保留已有手写索引。
+- `referenceSubdir` 为空时禁止启用 `prune`，避免删除手写 reference 文件。空模式会直接占用 `reference/` 下的生成分片路径，不会将 `reference/components.md` 作为手写索引保留：当本次生成包含非空的 `components.md` 分片时，若已有 `reference/components.md` 内容不同则直接抛错，而不是覆盖（内容相同则允许，以保证重复生成幂等）；分片缺失时保留已有文件且不报错。
 - `syncComponentsIndex()` 会改写有效受管标记之间的内容；无标记时追加受管区块，旧版文件含 `## 可用组件` 标题时替换该标题及其后全部内容。受管标记缺少配对、重复或顺序错误，以及旧版白名单缺少必要标题等无效状态会被拒绝。
 - formatter 只能追加到原始 Prompt 前缀之后；生成完成后会校验所有分片仍可逐字还原 `genPrompt` 输出。
