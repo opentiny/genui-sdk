@@ -74,7 +74,11 @@ export class ProviderModelMapper {
    * 获取所有模型的详细信息数组（仅 model 字段，不包含 provider 信息）
    */
   getAllModelInfos(): any[] {
-    return Array.from(this.map.values()).map((info) => ({ name: info.model.name, features: info.model.features }));
+    return Array.from(this.map.values()).map((info) => ({
+      name: info.model.name,
+      features: info.model.features,
+      contextWindow: info.model.contextWindow,
+    }));
   }
 
   /**
