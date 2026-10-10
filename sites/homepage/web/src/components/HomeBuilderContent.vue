@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { TinyButton } from '@opentiny/vue';
-import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline?no-inline';
-import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline?no-inline';
-import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.svg?no-inline?no-inline';
+import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline';
+import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline';
+import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.svg?no-inline';
 import genuiBuilderIconChat from '@/assets/genui_builder_icon_chat.svg?no-inline';
 import genuiBuilderIconVersion from '@/assets/genui_builder_icon_version.svg?no-inline';
 import genuiBuilderIconPreview from '@/assets/genui_builder_icon_preview.svg?no-inline';
@@ -47,7 +47,6 @@ function handleFeatureClick(index: number) {
 
 <template>
   <section :class="['home-builder-section', { 'home-builder-section-mobile': isMobile }]">
-    <div class="home-builder-section-ellipse" aria-hidden="true"></div>
     <div class="home-builder-section-header">
       <div class="home-builder-section-badge">
         <img class="home-builder-section-badge-icon" :src="genuiBuilderIconExperinment" alt="" />
@@ -119,18 +118,6 @@ function handleFeatureClick(index: number) {
   width: 100%;
   overflow: hidden;
   padding-bottom: 110px;
-
-  &-ellipse {
-    position: absolute;
-    top: -79px;
-    left: 361.5px;
-    width: 1251px;
-    height: 178px;
-    border-radius: 50%;
-    background: rgba(241, 236, 254, 1);
-    filter: blur(100px);
-    pointer-events: none;
-  }
 
   &-header {
     display: flex;
@@ -258,7 +245,7 @@ function handleFeatureClick(index: number) {
   padding: 0 12.5% 0;
 
   @media (max-width: 1280px) {
-    padding: 0 10% 40px;
+    padding: 0 10% 0;
   }
 
   @media (min-width: 1920px) {
@@ -288,8 +275,7 @@ function handleFeatureClick(index: number) {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 0;
+    gap: 8px;
   }
 
   &-feature {
@@ -305,9 +291,8 @@ function handleFeatureClick(index: number) {
     }
 
     &-active {
-      background-color: #fff;
+      background-color: rgba(246, 246, 246, 1);
       border-radius: 20px;
-      box-shadow: 0 4px 30px 0 rgba(230, 230, 230, 0.6);
     }
 
     &-icon {

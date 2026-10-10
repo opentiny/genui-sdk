@@ -77,6 +77,14 @@
     "title": "Integrate GenUI quickly",
     "subtitle": "Powerful renderer components and ready-to-use chat components",
     "devDoc": "Documentation",
+    "skill": {
+      "title": "Start your GenUI project with one sentence",
+      "description": "Use Agents to speed up development, turning tedious installation, configuration, and setup into a single sentence so you can start building GenUI apps with ease.",
+      "prompt": "Install and use @opentiny/genui-sdk-integration-skill to initialize a Vue 3-based GenUI SDK quick-start project for me, and integrate the @opentiny/genui-sdk-materials-vue-opentiny-vue materials. When finished, start the project and verify that it runs.",
+      "copyPrompt": "Copy prompt",
+      "copySuccess": "Copied",
+      "copyFail": "Copy failed"
+    },
     "step1": {
       "title": "Step 1: Import and use the chat component",
       "description": "The out-of-the-box chat component includes conversation UI and message management",
@@ -120,6 +128,18 @@
       "title": "More features",
       "description": "Custom examples and snippets help build better UIs for diverse visual preferences"
     }
+  },
+  "plugin": {
+    "title": "Give more AI apps a generative UI",
+    "subtitle": "Open, flexible capabilities that fit into the AI ecosystem, extending model replies from text into interfaces you can see, operate, and interact with",
+    "text": {
+      "prefix": "Generative UI, ",
+      "embed": "embedded",
+      "suffix": " in DeepSeek Harness"
+    },
+    "description": "Turn AI replies from “plain text” into “clickable interfaces” — charts, forms, and mini apps render right in the conversation, and your actions flow into the next turn",
+    "copy": "Copy",
+    "copied": "Copied"
   },
   "link": {
     "title": "Try OpenTiny GenUI now",

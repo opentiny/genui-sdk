@@ -374,7 +374,7 @@ onUnmounted(() => {
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
                 @click="handleCornerResume">
-                <img :src="playIcon" alt="">
+                <img class="home-extend-control-btn-icon" :src="playIcon" alt="">
               </tiny-button>
             </tiny-tooltip>
             <tiny-tooltip
@@ -394,7 +394,7 @@ onUnmounted(() => {
                 :disabled="preparingPlayback"
                 @click="handleCornerReplay"
                 >
-                <img v-if="!hasPlayedOnce" :src="playIcon" alt="">
+                <img class="home-extend-control-btn-icon" v-if="!hasPlayedOnce" :src="playIcon" alt="">
               </tiny-button>
             </tiny-tooltip>
           </div>
@@ -411,11 +411,36 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0px 8%;
   background-image: url('@/assets/home_extend_bg.svg');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+  padding: 110px 12.5%;
+
+  @media (max-width: 1280px) {
+    padding: 80px 10%;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 10% 40px 10%;
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px;
+  }
+
+  &-title {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    @media (max-width: 1280px) {
+      &-subtitle {
+        margin-bottom: 40px;
+      }
+    }
+  }
 
   &-title {
     margin-bottom: 40px;
@@ -665,6 +690,10 @@ onUnmounted(() => {
 .home-extend-control-btn {
   border: none;
   box-shadow: 0 2px 4px #00000029;
+
+  &-icon {
+    transform: translate(1.5px, 0);
+  }
 }
 
 .extend-button-group {
@@ -672,9 +701,10 @@ onUnmounted(() => {
   height: 56px;
   display: flex;
   align-items: center;
-  gap: 24px;
   padding: 4px;
   margin-bottom: 48px;
+  border-radius: 87px;
+  background-color: rgba(232, 240, 255, 1);
 
   .extend-button {
     height: 100%;

@@ -17,6 +17,7 @@ import HomeFeature from '@/components/HomeFeature.vue';
 import HomeBuilderContent from '@/components/HomeBuilderContent.vue';
 import HomeLink from '@/components/HomeLink.vue';
 import HomeExtend from '@/components/HomeExtend.vue';
+import HomePlugin from '@/components/HomePlugin.vue';
 import HomeMcpToolMobile from '@/components/HomeMcpToolMobile.vue';
 import { t } from '@/i18n';
 
@@ -160,6 +161,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     <home-guide></home-guide>
     <home-feature></home-feature>
     <home-builder-content />
+    <home-plugin></home-plugin>
     <home-link></home-link>
   </div>
 </template>
@@ -254,7 +256,14 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      background-image: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(254, 65, 65, 1),
+        rgba(255, 62, 191, 1),
+        rgba(122, 54, 255, 1),
+        rgba(62, 146, 255, 1) 
+        92%
+       );
     }
 
     &-decsription {
