@@ -8,6 +8,7 @@
 
 - **Vue 3** - 使用 `GenuiChat` 或 `GenuiRenderer`
 - **Angular** - 使用 `GenuiRenderer`
+- **React 18+** - 使用 `GenuiRenderer`（Ant Design 物料）
 - **Server** - Node.js 后端服务集成
 
 ## 安装
@@ -25,6 +26,7 @@ npm install @opentiny/genui-sdk-integration-skill
 ```
 帮我集成 GenUI SDK 到 Vue 项目
 如何在 Angular 中使用 GenuiRenderer？
+怎么在 React 里渲染 AI 生成的界面？
 怎么设置 genui-sdk-server？
 ```
 
@@ -35,11 +37,11 @@ npm install @opentiny/genui-sdk-integration-skill
 | 路径 | 源 |
 |------|-----|
 | `examples/` | `docs/src/examples/` |
-| `references/guides/` | `docs/src/guide/`（quick-start、start-with-renderer、angular/*）、`docs/src/components/core/api.md` 及组件 API 页（chat、renderer、code-generator、angular/renderer、angular/config-provider → `component-*.md`）；同步时清理 VitePress 语法（tabs/tip/warning 容器、`[!code]` 标注、截图） |
-| `references/materials/` 专页（`vue-*.md` / `angular-*.md`） | `docs/src/components/materials/` |
+| `references/guides/` | `docs/src/guide/`（quick-start、start-with-renderer、angular/*、react/*）、`docs/src/components/core/api.md` 及组件 API 页（chat、renderer、code-generator、angular/*、react/* → `component-*.md`）；同步时清理 VitePress 语法（tabs/tip/warning 容器、`[!code]` 标注、截图） |
+| `references/materials/` 专页（`vue-*.md` / `angular-*.md` / `react-*.md`） | `docs/src/components/materials/` |
 
 本地开发：改 docs 后在本包执行 `npm run build`。  
-`references/materials/index.md` 以及 `references/vue.md` / `angular.md` / `server.md` 由 skill 手工维护并提交。
+`references/materials/index.md` 以及 `references/vue.md` / `angular.md` / `react.md` / `server.md` 由 skill 手工维护并提交。
 
 ## 相关资源
 

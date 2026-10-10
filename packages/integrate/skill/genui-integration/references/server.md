@@ -235,6 +235,9 @@ data: [DONE]
 **framework**: 渲染器配置的前端框架
 - `"Vue"` - 生成 Vue 兼容的 schema
 - `"Angular"` - 生成 Angular 兼容的 schema
+- `"React"` - 生成 React 兼容的 schema
+
+> 注意：服务端按 framework 取默认物料元数据时，`Vue` → OpenTiny Vue、`Angular` → OpenTiny Angular；`React` 须由集成方显式传入 React Ant Design 物料包的 `materialsMeta`（`@opentiny/genui-sdk-materials-react-antd/meta`），否则回落到 Vue 默认物料，生成的 schema 组件名与 React 物料不匹配。
 
 **strategy**: 提示词合并策略
 - `"append"` - 追加到现有系统消息 (默认)

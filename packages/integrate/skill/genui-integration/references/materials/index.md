@@ -10,6 +10,7 @@ GenUI SDK 自 v1.3.0 起将核心 SDK 与 UI 物料解耦，需通过 `GenuiConf
 |--------|------|------|
 | Vue | `@opentiny/genui-sdk-materials-vue-opentiny-vue` | [vue-opentiny-vue.md](./vue-opentiny-vue.md) |
 | Angular | `@opentiny/genui-sdk-materials-angular-opentiny-ng` | [angular-opentiny-ng.md](./angular-opentiny-ng.md) |
+| React | `@opentiny/genui-sdk-materials-react-antd`（基于 Ant Design，需项目安装 `antd`） | [react-antd.md](./react-antd.md) |
 
 ## 可选物料与变体
 

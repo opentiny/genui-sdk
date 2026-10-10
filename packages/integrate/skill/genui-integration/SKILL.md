@@ -1,6 +1,6 @@
 ---
 name: genui-integration
-description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk、genui-sdk-server，或想构建 AI 聊天界面、动态 UI 组件、Node.js 后端 LLM 代理（OpenAI 兼容 chat/completions API）时使用。涵盖 Vue/Angular 前端（主题、物料、GenuiChat/GenuiRenderer）与 Server 后端（CLI、Express 集成、流式代理）。即使用户只描述需求（如"搭建 LLM 代理服务"、"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
+description: genui-sdk 全方位指南：安装、配置、集成、示例。用户提到 genui-sdk、genui-sdk-server，或想构建 AI 聊天界面、动态 UI 组件、Node.js 后端 LLM 代理（OpenAI 兼容 chat/completions API）时使用。涵盖 Vue/Angular/React 前端（主题、物料、GenuiChat/GenuiRenderer）与 Server 后端（CLI、Express 集成、流式代理）。即使用户只描述需求（如"搭建 LLM 代理服务"、"AI 聊天+动态组件"）而未提及 SDK 名称也应触发。
 ---
 
 # GenUI SDK 集成指南
@@ -14,8 +14,9 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 1. **使用哪个技术栈？** 询问用户使用什么技术：
    - **Vue**（Vue 3 组合式 API）→ 阅读 `references/vue.md`
    - **Angular**（Angular 独立组件）→ 阅读 `references/angular.md`
+   - **React**（React 18+ 函数组件）→ 阅读 `references/react.md`
    - **Server**（Node.js 后端服务）→ 阅读 `references/server.md`
-   - **其他框架**（React 等）→ 说明当前仅支持 Vue 和 Angular，建议关注官方更新
+   - **其他框架**（Svelte、SolidJS 等）→ 说明当前仅支持 Vue、Angular 和 React，建议关注官方更新
    - **多个/全部**（需要全面指导）→ 综合提供所有相关参考
 
 2. **项目状态？** 确定他们是：
@@ -35,10 +36,11 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 用户需要什么？
 ├─ 快速开始，完整聊天界面
 │  ├─ Vue → GenuiChat（模式 1）
-│  └─ Angular → 不支持，建议使用 GenuiRenderer + 自定义聊天外壳
+│  └─ Angular / React → 不支持，建议使用 GenuiRenderer + 自定义聊天外壳
 ├─ 自定义 UI 布局
 │  ├─ Vue → GenuiRenderer（模式 2）
-│  └─ Angular → GenuiRenderer（模式 2）
+│  ├─ Angular → GenuiRenderer（模式 2）
+│  └─ React → GenuiRenderer（模式 2）
 ├─ 后端服务
 │  └─ 所有框架 → genui-sdk-server（模式 3）
 └─ 不确定
@@ -47,10 +49,9 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 ### 边缘场景处理
 
-- **React 用户**：说明 GenUI SDK 目前仅支持 Vue 和 Angular，建议：
-  1. 关注官方 GitHub 仓库了解 React 支持计划
-  2. 考虑迁移到 Vue 或 Angular
-  3. 参考架构设计，自行实现类似功能
+- **Svelte / SolidJS 等其他框架用户**：说明 GenUI SDK 前端目前仅支持 Vue、Angular 和 React，建议：
+  1. 关注官方 GitHub 仓库了解支持计划
+  2. 参考架构设计，自行实现类似功能
 
 - **TinyVue 配置**：如果用户询问 TinyVue 组件库配置：
   1. 说明 TinyVue 是 GenUI SDK 的物料系统的一部分
@@ -69,13 +70,13 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 - **openPage / 页面跳转**：如果用户实现导航类自定义动作：
   1. 说明 LLM 控制的 URL 不可信，不可直接 `window.open(params.url)`
-  2. 引导查看 `references/angular.md` 的 `openAllowedPage` 模式（origin 白名单 + 协议校验）
+  2. 引导查看 `references/angular.md` 或 `references/react.md` 的 `openAllowedPage` 模式（origin 白名单 + 协议校验）
   3. 跨域或 `_blank` 须使用 `noopener,noreferrer`，拒绝未授权目标
 
 - **Legacy 迁移**：如果用户从 v1.3.0 前版本升级、希望零配置快速迁移：
-  1. 引导使用 `GenuiLegacyChat`（Vue）或 `GenuiLegacyRenderer`（Vue/Angular）
+  1. 引导使用 `GenuiLegacyChat`（Vue）或 `GenuiLegacyRenderer`（Vue/Angular；React 无 Legacy 组件）
   2. 说明内置默认物料，无需 `GenuiConfigProvider`
-  3. 新项目仍应使用当前版组件 + 官方物料包，见 `references/vue.md` 或 `references/angular.md` 兼容组件章节
+  3. 新项目仍应使用当前版组件 + 官方物料包，见 `references/vue.md` / `references/angular.md` 兼容组件章节；React 项目直接使用 `GenuiRenderer` + 物料注入，见 `references/react.md`
 
 - **Element Plus 用户**：如果项目已使用 Element Plus 而非 OpenTiny Vue：
   1. 说明可使用 `@opentiny/genui-sdk-materials-vue-element-plus` 替代官方物料
@@ -100,6 +101,7 @@ GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。使用当前
 官方物料（默认推荐）：
 - Vue：`@opentiny/genui-sdk-materials-vue-opentiny-vue`
 - Angular：`@opentiny/genui-sdk-materials-angular-opentiny-ng`
+- React：`@opentiny/genui-sdk-materials-react-antd`（基于 Ant Design，需项目安装 `antd`）
 
 可选物料与变体（详见 `references/materials/`）：
 - Vue Element Plus 替代方案：`@opentiny/genui-sdk-materials-vue-element-plus`
@@ -112,7 +114,7 @@ GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。使用当前
 
 **GenuiChat**（仅 Vue）：一个集成的聊天组件，包含会话管理、流式传输和生成状态。是最简单的入门方式。
 
-**GenuiRenderer**：核心渲染器组件，将 JSON schema 转换为 UI。Vue 和 Angular 都可用。当你需要更多控制 UI 或想要构建自定义聊天界面时使用。
+**GenuiRenderer**：核心渲染器组件，将 JSON schema 转换为 UI。Vue、Angular、React 都可用。当你需要更多控制 UI 或想要构建自定义聊天界面时使用。
 
 **GenuiConfigProvider**：配置提供者，注入物料和主题。当前版 GenuiChat / GenuiRenderer 集成需要；Legacy 兼容路径可省略。
 
@@ -129,10 +131,10 @@ GenUI SDK 使用服务器发送事件（SSE）和 OpenAI 兼容格式。LLM 在�
 - **特点**：开箱即用，包含会话管理、流式传输、生成状态
 - **详细指南**：见 `references/vue.md` 模式 1 概况，操作步骤见 [快速开始](./references/guides/quick-start.md)
 
-### 模式 2：GenuiRenderer（Vue 和 Angular，自定义 UI）
+### 模式 2：GenuiRenderer（Vue / Angular / React，自定义 UI）
 - **适用场景**：构建自定义聊天界面或与现有 UI 集成
 - **特点**：更灵活的控制，需要自己处理流式数据
-- **详细指南**：见 `references/vue.md` 或 `references/angular.md` 模式 2 概况；Vue 见 [使用 Renderer 组件](./references/guides/start-with-renderer.md)，Angular 见 [Angular Renderer 指南](./references/guides/angular-start-with-renderer.md)
+- **详细指南**：见 `references/vue.md` / `references/angular.md` / `references/react.md` 模式 2 概况；Vue 见 [使用 Renderer 组件](./references/guides/start-with-renderer.md)，Angular 见 [Angular Renderer 指南](./references/guides/angular-start-with-renderer.md)，React 见 [React Renderer 指南](./references/guides/react-start-with-renderer.md)
 
 ### 模式 3：Server 集成
 - **适用场景**：代理 LLM 调用的后端服务

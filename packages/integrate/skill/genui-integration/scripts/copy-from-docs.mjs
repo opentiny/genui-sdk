@@ -19,12 +19,16 @@ const docsGuides = [
   { source: path.join(docsRoot, 'guide/start-with-renderer.md'), output: 'start-with-renderer.md' },
   { source: path.join(docsRoot, 'guide/angular/install.md'), output: 'angular-install.md' },
   { source: path.join(docsRoot, 'guide/angular/start-with-renderer.md'), output: 'angular-start-with-renderer.md' },
+  { source: path.join(docsRoot, 'guide/react/install.md'), output: 'react-install.md' },
+  { source: path.join(docsRoot, 'guide/react/start-with-renderer.md'), output: 'react-start-with-renderer.md' },
   { source: path.join(docsRoot, 'components/core/api.md'), output: 'core-api.md' },
   { source: path.join(docsRoot, 'components/chat.md'), output: 'component-chat.md' },
   { source: path.join(docsRoot, 'components/renderer.md'), output: 'component-renderer.md' },
   { source: path.join(docsRoot, 'components/code-generator.md'), output: 'component-code-generator.md' },
   { source: path.join(docsRoot, 'components/angular/renderer.md'), output: 'component-angular-renderer.md' },
   { source: path.join(docsRoot, 'components/angular/config-provider.md'), output: 'component-angular-config-provider.md' },
+  { source: path.join(docsRoot, 'components/react/renderer.md'), output: 'component-react-renderer.md' },
+  { source: path.join(docsRoot, 'components/react/config-provider.md'), output: 'component-react-config-provider.md' },
 ];
 const guidesTarget = path.join(skillRoot, 'references/guides');
 
@@ -126,6 +130,11 @@ function rewriteGuideLinks(content, outputName) {
     .replaceAll('](../components/code-generator)', '](./component-code-generator.md)')
     .replaceAll('](../../components/angular/config-provider#notify)', '](./component-angular-config-provider.md#notify)')
     .replaceAll('](../../components/angular/renderer)', '](./component-angular-renderer.md)')
+    .replaceAll('](../../components/react/renderer)', '](./component-react-renderer.md)')
+    .replaceAll('](../../components/react/config-provider)', '](./component-react-config-provider.md)')
+    .replaceAll('](./config-provider)', '](./component-react-config-provider.md)')
+    // react guide 内指向物料专页的链接，本地化到 skill 的 references/materials/
+    .replaceAll('](../../components/materials/react-antd)', '](../materials/react-antd.md)')
     .replaceAll(/(\]\((?:\.\.\/)+examples\/([^)#]+))(?:#[^)]*)?\)/g, '](../../examples/$2.md)')
     .replaceAll(/^\!\[[^\]]*\]\([^)]*\/public\/[^)]+\)\s*$/gm, '');
 
@@ -135,6 +144,12 @@ function rewriteGuideLinks(content, outputName) {
   }
   if (outputName === 'angular-install.md') {
     result = result.replaceAll('](start-with-renderer)', '](./angular-start-with-renderer.md)');
+  }
+  if (outputName === 'react-install.md') {
+    result = result.replaceAll('](start-with-renderer)', '](./react-start-with-renderer.md)');
+  }
+  if (outputName === 'react-start-with-renderer.md') {
+    result = result.replaceAll('](install)', '](./react-install.md)');
   }
 
   return result;
@@ -212,7 +227,11 @@ try {
   await rewriteMarkdownFiles(path.join(guidesTmp, '.'), (content) =>
     content
       .replaceAll('](../guide/quick-start#按需引入)', '](./quick-start.md#按需引入)')
-      .replaceAll('](../../guide/angular/install#物料配置)', '](./angular-install.md#物料配置)'),
+      .replaceAll('](../../guide/angular/install#物料配置)', '](./angular-install.md#物料配置)')
+      .replaceAll('](../../guide/react/install#按需引入)', '](./react-install.md#按需引入)')
+      .replaceAll('](../../guide/react/install#物料配置)', '](./react-install.md#物料配置)')
+      // 组件页指向物料专页的链接，本地化到 skill 的 references/materials/
+      .replaceAll('](../materials/react-antd)', '](../materials/react-antd.md)'),
   );
 
   await rm(guidesTarget, { recursive: true, force: true });
