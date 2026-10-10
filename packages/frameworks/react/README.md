@@ -26,13 +26,26 @@ export function App({ schema }: { schema: unknown }) {
 }
 ```
 
+Generate standalone React TSX from SchemaJSON through the dedicated subpath:
+
+```ts
+import { generateCode } from '@opentiny/genui-sdk-react/code-generator';
+
+const { panelValue } = await generateCode({
+  pageInfo: { name: 'GeneratedCard', schema },
+  componentsMap,
+  formatWithPrettier: true,
+});
+```
+
 ## Documentation
 
-* [install](https://docs.opentiny.design/genui-sdk/guide/react/install)
-* [start-with-renderer](https://docs.opentiny.design/genui-sdk/guide/react/start-with-renderer)
+- [install](https://docs.opentiny.design/genui-sdk/guide/react/install)
+- [start-with-renderer](https://docs.opentiny.design/genui-sdk/guide/react/start-with-renderer)
 
 ## API
 
-* [GenuiRenderer](https://docs.opentiny.design/genui-sdk/components/react/renderer)
-* [GenuiConfigProvider](https://docs.opentiny.design/genui-sdk/components/react/config-provider)
-* [React Ant Design materials](https://docs.opentiny.design/genui-sdk/components/materials/react-antd)
+- [GenuiRenderer](https://docs.opentiny.design/genui-sdk/components/react/renderer)
+- [GenuiConfigProvider](https://docs.opentiny.design/genui-sdk/components/react/config-provider)
+- [generateCode](https://docs.opentiny.design/genui-sdk/components/react/code-generator)
+- [React Ant Design materials](https://docs.opentiny.design/genui-sdk/components/materials/react-antd)

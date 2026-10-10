@@ -8,17 +8,23 @@ Go to your project directory and install GenUI SDK and the official Ant Design m
 
 ::: tabs
 == npm
+
 ```bash
 npm install @opentiny/genui-sdk-react @opentiny/genui-sdk-materials-react-antd antd
 ```
+
 == pnpm
+
 ```bash
 pnpm add @opentiny/genui-sdk-react @opentiny/genui-sdk-materials-react-antd antd
 ```
+
 == yarn
+
 ```bash
 yarn add @opentiny/genui-sdk-react @opentiny/genui-sdk-materials-react-antd antd
 ```
+
 :::
 
 ## Import styles
@@ -51,14 +57,16 @@ export function App({ schema }: { schema: string | Record<string, unknown> }) {
 
 `@opentiny/genui-sdk-react` also provides feature-split subpath exports:
 
-| Subpath | Use case | Main exports |
-| --- | --- | --- |
-| `@opentiny/genui-sdk-react/renderer` | Renderer only | `GenuiRenderer` |
-| `@opentiny/genui-sdk-react/config-provider` | Materials container | `GenuiConfigProvider` |
+| Subpath                                     | Use case                | Main exports                                            |
+| ------------------------------------------- | ----------------------- | ------------------------------------------------------- |
+| `@opentiny/genui-sdk-react/renderer`        | Renderer only           | `GenuiRenderer`                                         |
+| `@opentiny/genui-sdk-react/config-provider` | Materials container     | `GenuiConfigProvider`                                   |
+| `@opentiny/genui-sdk-react/code-generator`  | SchemaJSON to React TSX | [`generateCode`](../../components/react/code-generator) |
 
 ```ts
 import { GenuiRenderer } from '@opentiny/genui-sdk-react/renderer';
 import { GenuiConfigProvider } from '@opentiny/genui-sdk-react/config-provider';
+import { generateCode } from '@opentiny/genui-sdk-react/code-generator';
 import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 ```
 
@@ -71,5 +79,6 @@ You can now use `GenuiRenderer` to render generative UI. See the [Renderer usage
 - See the [Renderer usage guide](start-with-renderer) to learn how to use `GenuiRenderer` with finer control
 - See the [Renderer component docs](../../components/react/renderer) for the full API
 - See the [GenuiConfigProvider docs](../../components/react/config-provider) for materials injection
+- See [generateCode](../../components/react/code-generator) for React TSX generation
 - See [feature examples](../../examples/react/renderer/custom-actions) for usage examples
 - See [React Ant Design materials](../../components/materials/react-antd) for materials exports
