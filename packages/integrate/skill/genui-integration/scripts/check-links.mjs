@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-// 校验 skill 内所有 markdown 的站内相对链接指向真实文件，且解析后仍落在
-// skillRoot 内（越界目标即使在本仓存在，也不会随安装后的 skill 一起分发）。
-// 由 `npm run build` 的 postbuild 钩子自动执行（生成物须先落盘），也可独立运行。
-// 外部 URL（http/https）、纯锚点、代码示例中的占位 URL 不在检查范围。
-
 import { readdir, readFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -25,9 +20,6 @@ async function collectMarkdownFiles(dir) {
   return files;
 }
 
-// 提取 markdown 链接的目标：
-// - inline：`[text](target)` 与 `[text](target "title")`
-// - 引用式定义：`[label]: target`（可带 `<target>` 与可选 title），由 `[text][label]` / `[text]` 使用
 function extractLinkTargets(content) {
   const targets = [];
   const linkPattern = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
@@ -35,7 +27,6 @@ function extractLinkTargets(content) {
   while ((match = linkPattern.exec(content)) !== null) {
     targets.push({ target: match[1], index: match.index });
   }
-  // 定义行目标可能被尖括号包裹（CommonMark 引用定义语法）
   const defPattern = /^\s{0,3}\[([^\]]+)\]:\s*(?:<([^>]*)>|(\S+))(?:\s+"[^"]*")?\s*$/gm;
   while ((match = defPattern.exec(content)) !== null) {
     const target = match[2] ?? match[3];
@@ -50,9 +41,6 @@ function lineOf(content, index) {
   return content.slice(0, index).split('\n').length;
 }
 
-// 将 fenced code 块（``` / ~~~）内容替换为等长空白，避免其中的
-// TypeScript 索引签名（`[key: string]: any;`）等被误判为链接或引用定义。
-// 替换保长，提取结果的字符偏移在原文中依然有效。
 function maskFencedCode(content) {
   const lines = content.split('\n');
   let inFence = false;
@@ -78,20 +66,15 @@ for (const file of markdownFiles) {
     if (target.startsWith('http://') || target.startsWith('https://') || target.startsWith('#')) {
       continue;
     }
-    // 代码示例中的占位后端地址等（如 <your-backend-api>）不是文档链接
     if (target.includes('<')) {
       continue;
     }
     const [linkPath, anchor] = target.split('#');
-    if (!linkPath) continue; // 纯锚点形式已被上方过滤，防御性跳过
+    if (!linkPath) continue;
 
     const resolved = path.resolve(path.dirname(file), linkPath);
-    // 包含性校验：解析结果必须落在 skillRoot 内。相对路径形式的字符串前缀比较
-    // （startsWith）可被 `../xxx` 与 `../skillRoot-named-dir` 等组合绕过，
-    // 必须用 path.relative 的结果判断：`..` 开头或为绝对路径（Windows 跨盘符）
-    // 均视为越界。越界目标即使在本仓存在，也不会随安装后的 skill 一起分发。
     const rel = path.relative(skillRoot, resolved);
-    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+    if (rel === '..' || rel.startsWith(`..${path.sep}`) || path.isAbsolute(rel)) {
       broken.push({ file, line: lineOf(content, index), target });
       continue;
     }
@@ -103,7 +86,7 @@ for (const file of markdownFiles) {
     } catch {
       broken.push({ file, line: lineOf(content, index), target });
     }
-    void anchor; // 锚点存在性不做校验（VitePress 中文锚点 slug 规则与 github 不同）
+    void anchor;
   }
 }
 
