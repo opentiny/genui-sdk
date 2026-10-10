@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-// 校验 skill 内所有 markdown 的站内相对链接指向真实文件。
+// 校验 skill 内所有 markdown 的站内相对链接指向真实文件，且解析后仍落在
+// skillRoot 内（越界目标即使在本仓存在，也不会随安装后的 skill 一起分发）。
 // 由 `npm run build` 的 postbuild 钩子自动执行（生成物须先落盘），也可独立运行。
 // 外部 URL（http/https）、纯锚点、代码示例中的占位 URL 不在检查范围。
 
@@ -85,6 +86,15 @@ for (const file of markdownFiles) {
     if (!linkPath) continue; // 纯锚点形式已被上方过滤，防御性跳过
 
     const resolved = path.resolve(path.dirname(file), linkPath);
+    // 包含性校验：解析结果必须落在 skillRoot 内。相对路径形式的字符串前缀比较
+    // （startsWith）可被 `../xxx` 与 `../skillRoot-named-dir` 等组合绕过，
+    // 必须用 path.relative 的结果判断：`..` 开头或为绝对路径（Windows 跨盘符）
+    // 均视为越界。越界目标即使在本仓存在，也不会随安装后的 skill 一起分发。
+    const rel = path.relative(skillRoot, resolved);
+    if (rel.startsWith('..') || path.isAbsolute(rel)) {
+      broken.push({ file, line: lineOf(content, index), target });
+      continue;
+    }
     try {
       const info = await stat(resolved);
       if (!info.isFile() && !info.isDirectory()) {
