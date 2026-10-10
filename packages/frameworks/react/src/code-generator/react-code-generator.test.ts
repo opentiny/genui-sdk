@@ -255,4 +255,82 @@ describe('ReactCodeGenerator', () => {
     expect(result.panelValue).toMatch(/<AntForm>\s+<AntFormItem label="Name">\s+<AntInput \/>/);
     expect(result.panelValue).not.toContain('<AntForm><AntFormItem');
   });
+
+  it('emits JSX expressions for attribute strings with quotes, backslashes or line breaks', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        schema: {
+          componentName: 'Page',
+          children: [
+            {
+              componentName: 'AntInput',
+              props: {
+                placeholder: 'Say "hi"',
+                title: 'line1\nline2',
+                label: 'C:\\temp',
+              },
+            },
+          ],
+        },
+      },
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.panelValue).toContain('placeholder={\'Say "hi"\'}');
+    expect(result.panelValue).toContain("title={'line1\\nline2'}");
+    expect(result.panelValue).toContain("label={'C:\\\\temp'}");
+    expect(result.panelValue).not.toContain('placeholder="Say \\"hi\\""');
+  });
+
+  it('keeps commas inside state string literals intact', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        schema: {
+          componentName: 'Page',
+          state: { greeting: 'Hello, world' },
+          children: [],
+        },
+      },
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.panelValue).toContain("greeting: 'Hello, world'");
+    expect(result.panelValue).toMatch(/useState\(\(\) => \(\{\n\s+greeting: 'Hello, world'\n\s+\}\)\)/);
+  });
+
+  it('keeps computed state keys as computed member access', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        schema: {
+          componentName: 'Page',
+          state: { items: [0] },
+          methods: {
+            add: { type: 'JSFunction', value: 'function add(index) { this.state.items[index] += 1; }' },
+          },
+          children: [],
+        },
+      },
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.panelValue).toContain('setIn(prev, ["items", index], prev["items"][index] + 1)');
+    expect(result.panelValue).not.toContain('prev["items"].index');
+  });
+
+  it('falls back to unscoped css and reports an error when schema css is malformed', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        name: 'broken-card',
+        schema: {
+          componentName: 'Page',
+          css: '.card { color: red;',
+          children: [{ componentName: 'div', props: { className: 'card' } }],
+        },
+      },
+    });
+
+    expect(result.errors).toHaveLength(1);
+    expect(result.errors[0].message).toContain('Failed to scope page css');
+    expect(result.panelValue).toContain('.card { color: red;');
+  });
 });

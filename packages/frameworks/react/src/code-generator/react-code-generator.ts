@@ -253,6 +253,9 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
       }
       if (key === 'style') {
         attributes.push(`style={${this.serializeValue(parseInlineStyle(rawValue), meta)}}`);
+      } else if (/["\\\r\n]/.test(rawValue)) {
+        // JSX 属性字符串不支持反斜杠转义，含引号、反斜杠或换行时改用表达式写法。
+        attributes.push(`${key}={${quoteString(rawValue)}}`);
       } else {
         attributes.push(`${key}=${JSON.stringify(rawValue)}`);
       }
@@ -363,8 +366,10 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
         : `(${this.replaceContext(getter, meta)})()`;
       accessorLines.push(`const ${name} = ${getterExpression}`);
     }
-    const serialized = this.serializeValue(state, meta);
-    const formatted = serialized.replace(/^\{ /, '{\n  ').replace(/ \}$/, '\n}').replace(/, /g, ',\n  ');
+    const entries = Object.entries(state).map(
+      ([key, value]) => `${isIdentifier(key) ? key : JSON.stringify(key)}: ${this.serializeValue(value, meta)}`,
+    );
+    const formatted = entries.length ? `{\n  ${entries.join(',\n  ')}\n}` : '{}';
     return {
       statement: `const [state, setState] = useState(() => (${formatted}))`,
       accessors: accessorLines.join('\n'),
@@ -488,33 +493,46 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
     return lines.join('\n');
   }
 
-  protected scopeCss(css: string, scopeId: string): string {
+  protected scopeCss(css: string, scopeId: string, errors: { message: string }[] = []): string {
     if (!css.trim()) return '';
-    const root = postcss.parse(css);
-    root.walkRules((rule) => {
-      if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
-      rule.selector = selectorParser((selectors) => {
-        selectors.each((selector) => {
-          let target: selectorParser.Node | undefined;
-          selector.each((node) => {
-            if (node.type !== 'pseudo' && node.type !== 'combinator') target = node;
+    try {
+      const root = postcss.parse(css);
+      root.walkRules((rule) => {
+        if (rule.parent?.type === 'atrule' && /keyframes$/i.test(rule.parent.name)) return;
+        rule.selector = selectorParser((selectors) => {
+          selectors.each((selector) => {
+            let target: selectorParser.Node | undefined;
+            selector.each((node) => {
+              if (node.type !== 'pseudo' && node.type !== 'combinator') target = node;
+            });
+            const attribute = selectorParser.attribute({
+              attribute: 'data-genui-scope',
+              operator: '=',
+              value: scopeId,
+              raws: {},
+              quoteMark: '"',
+            });
+            if (target) selector.insertAfter(target as never, attribute);
+            else selector.prepend(attribute);
           });
-          const attribute = selectorParser.attribute({
-            attribute: 'data-genui-scope',
-            operator: '=',
-            value: scopeId,
-            raws: {},
-            quoteMark: '"',
-          });
-          if (target) selector.insertAfter(target as never, attribute);
-          else selector.prepend(attribute);
-        });
-      }).processSync(rule.selector);
-    });
-    return root.toString();
+        }).processSync(rule.selector);
+      });
+      return root.toString();
+    } catch (error) {
+      // 非法 CSS 不能让 generate() 直接 reject，回退为未加作用域的原始样式并上报错误。
+      errors.push({
+        message: `Failed to scope page css: ${error instanceof Error ? error.message : String(error)}`,
+      });
+      return css;
+    }
   }
 
-  protected buildReactSource(schema: CardSchema, name: string, componentsMap: IComponentMapItem[]): string {
+  protected buildReactSource(
+    schema: CardSchema,
+    name: string,
+    componentsMap: IComponentMapItem[],
+    errors: { message: string }[] = [],
+  ): string {
     const componentName = this.toComponentName(name);
     const scopeId = schema.css ? this.toScopeId(name) : undefined;
     const meta = this.createCodegenMeta(scopeId);
@@ -528,7 +546,7 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
     const methods = this.buildMethods(schema, meta);
     const lifeCycles = this.buildLifeCycles(schema, meta);
     const callAction = this.buildCallAction(meta);
-    const scopedCss = schema.css && scopeId ? this.scopeCss(schema.css, scopeId) : '';
+    const scopedCss = schema.css && scopeId ? this.scopeCss(schema.css, scopeId, errors) : '';
     const returnValue = scopedCss
       ? `<>
   <style>{${JSON.stringify(scopedCss)}}</style>
@@ -576,9 +594,10 @@ ${indent(returnValue, 4)}
     const name = pageInfo.name || 'SchemaCard';
     const schema = JSON.parse(JSON.stringify(this.normalizeIncomingSchema(pageInfo.schema))) as CardSchema;
     const normalizedComponentsMap = this.normalizeComponentsMap(componentsMap);
-    const source = this.buildReactSource(schema, name, normalizedComponentsMap);
+    const errors: { message: string }[] = [];
+    const source = this.buildReactSource(schema, name, normalizedComponentsMap, errors);
     const panelName = `${name}.tsx`;
-    const errors = this.enableCompileValidation ? validateByCompile(panelName, source) : [];
+    if (this.enableCompileValidation) errors.push(...validateByCompile(panelName, source));
     return {
       panelName,
       panelValue: formatWithPrettier ? await this.formatWithPrettier(source) : source,

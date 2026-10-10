@@ -2,7 +2,7 @@
 
 React `generateCode` converts SchemaJSON into an editable, standalone React TSX component. The generated source uses material components, React state, event handlers, and JSX directly; it does not depend on `GenuiRenderer` at runtime.
 
-Import it from `@opentiny/genui-sdk-react/code-generator` when code generation is all you need. The main `@opentiny/genui-sdk-react` entry also re-exports the API.
+When you only need code generation, import from `@opentiny/genui-sdk-react/code-generator`. The main entry `@opentiny/genui-sdk-react` also re-exports this API.
 
 ## Basic Usage
 
@@ -70,14 +70,14 @@ This is equivalent to `new ReactCodeGenerator().generate(params)`. TSX compile v
 
 ### Result
 
-| Field          | Type                      | Description                                                 |
-| -------------- | ------------------------- | ----------------------------------------------------------- |
-| `panelName`    | `string`                  | File name, such as `SchemaCard.tsx`                         |
-| `panelValue`   | `string`                  | React TSX source                                            |
-| `panelType`    | `'react'`                 | Always React                                                |
-| `type`         | `'page'`                  | Always a page                                               |
-| `prettierOpts` | `Record<string, unknown>` | Prettier options used for this run                          |
-| `errors`       | `{ message: string }[]`   | Babel TSX validation errors; empty when validation succeeds |
+| Field          | Type                      | Description                                                                               |
+| -------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
+| `panelName`    | `string`                  | File name, such as `SchemaCard.tsx`                                                       |
+| `panelValue`   | `string`                  | React TSX source                                                                          |
+| `panelType`    | `'react'`                 | Always React                                                                              |
+| `type`         | `'page'`                  | Always a page                                                                             |
+| `prettierOpts` | `Record<string, unknown>` | Prettier options used for this run                                                        |
+| `errors`       | `{ message: string }[]`   | Validation errors (TSX compile validation, schema CSS parsing); empty when there are none |
 
 ## IComponentMapItem
 
@@ -121,7 +121,7 @@ The generator handles these semantics:
 - `loop` becomes `Array.map`, `condition` becomes a conditional expression, and `JSSlot` becomes a render prop.
 - Schema prop definitions become a TypeScript Props interface and default values.
 - `lifeCycles.onMounted` and `onUnmounted` become `useEffect` behavior.
-- Schema `css` is emitted in an inline `<style>` element with a page-level selector scope.
+- Schema `css` is emitted in an inline `<style>` element with a page-level selector scope; when the CSS cannot be parsed it falls back to the original unscoped styles and reports the failure in `errors`.
 - `this.callAction` is retained as an integration function with a runtime reminder in the exported source.
 
 ::: warning Validation boundary

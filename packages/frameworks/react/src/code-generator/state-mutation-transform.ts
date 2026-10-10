@@ -44,7 +44,8 @@ function pathToArray(path: any[]): any {
 function buildPathAccess(path: any[]): any {
   return path.reduce((result, key) => {
     const cloned = t.cloneNode(key, true);
-    return t.memberExpression(result, cloned, !t.isIdentifier(cloned));
+    // 路径元素可能是字符串字面量或计算属性标识符，统一使用计算访问，避免 [i] 被当作 .i。
+    return t.memberExpression(result, cloned, true);
   }, t.identifier('prev'));
 }
 

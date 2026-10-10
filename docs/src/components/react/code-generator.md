@@ -2,7 +2,7 @@
 
 React `generateCode` 将 SchemaJSON 转换为可独立编辑的 React TSX 组件。生成结果直接使用物料组件、React state、事件函数和 JSX，不依赖运行时 `GenuiRenderer`。
 
-仅使用代码生成时，可从 `@opentiny/genui-sdk-react/code-generator` 按需引入。主入口 `@opentiny/genui-sdk-react` 也会导出该能力。
+仅使用代码生成时，可从 `@opentiny/genui-sdk-react/code-generator` 按需引入。主入口 `@opentiny/genui-sdk-react` 同样会再导出该能力。
 
 ## 基本用法
 
@@ -70,14 +70,14 @@ function generateCode(params: ICodeGeneratorParams): Promise<ICodeGeneratorResul
 
 ### 返回值
 
-| 字段           | 类型                      | 说明                                     |
-| -------------- | ------------------------- | ---------------------------------------- |
-| `panelName`    | `string`                  | 文件名，如 `SchemaCard.tsx`              |
-| `panelValue`   | `string`                  | React TSX 源码                           |
-| `panelType`    | `'react'`                 | 固定为 React                             |
-| `type`         | `'page'`                  | 固定为页面                               |
-| `prettierOpts` | `Record<string, unknown>` | 本次使用的 Prettier 配置                 |
-| `errors`       | `{ message: string }[]`   | Babel TSX 编译校验错误；无错误时为空数组 |
+| 字段           | 类型                      | 说明                                                            |
+| -------------- | ------------------------- | --------------------------------------------------------------- |
+| `panelName`    | `string`                  | 文件名，如 `SchemaCard.tsx`                                     |
+| `panelValue`   | `string`                  | React TSX 源码                                                  |
+| `panelType`    | `'react'`                 | 固定为 React                                                    |
+| `type`         | `'page'`                  | 固定为页面                                                      |
+| `prettierOpts` | `Record<string, unknown>` | 本次使用的 Prettier 配置                                        |
+| `errors`       | `{ message: string }[]`   | 校验错误列表（TSX 编译校验、Schema CSS 解析）；无错误时为空数组 |
 
 ## IComponentMapItem
 
@@ -121,7 +121,7 @@ const result = await generator.generate({
 - `loop` 转为 `Array.map`，`condition` 转为条件表达式，`JSSlot` 转为 render prop。
 - Schema 的 props 定义转为 TypeScript Props 接口和默认值。
 - `lifeCycles.onMounted` / `onUnmounted` 转为 `useEffect`。
-- Schema `css` 写入组件内 `<style>`，并加页面级选择器作用域。
+- Schema `css` 写入组件内 `<style>`，并加页面级选择器作用域；CSS 无法解析时回退为未加作用域的原始样式，并在 `errors` 中给出提示。
 - `this.callAction` 会保留为待接入函数，并在导出代码中给出运行时提示。
 
 ::: warning 校验边界
