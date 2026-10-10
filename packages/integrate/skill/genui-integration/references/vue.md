@@ -54,8 +54,6 @@ for await (const line of readSseLines(response.body)) {
 
 ## 兼容组件
 
-## 兼容组件
-
 v1.3.0 起物料与核心解耦：`GenuiChat` 不再包含组件物料，需使用 `GenuiConfigProvider` 注入（见上文模式 1）。
 
 从更早版本升级且希望零配置迁移时，可使用 `GenuiLegacyChat`——内置 OpenTiny 默认物料，无需 `GenuiConfigProvider`：
@@ -69,7 +67,7 @@ v1.3.0 起物料与核心解耦：`GenuiChat` 不再包含组件物料，需使�
 import { ref } from 'vue';
 import { GenuiLegacyChat as GenuiChat } from '@opentiny/genui-sdk-vue';
 
-const chatRef = ref<InstanceType<typeof GenuiLegacyChat> | null>(null);
+const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 function sendMessage() {
   chatRef.value?.setInputMessage('你好');
@@ -77,7 +75,7 @@ function sendMessage() {
 </script>
 ```
 
-其余 Props、Slots、Methods 与 `GenuiChat` 一致（见[组件文档](https://docs.opentiny.design/genui-sdk/components/chat)）。Legacy 组件仅用于旧项目迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
+其余 Props、Slots、Methods 与 `GenuiChat` 一致（见[组件 API 文档](./guides/component-chat.md)）。Legacy 组件仅用于旧项目迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
 
 ## 常见问题
 

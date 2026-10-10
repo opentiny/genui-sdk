@@ -5,7 +5,6 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const skillRoot = path.resolve(__dirname, '..');
 const docsRoot = path.resolve(skillRoot, '../../../../docs/src');
-const DOCS_COMPONENTS_BASE = 'https://docs.opentiny.design/genui-sdk/components';
 
 const docsExamples = path.join(docsRoot, 'examples');
 const examplesTarget = path.join(skillRoot, 'examples');
@@ -21,6 +20,11 @@ const docsGuides = [
   { source: path.join(docsRoot, 'guide/angular/install.md'), output: 'angular-install.md' },
   { source: path.join(docsRoot, 'guide/angular/start-with-renderer.md'), output: 'angular-start-with-renderer.md' },
   { source: path.join(docsRoot, 'components/core/api.md'), output: 'core-api.md' },
+  { source: path.join(docsRoot, 'components/chat.md'), output: 'component-chat.md' },
+  { source: path.join(docsRoot, 'components/renderer.md'), output: 'component-renderer.md' },
+  { source: path.join(docsRoot, 'components/code-generator.md'), output: 'component-code-generator.md' },
+  { source: path.join(docsRoot, 'components/angular/renderer.md'), output: 'component-angular-renderer.md' },
+  { source: path.join(docsRoot, 'components/angular/config-provider.md'), output: 'component-angular-config-provider.md' },
 ];
 const guidesTarget = path.join(skillRoot, 'references/guides');
 
@@ -82,9 +86,9 @@ function cleanVitePressSyntax(content) {
       continue;
     }
 
-    if (line.startsWith('::: tip')) {
+    if (/^:::\s+(?:tip|warning)/.test(line)) {
       inTip = true;
-      const title = line.replace(/^:::\s*tip\s*/, '').trim();
+      const title = line.replace(/^:::\s+(?:tip|warning)\s*/, '').trim();
       cleaned.push(`> **${title || '提示'}**`);
       continue;
     }
@@ -107,20 +111,21 @@ function cleanVitePressSyntax(content) {
     .replace(/^\!\[[^\]]*\]\([^)]*\/public\/[^)]+\)\s*$/gm, '');
 }
 
-// guide 内指向本仓其他 docs 页面的链接重写：
+// guide 与组件 API 页内容构建时从 docs 同步。链接重写：
 // - Legacy 兼容说明已内联进 references/vue.md 与 references/angular.md
-// - examples 与 guides 位于同一相对深度（../../examples）
-// - 组件完整 API 页未 vendor，保留在线绝对 URL
+// - examples 与 guides 位于同一相对深度（../../examples / 相邻 ./component-*.md）
+// - 组件 API 页已全部 vendor（component-*.md），互链本地化
 function rewriteGuideLinks(content, outputName) {
   let result = content
     .replaceAll('](../components/chat#兼容组件-genuilegacychat)', '](../vue.md#兼容组件)')
     .replaceAll('](../components/renderer#兼容组件-genuilegacyrenderer)', '](../vue.md#兼容组件)')
     .replaceAll('](../../components/angular/renderer#兼容组件-genuilegacyrenderer)', '](../angular.md#兼容组件)')
-    .replaceAll('](../components/chat)', `](${DOCS_COMPONENTS_BASE}/chat)`)
-    .replaceAll('](../components/renderer)', `](${DOCS_COMPONENTS_BASE}/renderer)`)
-    .replaceAll('](../components/code-generator)', `](${DOCS_COMPONENTS_BASE}/code-generator)`)
-    .replaceAll('](../../components/angular/config-provider#notify)', `](${DOCS_COMPONENTS_BASE}/angular/config-provider#notify)`)
-    .replaceAll('](../../components/angular/renderer)', `](${DOCS_COMPONENTS_BASE}/angular/renderer)`)
+    // 组件 API 页间互链（docs 内 ../components/x → skill 内 ./component-x.md）
+    .replaceAll('](../components/chat)', '](./component-chat.md)')
+    .replaceAll('](../components/renderer)', '](./component-renderer.md)')
+    .replaceAll('](../components/code-generator)', '](./component-code-generator.md)')
+    .replaceAll('](../../components/angular/config-provider#notify)', '](./component-angular-config-provider.md#notify)')
+    .replaceAll('](../../components/angular/renderer)', '](./component-angular-renderer.md)')
     .replaceAll(/(\]\((?:\.\.\/)+examples\/([^)#]+))(?:#[^)]*)?\)/g, '](../../examples/$2.md)')
     .replaceAll(/^\!\[[^\]]*\]\([^)]*\/public\/[^)]+\)\s*$/gm, '');
 
@@ -203,11 +208,17 @@ try {
       : rewriteGuideLinks(cleanVitePressSyntax(raw), guide.output);
     await writeFile(path.join(guidesTmp, guide.output), content);
   }
+  // 组件 API 页额外清理：docs 内指向 guide 的相对链接（如快速开始按需引入）本地化
+  await rewriteMarkdownFiles(path.join(guidesTmp, '.'), (content) =>
+    content
+      .replaceAll('](../guide/quick-start#按需引入)', '](./quick-start.md#按需引入)')
+      .replaceAll('](../../guide/angular/install#物料配置)', '](./angular-install.md#物料配置)'),
+  );
 
   await rm(guidesTarget, { recursive: true, force: true });
   await rename(guidesTmp, guidesTarget);
 
-  console.log(`Copied ${docsGuides.length} guides from ${DOCS_GUIDES_ROOT} to ${guidesTarget}`);
+  console.log(`Copied ${docsGuides.length} guides & component pages from ${DOCS_GUIDES_ROOT} to ${guidesTarget}`);
 } catch (error) {
   await rm(guidesTmp, { recursive: true, force: true });
   throw error;

@@ -104,8 +104,6 @@ export class GenuiExample {
 
 ## 兼容组件
 
-## 兼容组件
-
 v1.3.0 起须通过 `GenuiConfigProvider` 注入物料。从更早版本升级且希望零配置迁移时，可使用 `GenuiLegacyRenderer`——内置 OpenTiny NG 默认物料，无需额外安装物料包：
 
 ```ts
@@ -132,7 +130,7 @@ export class GenuiExample {
 }
 ```
 
-其余 Input、输出与 `GenuiRenderer` 一致（见[组件文档](https://docs.opentiny.design/genui-sdk/components/angular/renderer)）。Legacy 组件仅用于旧项目迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
+其余 Input、输出与 `GenuiRenderer` 一致（见[组件 API 文档](./guides/component-angular-renderer.md)）。Legacy 组件仅用于旧项目迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
 
 ## 与 Vue 的主要区别
 

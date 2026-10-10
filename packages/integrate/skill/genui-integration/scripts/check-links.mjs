@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // 校验 skill 内所有 markdown 的站内相对链接指向真实文件。
-// 先运行 `npm run build` 生成同步内容，再运行本脚本。
+// 由 `npm run build` 的 postbuild 钩子自动执行（生成物须先落盘），也可独立运行。
 // 外部 URL（http/https）、纯锚点、代码示例中的占位 URL 不在检查范围。
 
 import { readdir, readFile, stat } from 'node:fs/promises';
@@ -24,13 +24,23 @@ async function collectMarkdownFiles(dir) {
   return files;
 }
 
-// 提取 inline 与引用式 markdown 链接的目标（`[](target)` 与 `[](target "title")`）
+// 提取 markdown 链接的目标：
+// - inline：`[text](target)` 与 `[text](target "title")`
+// - 引用式定义：`[label]: target`（可带 `<target>` 与可选 title），由 `[text][label]` / `[text]` 使用
 function extractLinkTargets(content) {
   const targets = [];
   const linkPattern = /\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
   let match;
   while ((match = linkPattern.exec(content)) !== null) {
     targets.push({ target: match[1], index: match.index });
+  }
+  // 定义行目标可能被尖括号包裹（CommonMark 引用定义语法）
+  const defPattern = /^\s{0,3}\[([^\]]+)\]:\s*(?:<([^>]*)>|(\S+))(?:\s+"[^"]*")?\s*$/gm;
+  while ((match = defPattern.exec(content)) !== null) {
+    const target = match[2] ?? match[3];
+    if (target) {
+      targets.push({ target, index: match.index });
+    }
   }
   return targets;
 }
@@ -39,12 +49,31 @@ function lineOf(content, index) {
   return content.slice(0, index).split('\n').length;
 }
 
+// 将 fenced code 块（``` / ~~~）内容替换为等长空白，避免其中的
+// TypeScript 索引签名（`[key: string]: any;`）等被误判为链接或引用定义。
+// 替换保长，提取结果的字符偏移在原文中依然有效。
+function maskFencedCode(content) {
+  const lines = content.split('\n');
+  let inFence = false;
+  return lines
+    .map((line) => {
+      const fence = line.match(/^\s{0,3}(```|~~~)/);
+      if (fence) {
+        inFence = !inFence;
+        return line;
+      }
+      return inFence ? ' '.repeat(line.length) : line;
+    })
+    .join('\n');
+}
+
 const markdownFiles = await collectMarkdownFiles(skillRoot);
 const broken = [];
 
 for (const file of markdownFiles) {
   const content = await readFile(file, 'utf8');
-  for (const { target, index } of extractLinkTargets(content)) {
+  const masked = maskFencedCode(content);
+  for (const { target, index } of extractLinkTargets(masked)) {
     if (target.startsWith('http://') || target.startsWith('https://') || target.startsWith('#')) {
       continue;
     }

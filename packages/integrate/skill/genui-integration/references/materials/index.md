@@ -31,5 +31,3 @@ GenUI SDK 自 v1.3.0 起将核心 SDK 与 UI 物料解耦，需通过 `GenuiConf
 - Vue Element Plus：[vue-element-plus.md](./vue-element-plus.md)
 - Angular OpenTiny NG：[angular-opentiny-ng.md](./angular-opentiny-ng.md)
 - React Ant Design：[react-antd.md](./react-antd.md)
-
-在线版：https://docs.opentiny.design/genui-sdk/components/materials/

@@ -15,6 +15,7 @@
   },
   "scripts": {
     "build": "node scripts/copy-from-docs.mjs",
+    "postbuild": "node scripts/check-links.mjs",
     "prepack": "npm run build"
   },
   "keywords": [
