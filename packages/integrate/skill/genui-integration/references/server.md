@@ -235,6 +235,9 @@ data: [DONE]
 **framework**: 渲染器配置的前端框架
 - `"Vue"` - 生成 Vue 兼容的 schema
 - `"Angular"` - 生成 Angular 兼容的 schema
+- `"React"` - 生成 React 兼容的 schema
+
+> 注意：服务端按 framework 取默认物料元数据时，`Vue` → OpenTiny Vue、`Angular` → OpenTiny Angular；`React` 须由集成方显式传入 React Ant Design 物料包的 `materialsMeta`（`@opentiny/genui-sdk-materials-react-antd/meta`），否则回落到 Vue 默认物料，生成的 schema 组件名与 React 物料不匹配。
 
 **strategy**: 提示词合并策略
 - `"append"` - 追加到现有系统消息 (默认)
@@ -356,8 +359,6 @@ const customActions = [
   },
 ];
 ```
-
-**安全提示（openPage）**：服务端 `customActions` metadata 只描述 action 能力，**不能**替代前端校验。LLM 传入的 URL 不可信，前端 `execute` 必须校验协议（仅 `http`/`https`）与 origin（同源或白名单），跨域或 `_blank` 导航使用 `noopener,noreferrer`，拒绝未授权目标。实现参考 `references/angular.md` 中的 `openAllowedPage`。建议在 `description` 中明确可导航范围，降低模型生成越权 URL 的概率。
 
 ### 完整请求示例
 
