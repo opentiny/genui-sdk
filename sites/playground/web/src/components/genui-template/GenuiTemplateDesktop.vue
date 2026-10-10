@@ -67,7 +67,13 @@ const {
   highlight: inspectHighlight,
   onMouseMove: handleRendererMouseMove,
   onMouseLeave: handleRendererMouseLeave,
+  onMouseDown: handleRendererMouseDown,
+  onMouseUp: handleRendererMouseUp,
   onClick: handleRendererInspectClick,
+  onDoubleClick: handleRendererDoubleClick,
+  onPointerDown: handleRendererPointerDown,
+  onPointerUp: handleRendererPointerUp,
+  onKeyDown: handleRendererKeyDown,
 } = useSchemaRendererInspect({
   isDevMode,
   schema: rendererSchema,
@@ -125,7 +131,13 @@ const {
             ]"
             @mousemove="handleRendererMouseMove"
             @mouseleave="handleRendererMouseLeave"
+            @mousedown.capture="handleRendererMouseDown"
+            @mouseup.capture="handleRendererMouseUp"
             @click.capture="handleRendererInspectClick"
+            @dblclick.capture="handleRendererDoubleClick"
+            @pointerdown.capture="handleRendererPointerDown"
+            @pointerup.capture="handleRendererPointerUp"
+            @keydown.capture="handleRendererKeyDown"
           >
             <schema-renderer
               :key="rendererSchemaKey"
