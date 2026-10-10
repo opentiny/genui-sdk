@@ -113,8 +113,8 @@ export function useSchemaRendererInspect(options: {
   };
 
   // 拦截模板组件自身的交互事件：stopPropagation 挡住组件内部监听器，preventDefault 挡默认行为
-  // （如 checkbox 选中、链接跳转、Tab 聚焦）。pointerdown 例外：preventDefault 会阻止浏览器
-  // 合成 mousedown，导致选点逻辑失效，因此默认不 preventDefault。
+  // （如 checkbox 选中、链接跳转）。pointerdown 例外：preventDefault 会阻止浏览器合成 mousedown，
+  // 导致选点逻辑失效，因此默认不 preventDefault；Tab 例外：保留默认聚焦行为以便移出渲染器。
   const blockInteraction = (event: Event, shouldPreventDefault = true) => {
     if (!isInspectCaptureTarget(event.target)) {
       return;
@@ -129,7 +129,7 @@ export function useSchemaRendererInspect(options: {
   const onClick = (event: MouseEvent) => blockInteraction(event);
   const onDoubleClick = (event: MouseEvent) => blockInteraction(event);
   const onPointerUp = (event: PointerEvent) => blockInteraction(event);
-  const onKeyDown = (event: KeyboardEvent) => blockInteraction(event);
+  const onKeyDown = (event: KeyboardEvent) => blockInteraction(event, event.key !== 'Tab');
   const onPointerDown = (event: PointerEvent) => blockInteraction(event, false);
 
   const syncHighlight = () => {
