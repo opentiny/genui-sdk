@@ -37,49 +37,32 @@ const patternExtractor = new PatternExtractor({
 
 ## 自定义动作
 
-定义可由生成式 UI 触发的动作。LLM 控制的 URL 不可信——打开链接前须配置 origin 白名单（与 Angular 指南的 `openAllowedPage` 模式一致）：
+定义可由生成式 UI 触发的动作。
 
 ```tsx
-const ALLOWED_NAVIGATION_ORIGINS = [
-  'https://opentiny.design',
-  'https://docs.opentiny.design',
-];
-
-function resolveAllowedNavigationUrl(rawUrl: unknown): URL | null {
-  if (typeof rawUrl !== 'string' || !rawUrl.trim()) return null;
-  let parsed: URL;
-  try {
-    parsed = new URL(rawUrl, window.location.origin);
-  } catch {
-    return null;
-  }
-  if (!['http:', 'https:'].includes(parsed.protocol)) return null;
-  const sameOrigin = parsed.origin === window.location.origin;
-  const allowlisted = ALLOWED_NAVIGATION_ORIGINS.includes(parsed.origin);
-  return sameOrigin || allowlisted ? parsed : null;
-}
-
-function openAllowedPage(rawUrl: unknown, rawTarget: unknown = '_self'): void {
-  const url = resolveAllowedNavigationUrl(rawUrl);
-  if (!url) {
-    console.warn('[openPage] blocked disallowed navigation target:', rawUrl);
-    return;
-  }
-  const target = rawTarget === '_blank' ? '_blank' : '_self';
-  const crossOrigin = url.origin !== window.location.origin;
-  if (target === '_blank' || crossOrigin) {
-    window.open(url.href, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  window.location.assign(url.href);
-}
-
 import { GenuiRenderer } from '@opentiny/genui-sdk-react';
 
 const customActions = {
   openPage: {
-    execute: (params: { url?: string; target?: string }) => {
-      openAllowedPage(params.url, params.target);
+    name: 'openPage',
+    description: '打开新页面',
+    execute: (params: { url: string; target?: string }) => {
+      const { url, target = '_self' } = params;
+      window.open(url, target);
+    },
+    parameters: {
+      type: 'object',
+      properties: {
+        url: {
+          type: 'string',
+          description: '要打开的页面地址',
+        },
+        target: {
+          type: 'string',
+          description: '打开方式，可选值：_self（当前窗口）、_blank（新窗口）',
+        },
+      },
+      required: ['url', 'target'],
     },
   },
 };

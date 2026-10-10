@@ -31,43 +31,9 @@ Angular 21 起框架推荐 zoneless 变更检测，并以 `animate.enter` / `ani
 
 ## 自定义动作
 
-定义可由生成式 UI 触发的动作。LLM 控制的 URL 不可信——打开链接前须配置 origin 白名单。
+定义可由生成式 UI 触发的动作。
 
 ```typescript
-const ALLOWED_NAVIGATION_ORIGINS = [
-  'https://opentiny.design',
-  'https://docs.opentiny.design',
-];
-
-function resolveAllowedNavigationUrl(rawUrl: unknown): URL | null {
-  if (typeof rawUrl !== 'string' || !rawUrl.trim()) return null;
-  let parsed: URL;
-  try {
-    parsed = new URL(rawUrl, window.location.origin);
-  } catch {
-    return null;
-  }
-  if (!['http:', 'https:'].includes(parsed.protocol)) return null;
-  const sameOrigin = parsed.origin === window.location.origin;
-  const allowlisted = ALLOWED_NAVIGATION_ORIGINS.includes(parsed.origin);
-  return sameOrigin || allowlisted ? parsed : null;
-}
-
-function openAllowedPage(rawUrl: unknown, rawTarget: unknown = '_self'): void {
-  const url = resolveAllowedNavigationUrl(rawUrl);
-  if (!url) {
-    console.warn('[openPage] blocked disallowed navigation target:', rawUrl);
-    return;
-  }
-  const target = rawTarget === '_blank' ? '_blank' : '_self';
-  const crossOrigin = url.origin !== window.location.origin;
-  if (target === '_blank' || crossOrigin) {
-    window.open(url.href, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  window.location.assign(url.href);
-}
-
 import { Component } from '@angular/core';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
@@ -89,8 +55,8 @@ export class GenuiExample {
   
   customActions = {
     'openPage': {
-      execute: (params: { url?: string; target?: string }) => {
-        openAllowedPage(params.url, params.target);
+      execute: (params: any, context: any) => {
+        window.open(params.url, params.target || '_self');
       },
     },
     'showNotification': {
