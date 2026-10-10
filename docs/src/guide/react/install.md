@@ -7,17 +7,23 @@
 进入项目目录并安装 GenUI SDK 与官方 Ant Design 物料包：
 ::: tabs
 == npm
+
 ```bash
 npm install @opentiny/genui-sdk-react @opentiny/genui-sdk-materials-react-antd antd
 ```
+
 == pnpm
+
 ```bash
 pnpm add @opentiny/genui-sdk-react @opentiny/genui-sdk-materials-react-antd antd
 ```
+
 == yarn
+
 ```bash
 yarn add @opentiny/genui-sdk-react @opentiny/genui-sdk-materials-react-antd antd
 ```
+
 :::
 
 ## 引入样式
@@ -50,14 +56,16 @@ export function App({ schema }: { schema: string | Record<string, unknown> }) {
 
 `@opentiny/genui-sdk-react` 除主入口外，还提供按功能拆分的子路径导出：
 
-| 子路径 | 适用场景 | 主要导出内容 |
-| --- | --- | --- |
-| `@opentiny/genui-sdk-react/renderer` | 仅需渲染器 | `GenuiRenderer` |
-| `@opentiny/genui-sdk-react/config-provider` | 物料配置容器 | `GenuiConfigProvider` |
+| 子路径                                      | 适用场景                     | 主要导出内容                                            |
+| ------------------------------------------- | ---------------------------- | ------------------------------------------------------- |
+| `@opentiny/genui-sdk-react/renderer`        | 仅需渲染器                   | `GenuiRenderer`                                         |
+| `@opentiny/genui-sdk-react/config-provider` | 物料配置容器                 | `GenuiConfigProvider`                                   |
+| `@opentiny/genui-sdk-react/code-generator`  | 将 SchemaJSON 转为 React TSX | [`generateCode`](../../components/react/code-generator) |
 
 ```ts
 import { GenuiRenderer } from '@opentiny/genui-sdk-react/renderer';
 import { GenuiConfigProvider } from '@opentiny/genui-sdk-react/config-provider';
+import { generateCode } from '@opentiny/genui-sdk-react/code-generator';
 import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 ```
 
@@ -70,5 +78,6 @@ import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 - 查看 [Renderer 使用指南](start-with-renderer) 了解如何使用 `GenuiRenderer` 进行更精细的控制
 - 查看 [Renderer 组件文档](../../components/react/renderer) 了解详细的 API
 - 查看 [GenuiConfigProvider 组件文档](../../components/react/config-provider) 了解物料注入
+- 查看 [generateCode](../../components/react/code-generator) 了解 React TSX 出码
 - 查看 [特性示例](../../examples/react/renderer/custom-actions) 学习用法示例
 - 查看 [React Ant Design 物料包](../../components/materials/react-antd) 了解物料导出
