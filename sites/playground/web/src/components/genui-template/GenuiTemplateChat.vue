@@ -285,9 +285,15 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
   if (!draft) {
     return;
   }
-  const items: UserItem[] = draft.items.length
-    ? draft.items
-    : [{ type: 'text', content: inputMessage.value }];
+  // 去掉空文本项：TrSender 对「空 text + template」边界会把空 text 复制一份，导致重复 key 警告
+  let items = draft.items.filter((item) => item.type !== 'text' || Boolean(item.content));
+  if (
+    !items.some((item) => item.type === 'text') &&
+    !items.some((item) => item.type === 'template') &&
+    inputMessage.value
+  ) {
+    items = [{ type: 'text', content: inputMessage.value }, ...items];
+  }
   const id = generateId();
   selectedNodeMap.set(id, node);
   draft.items = [...items, { type: 'template', content: node.componentName, id }];
