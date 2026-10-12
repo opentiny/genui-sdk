@@ -70,6 +70,8 @@ export class RendererMain implements OnDestroy {
   scope: Record<string, any> = {};
   cssScopeId: string = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
+  /** Mirrors React pageInitSignature — full setSchema (clear state) only when this changes. */
+  private pageInitSignature = '';
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
   /**
    * Nested block renderer: schema DI parent is EnvironmentInjector, not the outer
@@ -127,7 +129,8 @@ export class RendererMain implements OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['schema']) {
-      this.setSchema(changes['schema'].currentValue);
+      const currentValue = changes['schema'].currentValue;
+      this.setSchemaWithPageSignature(currentValue ?? {});
     }
     if (changes['props']) {
       this.setContext({ props: changes['props'].currentValue });
@@ -233,6 +236,34 @@ export class RendererMain implements OnDestroy {
     });
   }
 
+  private async setSchemaWithPageSignature(currentValue: any) {
+    const pageInitSignature =
+      currentValue && Object.keys(currentValue).length
+        ? JSON.stringify({
+            state: currentValue.state,
+            methods: currentValue.methods,
+            refs: currentValue.refs,
+            css: currentValue.css,
+            lifeCycles: currentValue.lifeCycles,
+          })
+        : '';
+    if (pageInitSignature !== this.pageInitSignature) {
+      this.pageInitSignature = pageInitSignature;
+      this.setSchema(currentValue ?? {});
+    } else {
+      const tree = JSON.parse(JSON.stringify(currentValue ?? {}));
+      delete tree.lifeCycles;
+      delete tree.state;
+      delete tree.methods;
+      delete tree.refs;
+      delete tree.css;
+      Object.assign(this.pageSchema, tree);
+      this.ngZone.run(() => {
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
   private async setSchema(data: any) {
     if (!data || !Object.keys(data).length) {
       return;
@@ -280,7 +311,7 @@ export class RendererMain implements OnDestroy {
   public detectChanges() {
     this.ngZone.run(() => {
       // 外部强行触发需要找ngZone空间里执行
-      this.setSchema(this.schema);
+      this.setSchemaWithPageSignature(this.schema);
     });
   }
 }
