@@ -59,6 +59,12 @@ type RowDefDifferHost = {
 const DECLARED_COLUMNS = Symbol('genuiDeclaredColumns');
 const READY_COLUMNS_KEY = Symbol('genuiReadyColumnsKey');
 const STAMPED_TEMPLATES = Symbol('genuiStampedTemplates');
+/** Force clear+recreate stamps (skip TemplateRef-identity early return). */
+const FORCE_STAMP = Symbol('genuiForceStamp');
+/** After ready columns change / sparse cells, remount stamps across DoCheck frames so
+ *  late matCellDef schema children (e.g. Text under position) can land. */
+const STAMP_SETTLE_FRAMES = Symbol('genuiStampSettleFrames');
+const STAMP_SETTLE_BUDGET = 64;
 const ROW_HOST_SELECTOR = [
   'tr[mat-header-row]',
   'tr[mat-row]',
@@ -205,8 +211,43 @@ function stampedTemplatesMatch(
   return true;
 }
 
+function viewLooksEmpty(view: EmbeddedViewRef<object>): boolean {
+  for (const node of view.rootNodes) {
+    if (!node) {
+      continue;
+    }
+    if (node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim()) {
+      return false;
+    }
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const el = node as HTMLElement;
+      if ((el.innerText ?? '').trim() || el.querySelector('img,svg,input,button,a')) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
+function outletHasSparseStamps(cellOutlet: CellOutletHost | null): boolean {
+  if (!cellOutlet) {
+    return true;
+  }
+  const vc = cellOutlet._viewContainer;
+  if (!vc.length) {
+    return true;
+  }
+  for (let i = 0; i < vc.length; i++) {
+    const view = vc.get(i) as EmbeddedViewRef<object> | null;
+    if (!view || viewLooksEmpty(view)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function stampCellsIntoOutlet(
-  table: MatTableRenderHost,
+  table: MatTableRenderHost & { [STAMP_SETTLE_FRAMES]?: number; [FORCE_STAMP]?: boolean },
   rowDef: unknown,
   context: object,
   cellOutlet: CellOutletHost | null,
@@ -222,10 +263,19 @@ function stampCellsIntoOutlet(
   }
   const outlet = cellOutlet as CellOutletHost & { [STAMPED_TEMPLATES]?: unknown[] };
   const vc = outlet._viewContainer;
-  // Same length is not enough: streaming can replace matHeaderCellDef / matCellDef
-  // TemplateRefs in place while fingerprint trackBy keeps the row view alive.
-  if (vc.length === templates.length && stampedTemplatesMatch(outlet, templates)) {
+  const force = !!table[FORCE_STAMP] || (table[STAMP_SETTLE_FRAMES] ?? 0) > 0;
+  const templatesMatch = stampedTemplatesMatch(outlet, templates);
+  // Same TemplateRef identity + length can still be stale: column becomes "ready" as
+  // soon as matCellDef TemplateRef exists, while td/Text under it may still be streaming.
+  // Force/settle always remount; otherwise skip when refs match.
+  if (!force && vc.length === templates.length && templatesMatch) {
+    for (let i = 0; i < vc.length; i++) {
+      (vc.get(i) as EmbeddedViewRef<object> | null)?.detectChanges();
+    }
     return;
+  }
+  if (!templatesMatch && vc.length > 0) {
+    table[STAMP_SETTLE_FRAMES] = STAMP_SETTLE_BUDGET;
   }
   vc.clear();
   for (const cellTemplate of templates) {
@@ -253,12 +303,67 @@ function restampOutletRows(
   }
 }
 
+type SchemaMatTableHost = MatTableRenderHost & {
+  [READY_COLUMNS_KEY]?: string;
+  [STAMP_SETTLE_FRAMES]?: number;
+  [FORCE_STAMP]?: boolean;
+};
+
+/**
+ * Remount cell stamps on every CD while settling. Settle is driven by DoCheck
+ * (not only `_render`) so late Text under the last column still gets picked up
+ * after ContentChildren stop dirtying the table.
+ */
+function schemaMatTableDoCheck(table: SchemaMatTableHost): void {
+  const rowDef = table._rowDefs?.[0];
+  const headerDef = table._headerRowDefs?.[0];
+  if (!rowDef && !headerDef) {
+    return;
+  }
+  const rowVc = table._rowOutlet?.viewContainer;
+  let sparse = false;
+  if (rowVc?.length && rowDef) {
+    for (let i = 0; i < rowVc.length; i++) {
+      const view = rowVc.get(i) as EmbeddedViewRef<object> | null;
+      if (outletHasSparseStamps(cellOutletForRowView(view))) {
+        sparse = true;
+        break;
+      }
+    }
+  }
+  if (sparse) {
+    table[STAMP_SETTLE_FRAMES] = Math.max(table[STAMP_SETTLE_FRAMES] ?? 0, STAMP_SETTLE_BUDGET);
+  }
+  if ((table[STAMP_SETTLE_FRAMES] ?? 0) <= 0) {
+    return;
+  }
+  table[FORCE_STAMP] = true;
+  try {
+    restampOutletRows(table, table._rowOutlet, rowDef);
+    restampOutletRows(table, table._headerRowOutlet, headerDef);
+    restampOutletRows(table, table._footerRowOutlet, table._footerRowDefs?.[0]);
+  } finally {
+    table[FORCE_STAMP] = false;
+  }
+  table[STAMP_SETTLE_FRAMES]! -= 1;
+}
+
 export class SchemaMatTable<T = unknown> extends MatTable<T> {}
 
 const tableProto = SchemaMatTable.prototype as any;
 const officialTable = MatTable.prototype as any;
 
-tableProto._render = function (this: MatTableRenderHost & { [READY_COLUMNS_KEY]?: string }): void {
+// Hook AfterContentChecked (MatTable already has it) so settle remounts run every CD
+// even when nested schema under TemplateRef does not dirty ContentChildren / `_render`.
+const officialAfterContentChecked = officialTable.ngAfterContentChecked as
+  | ((this: unknown) => void)
+  | undefined;
+tableProto.ngAfterContentChecked = function (this: SchemaMatTableHost): void {
+  officialAfterContentChecked?.call(this);
+  schemaMatTableDoCheck(this);
+};
+
+tableProto._render = function (this: SchemaMatTableHost): void {
   this._cacheRowDefs();
   this._cacheColumnDefs();
   const ready = readyColumnIds(this);
@@ -283,10 +388,18 @@ tableProto._render = function (this: MatTableRenderHost & { [READY_COLUMNS_KEY]?
     return;
   }
   const needRestamp = columnsGrew || renderedColumnsChanged;
-  // Always attempt stamp: no-ops when length + TemplateRef identity match.
-  restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
-  restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
-  restampOutletRows(this, this._footerRowOutlet, this._footerRowDefs[0]);
+  if (needRestamp) {
+    this[STAMP_SETTLE_FRAMES] = STAMP_SETTLE_BUDGET;
+  }
+  // Always attempt stamp: remounts when settle/force; otherwise no-ops when refs match.
+  this[FORCE_STAMP] = needRestamp || (this[STAMP_SETTLE_FRAMES] ?? 0) > 0;
+  try {
+    restampOutletRows(this, this._rowOutlet, this._rowDefs[0]);
+    restampOutletRows(this, this._headerRowOutlet, this._headerRowDefs[0]);
+    restampOutletRows(this, this._footerRowOutlet, this._footerRowDefs[0]);
+  } finally {
+    this[FORCE_STAMP] = false;
+  }
   const headerVc = this._headerRowOutlet?.viewContainer;
   const headerMissing =
     ready.length > 0 &&
