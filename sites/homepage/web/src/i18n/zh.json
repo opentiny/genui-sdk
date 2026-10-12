@@ -78,7 +78,7 @@
     "subtitle": "提供强大的渲染组件和开箱即用的对话组件",
     "devDoc": "开发文档",
     "skill": {
-      "title": "一句话， 开启你的GenUIn项目",
+      "title": "一句话， 开启你的GenUI项目",
       "description": "借助Agent提效开发流程，将繁杂的安装、配置与初始化步骤化为一句话，轻松开启GenUI应用开发。",
       "prompt": "安装并使用 @opentiny/genui-sdk-integration-skill，为我初始化一个基于Vue3的GenUI SDK快速开始项目，并接入 @opentiny/genui-sdk-materials-vue-opentiny-vue物料。完成后，请启动项目并验证运行结果。",
       "copyPrompt": "复制提示词",
