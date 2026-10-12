@@ -148,6 +148,13 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   private _componentParentInjector: Injector | undefined = undefined;
 
   private bindProps: Record<string, any> = {};
+  /**
+   * Signature of bindProps keys that were registered as input/output bindings at create.
+   * `inputBinding` is fixed at createComponent time — if this set grows/shrinks later
+   * (streaming schema), the instance must be recreated so the new keys get bindings.
+   */
+  private boundPropKeysSig: string | null = null;
+
   private get schemaRefBridge(): SchemaRefBridge | undefined {
    // Lazy: SchemaRefDirective ↔ ComponentOutlet would cycle if injected in field initializers.
     return this.injector?.get(SCHEMA_REF_BRIDGE, undefined);
@@ -173,6 +180,14 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
     return changes['ngComponentOutletDirectiveModules'] !== undefined;
   }
 
+  /** True when bindProps gained/lost keys that map to component/directive inputs or outputs. */
+  private _needToReCreateForBindPropKeys(): boolean {
+    if (!this._componentRef || this.boundPropKeysSig == null) {
+      return false;
+    }
+    return this.boundPropKeysSig !== this.computeBindPropKeysSig(this.bindProps);
+  }
+
   private _needToReCreateComponentInstance(changes: SimpleChanges): boolean {
     // Note: square brackets property accessor is safe for Closure compiler optimizations (the
     // `changes` argument of the `ngOnChanges` lifecycle hook retains the names of the fields that
@@ -184,7 +199,8 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
       changes['ngComponentOutletEnvironmentInjector'] !== undefined ||
       this._needToReCreateNgModuleInstance(changes) ||
       this._needToReCreateDirectivesInstance(changes) ||
-      this._needToReCreateDirectiveModulesInstance(changes)
+      this._needToReCreateDirectiveModulesInstance(changes) ||
+      this._needToReCreateForBindPropKeys()
     );
   }
 
@@ -192,13 +208,13 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['ngComponentOutletProps']) {
       this.bindProps = changes['ngComponentOutletProps'].currentValue ?? {};
-      this._componentRef?.changeDetectorRef.markForCheck();
     }
     if (this._needToReCreateComponentInstance(changes)) {
       this.schemaRefBridge?.detach();
       this._viewContainerRef.clear();
       this._componentRef = undefined;
       this._componentInjector = undefined;
+      this.boundPropKeysSig = null;
 
       if (changes['ngComponentOutletInjector']) {
         this._componentParentInjector = undefined;
@@ -242,6 +258,7 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
           bindings: this.getComponentBindings(this.ngComponentOutlet),
         });
         this._componentInjector = this._componentRef.injector;
+        this.boundPropKeysSig = this.computeBindPropKeysSig(this.bindProps);
         markSchemaHostNode(this._componentRef.location.nativeElement);
         this.schemaRefBridge?.attach(this._componentRef);
         this.injector
@@ -253,7 +270,51 @@ export class ComponentOutlet<T = any> implements OnChanges, OnDestroy {
         this._moduleRef?.destroy();
         this._moduleRef = undefined;
       }
+    } else if (changes['ngComponentOutletProps']) {
+      // Same binding keys — refresh values through existing inputBinding getters.
+      this._componentRef?.changeDetectorRef.markForCheck();
     }
+  }
+
+  /**
+   * Keys in `props` that would be registered as createComponent input/output bindings.
+   * Class/style/attrs that are not @Input/@Output are ignored.
+   */
+  private computeBindPropKeysSig(props: Record<string, any>): string {
+    const keys = new Set<string>();
+    const component = this.ngComponentOutlet;
+    if (component && 'ɵcmp' in component) {
+      const def = (component as any)['ɵcmp'];
+      for (const inputKey of Object.keys(def.inputs ?? {})) {
+        if (!isSchemaRefPropKey(inputKey) && inputKey in props) {
+          keys.add(`i:${inputKey}`);
+        }
+      }
+      for (const outputKey of Object.keys(def.outputs ?? {})) {
+        const onEventName = toOnEventName(outputKey);
+        if (onEventName in props) {
+          keys.add(`o:${onEventName}`);
+        }
+      }
+    }
+    for (const directive of this.ngComponentOutletDirectives ?? []) {
+      if (!directive || !('ɵdir' in directive)) {
+        continue;
+      }
+      const def = (directive as any)['ɵdir'];
+      for (const inputKey of Object.keys(def.inputs ?? {})) {
+        if (inputKey in props) {
+          keys.add(`di:${inputKey}`);
+        }
+      }
+      for (const outputKey of Object.keys(def.outputs ?? {})) {
+        const onEventName = toOnEventName(outputKey);
+        if (onEventName in props) {
+          keys.add(`do:${onEventName}`);
+        }
+      }
+    }
+    return [...keys].sort().join('|');
   }
 
   /** @docs-private */
