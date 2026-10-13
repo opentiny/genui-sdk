@@ -24,6 +24,10 @@ export class AttrAndEventDirective implements AfterViewInit, DoCheck, OnDestroy 
 
   private boundHost: HTMLElement | null = null;
   private boundEvents: Record<string, any> = {};
+  /** Class tokens last applied from schema — removed on update / disappearance. */
+  private ownedClassTokens = new Set<string>();
+  /** Style property names last applied from schema object form. */
+  private ownedStyleProps = new Set<string>();
 
   /**
    * Host of the created outlet only. Do not fall back to `parent.firstElementChild` —
@@ -60,16 +64,31 @@ export class AttrAndEventDirective implements AfterViewInit, DoCheck, OnDestroy 
 
   ngDoCheck() {
     const host = this.renderHostElement;
-    if (host && host !== this.boundHost) {
-      this.updateAttrs();
-      this.rebindEvents();
+    if (host === this.boundHost) {
+      return;
     }
+    // Host gone (destroyed / comment): drop listeners; do not leave boundHost stale.
+    if (!host) {
+      this.clearEventsFrom(this.boundHost, this.boundEvents);
+      this.boundHost = null;
+      this.boundEvents = {};
+      this.ownedClassTokens.clear();
+      this.ownedStyleProps.clear();
+      return;
+    }
+    // Replacement host: owned tokens belong to the previous element.
+    this.ownedClassTokens.clear();
+    this.ownedStyleProps.clear();
+    this.updateAttrs();
+    this.rebindEvents();
   }
 
   ngOnDestroy() {
     this.clearEventsFrom(this.boundHost, this.boundEvents);
     this.boundHost = null;
     this.boundEvents = {};
+    this.ownedClassTokens.clear();
+    this.ownedStyleProps.clear();
   }
 
   updateAttrs() {
@@ -104,31 +123,85 @@ export class AttrAndEventDirective implements AfterViewInit, DoCheck, OnDestroy 
       typeof value === 'string'
         ? value.split(/\s+/).filter(Boolean)
         : Array.isArray(value)
-          ? value.map(String)
+          ? value.map(String).filter(Boolean)
           : [];
-    for (const token of tokens) {
+    const next = new Set(tokens);
+    for (const token of this.ownedClassTokens) {
+      if (!next.has(token)) {
+        el.classList.remove(token);
+      }
+    }
+    for (const token of next) {
       el.classList.add(token);
     }
+    this.ownedClassTokens = next;
   }
 
   private applyStyle(el: HTMLElement, value: unknown) {
     if (typeof value === 'string') {
+      this.clearOwnedStyleProps(el);
       el.style.cssText = value;
       return;
     }
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      Object.assign(el.style, value as Record<string, string>);
+      const next = value as Record<string, string>;
+      const nextKeys = new Set(Object.keys(next));
+      for (const prop of this.ownedStyleProps) {
+        if (!nextKeys.has(prop)) {
+          this.removeStyleProp(el, prop);
+        }
+      }
+      for (const [name, val] of Object.entries(next)) {
+        if (name.startsWith('--')) {
+          el.style.setProperty(name, val ?? '');
+        } else {
+          (el.style as any)[name] = val;
+        }
+      }
+      this.ownedStyleProps = nextKeys;
     }
   }
+
+  private clearOwnedStyleProps(el: HTMLElement) {
+    for (const prop of this.ownedStyleProps) {
+      this.removeStyleProp(el, prop);
+    }
+    this.ownedStyleProps.clear();
+  }
+
+  private removeStyleProp(el: HTMLElement, prop: string) {
+    if (prop.startsWith('--')) {
+      el.style.removeProperty(prop);
+      return;
+    }
+    el.style.removeProperty(prop.replace(/[A-Z]/g, (m) => `-${m.toLowerCase()}`));
+    (el.style as any)[prop] = '';
+  }
+
   clearAttrs(oldAttrs: Record<string, any>) {
-    if (!this.renderHostElement?.removeAttribute) {
+    const el = this.renderHostElement;
+    if (!el?.removeAttribute) {
       return;
     }
     Object.entries(oldAttrs)
       .filter(([attr, value]) => value !== null)
-      .forEach(([attr, value]) => {
-        if (this.renderHostElement?.hasAttribute(attr) && (this.attrs[attr] === null || this.attrs[attr] === undefined)) {
-          this.renderHostElement.removeAttribute(attr);
+      .forEach(([attr]) => {
+        if (this.attrs[attr] !== null && this.attrs[attr] !== undefined) {
+          return;
+        }
+        if (attr === 'class' || attr === 'className') {
+          for (const token of this.ownedClassTokens) {
+            el.classList.remove(token);
+          }
+          this.ownedClassTokens.clear();
+          return;
+        }
+        if (attr === 'style') {
+          this.clearOwnedStyleProps(el);
+          return;
+        }
+        if (el.hasAttribute(attr)) {
+          el.removeAttribute(attr);
         }
       });
   }
