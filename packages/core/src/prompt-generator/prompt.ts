@@ -8,6 +8,7 @@ import { genJsonSchema, genJsonSchemaPrompt } from './json-schema';
 import { promptPrefix, skillPromptPrefix } from './prefix';
 import { genRulesPrompt } from './rules';
 import { genSnippetsPrompt, type IGenPromptSnippet } from './snippet';
+import { genUtilsPrompt } from './utils';
 
 export type { IGenPromptAction } from './action';
 export type { IGenPromptComponent } from './component';
@@ -46,7 +47,7 @@ function buildPromptSections(
   tgCustomConfig: IGenPromptCustomConfig | undefined,
   options?: IGenPromptOptions,
 ) {
-  const { materials, examples, whiteList, wrapperComponent, rules: materialRules } = materialsMeta;
+  const { materials, examples, whiteList, wrapperComponent, rules: materialRules, utils } = materialsMeta;
   const { customComponents, customSnippets, customExamples, customActions } = tgCustomConfig || {};
   const includeJsonSchema = options?.includeJsonSchema ?? true;
   const includeSnippets = options?.includeSnippets ?? true;
@@ -63,6 +64,7 @@ function buildPromptSections(
     includeExamples ? genExamplesPrompt(examples.concat(customExamples || []), wrapperComponent) : null,
     includeSnippets ? genSnippetsPrompt(materials, extendWhiteList, customSnippets || []) : null,
     includeAboutThis ? aboutThis.trim() : null,
+    genUtilsPrompt(utils),
     includeActions ? genCustomActionsPrompt(customActions || []) : null,
     genRulesPrompt(tgCustomConfig, wrapperComponent, { ...options, rules }),
   ].filter(Boolean);

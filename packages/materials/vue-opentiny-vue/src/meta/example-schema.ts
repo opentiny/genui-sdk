@@ -3,10 +3,12 @@ import formSchema from './examples/form.json' with { type: 'json' };
 import infoCardSchema from './examples/info.json' with { type: 'json' };
 import gridSchema from './examples/grid.json' with { type: 'json' };
 import tabsSchema from './examples/tabs.json' with { type: 'json' };
+import utilsSchema from './examples/utils.json' with { type: 'json' };
 
 export const examples = [
   { id: 'form', name: '双向绑定的表单', schema: formSchema },
   { id: 'info', name: '信息展示卡片', schema: infoCardSchema },
   { id: 'grid', name: '表格卡片', schema: gridSchema },
   { id: 'tabs', name: 'Tabs卡片', schema: tabsSchema },
+  { id: 'utils', name: '工具函数（utils）用法', schema: utilsSchema },
 ] as IExample[];

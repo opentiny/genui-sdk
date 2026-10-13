@@ -1,5 +1,6 @@
 import { parseData, handleScopedCss } from './engine';
 import { getPageLifeCycleFns, type LifeCycles } from './life-cycles';
+import { getMaterials } from './materials';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
@@ -51,7 +52,9 @@ export function setRefs(data: Record<string, unknown> | undefined, contextApi: P
 
 export function setSchema(schema: CardSchema, contextApi: PageContextApi) {
   const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
-  contextApi.setContext({ state: {}, refs: {}, cssScopeId }, true);
+  const materials = getMaterials(contextApi.getContext());
+  // 将物料包注册的工具函数注入上下文，JSFunction / JSExpression 中通过 this.utils.xxx 调用
+  contextApi.setContext({ state: {}, refs: {}, cssScopeId, utils: materials?.utils ?? {} }, true);
 
   setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
   setState(schema.state as Record<string, unknown> | undefined, contextApi, true);

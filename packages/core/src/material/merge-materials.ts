@@ -1,12 +1,13 @@
 import type { IMaterials, MergedMaterials } from './materials';
 import type { MaterialsThemeFactory } from './materials-theme';
 
-const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory'];
+const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory', 'utils'];
 
 export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
   const requiredCompleteFieldSelectors: string[] = [];
   const defaultPropsMap: Record<string, any> = {};
+  const utils: Record<string, unknown> = {};
   const themes: MaterialsThemeFactory[] = [];
   const seenThemes = new Set<MaterialsThemeFactory>();
   const extra: Record<string, unknown> = {};
@@ -22,6 +23,7 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     Object.assign(defaultPropsMap, src.defaultPropsMap ?? {});
+    Object.assign(utils, src.utils ?? {});
     if (src.themeFactory) {
       const factories = Array.isArray(src.themeFactory) ? src.themeFactory : [src.themeFactory];
       for (const factory of factories) {
@@ -42,6 +44,7 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
     components,
     requiredCompleteFieldSelectors,
     defaultPropsMap,
+    utils,
     ...extra,
   };
 

@@ -1,0 +1,118 @@
+{
+  "state": {
+    "amount": 12345.678,
+    "date": "2026-09-21 14:30:00",
+    "user": {
+      "name": "张三",
+      "dept": {
+        "name": "研发部"
+      }
+    },
+    "formattedAmount": {
+      "type": "JSExpression",
+      "value": "this.utils.formatMoney(this.state.amount, 2)"
+    },
+    "formattedDate": {
+      "type": "JSExpression",
+      "value": "this.utils.formatDate(this.state.date, 'YYYY年MM月DD日 HH:mm')"
+    },
+    "nextMonthDate": {
+      "type": "JSExpression",
+      "value": "this.utils.dayjs(this.state.date).add(1, 'month').format('YYYY-MM-DD')"
+    },
+    "deptName": {
+      "type": "JSExpression",
+      "value": "this.utils.get(this.state.user, 'dept.name', '未知部门')"
+    },
+    "copied": false
+  },
+  "methods": {
+    "onCopy": {
+      "type": "JSFunction",
+      "value": "function onCopy() { this.utils.debounce(() => { this.state.copied = true }, 300)() }"
+    }
+  },
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TinyCard",
+      "children": [
+        {
+          "componentName": "h3",
+          "children": "工具函数（utils）示例"
+        },
+        {
+          "componentName": "p",
+          "children": "格式化金额："
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.formattedAmount"
+            }
+          }
+        },
+        {
+          "componentName": "p",
+          "children": "格式化日期："
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.formattedDate"
+            }
+          }
+        },
+        {
+          "componentName": "p",
+          "children": "下个月日期（dayjs）："
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.nextMonthDate"
+            }
+          }
+        },
+        {
+          "componentName": "p",
+          "children": "安全读取对象属性（get）："
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.deptName"
+            }
+          }
+        },
+        {
+          "componentName": "TinyButton",
+          "props": {
+            "text": "防抖复制（debounce）",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "function onClick() { this.onCopy() }"
+            }
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.copied ? '已复制' : ''"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
