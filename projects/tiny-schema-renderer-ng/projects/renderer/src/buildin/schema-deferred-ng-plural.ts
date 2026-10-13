@@ -30,7 +30,11 @@ export class SchemaDeferredNgPlural extends NgPlural {
     if (this.caseCount === 0) {
       return;
     }
-    super.ngPlural = value;
+    try {
+      super.ngPlural = value;
+    } catch {
+      // Categories still registering — later addCase / flushQueued will retry.
+    }
   }
 
   override addCase(value: string, switchView: unknown): void {
