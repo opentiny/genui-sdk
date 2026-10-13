@@ -1,15 +1,15 @@
-import SchemaCardRenderer from '../renderer/SchemaCardRenderer.ce.vue';
+import GenuiRenderer from '../renderer/GenuiRenderer.ce.vue';
 import { defineCustomElement } from 'vue';
 
 export { parseBooleanAttribute, parseJsonAttribute } from './parse-attribute';
 
-export const SchemaCardRendererElement = defineCustomElement(SchemaCardRenderer);
+export const GenuiRendererElement = defineCustomElement(GenuiRenderer);
 
-export function registerSchemaCardRenderer(tagName = 'genui-renderer') {
+export function registerGenuiRenderer(tagName = 'genui-renderer') {
   if (typeof customElements === 'undefined') return;
   if (!customElements.get(tagName)) {
     try {
-      customElements.define(tagName, SchemaCardRendererElement);
+      customElements.define(tagName, GenuiRendererElement);
     } catch (error) {
       console.error(`Failed to define custom element ${tagName}:`, error);
     }
@@ -17,5 +17,5 @@ export function registerSchemaCardRenderer(tagName = 'genui-renderer') {
 }
 
 if (typeof window !== 'undefined') {
-  registerSchemaCardRenderer();
+  registerGenuiRenderer();
 }

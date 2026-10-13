@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const outputPath = join(__dirname, '../output/web-component/genui-renderer.js');
+const outputPath = join(__dirname, '../dist/web-component/genui-renderer.js');
 
 if (!existsSync(outputPath)) {
   console.error(`Build output not found: ${outputPath}`);

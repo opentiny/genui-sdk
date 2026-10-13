@@ -23,7 +23,8 @@ export default defineConfig({
       formats: ['es'],
       fileName: 'genui-renderer',
     },
-    outDir: path.resolve(__dirname, './output/web-component'),
+    outDir: path.resolve(__dirname, './dist/web-component'),
+    emptyOutDir: true,
     sourcemap: false,
     // Web Component 需要将所有依赖打包进去
     rollupOptions: {
