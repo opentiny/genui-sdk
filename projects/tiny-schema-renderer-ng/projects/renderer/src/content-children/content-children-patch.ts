@@ -1026,6 +1026,19 @@ function patchIdentity(value: unknown): string {
   return String(id);
 }
 
+/** Identity for host-directive query field values (QueryList / array / scalar). */
+function hostDirFieldIdentity(value: unknown): string {
+  if (value == null) {
+    return '';
+  }
+  const items = Array.isArray(value)
+    ? value
+    : typeof (value as { toArray?: () => unknown[] }).toArray === 'function'
+      ? (value as { toArray: () => unknown[] }).toArray()
+      : [value];
+  return items.map(patchIdentity).join(',');
+}
+
 function queryResultsFingerprint(targets: ContentQueryPatchTarget[]): string {
   return targets
     .map((target) => {
@@ -1216,8 +1229,10 @@ function contentQueryFieldNames(contentQueries: Function): { names: string[]; fi
   const src = Function.prototype.toString.call(contentQueries);
   const firstProps = ivyCtxProps(src, IVY_ASSIGN_FIRST_RE);
   const assignProps = ivyCtxProps(src, IVY_ASSIGN_RE);
+  // Prefer the full assignment list (declaration order). `first` props alone would drop
+  // multi-result `@ContentChildren` fields when mixed with `@ContentChild` on the same class.
   return {
-    names: firstProps.length ? firstProps : assignProps,
+    names: assignProps.length ? assignProps : firstProps,
     firstOnly: new Set(firstProps),
   };
 }
@@ -1347,7 +1362,9 @@ function collectQueryDefsFromLView(instance: object, ctor: Type<unknown>): HostD
       results.push({
         propertyName,
         predicate,
-        firstOnly: fields.firstOnly.has(propertyName) || fields.firstOnly.size > 0,
+        // Per-query: only fields assigned via `_t.first` are firstOnly. Do not
+        // promote every query just because the class also has a ContentChild.
+        firstOnly: fields.firstOnly.has(propertyName),
         descendants: !!(flags & QUERY_FLAG_DESCENDANTS),
       });
     }
@@ -1543,13 +1560,7 @@ export function patchOutletContentQueries(
       collectDirectiveQueryDefs(c.constructor as Type<unknown>, c)
         .map((q) => {
           const v = (c as Record<string, unknown>)[q.propertyName];
-          const label =
-            v == null
-              ? ''
-              : Array.isArray(v)
-                ? v.map((x) => (x as object)?.constructor?.name ?? String(x)).join(',')
-                : ((v as object)?.constructor?.name ?? String(v));
-          return `${q.propertyName}:${label}`;
+          return `${q.propertyName}:${hostDirFieldIdentity(v)}`;
         })
         .join(','),
     )
