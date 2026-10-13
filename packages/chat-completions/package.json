@@ -38,7 +38,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "vite build"
+    "build": "vite build",
+    "test": "node --test src/__tests__/request-transform.spec.ts"
   },
   "dependencies": {
     "@opentiny/genui-sdk-core": "workspace:*",
