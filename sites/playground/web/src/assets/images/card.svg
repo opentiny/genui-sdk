@@ -1,25 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-  <rect width="40" height="40" x="0" y="0"></rect>
-  <g>
-    <rect width="40" height="40" x="0" y="0"></rect>
-    <g>
-      <rect width="33.333328" height="33.333328" x="3.333435" y="2.333496"></rect>
-      <g>
-        <path
-          d="M25.8334 2.3335L34.5834 11.0835L27.7381 11.0835C26.6862 11.0835 25.8334 10.2307 25.8334 9.17873L25.8334 2.3335L25.8334 2.3335Z"
-          fill="rgb(199,201,254)" fill-rule="evenodd"></path>
-        <path
-          d="M25.9567 2.3335L25.9417 9.17456C25.9394 10.2265 26.7903 11.0812 27.8423 11.0835L34.6875 11.0835L34.6875 34.3335C34.6875 36.1744 33.1952 37.6668 31.3542 37.6668L8.85421 37.6668C7.01326 37.6668 5.52087 36.1744 5.52087 34.3335L5.52087 5.66683C5.52087 3.82588 7.01326 2.3335 8.85421 2.3335L25.9567 2.3335L25.95677 2.3335Z"
-          fill="rgb(116,121,244)" fill-rule="evenodd"></path>
-        <g>
-          <rect width="15.625001" height="1.666666" x="12.187561" y="17.541992"
-            rx="0.833333" fill="rgb(255,255,255)"></rect>
-          <rect width="15.625001" height="1.666666" x="12.187561" y="22.541992"
-            rx="0.833333" fill="rgb(255,255,255)"></rect>
-          <rect width="9.479167" height="1.666666" x="12.187561" y="27.541992"
-            rx="0.833333" fill="rgb(255,255,255)"></rect>
-        </g>
-      </g>
-    </g>
-  </g>
+<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+  <rect id="card-editor" x="0.0" y="0.0" width="40" height="40" fill="rgb(255,255,255)" fill-opacity="0.0" />
+  <path id="card-editor-path" d="M25 3L34 12L26.9592 12C25.8772 12 25 11.1228 25 10.0408L25 3L25 3Z"
+    fill="rgb(188,222,255)" fill-rule="evenodd" />
+  <path id="card-editor-path-2"
+    d="M25.0181 3L25.0037 10.1305C25.0015 11.1428 25.8184 11.9652 26.8283 11.9674L34 11.9674L34 33.7924C34 35.5639 32.5639 37 30.8 37L9.2 37C7.43269 37 6 35.5639 6 33.7924L6 6.20755C6 4.43607 7.43269 3 9.2 3L25.0181 3L25.0181 3Z"
+    fill="rgb(34,144,255)" fill-rule="evenodd" />
+  <path id="card-editor-path-3" d="M12 24L26 24" stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" />
+  <path id="card-editor-path-3" d="M12 19L26 19" stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" />
+  <path id="card-editor-path-4" d="M12 29L21 29" stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" />
 </svg>

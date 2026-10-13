@@ -7,15 +7,15 @@
 :::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
 ```
 ::::
 
@@ -29,97 +29,48 @@ import {
   type ChatCompletionRequest,
   type ChatCompletionStreamResponse,
 } from '@opentiny/tiny-robot-kit';
+import { PatternExtractor, type IChatMessage } from '@opentiny/genui-sdk-core';
 import { reactive } from 'vue';
-import type { IChatMessage } from '@opentiny/genui-sdk-vue';
 
-// 简化的 Schema 流式处理逻辑（只处理 schema-card 和 markdown）
+function appendMarkdown(content: string, chatMessage: IChatMessage) {
+  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
+  if (lastMessage?.type === 'markdown') {
+    lastMessage.content += content;
+  } else {
+    chatMessage.messages.push({ type: 'markdown', content });
+  }
+}
+
+function appendSchemaCard(content: string, chatMessage: IChatMessage) {
+  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
+  if (lastMessage?.type === 'schema-card') {
+    lastMessage.content += content;
+  } else {
+    chatMessage.messages.push({ type: 'schema-card', content });
+  }
+}
+
+// 用 PatternExtractor 拆分 markdown 与 schemaJson（默认 SchemaJsonPattern）
 function useSchemaStream() {
-  let inSchemaStream = false;
-  let bufferText = '';
+  let chatMessageRef: IChatMessage | null = null;
 
-  const schemaFlag = '```schemaJson';
-  const endFlag = '```';
+  const patternExtractor = new PatternExtractor({
+    onNormalWrite: (value) => {
+      if (!chatMessageRef) return;
+      chatMessageRef.content += value;
+      appendMarkdown(value, chatMessageRef);
+    },
+    onHandledWrite: (value) => {
+      if (!chatMessageRef) return;
+      chatMessageRef.content += value;
+      appendSchemaCard(value, chatMessageRef);
+    },
+  });
 
-  const isSchemaJsonStart = (str: string): boolean => {
-    const index = str.indexOf('`');
-    if (index === -1) return false;
-    return schemaFlag.startsWith(str.substring(index, index + schemaFlag.length));
-  };
-
-  const isSchemaJsonEnd = (str: string): boolean => {
-    const index = str.lastIndexOf('\n');
-    if (index === -1) return false;
-    if (str.includes(`\n${endFlag}`)) {
-      return true;
-    }
-    const newStr = str.slice(index).trim().substring(0, endFlag.length);
-    return endFlag.startsWith(newStr);
-  };
-
-  const handleSchemaStream = (content: string, chatMessage: IChatMessage): boolean => {
-    if (!content || typeof content !== 'string') return false;
-
-    const deltaPart = bufferText + content;
-
-    if ((!inSchemaStream && isSchemaJsonStart(deltaPart)) || (inSchemaStream && isSchemaJsonEnd(deltaPart))) {
-      const matchFlag = inSchemaStream ? /(\n\s*)```/ : schemaFlag;
-      const matchPart = deltaPart.match(matchFlag)?.[0];
-      if (!matchPart) {
-        bufferText = deltaPart;
-        return true;
-      }
-
-      chatMessage.content += deltaPart;
-
-      if (inSchemaStream) {
-        const trimmedDelta = deltaPart.trim();
-        const [schemaPart, markdownPart] = trimmedDelta.split(matchPart);
-        const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-        if (lastMessage?.type === 'schema-card') {
-          lastMessage.content += schemaPart;
-        }
-        if (markdownPart) {
-          chatMessage.messages.push({ type: 'markdown', content: markdownPart });
-        }
-      } else {
-        const trimmedDelta = deltaPart.trim();
-        const [markdownPart, schemaPart] = trimmedDelta.split(matchPart);
-        if (markdownPart) {
-          const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-          if (lastMessage && lastMessage.type === 'markdown') {
-            lastMessage.content += markdownPart;
-          } else {
-            chatMessage.messages.push({ type: 'markdown', content: markdownPart });
-          }
-        }
-        chatMessage.messages.push({ type: 'schema-card', content: schemaPart });
-      }
-
-      inSchemaStream = !inSchemaStream;
-      bufferText = '';
-      return true;
-    }
-
-    bufferText = '';
-
-    if (inSchemaStream) {
-      chatMessage.content += deltaPart;
-      const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-      if (lastMessage && lastMessage.type === 'schema-card') {
-        lastMessage.content += deltaPart;
-      }
-      return true;
-    }
-
-    chatMessage.content += deltaPart;
-    const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-    if (lastMessage?.type === 'markdown') {
-      lastMessage.content += deltaPart;
-    } else {
-      chatMessage.messages.push({ type: 'markdown', content: deltaPart });
-    }
-
-    return false;
+  const handleSchemaStream = (content: string, chatMessage: IChatMessage) => {
+    if (!content || typeof content !== 'string') return;
+    chatMessageRef = chatMessage;
+    patternExtractor.handleContent(content);
   };
 
   return { handleSchemaStream };
@@ -224,7 +175,9 @@ export class CustomModelProvider extends BaseModelProvider {
 ```vue
 <script setup lang="ts">
 import { ref, computed, h, reactive } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
 import { AIClient, GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
@@ -337,22 +290,24 @@ const roles = {
 </script>
 
 <template>
-  <div class="chat-container">
-    <div class="messages-container">
-      <TrBubbleProvider :content-renderers="messageRenderers">
-        <TrBubbleList :items="messages" :roles="roles" />
-      </TrBubbleProvider>
+  <GenuiConfigProvider :materials="materials">
+    <div class="chat-container">
+      <div class="messages-container">
+        <TrBubbleProvider :content-renderers="messageRenderers">
+          <TrBubbleList :items="messages" :roles="roles" />
+        </TrBubbleProvider>
+      </div>
+      <div class="sender-container">
+        <TrSender
+          v-model="inputMessage"
+          :loading="generating"
+          :placeholder="generating ? '思考中...' : '请输入消息'"
+          @submit="handleSubmit"
+          @cancel="abortRequest"
+        />
+      </div>
     </div>
-    <div class="sender-container">
-      <TrSender
-        v-model="inputMessage"
-        :loading="generating"
-        :placeholder="generating ? '思考中...' : '请输入消息'"
-        @submit="handleSubmit"
-        @cancel="abortRequest"
-      />
-    </div>
-  </div>
+  </GenuiConfigProvider>
 </template>
 
 <style scoped>
@@ -377,6 +332,10 @@ const roles = {
 }
 </style>
 ```
+
+::: tip GenuiRenderer
+若无需单独配置物料、需兼容 1.3.0 之前用法，见 [GenuiRenderer Legacy 兼容说明](../components/renderer#兼容组件-genuilegacyrenderer)。
+:::
 
 ## 其他相关文档
 

@@ -1,19 +1,52 @@
 # GenuiConfigProvider 组件
 
-`GenuiConfigProvider` 用于为渲染器提供主题能力，并将主题样式限定在特定作用域内。
+`GenuiConfigProvider` 用于为渲染器提供主题、国际化、物料与自定义 Notify 等配置能力，并将主题样式限定在特定作用域内。
 
 仅使用 ConfigProvider 时可从 `@opentiny/genui-sdk-vue/config-provider` 按需引入，见 [快速开始 - 按需引入](../guide/quick-start#按需引入)。
+
+## 兼容组件 GenuiLegacyConfigProvider
+
+::: warning 物料配置（自 1.3.0 起）
+`GenuiConfigProvider` 进行了物料解耦重构，不再内置组件物料，新项目应通过 `materials` 属性显式传入物料。
+
+若需保持旧版行为，请改用 `GenuiLegacyConfigProvider`（`@opentiny/genui-sdk-vue/legacy-config-provider`）。
+:::
+
+`GenuiLegacyConfigProvider` 内置 OpenTiny 默认物料，适用于未显式配置 `materials` 的旧项目迁移。它支持 `GenuiConfigProvider` 除 `materials` 外的其他 Props；如果需要自定义物料，请使用 `GenuiConfigProvider`。
+
+```vue
+<template>
+  <GenuiConfigProvider theme="light">
+    <GenuiRenderer :content="schemaContent" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { GenuiLegacyConfigProvider as GenuiConfigProvider } from '@opentiny/genui-sdk-vue/legacy-config-provider';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+
+const schemaContent = {
+  componentName: 'Page',
+  children: [
+    {
+      componentName: 'TinyButton',
+      props: { text: '提交', type: 'primary' },
+    },
+  ],
+};
+</script>
+```
 
 ## Props
 
 ### theme
 
-- **类型**: `'dark' | 'lite' | 'light' | 'auto'`
+- **类型**: `string`
 - **必填**: 否
 - **默认值**: `'light'`
-- **说明**: 主题模式。
+- **说明**: 主题模式，接受任意字符串（含 `auto`），由物料包结合系统 `colorScheme` 自行解析。框架层不再限定枚举，不同物料支持的主题集合可能不同，例如 OpenTiny Vue 物料内置 `light` / `dark` / `lite`，Element Plus 物料内置 `light` / `dark`。详见 [物料主题](./materials/theme)。
   - `'dark'`：深色主题
-  - `'lite'`：清新主题
+  - `'lite'`：清新主题（仅 OpenTiny Vue 物料）
   - `'light'`：浅色主题
   - `'auto'`：自动跟随浏览器
 
@@ -97,6 +130,67 @@ const customI18n: I18nMessages = {
 
 查看 [GenuiConfigProvider 组件 - 国际化配置](../examples/config-provider/i18n) 了解详细用法
 
+### materials
+
+- **类型**: `IMaterials`
+- **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时需要配置）
+- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+</script>
+```
+
+### notify
+
+- **类型**: `NotifyHandler`
+- **必填**: 否
+- **默认值**: `undefined`
+- **说明**: 自定义渲染器通知回调。Schema 中 `JSFunction` 解析失败或执行报错时会调用该函数；未配置时使用内置 DOM toast。
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials" :notify="handleNotify">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider, type NotifyHandler } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+
+const handleNotify: NotifyHandler = (options) => {
+  // 接入业务侧消息组件，例如 TinyNotify / Element Plus ElMessage
+  console.log(options.type, options.title, options.message);
+};
+</script>
+```
+
 ## Slots
 
 `GenuiConfigProvider` 使用默认插槽包裹子组件。
@@ -163,3 +257,16 @@ type I18nMessageObject = {
 ```
 
 国际化消息对象结构，支持嵌套对象。键为消息键名，值为字符串或嵌套的消息对象。
+
+### NotifyHandler
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+自定义通知回调类型，见上方 [notify](#notify) 属性。

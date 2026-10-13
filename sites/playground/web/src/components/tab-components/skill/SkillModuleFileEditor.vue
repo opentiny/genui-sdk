@@ -1,5 +1,6 @@
 <script setup>
 import { TinyInput } from '@opentiny/vue';
+import { t } from '../../../i18n';
 
 const props = defineProps({
   filePath: {
@@ -22,14 +23,14 @@ const onInput = (val) => {
 <template>
   <div class="skill-module-file-editor">
     <div v-if="filePath" class="skill-module-file-editor-path">{{ filePath }}</div>
-    <div v-else class="skill-module-file-editor-empty">在左侧树中选择一个文件以编辑内容</div>
+    <div v-else class="skill-module-file-editor-empty">{{ t('skill.selectFileHint') }}</div>
     <tiny-input
       v-if="filePath"
       class="skill-module-file-editor-input"
       type="textarea"
       :model-value="modelValue"
       :autosize="{ minRows: 14, maxRows: 22 }"
-      placeholder="文件内容"
+      :placeholder="t('skill.fileContent')"
       @update:model-value="onInput"
     />
   </div>

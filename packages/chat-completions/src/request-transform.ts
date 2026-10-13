@@ -1,7 +1,21 @@
-import { type IGenPromptConfig, genPrompt } from '@opentiny/genui-sdk-core';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
-import { ngRendererConfig } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/render-config';
-import { IChatCompletionCreateParams, ChatCompletionCreateParamsBase } from './types';
+import { genPrompt, type IMaterialsMeta } from '@opentiny/genui-sdk-core';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
+import {
+  IChatCompletionCreateParams,
+  ChatCompletionCreateParamsBase,
+  type IChatCompletionsConfig,
+  type IGenPromptConfig,
+} from './types';
+
+
+type IFrameworkKey = 'Vue' | 'Angular';
+type IMetaMap = Record<IFrameworkKey, IMaterialsMeta>;
+
+const metaMap: IMetaMap = {
+  Vue: materialsMeta,
+  Angular: ngMaterialsMeta,
+};
 
 function mergePrompt( 
   initialPrompt: string,
@@ -18,7 +32,8 @@ function mergePrompt(
 }
 
 export function requestTransform(
-  params: IChatCompletionCreateParams
+  params: IChatCompletionCreateParams,
+  config?: IChatCompletionsConfig,
 ): ChatCompletionCreateParamsBase {
   const newParams = structuredClone(params);
 
@@ -34,9 +49,10 @@ export function requestTransform(
 
   const { framework = 'Vue', strategy = 'append', ...promptConfig } = tgCustomConfig;
 
-  const renderConfigForFramework = framework === 'Angular' ? ngRendererConfig : rendererConfig;
+  const resolvedMaterialsMeta =
+    config?.materialsMeta ?? metaMap[framework as IFrameworkKey] ?? materialsMeta;
   const systemMessages = newParams.messages?.find((message) => message.role === 'system');
-  const prompt =  genPrompt(renderConfigForFramework, promptConfig);
+  const prompt = genPrompt(framework, resolvedMaterialsMeta, promptConfig);
   if (systemMessages) {
     systemMessages.content = mergePrompt(systemMessages.content as string, prompt, strategy);
   } else {

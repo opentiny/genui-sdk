@@ -81,7 +81,7 @@ const handleGuideCardClick = (index: number) => {
           :active="activeCard === 2"
           @click="handleGuideCardClick(2)"
         />
-        <a :href="linkMap[LinkKey.ChatDoc]" target="_blank" class="btn-link">
+        <a :href="linkMap[LinkKey.ChatDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button class="home-guide-content-left-button" size="medium" round>
             {{ t('guide.devDoc') }}
             <img :src="arrowRightIcon" alt="arrow-right" />

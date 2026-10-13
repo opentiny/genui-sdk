@@ -2,6 +2,40 @@
 
 `GenuiRenderer` 是 GenUI SDK 的核心渲染组件（Renderer），用于将大模型返回的结构化 JSON Schema 渲染为可交互的 UI 界面。
 
+::: warning 物料配置
+`GenuiRenderer` 本身不包含 UI 物料，需配合 `GenuiConfigProvider` 的 `materials` 使用，详见 [安装与配置](../../guide/angular/install#物料配置)。
+
+若需保持旧版「开箱即用」行为，请改用 `GenuiLegacyRenderer`，Input 与内容投影与 `GenuiRenderer` 完全一致。
+:::
+
+## 兼容组件 GenuiLegacyRenderer
+
+`GenuiLegacyRenderer` 内置 OpenTiny NG 默认物料，适用于未配置 `GenuiConfigProvider` 的旧项目迁移，无需额外安装物料包。
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiLegacyRenderer } from '@opentiny/genui-sdk-angular';
+
+@Component({
+  imports: [GenuiLegacyRenderer],
+  template: `
+    <genui-legacy-renderer [content]="schemaContent"></genui-legacy-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'TiButton',
+        props: { color: 'primary' },
+        children: [{ componentName: 'Text', props: { text: '提交' } }],
+      },
+    ],
+  };
+}
+```
+
 ## Input
 
 ### content
@@ -139,10 +173,10 @@ export class GenuiExample {
 
 #### 说明
 
-- 如果使用非`standalone`组件需要搭配`customComponentsModule`使用.
-- 组件相关描述信息需要调用接口时候传给后台服务，大模型能配套僧成该组件的协议JSON数据
-- ⚠️ 限制：动态渲染技术目前不支持使用`@ContentChild`、`@ContentChildren`查询的组件
-
+- 如果使用非 `standalone` 组件，需要搭配 `customComponentsModule` 使用。
+- 组件相关描述信息需要在调用接口时传给后台服务，大模型才能据此生成该组件的协议 JSON 数据。
+- `@ContentChild` / `@ContentChildren` 查询通过运行时补丁实现支持（best-effort），可解析动态创建组件上的 `QueryList` 与 `contentChild()` / `contentChildren()` 信号，并按 schema 声明顺序返回结果；部分基于类型/复杂选择器的查询谓词可能无法完全还原，存在边界情况。
+- 投影 `ng-content` 内容当前仅支持静态投影，并支持 `select` 选择器内容选择投影；对于惰性投影目前无法良好支持
 
 ### customComponentsModule
 
@@ -188,7 +222,7 @@ export class GenuiExample {
 
 - **类型**: `Record<string, Type<any>>`
 - **必填**: 否
-- **说明**: 自定义指令归属模块映射表，用于扩展指令列表。
+- **说明**: 自定义指令映射表，用于扩展可用的指令列表。
 
 ```ts
 import { Component } from '@angular/core';
@@ -198,7 +232,7 @@ import { MyCustomDirective } from './my-custom-directive';
 @Component({
   imports: [GenuiRenderer],
   template: `
-    <genui-renderer [content]="schemaContent" [customComponents]="customComponents"> </genui-renderer>
+    <genui-renderer [content]="schemaContent" [customDirectives]="customDirectives"> </genui-renderer>
   `,
 })
 export class GenuiExample {
@@ -221,8 +255,45 @@ export class GenuiExample {
   };
 }
 ```
-
 ⚠️ 限制说明： 受限于 `ViewContainerRef.createComponent` API，目前只支持 `standalone` 的指令
+非 `standalone` 指令需要额外登记其声明所在的 `NgModule`（通过 `customDirectivesModule` 输入或全局 `directiveModuleRef`），渲染器据此创建模块并为指令提供 DI 依赖，并将指令标记为 `standalone`。
+
+
+### customDirectivesModule
+
+- **类型**: `Record<string, Type<any>>`
+- **必填**: 否
+- **说明**: 非 `standalone` 指令到其声明 `NgModule` 的映射表。渲染器通过 `createNgModule` 创建对应模块，为指令提供模块级 DI 依赖。
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { MyCustomDirective, MyCustomDirectiveModule } from './my-custom-directive';
+
+@Component({
+  imports: [GenuiRenderer],
+  template: `
+    <genui-renderer [content]="schemaContent" [customDirectives]="customDirectives" [customDirectivesModule]="customDirectivesModule"> </genui-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'div',
+        directives: [{ directiveName: 'MyCustomDirective' }],
+      },
+    ],
+  };
+  customDirectives = {
+    MyCustomDirective: MyCustomDirective,
+  };
+  customDirectivesModule = {
+    MyCustomDirective: MyCustomDirectiveModule,
+  };
+}
+```
 
 ### customActions
 
@@ -237,7 +308,7 @@ import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
 @Component({
   imports: [GenuiRenderer],
   template: `
-    <genui-renderer [content]="schemaContent" [customActions]="customAction"> </genui-renderer>
+    <genui-renderer [content]="schemaContent" [customActions]="customActions"> </genui-renderer>
   `,
 })
 export class GenuiExample {
@@ -263,7 +334,7 @@ export class GenuiExample {
       },
     },
     showNotification: {
-      execute: (params，context) => {
+      execute: (params, context) => {
         console.log('通知:', params.message);
       },
     },
@@ -385,8 +456,8 @@ import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
   ],
   template: `
     <genui-renderer [content]="schemaContent">
-      <ng-template #header let-schema="schema" let-isError="isError" let-generating=“generating”>
-        <span *ngIf="“generating”"> 生成中 …… </span>
+      <ng-template #header let-schema="schema" let-isError="isError" let-isFinished="isFinished">
+        <span *ngIf="!isFinished"> 生成中 …… </span>
         <span *ngIf="isError"> 出错了！</span>
         <span>卡片标题：{{ schema.componentName }}</span>
       </ng-template>

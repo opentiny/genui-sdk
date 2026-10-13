@@ -1,25 +1,59 @@
 {
   "name": "@opentiny/genui-sdk-materials-angular-opentiny-ng",
   "version": "0.0.1",
+  "description": "GenUI Angular materials package based on OpenTiny NG",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/materials/angular-opentiny-ng"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "generative-ui",
+    "opentiny",
+    "angular",
+    "materials"
+  ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
-      "import": "./dist/index.js",
       "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
       "require": "./dist/index.js"
     },
-    "./render-config": {
-      "import": "./dist/render-config.js",
-      "types": "./dist/render-config.d.ts",
-      "require": "./dist/render-config.js"
+    "./meta": {
+      "types": "./dist/meta.d.ts",
+      "import": "./dist/meta.js",
+      "require": "./dist/meta.js"
+    },
+    "./materials": {
+      "types": "./dist/materials.d.ts",
+      "import": "./dist/materials.js",
+      "require": "./dist/materials.js"
     }
   },
   "scripts": {
     "build": "vite build"
   },
   "dependencies": {
+    "@angular/core": "^20.3.0",
+    "@opentiny/ng": "^1.0.3",
+    "@opentiny/genui-sdk-core": "workspace:*"
   },
   "devDependencies": {
     "escape-string-regexp": "^1.0.5",

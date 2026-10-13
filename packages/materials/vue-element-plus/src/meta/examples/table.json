@@ -1,0 +1,30 @@
+{
+  "componentName": "Page",
+  "props": {
+    "style": "padding: 16px;"
+  },
+  "children": [
+    {
+      "componentName": "h3",
+      "children": "员工列表"
+    },
+    {
+      "componentName": "ElTable",
+      "props": {
+        "data": [
+          { "name": "张三", "id": "10001", "sex": "男", "department": "HR", "protocolStart": "2023-01-01" },
+          { "name": "李四", "id": "10002", "sex": "女", "department": "研发", "protocolStart": "2022-06-15" }
+        ],
+        "stripe": true,
+        "style": "width: 100%;"
+      },
+      "children": [
+        { "componentName": "ElTableColumn", "props": { "prop": "name", "label": "姓名", "width": 120 } },
+        { "componentName": "ElTableColumn", "props": { "prop": "id", "label": "工号", "width": 100 } },
+        { "componentName": "ElTableColumn", "props": { "prop": "sex", "label": "性别", "width": 80 } },
+        { "componentName": "ElTableColumn", "props": { "prop": "department", "label": "部门" } },
+        { "componentName": "ElTableColumn", "props": { "prop": "protocolStart", "label": "入职日期", "width": 140 } }
+      ]
+    }
+  ]
+}

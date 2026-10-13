@@ -8,13 +8,14 @@ import { AutoTip } from '@opentiny/vue-directive';
 import copy from 'clipboard-copy';
 import type { IBubbleSlotsProps } from './common.types';
 import EditInputRenderer from './EditInputRenderer.vue';
+import { t } from '../i18n';
 
 const props = defineProps<IBubbleSlotsProps>();
 const generating = computed(() => GeneratingStatus.includes(props.messageManager?.messageState.status));
-const genuiConfig: any = inject(GENUI_CONFIG, {});
+const genuiConfig: any = inject(GENUI_CONFIG, null);
 
 const tooltipEffect = computed(() => {
-  return genuiConfig.value?.theme === 'dark' ? 'dark' : 'light';
+  return genuiConfig?.value?.colorScheme === 'dark' ? 'dark' : 'light';
 });
 
 
@@ -93,7 +94,7 @@ const handleCancelEdit = () => {
         :reset-time="0"
         type="text"
         :icon="EditIcon"
-        v-auto-tip="{ always: true, content: '编辑', effect: tooltipEffect }"
+        v-auto-tip="{ always: true, content: t('common.edit'), effect: tooltipEffect }"
         @click="handleStartEditByIndex"
       >
       </tiny-button>
@@ -102,7 +103,7 @@ const handleCancelEdit = () => {
         type="text"
         :reset-time="0"
         :icon="CopyIcon"
-        v-auto-tip="{ always: true, content: '复制', effect: tooltipEffect }"
+        v-auto-tip="{ always: true, content: t('chatFooter.copy'), effect: tooltipEffect }"
         @click="handleCopyMessageByIndex"
       >
       </tiny-button>

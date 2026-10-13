@@ -1,44 +1,44 @@
 <script setup>
 import { IconAi, IconUser } from '@opentiny/tiny-robot-svgs';
 import ThemeTool, { tinyDarkTheme, tinyOldTheme } from '@opentiny/vue-theme/theme-tool';
-import { GenuiConfigProvider, GenuiChat, GENUI_RENDERER } from '@opentiny/genui-sdk-vue';
-import { ref, watch, onMounted, reactive, computed, onUnmounted, provide, defineAsyncComponent, h, shallowRef } from 'vue';
+import {
+  ref,
+  watch,
+  onMounted,
+  reactive,
+  computed,
+  onUnmounted,
+  provide,
+  h,
+} from 'vue';
 import { getModelFeatures, getModelOptions } from './api';
 import { createCustomFetch } from './api/custom-fetch';
 import AssistantFooter from './components/AssistantFooter.vue';
 import UserFooter from './components/UserFooter.vue';
 import PlaygroundSidebar from './components/PlaygroundSidebar.vue';
+import { useMaterialsConfig } from './components/materials-tab';
 import { useInputMessage } from './hooks/use-input-message';
 import { useIsMobile } from './hooks';
 import useTemplate from './components/genui-template/useTemplate';
-import { getOverlapEliminatorHandler, getContinueGeneratingHandler, locationPartialSchemaJson, movePartialSchemaJsonToLastMessage } from './continue-writing';
+import {
+  getOverlapEliminatorHandler,
+  getContinueGeneratingHandler,
+  locationPartialSchemaJson,
+  movePartialSchemaJsonToLastMessage,
+} from './continue-writing';
 import useIcon from './use-icon';
+import { getMixedContentHandler, getMessageRendererAngular, getMessageRendererReact } from './message-renderers';
+import { locale, t } from './i18n';
+import { useRoute } from 'vue-router';
+import { PlaygroundMode } from './constants';
 
 const { topRenderer, addIcons } = useIcon();
 const TopIconsRenderer = topRenderer();
 
 addIcons(IconAi);
 
-let framework = 'Vue'; // Angular
-
 // 通过环境变量控制是否启用模板功能，默认不启用
 const ENABLE_TEMPLATE = import.meta.env.VITE_ENABLE_TEMPLATE === 'true';
-
-const GenuiTemplate = ENABLE_TEMPLATE
-  ? defineAsyncComponent(() => import('./components/genui-template/GenuiTemplate.vue'))
-  : shallowRef(null);
-
-/**
- * tiny-schema-renderer-ng
- */
-
-if (location.search.includes('framework=angular')) {
-  const SchemaRendererNgAdapter = defineAsyncComponent(() =>
-    import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
-  );
-  provide(GENUI_RENDERER, SchemaRendererNgAdapter);
-  framework = 'Angular';
-}
 
 const STORAGE_KEY = 'GENUI_SDK_VUE_PLAYGROUND_CONFIG';
 const {
@@ -46,7 +46,14 @@ const {
   theme: cacheTheme,
   chatConfig: cacheChatConfig,
   customExamples: cacheCustomExamples,
+  framework: cacheFramework,
+  componentLib: cacheComponentLib,
 } = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+const { framework, componentLib, setFramework, setComponentLib } = useMaterialsConfig({
+  framework: cacheFramework,
+  componentLib: cacheComponentLib,
+});
 
 /**
  * Normalizes cached custom examples for the id-based contract.
@@ -80,23 +87,26 @@ const normalizeCustomExamples = (examples) => {
   return Array.from(dedupedExamples.values());
 };
 
-const isOpen = ref(true);
 const llmConfig = reactive(
   cacheLLmConfig || {
-    temperature: 0.5,
-    model: 'qwen3-coder-30b-a3b-instruct',
-    mcpServers: [],
-    agents: [],
-    skills: [],
-    promptList: [],
-  },
-);
+  temperature: 0.5,
+  model: 'qwen3-coder-30b-a3b-instruct',
+  promptVariant: 'standard',
+  mcpServers: [],
+  agents: [],
+  skills: [],
+  openApiTools: [],
+  promptList: [],
+});
+if (!Array.isArray(llmConfig.openApiTools)) {
+  llmConfig.openApiTools = [];
+}
 const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 
 const chatConfig = reactive(
   cacheChatConfig || {
     addToolCallContext: false,
-    showThinkingResult: false,
+    showThinkingResult: true,
   },
 );
 
@@ -123,7 +133,9 @@ const syncModelFeatures = async (model) => {
 watch(() => llmConfig.model, syncModelFeatures);
 const transformTheme = (themeConfig) => {
   const newThemeConfig = structuredClone(themeConfig);
-  newThemeConfig.css = newThemeConfig.css.replaceAll(':host', `[class*="tiny-genui-playground"]`).replaceAll(':root', `[class*="tiny-genui-playground"]`);
+  newThemeConfig.css = newThemeConfig.css
+    .replaceAll(':host', `[class*="tiny-genui-playground"]`)
+    .replaceAll(':root', `[class*="tiny-genui-playground"]`);
   return newThemeConfig;
 };
 
@@ -135,13 +147,17 @@ const themeMap = {
 
 const themeTool = new ThemeTool();
 
-watch(theme, (newVal) => {
-  const themeConfig = themeMap[newVal] || themeMap.light;
-  themeTool.changeTheme(themeConfig);
-}, { immediate: true });
+watch(
+  theme,
+  (newVal) => {
+    const themeConfig = themeMap[newVal] || themeMap.light;
+    themeTool.changeTheme(themeConfig);
+  },
+  { immediate: true },
+);
 
 watch(
-  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value],
+  [() => theme.value, () => llmConfig, () => chatConfig, () => customExamples.value, () => framework.value, () => componentLib.value],
   async () => {
     localStorage.setItem(
       STORAGE_KEY,
@@ -150,17 +166,19 @@ watch(
         llmConfig,
         chatConfig,
         customExamples: customExamples.value,
+        framework: framework.value,
+        componentLib: componentLib.value,
       }),
     );
   },
   { deep: true },
 );
 
-const themeData = ref([
-  { text: '默认', value: 'light' },
-  { text: '暗黑', value: 'dark' },
-  { text: '清新', value: 'lite' },
-  { text: '自动', value: 'auto' },
+const themeData = computed(() => [
+  { text: t('theme.default'), value: 'light' },
+  { text: t('theme.dark'), value: 'dark' },
+  { text: t('theme.lite'), value: 'lite' },
+  { text: t('theme.auto'), value: 'auto' },
 ]);
 
 const messages = ref([]);
@@ -169,82 +187,81 @@ const url = import.meta.env.VITE_CHAT_URL;
 
 // TODO: 后续优化后，在GenUI SDK导出此API
 const insertHandlersAfterName = (handlers, insertHandlers, name) => {
-  const index = handlers.findIndex(handler => handler.name === name);
+  const index = handlers.findIndex((handler) => handler.name === name);
   if (index !== -1) {
     handlers.splice(index + 1, 0, ...insertHandlers);
   }
   return handlers;
-}
+};
+const replaceHandlers = (handlers, nextHandlers, name) => {
+  const index = handlers.findIndex((handler) => handler.name === name);
+  if (index !== -1) {
+    handlers.splice(index, 1, ...nextHandlers);
+  }
+  return handlers;
+};
 
 const chat = ref(null);
+
 const conversation = computed(() => chat.value?.getConversation());
+
 watch(chat, (instance) => {
   if (instance) {
     const defaultResponseHandlers = instance.getResponseHandlers();
-    const contentHandler = defaultResponseHandlers.find(handler => handler.name === 'content');
+    const contentHandler = defaultResponseHandlers.find((handler) => handler.name === 'content');
+    const newContentHandler = getMixedContentHandler(contentHandler, framework);
+    replaceHandlers(
+      defaultResponseHandlers,
+      [newContentHandler],
+      'content',
+    );
+
     const newResponseHandlers = [
       ...defaultResponseHandlers,
       getContinueGeneratingHandler(conversation.value.messageManager),
       locationPartialSchemaJson(),
+      {
+        name: 'chatTiming',
+        match: () => false,
+        handler: () => false,
+        beforeRequest: (context) => {
+          context.timing = { sentAt: Date.now() };
+        },
+        start: (context) => {
+          const timing = context.timing;
+          if (timing) {
+            timing.firstByteAt = Date.now();
+            timing.ttfb = timing.firstByteAt - timing.sentAt;
+          }
+        },
+        end: (context) => {
+          const timing = context.timing;
+          const finishInfo = context.chatMessage?.finishInfo;
+          if (!timing || !finishInfo) return;
+          const { firstByteAt, ttfb } = timing;
+          const renderEndAt = Date.now();
+          context.chatMessage.finishInfo = {
+            ...finishInfo,
+            ttfb,
+            renderDurationMs: firstByteAt != null ? renderEndAt - firstByteAt : undefined,
+          };
+        },
+      },
     ];
-    
-    insertHandlersAfterName(newResponseHandlers, [
-      movePartialSchemaJsonToLastMessage(),
-      getOverlapEliminatorHandler(contentHandler),
-    ], 'init');
+
+    insertHandlersAfterName(
+      newResponseHandlers,
+      [movePartialSchemaJsonToLastMessage(), getOverlapEliminatorHandler(contentHandler)],
+      'init',
+    );
     instance.setResponseHandlers(newResponseHandlers);
+
+    instance.setMessageRenderer('schema-card-angular', getMessageRendererAngular(instance));
+    instance.setMessageRenderer('schema-card-react', getMessageRendererReact(instance));
   }
-})
+});
 
-// 提供给侧边栏及其子组件使用的共享上下文
-const playgroundContext = {
-  llmConfig,
-  chatConfig,
-  modelData,
-  themeData,
-  conversation,
-  customExamples,
-};
-
-provide('playgroundContext', playgroundContext);
-
-const handleKeydown = (event) => {
-  // Windows/Linux (Ctrl+K) 和 macOS (Command+K)
-  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
-    event.preventDefault();
-    chat.value.handleNewConversation();
-  }
-};
-
-const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
-const { isTemplateInit, templateSchemaList, switchTemplate } = useTemplate({ url: templateUrl, llmConfig });
-const { initInputMessage } = useInputMessage(chat);
 const { isMobile } = useIsMobile();
-const isSidebarOpen = ref(!isMobile.value);
-
-onMounted(() => {
-  initInputMessage();
-  getModelOptions()
-    .then(async (data) => {
-      let modelChanged = false;
-      if (!data.find((item) => item.value === llmConfig.model)) {
-        llmConfig.model = data[0]?.value;
-        modelChanged = true;
-      }
-      modelData.value = data;
-      if (!modelChanged) {
-        modelFeatures.value = await getModelFeatures(llmConfig.model);
-      }
-    })
-    .catch((error) => {
-      console.error('获取模型列表失败:', error);
-    });
-  window.addEventListener('keydown', handleKeydown);
-});
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown);
-});
 
 const roles = computed(() => {
   return {
@@ -265,8 +282,54 @@ const roles = computed(() => {
 
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
-  framework,
+  framework: framework.value,
+  componentLib: componentLib.value,
 }));
+
+const playgroundContext = {
+  llmConfig,
+  chatConfig,
+  modelData,
+  themeData,
+  conversation,
+  customExamples,
+  framework,
+  componentLib,
+  setComponentLib,
+  setFramework,
+  theme,
+  url,
+  messages,
+  roles,
+  modelFeatures,
+  customFetch,
+  chat,
+};
+
+provide('playgroundContext', playgroundContext);
+
+const route = useRoute();
+const templateUrl = import.meta.env.VITE_CHAT_TEMPLATE_URL;
+const { templateSchemaList, createTemplate } = ENABLE_TEMPLATE
+  ? useTemplate({
+      url: templateUrl,
+      llmConfig,
+    })
+  : { templateSchemaList: ref([]), createTemplate: () => {} };
+
+const handleKeydown = (event) => {
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+    event.preventDefault();
+    if (ENABLE_TEMPLATE && route.name === PlaygroundMode.Builder) {
+      createTemplate();
+      return;
+    }
+    chat.value?.handleNewConversation();
+  }
+};
+
+const { initInputMessage } = useInputMessage(chat);
+const isSidebarOpen = ref(!isMobile.value);
 
 /**
  * Rehydrates custom examples from cache using normalized data.
@@ -275,36 +338,36 @@ const initExampleList = () => {
   customExamples.value = normalizeCustomExamples(cacheCustomExamples);
 };
 
-/**
- * Updates custom examples and enforces the normalized shape.
- * @param {unknown[]} list Latest examples from UI events.
- */
 const updateCustomExamples = (list) => {
   customExamples.value = normalizeCustomExamples(list);
 };
 
-watch(() => templateSchemaList.value, (newVal) => {
-  if (!newVal) {
-    return;
-  }
-  const templateMap = new Map(newVal.map((item) => [item.id, item]));
-  // Only keep examples that still exist in templateSchemaList,
-  // and always refresh them from the latest template source.
-  customExamples.value = customExamples.value
-    .map((example) => templateMap.get(example.id))
-    .filter(Boolean);
-}, { deep: true });
+watch(
+  () => templateSchemaList.value,
+  (newVal) => {
+    if (!newVal) {
+      return;
+    }
+    const templateMap = new Map(newVal.map((item) => [item.id, item]));
+    customExamples.value = customExamples.value.map((example) => templateMap.get(example.id)).filter(Boolean);
+  },
+  { deep: true },
+);
 
 onMounted(() => {
   initInputMessage();
   initExampleList();
   getModelOptions()
     .then(async (data) => {
+      let modelChanged = false;
       if (!data.find((item) => item.value === llmConfig.model)) {
         llmConfig.model = data[0]?.value;
+        modelChanged = true;
       }
       modelData.value = data;
-      syncModelFeatures(llmConfig.model);
+      if (!modelChanged) {
+        modelFeatures.value = await getModelFeatures(llmConfig.model);
+      }
     })
     .catch((error) => {
       console.error('Failed to get model options:', error);
@@ -320,28 +383,18 @@ onUnmounted(() => {
 <template>
   <TopIconsRenderer style="height: 0" />
   <div class="genui-playground">
-    <PlaygroundSidebar v-model:expanded="isSidebarOpen" v-model:theme="theme" @new-task="chat?.handleNewConversation()"
-      @update-custom-examples="updateCustomExamples" v-slot="{ activeName }">
-      <template v-if="ENABLE_TEMPLATE && isTemplateInit">
-        <div v-if="activeName === 'template'" class="chat-container">
-          <component v-if="GenuiTemplate" :is="GenuiTemplate" ref="genuiTemplateRef" :llm-config="llmConfig"
-            :theme="theme" :chat-config="chatConfig" />
-        </div>
-      </template>
-      <div v-show="!ENABLE_TEMPLATE || activeName !== 'template'" class="chat-container">
-        <GenuiConfigProvider :theme="theme" style="height: 100%">
-          <GenuiChat :url="url" ref="chat" :messages="messages" :chat-config="chatConfig" :roles="roles"
-            :model="llmConfig.model" :temperature="llmConfig.temperature" :features="modelFeatures"
-            :custom-fetch="customFetch" :custom-examples="customExamples">
-            <template #empty>
-              <div class="empty">
-                <IconAi />
-                <span>GenUI Playground</span>
-              </div>
-            </template>
-          </GenuiChat>
-        </GenuiConfigProvider>
-      </div>
+    <PlaygroundSidebar
+      :key="locale"
+      v-model:expanded="isSidebarOpen"
+      v-model:theme="theme"
+      @new-task="chat?.handleNewConversation()"
+      @update-custom-examples="updateCustomExamples"
+    >
+      <router-view v-slot="{ Component }">
+        <keep-alive>
+          <component :is="Component" />
+        </keep-alive>
+      </router-view>
     </PlaygroundSidebar>
   </div>
 </template>
@@ -357,44 +410,13 @@ onUnmounted(() => {
   }
 }
 
-.chat-container {
-  flex: 1;
-  height: 100%;
-  min-width: 0;
-}
-
-.empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  height: 80%;
-  font-size: 32px;
-  font-weight: 600;
-
-  &>svg {
-    width: 56px;
-    height: 56px;
-  }
-}
-
 @media (max-width: 768px) {
   .genui-playground {
     --ti-gen-chat-avatar-and-gap-width: 0px;
   }
-  :deep(.action-buttons__button) {
+  :deep(.action-buttons__button .action-buttons__icon) {
     padding-right: 10px;
-    svg[alt="录音"] {
-      display: none;
-    }
-  }
-  .empty {
-    font-size: 24px;
-
-    &>svg {
-      width: 48px;
-      height: 48px;
-    }
+    display: none;
   }
 }
 </style>

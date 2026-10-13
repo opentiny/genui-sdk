@@ -1,26 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none">
-  <rect width="40" height="40" x="0" y="0"></rect>
-  <g>
-    <rect width="40" height="40" x="0" y="0"></rect>
-    <g>
-      <rect width="33.333328" height="33.333328" x="3.333435" y="2.333496"></rect>
-      <g>
-        <path
-          d="M25.9567 2.3335L25.9417 9.17456C25.9394 10.2265 26.7903 11.0812 27.8423 11.0835L34.6875 11.0835L34.6875 34.3335C34.6875 36.1744 33.1952 37.6668 31.3542 37.6668L8.85421 37.6668C7.01326 37.6668 5.52087 36.1744 5.52087 34.3335L5.52087 5.66683C5.52087 3.82588 7.01326 2.3335 8.85421 2.3335L25.9567 2.3335L25.95677 2.3335Z"
-          fill="rgb(0,196,190)" fill-rule="evenodd"></path>
-        <path
-          d="M25.8334 2.3335L34.5834 11.0835L27.7381 11.0835C26.6862 11.0835 25.8334 10.2307 25.8334 9.17873L25.8334 2.3335L25.8334 2.3335Z"
-          fill="rgb(166,223,222)" fill-rule="evenodd"></path>
-        <g>
-          <rect width="8.625001" height="1.666666" x="12.187561" y="12.541992" rx="0.833333"
-            fill="rgb(255,255,255)"></rect>
-          <rect width="15.625001" height="1.666666" x="12.187561" y="16.541992" rx="0.833333"
-            fill="rgb(255,255,255)"></rect>
-        </g>
-        <path
-          d="M12.187561 31.2V29.5L18.987561 22.7L20.687561 24.4L13.887561 31.2H12.187561ZM21.187561 23.9L19.487561 22.2L20.287561 21.4C20.487561 21.2 20.887561 21.2 21.087561 21.4L21.887561 22.2C22.087561 22.4 22.087561 22.8 21.887561 23L21.187561 23.9Z"
-          fill="rgb(255,255,255)"></path>
-      </g>
-    </g>
+<svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
+  <rect id="card-editor" x="0.0" y="0.0" width="40" height="40" fill="rgb(255,255,255)" fill-opacity="0.0" />
+  <path id="card-editor-path" d="M25 3L34 12L26.9592 12C25.8772 12 25 11.1228 25 10.0408L25 3L25 3Z"
+    fill="rgb(199,201,254)" fill-rule="evenodd" />
+  <path id="card-editor-path-2"
+    d="M25.0181 3L25.0037 10.1305C25.0015 11.1428 25.8184 11.9652 26.8283 11.9674L34 11.9674L34 33.7924C34 35.5639 32.5639 37 30.8 37L9.2 37C7.43269 37 6 35.5639 6 33.7924L6 6.20755C6 4.43607 7.43269 3 9.2 3L25.0181 3L25.0181 3Z"
+    fill="rgb(116,121,244)" fill-rule="evenodd" />
+  <g id="card-editor-group">
+    <path id="card-editor-group-path"
+      d="M14.6664 14.4342L12.1638 16.8979C12.0771 16.9831 12.086 17.1253 12.1825 17.1992L14.6664 19.1009"
+      stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" />
+    <path id="card-editor-group-path"
+      d="M2.66667 0L0.163997 2.46363C0.0773791 2.5489 0.0862146 2.69108 0.182723 2.76496L2.66667 4.66667"
+      stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" transform="matrix(-1,0,0,1,24.5999,14.4342)" />
+    <path id="card-editor-group-path" d="M0 0L8 0.666765" stroke="rgb(255,255,255)" stroke-width="1.5"
+      stroke-linejoin="round" transform="matrix(-0.251004,0.967986,-0.97216,-0.23432,19.5999,13.1562)" />
   </g>
+  <path id="card-editor-path-3" d="M12 25L27 25" stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" />
+  <path id="card-editor-path-4" d="M12 29L22 29" stroke="rgb(255,255,255)" stroke-width="1.5" stroke-linejoin="round" />
 </svg>

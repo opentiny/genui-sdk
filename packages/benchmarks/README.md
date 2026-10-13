@@ -50,7 +50,7 @@ src/
     └── number.ts
 ```
 
-系统提示词由 `genPrompt(render-config, tgCustomConfig)` + `specificPrompt` + `userAppendPrompt` 拼出，与 playground `chat-genui` 思路一致；**无**单独的 `llm.config.ts`。
+系统提示词由 `genPrompt(framework, materialsMeta, tgCustomConfig)` + `specificPrompt` + `userAppendPrompt` 拼出，与 playground `chat-genui` 思路一致；**无**单独的 `llm.config.ts`。
 
 ### `maas-models.json` 路径（`BENCH_MAAS_MODELS_PATH`）
 

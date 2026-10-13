@@ -87,20 +87,24 @@ export class CustomModelProvider extends BaseModelProvider {
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {
     const { onDone, onData, onError } = handler;
+    const context: any = {};
+    this.setupStreamContext(context, request);
+
     let response: Response;
     try {
+
+      this.handlerBeforeRequest(context);
+
       response = await this.getData(request);
     } catch (error) {
+      this.handlerRequestError(context, error)
       onDone({ type: 'error', error });
       return;
     }
+
     const bodyStream = response.body!;
     // const chunkStream = createAsyncIterableStream(getChunkStringStream(bodyStream));
     const reader = bodyStream.getReader();
-
-    const context: any = {};
-    const { chatConfig } = this.getChatOptions();
-    context.chatConfig = chatConfig;
 
     const signal = request.options?.signal;
     signal?.addEventListener('abort',
@@ -118,6 +122,11 @@ export class CustomModelProvider extends BaseModelProvider {
     });
     this.handlerEnd(context);
 
+  }
+
+  protected setupStreamContext(context: Record<string, unknown>, _request: ChatCompletionRequest) {
+    const { chatConfig } = this.getChatOptions();
+    context.chatConfig = chatConfig;
   }
 
   handlerChunk(rawData: string, context: any) {
@@ -138,6 +147,26 @@ export class CustomModelProvider extends BaseModelProvider {
     }
   }
 
+
+  handlerBeforeRequest(context: any) {
+    for (const handler of this.responseHandlers) {
+      if (handler.beforeRequest) {
+        handler.beforeRequest(context);
+      }
+    }
+  }
+
+  handlerRequestError(context: any, error?: unknown) {
+    for (const handler of this.responseHandlers) {
+      if (handler.onRequestError) {
+        try {
+          handler.onRequestError(context, error);
+        } catch (error) {
+          console.error(`[onRequestError] handler "${handler.name}" failed:`, error);
+        }
+      }
+    }
+  }
 
   handlerStart(context: any, handlers: { onData: (data: IChatMessage) => void, onDone: () => void, onError: (error: Error) => void }) {
     for (const handler of this.responseHandlers) {

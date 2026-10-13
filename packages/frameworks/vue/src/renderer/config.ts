@@ -1,5 +1,5 @@
 export const requiredCompleteFieldSelectors = [
-  '[componentName=Img] > props > src',
+  '[componentName=img] > props > src',
   'componentName',
   'style',
   '[componentName=Page] > css',
@@ -8,15 +8,5 @@ export const requiredCompleteFieldSelectors = [
   '[type=JSSlot][value=]',
   'type',
   ':empty:object',
-  '[componentName=TinyTabItem] > props > name',
-  '[componentName=TinyTransfer] > props > data',
-  '[componentName=TinyNumeric] > props > controlsPosition',
-  '[componentName=TinyNumeric] > props > modelValue',
-  '[componentName^=TinyChart] > props > :string',
-  '[componentName=TinyChartPie] > props > data > rows > *',
-  '[componentName=TinyForm] > props > labelPosition',
-  '[componentName=TinyRadioGroup] > props > options > * > label',
-  // ng element version
-  '[componentName=img] > props > src',
-  '[componentName] > props > ngModel',
+  '[componentName] > props > ref',
 ];

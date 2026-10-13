@@ -8,7 +8,8 @@ const props = defineProps({
   },
   subtitle: {
     type: String,
-    required: true,
+    required: false,
+    default: '',
   },
   background: {
     type: String as PropType<'default' | 'morandi'>,
@@ -26,7 +27,7 @@ const backgroundClass = computed(() =>
   <section class="home-ability" :class="backgroundClass">
     <div class="home-ability-title">
       <div class="home-ability-title-text genui-title">{{ title }}</div>
-      <div class="home-ability-title-subtitle genui-subtitle">
+      <div v-if="subtitle" class="home-ability-title-subtitle genui-subtitle">
         {{ subtitle }}
       </div>
     </div>
@@ -57,8 +58,10 @@ const backgroundClass = computed(() =>
   }
 
   &-title {
+    position: relative;
     display: flex;
     flex-direction: column;
+    width: 100%;
 
     @media (max-width: 1280px) {
       &-subtitle {

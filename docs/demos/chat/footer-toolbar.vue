@@ -1,9 +1,12 @@
 <template>
-  <GenuiChat :url="url" :roles="roles" :messages="messages" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" :roles="roles" :messages="messages" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import AssistantFooter from './components/assistant-footer.vue';
 import UserFooter from './components/user-footer.vue';
 

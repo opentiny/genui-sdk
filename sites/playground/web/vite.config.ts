@@ -1,3 +1,4 @@
+import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import tsconfigPaths from 'vite-jsconfig-paths';
@@ -11,7 +12,7 @@ const VENDOR_CHUNKS = new Set([
   'opentiny-genui-sdk-vue',
   'opentiny-tiny-robot',
   'opentiny-tiny-robot-kit',
-  'opentiny-tiny-robot-svgs'
+  'opentiny-tiny-robot-svgs',
 ]);
 
 function createManualChunks() {
@@ -34,10 +35,11 @@ function createManualChunks() {
 // https://vite.dev/config/
 export default defineConfig(({ command }) => {
   const plugins = [
+    react({ include: /schema-renderer-react-adapter/ }),
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag === 'tiny-schema-renderer-element-ng',
+          isCustomElement: (tag) => tag === 'genui-renderer-ng-element',
         },
       },
     }),
@@ -58,11 +60,19 @@ export default defineConfig(({ command }) => {
   return {
     envDir: './env',
     plugins,
+    resolve: {
+      dedupe: ['react', 'react-dom'],
+    },
     optimizeDeps: {
       exclude: ['monaco-editor', 'monaco-editor-vue3'],
     },
     build: {
       rollupOptions: {
+        onwarn(warning, warn) {
+          // @vueuse/core 产物里 #__PURE__ 注释位置 Rollup 无法识别，会丢弃后继续打包
+          if (warning.code === 'INVALID_ANNOTATION') return;
+          warn(warning);
+        },
         output: {
           manualChunks: createManualChunks(),
           chunkFileNames: 'assets/[name]-[hash].js',

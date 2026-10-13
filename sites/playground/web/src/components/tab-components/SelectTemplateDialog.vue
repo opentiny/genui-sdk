@@ -1,7 +1,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import useTemplate from '../genui-template/useTemplate';
 import { TinyDialogBox, TinyButton, TinyCheckboxGroup, TinyCheckbox } from '@opentiny/vue';
+import { t } from '../../i18n';
+import { PlaygroundMode } from '../../constants';
+
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   visible: {
@@ -55,6 +61,7 @@ const confirmSelectExample = () => {
 
 // 创建新模板
 const createNewTemplate = () => {
+  router.push({ name: PlaygroundMode.Builder, query: route.query });
   emit('createNewTemplate');
   cancel();
 };
@@ -77,12 +84,12 @@ watch(
 </script>
 
 <template>
-  <tiny-dialog-box v-model:visible="visibleModel" @close="cancel" title="选择示例模板" width="40%"
+  <tiny-dialog-box v-model:visible="visibleModel" @close="cancel" :title="t('template.selectTitle')" width="40%"
     :append-to-body="true">
     <template #footer>
-      <tiny-button @click="cancel">取 消</tiny-button>
-      <tiny-button type="primary" @click="createNewTemplate">创建新模板</tiny-button>
-      <tiny-button type="primary" @click="confirmSelectExample">确 定</tiny-button>
+      <tiny-button @click="cancel">{{ t('template.cancel') }}</tiny-button>
+      <tiny-button type="primary" @click="createNewTemplate">{{ t('template.createNew') }}</tiny-button>
+      <tiny-button type="primary" @click="confirmSelectExample">{{ t('template.confirm') }}</tiny-button>
     </template>
     <template #default>
       <tiny-checkbox-group v-model="selectedExamples" class="template-checkbox-group">

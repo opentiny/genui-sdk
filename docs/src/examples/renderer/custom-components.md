@@ -10,12 +10,15 @@
 
 ```vue {8,13-15}
 <template>
-  <GenuiRenderer :content="content" :generating="generating" :customComponents="customComponents" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiRenderer :content="content" :generating="generating" :customComponents="customComponents" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 import UserProfile from './components/user-profile.vue';
 
 const generating = ref(false);
@@ -126,4 +129,4 @@ AI 生成的 Schema 可以直接使用你注册的自定义组件：
 
 #### 完整示例：
 
-<demo vue="../../../demos/renderer/custom-components.vue" :vueFiles="['../../../demos/renderer/custom-components.vue', '../../../demos/renderer/components/user-profile.vue']"" />
+<demo vue="../../../demos/renderer/custom-components.vue" :vueFiles="['../../../demos/renderer/custom-components.vue', '../../../demos/renderer/components/user-profile.vue']" />

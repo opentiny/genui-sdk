@@ -1,29 +1,32 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RendererMain } from '../../projects/renderer/src/renderer-main';
-import { FormsModule } from '@angular/forms';
-import { TiTextModule } from '@opentiny/ng';
-import { TiSelectModule } from '@opentiny/ng';
+import { RENDERER_SETTINGS } from '../../projects/renderer/src/renderer-settings';
+import { ContentChildrenService } from '../../projects/renderer/src/content-children';
+import { materials } from './materials';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.html',
   standalone: true,
-  imports: [RendererMain, FormsModule, TiTextModule, TiSelectModule],
+  imports: [RendererMain],
+  providers: [
+    {
+      provide: RENDERER_SETTINGS,
+      useValue: { materials },
+    }
+  ],
 })
 export class App {
   schema = signal<any>({});
-  inputValue = ''
-  selectValue = ''
-  options = [
-    { label: '中国', value: 'china' },
-    { label: '美国', value: 'usa' },
-    { label: '英国', value: 'uk' },
-  ]
+  today = new Date(2024, 0, 15);
+  private readonly contentChildren = inject(ContentChildrenService, { optional: true });
 
   async ngOnInit() {
-    this.schema.set(await import('../mock/schema.json').then(m => m.default));
-    console.log('schema', this.schema());
+    this.schema.set((await import('../mock/schema.json')).default);
   }
-  log(...args: any[]) {
-    console.log('app log', ...args);
+
+  /** Dev helper — call from template/console if needed. */
+  logOutletTree() {
+    console.log(this.contentChildren?.serializeTree());
   }
 }

@@ -2,15 +2,18 @@ import { Request, Response } from 'express';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { genPrompt, type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
-import { rendererConfig } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/render-config';
+import { type IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
 import { streamText, stepCountIs } from 'ai';
 import getRawBody from 'raw-body';
 import { openaiCompatibleTransformChunk } from '@opentiny/genui-sdk-chat-completions';
 import type { IOpenaiCompatibleChunk } from '@opentiny/genui-sdk-chat-completions';
 import { generateLlmConfig, generateAiSdkTools } from './chat-genui.js';
+import { buildOpenApiTools } from './openapi-tools/index.js';
+import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
+import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
+import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
 
@@ -33,9 +36,12 @@ const getPlaygroundConfig = (playgroundStr: string) => {
   return {
     mcpServers: playgroundConfig.mcpServers || [],
     framework: playgroundConfig.framework || 'Vue',
+    componentLib: resolveComponentLib(playgroundConfig.framework, playgroundConfig.componentLib),
     userAppendPrompt: playgroundConfig.promptList?.filter(Boolean).join('\n') || '',
     model: playgroundConfig.model || '',
     temperature: playgroundConfig.temperature || 0.3,
+    openApiTools: playgroundConfig.openApiTools || [],
+    promptVariant: playgroundConfig.promptVariant,
   };
 };
 
@@ -76,7 +82,7 @@ export const createChatTemplate = () => {
       }
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
-      const { mcpServers, framework, userAppendPrompt } = playgroundConfig;
+      const { mcpServers, framework, componentLib, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
@@ -86,17 +92,19 @@ export const createChatTemplate = () => {
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
       const { model, temperature, prompt: customSystemPrompt, specificPrompt, provider, extraBody } = llmConfig;
-      const { tools, clientsMap } = await generateAiSdkTools(
+      const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
         mcpServers.filter((s) => s.enabled),
         abort.signal,
       );
+      const openApiBuiltTools = await buildOpenApiTools(openApiTools);
+      const tools = { ...openApiBuiltTools, ...mcpTools };
       const maxSteps = 30;
-      const systemPrompt = `${genPrompt(rendererConfig, tgCustomConfig)}
+      const systemPrompt = `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;
 
-      const messages = body.messages;
+      const messages = normalizeMessagesForAiSdk(body.messages);
       if (body.templateSchema) {
         const schemaJsonContext = `
           **当前 schemaJson（这是唯一可信的 ID 来源）：**

@@ -11,6 +11,23 @@
         "specificPrompt": "schemaJson必须使用```schemaJson```包裹。"
       },
       {
+        "name": "OpenPangu-2.0-Flash",
+        "id": "openpangu-2.0-flash",
+        "supportJsonFormat": false,
+        "specificPrompt": "",
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "OpenPangu-2.0-Flash-thinking",
+        "id": "openpangu-2.0-flash",
+        "supportJsonFormat": false,
+        "specificPrompt": ""
+      },
+      {
         "name": "DeepSeek-V4-Flash",
         "id": "deepseek-v4-flash",
         "supportJsonFormat": false,
@@ -76,13 +93,63 @@
         "supportJsonFormat": false
       },
       {
+        "name": "GLM5.2",
+        "id": "glm-5.2",
+        "supportJsonFormat": false,
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "GLM5.2-thinking",
+        "id": "glm-5.2",
+        "supportJsonFormat": false
+      },
+      {
+        "name": "GLM5.1",
+        "id": "glm-5.1",
+        "supportJsonFormat": false,
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "GLM5.1-thinking",
+        "id": "glm-5.1",
+        "supportJsonFormat": false
+      },
+      {
         "name": "GLM5",
+        "id": "glm-5",
+        "supportJsonFormat": false,
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "GLM5-thinking",
         "id": "glm-5",
         "supportJsonFormat": false
       },
       {
-        "name": "Kimi-K2(贵)",
-        "id": "Kimi-K2",
+        "name": "Kimi-K2.6",
+        "id": "kimi-k2.6",
+        "supportJsonFormat": false,
+        "extraBody": {
+          "thinking": {
+            "type": "disabled"
+          }
+        }
+      },
+      {
+        "name": "Kimi-K2.6-thinking",
+        "id": "kimi-k2.6",
         "supportJsonFormat": false
       },
       {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import SchemaCardRenderer from './SchemaCardRenderer.vue';
+import GenuiRenderer from './GenuiRenderer.vue';
 import { parseBooleanAttribute, parseJsonAttribute } from '../web-component/parse-attribute';
 
 defineOptions({
@@ -38,7 +38,7 @@ const isJsonComplete = computed(() => parseBooleanAttribute(props.isJsonComplete
 </script>
 
 <template>
-  <SchemaCardRenderer
+  <GenuiRenderer
     :content="content ?? '{}'"
     :generating="isGenerating"
     :is-json-complete="isJsonComplete"

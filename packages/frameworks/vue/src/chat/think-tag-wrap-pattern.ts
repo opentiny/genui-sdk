@@ -1,4 +1,4 @@
-import { getPartialStartRegString } from "@opentiny/genui-sdk-core";
+import { getPartialStartRegString } from '@opentiny/genui-sdk-core';
 
 export class ThinkTagWrapPattern {
   protected thinkStartFlag: string = '<think>';
@@ -18,6 +18,6 @@ export class ThinkTagWrapPattern {
         full: this.endRegex,
         partial: this.partialEndRegex,
       },
-    }
+    };
   }
 }

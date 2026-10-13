@@ -11,8 +11,8 @@
         autofocus
       />
       <div class="edit-input-actions">
-        <tiny-button size="small" @click="handleCancel">取消</tiny-button>
-        <tiny-button type="primary" size="small" :loading="isSaving" @click="handleSave"> 保存 </tiny-button>
+        <tiny-button size="small" @click="handleCancel">{{ t('common.cancel') }}</tiny-button>
+        <tiny-button type="primary" size="small" :loading="isSaving" @click="handleSave">{{ t('common.save') }}</tiny-button>
       </div>
     </div>
   </Transition>
@@ -21,6 +21,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import { TinyInput, TinyButton } from '@opentiny/vue';
+import { t } from '../i18n';
 
 interface Props {
   modelValue?: string;

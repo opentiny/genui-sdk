@@ -1,26 +1,32 @@
 import { Component, Injector, Pipe, PipeTransform, TemplateRef, Type, ViewChild, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RendererContextService } from './context.service';
+import { getComponent, getModuleRef } from './parser/material-getter';
 
-import { EmbeddedViewPipe } from './embedded-view.pipe';
+import { ProjectNgContentPipe } from './ng-content';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { PropsFilterPipe } from './props-filter.pipe';
-import { GetDirectivesPipe } from './get-directive.pipe';
+import { GetDirectivesPipe, GetDirectiveModulesPipe } from './get-directive.pipe';
 import { ComponentOutlet } from './component-outlet';
 import { ParseDataPipe } from './parse-data.pipe';
+import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
-import { getComponent, getModuleRef } from './parser/material-getter';
 import { RendererDirective } from './renderer.directive';
+import { SchemaRefDirective, SchemaRefTemplateDirective } from './schema-ref';
+import { SchemaTemplateContextDirective } from './schema-template-context.directive';
+import { ContentChildrenTrackDirective, ContentChildrenTrackTemplateDirective } from './content-children';
 
 @Pipe({
   name: 'getModuleRef',
   standalone: true,
 })
 export class GetModuleRefPipe implements PipeTransform {
+  constructor(private readonly contextService: RendererContextService) {}
+
   transform(componentName: string): Type<any> | undefined {
-    return componentName ? getModuleRef(componentName) : undefined;
+    return componentName ? getModuleRef(componentName, this.contextService.getContext()) : undefined;
   }
 }
 
@@ -29,8 +35,10 @@ export class GetModuleRefPipe implements PipeTransform {
   standalone: true,
 })
 export class GetComponentPipe implements PipeTransform {
+  constructor(private readonly contextService: RendererContextService) {}
+
   transform(componentName: string): Type<any> | null {
-    return componentName ? getComponent(componentName) : null;
+    return componentName ? getComponent(componentName, this.contextService.getContext()) : null;
   }
 }
 
@@ -49,7 +57,7 @@ export class IsArrayPipe implements PipeTransform {
   standalone: true,
 })
 export class IsStringPipe implements PipeTransform {
-  transform(value: any): boolean { 
+  transform(value: any): boolean {
     return typeof value === 'string';
   }
 }
@@ -59,26 +67,33 @@ export class IsStringPipe implements PipeTransform {
   standalone: true,
   imports: [
     CommonModule,
-    RendererDirective,  
+    RendererDirective,
     IsArrayPipe,
     IsStringPipe,
     GetComponentPipe,
     GetModuleRefPipe,
-    EmbeddedViewPipe,
+    ProjectNgContentPipe,
     LoopScopePipe,
     AttrAndEventDirective,
     PropsFilterPipe,
     GetDirectivesPipe,
+    GetDirectiveModulesPipe,
     ComponentOutlet,
+    ContentChildrenTrackDirective,
+    ContentChildrenTrackTemplateDirective,
+    SchemaRefDirective,
+    SchemaRefTemplateDirective,
+    SchemaTemplateContextDirective,
     ParseDataPipe,
+    ApplyDefaultPropsPipe,
     MergeObjectPipe,
-    AutoApplyDirectivesPipe,
+    AutoApplyDirectivesPipe,  
   ],
   templateUrl: './renderer-template.component.html',
   exportAs: 'rendererTemplate',
 })
 export class RendererTemplateComponent {
-  @ViewChild('rendererTemplate', {static: true})
+  @ViewChild('rendererTemplate', { static: true })
   public template!: TemplateRef<{
     schema: any;
     scope: any;

@@ -1,0 +1,244 @@
+{
+  "componentName": "Page",
+  "state": {
+    "defaultFormData": {
+      "name": "",
+      "sex": "男",
+      "department": "",
+      "protocolStart": "",
+      "email": ""
+    },
+    "formData": {
+      "name": "张三",
+      "sex": "男",
+      "department": "HR",
+      "protocolStart": "2023-01-01",
+      "email": "zhangsan@example.com"
+    },
+    "submitResult": ""
+  },
+  "methods": {
+    "handleSubmit": {
+      "type": "JSFunction",
+      "value": "function handleSubmit() { this.state.submitResult = '已提交：' + JSON.stringify(this.state.formData); }"
+    },
+    "handleReset": {
+      "type": "JSFunction",
+      "value": "function handleReset() { this.state.formData = JSON.parse(JSON.stringify(this.state.defaultFormData)); this.state.submitResult = ''; }"
+    }
+  },
+  "children": [
+    {
+      "componentName": "ElCard",
+      "props": {
+        "header": "员工信息表单（双向绑定）",
+        "style": "max-width: 520px; margin: 0 auto;"
+      },
+      "children": [
+        {
+          "componentName": "ElForm",
+          "props": {
+            "model": {
+              "type": "JSExpression",
+              "value": "this.state.formData"
+            },
+            "labelPosition": "top"
+          },
+          "children": [
+            {
+              "componentName": "ElFormItem",
+              "props": {
+                "label": "姓名",
+                "prop": "name",
+                "required": true
+              },
+              "children": [
+                {
+                  "componentName": "ElInput",
+                  "props": {
+                    "placeholder": "请输入姓名",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.name"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ElFormItem",
+              "props": {
+                "label": "性别",
+                "prop": "sex"
+              },
+              "children": [
+                {
+                  "componentName": "ElRadioGroup",
+                  "props": {
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.sex"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "ElRadio",
+                      "props": {
+                        "value": "男"
+                      },
+                      "children": "男"
+                    },
+                    {
+                      "componentName": "ElRadio",
+                      "props": {
+                        "value": "女"
+                      },
+                      "children": "女"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "ElFormItem",
+              "props": {
+                "label": "部门",
+                "prop": "department",
+                "required": true
+              },
+              "children": [
+                {
+                  "componentName": "ElSelect",
+                  "props": {
+                    "placeholder": "请选择部门",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.department"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "ElOption",
+                      "props": {
+                        "label": "人事部",
+                        "value": "HR"
+                      }
+                    },
+                    {
+                      "componentName": "ElOption",
+                      "props": {
+                        "label": "技术部",
+                        "value": "tech"
+                      }
+                    },
+                    {
+                      "componentName": "ElOption",
+                      "props": {
+                        "label": "产品部",
+                        "value": "product"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "ElFormItem",
+              "props": {
+                "label": "入职日期",
+                "prop": "protocolStart"
+              },
+              "children": [
+                {
+                  "componentName": "ElDatePicker",
+                  "props": {
+                    "type": "date",
+                    "placeholder": "请选择日期",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.protocolStart"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ElFormItem",
+              "props": {
+                "label": "邮箱",
+                "prop": "email"
+              },
+              "children": [
+                {
+                  "componentName": "ElInput",
+                  "props": {
+                    "type": "email",
+                    "placeholder": "请输入邮箱",
+                    "modelValue": {
+                      "type": "JSExpression",
+                      "model": true,
+                      "value": "this.state.formData.email"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ElFormItem",
+              "children": [
+                {
+                  "componentName": "div",
+                  "props": {
+                    "style": "display: flex; gap: 12px; justify-content: flex-end;"
+                  },
+                  "children": [
+                    {
+                      "componentName": "ElButton",
+                      "props": {
+                        "onClick": {
+                          "type": "JSFunction",
+                          "value": "function() { this.handleReset(); }"
+                        }
+                      },
+                      "children": "重置"
+                    },
+                    {
+                      "componentName": "ElButton",
+                      "props": {
+                        "type": "primary",
+                        "onClick": {
+                          "type": "JSFunction",
+                          "value": "function() { this.handleSubmit(); }"
+                        }
+                      },
+                      "children": "提交"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "ElFormItem",
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "this.state.submitResult"
+                    },
+                    "style": "color: #606266; white-space: pre-wrap;"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

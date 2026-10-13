@@ -72,12 +72,14 @@ export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10, // 端口冲突时最大尝试次数
+  materialsMeta,
 });
 ```
 
@@ -86,6 +88,7 @@ startServer({
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import cors from 'cors';
 
 const app = express();
@@ -95,6 +98,7 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
+  materialsMeta, // 不传则根据请求的 framework 取默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular）
 });
 
 app.listen(3000);
@@ -108,7 +112,7 @@ app.listen(3000);
 
 **请求格式**（OpenAI 兼容）：
 
-```json
+```jsonc
 {
   "model": "gpt-4",
   "messages": [
@@ -131,7 +135,7 @@ app.listen(3000);
 
 **响应格式**（Server-Sent Events）：
 
-```
+```text
 data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}
 
 data: {"id":"chatcmpl-123","object":"chat.completion.chunk","created":1694268190,"model":"gpt-4","choices":[{"index":0,"delta":{"content":"!"},"finish_reason":null}]}

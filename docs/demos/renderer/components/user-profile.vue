@@ -72,4 +72,3 @@ defineProps<{
   color: #666;
 }
 </style>
-

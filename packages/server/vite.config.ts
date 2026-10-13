@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const plugins = [
     dts({
       rollupTypes: true,
-      bundledPackages: ['@opentiny/genui-sdk-core', '@opentiny/genui-sdk-chat-completions'],
+      bundledPackages: ['@opentiny/genui-sdk-chat-completions'],
     }),
     jsconfigPaths({
       projects: ['./tsconfig.json'],
@@ -37,12 +37,9 @@ export default defineConfig(({ mode }) => {
         formats: ['es'],
       },
       outDir: 'output/dist',
-      sourcemap: mode === 'no-obfuscator',
+      sourcemap: true,
       rollupOptions: {
         external: (id) => {
-          if (id.includes('@opentiny/genui-sdk-core')) {
-            return false;
-          }
           if (id.startsWith('node:')) {
             return true;
           }

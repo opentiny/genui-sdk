@@ -22,11 +22,14 @@
 
 ```vue
 <template>
-  <GenuiChat :url="url" model="deepseek-v3.2" :customFetch="customFetch" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiChat :url="url" model="deepseek-v3.2" :customFetch="customFetch" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import type { CustomFetch } from '@opentiny/genui-sdk-vue';
 
 const url = 'https://your-chat-backend/api';
@@ -110,7 +113,7 @@ export const availableTools: Record<
 
 ```typescript
 import OpenAI from 'openai';
-import type { CustomRequest } from '@opentiny/genui-sdk-vue';
+import type { CustomFetch } from '@opentiny/genui-sdk-vue';
 import { availableTools } from './tools';
 
 /**
@@ -184,9 +187,9 @@ async function executeSingleToolCall(toolCall: any, currentMessages: any[]): Pro
  * 使用 OpenAI SDK 创建 customRequest 函数（处理工具调用和多轮对话）
  *
  * @param config OpenAI 配置
- * @returns CustomRequest 函数
+ * @returns CustomFetch 函数
  */
-export function createOpenAICustomFetch(config: OpenAIConfig): CustomRequest {
+export function createOpenAICustomFetch(config: OpenAIConfig): CustomFetch {
   return async (
     url: string,
     options: {
@@ -366,13 +369,16 @@ export const defaultCustomFetch = createOpenAICustomFetch({
 
 ```vue
 <template>
-  <div class="app-container">
-    <GenuiChat :customFetch="defaultCustomFetch" model="deepseek-v3.2" :temperature="0.5" :chatConfig="chatConfig" />
-  </div>
+  <GenuiConfigProvider :materials="materials">
+    <div class="app-container">
+      <GenuiChat :customFetch="defaultCustomFetch" model="deepseek-v3.2" :temperature="0.5" :chatConfig="chatConfig" />
+    </div>
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
-import { GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { defaultCustomFetch } from './api/custom-fetch';
 
 const chatConfig = {

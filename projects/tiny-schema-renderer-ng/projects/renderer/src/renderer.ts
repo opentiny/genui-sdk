@@ -1,29 +1,34 @@
 import { Component, Input, SimpleChanges, Type, ViewContainerRef } from '@angular/core';
-import { getComponent, getModuleRef } from './parser/material-getter';
 import { parseData } from './parser/schema-parser';
 import { CommonModule } from '@angular/common';
-import { EmbeddedViewPipe } from './embedded-view.pipe';
+import { ProjectNgContentPipe } from './ng-content';
 import { AttrAndEventDirective } from './attr-and-event.directive';
 import { RendererContextService } from './context.service';
 import { LoopScopePipe } from './loop-scope.pipe';
 import { PropsFilterPipe } from './props-filter.pipe';
 import { ComponentOutlet } from './component-outlet';
-import { GetDirectivesPipe } from './get-directive.pipe';
+import { SchemaRefDirective } from './schema-ref';
+import { GetDirectivesPipe, GetDirectiveModulesPipe } from './get-directive.pipe';
+import { ApplyDefaultPropsPipe } from './apply-default-props.pipe';
 import { ParseDataPipe } from './parse-data.pipe';
 import { MergeObjectPipe } from './merge-object.pipe';
 import { AutoApplyDirectivesPipe } from './auto-apply-directives.pipe';
+import { getComponent, getModuleRef } from './parser/material-getter';
 @Component({
   selector: 'schema-renderer',
   standalone: true,
   imports: [
     CommonModule,
-    EmbeddedViewPipe,
+    ProjectNgContentPipe,
     LoopScopePipe,
     AttrAndEventDirective,
     PropsFilterPipe,
     GetDirectivesPipe,
+    GetDirectiveModulesPipe,
     ComponentOutlet,
+    SchemaRefDirective,
     ParseDataPipe,
+    ApplyDefaultPropsPipe,
     MergeObjectPipe,
     AutoApplyDirectivesPipe,
   ],
@@ -92,11 +97,11 @@ export class Renderer {
   }
 
   get component(): Type<any> | null {
-    return this.componentName ? getComponent(this.componentName) : null;
+    return this.componentName ? getComponent(this.componentName, this.context) : null;
   }
 
   get moduleRef() {
-    return this.componentName ? getModuleRef(this.componentName) : undefined;
+    return this.componentName ? getModuleRef(this.componentName, this.context) : undefined;
   }
 
 

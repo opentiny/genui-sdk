@@ -18,14 +18,17 @@ export default defineConfig({
     lib: {
       entry: {
         index: path.resolve(__dirname, './src/index.ts'),
-        'render-config': path.resolve(__dirname, './src/render-config/index.ts'),
-        'extend-renderer': path.resolve(__dirname, './src/extend-renderer.ts'),
+        meta: path.resolve(__dirname, './src/meta/index.ts'),
+        materials: path.resolve(__dirname, './src/materials/index.ts'),
       },
       formats: ['es'],
       fileName: (format, entryName) => `${entryName}.js`,
     },
+    sourcemap: true,
     rollupOptions: {
-      external: [...Object.keys(packageJson.dependencies || {}).map(name => new RegExp(`^${escapeStringRegexp(name)}(/|$)`))],
+      external: [
+        ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
+      ],
     },
   },
 });

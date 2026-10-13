@@ -1,0 +1,80 @@
+.vp-doc-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 24px;
+}
+
+.vp-doc-title-row > h1 {
+  flex: 1;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0;
+  border-top: none !important;
+}
+
+.vp-doc-title-actions {
+  flex-shrink: 0;
+  padding-top: 0.35em;
+}
+
+.copy-page-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 8px;
+  background-color: var(--vp-c-bg);
+  color: var(--vp-c-text-2);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.copy-page-btn:hover {
+  color: var(--vp-c-text-1);
+  border-color: var(--vp-c-text-3);
+  background-color: var(--vp-c-bg-soft);
+}
+
+.copy-page-btn.copied {
+  color: var(--vp-c-brand-1);
+  border-color: var(--vp-c-brand-soft);
+  background-color: var(--vp-c-brand-soft);
+}
+
+.copy-page-btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.copy-page-btn-text {
+  display: inline-block;
+}
+
+@media (max-width: 640px) {
+  .vp-doc-title-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .vp-doc-title-actions {
+    padding-top: 0;
+  }
+
+  .copy-page-btn {
+    align-self: flex-start;
+  }
+}

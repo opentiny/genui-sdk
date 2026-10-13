@@ -1,8 +1,9 @@
 import { IconDelete, IconEditPen } from '@opentiny/tiny-robot-svgs';
 import { IconDownload } from '@opentiny/vue-icon';
+import { t } from '../../../i18n';
 
-export const historyMenuItems = [
-  { id: 'export', text: '导出', icon: IconDownload() },
-  { id: 'rename', text: '重命名', icon: IconEditPen },
-  { id: 'delete', text: '删除', icon: IconDelete },
+export const getHistoryMenuItems = () => [
+  { id: 'export', text: t('history.menu.export'), icon: IconDownload() },
+  { id: 'rename', text: t('history.menu.rename'), icon: IconEditPen },
+  { id: 'delete', text: t('history.menu.delete'), icon: IconDelete },
 ];

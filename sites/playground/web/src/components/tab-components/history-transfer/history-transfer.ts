@@ -1,4 +1,5 @@
 import type { Conversation } from '@opentiny/tiny-robot-kit';
+import { t } from '../../../i18n';
 import { formatDate, generateId } from '../../../utils';
 
 const generateUniqueId = (existingIds: Set<string>) => {
@@ -26,7 +27,7 @@ const normalizeConversation = (value: unknown): Conversation | null => {
 
   return {
     id,
-    title: typeof value.title === 'string' && value.title.trim() ? value.title : '新会话',
+    title: typeof value.title === 'string' && value.title.trim() ? value.title : t('conversation.newConversation'),
     createdAt: typeof value.createdAt === 'number' ? value.createdAt : Date.now(),
     updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : Date.now(),
     messages: value.messages as Conversation['messages'],
@@ -50,11 +51,11 @@ export const parseConversationFile = async (file: File) => {
   try {
     rawData = JSON.parse(await file.text());
   } catch (error) {
-    throw new Error('导入文件不是有效的 JSON');
+    throw new Error(t('history.invalidJson'));
   }
 
   if (!Array.isArray(rawData)) {
-    throw new Error('导入文件必须是会话数组');
+    throw new Error(t('history.mustBeArray'));
   }
 
   return rawData.map(normalizeConversation).filter(Boolean) as Conversation[];

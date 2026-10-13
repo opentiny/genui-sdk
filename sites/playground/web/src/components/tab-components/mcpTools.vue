@@ -1,10 +1,10 @@
 <script setup>
 import { ref } from 'vue';
 import { TinyCollapse } from '@opentiny/vue';
-import { AgentPanel, McpServerPanel, SkillPanel } from './tool-panels';
+import { AgentPanel, OpenApiServicePanel, McpServerPanel, SkillPanel } from './tool-panels';
 import ToolCallConfig from './ToolCallConfig.vue';
 
-const activePanels = ref(['mcp', 'agent', 'skills']);
+const activePanels = ref(['mcp', 'agent', 'skills', 'openApiTools']);
 </script>
 
 <template>
@@ -15,6 +15,7 @@ const activePanels = ref(['mcp', 'agent', 'skills']);
           <McpServerPanel />
           <AgentPanel />
           <SkillPanel />
+          <OpenApiServicePanel />
         </tiny-collapse>
       </div>
     </div>

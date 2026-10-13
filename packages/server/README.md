@@ -7,7 +7,6 @@ A server for the OpenTiny GenUI SDK to enhance LLM return structure stream conte
 * **OpenAI Compatible:** Drop-in replacement for OpenAI chat completions API.
 * **Easy Integration:** Programmatic API or CLI to start the server.
 
-
 ## Usage
 
 ### CLI
@@ -31,6 +30,7 @@ npx genui-sdk-server -e .env.production
 
 ```typescript
 import { startServer, equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import express from 'express';
 
 // Option 1: Use startServer (includes default route /chat/completions)
@@ -38,6 +38,7 @@ startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: 'your-api-key',
+  materialsMeta, // optional: fix materials at startup
 });
 
 // Option 2: Custom Express app
@@ -46,10 +47,10 @@ equipChatCompletions(app, {
   route: '/api/chat',
   baseURL: 'https://api.openai.com/v1',
   apiKey: 'your-api-key',
+  materialsMeta,
 });
 app.listen(3100);
 ```
-
 
 ## Documentation
 
@@ -58,6 +59,3 @@ app.listen(3100);
 ## API
 
 * [Server API](https://docs.opentiny.design/genui-sdk/components/server/api)
-
-
-

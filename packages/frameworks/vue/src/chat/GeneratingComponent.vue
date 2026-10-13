@@ -10,6 +10,8 @@ const { t } = useI18n();
 
 const loadingText = ref(t('loading.response'));
 
+const hasSchemaCard = ref(false);
+
 const toolStatusTextMap = new Map<string, { textKey: string }>([
   ['running', { textKey: 'toolStatus.running' }],
   ['success', { textKey: 'toolStatus.success' }],
@@ -43,7 +45,10 @@ const handleNotification = (payload: INotificationPayload) => {
   // type === 'markdown'
   const lastMessage = payload.chatMessage.messages[payload.chatMessage.messages.length - 1];
   if (lastMessage) {
-    loadingText.value = `${lastMessage.content}...`;
+    if (!hasSchemaCard.value) {
+      hasSchemaCard.value = payload.chatMessage.messages?.some((item: any) => item.type.startsWith('schema-card'));
+    }
+    loadingText.value = hasSchemaCard.value ? `${lastMessage.content}...` : t('loading.response');
   }
 };
 
@@ -58,7 +63,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="loadingText" class="loading-wrapper">
-    <div  class="loading-container" type="loading-text">{{ loadingText }}</div>
+    <div class="loading-container" type="loading-text">{{ loadingText }}</div>
   </div>
 </template>
 <style scoped lang="less">
@@ -66,15 +71,19 @@ onBeforeUnmount(() => {
   width: fit-content;
   max-width: 100%;
   overflow: hidden;
-  direction: rtl;
+  width: 100%;
+  min-height: 45px;
+  position: relative;
 }
 .loading-container[type='loading-text'] {
+  position: absolute;
+  right: 0;
+  min-width: 100%;
   margin: 10px 0;
   color: #666;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  direction: ltr;
   display: inline-block;
 }
 

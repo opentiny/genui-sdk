@@ -1,0 +1,83 @@
+{
+  "state": {
+    "activeTab": "basic"
+  },
+  "methods": {},
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "h3",
+      "props": {},
+      "children": "订单详情"
+    },
+    {
+      "componentName": "TinyTabs",
+      "props": {
+        "modelValue": {
+          "type": "JSExpression",
+          "model": true,
+          "value": "this.state.activeTab"
+        }
+      },
+      "children": [
+        {
+          "componentName": "TinyTabItem",
+          "props": {
+            "title": "基本信息",
+            "name": "basic"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "订单号：ORD-20240301"
+              }
+            },
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "下单时间：2024-03-01 10:30"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyTabItem",
+          "props": {
+            "title": "物流信息",
+            "name": "logistics"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "承运商：顺丰速运"
+              }
+            },
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "运单号：SF1234567890"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "TinyTabItem",
+          "props": {
+            "title": "售后",
+            "name": "service"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "暂无售后记录"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

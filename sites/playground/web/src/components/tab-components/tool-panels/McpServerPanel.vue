@@ -12,6 +12,7 @@ import {
   TinyNotify,
 } from '@opentiny/vue';
 import { iconDel, iconEdit, iconPlus, iconEllipsis } from '@opentiny/vue-icon';
+import { t } from '../../../i18n';
 
 const playgroundContext = inject('playgroundContext');
 const { llmConfig } = playgroundContext;
@@ -152,7 +153,7 @@ const confirmMCPServer = async () => {
 </script>
 
 <template>
-  <tiny-collapse-item name="mcp" title="MCP 服务">
+  <tiny-collapse-item name="mcp" :title="t('mcp.title')">
     <template #title-right>
       <tiny-button type="text" :icon="IconPlus" @click.stop="addMCPServer"></tiny-button>
     </template>
@@ -169,11 +170,11 @@ const confirmMCPServer = async () => {
                 <div class="mcp-server-item-actions">
                   <div @click="editMCPServer(server, index)">
                     <component :is="IconEdit" />
-                    <span>编辑</span>
+                    <span>{{ t('common.edit') }}</span>
                   </div>
                   <div @click="deleteMCPServer(server)">
                     <component :is="IconDel" />
-                    <span>移除</span>
+                    <span>{{ t('common.remove') }}</span>
                   </div>
                 </div>
               </template>
@@ -189,38 +190,38 @@ const confirmMCPServer = async () => {
     <div v-if="!llmConfig.mcpServers || llmConfig.mcpServers.length === 0" class="mcp-server-list-empty">
       <div class="mcp-server-item-empty">
         <div class="mcp-server-item-empty-icon">
-          点击右上角
+          {{ t('common.emptyHintPrefix') }}
           <component :is="IconPlus" class="mcp-server-item-empty-plus-icon" />
-          添加 MCP 服务
+          {{ t('mcp.emptyAction') }}
         </div>
       </div>
     </div>
     <tiny-dialog-box
       v-model:visible="showToolFormDialog"
-      :title="mcpServerData.index > -1 ? '编辑 MCP 服务' : '添加 MCP 服务'"
+      :title="mcpServerData.index > -1 ? t('mcp.edit') : t('mcp.add')"
       width="500px"
       @close="closeToolFormDialog"
       :append-to-body="true"
     >
       <tiny-form ref="mcpServerFormRef" :model="mcpServerData" label-width="120px" label-position="left">
-        <tiny-form-item label="名称" prop="name" required>
-          <tiny-input v-model="mcpServerData.name" placeholder="MCP 服务"></tiny-input>
+        <tiny-form-item :label="t('common.name')" prop="name" required>
+          <tiny-input v-model="mcpServerData.name" :placeholder="t('mcp.namePlaceholder')"></tiny-input>
         </tiny-form-item>
         <tiny-form-item label="URL" prop="url" required>
           <tiny-input v-model="mcpServerData.url" placeholder="http://localhost:3000/mcp"></tiny-input>
         </tiny-form-item>
-        <tiny-form-item label="请求头" prop="headers">
+        <tiny-form-item :label="t('mcp.headers')" prop="headers">
           <tiny-input v-model="mcpServerData.headers" :placeholder="headersPlaceholder" type="textarea"></tiny-input>
         </tiny-form-item>
-        <tiny-form-item label="超时（毫秒）" prop="timeout">
+        <tiny-form-item :label="t('mcp.timeout')" prop="timeout">
           <tiny-input v-model="mcpServerData.timeout" :placeholder="String(DEFAULT_TIMEOUT_SECONDS)" type="number"></tiny-input>
         </tiny-form-item>
-        <tiny-form-item label="描述" prop="description">
-          <tiny-input type="textarea" v-model="mcpServerData.description" placeholder="描述"></tiny-input>
+        <tiny-form-item :label="t('common.description')" prop="description">
+          <tiny-input type="textarea" v-model="mcpServerData.description" :placeholder="t('mcp.descPlaceholder')"></tiny-input>
         </tiny-form-item>
       </tiny-form>
       <template #footer>
-        <tiny-button type="primary" :loading="addToolLoading" @click="confirmMCPServer">确认</tiny-button>
+        <tiny-button type="primary" :loading="addToolLoading" @click="confirmMCPServer">{{ t('common.confirm') }}</tiny-button>
       </template>
     </tiny-dialog-box>
   </tiny-collapse-item>

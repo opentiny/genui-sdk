@@ -50,6 +50,8 @@ web_modules/
 # Optional npm cache directory
 .npm
 
+.pnpm-store
+
 # Optional eslint cache
 .eslintcache
 
@@ -148,3 +150,21 @@ stats.html
 
 # GitHub Pages 本地合并输出
 _site/
+
+# AI platform skill projections.
+# SSOT lives in .agents/skills/ and should be committed.
+.claude/skills/
+.cursor/skills/
+.codex/skills/
+.gemini/skills/
+.hermes/skills/
+.openclaw/skills/
+.config/opencode/skills/
+
+# genui-integration skill: copied from docs at build time, not committed
+packages/integrate/skill/genui-integration/examples/
+packages/integrate/skill/genui-integration/references/guides/
+packages/integrate/skill/genui-integration/references/materials/*-*.md
+
+# skill-generator CLI local preview; regenerate with generate:skill
+packages/skill-generator/example/

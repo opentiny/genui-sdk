@@ -3,6 +3,7 @@ import { computed, nextTick, ref, watch } from 'vue';
 import { TinyButton, TinyDialogBox, TinyForm, TinyFormItem, TinyInput } from '@opentiny/vue';
 import SkillModulesExplorer from './SkillModulesExplorer.vue';
 import { buildSingleModules, parseFrontMatterNameDesc } from './index';
+import { t } from '../../../i18n';
 
 const props = defineProps({
   allSkills: {
@@ -24,7 +25,7 @@ const rules = computed(() => ({
       validator: (rule, value, callback) => {
         const skillName = (value || '').trim();
         if (!skillName) {
-          callback(new Error('请填写 Skill 名称'));
+          callback(new Error(t('skill.nameRequired')));
           return;
         }
         const index = skillData.value.index ?? -1;
@@ -32,7 +33,7 @@ const rules = computed(() => ({
           (s, i) => i !== index && (s.name || '').trim() === skillName,
         );
         if (dup) {
-          callback(new Error(`已存在名为「${skillName}」的 Skill，名称不可重复`));
+          callback(new Error(t('skill.duplicateName', { name: skillName })));
         } else {
           callback();
         }
@@ -46,7 +47,7 @@ const rules = computed(() => ({
         const hasModules = value && typeof value === 'object' && Object.keys(value).length > 0;
         const hasContent = (skillData.value.content || '').trim();
         if (!hasModules && !hasContent) {
-          callback(new Error('请导入文件夹或填写单文档内容'));
+          callback(new Error(t('skill.contentRequired')));
         } else {
           callback();
         }
@@ -117,7 +118,7 @@ const submit = () => {
 <template>
   <tiny-dialog-box
     v-model:visible="visible"
-    :title="skillData.index > -1 ? '编辑 Skill' : '添加 Skill'"
+    :title="skillData.index > -1 ? t('skill.edit') : t('skill.add')"
     width="1000px"
     :append-to-body="true"
     @close="handleDialogClose"
@@ -129,26 +130,25 @@ const submit = () => {
       label-width="120px"
       label-position="left"
     >
-      <tiny-form-item label="名称" prop="name" required>
-        <tiny-input v-model="skillData.name" placeholder="列表展示名称，可与 SKILL.md 中 name 一致"></tiny-input>
+      <tiny-form-item :label="t('common.name')" prop="name" required>
+        <tiny-input v-model="skillData.name" :placeholder="t('skill.namePlaceholder')"></tiny-input>
       </tiny-form-item>
-      <tiny-form-item label="描述" prop="description" required>
+      <tiny-form-item :label="t('common.description')" prop="description" required>
         <tiny-input
           type="textarea"
           v-model="skillData.description"
-          placeholder="列表摘要；导入文件夹时可从主 SKILL.md 自动带出"
+          :placeholder="t('skill.descPlaceholder')"
         ></tiny-input>
       </tiny-form-item>
-      <tiny-form-item label="技能包" prop="modules">
+      <tiny-form-item :label="t('skill.pack')" prop="modules">
         <div class="skill-pack-row">
-          <label for="playground-skill-folder-import" class="skill-folder-pick-btn">选择文件夹</label>
+          <label for="playground-skill-folder-import" class="skill-folder-pick-btn">{{ t('skill.pickFolder') }}</label>
           <tiny-button v-if="skillData.modules && Object.keys(skillData.modules).length" type="text" @click="clearImportedFolder">
-            清除文件夹，改用手写单文档
+            {{ t('skill.clearFolder') }}
           </tiny-button>
         </div>
         <div v-if="skillData.modules && Object.keys(skillData.modules).length" class="skill-pack-summary">
-          已加载 {{ Object.keys(skillData.modules).length }} 个文件；对话时仅注入技能摘要，完整文档由模型通过 get_skill_content
-          按需拉取（渐进式披露）。
+          {{ t('skill.packSummary', { count: Object.keys(skillData.modules).length }) }}
         </div>
         <SkillModulesExplorer
           v-if="skillData.modules && Object.keys(skillData.modules).length"
@@ -156,19 +156,19 @@ const submit = () => {
           @modules-edit="onModulesEdit"
         />
       </tiny-form-item>
-      <tiny-form-item v-if="!skillData.modules || !Object.keys(skillData.modules).length" label="单文档内容" prop="content">
+      <tiny-form-item v-if="!skillData.modules || !Object.keys(skillData.modules).length" :label="t('skill.singleDoc')" prop="content">
         <tiny-input
           type="textarea"
           v-model="skillData.content"
           :autosize="{ minRows: 12, maxRows: 20 }"
-          placeholder="未导入文件夹时，可在此粘贴整份 SKILL.md；粘贴后会自动解析出名称与描述"
+          :placeholder="t('skill.singleDocPlaceholder')"
           @paste="onContentPaste"
           @update:model-value="onContentInput"
         ></tiny-input>
       </tiny-form-item>
     </tiny-form>
     <template #footer>
-      <tiny-button type="primary" @click="submit">确认</tiny-button>
+      <tiny-button type="primary" @click="submit">{{ t('common.confirm') }}</tiny-button>
     </template>
   </tiny-dialog-box>
 </template>

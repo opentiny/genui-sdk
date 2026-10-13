@@ -1,6 +1,7 @@
 <script setup>
 import { inject } from 'vue';
 import { TinyCheckbox } from '@opentiny/vue';
+import { t } from '../../i18n';
 
 const playgroundContext = inject('playgroundContext');
 const { chatConfig } = playgroundContext;
@@ -17,12 +18,12 @@ const updateShowThinkingResult = (value) => {
 <template>
   <div class="tool-call-config">
     <tiny-checkbox :model-value="chatConfig.addToolCallContext" @update:model-value="updateAddToolCallContext">
-      调用结果添加到上下文
+      {{ t('tool.addContext') }}
     </tiny-checkbox>
   </div>
   <div class="tool-call-config">
     <tiny-checkbox :model-value="chatConfig.showThinkingResult" @update:model-value="updateShowThinkingResult">
-      调用结果展示在界面中
+      {{ t('tool.showInUI') }}
     </tiny-checkbox>
   </div>
 </template>

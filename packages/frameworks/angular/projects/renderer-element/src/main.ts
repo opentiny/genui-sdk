@@ -2,13 +2,15 @@ import { createApplication } from '@angular/platform-browser';
 import { createCustomElement } from '@angular/elements';
 import { provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
+import { GenuiRenderer, GENUI_MATERIALS } from '@opentiny/genui-sdk-angular';
+import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 
 const ELEMENT_TAG = 'genui-renderer-ng-element';
 createApplication({
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideAnimations(),
+    { provide: GENUI_MATERIALS, useValue: materials },
   ]
 }).then((appRef) => {
   const elementCtor = createCustomElement(GenuiRenderer, {

@@ -67,7 +67,7 @@ export interface LlmBenchmarkRunOptions {
   model?: string;
   /** 多模型对比：非空时按列表逐模型生成/过滤报告；与 `model` 可只配置其一或并存（并存时常用于指定主模型 + 多模型列表）。 */
   models?: string[];
-  // 与 chat-genui 一致，决定 genPrompt 使用的物料 render-config（Vue / Angular）
+  // 与 chat-genui 一致，决定 genPrompt 使用的物料 materialsMeta（Vue / Angular）
   framework?: 'Vue' | 'Angular';
   // 单场景过滤（兼容旧配置）
   scenario?: string;

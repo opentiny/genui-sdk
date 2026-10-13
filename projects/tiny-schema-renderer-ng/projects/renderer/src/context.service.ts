@@ -1,8 +1,11 @@
 import { Injectable } from '@angular/core';
+import { MATERIALS_CONTEXT_KEY, type IRendererMaterials } from './renderer-materials';
+import { NOTIFY_CONTEXT_KEY, type NotifyHandler } from './renderer-settings';
 
 @Injectable()
 export class RendererContextService {
-  private context: Record<string, any> = {};
+  private context: Record<PropertyKey, any> = {};
+
   constructor() {
     this.context = {};
   }
@@ -16,4 +19,11 @@ export class RendererContextService {
     Object.assign(this.context, context);
   }
 
+  setMaterials(materials: IRendererMaterials) {
+    this.context[MATERIALS_CONTEXT_KEY] = materials ?? {};
+  }
+
+  setNotify(notify?: NotifyHandler) {
+    this.context[NOTIFY_CONTEXT_KEY] = notify ? { notify } : {};
+  }
 }

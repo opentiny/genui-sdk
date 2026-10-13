@@ -82,6 +82,13 @@ export interface IToolMessageItem {
   content: string;
   id?: string;
 }
+
+export interface ICustomMessageItem {
+  type: string;
+  content: any;
+  [customKey: string]: any;
+}
+
 /**
  * 消息项类型
  */
@@ -89,7 +96,8 @@ export type IMessageItem =
   | IMarkdownMessageItem
   | ISchemaCardMessageItem
   | IToolMessageItem
-  | IReasoningMessageItem;
+  | IReasoningMessageItem
+  | ICustomMessageItem;
 
 /**
  * 单轮对话中的消息对象

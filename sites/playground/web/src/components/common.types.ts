@@ -8,12 +8,6 @@ export interface IBubbleSlotsProps {
   chatMessage: IChatMessage;
 }
 
-export interface IRendererSlotsProps {
-  schema: any;
-  isError: boolean;
-  isFinished: boolean;
-}
-
 export interface INotificationEventEmitter {
   on(eventName: 'notification', callback: (payload: any) => void, once?: boolean): void;
   off(eventName: 'notification', callback: (payload: any) => void): void;
@@ -37,3 +31,45 @@ export interface IThinkComponentProps {
   message: IMessage;
   showThinkingResult: boolean;
 }
+
+export type OpenApiInputMode = 'url' | 'inline' | 'file';
+
+export interface OpenApiToolServiceFormData {
+  name: string;
+  openapi: string;
+  openapiInputMode: OpenApiInputMode;
+  openapiFileName?: string;
+  apiHeaders?: string;
+  index: number;
+}
+
+export type OpenApiPreviewTool = {
+  name: string;
+  summary?: string;
+  method: string;
+  path: string;
+};
+
+export type OpenApiPreviewData = {
+  baseUrl: string;
+  toolCount: number;
+  toolNames: string[];
+  tools?: OpenApiPreviewTool[];
+  warnings?: string[];
+};
+
+export type OpenApiToolServiceConfig = {
+  name: string;
+  openapi: string;
+  description?: string;
+  baseUrl?: string;
+  apiHeaders?: Record<string, string>;
+  toolNamePrefix?: string;
+  openapiFileName?: string;
+  excludeMethods?: string[];
+  excludePathPrefixes?: string[];
+  toolCount?: number;
+  toolNames?: string[];
+  tools?: OpenApiPreviewTool[];
+  enabled?: boolean;
+};

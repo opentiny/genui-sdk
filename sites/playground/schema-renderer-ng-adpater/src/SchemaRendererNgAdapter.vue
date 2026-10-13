@@ -1,54 +1,41 @@
 <template>
-  <tiny-schema-renderer-element-ng ref="rendererRef"></tiny-schema-renderer-element-ng>
+  <genui-renderer-ng-element v-if="mounted" v-bind="props"></genui-renderer-ng-element>
 </template>
 
 <script setup lang="ts">
-import { ref, toRaw, watch } from 'vue';
-import '@opentiny/tiny-schema-renderer-ng/dist/renderer-element/browser/polyfills.js';
-import '@opentiny/tiny-schema-renderer-ng/dist/renderer-element/browser/main.js';
+import { onActivated, onDeactivated, ref } from 'vue';
+import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/polyfills.js';
+import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/main.js';
+import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/styles.css';
+
 const props = defineProps<{
-  schema: any;
+  id?: string;
+  state?: Record<string, any>;
+  generating: boolean;
+  content: string | object;
+  customDirectives?: Record<string, any>;
+  customComponents?: Record<string, any>;
+  customComponentsModule?: Record<string, any>;
+  customActions?: Record<string, any>;
+  requiredCompleteFieldSelectors?: string[];
 }>();
-const rendererRef = ref<HTMLElement>();
-let schema: any = null
 
-watch([() => props.schema, () => rendererRef.value], ([newVal, newRendererRef]) => {
-  schema = toRaw(newVal);
-  if (rendererRef.value) {
-    if (schema.children?.length) {
-      setSchema();
-    }
-  }
-}, { deep: true });
+/**
+ * Vue keep-alive detaches the tree → CE disconnectedCallback → Angular Elements
+ * destroy() removes the host node from its Vue parent (nativeRemoveNode on the
+ * component host). After that `genui-renderer-ng-element` is gone from the DOM,
+ * while Vue still holds the orphaned vnode and will not recreate it on activate.
+ *
+ * Unmount on deactivate / remount on activate so Vue creates a fresh CE and
+ * re-binds props.
+ */
+const mounted = ref(true);
 
+onDeactivated(() => {
+  mounted.value = false;
+});
 
-function setSchema() {
-  (rendererRef.value as any).schema = schema;
-  (rendererRef.value as any).detectChanges();
-}
-function setState(state: any) {
-  return (rendererRef.value as any).setState(state)
-}
-function setContext(context: any) {
-  return (rendererRef.value as any).setContext(context)
-}
-function getContext() {
-  return (rendererRef.value as any).getContext()
-}
-defineExpose({
-  setContext,
-  getContext,
-  setState
-})
-
+onActivated(() => {
+  mounted.value = true;
+});
 </script>
-<style lang="less">
-tiny-schema-renderer-element-ng {
-  font-size:var(--ti-common-font-size-base);
-  font-family:var(--ti-common-font-family);
-  color:var(--ti-common-color-text-primary);
-  background-color:var(--ti-common-color-bg-white-normal);
-  // TODO: body上的css需要处理成:host伪类，上面是临时解决方案
-  @import (less) '@opentiny/tiny-schema-renderer-ng/dist/renderer-element/browser/main.css';
-}
-</style>

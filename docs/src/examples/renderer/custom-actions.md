@@ -35,12 +35,15 @@
 
 ```vue {12-35}
 <template>
-  <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
 const content = ref({});
@@ -80,12 +83,15 @@ const customActions = {
 
 ```vue {12-33}
 <template>
-  <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
+  <GenuiConfigProvider :materials="materials">
+    <GenuiRenderer :content="content" :generating="generating" :customActions="customActions" />
+  </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
 const content = ref({});
