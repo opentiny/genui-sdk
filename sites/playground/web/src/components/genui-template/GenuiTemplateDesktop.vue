@@ -65,6 +65,7 @@ const rendererSchemaKey = computed(() => {
 const {
   containerRef: rendererContainerRef,
   highlight: inspectHighlight,
+  highlightNodeById: inspectHighlightNodeById,
   onMouseMove: handleRendererMouseMove,
   onMouseLeave: handleRendererMouseLeave,
   onMouseDown: handleRendererMouseDown,
@@ -77,6 +78,11 @@ const {
   insertComposerTag,
   selectable: inspectSelectable,
 });
+
+watch(
+  () => ui.externalComponentHover,
+  (id) => inspectHighlightNodeById(id),
+);
 </script>
 
 <template>
@@ -236,7 +242,7 @@ const {
     .schema-inspect-overlay {
       position: absolute;
       inset: 0;
-      z-index: 30;
+      z-index: 10;
       overflow: hidden;
       pointer-events: none;
     }

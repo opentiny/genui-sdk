@@ -70,7 +70,36 @@ export function useSchemaRendererInspect(options: {
 
   const clearInspectState = () => {
     selectedEl = null;
+    externalHoverEl = null;
+    selectedElBeforeExternalHover = null;
     setHovered(null);
+  };
+
+  const endExternalHover = () => {
+    selectedEl = selectedElBeforeExternalHover;
+    externalHoverEl = null;
+    selectedElBeforeExternalHover = null;
+    setHovered(selectedEl);
+  };
+
+  let externalHoverEl: HTMLElement | null = null;
+  let selectedElBeforeExternalHover: HTMLElement | null = null;
+  const highlightNodeById = (id: string | null) => {
+    if (!id) {
+      endExternalHover();
+      return;
+    }
+    const el = containerRef.value?.querySelector<HTMLElement>(`[data-id="${id}"]`);
+    if (!el) {
+      endExternalHover();
+      return;
+    }
+    if (!externalHoverEl) {
+      selectedElBeforeExternalHover = selectedEl;
+      externalHoverEl = el;
+    }
+    selectedEl = el;
+    setHovered(el);
   };
 
   const onMouseMove = (event: MouseEvent) => {
@@ -133,9 +162,7 @@ export function useSchemaRendererInspect(options: {
   const onPointerDown = (event: PointerEvent) => blockInteraction(event, false);
 
   const syncHighlight = () => {
-    if (options.isDevMode.value) {
-      updateHighlight();
-    }
+    updateHighlight();
   };
 
   const addSyncListeners = () => {
@@ -148,12 +175,13 @@ export function useSchemaRendererInspect(options: {
     window.removeEventListener('resize', syncHighlight);
   };
 
+  // 滚动/尺寸同步监听常驻：外部标签 hover 高亮不依赖开发态，也需要跟随滚动保持位置
+  addSyncListeners();
+
   watch(options.isDevMode, (enabled) => {
-    if (enabled) {
-      addSyncListeners();
-    } else {
+    if (!enabled) {
+      // 关闭开发态时清掉渲染器内的残留高亮；外部标签 hover 高亮不受此影响，hover 时重新触发
       clearInspectState();
-      removeSyncListeners();
     }
   });
 
@@ -176,6 +204,7 @@ export function useSchemaRendererInspect(options: {
   return {
     containerRef,
     highlight,
+    highlightNodeById,
     onMouseMove,
     onMouseLeave,
     onMouseDown,

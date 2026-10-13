@@ -3,6 +3,7 @@ import type { ISchemaCardLikeMessage } from './conversation-schema';
 import { findSchemaCardByCardId, rebuildSchemaFromCard, isSchemaVersionHistoryCollectible } from './conversation-schema';
 import { findManualCardInMessages, getManualEdits, manualEditToCardSnapshot } from './manual-schema';
 import type { ISchemaManualEditRecord, ISchemaManualMessageItem } from '../chat.types';
+import type { ComposerSegment } from '../schema-composer';
 import { t } from '../../../i18n';
 import { formatDate } from '../../../utils/date-format';
 import { resolveCardInput, resolveManualEditSaveTitle } from './schema-input-ids';
@@ -32,6 +33,7 @@ export interface ISchemaVersionHistoryEntry {
   sequenceIndex: number;
   timeLabel: string;
   description: string;
+  segments?: ComposerSegment[];
   authorLabel: string;
   authorType: 'user' | 'ai';
   isLatest: boolean;
@@ -228,11 +230,19 @@ export function collectSchemaVersionHistory(
 
   const entries: ISchemaVersionHistoryEntry[] = [];
   let sequenceIndex = 0;
+  let lastUserSegments: ComposerSegment[] | undefined;
 
   for (const chatMessage of messages) {
     const items = (chatMessage as { messages?: ISchemaCardLikeMessage[] }).messages;
     if (!Array.isArray(items)) {
       continue;
+    }
+
+    const userItem = (items as { type?: string; segments?: ComposerSegment[] }[]).find(
+      (item) => item.type === 'template-user',
+    );
+    if (userItem?.segments?.length) {
+      lastUserSegments = userItem.segments;
     }
 
     for (const item of items) {
@@ -265,6 +275,7 @@ export function collectSchemaVersionHistory(
               ? t('templateEditor.justNow')
               : formatVersionTimeLabel(edit.generatedTime ?? '', createdAtMs),
             description: '',
+            segments: lastUserSegments,
             authorLabel,
             authorType,
             isLatest: false,
@@ -293,6 +304,7 @@ export function collectSchemaVersionHistory(
           ? t('templateEditor.justNow')
           : formatVersionTimeLabel(item.generatedTime ?? '', createdAtMs),
         description: '',
+        segments: lastUserSegments,
         authorLabel,
         authorType,
         isLatest: false,

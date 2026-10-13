@@ -5,6 +5,7 @@ import { iconClose } from '@opentiny/vue-icon';
 import type { PlaygroundColorTheme } from './composables/use-monaco-playground-theme';
 import { useTemplateContext } from './composables';
 import chevronDownIcon from '../../assets/images/chevron-down.svg';
+import PreviewTag from './PreviewTag.vue';
 import { t } from '../../i18n';
 
 const props = defineProps<{
@@ -33,6 +34,14 @@ const isGroupCollapsed = (label: string) => collapsedGroups.value[label] ?? fals
 
 const toggleGroup = (label: string) => {
   collapsedGroups.value[label] = !isGroupCollapsed(label);
+};
+
+const handleTagHover = (id: string) => {
+  ui.externalComponentHover = id;
+};
+
+const handleTagLeave = () => {
+  ui.externalComponentHover = null;
 };
 </script>
 
@@ -94,7 +103,41 @@ const toggleGroup = (label: string) => {
               >
                 <div class="schema-version-history-panel__item-main">
                   <div class="schema-version-history-panel__item-time">{{ entry.timeLabel }}</div>
-                  <div class="schema-version-history-panel__item-desc">{{ entry.description }}</div>
+                  <div
+                    v-if="entry.segments?.length"
+                    class="schema-version-history-panel__item-desc"
+                  >
+                    <template v-for="(seg, index) in entry.segments" :key="index">
+                      <span v-if="seg.type === 'text'" class="schema-version-history-panel__desc-text">{{
+                        seg.value
+                      }}</span>
+                      <span v-else class="schema-version-history-panel__tag-wrap" @click.stop>
+                        <PreviewTag
+                          :title="seg.value.componentName"
+                          :component-id="seg.value.id"
+                          class="schema-version-history-panel__tag"
+                          @hover="handleTagHover"
+                          @leave="handleTagLeave"
+                        >
+                          {{ seg.value.componentName }}
+                          <template #fullscreen>
+                            <div class="schema-version-history-panel__fullscreen">
+                              <div class="schema-version-history-panel__fullscreen-title">选中组件</div>
+                              <div class="schema-version-history-panel__fullscreen-item">
+                                <span class="schema-version-history-panel__fullscreen-label">组件名</span>
+                                <span>{{ seg.value.componentName }}</span>
+                              </div>
+                              <div class="schema-version-history-panel__fullscreen-item">
+                                <span class="schema-version-history-panel__fullscreen-label">id</span>
+                                <span>{{ seg.value.id }}</span>
+                              </div>
+                            </div>
+                          </template>
+                        </PreviewTag>
+                      </span>
+                    </template>
+                  </div>
+                  <div v-else class="schema-version-history-panel__item-desc">{{ entry.description }}</div>
                 </div>
               </button>
             </div>
@@ -141,10 +184,6 @@ const toggleGroup = (label: string) => {
 
     .schema-version-history-panel__item {
       color: #f0f0f0;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.06);
-      }
     }
 
     .schema-version-history-panel__item-time {
@@ -249,14 +288,10 @@ const toggleGroup = (label: string) => {
     border-radius: 8px;
     background: transparent;
     text-align: left;
-    cursor: pointer;
+    cursor: default;
     box-sizing: border-box;
     transition: background-color 0.15s ease;
     display: block;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.04);
-    }
 
     &.is-pending .schema-version-history-panel__item-desc {
       color: #808080;
@@ -276,6 +311,59 @@ const toggleGroup = (label: string) => {
     line-height: 20px;
     color: #808080;
     word-break: break-word;
+  }
+
+  &__desc-text {
+    white-space: pre-wrap;
+  }
+
+  &__tag-wrap {
+    display: inline-flex;
+    align-items: center;
+    margin: 0 2px;
+    vertical-align: baseline;
+    cursor: pointer;
+  }
+
+  &__tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: rgba(24, 144, 255, 0.08);
+    border: 1px solid rgba(24, 144, 255, 0.25);
+    font-size: 12px;
+    line-height: 22px;
+    color: #1890ff;
+    white-space: nowrap;
+  }
+
+  &__fullscreen {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 260px;
+
+    &-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #191919;
+      margin-bottom: 4px;
+    }
+
+    &-item {
+      display: flex;
+      gap: 12px;
+      align-items: baseline;
+      font-size: 13px;
+      color: #333;
+    }
+
+    &-label {
+      flex-shrink: 0;
+      min-width: 48px;
+      color: #8a8a8a;
+    }
   }
 
   &__empty {

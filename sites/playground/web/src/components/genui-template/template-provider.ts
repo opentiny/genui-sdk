@@ -10,7 +10,7 @@ import { createTemplateResponseHandlers } from './template-response-handlers';
 import type { ITemplateUserMessageItem } from './chat.types';
 import type { LLMConfig } from './chat.types';
 
-/** 有 template-user segments 时用展示文本（标签为 [id:xxx]）作为卡片标题 input，避免内联标记进入历史面板 */
+/** 有 template-user segments 时用展示文本（标签为组件名）作为卡片标题 input，避免内联标记进入历史面板 */
 function resolveDisplayInput(
   lastUserMessage: { content?: unknown; messages?: unknown } | undefined,
 ): string {

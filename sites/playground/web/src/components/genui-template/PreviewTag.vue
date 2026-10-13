@@ -1,16 +1,31 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, useSlots, watch } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 
 interface Props {
   title?: string;
+  /** 组件 id，存在时 hover/leave 时向外派发事件，供渲染器联动高亮对应组件 */
+  componentId?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   title: '',
+  componentId: '',
 });
 
-const slots = useSlots();
-const hasPreview = computed(() => Boolean(slots.preview) || Boolean(props.title));
+const emit = defineEmits<{
+  (e: 'hover', id: string): void;
+  (e: 'leave'): void;
+}>();
+
+const handleMouseEnter = () => {
+  if (props.componentId) {
+    emit('hover', props.componentId);
+  }
+};
+
+const handleMouseLeave = () => {
+  emit('leave');
+};
 
 const fullscreenOpen = ref(false);
 
@@ -47,21 +62,20 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <span class="preview-tag" @click="openFullscreen">
+  <span
+    class="preview-tag"
+    @click="openFullscreen"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+  >
     <slot>{{ title }}</slot>
-
-    <div v-if="hasPreview" class="preview-tag__preview" @click.stop>
-      <slot name="preview">{{ title }}</slot>
-    </div>
 
     <Teleport to="body">
       <Transition name="preview-fade">
         <div v-if="fullscreenOpen" class="preview-tag__overlay" @click="closeFullscreen">
           <Transition name="preview-zoom" appear>
             <div class="preview-tag__overlay-body" @click.stop>
-              <slot name="fullscreen">
-                <slot name="preview">{{ title }}</slot>
-              </slot>
+              <slot name="fullscreen">{{ title }}</slot>
             </div>
           </Transition>
         </div>
@@ -77,30 +91,6 @@ onUnmounted(() => {
   align-items: center;
   vertical-align: baseline;
   cursor: pointer;
-}
-
-.preview-tag__preview {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
-  z-index: 10;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  font-size: 12px;
-  color: #333;
-  white-space: nowrap;
-  opacity: 0;
-  visibility: hidden;
-  transition:
-    opacity 0.2s,
-    visibility 0.2s;
-
-  .preview-tag:hover & {
-    opacity: 1;
-    visibility: visible;
-  }
 }
 
 .preview-tag__overlay {

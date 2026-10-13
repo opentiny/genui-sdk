@@ -46,14 +46,11 @@ export function segmentsToPlainText(segments: ComposerSegment[]): string {
     .trim();
 }
 
-/**
- * 展示场景（版本卡片标题等）：标签渲染为 [id:xxx]，与发送给模型的 apiContent 中
- * 的组件 id 引用一一对应，避免展示成组件标签名造成误解。
- */
 export function segmentsToDisplayText(segments: ComposerSegment[]): string {
   return segments
-    .map((seg) => (seg.type === 'text' ? seg.value : `[id:${seg.value.id || seg.value.componentName}]`))
+    .map((seg) => (seg.type === 'text' ? seg.value : ` ${seg.value.componentName} `))
     .join('')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 

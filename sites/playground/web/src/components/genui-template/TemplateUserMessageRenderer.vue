@@ -1,11 +1,22 @@
 <script setup lang="ts">
 import PreviewTag from './PreviewTag.vue';
 import type { ComposerSegment } from './schema-composer';
+import { useTemplateContext } from './composables';
 
 defineProps<{
   segments?: ComposerSegment[];
   content?: string;
 }>();
+
+const { ui } = useTemplateContext();
+
+const handleTagHover = (id: string) => {
+  ui.externalComponentHover = id;
+};
+
+const handleTagLeave = () => {
+  ui.externalComponentHover = null;
+};
 </script>
 
 <template>
@@ -16,15 +27,12 @@ defineProps<{
         <PreviewTag
           v-else
           :title="seg.value.componentName"
+          :component-id="seg.value.id"
           class="template-user-message__tag"
+          @hover="handleTagHover"
+          @leave="handleTagLeave"
         >
           {{ seg.value.componentName }}
-          <template #preview>
-            <div class="template-user-message__preview">
-              <div class="template-user-message__preview-name">{{ seg.value.componentName }}</div>
-              <div class="template-user-message__preview-meta">id: {{ seg.value.id }}</div>
-            </div>
-          </template>
           <template #fullscreen>
             <div class="template-user-message__fullscreen">
               <div class="template-user-message__fullscreen-title">选中组件</div>
@@ -70,23 +78,6 @@ defineProps<{
     line-height: 22px;
     color: #1890ff;
     white-space: nowrap;
-  }
-
-  &__preview {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-
-    &-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: #191919;
-    }
-
-    &-meta {
-      font-size: 12px;
-      color: #8a8a8a;
-    }
   }
 
   &__fullscreen {

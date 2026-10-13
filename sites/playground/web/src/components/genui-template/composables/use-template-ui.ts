@@ -8,6 +8,7 @@ const rendererPanelVisible = ref(
 );
 const schemaEditorVisible = ref(false);
 const sidePanel = ref<SidePanel | null>(null);
+const externalComponentHover = ref<string | null>(null);
 
 const isHistoryPanelOpen = computed(() => sidePanel.value === 'history');
 const isJsonEditorActive = computed(() => schemaEditorVisible.value);
@@ -35,6 +36,7 @@ export function useTemplateUi() {
     schemaEditorVisible.value = false;
     rendererPanelVisible.value = !isMobile.value;
     sidePanel.value = null;
+    externalComponentHover.value = null;
   }
 
   return {
@@ -42,6 +44,7 @@ export function useTemplateUi() {
     rendererPanelVisible,
     isJsonEditorActive,
     isHistoryPanelOpen,
+    externalComponentHover,
     setJsonEditorOpen,
     setRendererPanelVisible,
     toggleHistoryPanel,
