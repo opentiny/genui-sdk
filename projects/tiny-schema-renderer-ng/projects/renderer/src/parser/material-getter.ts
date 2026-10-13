@@ -212,7 +212,9 @@ export const getAutoApplyPatterns = (
     ngModel: (schema: any) => hasNgModel(schema),
     ngModelGroup: (schema: any) => hasAttr(schema, 'ngModelGroup'),
     ngControlStatus: (schema: any) => hasFormBinding(schema),
-    ngControlContainerHost: (schema: any) => hasNgModel(schema),
+    // Only bridge into NgForm when the field has `name` — nameless ngModels would
+    // otherwise share one FormControl and cross-fill (e.g. checkbox `false` into inputs).
+    ngControlContainerHost: (schema: any) => hasNgModel(schema) && hasAttr(schema, 'name'),
     formGroup: (schema: any) => hasAttr(schema, 'formGroup'),
     formControl: (schema: any) => hasAttr(schema, 'formControl'),
     formControlName: (schema: any) => hasAttr(schema, 'formControlName'),
