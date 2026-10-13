@@ -91,7 +91,10 @@ export class RenderBlockComponent extends DynamicProperties {
 
   public _dispatchEvent = (event: string, ...data: any) => {
     if (Object.keys(this[SCHEMA].outputs || {}).includes(event)) {
-      ((this as any)[event] as EventEmitter<any>).emit(data)
+      // Single payload: emit the value itself so `(out)="fn($event)"` gets the original
+      // argument, not a one-element array. Multiple args keep the array form.
+      const payload = data.length === 1 ? data[0] : data;
+      ((this as any)[event] as EventEmitter<any>).emit(payload)
     } else {
       console.warn(`Event ${event} not found in schema.outputs`)
     }
