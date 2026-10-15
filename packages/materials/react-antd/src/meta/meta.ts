@@ -1,5 +1,6 @@
 import type { IMaterialsMeta, IExample, IMaterialsProtocol } from '@opentiny/genui-sdk-core';
 import bundleJson from './materials/bundle.json' with { type: 'json' };
+import chartJson from './materials/chart.json' with { type: 'json' };
 import { examples as allExamples } from './example-schema';
 import { whiteList } from './white-list';
 
@@ -10,8 +11,8 @@ function filterExamples(ids: string[]) {
 }
 
 export const materialsMeta: IMaterialsMeta = {
-  materials: [bundleJson] as IMaterialsProtocol[],
-  examples: filterExamples(['antd-form', 'list', 'table']),
+  materials: [bundleJson, chartJson] as IMaterialsProtocol[],
+  examples: filterExamples(['antd-form', 'list', 'table', 'chart']),
   whiteList,
   wrapperComponent: 'AntCard',
 };

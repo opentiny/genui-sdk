@@ -1,0 +1,69 @@
+{
+  "componentName": "Page",
+  "state": {
+    "trendData": [
+      {
+        "month": "1月",
+        "value": 320
+      },
+      {
+        "month": "2月",
+        "value": 480
+      },
+      {
+        "month": "3月",
+        "value": 390
+      },
+      {
+        "month": "4月",
+        "value": 560
+      }
+    ],
+    "sourceData": [
+      {
+        "type": "直接访问",
+        "value": 335
+      },
+      {
+        "type": "邮件营销",
+        "value": 310
+      },
+      {
+        "type": "联盟广告",
+        "value": 234
+      }
+    ]
+  },
+  "children": [
+    {
+      "componentName": "Text",
+      "props": {
+        "text": "图表示例：图表组件通过 data 传入数组，再用字段名属性（xField/yField/angleField/colorField）告诉图表每一列取哪个 key。高度默认 320。"
+      }
+    },
+    {
+      "componentName": "AntColumn",
+      "props": {
+        "data": {
+          "type": "JSExpression",
+          "value": "this.state.trendData"
+        },
+        "xField": "month",
+        "yField": "value",
+        "height": 320
+      }
+    },
+    {
+      "componentName": "AntPie",
+      "props": {
+        "data": {
+          "type": "JSExpression",
+          "value": "this.state.sourceData"
+        },
+        "angleField": "value",
+        "colorField": "type",
+        "height": 320
+      }
+    }
+  ]
+}

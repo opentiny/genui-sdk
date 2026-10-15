@@ -88,6 +88,34 @@
           }
         },
         {
+          "component": "AntIcon",
+          "description": "Ant Design 图标组件。独立节点：{\"componentName\":\"AntIcon\",\"props\":{\"name\":\"SearchOutlined\"}}；",
+          "npm": {
+            "package": "@opentiny/genui-sdk-materials-react-antd",
+            "exportName": "AntIcon",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "type": "string",
+                    "required": true,
+                    "description": {
+                      "zh_CN": "图标名称，必填（缺省或不在支持列表内时组件渲染为空）。支持：SearchOutlined（搜索）、DeleteOutlined（删除）、EditOutlined（编辑）、PlusOutlined（新增）、MinusOutlined（减少）、CloseOutlined（关闭）、CheckOutlined（勾选）、CheckCircleOutlined（成功）、ExclamationCircleOutlined（警告）、InfoCircleOutlined（信息）、QuestionCircleOutlined（帮助）、CalendarOutlined（日历）、ClockCircleOutlined（时间）、UserOutlined（用户）、TeamOutlined（团队）、SettingOutlined（设置）、DownloadOutlined（下载）、UploadOutlined（上传）、SyncOutlined（刷新）、ArrowUpOutlined（向上）、ArrowDownOutlined（向下）、ArrowLeftOutlined（向左）、ArrowRightOutlined（向右）、MoreOutlined（更多）、CopyOutlined（复制）、SaveOutlined（保存）、FilterOutlined（筛选）、EyeOutlined（可见）、EyeInvisibleOutlined（隐藏）、LockOutlined（锁定）、UnlockOutlined（解锁）、LinkOutlined（链接）、PaperClipOutlined（附件）、LoadingOutlined（加载）、StarOutlined（收藏）、MailOutlined（邮件）、PictureOutlined（图片）、FolderOutlined（文件夹）、FileTextOutlined（文档）、ExportOutlined（导出）、ImportOutlined（导入）、SortAscendingOutlined（升序）、SortDescendingOutlined（降序）、FullscreenOutlined（全屏）、ShareAltOutlined（分享）、EnvironmentOutlined（定位）、MessageOutlined（消息）、HomeOutlined（首页）、BellOutlined（通知）、BarChartOutlined（柱状图）、LineChartOutlined（折线图）、PieChartOutlined（饼图）、TableOutlined（表格）、MenuOutlined（菜单）、UndoOutlined（撤销）、RedoOutlined（重做）、PrinterOutlined（打印）、SendOutlined（发送）、HeartOutlined（喜欢）、CommentOutlined（评论）、PhoneOutlined（电话）、GlobalOutlined（全球化）、CloudUploadOutlined（云上传）、ThunderboltOutlined（闪电）、BulbOutlined（提示）、RocketOutlined（发布）、DashboardOutlined（仪表盘）、DatabaseOutlined（数据库）、CodeOutlined（代码）、BugOutlined（缺陷）、DesktopOutlined（桌面）、WifiOutlined（网络）、TagOutlined（标签）、BookOutlined（书籍）、GiftOutlined（礼物）、FireOutlined（热门）、SmileOutlined（微笑）、FlagOutlined（标记）、ProjectOutlined（项目）、ScheduleOutlined（日程）、PlayCircleOutlined（播放）、PauseCircleOutlined（暂停）"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
           "component": "AntInput",
           "description": "Ant Design 输入框",
           "npm": {
