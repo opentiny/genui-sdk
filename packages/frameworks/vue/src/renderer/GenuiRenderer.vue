@@ -6,7 +6,6 @@ import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@ope
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { GENUI_CONFIG, GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import type { IBaseRendererInstance, IRendererProps } from './renderer.types';
-import { cardIdSymbol } from '../chat/useChat';
 import { useI18n } from '../chat/i18n';
 
 onErrorCaptured((error) => {
@@ -93,10 +92,6 @@ function updateContextAndState() {
   instance.setContext({
     callAction,
   });
-  instance.setContext({
-    [cardIdSymbol]: props.id,
-  });
-  instance.setState(props.state || {});
 }
 
 watch(

@@ -1,15 +1,21 @@
 <template>
   <GenuiConfigProvider :materials="materials">
-    <GenuiRenderer :content="content" :generating="generating" :state="historyState" :customActions="customActions" />
+    <GenuiRenderer
+      ref="rendererRef"
+      :content="content"
+      :generating="generating"
+      :customActions="customActions"
+    />
   </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
-import { ref } from 'vue';
-import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { onMounted, ref } from 'vue';
+import { GenuiConfigProvider, GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
+const rendererRef = ref<IRendererExpose | null>(null);
 
 // Schema restored from history
 const content = ref({
@@ -84,13 +90,18 @@ const content = ref({
   ],
 });
 
-// State restored from history (merged into global state on initialization)
+// State restored from history (injected via setState)
 const historyState = {
   formData: {
     name: 'John Doe',
     age: 30,
   },
 };
+
+// Inject the restored state after mount; a streamed schema update resets it, so re-call after updates
+onMounted(() => {
+  rendererRef.value?.setState(historyState);
+});
 
 const customActions = {
   getState: {

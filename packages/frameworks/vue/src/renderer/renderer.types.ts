@@ -12,8 +12,6 @@ export interface IRendererProps {
   customComponents?: Record<string, Component>;
   customActions?: Record<string, ICustomAction>;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, any>;
 }
 
 export interface IBaseRendererInstance {
