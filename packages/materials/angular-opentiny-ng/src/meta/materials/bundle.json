@@ -11,7 +11,7 @@
           },
           "component": "TiButton",
           "icon": "button",
-          "description": "按钮组件，支持多种样式和尺寸",
+          "description": "按钮组件，支持多种样式和尺寸。带图标时把 TiIcon 放在 children；icon 与 onlyIcon 二选一：文字+图标用 icon=true（例：{\"componentName\":\"TiButton\",\"props\":{\"icon\":true,\"color\":\"default\"},\"children\":[{\"componentName\":\"span\",\"children\":\"搜索\"},{\"componentName\":\"TiIcon\",\"props\":{\"name\":\"search\"}}]}）；纯图标用 onlyIcon=true（children 仅 TiIcon）。",
           "doc_url": "https://www.opentiny.design/tiny-ng/components/button",
           "screenshot": "",
           "tags": "button,按钮,基础组件",
@@ -44,7 +44,9 @@
               "properties": [
                 "color",
                 "size",
-                "disabled"
+                "disabled",
+                "icon",
+                "onlyIcon"
               ]
             },
             "contextMenu": {
@@ -191,6 +193,50 @@
                       "props": {
                       }
                     }
+                  },
+                  {
+                    "property": "icon",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标按钮样式"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "文字+图标按钮样式；与 onlyIcon 二选一。children 为 [span 包裹文案, TiIcon]"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
+                  },
+                  {
+                    "property": "onlyIcon",
+                    "label": {
+                      "text": {
+                        "zh_CN": "纯图标按钮"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "纯图标按钮样式；与 icon 二选一。children 放 TiIcon 即可"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "boolean",
+                    "widget": {
+                      "component": "CheckBoxConfigurator",
+                      "props": {
+                      }
+                    }
                   }
                 ],
                 "description": {
@@ -221,6 +267,107 @@
                   }
                 }
               }
+            },
+            "slots": {
+            }
+          }
+        },
+        {
+          "id": 26,
+          "version": "3.8.0",
+          "name": {
+            "zh_CN": "图标"
+          },
+          "component": "TiIcon",
+          "icon": "icon",
+          "description": "TinyNG 官方字体图标组件（ti-icon）。独立节点：{\"componentName\":\"TiIcon\",\"props\":{\"name\":\"search\"}}。name 为 TinyNG 字体图标名（小写，如 search），挂 class ti3-icon-${name}。作为 TiButton 子节点时，按钮侧用 icon 或 onlyIcon 二选一。",
+          "doc_url": "https://www.opentiny.design/tiny-ng/components/icon",
+          "screenshot": "",
+          "tags": "icon,图标,基础组件",
+          "keywords": "icon,图标,ti-icon",
+          "dev_mode": "proCode",
+          "npm": {
+            "package": "@opentiny/ng",
+            "exportName": "TiIconComponent",
+            "destructuring": false
+          },
+          "group": "基础组件",
+          "category": "opentiny-ng",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "name"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": [
+              ]
+            },
+            "invalidity": [
+            ],
+            "clickCapture": true,
+            "framework": "Angular"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标名称"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "TinyNG 字体图标名（小写）。优先使用以下精选：search（搜索）、edit（编辑）、delete（删除）、delete-1（删除）、add（添加）、add1（添加）、close（关闭）、clear（清除）、x-thin（细关闭）、cancel（取消）、checkmark（勾选）、checkmark-small（小勾选）、check-circle（圆圈勾选）、warn（警告）、alert-warn（警告提示）、alert-error（错误）、alert-success（成功）、alert-prompt（提示）、info-circle（信息）、exclamation-circle（感叹）、calendar（日历）、time（时间）、config（配置）、filter（筛选）、sort（排序）、sort-ascent（升序）、sort-descent（降序）、arrow-down（向下箭头）、arrow-right（向右箭头）、angle-left（左角）、angle-right（右角）、left-1（向左）、right-1（向右）、refresh（刷新）、refresh-1（刷新）、document（文档）、file（文件）、star（星标）、alarm（告警）、location（定位）、reduce（减少）、plus-square（加号方块）、minus-square（减号方块）、accordion-fold（折叠）、accordion-unfold（展开）。勿使用 Vue/EP 风格名称（如 Search、IconSearch）。"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "InputConfigurator",
+                      "props": {
+                      }
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ],
+            "events": {
             },
             "slots": {
             }
@@ -5205,6 +5352,20 @@
                 "props": {
                   "color": "primary",
                   "size": "middle"
+                }
+              }
+            },
+            {
+              "name": {
+                "zh_CN": "图标"
+              },
+              "icon": "icon",
+              "screenshot": "",
+              "snippetName": "TiIcon",
+              "schema": {
+                "componentName": "TiIcon",
+                "props": {
+                  "name": "search"
                 }
               }
             },

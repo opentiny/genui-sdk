@@ -2,6 +2,8 @@ import { Type } from '@angular/core';
 import {
   TiButtonComponent,
   TiButtonModule,
+  TiIconComponent,
+  TiIconModule,
   TiSelectComponent,
   TiSelectModule,
   TiTextComponent,
@@ -50,6 +52,7 @@ import {
 
 export const components: Record<string, Type<any>> = {
   TiButton: TiButtonComponent,
+  TiIcon: TiIconComponent,
   TiSelect: TiSelectComponent,
   TiText: TiTextComponent,
   TiTable: TiTableComponent,
@@ -76,6 +79,7 @@ export const components: Record<string, Type<any>> = {
 
 export const modules: Record<string, Type<any>> = {
   TiButton: TiButtonModule,
+  TiIcon: TiIconModule,
   TiSelect: TiSelectModule,
   TiText: TiTextModule,
   TiTable: TiTableModule,

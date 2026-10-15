@@ -7,14 +7,14 @@
     "dev": "pnpm --filter genui-sdk-playground dev",
     "dev:docs": "pnpm --filter genui-sdk-docs dev",
     "dev:homepage": "pnpm --filter genui-sdk-homepage-web dev",
-    "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build",
+    "build:projects": "pnpm --filter @opentiny/tiny-schema-renderer build && pnpm --filter @opentiny/tiny-schema-renderer-ng build && pnpm --filter @opentiny/tiny-schema-renderer-react build",
     "build:materials": "pnpm --filter @opentiny/genui-sdk-materials-* build",
     "prebuild:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm build:materials",
-    "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build && pnpm --filter @opentiny/genui-sdk-angular build:lib",
+    "build:lib": "pnpm --filter @opentiny/genui-sdk-core build && pnpm --filter @opentiny/genui-sdk-vue build && pnpm --filter @opentiny/genui-sdk-react build && pnpm --filter @opentiny/genui-sdk-angular build:lib",
     "build:plugins": "pnpm --filter vite-commit-hash-plugin build",
     "dev:server": "pnpm --filter @opentiny/genui-sdk-server dev",
     "build:server": "pnpm --filter @opentiny/genui-sdk-server build",
-    "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build && pnpm --filter @opentiny/genui-sdk-chat-completions build",
+    "prebuild:playground": "pnpm build:projects && pnpm build:lib && pnpm build:plugins && pnpm --filter schema-renderer-ng-adpater build && pnpm --filter schema-renderer-react-adapter build && pnpm --filter @opentiny/genui-sdk-chat-completions build",
     "build:playground": "pnpm --filter genui-sdk-playground build",
     "build:playground-web": "pnpm prebuild:playground && pnpm --filter genui-sdk-playground-web build",
     "build:homepage": "pnpm --filter genui-sdk-homepage-web build",
@@ -27,10 +27,7 @@
     "patchedDependencies": {
       "ai@6.0.116": "patches/ai@6.0.116.patch",
       "@ai-sdk/deepseek@1.0.7": "patches/@ai-sdk__deepseek@1.0.7.patch",
-      "@ai-sdk/openai-compatible@1.0.7": "patches/@ai-sdk__openai-compatible@1.0.7.patch",
-      "@opentiny/vue-renderless@3.28.2": "patches/@opentiny__vue-renderless@3.28.2.patch",
-      "@opentiny/vue-form-item@3.28.0": "patches/@opentiny__vue-form-item@3.28.0.patch",
-      "@opentiny/vue-grid@3.28.0": "patches/@opentiny__vue-grid@3.28.0.patch"
+      "@ai-sdk/openai-compatible@1.0.7": "patches/@ai-sdk__openai-compatible@1.0.7.patch"
     }
   },
   "keywords": [],

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch, computed, h, inject, onMounted, onUnmounted } from 'vue';
+import { ref, watch, computed, reactive, h, inject, onMounted, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
+import { useRoute } from 'vue-router';
 import '@opentiny/tiny-robot/dist/style.css';
 import {
   TrBubbleList,
@@ -13,8 +14,8 @@ import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig } from '@opentiny/tiny-robot';
-import {  scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import type { BubbleRoleConfig, UserItem } from '@opentiny/tiny-robot';
+import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
 import type {
@@ -28,13 +29,16 @@ import {
   finalizePendingSchemaCard,
   findLatestPendingSchemaCard,
   findSchemaCardByCardId,
-  generateIdForComponents,
   getLastUserMessage,
   isManualSchemaSaveMessage,
   resolveJsonPatchApplyFailed,
   setJsonPatchApplyResult,
 } from './template-chat-utils';
+import { finalizeSchemaPreview } from './finalize-schema-preview';
 import { generateId } from '../../utils';
+import { getComposerContent, segmentsToPlainText } from './schema-composer';
+import type { SelectedSchemaNode } from './schema-node-selection';
+import TemplateUserMessageRenderer from './TemplateUserMessageRenderer.vue';
 import { useTemplateContext } from './composables';
 import AssistantFooter from './TemplateAssistantFooter.vue';
 import TemplateSchemaMessageRenderer from './TemplateSchemaMessageRenderer.vue';
@@ -48,23 +52,46 @@ const props = defineProps<{
   messages?: IMessage[];
 }>();
 
+const route = useRoute();
 const TinyGenuiConfig: any = inject(GENUI_CONFIG, null);
 const { setColorMode } = useTheme();
 const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
+const selectedNodeMap = new Map<string, SelectedSchemaNode>();
+
+const composerDrafts = reactive(new Map<string, { items: UserItem[] }>());
+const currentComposerDraft = computed(() => {
+  const id = conversation.currentConversationId;
+  if (!id) {
+    return null;
+  }
+  let draft = composerDrafts.get(id);
+  if (!draft) {
+    draft = { items: [] };
+    composerDrafts.set(id, draft);
+    draft = composerDrafts.get(id)!;
+  }
+  return draft;
+});
+const templateData = computed({
+  get: () => currentComposerDraft.value?.items ?? [],
+  set: (value: UserItem[]) => {
+    const draft = currentComposerDraft.value;
+    if (draft) {
+      draft.items = value;
+    }
+  },
+});
+
 const {
   handleSchemaJsonChanged,
   resetLastPreviewSchema,
 } = stream;
 
 watch(
-  () => TinyGenuiConfig?.value?.theme,
-  (theme) => {
-    if (theme === 'dark') {
-      setColorMode(theme);
-    } else {
-      setColorMode('light');
-    }
+  () => TinyGenuiConfig?.value?.colorScheme,
+  (colorScheme) => {
+    setColorMode(colorScheme === 'dark' ? 'dark' : 'light');
   },
   {
     immediate: true,
@@ -72,6 +99,26 @@ watch(
 );
 
 const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
+
+let inputMessageFromQueryApplied = false;
+watch(
+  () => ({
+    queryMessage: route.query['input-message'],
+    manager: messageManager.value,
+    loading: conversation.templateConversationState?.loading,
+  }),
+  ({ queryMessage, manager, loading }) => {
+    if (inputMessageFromQueryApplied) {
+      return;
+    }
+    if (typeof queryMessage !== 'string' || !queryMessage || !manager || loading) {
+      return;
+    }
+    manager.inputMessage.value = queryMessage;
+    inputMessageFromQueryApplied = true;
+  },
+  { immediate: true },
+);
 
 const messages = computed(() => messageManager.value?.messages.value ?? []);
 
@@ -203,6 +250,14 @@ const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schem
 
 const messageRenderers = {
   markdown: markdownRenderer,
+  'template-user': (props: {
+    segments?: import('./schema-composer').ComposerSegment[];
+    content?: string;
+  }) =>
+    h(TemplateUserMessageRenderer, {
+      segments: props.segments,
+      content: props.content,
+    }),
   'json-patch': createSchemaMessageRenderer('json-patch'),
   'schema-card': createSchemaMessageRenderer('schema-card'),
   'schema-manual': createSchemaMessageRenderer('schema-manual'),
@@ -216,6 +271,58 @@ const inputMessage = computed({
     }
   },
 });
+
+// 版本切换后已点选标签指向旧 schema 节点，剥除标签项（保留文字草稿）
+const clearComposerTags = () => {
+  const draft = currentComposerDraft.value;
+  if (draft?.items.length) {
+    draft.items = draft.items.filter((item) => item.type !== 'template');
+  }
+};
+
+const insertComposerTag = (node: SelectedSchemaNode) => {
+  const draft = currentComposerDraft.value;
+  if (!draft) {
+    return;
+  }
+  // 去掉空文本项：TrSender 对「空 text + template」边界会把空 text 复制一份，导致重复 key 警告
+  let items = draft.items.filter((item) => item.type !== 'text' || Boolean(item.content));
+  if (
+    !items.some((item) => item.type === 'text') &&
+    !items.some((item) => item.type === 'template') &&
+    inputMessage.value
+  ) {
+    items = [{ type: 'text', content: inputMessage.value }, ...items];
+  }
+  const id = generateId();
+  selectedNodeMap.set(id, node);
+  draft.items = [...items, { type: 'template', content: node.componentName, id }];
+};
+
+const SENDER_MAX_LENGTH = 20000;
+
+const handleTemplateDataUpdate = (value: UserItem[]) => {
+  const draft = currentComposerDraft.value;
+  if (!draft) {
+    return;
+  }
+  draft.items = value.filter((item) => {
+    if (item.type === 'template') {
+      const node = selectedNodeMap.get((item as any).id as string);
+      return !node || (item as any).content === node.componentName;
+    }
+    return true;
+  });
+};
+
+const clearComposer = () => {
+  const draft = currentComposerDraft.value;
+  if (draft) {
+    draft.items = [];
+  }
+};
+
+defineExpose({ insertComposerTag, clearComposer, clearComposerTags });
 
 if (props.messages?.length) {
   messages.value.splice(0, messages.value.length, ...(props.messages as any));
@@ -268,24 +375,46 @@ const showMessages = computed(() => {
 
 const clearInputMessage = () => {
   inputMessage.value = '';
+  clearComposer();
 };
 
 const handleSendMessage = async () => {
-  const messageContent = inputMessage.value;
+  const draft = currentComposerDraft.value;
+  const snapshot: UserItem[] = draft?.items.length
+    ? draft.items
+    : inputMessage.value
+      ? [{ type: 'text', content: inputMessage.value }]
+      : [];
+  const composer = getComposerContent(snapshot, selectedNodeMap);
+  if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
+    return;
+  }
+
   const cardId = generateId();
   schema.setCurrentCardId(cardId);
 
+  const hasTags = composer.segments.some((segment) => segment.type === 'node');
   const userMessage: ChatMessage = {
     role: 'user',
-    content: messageContent,
+    content: composer.apiContent,
     messageId: cardId,
+    ...(hasTags
+      ? {
+          messages: [
+            {
+              type: 'template-user',
+              segments: composer.segments,
+            },
+          ],
+        }
+      : {}),
   };
   messages.value.push(userMessage);
 
   if (messages.value.length === 1 && messages.value[0].role === 'user') {
     const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
-      conversation.updateConversationTitle(currentConversationId, messageContent.substring(0, 20));
+      conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
     }
   }
 
@@ -310,11 +439,12 @@ const handleNotification = (event: INotificationPayload) => {
     applyFailed = resolveJsonPatchApplyFailed(card, messages.value);
     setJsonPatchApplyResult(applyFailed ? 'failed' : 'success', messages.value, cardId);
   }
-  const preview = schema.currentPreviewSchema;
+  let preview = schema.currentPreviewSchema;
   if (preview && !applyFailed) {
-    generateIdForComponents(preview);
+    preview = finalizeSchemaPreview(preview, schema);
+  } else {
+    schema.setCurrentSchema(preview);
   }
-  schema.setCurrentSchema(preview);
   finalizePendingSchemaCard(messages.value, {
     cardId: cardId || undefined,
     ...(applyFailed || !preview ? {} : { schema: preview }),
@@ -334,11 +464,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.theme === 'dark' }">
+  <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.colorScheme === 'dark' }">
     <div class="messages-container" ref="messagesContainer">
-      <tr-bubble-provider :content-renderers="messageRenderers">
-        <tr-bubble-list v-if="showMessages.length" :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
+      <tr-bubble-provider v-if="showMessages.length" :content-renderers="messageRenderers">
+        <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
       </tr-bubble-provider>
+      <div v-else class="empty">
+        <IconAi />
+        <span>{{ t('app.emptyTitle') }}</span>
+      </div>
     </div>
     <div class="sender-container">
       <div
@@ -350,11 +484,13 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
+        v-model:template-data="templateData"
         :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating"
         :showWordLimit="true"
-        :maxLength="5000"
+        :maxLength="SENDER_MAX_LENGTH"
+        @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
         @cancel="() => messageManager?.abortRequest()"
@@ -403,8 +539,38 @@ onUnmounted(() => {
   }
 }
 
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 80%;
+  font-size: 32px;
+  font-weight: 600;
+
+  & > svg {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+@media (max-width: 768px) {
+  .empty {
+    font-size: 24px;
+
+    & > svg {
+      width: 48px;
+      height: 48px;
+    }
+  }
+}
+
 :deep(.tr-bubble__loading) {
   margin-top: 8px;
+}
+
+:deep(.editor-container [data-type='block']) {
+  white-space: nowrap;
 }
 
 :deep(.tr-bubble.placement-start) {
@@ -440,19 +606,6 @@ onUnmounted(() => {
 
 :deep(.tr-bubble.placement-end) {
   width: 100%;
-}
-
-:deep(.tr-bubble__content-wrapper) {
-  @avatar-and-gap-width: 56px;
-  max-width: calc(100% - @avatar-and-gap-width * 2);
-
-  .tr-bubble__content {
-    max-width: 100%;
-  }
-
-  .tr-bubble__content-items {
-    overflow-x: auto;
-  }
 }
 
 @media (max-width: 768px) {

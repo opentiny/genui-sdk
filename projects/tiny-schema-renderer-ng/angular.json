@@ -27,15 +27,24 @@
               }
             ],
             "styles": ["src/styles.less"],
-            "polyfills": ["zone.js"]
+            "polyfills": ["zone.js"],
+            "allowedCommonJsDependencies": [
+              "lodash",
+              "postcss-selector-parser",
+              "picocolors",
+              "nanoid/non-secure",
+              "source-map-js",
+              "url",
+              "color"
+            ]
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "1.5MB",
+                  "maximumError": "2.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -102,7 +111,16 @@
             "tsConfig": "projects/renderer-element/tsconfig.app.json",
             "inlineStyleLanguage": "less",
             "styles": ["projects/renderer-element/src/styles.less"],
-            "polyfills": ["zone.js"]
+            "polyfills": ["zone.js"],
+            "allowedCommonJsDependencies": [
+              "lodash",
+              "postcss-selector-parser",
+              "picocolors",
+              "nanoid/non-secure",
+              "source-map-js",
+              "url",
+              "color"
+            ]
           },
           "configurations": {
             "production": {

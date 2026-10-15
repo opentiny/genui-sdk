@@ -1,6 +1,7 @@
 export const whiteList = [
   // OpenTiny NG 组件
   'TiButton',
+  'TiIcon',
   'TiText',
   'TiSelect',
   'TiDate',
@@ -57,7 +58,6 @@ export const whiteList = [
   'textarea',
   // 内置组件
   'Text',
-  'Icon',
   'Img',
   'Slot',
   // 图表组件（如果支持）

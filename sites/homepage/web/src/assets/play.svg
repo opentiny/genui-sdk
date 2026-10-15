@@ -1,0 +1,32 @@
+<svg viewBox="0 0 68 68" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="68.000000" height="68.000000" fill="none" customFrame="#000000">
+	<defs>
+		<g id="pixso_custom_effect_20">
+			<effect visibility="visible" effectType="backgroundBlur" saturation="0" stdDeviation="100" />
+			<effect x="0.000000" y="0.000000" visibility="hidden" fill="rgb(0,0,0)" fill-opacity="0.150000006" effectType="dropShadow" stdDeviation="70.8333359" radius="0" />
+			<effect visibility="visible" effectType="" stdDeviation="4.25" />
+		</g>
+		<filter id="filter_20" width="68.000000" height="68.000000" x="0.000000" y="0.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_20)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+		</filter>
+		<clipPath id="outline_mask_0" transform="matrix(1,0,0,1,-0,-0)">
+			<path d="M34 68C15.2223 68 0 52.7777 0 34C0 15.2223 15.2223 0 34 0C52.7777 0 68 15.2223 68 34C68 52.7777 52.7777 68 34 68Z" fill="rgb(255,255,255)" fill-rule="evenodd" />
+		</clipPath>
+		<clipPath id="clipPath_10">
+			<rect width="34.000000" height="34.000000" x="19.125000" y="17.000000" fill="rgb(255,255,255)" />
+		</clipPath>
+	</defs>
+	<rect id="播放" width="68.000000" height="68.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" fill-opacity="0" />
+	<g data-pixso-skip-parse="true">
+		<foreignObject width="68.000000" height="68.000000" x="0.000000" y="0.000000">
+			<div xmlns="http://www.w3.org/1999/xhtml" style="clip-path:url(#outline_mask_0);height:100%;backdrop-filter:blur(50.000000px);width:100%;-webkit-backdrop-filter:blur(50.000000px);" />
+		</foreignObject>
+	</g>
+	<g filter="url(#filter_20)">
+		<circle id="椭圆 77" cx="34" cy="34" r="34" fill="rgb(255,255,255)" />
+	</g>
+	<g id="操作播放-start-plus" clip-path="url(#clipPath_10)" customFrame="url(#clipPath_10)">
+		<rect id="操作播放-start-plus" width="34.000000" height="34.000000" x="19.125000" y="17.000000" />
+		<path id="三角形" d="M45.4675 37.4861L29.8032 46.0678C28.2339 46.9275 26.2859 46.3125 25.4522 44.6942C25.2053 44.2149 25.0762 43.6804 25.0762 43.1376L25.0762 25.9743C25.0762 24.1418 26.5167 22.6562 28.2937 22.6562C28.82 22.6562 29.3383 22.7894 29.8032 23.0441L45.4675 31.6257C47.0368 32.4855 47.6331 34.4943 46.7995 36.1126C46.4983 36.6972 46.0344 37.1755 45.4675 37.4861Z" fill="rgb(20,118,255)" fill-rule="evenodd" />
+	</g>
+</svg>

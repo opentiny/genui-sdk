@@ -7,6 +7,7 @@ import GenuiTemplateDesktop from './GenuiTemplateDesktop.vue';
 import GenuiTemplateMobile from './GenuiTemplateMobile.vue';
 import { locale } from '../../i18n';
 import { provideTemplateContext } from './composables/use-template-context';
+import { provideSchemaDevMode } from './useSchemaDevMode';
 
 defineProps<{
   theme: 'light' | 'dark' | 'lite' | 'auto';
@@ -14,6 +15,7 @@ defineProps<{
 
 const { isMobile } = useIsMobile();
 const { schema, conversation, actions } = provideTemplateContext();
+provideSchemaDevMode();
 
 watch(() => schema.currentPreviewSchemaComplete, (isComplete) => {
   if (isComplete && actions.shouldSyncEditorBaseline()) {

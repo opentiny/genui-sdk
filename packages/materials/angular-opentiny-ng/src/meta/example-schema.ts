@@ -4,6 +4,7 @@ import infoCardSchema from './examples/info.json' with { type: 'json' };
 import gridSchema from './examples/grid.json' with { type: 'json' };
 import tabsSchema from './examples/tabs.json' with { type: 'json' };
 import paginationSchema from './examples/pagination.json' with { type: 'json' };
+import refsSchema from './examples/refs.json' with { type: 'json' };
 
 export const examples = [
   { id: 'form', name: '双向绑定的表单', schema: formSchema },
@@ -11,4 +12,5 @@ export const examples = [
   { id: 'grid', name: '表格卡片', schema: gridSchema },
   { id: 'tabs', name: 'Tabs卡片', schema: tabsSchema },
   { id: 'pagination', name: '分页表格', schema: paginationSchema },
+  { id: 'refs', name: 'ref 的使用', schema: refsSchema },
 ] as IExample[];

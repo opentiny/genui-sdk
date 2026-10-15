@@ -1,21 +1,54 @@
 # GenuiConfigProvider Component
 
-`GenuiConfigProvider` provides theme, i18n, and materials configuration for the renderer, and scopes theme styles within a specific container.
+`GenuiConfigProvider` provides theme, i18n, materials, and custom notify configuration for the renderer, and scopes theme styles within a specific container.
 
 When using only ConfigProvider, you can import it on demand from `@opentiny/genui-sdk-vue/config-provider`. See [Quick Start - Subpath Imports](../guide/quick-start#subpath-imports).
 
 When used with `GenuiRenderer` or `GenuiChat`, you typically need to inject component materials via the `materials` prop. See [Materials Configuration](../guide/quick-start#materials-configuration).
 
+## Compatibility Component: GenuiLegacyConfigProvider
+
+::: warning Materials configuration (since v1.3.0)
+`GenuiConfigProvider` has been refactored to decouple materials and no longer bundles component materials. New projects should pass materials explicitly through the `materials` prop.
+
+For previous behavior, use `GenuiLegacyConfigProvider` (`@opentiny/genui-sdk-vue/legacy-config-provider`) instead.
+:::
+
+`GenuiLegacyConfigProvider` bundles the default OpenTiny materials for migrating existing projects that do not explicitly configure `materials`. It supports all `GenuiConfigProvider` props except `materials`. Use `GenuiConfigProvider` when you need custom materials.
+
+```vue
+<template>
+  <GenuiConfigProvider theme="light">
+    <GenuiRenderer :content="schemaContent" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { GenuiLegacyConfigProvider as GenuiConfigProvider } from '@opentiny/genui-sdk-vue/legacy-config-provider';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+
+const schemaContent = {
+  componentName: 'Page',
+  children: [
+    {
+      componentName: 'TinyButton',
+      props: { text: 'Submit', type: 'primary' },
+    },
+  ],
+};
+</script>
+```
+
 ## Props
 
 ### theme
 
-- **Type**: `'dark' | 'lite' | 'light' | 'auto'`
+- **Type**: `string`
 - **Required**: No
 - **Default**: `'light'`
-- **Description**: Theme mode.
+- **Description**: Theme mode. Accepts any string (including `auto`), resolved by the materials package together with the system `colorScheme`. The framework no longer limits the enum, and different materials may support different theme sets: e.g. the OpenTiny Vue materials ship with `light` / `dark` / `lite`, while the Element Plus materials ship with `light` / `dark`. See [Materials Theme](../materials/theme).
   - `'dark'`: Dark theme
-  - `'lite'`: Lite theme
+  - `'lite'`: Lite theme (OpenTiny Vue materials only)
   - `'light'`: Light theme
   - `'auto'`: Follow the browser preference automatically
 
@@ -122,6 +155,44 @@ const content = ref({});
 </script>
 ```
 
+### notify
+
+- **Type**: `NotifyHandler`
+- **Required**: No
+- **Default**: `undefined`
+- **Description**: Custom renderer notification callback. Invoked when a schema `JSFunction` fails to parse or throws at runtime. If omitted, the built-in DOM toast is used.
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+```vue
+<template>
+  <GenuiConfigProvider :materials="materials" :notify="handleNotify">
+    <GenuiRenderer :content="content" />
+  </GenuiConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
+import { GenuiConfigProvider, type NotifyHandler } from '@opentiny/genui-sdk-vue/config-provider';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+
+const content = ref({});
+
+const handleNotify: NotifyHandler = (options) => {
+  // Wire your app toast / message UI here
+  console.log(options.type, options.title, options.message);
+};
+</script>
+```
+
 ## Slots
 
 `GenuiConfigProvider` uses the default slot to wrap child components.
@@ -188,3 +259,16 @@ type I18nMessageObject = {
 ```
 
 Internationalization message object structure supporting nested objects. Keys are message keys; values are strings or nested message objects.
+
+### NotifyHandler
+
+```typescript
+type NotifyHandler = (options: {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  duration?: number;
+}) => void;
+```
+
+Custom notification callback type. See the [notify](#notify) prop above.

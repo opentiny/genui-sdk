@@ -1,8 +1,13 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import useTemplate from '../genui-template/useTemplate';
 import { TinyDialogBox, TinyButton, TinyCheckboxGroup, TinyCheckbox } from '@opentiny/vue';
 import { t } from '../../i18n';
+import { PlaygroundMode } from '../../constants';
+
+const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   visible: {
@@ -56,6 +61,7 @@ const confirmSelectExample = () => {
 
 // 创建新模板
 const createNewTemplate = () => {
+  router.push({ name: PlaygroundMode.Builder, query: route.query });
   emit('createNewTemplate');
   cancel();
 };

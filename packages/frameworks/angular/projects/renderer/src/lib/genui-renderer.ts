@@ -1,14 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, ContentChild, Input, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
-import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
+import { Component, ContentChild, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
+import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import {
   RendererMain as Renderer,
   Mapper,
   directiveMap,
+  directiveModuleRef,
   ModuleRef,
   RENDERER_SETTINGS,
 } from '@opentiny/tiny-schema-renderer-ng';
-import { requiredCompleteFieldSelectors } from './config';
+import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { RendererSettingsService } from './renderer-settings.service';
 
 export const CARD_ID = Symbol('schema-card-id');
@@ -38,7 +39,7 @@ const errorSchema = {
     RendererSettingsService,
     {
       provide: RENDERER_SETTINGS,
-      useFactory: (rss: RendererSettingsService) => rss.getSettings(),
+      useFactory: (rss: RendererSettingsService) => rss.settings,
       deps: [RendererSettingsService],
     },
   ],
@@ -46,7 +47,7 @@ const errorSchema = {
   styleUrls: ['./genui-renderer.css'],
   exportAs: 'genuiRenderer',
 })
-export class GenuiRenderer implements OnInit {
+export class GenuiRenderer implements OnChanges, OnInit {
   @ViewChild('rendererInstance', { read: Renderer }) instance?: Renderer;
   @ContentChild('header') headerTemplate?: TemplateRef<any>;
   @ContentChild('footer') footerTemplate?: TemplateRef<any>;
@@ -55,6 +56,7 @@ export class GenuiRenderer implements OnInit {
   @Input() generating = false;
   @Input() content: string | object = '{}';
   @Input() customDirectives?: Record<string, Type<any>> = {};
+  @Input() customDirectivesModule?: Record<string, Type<any>> = {};
   @Input() customComponents?: Record<string, Type<any>> = {};
   @Input() customComponentsModule?: Record<string, Type<any>> = {};
   @Input() customActions?: Record<string, ICustomAction> = {};
@@ -62,8 +64,11 @@ export class GenuiRenderer implements OnInit {
   @Input() isJsonComplete?: boolean;
   public isError = false;
   protected deltaPatcher: DeltaPatcher | null = null;
+  protected activeRequiredCompleteFieldSelectorsText = '';
   protected schema: any = {};
   protected updateContextAndStateTimer: any | null = null;
+
+  constructor(private readonly rendererSettingsService: RendererSettingsService) {}
 
   get displaySchema() {
     if (this.isError) {
@@ -81,16 +86,31 @@ export class GenuiRenderer implements OnInit {
   }
 
   ngOnInit() {
-    // TODO：待优化成provide inject
+    this.syncDeltaPatcher();
+  }
+
+  protected syncDeltaPatcher() {
+    const materials = this.rendererSettingsService.settings.materials as IMaterials | undefined;
+    const requiredCompleteFieldSelectors = [
+      ...internalRequiredCompleteFieldSelectors,
+      ...(materials?.requiredCompleteFieldSelectors || []),
+      ...(this.requiredCompleteFieldSelectors || []),
+    ];
+    const requiredCompleteFieldSelectorsText = JSON.stringify(requiredCompleteFieldSelectors);
+    if (this.deltaPatcher && requiredCompleteFieldSelectorsText === this.activeRequiredCompleteFieldSelectorsText) {
+      return;
+    }
+
+    this.activeRequiredCompleteFieldSelectorsText = requiredCompleteFieldSelectorsText;
     this.deltaPatcher = new DeltaPatcher({
-      requiredCompleteFieldSelectors: [
-        ...requiredCompleteFieldSelectors,
-        ...(this.requiredCompleteFieldSelectors || []),
-      ]
+      requiredCompleteFieldSelectors,
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (!this.deltaPatcher || changes['requiredCompleteFieldSelectors']) {
+      this.syncDeltaPatcher();
+    }
     if (changes['content'] || changes['isJsonComplete']) {
       this.processNewContent(changes['content'].currentValue);
       // 异步等待渲染器初始化context后再设置
@@ -102,6 +122,12 @@ export class GenuiRenderer implements OnInit {
       this.customDirectives = changes['customDirectives'].currentValue;
       if (this.customDirectives) {
         this.updateCustomDirectives(this.customDirectives);
+      }
+    }
+    if (changes['customDirectivesModule']) {
+      this.customDirectivesModule = changes['customDirectivesModule'].currentValue;
+      if (this.customDirectivesModule) {
+        this.updateCustomDirectivesModule(this.customDirectivesModule);
       }
     }
     if (changes['customComponents']) {
@@ -161,6 +187,8 @@ export class GenuiRenderer implements OnInit {
   }
 
   updateContextAndState() {
+    this.rendererSettingsService.syncFromParent();
+    this.instance?.setNotify(this.rendererSettingsService.settings.notify);
     this.instance?.setContext({
       callAction: this.callAction.bind(this),
     });
@@ -175,6 +203,12 @@ export class GenuiRenderer implements OnInit {
   protected updateCustomDirectives(customDirectives: Record<string, Type<any>>) {
     Object.keys(customDirectives).forEach(key => {
       directiveMap[key] = customDirectives[key];
+    });
+  }
+
+  protected updateCustomDirectivesModule(customDirectivesModule: Record<string, Type<any>>) {
+    Object.keys(customDirectivesModule).forEach(key => {
+      directiveModuleRef[key] = customDirectivesModule[key];
     });
   }
 

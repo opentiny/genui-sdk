@@ -24,3 +24,30 @@ button {
   border-radius: 4px;
   cursor: pointer;
 }
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.demo-panel {
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  padding: 12px;
+  background: #fafafa;
+  overflow: auto;
+}
+
+.demo-panel h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: #333;
+}
+
+@media (max-width: 1200px) {
+  .demo-grid {
+    grid-template-columns: 1fr;
+  }
+}

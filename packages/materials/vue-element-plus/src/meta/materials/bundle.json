@@ -1073,6 +1073,28 @@
                       "props": {}
                     },
                     "device": []
+                  },
+                  {
+                    "property": "icon",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "按钮图标，必须使用 JSSlot 包裹 ElIconSvg。正确示例：{\"type\":\"JSSlot\",\"value\":[{\"componentName\":\"ElIconSvg\",\"props\":{\"name\":\"Search\"}}]}。禁止直接传组件对象或使用 JSExpression。"
+                    },
+                    "required": false,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "object",
+                    "widget": {
+                      "component": "CodeConfigurator",
+                      "props": {}
+                    },
+                    "device": []
                   }
                 ],
                 "description": {
@@ -1099,6 +1121,95 @@
                 }
               }
             }
+          }
+        },
+        {
+          "name": {
+            "zh_CN": "ElIconSvg"
+          },
+          "component": "ElIconSvg",
+          "icon": "icon",
+          "description": "图标组件。可作独立节点：{\"componentName\":\"ElIconSvg\",\"props\":{\"name\":\"Search\"}}。作为 ElButton 的 icon 属性时必须使用 JSSlot：{\"icon\":{\"type\":\"JSSlot\",\"value\":[{\"componentName\":\"ElIconSvg\",\"props\":{\"name\":\"Search\"}}]}}",
+          "doc_url": "https://element-plus.org/zh-CN/component/icon",
+          "screenshot": "",
+          "tags": "icon,图标",
+          "keywords": "icon,图标",
+          "dev_mode": "proCode",
+          "group": "基础组件",
+          "category": "element-plus",
+          "configure": {
+            "loop": true,
+            "condition": true,
+            "styles": true,
+            "isContainer": false,
+            "isModal": false,
+            "isPopper": false,
+            "nestingRule": {
+              "childWhitelist": "",
+              "parentWhitelist": "",
+              "descendantBlacklist": "",
+              "ancestorWhitelist": ""
+            },
+            "isNullNode": false,
+            "isLayout": false,
+            "rootSelector": "",
+            "shortcuts": {
+              "properties": [
+                "name"
+              ]
+            },
+            "contextMenu": {
+              "actions": [
+                "copy",
+                "remove",
+                "insert",
+                "updateAttr",
+                "bindEvent",
+                "createBlock"
+              ],
+              "disable": []
+            },
+            "invalidity": [
+              ""
+            ],
+            "clickCapture": true,
+            "framework": "Vue"
+          },
+          "schema": {
+            "properties": [
+              {
+                "name": "0",
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "name",
+                    "label": {
+                      "text": {
+                        "zh_CN": "图标名称"
+                      }
+                    },
+                    "description": {
+                      "zh_CN": "图标名称，仅允许优先使用以下精选（亦可使用 @element-plus/icons-vue 其它导出名）：Search（搜索）、Edit（编辑）、EditPen（钢笔编辑）、Delete（删除）、DeleteFilled（实心删除）、Plus（加号）、Minus（减号）、CirclePlus（圆圈加号）、Close（关闭）、CircleClose（圆圈关闭）、CloseBold（粗关闭）、Check（勾选）、CircleCheck（圆圈勾选）、Finished（完成）、Warning（警告）、InfoFilled（信息）、QuestionFilled（问号）、WarnTriangleFilled（三角警告）、SuccessFilled（成功实心）、WarningFilled（警告实心）、CircleCheckFilled（完成实心）、User（用户）、UserFilled（实心用户）、Avatar（头像）、Setting（设置）、Tools（工具）、House（房屋）、HomeFilled（实心首页）、Loading（加载旋转）、Link（链接）、Star（空心星）、StarFilled（实心星）、View（可见）、Hide（隐藏）、Unlock（解锁）、Lock（锁定）、Refresh（刷新）、RefreshLeft（左旋刷新）、RefreshRight（右旋刷新）、Filter（筛选）、More（更多）、MoreFilled（实心更多）、Share（分享）、Message（消息）、Comment（评论）、Bell（铃铛）、Notification（通知）、Menu（菜单）、UploadFilled（上传实心）、Operation（操作）、Remove（移除）、ZoomIn（放大）、ZoomOut（缩小）、ArrowLeft（向左箭头）、ArrowRight（向右箭头）、ArrowUp（向上箭头）、ArrowDown（向下箭头）、Download（下载）、Upload（上传）、Sort（排序）、SortUp（升序）、SortDown（降序）、Expand（展开）、Fold（收起）、Back（返回）、Right（右）、Top（上）、Bottom（下）、Document（文档）、DocumentCopy（拷贝文档）、DocumentAdd（新增文档）、DocumentDelete（删除文档）、Folder（文件夹）、FolderOpened（打开文件夹）、FolderAdd（新建文件夹）、CopyDocument（复制文档）、Calendar（日历）、Clock（时钟）、Picture（图片）、Paperclip（回形针附件）、Printer（打印）、Location（定位）"
+                    },
+                    "required": true,
+                    "readOnly": false,
+                    "disabled": false,
+                    "cols": 12,
+                    "labelPosition": "left",
+                    "type": "string",
+                    "widget": {
+                      "component": "SelectIconConfigurator",
+                      "props": {}
+                    }
+                  }
+                ],
+                "description": {
+                  "zh_CN": ""
+                }
+              }
+            ]
           }
         },
         {
