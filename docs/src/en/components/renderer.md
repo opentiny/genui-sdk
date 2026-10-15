@@ -165,19 +165,39 @@ See [Renderer - Custom Actions](../examples/renderer/custom-actions) for detaile
 
 See [Renderer - Buffer Field Configuration](../examples/renderer/required-complete-field-selectors) for detailed usage.
 
-### state
+## Methods
 
-- **Type**: `Record<string, any>`
-- **Required**: No
-- **Description**: Global state passed to the renderer, accessible in components via context.
+Access the methods `GenuiRenderer` exposes through a template ref to read or write state from outside the component.
+
+### setState
+
+- **Type**: `(state?: Record<string, any>, clear?: boolean) => void`
+- **Description**: Sets the renderer's global state. It merges into existing state by default; when `clear` is `true` it replaces the existing state. It is passed straight through to the underlying renderer and is not cached: every streamed schema update resets the state from the schema, so call `setState` again after an update if the state must be kept.
 
 ```vue
 <template>
-  <GenuiRenderer :content="content" :state="{ userId: 123, userName: 'John' }" />
+  <GenuiRenderer ref="rendererRef" :content="content" />
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-vue';
+
+const rendererRef = ref<IRendererExpose | null>(null);
+
+// Restore state from history: inject it after mount, when the renderer instance is ready
+onMounted(() => {
+  rendererRef.value?.setState({ userId: 123, userName: 'John' });
+});
+</script>
 ```
 
 See [Renderer - Passing and Merging State](../examples/renderer/state) for detailed usage.
+
+### getState
+
+- **Type**: `() => Record<string, any>`
+- **Description**: Returns the renderer's current global state (the `state` in its context).
 
 ## Slots
 
@@ -277,7 +297,15 @@ interface IRendererProps {
     }
   >;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, any>;
+}
+```
+
+### IRendererExpose
+
+```typescript
+interface IRendererExpose {
+  rendererInstance: IBaseRendererInstance | null; // underlying renderer instance; its API is available for advanced scenarios
+  getState: () => Record<string, any>; // read global state
+  setState: (state?: Record<string, any>, clear?: boolean) => void; // write global state
 }
 ```
