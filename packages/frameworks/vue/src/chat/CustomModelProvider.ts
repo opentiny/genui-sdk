@@ -1,8 +1,7 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
-import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-import type { IChatMessage, IStreamData } from '@opentiny/genui-sdk-core';
+import type { IGenPromptSnippet, IGenPromptExample, IChatMessage, IStreamData, IStreamDelta } from '@opentiny/genui-sdk-core';
 import type { IResponseHandler } from './response-handler';
 
 async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handler: (data: string) => void) {
@@ -73,6 +72,7 @@ export class CustomModelProvider extends BaseModelProvider {
       model,
       temperature,
       signal: request.options?.signal,
+      stream: request.options?.stream ?? true,
       customComponents,
       customSnippets,
       customExamples,
@@ -81,8 +81,103 @@ export class CustomModelProvider extends BaseModelProvider {
     });
   }
 
-  async chat(_: ChatCompletionRequest) {
-    return {} as ChatCompletionResponse;
+  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    let response: Response;
+    try {
+      response = await this.getData(request);
+    } catch (error) {
+      throw error;
+    }
+    const json = await response.json();
+
+    // 将非流式伪装成流式
+    const chatMessage = this.buildChatMessageFromResponse(json, request);
+
+    const choice = json.choices?.[0] ?? {};
+    const message = choice.message ?? {};
+
+    return {
+      id: json.id,
+      object: json.object ?? 'chat.completion',
+      created: json.created,
+      model: json.model,
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: chatMessage.content,
+            reasoning_content: message.reasoning_content,
+            tool_calls: message.tool_calls,
+          },
+          finish_reason: choice.finish_reason ?? 'stop',
+        },
+      ],
+      usage: json.usage,
+      role: chatMessage.role,
+      content: chatMessage.content,
+      messages: chatMessage.messages,
+      finishInfo: chatMessage.finishInfo,
+    } as ChatCompletionResponse & IChatMessage;
+  }
+
+  private buildChatMessageFromResponse(json: any, request: ChatCompletionRequest): IChatMessage {
+    const message = json.choices?.[0]?.message ?? {};
+
+    const context: any = {};
+    this.setupStreamContext(context, request);
+
+    let chatMessage!: IChatMessage;
+    this.handlerStart(context, {
+      onData: (data: IChatMessage) => {
+        chatMessage = data;
+      },
+      onDone: () => {},
+      onError: () => {},
+    });
+
+    const base = {
+      id: json.id,
+      object: 'chat.completion.chunk',
+      model: json.model,
+      created: json.created,
+    };
+
+    const deltas: IStreamDelta[] = [];
+    if (message.reasoning_content) {
+      deltas.push({ reasoning_content: message.reasoning_content });
+    }
+    if (message.tool_calls?.length) {
+      deltas.push({ tool_calls: message.tool_calls });
+    }
+    if (message.tool_calls_result?.length) {
+      deltas.push({ tool_calls_result: message.tool_calls_result });
+    }
+    if (message.content) {
+      deltas.push({ content: message.content });
+    }
+    for (const delta of deltas) {
+      this.handlerChunk(
+        JSON.stringify({
+          ...base,
+          choices: [{ index: 0, delta, finish_reason: null }],
+        }),
+        context,
+      );
+    }
+
+    this.handlerChunk(
+      JSON.stringify({
+        ...base,
+        choices: [{ index: 0, delta: {}, finish_reason: json.choices?.[0]?.finish_reason ?? 'stop' }],
+        usage: json.usage,
+      }),
+      context,
+    );
+
+    this.handlerEnd(context);
+
+    return chatMessage;
   }
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {
