@@ -2,11 +2,15 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EnvironmentInjector,
   inject,
+  Injector,
   Input,
   NgZone,
   OnDestroy,
+  Optional,
   SimpleChanges,
+  SkipSelf,
 } from '@angular/core';
 import { RendererContextService } from './context.service';
 import { parseData } from './parser/schema-parser';
@@ -17,7 +21,8 @@ import { LoadingComponent } from './loading.component';
 import { RendererTemplateComponent } from './renderer-template.component';
 import { RendererDirective } from './renderer.directive';
 import { ContentChildrenService } from './content-children';
-import { RENDERER_SETTINGS, type NotifyHandler } from './renderer-settings';
+import { RENDERER_SETTINGS, type NotifyHandler, BLOCK_CONTEXT_KEY } from './renderer-settings';
+import { ProjectedViews } from './block';
 
 function reset(obj: any) {
   Object.keys(obj).forEach((key) => delete obj[key]);
@@ -42,38 +47,74 @@ function reset(obj: any) {
         [scope]="scope"
         [parent]="pageSchema"
         [template]="rendererTemplateComponent.template"
+        [injector]="schemaInjector"
+        [projectedViews]="projectedViews"
       ></ng-template>
     </ng-container>
     <ng-container *ngIf="!pageSchema.children?.length">
       <div loading></div>
     </ng-container>
   `,
-})
+})                      
 export class RendererMain implements OnDestroy {
   @Input() schema: any = {};
+  @Input() props: any = {};
+  @Input() dispatchEvent: (event: string, data: any) => void = () => {};
+  @Input() projectedViews: ProjectedViews | null = null;
   pageSchema: any = {};
   methods: any = {};
   state: any = {};
   refs: Record<string, any> = {};
+  contentRefs: Record<string, any> = {};
   /** Page-level template scope — props.refName writes locals here (and into loop mergeScopes). */
   scope: Record<string, any> = {};
   cssScopeId: string = '';
   private pageOnUnmounted: (() => void | Promise<void>) | null = null;
+  /** Mirrors React pageInitSignature — full setSchema (clear state) only when this changes. */
+  private pageInitSignature = '';
   private readonly rendererSettings = inject(RENDERER_SETTINGS, { optional: true });
+  /**
+   * Nested block renderer: schema DI parent is EnvironmentInjector, not the outer
+   * page element chain. Projected NgContent is created at the usage site and is unchanged.
+   */
+  readonly schemaInjector: Injector | undefined;
+
+  @Input('contentRefs')
+  set contentRefsBinding(value: Record<string, any> | null | undefined) {
+    this.setContentRefs(value ?? {}, true);
+  }
 
   constructor(
     private contextService: RendererContextService,
+    private contentChildrenService: ContentChildrenService,
     private el: ElementRef,
     private ngZone: NgZone,
     private cdr: ChangeDetectorRef,
+    private environmentInjector: EnvironmentInjector,
+    @SkipSelf() @Optional() private pageContextService: RendererContextService,
   ) {
+    this.schemaInjector = this.pageContextService
+      ? Injector.create({
+          name: 'BlockSchemaInjector',
+          parent: this.environmentInjector,
+          providers: [
+            { provide: RendererContextService, useValue: this.contextService },
+            { provide: ContentChildrenService, useValue: this.contentChildrenService },
+          ],
+        })
+      : undefined;
     this.cssScopeId = `data-schema-${Math.random().toString(36).slice(2, 8)}`;
     this.applyRendererSettings();
+    this.updateBlocks();
   }
 
   private applyRendererSettings() {
     this.contextService.setMaterials(this.rendererSettings?.materials ?? {});
     this.contextService.setNotify(this.rendererSettings?.notify);
+  }
+
+  private updateBlocks() {
+    this.contextService.setBlock(this.pageContextService?.getContext()[BLOCK_CONTEXT_KEY] ?? {});
   }
 
   ngAfterViewInit() {
@@ -83,11 +124,19 @@ export class RendererMain implements OnDestroy {
     this.el.nativeElement.getContext = () => this.contextService.getContext();
     this.el.nativeElement.setState = (state: any) => this._setState(state);
     this.el.nativeElement.setRefs = (refs: any) => this.setRefs(refs);
+    this.el.nativeElement.setContentRefs = (contentRefs: any) => this.setContentRefs(contentRefs);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['schema']) {
-      this.setSchema(changes['schema'].currentValue);
+      const currentValue = changes['schema'].currentValue;
+      this.setSchemaWithPageSignature(currentValue ?? {});
+    }
+    if (changes['props']) {
+      this.setContext({ props: changes['props'].currentValue });
+    }
+    if (changes['dispatchEvent']) {
+      this.setMethods({ dispatchEvent: changes['dispatchEvent'].currentValue });
     }
   }
 
@@ -111,6 +160,7 @@ export class RendererMain implements OnDestroy {
   get rootSchema() {
     return {
       componentName: 'div',
+      props: this.pageSchema.props,
       children: this.pageSchema.children,
     };
   }
@@ -129,6 +179,9 @@ export class RendererMain implements OnDestroy {
 
   private setMethods(data: any, clear: boolean = false) {
     clear && reset(this.methods);
+    if (clear) {
+      this.methods.dispatchEvent = this.dispatchEvent;
+    }
     // 这里有些方法在画布还是有执行的必要的，比如说表格的renderer和formatText方法，包括一些自定义渲染函数
     Object.assign(
       this.methods,
@@ -171,6 +224,46 @@ export class RendererMain implements OnDestroy {
     });
   }
 
+  public setContentRefs(contentRefs: Record<string, any>, clear: boolean = false) {
+    this._setContentRefs(contentRefs, clear);
+  }
+
+  private _setContentRefs(data: any, clear: boolean = false) {
+    clear && reset(this.contentRefs);
+    Object.assign(this.contentRefs, data || {});
+    this.contextService.setContext({
+      contentRefs: this.contentRefs,
+    });
+  }
+
+  private async setSchemaWithPageSignature(currentValue: any) {
+    const pageInitSignature =
+      currentValue && Object.keys(currentValue).length
+        ? JSON.stringify({
+            state: currentValue.state,
+            methods: currentValue.methods,
+            refs: currentValue.refs,
+            css: currentValue.css,
+            lifeCycles: currentValue.lifeCycles,
+          })
+        : '';
+    if (pageInitSignature !== this.pageInitSignature) {
+      this.pageInitSignature = pageInitSignature;
+      this.setSchema(currentValue ?? {});
+    } else {
+      const tree = JSON.parse(JSON.stringify(currentValue ?? {}));
+      delete tree.lifeCycles;
+      delete tree.state;
+      delete tree.methods;
+      delete tree.refs;
+      delete tree.css;
+      Object.assign(this.pageSchema, tree);
+      this.ngZone.run(() => {
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
   private async setSchema(data: any) {
     if (!data || !Object.keys(data).length) {
       return;
@@ -179,7 +272,9 @@ export class RendererMain implements OnDestroy {
     const context = {
       state: this.state,
       refs: this.refs,
+      contentRefs: this.contentRefs,
       cssScopeId: this.cssScopeId,
+      props: this.props,
     };
     this.contextService.setContext(context, true);
     this.applyRendererSettings();
@@ -216,7 +311,7 @@ export class RendererMain implements OnDestroy {
   public detectChanges() {
     this.ngZone.run(() => {
       // 外部强行触发需要找ngZone空间里执行
-      this.setSchema(this.schema);
+      this.setSchemaWithPageSignature(this.schema);
     });
   }
 }

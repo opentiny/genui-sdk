@@ -12,6 +12,8 @@ import {
   classifySchemaChildrenByNgContentSelectors,
   getNgContentSelectors,
 } from './projectable-nodes';
+import { bindProjectedView, unbindProjectedView } from '../block';
+import { RendererContextService } from '../context.service';
 
 function sameBucketChildren(prev: unknown, next: unknown): boolean {
   if (prev === next) {
@@ -34,12 +36,12 @@ function sameBucketChildren(prev: unknown, next: unknown): boolean {
 /**
  * Builds `projectableNodes` for `createComponent`, one live `rootNodes` array per ng-content slot.
  *
- * Never return a fresh `[[]]` / new outer array from transform — ComponentOutlet remounts when
- * `content` identity changes, which fights content-children patch and can infinite-loop CD.
+ * Views are always detached (never on the parent VCR). Angular copies `rootNodes` at
+ * `createComponent` time; unused slots stay off the parent and do not leak beside the host.
+ * Children instantiate after the host exists (`componentInjector` / after-create CD).
  *
- * Do not call `detectChanges()` here (runs during parent CD). Embedded views are attached to the
- * VCR and refresh on the normal CD pass after context is assigned — same as the create path
- * comment in {@link EmbeddedViewPipe} ("不可 detectChanges").
+ * Never return a fresh outer array from transform — ComponentOutlet remounts when
+ * `content` identity changes.
  */
 @Pipe({
   name: 'projectNgContent',
@@ -56,6 +58,8 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
   private multiEmptySlotCount = 0;
   private singleSlotNodes: Node[][] = this.emptyNodes;
 
+  constructor(private readonly contextService: RendererContextService) {}
+
   transform(
     context: Record<string, any>,
     childrenTemplate: TemplateRef<any>,
@@ -67,7 +71,7 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     const children = (context as any)?.children;
 
     if (selectors.length === 1 && selectors[0] === '*') {
-      return this.transformSingleSlot(context, children, childrenTemplate, viewContainerRef, options);
+      return this.transformSingleSlot(context, children, childrenTemplate, options);
     }
 
     if (!(children as any)?.length && typeof children !== 'string') {
@@ -86,7 +90,6 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     }
 
     const buckets = this.buildStableBuckets(children, selectors);
-
     this.selectors = selectors;
 
     if (!this.viewRefs.length) {
@@ -97,13 +100,14 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
           children: buckets[i],
           slotIndexes: this.indexCache[i],
         };
-        const viewRef = viewContainerRef.createEmbeddedView(
+        const viewRef = this.createSlotView(
           childrenTemplate,
           slotContext,
           options,
         );
         this.viewRefs[i] = viewRef;
         this.slots[i] = viewRef.rootNodes;
+        bindProjectedView(this.slots[i], viewRef);
       }
       return this.slots;
     }
@@ -113,16 +117,13 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       if (!viewRef) {
         continue;
       }
-      const prevChildren = viewRef.context?.children;
-      const prevScope = viewRef.context?.scope;
-      const prevSlotIndexes = viewRef.context?.slotIndexes;
       const nextChildren = buckets[i];
       const nextScope = context['scope'];
       const nextSlotIndexes = this.indexCache[i];
       if (
-        sameBucketChildren(prevChildren, nextChildren) &&
-        sameBucketChildren(prevSlotIndexes, nextSlotIndexes) &&
-        prevScope === nextScope
+        sameBucketChildren(viewRef.context?.children, nextChildren) &&
+        sameBucketChildren(viewRef.context?.slotIndexes, nextSlotIndexes) &&
+        viewRef.context?.scope === nextScope
       ) {
         continue;
       }
@@ -131,7 +132,6 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
         children: nextChildren,
         slotIndexes: nextSlotIndexes,
       });
-      // No detectChanges — let the attached view refresh on the normal CD pass.
     }
     return this.slots;
   }
@@ -140,7 +140,6 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
     context: Record<string, any>,
     children: unknown,
     childrenTemplate: TemplateRef<any>,
-    viewContainerRef: ViewContainerRef,
     options?: { index: number; injector?: Injector },
   ): Node[][] {
     if (!(children as any)?.length) {
@@ -155,11 +154,29 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       Object.assign(viewRef.context, context);
       return this.singleSlotNodes;
     }
-    const created = viewContainerRef.createEmbeddedView(childrenTemplate, context, options);
+    const created = this.createSlotView(childrenTemplate, context, options);
     this.viewRefs = [created];
     this.selectors = ['*'];
     this.singleSlotNodes = [created.rootNodes];
+    bindProjectedView(this.singleSlotNodes[0], created);
     return this.singleSlotNodes;
+  }
+
+  /**
+   * Always detached. String children must `detectChanges` so `{{ children }}` exists
+   * in `rootNodes` before `createComponent` copies them — Tiny hosts (TiButton)
+   * only project those nodes, not later interpolation.
+   */
+  private createSlotView(
+    childrenTemplate: TemplateRef<any>,
+    context: Record<string, any>,
+    options?: { index: number; injector?: Injector },
+  ): EmbeddedViewRef<any> {
+    const viewRef = childrenTemplate.createEmbeddedView(context, options?.injector);
+    if (typeof context['children'] === 'string') {
+      viewRef.detectChanges();
+    }
+    return viewRef;
   }
 
   private emptyNodesFor(slotCount: number): Node[][] {
@@ -183,7 +200,11 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
       next = selectors.map((_, i) => (i === defaultIdx ? children : []));
       nextIndexes = selectors.map(() => []);
     } else if (Array.isArray(children) && children.length) {
-      const classified = classifySchemaChildrenByNgContentSelectors(children, selectors);
+      const classified = classifySchemaChildrenByNgContentSelectors(
+        children,
+        selectors,
+        this.contextService.getContext(),
+      );
       next = classified.buckets;
       nextIndexes = classified.originalIndexes;
     } else {
@@ -193,8 +214,6 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
 
     const stabilized: any[] = [];
     for (let i = 0; i < next.length; i++) {
-      // Keep bucket identity stable to avoid view churn, but always refresh the slot
-      // indexes — a sibling-slot insert shifts every slot's global child index.
       if (sameBucketChildren(this.bucketCache[i], next[i])) {
         stabilized[i] = this.bucketCache[i];
       } else {
@@ -213,9 +232,16 @@ export class ProjectNgContentPipe implements PipeTransform, OnDestroy {
   }
 
   private destroyViews() {
-    for (const viewRef of this.viewRefs) {
-      viewRef?.destroy();
+    for (let i = 0; i < this.viewRefs.length; i++) {
+      unbindProjectedView(this.slots[i]);
+      const viewRef = this.viewRefs[i];
+      if (!viewRef) {
+        continue;
+      }
+      unbindProjectedView(viewRef.rootNodes);
+      viewRef.destroy();
     }
+    unbindProjectedView(this.singleSlotNodes[0]);
     this.viewRefs = [];
     this.slots = [];
     this.bucketCache = [];
