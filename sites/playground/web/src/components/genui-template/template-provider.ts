@@ -5,12 +5,11 @@ import {
 import type { ChatCompletionRequest } from '@opentiny/tiny-robot-kit';
 import { templateChat } from './template-chat-api';
 import { getBackendChatMessages, getLastUserMessage } from './template-chat-utils';
-import { segmentsToDisplayText, type ComposerSegment } from './schema-composer';
+import { segmentsToPlainText, type ComposerSegment } from './schema-composer';
 import { createTemplateResponseHandlers } from './template-response-handlers';
 import type { ITemplateUserMessageItem } from './chat.types';
 import type { LLMConfig } from './chat.types';
 
-/** 有 template-user segments 时用展示文本（标签为 [id:xxx]）作为卡片标题 input，避免内联标记进入历史面板 */
 function resolveDisplayInput(
   lastUserMessage: { content?: unknown; messages?: unknown } | undefined,
 ): string {
@@ -19,7 +18,7 @@ function resolveDisplayInput(
     (item) => item.type === 'template-user',
   )?.segments;
   if (segments?.length) {
-    return segmentsToDisplayText(segments);
+    return segmentsToPlainText(segments);
   }
   return String(lastUserMessage?.content ?? '');
 }

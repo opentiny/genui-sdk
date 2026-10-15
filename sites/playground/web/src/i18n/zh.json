@@ -256,6 +256,7 @@
     "justNow": "刚刚",
     "appliedFromVersion": "应用自 {time} 的版本",
     "appliedFromHistory": "应用自历史版本",
+    "manualEditFromVersion": "手动编辑 {time} 的版本",
     "authorUser": "用户",
     "authorAi": "AI",
     "timeToday": "今天",

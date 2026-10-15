@@ -41,8 +41,9 @@ export function templateDataToSegments(
 
 export function segmentsToPlainText(segments: ComposerSegment[]): string {
   return segments
-    .map((seg) => (seg.type === 'text' ? seg.value : seg.value.componentName))
+    .map((seg) => (seg.type === 'text' ? seg.value : ` ${seg.value.componentName} `))
     .join('')
+    .replace(/\s+/g, ' ')
     .trim();
 }
 

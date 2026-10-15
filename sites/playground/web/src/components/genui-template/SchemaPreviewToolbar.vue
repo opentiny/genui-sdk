@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { TinyButton } from '@opentiny/vue';
+import { AutoTip } from '@opentiny/vue-directive';
 import { iconClose, iconTime } from '@opentiny/vue-icon';
 import { useTemplateContext } from './composables';
 import InspectModeIcon from './InspectModeIcon.vue';
@@ -14,6 +15,7 @@ withDefaults(defineProps<{
 
 const TinyCloseIcon = iconClose();
 const TinyIconTime = iconTime();
+const vAutoTip = AutoTip;
 const { versionControl, ui, actions } = useTemplateContext();
 const schemaDevMode = useSchemaDevMode();
 const isDevMode = computed(() => schemaDevMode.isDevMode.value);
@@ -45,6 +47,7 @@ const toggleDevMode = () => {
         :aria-label="t('templateEditor.devMode')"
         :title="t('templateEditor.devMode')"
         :aria-pressed="isDevMode"
+        v-auto-tip="{ always: true, content: t('templateEditor.devMode'), effect: 'light', popperClass: 'schema-toolbar-tip' }"
         @click="toggleDevMode"
       >
         <InspectModeIcon />
@@ -56,6 +59,7 @@ const toggleDevMode = () => {
         :icon="TinyIconTime"
         :aria-label="t('templateEditor.history')"
         :title="t('templateEditor.history')"
+        v-auto-tip="{ always: true, content: t('templateEditor.history'), effect: 'light', popperClass: 'schema-toolbar-tip' }"
         @click="ui.toggleHistoryPanel"
       />
       <tiny-button

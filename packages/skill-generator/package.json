@@ -9,6 +9,7 @@
     "genui-skill-generate": "./dist/cli.js"
   },
   "scripts": {
+    "prebuild": "pnpm -F @opentiny/genui-sdk-core build",
     "build": "vite build",
     "test": "pnpm build:deps && vitest run",
     "generate:skill": "node dist/cli.js config.json",
