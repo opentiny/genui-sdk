@@ -45,10 +45,22 @@ export function getMessageRendererReact(instance: GenuiChatInstance) {
 
     const { continueChatAction, saveStateAction } = instance;
     const cardId = schemaCardProps.id;
-    return h('div', [
+    const isGenerating = instance.lastSchemaCardId === cardId ? instance.generating : false;
+    const RendererHeader = instance.getProps().rendererSlots?.header;
+    const header = RendererHeader
+      ? h(RendererHeader as any, {
+          schema,
+          isError: false,
+          isFinished: !isGenerating,
+          exportFramework: 'React',
+        })
+      : null;
+
+    return h('div', { class: 'schema-render-container schema-render-container--react' }, [
+      header,
       h(SchemaRendererReactAdapter, {
         schema,
-        generating: instance.lastSchemaCardId === cardId ? instance.generating : false,
+        generating: isGenerating,
         isJsonComplete: schemaCardProps.isJsonComplete,
         customActions: {
           continueChat: bindCardIdToAction(continueChatAction, cardId),
