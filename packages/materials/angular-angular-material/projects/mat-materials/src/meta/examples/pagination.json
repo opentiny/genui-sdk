@@ -1,0 +1,130 @@
+{
+  "state": {
+    "currentPage": 0,
+    "pageSize": 5,
+    "total": 13,
+    "list": [
+      {
+        "name": "张三",
+        "department": "研发部"
+      },
+      {
+        "name": "李四",
+        "department": "研发部"
+      },
+      {
+        "name": "王五",
+        "department": "人事部"
+      },
+      {
+        "name": "赵六",
+        "department": "财务部"
+      },
+      {
+        "name": "钱七",
+        "department": "市场部"
+      }
+    ]
+  },
+  "methods": {
+    "onPageChange": {
+      "type": "JSFunction",
+      "value": "function onPageChange(event) { this.state.currentPage = event.pageIndex; console.log(event) }"
+    }
+  },
+  "componentName": "Page",
+  "props": {
+    "style": "width: 100%; padding: 24px;"
+  },
+  "children": [
+    {
+      "componentName": "MatCard",
+      "props": {
+        "appearance": "outlined"
+      },
+      "children": [
+        {
+          "componentName": "MatCardHeader",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatCardTitle",
+              "props": {},
+              "children": "团队成员"
+            }
+          ]
+        },
+        {
+          "componentName": "MatCardContent",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatList",
+              "props": {},
+              "children": [
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "张三 · 研发部"
+                },
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "李四 · 研发部"
+                },
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "王五 · 人事部"
+                },
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "赵六 · 财务部"
+                },
+                {
+                  "componentName": "MatListItem",
+                  "props": {},
+                  "children": "钱七 · 市场部"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "MatCardActions",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatPaginator",
+              "props": {
+                "length": {
+                  "type": "JSExpression",
+                  "value": "this.state.total"
+                },
+                "pageSize": {
+                  "type": "JSExpression",
+                  "value": "this.state.pageSize"
+                },
+                "pageIndex": {
+                  "type": "JSExpression",
+                  "value": "this.state.currentPage"
+                },
+                "pageSizeOptions": [
+                  5,
+                  10,
+                  20
+                ],
+                "showFirstLastButtons": true,
+                "onPage": {
+                  "type": "JSExpression",
+                  "value": "this.onPageChange"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

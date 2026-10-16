@@ -1,0 +1,84 @@
+{
+  "componentName": "Page",
+  "props": {
+    "style": "width: 100%; padding: 24px;"
+  },
+  "children": [
+    {
+      "componentName": "MatCard",
+      "props": {
+        "appearance": "outlined"
+      },
+      "children": [
+        {
+          "componentName": "MatCardHeader",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatCardTitle",
+              "props": {},
+              "children": "产品介绍"
+            }
+          ]
+        },
+        {
+          "componentName": "MatCardContent",
+          "props": {},
+          "children": [
+            {
+              "componentName": "MatTabs",
+              "props": {
+                "selectedIndex": 0,
+                "stretchTabs": true
+              },
+              "children": [
+                {
+                  "componentName": "MatTab",
+                  "props": {
+                    "label": "功能"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "功能说明内容"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "MatTab",
+                  "props": {
+                    "label": "价格"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "价格方案内容"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "MatTab",
+                  "props": {
+                    "label": "帮助"
+                  },
+                  "children": [
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": "帮助文档内容"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
