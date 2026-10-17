@@ -15,23 +15,31 @@ Angular 代码出码器:把 AI 产出的页面 schema(`CardSchema`)转换为 Ang
 
 ```
 projects/code-generator/
-├── package.json  package-lock.json  node_modules/
+├── package.json  node_modules/
 ├── vite.config.ts                   
 ├── tsconfig.json                    
 ├── code-generator-base.ts           # 类1:框架无关基类
-├── angular-code-generator.ts        # 类2:Angular出码类
+├── angular-code-generator.ts        # 类2:Angular出码门面(装配下面各层,拼出组件文件)
+├── angular-source-text.ts           # 文本层:JSFunction 源串解析/改写/prettier
+├── angular-materials-registry.ts    # 物料层:组件名 → tag/选择器/import 清单
+├── angular-ref-resolver.ts          # ref 层:模板 #name ⇄ 类里 refs.<name>
+├── angular-binding-renderer.ts      # 绑定层:props → [x]/(x)/静态属性/let-*
+├── angular-template-renderer.ts     # 模板层:schema 树 → template 串
+├── angular-class-body.ts            # 类体层:state/methods/生命周期 → 类成员
+├── base-helpers.ts                  # 基类纯函数的注入接口(各层不是基类子类)
+├── constants.ts                     # 协议串常量
+├── utils.ts                         # 小工具(取名字/转大小写/转义等)
 ├── types.ts                         # 公共类型
 ├── index.ts                         # 对外导出
-├── materials/                       # 物料包相关抽象
-│   ├── index.ts                     # 子目录出口
-│   └── materials-extension.ts       # 物料包特殊出码扩展点
+├── .local/                          # 本地临时物,不入库
+│   ├── TEST-PROMPTS.md              # 出码测试用的提示词
+│   └── headless/entry.ts            # 无头跑法(不开浏览器)
 └── src/                             # 用于测试出码
     ├── gen-page/                    # 5175 出码测试执行页
     │   └── index.html main.ts style.css
     ├── preview/                     # 4201 出码渲染效果展示页
     │   └── preview.html preview.ts preview.less styles.less tsconfig.app.json
-    ├── generated/schema-card.ts     # 出码产物:5175 页复制它,4201 页渲染它
-    └── headless/entry.ts            # 无头跑法(不开浏览器)
+    └── generated/schema-card.ts     # 出码产物:5175 页复制它,4201 页渲染它
 
 packages/materials/angular-opentiny-ng/src/code-generator/
 ├── config.ts                        #   TINYNG_CONFIG(物料配置汇总)
@@ -56,7 +64,8 @@ new AngularCodeGenerator({ materials: [TINYNG_CONFIG, MATERIAL_CONFIG] }).genera
 
 ## 启动测试界面
 ```bash
-pnpm dev:angular-test
+cd packages/frameworks/angular/projects/code-generator
+pnpm dev:pages
 ```
 命令会开启 localhost:5175 测试页，以及 localhost:4201 预览页
 要把出码结果复制粘贴在 genui-sdk\packages\frameworks\angular\projects\code-generator\src\generated\schema-card.ts 文件里localhost:4201 预览页才可预览

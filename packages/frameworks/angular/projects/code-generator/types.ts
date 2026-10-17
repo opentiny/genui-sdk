@@ -1,5 +1,4 @@
 import type { CardSchema } from '@opentiny/genui-sdk-core';
-import type { IAngularMaterialsExtension } from './materials/materials-extension';
 
 export interface IComponentMapItem {
   componentName: string;
@@ -8,18 +7,19 @@ export interface IComponentMapItem {
 }
 
 export interface IStateAccessorDefinition {
+  /** getter 名(schema 里 state 的键名) */
   name: string;
-  getterExpr: string;
-  setterExpr?: string;
+
+  /** getter 函数体,已把 this.state. 改写成 this.——对象字面量 getter 里的 this 就是 state 自身 */
+  getterBody: string;
 }
 
-/**
- * schema 的 `props.ref` 在组件类侧的全部产物:一条查询声明 + 一处 ngAfterViewInit 接线。
- * (`props.refName` 不产生本结构——它只是模板局部的 #name,组件类不需要知道。)
- */
 export interface IViewChildRef {
-  /** 模板引用变量名(不含 #),同时是模板里 `#name` 与查询键 */
+  /** schema 里 `this.refs.<name>` 的 `<name>`:只做 refs 的键,不落到模板上 */
   queryName: string;
+
+  /** 模板里 `#token` 与 `@ViewChild('token')` 共用的查询串 */
+  templateToken: string;
 
   /** 组件类字段名,默认同 queryName;与既有类成员重名时经 avoidDuplicateString 改名 */
   fieldName: string;
@@ -40,12 +40,20 @@ export interface IViewChildRef {
 
 
 export interface ILoopScope {
-  inLoop: boolean;
+  /** 本节点外面套了几层 *ngFor */
+  depth: number;
+  /** 各级 *ngFor 的索引名,ref 下标合法性判定用 */
   indexVars: string[];
+  /** 各级 *ngFor 引入的模板变量(item 与 index),提升成类方法的事件处理器按需接成形参 */
+  templateVars: string[];
+  /** 在循环里又跨过了条件渲染:被跳过的迭代不进 @ViewChildren 的结果,下标会压缩 */
+  conditionalInsideLoop: boolean;
 }
 
 export interface ICodegenDescription {
   componentSet: Set<string>;
+  /** #name / refName / ng-template 的 let- 变量:与循环变量同理,函数体引用到就得接成形参 */
+  templateLocals: Set<string>;
   iconComponents: { componentNames: string[]; exportNames: string[] };
   stateAccessors: IStateAccessorDefinition[];
 
@@ -56,7 +64,16 @@ export interface ICodegenDescription {
   templateGeneratedMethods: string[];
 
   hoistedMethodNames: Set<string>;
-  
+
+  /** 模板带实参调用 schema 方法时,方法签名至少要接住的形参个数(方法名 → 个数) */
+  methodArityFloor: Record<string, number>;
+
+  /** Angular 模板表达式不支持的 JS 语法(赋值/箭头等):提升成类方法,模板里改成调用 */
+  templateExpressions: { name: string; body: string; vars: string[] }[];
+
+  /** 提升表达式方法的计数,保证每次出码从 0 开始 */
+  templateExprCounter: number;
+
   /** 自动生成方法计数,保证每次出码从 0 开始 */
   templateMethodCounter: number;
 }
@@ -159,15 +176,22 @@ export interface IAngularMaterialsConfig {
 
   /** 该物料包全部组件名集合,供 resolveConfig 按组件名路由到所属物料包 */
   materialsComponents?: Set<string>;
-
-  extensions?: IAngularMaterialsExtension[];
 }
 
-export type ICodeGeneratorResult = ICodePanel;
+/** 产物自检结果。message 与 Vue 出码的 errors 通道保持同形,playground 直接消费 */
+export interface ICodegenError {
+  message: string;
+  /** 模板解析 / 未声明的组件 / TS 语法 / prettier 格式化 */
+  code: 'TEMPLATE_PARSE' | 'UNKNOWN_COMPONENT' | 'TS_SYNTAX' | 'PRETTIER';
+}
+
+export type ICodeGeneratorResult = ICodePanel & { errors: ICodegenError[] };
 
 export interface IAngularCodeGeneratorOptions {
   prettierOpts?: Record<string, unknown>;
   materials: IAngularMaterialsConfig[];
+  /** 是否对产物做编译期自检(模板解析、组件声明、TS 语法),默认 true */
+  enableCompileValidation?: boolean;
 }
 
 export interface IAngularCoreImportNeeds {

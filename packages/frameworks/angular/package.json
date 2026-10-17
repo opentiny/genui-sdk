@@ -7,16 +7,27 @@
   "files": [
     "output/dist"
   ],
+  "exports": {
+    ".": {
+      "types": "./output/dist/index.d.ts",
+      "default": "./output/dist/index.mjs"
+    },
+    "./code-generator": {
+      "types": "./output/dist/code-generator.d.ts",
+      "default": "./output/dist/code-generator.js"
+    },
+    "./dist/*": "./dist/*",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "ng": "ng",
     "start:server": "pnpm -F @opentiny/genui-sdk-server dev",
     "start": "concurrently \"pnpm start:server\" \"ng serve renderer-use\"",
-    "dev:pages": "concurrently -n codegen,preview -c cyan,green --kill-others-on-fail \"pnpm --dir projects/code-generator dev\" \"ng serve code-generator-preview\"",
     "prebuild": "ng build --project genui-renderer",
     "build": "ng build --project renderer-use",
     "prebuild:lib": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-ng build:lib && pnpm -F @opentiny/genui-sdk-materials-angular-opentiny-ng build",
     "build:lib": "ng build --project genui-renderer",
-    "postbuild:lib": "vite build --config ./build-from-dist/vite.config.lib.ts",
+    "postbuild:lib": "vite build --config ./build-from-dist/vite.config.lib.ts && vite build --config ./projects/code-generator/vite.config.lib.ts",
     "prebuild:element": "pnpm build:lib",
     "build:element": "ng build --project renderer-element",
     "build:lib:npm": "pnpm build:lib",

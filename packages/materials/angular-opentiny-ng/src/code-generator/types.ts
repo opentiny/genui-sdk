@@ -1,11 +1,3 @@
-import type { NodeSchema } from '@opentiny/genui-sdk-core';
-
-export interface IAngularMaterialsExtension {
-  name: string;
-  /** 节点级特殊处理:就地改写 node */
-  transformNode?: (node: NodeSchema) => void;
-}
-
 /**
  * 宿主元素上激活该组件的属性选择器。裸属性(只要有这个属性就命中)没有 value:
  * `[tiButton]` → `{ name: 'tiButton' }`;`input[type=text]` → `{ name: 'type', value: 'text' }`。
@@ -49,6 +41,4 @@ export interface IAngularMaterialsConfig {
 
   /** 该物料包全部组件名集合,供出码器按组件名路由到所属物料包;缺省取 elementSelector 的键 */
   materialsComponents?: Set<string>;
-
-  extensions?: IAngularMaterialsExtension[];
 }
