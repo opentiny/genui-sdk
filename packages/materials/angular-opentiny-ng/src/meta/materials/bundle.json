@@ -5125,7 +5125,10 @@
                   {
                     "componentName": "TiItem",
                     "props": {
-                      "label": "国家",
+                      "label": {
+                        "type": "JSExpression",
+                        "value": "'国家'"
+                      },
                       "required": true
                     },
                     "children": [
@@ -5152,7 +5155,10 @@
                   {
                     "componentName": "TiItem",
                     "props": {
-                      "label": "性别",
+                      "label": {
+                        "type": "JSExpression",
+                        "value": "'性别'"
+                      },
                       "required": true
                     },
                     "children": [
@@ -5179,7 +5185,10 @@
                   {
                     "componentName": "TiItem",
                     "props": {
-                      "label": "身份证号码",
+                      "label": {
+                        "type": "JSExpression",
+                        "value": "'身份证号码'"
+                      },
                       "required": true
                     },
                     "children": [
@@ -5206,7 +5215,10 @@
                   {
                     "componentName": "TiItem",
                     "props": {
-                      "label": "Email",
+                      "label": {
+                        "type": "JSExpression",
+                        "value": "'Email'"
+                      },
                       "required": true
                     },
                     "children": [
@@ -5233,7 +5245,10 @@
                   {
                     "componentName": "TiItem",
                     "props": {
-                      "label": "昵称",
+                      "label": {
+                        "type": "JSExpression",
+                        "value": "'昵称'"
+                      },
                       "required": {
                         "type": "JSExpression",
                         "value": "this.state.nickRequired"
