@@ -48,7 +48,7 @@
       "@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator": [
         "../../../packages/materials/angular-opentiny-ng/src/code-generator/index.ts"
       ],
-      "@opentiny/genui-angular-code-generator": [
+      "@opentiny/genui-sdk-angular/code-generator": [
         "../../../packages/frameworks/angular/projects/code-generator/index.ts"
       ],
       "schema-renderer-react-adapter": [

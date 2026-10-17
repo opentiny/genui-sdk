@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@opentiny/genui-sdk-angular": "workspace:*",
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:*",

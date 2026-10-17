@@ -1,16 +1,17 @@
 <script lang="ts" setup>
 import { computed } from 'vue';
+import { TinyModal } from '@opentiny/vue';
 import type { IRendererSlotsProps } from '@opentiny/genui-sdk-vue';
 import { IconDownload } from '@opentiny/vue-icon';
 import { useExportVueCode } from '../hooks/use-generate-vue-code';
 import { useGenerateAngularCode } from '../hooks/use-generate-angular-code';
+import { t } from '../i18n';
 
 const props = withDefaults(
   defineProps<
     Partial<IRendererSlotsProps> & {
       framework?: 'vue' | 'angular';
       content?: string | object;
-      generating?: boolean;
     }
   >(),
   { framework: 'vue' },
@@ -22,22 +23,27 @@ const TinyIconDownload = IconDownload();
 
 const isAngular = props.framework === 'angular';
 
+const shouldShowExport = computed(() => !!(props.isFinished && !props.isError));
 
-const generating = computed(() => (isAngular ? (props.generating ?? false) : !props.isFinished));
+const notifyExportResult = ({ success, error }: { success: boolean; error?: string }) => {
+  TinyModal.message({
+    message: success ? t('codeExport.success') : t('codeExport.failed', { message: error ?? '' }),
+    status: success ? 'success' : 'error',
+    duration: 3000,
+  });
+};
 
-const shouldShowExport = computed(() => !generating.value && (isAngular || !props.isError));
-
-const handleExport = () => {
+const handleExport = async () => {
   if (isAngular) {
-    exportAngularCode(props.content ?? '');
+    notifyExportResult(await exportAngularCode(props.content ?? ''));
   } else if (props.schema) {
-    exportVueCode(props.schema);
+    notifyExportResult(await exportVueCode(props.schema));
   }
 };
 </script>
 
 <template>
-  <div :class="isAngular ? 'angular-card-wrapper' : 'renderer-header'">
+  <div class="renderer-header">
     <button
       v-if="shouldShowExport"
       type="button"
@@ -47,7 +53,7 @@ const handleExport = () => {
       <TinyIconDownload class="schema-export-icon" />
       <span class="schema-export-label">导出源码</span>
     </button>
-    <slot v-if="isAngular" />
+    <slot />
   </div>
 </template>
 

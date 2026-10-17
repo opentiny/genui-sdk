@@ -283,5 +283,9 @@
     "promptTokens": "输入 Token",
     "completionTokens": "输出 Token",
     "totalTokens": "总计 Token"
+  },
+  "codeExport": {
+    "success": "源码已导出",
+    "failed": "导出源码失败：{message}"
   }
 }

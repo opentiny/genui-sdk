@@ -28,7 +28,7 @@ export function getMessageRendererAngular(instance: InstanceType<typeof GenuiCha
     const generating =
       instance.lastSchemaCardId === schemaCardProps.id ? instance.generating : false;
     const cardId = schemaCardProps.id;
-    // Angular 的 customActions 需要 cardIdSymbol 才能让 saveState 定位到消息(见上方 bindCardIdToAction)
+
     const customActions = {
       continueChat: bindCardIdToAction(continueChatAction, cardId),
       saveState: bindCardIdToAction(saveStateAction, cardId),
@@ -37,20 +37,19 @@ export function getMessageRendererAngular(instance: InstanceType<typeof GenuiCha
     return h(
       SchemaCardExportShell,
       {
+        class: 'angular-card-wrapper',
         framework: 'angular',
         content: schemaCardProps.content,
-        generating,
+        isFinished: !generating,
       },
-      {
-        default: () =>
-          h(GenuiRendererNg, {
-            ...schemaCardProps,
-            requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
-            generating,
-            customActions,
-            key: schemaCardProps.id,
-          }),
-      },
+      () =>
+        h(GenuiRendererNg, {
+          ...schemaCardProps,
+          requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
+          generating,
+          customActions,
+          key: schemaCardProps.id,
+        }),
     );
   };
 }
