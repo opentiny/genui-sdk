@@ -6,8 +6,8 @@ export const whiteList = [
   'TiSelect',
   'TiDate',
   'TiTable',
-  'TiTableColumn',
-  'TiModal',
+  // TiTableColumn， @opentiny/ng 没有 TiTableColumn，列由 TiTable.columns 描述
+  // TiModal 只能通过 TiModalService.open() 使用，ti-modal-wrapper 无声明式输入
   'TiPagination',
   'TiTabs',
   'TiTab',

@@ -1,0 +1,34 @@
+lockfileVersion: '9.0'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+importers:
+
+  .:
+    dependencies:
+      prettier:
+        specifier: ^3.9.6
+        version: 3.9.6
+    devDependencies:
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@opentiny/genui-sdk-materials-angular-opentiny-ng':
+        specifier: workspace:*
+        version: link:../../materials/angular-opentiny-ng
+      '@opentiny/tiny-schema-renderer-ng':
+        specifier: workspace:*
+        version: link:../../../projects/tiny-schema-renderer-ng
+
+packages:
+
+  prettier@3.9.6:
+    resolution: {integrity: sha512-OpN0zzVdiaiAhxpuuj5efpIS4sY9j7bY6uR5mnj5yPzGkdkjNKSJeUThPb60Jw29QuAZgA4o+/iB49kFiaBX6g==}
+    engines: {node: '>=14'}
+    hasBin: true
+
+snapshots:
+
+  prettier@3.9.6: {}

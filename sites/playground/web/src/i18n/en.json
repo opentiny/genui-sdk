@@ -288,5 +288,9 @@
     "promptTokens": "Prompt tokens",
     "completionTokens": "Completion tokens",
     "totalTokens": "Total tokens"
+  },
+  "codeExport": {
+    "success": "Source code exported",
+    "failed": "Failed to export source code: {message}"
   }
 }
