@@ -3,5 +3,6 @@
   "compilerOptions": {
     "noEmit": false
   },
-  "include": ["./index.ts", "./materials/**/*.ts"]
+  "include": ["./*.ts"],
+  "exclude": ["./vite.config.ts", "./vite.config.lib.ts"]
 }
