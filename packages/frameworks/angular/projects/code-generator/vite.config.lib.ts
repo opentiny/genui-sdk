@@ -10,6 +10,8 @@ export default defineConfig({
     dts({
       rollupTypes: true,
       tsconfigPath: path.resolve(__dirname, './tsconfig.lib.json'),
+      // 中间声明文件放进子目录，避免覆盖 build-from-dist 产出的 output/dist/index.d.ts
+      entryRoot: path.resolve(__dirname, '..'),
     }),
   ],
   build: {
