@@ -10,7 +10,6 @@ export default defineConfig({
     dts({
       rollupTypes: true,
       tsconfigPath: path.resolve(__dirname, './tsconfig.lib.json'),
-      // 中间声明文件放进子目录，避免覆盖 build-from-dist 产出的 output/dist/index.d.ts
       entryRoot: path.resolve(__dirname, '..'),
     }),
   ],
@@ -24,7 +23,6 @@ export default defineConfig({
     emptyOutDir: false,
     sourcemap: true,
     rollupOptions: {
-      // @angular/compiler / prettier 等由宿主提供,别打进 35KB 的出码器里
       external: Object.keys(packageJson.dependencies || {}).map(
         (name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`),
       ),
