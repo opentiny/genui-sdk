@@ -32,8 +32,7 @@ export interface UseMessageOptions {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onReceiveData?: <T = any>(data: T, messages: Ref<ChatMessage[]>, preventDefault: () => void) => void;
     onFinish?: (
-      /** 结束原因。null / undefined 表示上游没报告（报错、断流、网关没透传），不等于 'stop' */
-      finishReason: string | null | undefined,
+      finishReason: string | null | undefined | { type: 'error'; error: unknown },
       context: { messages: Ref<ChatMessage[]>; messageState: Reactive<MessageState> },
       preventDefault: () => void,
     ) => void;
@@ -119,13 +118,26 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
 
   // 普通请求
   const chat = async (abortController: AbortController) => {
-    const response = await client.chat({
-      messages: toRaw(messages.value),
-      options: {
-        stream: false,
-        signal: abortController.signal,
-      },
-    });
+    let response: ChatCompletionResponse;
+    try {
+      response = await client.chat({
+        messages: toRaw(messages.value),
+        options: {
+          stream: false,
+          signal: abortController.signal,
+        },
+      });
+    } catch (error) {
+      if (abortController.signal.aborted) {
+        messageState.status = STATUS.ABORTED;
+        return;
+      }
+      messageState.errorMsg = errorMessage;
+      messageState.status = STATUS.ERROR;
+      options.events?.onFinish?.({ type: 'error', error }, { messages, messageState }, () => {});
+      console.error('Send message error:', error);
+      return;
+    }
 
     chatOnReceiveData(response);
 
