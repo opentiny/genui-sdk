@@ -70,6 +70,19 @@ function sendMessage() {
 </template>
 ```
 
+### stream
+
+- **类型**: `boolean`
+- **必填**: 否
+- **默认值**: `true`
+- **说明**: 是否使用流式响应。默认以 SSE 流式接收并逐字渲染；设为 `false` 时走非流式 completion，等待完整响应返回后一次性渲染。
+
+```vue
+<template>
+  <GenuiChat :url="url" model="deepseek-v3.2" :stream="false" />
+</template>
+```
+
 ### messages
 
 - **类型**: `IMessage[]`
