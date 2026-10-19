@@ -36,7 +36,7 @@ import { GenuiChat, GenuiConfigProvider } from '@opentiny/genui-sdk-vue';
 
 // genui-server 挂了 cors()，直接用绝对地址跨域请求，不需要 vite proxy。
 // 用 || 而不是 ??：env 里写成空串时也要能回落到默认值。
-const url = import.meta.env.VITE_CHAT_URL || 'http://localhost:3101/chat/completions';
+const url = import.meta.env.VITE_CHAT_URL || 'http://localhost:3100/chat/completions';
 const model = ref(import.meta.env.VITE_MODEL || 'deepseek-chat');
 
 // 默认非流式 —— 这个 demo 就是来看非流式的
