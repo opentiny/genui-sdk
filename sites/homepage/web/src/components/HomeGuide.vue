@@ -424,6 +424,30 @@ const handleCopyPrompt = async () => {
         }
 
       }
+    
+      @media (max-width: 768px) {
+      margin-top: 16px;
+      padding: 20px;
+      
+      &-content {
+        padding: 20px;
+      }
+      &-header-title {
+        font-size: 15px;
+      }
+      &-descript {
+        text-align: justify;
+        text-justify: inter-ideograph;
+      }
+      &-prompt {
+        text-align: justify;
+        text-justify: inter-ideograph;
+      }
+      &-copy {
+        margin: 20px auto 0;
+        width: 220px;
+      }
+    }
   }
 
   @media (min-width: 1920px) {

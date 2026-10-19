@@ -386,7 +386,7 @@ onUnmounted(() => {
               effect="light"
             >
               <tiny-button
-                class="home-extend-control-btn"
+                class="home-extend-control-btn home-extend-control-btn--replay"
                 circle
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
@@ -411,10 +411,12 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background-image: url('@/assets/home_extend_bg.svg');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
+  background-image:
+    linear-gradient(to bottom, #fff 0%, rgba(255, 255, 255, 0) 120px),
+    url('@/assets/home_extend_bg.svg');
+  background-size: 100% 100%, cover;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
   padding: 110px 12.5%;
 
   @media (max-width: 1280px) {
@@ -626,6 +628,11 @@ onUnmounted(() => {
   justify-content: flex-start;
   gap: 16px;
   width: 100%;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    zoom: 0.8;
+  }
 }
 
 .home-extend-avatar {
@@ -694,6 +701,12 @@ onUnmounted(() => {
   &-icon {
     transform: translate(1.5px, 0);
   }
+
+  &--replay :deep(.tiny-svg) {
+    transform: translateX(2px);
+    width: 1.5em;
+    height: 1.5em;
+  }
 }
 
 .extend-button-group {
@@ -753,6 +766,13 @@ onUnmounted(() => {
   }
   .home-extend-schema-content {
     border-radius: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-extend-schema-content {
+    height: 500px;
+    min-height: 500px;
   }
 }
 </style>
