@@ -17,6 +17,7 @@ on:
           - '@opentiny/genui-sdk-materials-vue-element-plus'
           - '@opentiny/genui-sdk-materials-angular-opentiny-ng'
           - '@opentiny/genui-sdk-integration-skill'
+          - '@opentiny/genui-sdk-skill-generator'
           - '@opentiny/genui-sdk-materials-react-antd'
       version:
         description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
@@ -147,6 +148,13 @@ jobs:
               echo "filter=@opentiny/genui-sdk-integration-skill" >> "$GITHUB_OUTPUT"
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/integrate/skill/genui-integration" >> "$GITHUB_OUTPUT"
+              ;;
+            @opentiny/genui-sdk-skill-generator)
+              echo "pkg_json=packages/skill-generator/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/skill-generator/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk-skill-generator" >> "$GITHUB_OUTPUT"
+              echo "build_script=build" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/skill-generator" >> "$GITHUB_OUTPUT"
               ;;
             @opentiny/genui-sdk-materials-react-antd)
               echo "pkg_json=packages/materials/react-antd/package.json" >> "$GITHUB_OUTPUT"

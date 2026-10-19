@@ -34,6 +34,13 @@ export function useSchemaRendererInspect(options: {
     return null;
   };
 
+  const isInspectCaptureTarget = (target: EventTarget | null) => {
+    if (!options.isDevMode.value || !isSelectable() || !options.schema.value) {
+      return false;
+    }
+    return Boolean(findInspectableElement(target));
+  };
+
   const updateHighlight = () => {
     const host = containerRef.value?.parentElement;
     if (!host || !hoveredEl) {
@@ -70,6 +77,8 @@ export function useSchemaRendererInspect(options: {
     if (!options.isDevMode.value || !isSelectable()) {
       return;
     }
+    // 捕获阶段拦截移动事件，阻止组件内部 onMousemove/onPointermove 触发模板动作
+    blockInteraction(event, false);
     const el = findInspectableElement(event.target);
     if (el !== selectedEl) {
       selectedEl = null;
@@ -83,12 +92,15 @@ export function useSchemaRendererInspect(options: {
     }
   };
 
-  const onClick = (event: MouseEvent) => {
+  const onMouseDown = (event: MouseEvent) => {
+    if (event.button !== 0) {
+      return;
+    }
     if (!options.isDevMode.value || !isSelectable() || !options.schema.value) {
       return;
     }
     const el = findInspectableElement(event.target);
-    if (!el?.dataset.id) {
+    if (!el) {
       return;
     }
     const node = selectedNodeFromSchemaById(options.schema.value, el.dataset.id);
@@ -101,6 +113,24 @@ export function useSchemaRendererInspect(options: {
     setHovered(el);
     options.insertComposerTag(node);
   };
+
+  // 拦截模板组件自身的交互事件：stopPropagation 挡住组件内部监听器，preventDefault 挡默认行为
+  // （如 checkbox 选中、链接跳转）。pointerdown 例外：preventDefault 会阻止浏览器合成 mousedown，
+  // 导致选点逻辑失效，因此默认不 preventDefault；Tab 例外：保留默认聚焦行为以便移出渲染器。
+  const blockInteraction = (event: Event, shouldPreventDefault = true) => {
+    if (!isInspectCaptureTarget(event.target)) {
+      return;
+    }
+    if (shouldPreventDefault) {
+      event.preventDefault();
+    }
+    event.stopPropagation();
+  };
+
+  // mouseup/click/dblclick/pointerup 均只需 stopPropagation + preventDefault，共用同一处理器
+  const onBlock = (event: Event) => blockInteraction(event);
+  const onKeyDown = (event: KeyboardEvent) => blockInteraction(event, event.key !== 'Tab');
+  const onPointerDown = (event: PointerEvent) => blockInteraction(event, false);
 
   const syncHighlight = () => {
     if (options.isDevMode.value) {
@@ -148,6 +178,9 @@ export function useSchemaRendererInspect(options: {
     highlight,
     onMouseMove,
     onMouseLeave,
-    onClick,
+    onMouseDown,
+    onBlock,
+    onPointerDown,
+    onKeyDown,
   };
 }
