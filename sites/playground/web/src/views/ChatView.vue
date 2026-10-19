@@ -38,7 +38,7 @@ const rendererSlots = {
   <PlaygroundViewShell>
     <GenuiConfigProvider :theme="theme" :locale="locale" :materials="materials" style="height: 100%">
       <GenuiChat
-        :stream="false"
+        :stream="true"
         :url="url"
         :ref="setChatRef"
         :messages="messages"
