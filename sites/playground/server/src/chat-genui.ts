@@ -73,7 +73,7 @@ function buildCompletionFromGenerateText(result: GenerateTextResult<any, any>): 
   return {
     id: result.response?.id ?? `chatcmpl-${Date.now()}`,
     object: 'chat.completion',
-    created: Date.now(),
+    created: Math.floor((result.response?.timestamp?.getTime() ?? Date.now()) / 1000),
     model: result.response?.modelId ?? '',
     choices: [
       {
