@@ -35,7 +35,9 @@ import { useI18n } from './i18n';
 import { GENUI_CONFIG } from '../config-provider/injection-tokens';
 import { IResponseHandler, defaultResponseHandlers } from './response-handler';
 
-const props = defineProps<IChatProps>();
+const props = withDefaults(defineProps<IChatProps>(), {
+  stream: true,
+});
 
 const genuiConfig = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
@@ -257,7 +259,7 @@ const client = new AIClient({
 let conversation = useConversation({
   client,
   autoSave: false,
-  useStreamByDefault: props.stream ?? true,
+  useStreamByDefault: props.stream,
   events: {
     onReceiveData(data, messages, preventDefault) {
       messages.value.push(data as any);
