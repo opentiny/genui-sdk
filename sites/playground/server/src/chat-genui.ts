@@ -25,7 +25,6 @@ import { buildSkillTools } from './skills/index.js';
 import { buildOpenApiTools, previewOpenApiTools } from './openapi-tools/index.js';
 import type { IPlaygroundConfig, LLMConfig, LLMConfigParams, McpServer, McpServersConfig } from './types/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
-import { createDevTools } from './dev-tools.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
 import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
@@ -370,7 +369,6 @@ export function createChatGenui() {
     const openApiBuiltTools = await buildOpenApiTools(openApiTools);
     const agentTools = buildAgentTools(agents, abort.signal);
     const { tools: skillTools, systemPrompt: skillPrompt } = buildSkillTools(skills);
-    const devTools = createDevTools();
     const duplicateToolNames = new Set<string>();
     const seenToolNames = new Set<string>();
     for (const name of [
@@ -378,7 +376,6 @@ export function createChatGenui() {
       ...Object.keys(mcpTools),
       ...Object.keys(agentTools),
       ...Object.keys(skillTools),
-      ...Object.keys(devTools),
     ]) {
       if (seenToolNames.has(name)) duplicateToolNames.add(name);
       seenToolNames.add(name);
@@ -386,7 +383,7 @@ export function createChatGenui() {
     if (duplicateToolNames.size) {
       console.warn(`Duplicate tool names detected: ${[...duplicateToolNames].join(', ')}`);
     }
-    const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools, ...devTools };
+    const tools = { ...openApiBuiltTools, ...mcpTools, ...agentTools, ...skillTools };
 
     const maxSteps = 30;
     let hasError = false; // 标记是否已经处理了错误
