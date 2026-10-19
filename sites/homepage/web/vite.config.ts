@@ -48,6 +48,9 @@ export default defineConfig({
       },
     }),
   ],
+  server: {
+    allowedHosts: ['.trycloudflare.com'],
+  },
   resolve: {
     alias: {
       '@': _resolve('src')
