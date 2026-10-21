@@ -333,4 +333,90 @@ describe('ReactCodeGenerator', () => {
     expect(result.errors[0].message).toContain('Failed to scope page css');
     expect(result.panelValue).toContain('.card { color: red;');
   });
+
+  it('keeps indexed refs inside loops instead of dropping them', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        name: 'LoopRef',
+        schema: {
+          componentName: 'Page',
+          state: { formItemList: [{}, {}] },
+          refs: { formItemRef: [] },
+          methods: {
+            validateAll: {
+              type: 'JSFunction',
+              value: 'function validateAll() { this.refs.formItemRef[0]?.validate(); }',
+            },
+          },
+          children: [
+            {
+              componentName: 'div',
+              loop: { type: 'JSExpression', value: 'this.state.formItemList' },
+              loopArgs: ['item', 'loopIndex'],
+              children: [
+                {
+                  componentName: 'AntFormItem',
+                  props: { ref: { type: 'JSExpression', value: 'this.refs.formItemRef[loopIndex]' } },
+                },
+              ],
+            },
+          ],
+        },
+      },
+      componentsMap: [{ componentName: 'AntFormItem', package: 'antd', exportName: 'Form.Item' }],
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.panelValue).toContain('ref={(instance) => { refs.formItemRef[loopIndex] = instance }}');
+    expect(result.panelValue).toContain('refs.formItemRef[0]?.validate()');
+  });
+
+  it('transforms state mutations written inside JSExpression event handlers', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        name: 'ExprEvent',
+        schema: {
+          componentName: 'Page',
+          state: { count: 0 },
+          children: [
+            {
+              componentName: 'AntButton',
+              props: {
+                onClick: { type: 'JSExpression', value: '() => { this.state.count = this.state.count + 1 }' },
+              },
+            },
+          ],
+        },
+      },
+      componentsMap: [{ componentName: 'AntButton', package: 'antd', exportName: 'Button' }],
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.panelValue).toContain('function setIn(');
+    expect(result.panelValue).toContain('setState(prev => setIn(prev, ["count"], state.count + 1))');
+    expect(result.panelValue).not.toContain('state.count = state.count + 1');
+  });
+
+  it('initializes JSExpression state fields without hitting the state TDZ', async () => {
+    const result = await generateCode({
+      pageInfo: {
+        name: 'StateTdz',
+        schema: {
+          componentName: 'Page',
+          state: {
+            a: 1,
+            b: 2,
+            total: { type: 'JSExpression', value: 'this.state.a + this.state.b' },
+          },
+          children: [],
+        },
+      },
+    });
+
+    expect(result.errors).toEqual([]);
+    expect(result.panelValue).toContain('const state: Record<string, any> = {');
+    expect(result.panelValue).toContain('state.total = state.a + state.b');
+    expect(result.panelValue).not.toMatch(/total:\s*state\./);
+    expect(result.panelValue).not.toMatch(/useState\(\(\) => \(\{\n\s+total:/);
+  });
 });

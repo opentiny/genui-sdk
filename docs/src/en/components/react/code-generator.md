@@ -2,7 +2,7 @@
 
 React `generateCode` converts SchemaJSON into an editable, standalone React TSX component. The generated source uses material components, React state, event handlers, and JSX directly; it does not depend on `GenuiRenderer` at runtime.
 
-When you only need code generation, import from `@opentiny/genui-sdk-react/code-generator`. The main entry `@opentiny/genui-sdk-react` also re-exports this API.
+When you only need code generation, import from the `@opentiny/genui-sdk-react/code-generator` subpath. This API is not exported from the main `@opentiny/genui-sdk-react` entry, so renderer consumers do not have to load the code-generator dependencies.
 
 ## Basic Usage
 

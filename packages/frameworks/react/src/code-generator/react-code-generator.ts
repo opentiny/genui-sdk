@@ -172,7 +172,7 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
 
   protected serializeValue(value: unknown, meta: ICodegenMeta): string {
     if (isProtocolValue(value, JS_EXPRESSION) || isProtocolValue(value, JS_RESOURCE)) {
-      return this.replaceContext(String(value.value ?? ''), meta);
+      return this.replaceContext(String(value.value ?? ''), meta, true);
     }
     if (isProtocolValue(value, JS_FUNCTION)) {
       return this.buildFunctionExpression(String(value.value ?? ''), meta);
@@ -204,18 +204,22 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
 
   protected buildRefAttribute(value: Record<string, any>, meta: ICodegenMeta): string | null {
     const expression = String(value.value ?? '').trim();
-    const simple = /^(?:this\.)?refs\.([$\w]+)$/.exec(expression);
-    if (!simple) return null;
+    if (!expression) return null;
+    // 与运行时 parseData/parseObjectData 对齐：任意 ref 表达式统一包成 (instance) => { <expr> = instance }，
+    // 从而支持协议文档中的下标写法 this.refs.formItemRef[loopIndex]，而不是只认 refs.<ident>。
+    const target = this.replaceContext(expression, meta).trim();
+    if (!target) return null;
     meta.needsRef = true;
-    return `ref={(instance) => { refs.${simple[1]} = instance }}`;
+    return `ref={(instance) => { ${target} = instance }}`;
   }
 
   protected buildEventAttribute(key: string, value: Record<string, any>, meta: ICodegenMeta): string {
     let handler = '';
     if (value.type === JS_FUNCTION) {
       handler = this.buildFunctionExpression(String(value.value ?? ''), meta);
-    } else if (value.type === JS_EXPRESSION) {
-      handler = this.replaceContext(String(value.value ?? ''), meta);
+    } else if (value.type === JS_EXPRESSION || value.type === JS_RESOURCE) {
+      // 表达式形式的处理器同样要走不可变更新转换，否则导出代码不会触发重渲染。
+      handler = this.replaceContext(String(value.value ?? ''), meta, true);
     }
     if (!handler) return '';
     if (Array.isArray(value.params) && value.params.length) {
@@ -350,11 +354,19 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
   protected buildState(schema: CardSchema, meta: ICodegenMeta): { statement: string; accessors: string } {
     const source = isPlainObject(schema.state) ? schema.state : {};
     const state: Record<string, unknown> = {};
+    const deferredLines: string[] = [];
     const accessorLines: string[] = [];
     for (const [name, value] of Object.entries(source)) {
       const stateValue = isPlainObject(value) ? value : null;
       const accessor = stateValue && isPlainObject(stateValue.accessor) ? stateValue.accessor : null;
       if (!accessor) {
+        // JSExpression / JSResource 允许引用其它 state 字段，必须等对象字面量构建完成后再求值，
+        // 否则会命中 `const state` 的暂时性死区（TDZ），组件挂载即抛 ReferenceError。
+        if (isProtocolValue(value, JS_EXPRESSION) || isProtocolValue(value, JS_RESOURCE)) {
+          const target = isIdentifier(name) ? `state.${name}` : `state[${JSON.stringify(name)}]`;
+          deferredLines.push(`${target} = ${this.serializeValue(value, meta)}`);
+          continue;
+        }
         state[name] = value;
         continue;
       }
@@ -370,8 +382,17 @@ export class ReactCodeGenerator implements IFrameworkCodeGenerator<ICodeGenerato
       ([key, value]) => `${isIdentifier(key) ? key : JSON.stringify(key)}: ${this.serializeValue(value, meta)}`,
     );
     const formatted = entries.length ? `{\n  ${entries.join(',\n  ')}\n}` : '{}';
+    if (!deferredLines.length) {
+      return {
+        statement: `const [state, setState] = useState(() => (${formatted}))`,
+        accessors: accessorLines.join('\n'),
+      };
+    }
+    // 先构建普通字段，再按 schema 声明顺序就地求值表达式字段，使后面的字段能读取前面的字段。
+    const initialObject = entries.length ? `{\n    ${entries.join(',\n    ')}\n  }` : '{}';
+    const body = [`const state: Record<string, any> = ${initialObject}`, ...deferredLines, 'return state'];
     return {
-      statement: `const [state, setState] = useState(() => (${formatted}))`,
+      statement: `const [state, setState] = useState(() => {\n  ${body.join('\n  ')}\n})`,
       accessors: accessorLines.join('\n'),
     };
   }

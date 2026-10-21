@@ -2,7 +2,7 @@
 
 React `generateCode` 将 SchemaJSON 转换为可独立编辑的 React TSX 组件。生成结果直接使用物料组件、React state、事件函数和 JSX，不依赖运行时 `GenuiRenderer`。
 
-仅使用代码生成时，可从 `@opentiny/genui-sdk-react/code-generator` 按需引入。主入口 `@opentiny/genui-sdk-react` 同样会再导出该能力。
+仅使用代码生成时，从 `@opentiny/genui-sdk-react/code-generator` 子路径引入。该能力不在主入口 `@opentiny/genui-sdk-react` 上导出，以免渲染器使用方被迫加载出码器依赖。
 
 ## 基本用法
 
