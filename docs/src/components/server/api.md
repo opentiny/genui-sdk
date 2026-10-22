@@ -35,7 +35,7 @@ interface IStartServerOptions {
 
 - **详细信息**
 
-创建一个 Express 应用并启用 CORS，自动注册对话路由（`/chat/completions`）。如果指定端口被占用，会自动尝试下一个端口（最多尝试 `maxAttempts` 次）。启动成功后会在控制台输出服务器地址。物料在启动时通过 `materialsMeta` 固定，请求侧无法切换；未配置时按请求 `framework` 映射内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular），其他 framework 回落到 Vue 默认物料。**前端物料只要与内置默认不一致（React 物料、Vue Element Plus、mini 精简集、自定义物料等），就必须显式传入对应的 `materialsMeta`**，否则生成的组件名与前端物料不匹配；CLI 只能使用内置默认物料。
+创建一个 Express 应用并启用 CORS，自动注册对话路由（`/chat/completions`）。如果指定端口被占用，会自动尝试下一个端口（最多尝试 `maxAttempts` 次）。启动成功后会在控制台输出服务器地址。物料在启动时通过 `materialsMeta` 固定，请求侧无法切换；未配置时按请求 `framework` 映射内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular），其他 framework 回落到 Vue 默认物料。**前端物料只要与内置默认不一致（React 物料、Vue Element Plus、mini 精简集、自定义物料等），就必须显式传入对应的 `materialsMeta`**，否则生成的组件名与前端物料不匹配；CLI 可通过 `-m, --materials` 加载同样的物料，见 [`loadMaterialsMeta()`](#loadmaterialsmeta)。
 
 - **示例**
 
@@ -105,6 +105,54 @@ equipChatCompletions(app, {
 });
 
 app.listen(3000);
+```
+
+## loadMaterialsMeta()
+
+按物料包名或文件路径加载物料元数据（`IMaterialsMeta`），与 CLI 的 `-m, --materials` 使用同一套解析逻辑。
+
+- **类型**
+
+```typescript
+function loadMaterialsMeta(
+  source: string,
+  options?: ILoadMaterialsMetaOptions
+): Promise<IMaterialsMeta>
+
+interface ILoadMaterialsMetaOptions {
+  /** 解析相对路径与包名时使用的基准目录，默认 process.cwd() */
+  cwd?: string;
+  /** 从物料模块中读取的具名导出，默认 materialsMeta */
+  exportName?: string;
+}
+```
+
+- **详细信息**
+
+`source` 支持两种来源：
+
+- **文件路径**：相对路径（基于 `cwd`）、绝对路径或 `file:` URL；`.json` 文件会被直接解析为物料元数据。
+- **包名**：如 `@opentiny/genui-sdk-materials-react-antd`，从 `cwd` 解析（即需要在项目中安装该物料包）。只给包名时会优先尝试 `<包名>/meta` 子路径（体积小、不加载组件实现），失败后回退到包入口。
+
+导出名依次尝试 `options.exportName`（默认 `materialsMeta`）、模块的 `default` 导出、模块本身（适配 JSON 文件等场景）。加载后会校验 `materials`、`examples` 是否为数组，并为缺省的 `whiteList` / `rules` 补空数组，保证可作为 `materialsMeta` 直接使用。
+
+- **示例**
+
+```typescript
+import { startServer, loadMaterialsMeta } from '@opentiny/genui-sdk-server';
+
+// 包名（自动优先命中 /meta 子路径）
+const materialsMeta = await loadMaterialsMeta('@opentiny/genui-sdk-materials-react-antd');
+
+// 包名 + 子路径 + 指定导出（Vue 精简集）
+const miniMeta = await loadMaterialsMeta('@opentiny/genui-sdk-materials-vue-opentiny-vue/meta', {
+  exportName: 'miniMaterialsMeta',
+});
+
+// 本地模块或 JSON 文件
+const customMeta = await loadMaterialsMeta('./my-materials.mjs');
+
+startServer({ port: 3100, baseURL: 'https://api.openai.com/v1', apiKey: '', materialsMeta });
 ```
 
 ## createChatCompletionHandler()

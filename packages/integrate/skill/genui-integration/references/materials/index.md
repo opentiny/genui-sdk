@@ -26,7 +26,7 @@ GenUI SDK 自 v1.3.0 起将核心 SDK 与 UI 物料解耦，需通过 `GenuiConf
 
 **前端物料只要与内置默认不一致，就必须在服务端显式传入对应的 `materialsMeta`**：React Ant Design 传 `@opentiny/genui-sdk-materials-react-antd/meta`，Vue Element Plus 传 `@opentiny/genui-sdk-materials-vue-element-plus/meta`，Vue 精简集传 `miniMaterialsMeta`，自定义物料传自备 `IMaterialsMeta`。
 
-> CLI（`npx genui-sdk-server`）不提供物料参数，只能使用内置默认物料；替换物料时必须改用 `startServer` / `equipChatCompletions` 显式传入。详见 [Server 集成指南](../server.md) 的「物料配置（materialsMeta）」。
+> CLI（`npx genui-sdk-server`）可用 `-m, --materials` 按包名或模块/JSON 文件路径加载物料，并用 `--materials-export` 指定导出名，不传时使用内置默认物料；也可以用 `startServer` / `equipChatCompletions` 显式传入。详见 [Server 集成指南](../server.md) 的「物料配置（materialsMeta）」。
 
 ## 可选物料与变体
 

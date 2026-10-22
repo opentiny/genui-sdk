@@ -24,9 +24,20 @@ npx genui-sdk-server -p 3000
 
 # Custom env file
 npx genui-sdk-server -e .env.production
+
+# Specify materials by package name (the /meta subpath is tried first)
+npx genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd
+
+# Specify materials by file path (module or .json)
+npx genui-sdk-server -m ./my-materials.mjs
+
+# Pick a named export, e.g. the Vue mini set
+npx genui-sdk-server -m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
 ```
 
-> The CLI uses the built-in default materials (Vue → OpenTiny Vue, Angular → OpenTiny Angular) and exposes no materials option. If the frontend replaces its materials (React, Vue Element Plus, the mini set, custom materials, etc.), start the server programmatically or via Express and pass `materialsMeta` explicitly.
+> Without `--materials`, the CLI uses the built-in default materials (Vue → OpenTiny Vue, Angular → OpenTiny Angular). Pass `--materials` whenever the frontend replaces its materials (React, Vue Element Plus, the mini set, custom materials, etc.).
+>
+> `--materials <source>` accepts either a package name (e.g. `@opentiny/genui-sdk-materials-react-antd`, resolved from the current working directory; a bare package name first tries `<package>/meta`) or a path to a module/JSON file that exports the materials metadata. `--materials-export <name>` selects the named export to read (default `materialsMeta`).
 
 ### Programmatic
 
@@ -54,6 +65,17 @@ equipChatCompletions(app, {
   materialsMeta,
 });
 app.listen(3100);
+```
+
+Need the same "path or package name" resolution outside the CLI? Use `loadMaterialsMeta`, the helper the CLI is built on:
+
+```typescript
+import { startServer, loadMaterialsMeta } from '@opentiny/genui-sdk-server';
+
+// Package name (tries <package>/meta first), file path, or .json — same as --materials
+const materialsMeta = await loadMaterialsMeta('@opentiny/genui-sdk-materials-react-antd');
+
+startServer({ port: 3100, baseURL: 'https://api.openai.com/v1', apiKey: 'your-api-key', materialsMeta });
 ```
 
 ## Documentation

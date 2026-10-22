@@ -35,7 +35,7 @@ interface IStartServerOptions {
 
 - **Details**
 
-Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping to built-in defaults (Vue → OpenTiny Vue, Angular → OpenTiny Angular); other frameworks fall back to the Vue default. **Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus, the mini set, custom materials, etc.), the matching `materialsMeta` must be passed explicitly**, otherwise the generated component names will not match the frontend materials. The CLI can only use the built-in defaults.
+Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping to built-in defaults (Vue → OpenTiny Vue, Angular → OpenTiny Angular); other frameworks fall back to the Vue default. **Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus, the mini set, custom materials, etc.), the matching `materialsMeta` must be passed explicitly**, otherwise the generated component names will not match the frontend materials. The CLI can load the same materials with `-m, --materials`; see [`loadMaterialsMeta()`](#loadmaterialsmeta).
 
 - **Example**
 
@@ -104,6 +104,54 @@ equipChatCompletions(app, {
 });
 
 app.listen(3000);
+```
+
+## loadMaterialsMeta()
+
+Loads materials metadata (`IMaterialsMeta`) from a material package name or a file path. It is the same resolution logic the CLI uses for `-m, --materials`.
+
+- **Type**
+
+```typescript
+function loadMaterialsMeta(
+  source: string,
+  options?: ILoadMaterialsMetaOptions
+): Promise<IMaterialsMeta>
+
+interface ILoadMaterialsMetaOptions {
+  /** Base directory for resolving relative paths and package names, default process.cwd() */
+  cwd?: string;
+  /** Named export to read from the materials module, default materialsMeta */
+  exportName?: string;
+}
+```
+
+- **Details**
+
+`source` supports two forms:
+
+- **File path**: a relative path (resolved from `cwd`), an absolute path, or a `file:` URL. `.json` files are parsed directly as materials metadata.
+- **Package name**: e.g. `@opentiny/genui-sdk-materials-react-antd`, resolved from `cwd` (so the material package must be installed in the project). When only a package name is given, the `<package>/meta` subpath is tried first (smaller, no component runtime), then the package entry.
+
+The export is resolved in order: `options.exportName` (default `materialsMeta`), the module's `default` export, then the module itself (for JSON files and similar cases). The loaded value is validated to have `materials` and `examples` arrays, and missing `whiteList` / `rules` default to empty arrays so it can be used as `materialsMeta` directly.
+
+- **Example**
+
+```typescript
+import { startServer, loadMaterialsMeta } from '@opentiny/genui-sdk-server';
+
+// Package name (the /meta subpath is picked automatically)
+const materialsMeta = await loadMaterialsMeta('@opentiny/genui-sdk-materials-react-antd');
+
+// Package + subpath + named export (Vue mini set)
+const miniMeta = await loadMaterialsMeta('@opentiny/genui-sdk-materials-vue-opentiny-vue/meta', {
+  exportName: 'miniMaterialsMeta',
+});
+
+// Local module or JSON file
+const customMeta = await loadMaterialsMeta('./my-materials.mjs');
+
+startServer({ port: 3100, baseURL: 'https://api.openai.com/v1', apiKey: '', materialsMeta });
 ```
 
 ## createChatCompletionHandler()

@@ -42,7 +42,7 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 │  ├─ Angular → GenuiRenderer（模式 2）
 │  └─ React → GenuiRenderer（模式 2）
 ├─ 后端服务
-│  └─ 所有框架 → genui-sdk-server（模式 3）；服务端物料须与前端一致，替换物料时须显式传入 materialsMeta
+│  └─ 所有框架 → genui-sdk-server（模式 3）；服务端物料须与前端一致，替换物料时须显式传入 materialsMeta（CLI 可用 -m 指定）
 └─ 不确定
    └─ 询问具体需求，然后推荐
 ```
@@ -80,7 +80,7 @@ description: genui-sdk 全方位指南：安装、配置、集成、示例。用
 
 - **服务端替换物料（React / Element Plus / mini / 自定义物料）**：前端物料与服务端内置默认（Vue → OpenTiny Vue，Angular → OpenTiny Angular）不一致时：
   1. 前端安装并注入对应物料包（如 React 用 `@opentiny/genui-sdk-materials-react-antd/materials`），服务端安装同一物料包
-  2. 服务端不要用 CLI，改用 `startServer` / `equipChatCompletions` 显式传入对应的 `materialsMeta`（React → `@opentiny/genui-sdk-materials-react-antd/meta`，Vue Element Plus → `@opentiny/genui-sdk-materials-vue-element-plus/meta`，精简集 → `miniMaterialsMeta`，自定义物料 → 自备 `IMaterialsMeta`）
+  2. 服务端可用 CLI 的 `-m, --materials` 指定同一物料包或 meta 文件（如 `-m @opentiny/genui-sdk-materials-react-antd`，精简集加 `--materials-export miniMaterialsMeta`），或改用 `startServer` / `equipChatCompletions` 显式传入对应的 `materialsMeta`（React → `@opentiny/genui-sdk-materials-react-antd/meta`，Vue Element Plus → `@opentiny/genui-sdk-materials-vue-element-plus/meta`，精简集 → `miniMaterialsMeta`，自定义物料 → 自备 `IMaterialsMeta`）
   3. 请求 `metadata.tinygenui.framework` 与前端框架保持一致
   4. 引导查看 `references/server.md` 的「物料配置（materialsMeta）」；React 项目另见 `references/react.md`
 
@@ -121,7 +121,7 @@ GenUI SDK 使用**物料系统**将核心 SDK 与 UI 组件解耦。使用当前
 
 **前端物料只要与内置默认不一致，就必须在服务端显式传入对应的 `materialsMeta`**：React 用 `@opentiny/genui-sdk-materials-react-antd/meta`，Vue Element Plus 用 `@opentiny/genui-sdk-materials-vue-element-plus/meta`，精简集用 `miniMaterialsMeta`，自定义物料则传自备的 `IMaterialsMeta`。
 
-> **CLI 限制**：`npx genui-sdk-server` 不提供物料参数，只能使用内置默认物料；只要前端替换了物料（React、Element Plus、mini、自定义物料等），就必须改用 `startServer` / `equipChatCompletions` 显式传入。详见 `references/server.md` 的「物料配置（materialsMeta）」。
+> **CLI 物料参数**：`npx genui-sdk-server` 可用 `-m, --materials <source>` 指定物料包名（可省略 `/meta` 子路径，如 `@opentiny/genui-sdk-materials-react-antd`）或模块/JSON 文件路径，用 `--materials-export <name>` 指定导出名（如 `miniMaterialsMeta`）；不传时使用内置默认物料。包名从当前工作目录解析，需在项目里安装对应物料包。也可以用 `startServer` / `equipChatCompletions` 显式传入。详见 `references/server.md` 的「物料配置（materialsMeta）」。
 
 ### 组件
 
@@ -152,7 +152,7 @@ GenUI SDK 使用服务器发送事件（SSE）和 OpenAI 兼容格式。LLM 在�
 ### 模式 3：Server 集成
 - **适用场景**：代理 LLM 调用的后端服务
 - **特点**：OpenAI 兼容 API，支持流式响应
-- **物料对齐**：服务端物料须与前端一致；内置默认仅覆盖 Vue（OpenTiny Vue）/ Angular（OpenTiny Angular），**前端换成其他物料（React、Element Plus、mini、自定义物料）时必须在服务端显式传入对应 `materialsMeta`**（CLI 无法传入）
+- **物料对齐**：服务端物料须与前端一致；内置默认仅覆盖 Vue（OpenTiny Vue）/ Angular（OpenTiny Angular），**前端换成其他物料（React、Element Plus、mini、自定义物料）时必须在服务端显式传入对应 `materialsMeta`**，或用 CLI 的 `-m, --materials` / `--materials-export` 指定同一套物料
 - **详细指南**：见 `references/server.md`
 
 ## 常用配置

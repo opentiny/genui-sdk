@@ -202,7 +202,7 @@ Docs: [Vue OpenTiny Vue](https://docs.opentiny.design/genui-sdk/components/mater
 
 ### Server
 
-OpenAI‑compatible chat completions service with streaming SchemaJson support. The CLI can only use the built‑in default materials (Vue → OpenTiny Vue, Angular → OpenTiny NG); when the frontend uses any other materials package, pass `materialsMeta` explicitly.
+OpenAI‑compatible chat completions service with streaming SchemaJson support. The CLI uses the built‑in default materials (Vue → OpenTiny Vue, Angular → OpenTiny NG) unless you point it at another materials package or meta file with `-m, --materials`.
 
 ```bash
 # .env
@@ -213,6 +213,8 @@ OpenAI‑compatible chat completions service with streaming SchemaJson support. 
 npx genui-sdk-server            # default port 3100
 npx genui-sdk-server -p 3000    # custom port
 npx genui-sdk-server -e .env.production
+npx genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd   # materials by package name
+npx genui-sdk-server -m ./my-materials.mjs                        # materials by file path
 ```
 
 Programmatic:
