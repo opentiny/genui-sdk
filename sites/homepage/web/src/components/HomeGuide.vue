@@ -160,7 +160,10 @@ const handleCopyPrompt = async () => {
       <div class="home-guide-skill-content">
         <div class="home-guide-skill-prompt">{{ t('guide.skill.prompt') }}</div>
         <div class="home-guide-skill-copy" @click="handleCopyPrompt">
-          <span class="home-guide-skill-copy-icon"></span>
+          <span
+            class="home-guide-skill-copy-icon"
+            :class="{ 'home-guide-skill-copy-icon--success': copyState === 'success' }"
+          ></span>
           <span class="home-guide-skill-copy-text">{{ copyLabel }}</span>
         </div>
       </div>
@@ -414,6 +417,10 @@ const handleCopyPrompt = async () => {
           width: 16px;
           height: 16px;
           background: url('@/assets/copy.svg');
+
+          &--success {
+            background: url('@/assets/checkmark.svg');
+          }
         }
 
         &-text {
@@ -446,6 +453,14 @@ const handleCopyPrompt = async () => {
       &-copy {
         margin: 20px auto 0;
         width: 220px;
+        height: 40px;
+      }
+
+      @media (max-width: 480px) {
+        &-copy {
+          width: 100%;
+        }
+        
       }
     }
   }

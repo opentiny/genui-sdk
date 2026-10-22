@@ -188,6 +188,18 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     }
   }
 
+  @media (max-width: 768px) {
+    .btn-link + .btn-link {
+      margin-left: 12px;
+    }
+
+    :deep(.operation-button-group .tiny-button) {
+      height: 40px;
+      padding-inline: 36px;
+      border-radius: 226px;
+    }
+  }
+
   .home-core {
     display: flex;
     align-items: center;
@@ -271,7 +283,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       font-weight: 400;
       line-height: var(--line-height-description);
       text-align: left;
-      color: rgba(89, 89, 89, 1);
+      color: #808080;
       margin-bottom: 76px;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
       opacity: 0;
@@ -293,7 +305,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       padding: 8% 10%;
     }
 
-    @media (min-width: 1280px) and (max-width: 1920px) {
+    @media (min-width: 1280px) {
       &-title {
         font-size: var(--font-size-title-lg);
       }
@@ -551,7 +563,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
   }
 
   &-label {
-    margin: 20px 0px 10px 0px;
+    margin: 50px 0px 10px 0px;
     font-size: var(--font-size-body-lg);
     font-weight: 600;
     line-height: var(--line-height-body-lg);

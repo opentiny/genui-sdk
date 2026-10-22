@@ -4,6 +4,7 @@ import dshIcon from '@/assets/home_plugin_dsh_icon.svg';
 import crossIcon from '@/assets/home_plugin_cross_icon.svg';
 import deepseekIcon from '@/assets/home_plugin_deepseek_icon.svg';
 import copyIcon from '@/assets/copy.svg';
+import checkmarkIcon from '@/assets/checkmark.svg';
 import { t } from '@/i18n';
 
 
@@ -74,7 +75,7 @@ const handleCopyCommand = async () => {
       <div class="home-plugin-content-copy">
         <span>{{ installCommand }}</span>
         <div class="home-plugin-content-copy-btn" @click="handleCopyCommand">
-          <img :src="copyIcon" alt="">
+          <img :src="copied ? checkmarkIcon : copyIcon" alt="">
           <span>{{ copied ? t('plugin.copied') : t('plugin.copy') }}</span>
         </div>
       </div>
@@ -206,12 +207,19 @@ const handleCopyCommand = async () => {
 
       &-descript {
         width: 100%;
-        font-size: 12px;
+        font-size: 14px;
         text-align: justify;
         text-justify: inter-ideograph;
       }
       &-copy {
         width: 100%;
+        > span {
+          flex: 1 1 0;
+          min-width: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
       }
     }
   }

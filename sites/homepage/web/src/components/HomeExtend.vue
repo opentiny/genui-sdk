@@ -379,9 +379,8 @@ onUnmounted(() => {
             </tiny-tooltip>
             <tiny-tooltip
               v-else
-              :content="
-                preparingPlayback ? t('extend.preparing') : hasPlayedOnce ? t('extend.replay') : t('extend.play')
-              "
+              :content="preparingPlayback ? t('extend.preparing') : t('extend.replay')"
+              :disabled="!preparingPlayback && !hasPlayedOnce"
               placement="top"
               effect="light"
             >
@@ -455,8 +454,8 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     border-radius: 20px;
-    border: 1px solid #fff;
-    box-shadow: 0 0 60px 0 rgba(217, 223, 255, 0.5);
+    border: 2px solid #fff;
+    background-color: rgba(255, 255, 255, 0.25);
 
 
     padding: 28px;
@@ -537,6 +536,40 @@ onUnmounted(() => {
       box-sizing: border-box;
       scrollbar-gutter: stable;
       border-bottom-right-radius: 12px;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: #dbdbdb;
+        // 上下各让出 4px，滑块拉到两端时不会被父容器的圆角裁掉
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        background-clip: padding-box;
+        border-radius: 6px;
+
+        &:hover {
+          background-color: #c2c2c2;
+        }
+      }
+
+      @supports not selector(::-webkit-scrollbar) {
+        scrollbar-width: thin;
+        scrollbar-color: #dbdbdb transparent;
+      }
+
+      @media (max-width: 480px) {
+        scrollbar-gutter: auto;
+
+        > div {
+          margin-inline: auto;
+        }
+      }
     }
 
     &-content-inner {
@@ -545,7 +578,11 @@ onUnmounted(() => {
       position: relative;
       width: 100%;
       @media (max-width: 768px) {
-        padding: 5px;
+        padding: 5px 30px;
+      }
+      // 下面 AI 行要用 cqw 反推缩放比例，容器查询宽度取内容盒宽度
+      @media (max-width: 480px) {
+        container-type: inline-size;
       }
     }
 
@@ -631,7 +668,8 @@ onUnmounted(() => {
 
   @media (max-width: 480px) {
     width: 100%;
-    zoom: 0.8;
+    zoom: 0.7;
+    zoom: calc(100cqw / 300px);
   }
 }
 
@@ -699,13 +737,20 @@ onUnmounted(() => {
   box-shadow: 0 2px 4px #00000029;
 
   &-icon {
-    transform: translate(1.5px, 0);
+    width: 50px;
+    height: 50px;
+    transform: translate(2px, 0);
   }
 
   &--replay :deep(.tiny-svg) {
     transform: translateX(2px);
     width: 1.5em;
     height: 1.5em;
+  }
+
+  &--replay .home-extend-control-btn-icon {
+    width: 60px;
+    height: 60px;
   }
 }
 
@@ -714,18 +759,23 @@ onUnmounted(() => {
   height: 56px;
   display: flex;
   align-items: center;
-  padding: 4px;
-  margin-bottom: 48px;
+  padding: 8px 12px;
+  gap: 8px;
+  margin-bottom: 60px;
   border-radius: 87px;
   background-color: rgba(232, 240, 255, 1);
+  &::before,
+  &::after {
+    display: none;
+  }
 
   .extend-button {
     height: 100%;
-    width: 200px;
+    padding-inline: 24px;
     margin-left: 0;
     border: none;
     background-color: transparent;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
     color: rgba(89, 89, 89, 1);
 
@@ -733,12 +783,13 @@ onUnmounted(() => {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      
     }
 
     .extend-button-icon {
-      width: 24px;
-      height: 24px;
+      width: 22px;
+      height: 22px;
+      margin-right: 6px;
     }
 
     &-element-2 {
@@ -750,7 +801,12 @@ onUnmounted(() => {
       background-color: #fff;
       box-shadow: 0 0 20px 0 rgba(207, 218, 228, 0.36);
       font-weight: 500;
-      color: rgba(25, 25, 25, 1)
+      color: rgba(25, 25, 25, 1);
+
+      .extend-button-icon {
+        // #595959 提深到 #191919，和 active 文字同色
+        filter: brightness(0.01);
+      }
     }
   }
 
