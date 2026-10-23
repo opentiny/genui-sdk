@@ -1,0 +1,14 @@
+{
+  "name": "code-generator-dev",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:pages": "pnpm -C ../.. exec concurrently -n codegen,preview -c cyan,green --kill-others-on-fail \"pnpm --dir projects/code-generator dev\" \"ng serve code-generator-preview\""
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^7.1.2"
+  }
+}

@@ -10,8 +10,6 @@ import {
   TiTextModule,
   TiTableComponent,
   TiTableModule,
-  TiModalComponent,
-  TiModalModule,
   TiDateComponent,
   TiDateModule,
   TiPaginationComponent,
@@ -45,6 +43,7 @@ import {
   TiTextareaModule,
 } from '@opentiny/ng';
 
+(TiButtonComponent['ɵcmp'] as any).selectors[0][0] = 'button';
 (TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 (TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
 (TiRadioComponent['ɵcmp'] as any).selectors[0][0] = 'input';
@@ -56,7 +55,6 @@ export const components: Record<string, Type<any>> = {
   TiSelect: TiSelectComponent,
   TiText: TiTextComponent,
   TiTable: TiTableComponent,
-  TiModal: TiModalComponent,
   TiDate: TiDateComponent,
   TiPagination: TiPaginationComponent,
   TiTabs: TiTabsComponent,
@@ -83,7 +81,6 @@ export const modules: Record<string, Type<any>> = {
   TiSelect: TiSelectModule,
   TiText: TiTextModule,
   TiTable: TiTableModule,
-  TiModal: TiModalModule,
   TiDate: TiDateModule,
   TiPagination: TiPaginationModule,
   TiTabs: TiTabModule,

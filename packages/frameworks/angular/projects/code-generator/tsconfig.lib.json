@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false
+  },
+  "include": ["./*.ts"],
+  "exclude": ["./vite.config.ts", "./vite.config.lib.ts"]
+}
