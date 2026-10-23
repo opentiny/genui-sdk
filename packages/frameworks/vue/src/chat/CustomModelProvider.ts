@@ -1,9 +1,14 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { chat } from './chat-api';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
-import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-import type { IChatMessage, IStreamData } from '@opentiny/genui-sdk-core';
-import type { IResponseHandler } from './response-handler';
+import type {
+  IGenPromptSnippet,
+  IGenPromptExample,
+  IChatMessage,
+  ICompleteData,
+  IStreamData,
+} from '@opentiny/genui-sdk-core';
+import { toCompleteData, type IResponseHandler, type ICompleteResponseJson } from './response-handler';
 
 async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handler: (data: string) => void) {
   let buffer = '';
@@ -73,6 +78,7 @@ export class CustomModelProvider extends BaseModelProvider {
       model,
       temperature,
       signal: request.options?.signal,
+      stream: request.options?.stream ?? true,
       customComponents,
       customSnippets,
       customExamples,
@@ -81,8 +87,61 @@ export class CustomModelProvider extends BaseModelProvider {
     });
   }
 
-  async chat(_: ChatCompletionRequest) {
-    return {} as ChatCompletionResponse;
+  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    const context: any = {};
+    this.setupStreamContext(context, request);
+
+    let json: ICompleteResponseJson;
+    try {
+      this.handlerBeforeRequest(context);
+      const response = await this.getData(request);
+      json = await response.json();
+    } catch (error) {
+      this.handlerRequestError(context, error);
+      throw error;
+    }
+
+    this.handlerStart(context, {
+      onData: () => {},
+      onDone: () => {},
+      onError: () => {},
+    });
+    this.handleCompleteResponse(toCompleteData(json), context);
+    this.handlerEnd(context);
+
+    const chatMessage: IChatMessage = context.chatMessage;
+    const choice = json.choices?.[0] ?? {};
+    const message = choice.message ?? {};
+
+    return {
+      id: json.id,
+      object: json.object ?? 'chat.completion',
+      created: json.created,
+      model: json.model,
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: 'assistant',
+            content: chatMessage.content,
+            reasoning_content: message.reasoning_content,
+            tool_calls: message.tool_calls,
+          },
+          finish_reason: choice.finish_reason ?? null,
+        },
+      ],
+      usage: json.usage,
+      role: chatMessage.role,
+      content: chatMessage.content,
+      messages: chatMessage.messages,
+      finishInfo: chatMessage.finishInfo,
+    } as ChatCompletionResponse & IChatMessage;
+  }
+
+  private handleCompleteResponse(data: ICompleteData, context: any) {
+    for (const handler of this.responseHandlers) {
+      handler.complete?.(data, context);
+    }
   }
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {

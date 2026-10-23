@@ -61,22 +61,26 @@ export function createChatCompletionHandler(config: IChatCompletionHandlerConfig
       const rawBody = await getRawBody(req, { encoding: 'utf-8' });
       const reqBody: ChatCompletionCreateParamsBase = JSON.parse(rawBody);
 
-      const response = await chatCompletions(reqBody, { signal: abortController.signal });
- 
+      const stream = reqBody.stream !== false;
+      const response = await chatCompletions(reqBody, { signal: abortController.signal, stream });
+
       if (!response.ok || !response.body) {
         const errorBody = await response.text().catch(() => '');
         const message = `Request failed: ${response.status} ${response.statusText}${errorBody ? ` - ${errorBody}` : ''}`;
         throw new GenUIChatAPIError(message, response.status, response.statusText, String(response.status));
       }
 
-      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+      const contentType = response.headers.get('content-type') ?? 'application/json';
+      if (contentType.includes('text/event-stream')) {
         res.setHeader('Content-Type', 'text/event-stream');
         const bodyStream = response.body as ReadableStream<Uint8Array>;
         const readable = Readable.fromWeb(bodyStream);
         readable.on('error', (err: Error) => handleStreamError(err, res));
         readable.pipe(res);
       } else {
-        throw new Error('Response body is not a valid stream');
+        res.statusCode = response.status;
+        res.setHeader('Content-Type', contentType);
+        res.end(await response.text());
       }
     } catch (error: unknown) {
       console.error('Error in chat-completion handler try/catch:', error, (error as Error)?.message);
