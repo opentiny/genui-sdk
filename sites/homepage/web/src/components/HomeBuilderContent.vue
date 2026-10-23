@@ -289,7 +289,8 @@ function handleFeatureClick(index: number) {
 
   @media (min-width: 1920px) {
     padding: 0 240px 0px;
-
+    justify-content: center;
+    gap: 150px;
     &-right {
       width: 55%;
     }
@@ -387,14 +388,26 @@ function handleFeatureClick(index: number) {
       height: 44px;
       font-size: 16px;
     }
-    
+
+  }
+  
+
+  @media (min-width: 1920px) {
+    &-right {
+      width: fit-content;
+    }
+    &-feature {
+      max-width: 100%;
+      width: 800px;
+    }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: 1280px) {
     &-feature {
       padding: 5%;
     }
   }
+
 
   @media (max-width: 768px) {
     .btn-link {

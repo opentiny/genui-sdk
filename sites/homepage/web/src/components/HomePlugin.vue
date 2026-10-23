@@ -77,6 +77,7 @@ const handleCopyCommand = async () => {
         <div class="home-plugin-content-copy-btn" @click="handleCopyCommand">
           <img :src="copied ? checkmarkIcon : copyIcon" alt="">
           <span>{{ copied ? t('plugin.copied') : t('plugin.copy') }}</span>
+          <img class="home-plugin-content-copy-btn-preload" :src="checkmarkIcon" alt="" aria-hidden="true">
         </div>
       </div>
     </div>
@@ -87,6 +88,7 @@ const handleCopyCommand = async () => {
 <style lang="less" scoped>
 .home-plugin {
   width: 100%;
+  margin-bottom: 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -168,6 +170,7 @@ const handleCopyCommand = async () => {
       }
 
       &-btn {
+        position: relative;
         display: flex;
         justify-content: center;
         align-items: center;
@@ -183,6 +186,14 @@ const handleCopyCommand = async () => {
           margin-left: 4px;
           font-size: 16px;
           font-weight: 400;
+        }
+
+        &-preload {
+          position: absolute;
+          left: 0;
+          top: 0;
+          opacity: 0;
+          pointer-events: none;
         }
       }
     }

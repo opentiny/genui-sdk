@@ -164,6 +164,10 @@ const handleCopyPrompt = async () => {
             class="home-guide-skill-copy-icon"
             :class="{ 'home-guide-skill-copy-icon--success': copyState === 'success' }"
           ></span>
+          <span
+            class="home-guide-skill-copy-icon home-guide-skill-copy-icon--success home-guide-skill-copy-icon--preload"
+            aria-hidden="true"
+          ></span>
           <span class="home-guide-skill-copy-text">{{ copyLabel }}</span>
         </div>
       </div>
@@ -400,6 +404,7 @@ const handleCopyPrompt = async () => {
       }
     
       &-copy {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -411,7 +416,7 @@ const handleCopyPrompt = async () => {
         border-radius: 62px;
         background-color: rgba(25, 25, 25, 1);
         cursor: pointer;
-      
+
 
         &-icon {
           width: 16px;
@@ -420,6 +425,14 @@ const handleCopyPrompt = async () => {
 
           &--success {
             background: url('@/assets/checkmark.svg');
+          }
+
+          &--preload {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            pointer-events: none;
           }
         }
 

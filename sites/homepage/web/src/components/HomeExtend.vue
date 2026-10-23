@@ -525,6 +525,12 @@ onUnmounted(() => {
       box-sizing: border-box;
       container-type: size;
       container-name: extend-stream;
+
+      @media (max-width: 768px) {
+        height: auto;
+        min-height: 0;
+        container-type: normal;
+      }
     }
 
     &-content-scroll {
@@ -547,7 +553,6 @@ onUnmounted(() => {
 
       &::-webkit-scrollbar-thumb {
         background-color: #dbdbdb;
-        // 上下各让出 4px，滑块拉到两端时不会被父容器的圆角裁掉
         border-top: 8px solid transparent;
         border-bottom: 8px solid transparent;
         background-clip: padding-box;
@@ -561,6 +566,10 @@ onUnmounted(() => {
       @supports not selector(::-webkit-scrollbar) {
         scrollbar-width: thin;
         scrollbar-color: #dbdbdb transparent;
+      }
+
+      @media (max-width: 768px) {
+        flex: 0 0 auto;
       }
 
       @media (max-width: 480px) {
@@ -578,7 +587,7 @@ onUnmounted(() => {
       position: relative;
       width: 100%;
       @media (max-width: 768px) {
-        padding: 5px 30px;
+        padding: 30px 30px;
       }
       // 下面 AI 行要用 cqw 反推缩放比例，容器查询宽度取内容盒宽度
       @media (max-width: 480px) {
@@ -709,6 +718,7 @@ onUnmounted(() => {
   inset: 0;
   z-index: 10;
   pointer-events: none;
+  container-type: size;
 
   &-surface {
     position: absolute;
@@ -736,10 +746,22 @@ onUnmounted(() => {
   border: none;
   box-shadow: 0 2px 4px #00000029;
 
+  &--replay {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  // 播放：播放按钮圆圈大小，暂停/继续按钮保持原尺寸不会变
+  .home-extend-stream-controls:not(.home-extend-stream-controls--docked) &--replay {
+    width: 56px;
+    height: 56px;
+  }
+
+  // 暂停：播放按钮三角形大小
   &-icon {
     width: 50px;
     height: 50px;
     transform: translate(2px, 0);
+    transition: width 0.3s ease, height 0.3s ease;
   }
 
   &--replay :deep(.tiny-svg) {
@@ -748,9 +770,10 @@ onUnmounted(() => {
     height: 1.5em;
   }
 
-  &--replay .home-extend-control-btn-icon {
-    width: 60px;
-    height: 60px;
+  // 播放：三角形大小
+  .home-extend-stream-controls:not(.home-extend-stream-controls--docked) &--replay .home-extend-control-btn-icon {
+    width: 56px;
+    height: 56px;
   }
 }
 
@@ -787,8 +810,8 @@ onUnmounted(() => {
     }
 
     .extend-button-icon {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       margin-right: 6px;
     }
 
@@ -804,7 +827,6 @@ onUnmounted(() => {
       color: rgba(25, 25, 25, 1);
 
       .extend-button-icon {
-        // #595959 提深到 #191919，和 active 文字同色
         filter: brightness(0.01);
       }
     }
@@ -825,10 +847,4 @@ onUnmounted(() => {
   }
 }
 
-@media (max-width: 480px) {
-  .home-extend-schema-content {
-    height: 500px;
-    min-height: 500px;
-  }
-}
 </style>
