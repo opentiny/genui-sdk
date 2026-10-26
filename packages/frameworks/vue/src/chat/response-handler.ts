@@ -1,4 +1,11 @@
-import { IChatMessage, IMessageItem, IStreamDelta, IStreamData, PatternExtractor } from '@opentiny/genui-sdk-core';
+import {
+  IChatMessage,
+  ICompleteData,
+  IMessageItem,
+  IStreamDelta,
+  IStreamData,
+  PatternExtractor,
+} from '@opentiny/genui-sdk-core';
 import { ThinkTagWrapPattern } from './think-tag-wrap-pattern';
 import { reactive, readonly, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
@@ -17,10 +24,48 @@ export interface IResponseHandler<T> {
     handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
   ) => void;
   end?: (context: any) => void;
+  complete?: (data: ICompleteData, context: any) => void;
+}
+
+/** OpenAI chat.completion 的线上形状（非流式） */
+export interface ICompleteResponseJson {
+  id?: string;
+  object?: string;
+  model?: string;
+  created?: number;
+  choices?: {
+    index?: number;
+    message?: {
+      content?: string;
+      reasoning_content?: string;
+      tool_calls?: IStreamDelta['tool_calls'];
+      tool_calls_result?: IStreamDelta['tool_calls_result'];
+    };
+    finish_reason?: string | null;
+  }[];
+  usage?: IStreamData['usage'];
 }
 
 const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
+};
+
+/** 把非流式的完整响应摊平成 ICompleteData，与 getStreamDelta 相对 */
+export const toCompleteData = (json: ICompleteResponseJson): ICompleteData => {
+  const choice = json.choices?.[0];
+  const message = choice?.message ?? {};
+  return {
+    id: json.id,
+    object: json.object,
+    model: json.model,
+    created: json.created,
+    content: message.content,
+    reasoning_content: message.reasoning_content,
+    tool_calls: message.tool_calls,
+    tool_calls_result: message.tool_calls_result,
+    finish_reason: choice?.finish_reason,
+    usage: json.usage,
+  };
 };
 
 function onToolResult(
@@ -30,12 +75,16 @@ function onToolResult(
   chatMessage: IChatMessage,
   addToolCallContext: boolean,
 ) {
-  const {
-    id,
-    function: { arguments: args, result },
-  } = toolCallsResult[0];
-  const toolCallItem = toolCallIdMap[id];
-  if (toolCallItem) {
+  toolCallsResult.forEach((toolCallResult) => {
+    const {
+      id,
+      function: { arguments: args, result },
+    } = toolCallResult;
+    const toolCallItem = toolCallIdMap[id];
+    if (!toolCallItem) {
+      return;
+    }
+
     toolCallItem.status = 'success';
     toolCallItem.content = JSON.stringify({ arguments: args, result }, null, 2);
 
@@ -55,7 +104,7 @@ function onToolResult(
           toolResult: JSON.stringify(result),
         }) + '\n\n';
     }
-  }
+  });
 }
 
 function onToolCall(
@@ -173,6 +222,36 @@ function watchReasoningEnd(context: any) {
   );
 }
 
+// —— 以下四个切面处理函数同时服务两条路径 ——
+// 非流式：complete 把完整 message 一次性包成一个 delta 传入。
+function applyReasoning(delta: IStreamDelta, context: any) {
+  context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
+  if (!context.handleReasoning) {
+    watchReasoningEnd(context);
+    context.handleReasoning = true;
+  }
+}
+
+function applyToolCalls(delta: IStreamDelta, context: any) {
+  onToolCall(delta.tool_calls, delta, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
+}
+
+function applyToolResults(delta: IStreamDelta, context: any) {
+  onToolResult(
+    delta.tool_calls_result,
+    delta,
+    context.toolCallIdMap,
+    context.chatMessage,
+    context.chatConfig.addToolCallContext,
+  );
+}
+
+function applyContent(delta: IStreamDelta, context: any) {
+  context.delta = delta;
+  context.patternExtractor.handleContent(delta.content);
+  context.chatMessage.content += delta.content;
+}
+
 export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
   {
     name: 'init',
@@ -211,6 +290,16 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       context.chatMessage.finishInfo = data;
       return true;
     },
+    complete: (data: ICompleteData, context: any) => {
+      context.chatMessage.finishInfo = {
+        id: data.id,
+        object: data.object,
+        model: data.model,
+        created: data.created,
+        choices: [{ index: 0, finish_reason: data.finish_reason ?? null }],
+        usage: data.usage,
+      };
+    },
   },
   {
     name: 'reasoning',
@@ -219,13 +308,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return Boolean(delta.reasoning_content);
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
-      if (!context.handleReasoning) {
-        watchReasoningEnd(context);
-        context.handleReasoning = true;
-      }
+      applyReasoning(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.reasoning_content) return;
+      applyReasoning({ reasoning_content: data.reasoning_content }, context);
     },
     start: (
       context: any,
@@ -248,9 +336,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return delta.tool_calls?.length > 0;
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      onToolCall(delta.tool_calls, delta, context.toolCallIdMap, context.chatMessage, context.toolCallStatus);
+      applyToolCalls(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.tool_calls?.length) return;
+      applyToolCalls({ tool_calls: data.tool_calls }, context);
     },
     start: (
       context: any,
@@ -267,15 +358,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return delta.tool_calls_result?.length > 0;
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      onToolResult(
-        delta.tool_calls_result,
-        delta,
-        context.toolCallIdMap,
-        context.chatMessage,
-        context.chatConfig.addToolCallContext,
-      );
+      applyToolResults(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.tool_calls_result?.length) return;
+      applyToolResults({ tool_calls_result: data.tool_calls_result }, context);
     },
   },
   {
@@ -285,11 +373,12 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       return Boolean(delta.content);
     },
     handler: (data: IStreamData, context: any) => {
-      const delta = getStreamDelta(data);
-      context.delta = delta;
-      context.patternExtractor.handleContent(delta.content);
-      context.chatMessage.content += delta.content;
+      applyContent(getStreamDelta(data), context);
       return true;
+    },
+    complete: (data: ICompleteData, context: any) => {
+      if (!data.content) return;
+      applyContent({ content: data.content }, context);
     },
     start: (
       context: any,

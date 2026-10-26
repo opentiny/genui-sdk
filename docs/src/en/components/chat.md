@@ -70,6 +70,19 @@ function sendMessage() {
 </template>
 ```
 
+### stream
+
+- **Type**: `boolean`
+- **Required**: No
+- **Default**: `true`
+- **Description**: Whether to use a streaming response. By default the response is received as an SSE stream and rendered incrementally; set it to `false` to use a non-streaming completion and render the full response once it arrives.
+
+```vue
+<template>
+  <GenuiChat :url="url" model="deepseek-v3.2" :stream="false" />
+</template>
+```
+
 ### messages
 
 - **Type**: `IMessage[]`

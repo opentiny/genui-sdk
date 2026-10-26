@@ -57,6 +57,22 @@ export interface IStreamData {
   };
 }
 
+/**
+ * 非流式（完整）响应的渲染数据，作为 IResponseHandler.complete 的入参。
+ */
+export interface ICompleteData {
+  id?: string;
+  object?: string;
+  model?: string;
+  created?: number;
+  content?: string;
+  reasoning_content?: string;
+  tool_calls?: IStreamDelta['tool_calls'];
+  tool_calls_result?: IStreamDelta['tool_calls_result'];
+  finish_reason?: string | null;
+  usage?: IStreamData['usage'];
+}
+
 export interface ISchemaCardMessageItem {
   type: 'schema-card';
   content: string;
