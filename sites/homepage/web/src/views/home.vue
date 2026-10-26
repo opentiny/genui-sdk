@@ -347,6 +347,12 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     padding-bottom: 0 !important;
   }
 
+  .home-ability-3 {
+    @media (max-width: 768px) {
+      margin-bottom: 46px;
+    }
+  }
+
   :deep(.home-ability-2 .home-ability-content),
   :deep(.home-ability-3 .home-ability-content),
   :deep(.home-ability-4 .home-ability-content),
