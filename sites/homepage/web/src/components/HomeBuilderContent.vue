@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { TinyButton } from '@opentiny/vue';
-import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline?no-inline';
-import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline?no-inline';
-import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.svg?no-inline?no-inline';
+import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline';
+import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline';
+import genuiBuilderDemoPreview from '@/assets/genui_builder_demo_preview.svg?no-inline';
 import genuiBuilderIconChat from '@/assets/genui_builder_icon_chat.svg?no-inline';
 import genuiBuilderIconVersion from '@/assets/genui_builder_icon_version.svg?no-inline';
 import genuiBuilderIconPreview from '@/assets/genui_builder_icon_preview.svg?no-inline';
@@ -38,7 +38,42 @@ const features = computed(() => [
   },
 ]);
 
-const activeImage = computed(() => features.value[activeIndex.value]?.image ?? genuiBuilderDemoChat);
+const sectionRef = ref<HTMLElement | null>(null);
+let preloadObserver: IntersectionObserver | undefined;
+
+onMounted(() => {
+  const preloadImages = () => {
+    features.value.forEach(({ image }) => {
+      const img = new Image();
+      img.src = image;
+    });
+  };
+
+  if (!('IntersectionObserver' in window)) {
+    preloadImages();
+    return;
+  }
+
+  preloadObserver = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) {
+        return;
+      }
+      preloadImages();
+      preloadObserver?.disconnect();
+      preloadObserver = undefined;
+    },
+    { rootMargin: '600px 0px' },
+  );
+
+  if (sectionRef.value) {
+    preloadObserver.observe(sectionRef.value);
+  }
+});
+
+onBeforeUnmount(() => {
+  preloadObserver?.disconnect();
+});
 
 function handleFeatureClick(index: number) {
   activeIndex.value = index;
@@ -46,8 +81,7 @@ function handleFeatureClick(index: number) {
 </script>
 
 <template>
-  <section :class="['home-builder-section', { 'home-builder-section-mobile': isMobile }]">
-    <div class="home-builder-section-ellipse" aria-hidden="true"></div>
+  <section ref="sectionRef" :class="['home-builder-section', { 'home-builder-section-mobile': isMobile }]">
     <div class="home-builder-section-header">
       <div class="home-builder-section-badge">
         <img class="home-builder-section-badge-icon" :src="genuiBuilderIconExperinment" alt="" />
@@ -59,9 +93,14 @@ function handleFeatureClick(index: number) {
       <div v-if="!isMobile" class="home-builder-content-left">
         <div class="home-builder-content-left-wrap">
           <img
+            v-for="(feature, index) in features"
+            :key="feature.title"
             class="home-builder-content-left-image"
-            :src="activeImage"
-            :alt="features[activeIndex]?.title"
+            :class="{ 'home-builder-content-left-image--active': activeIndex === index }"
+            :src="feature.image"
+            :alt="feature.title"
+            :aria-hidden="activeIndex !== index"
+            loading="lazy"
           />
         </div>
       </div>
@@ -120,24 +159,11 @@ function handleFeatureClick(index: number) {
   overflow: hidden;
   padding-bottom: 110px;
 
-  &-ellipse {
-    position: absolute;
-    top: -79px;
-    left: 361.5px;
-    width: 1251px;
-    height: 178px;
-    border-radius: 50%;
-    background: rgba(241, 236, 254, 1);
-    filter: blur(100px);
-    pointer-events: none;
-  }
-
   &-header {
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
-    padding-top: 110px;
     padding-left: 12.5%;
     padding-right: 12.5%;
   }
@@ -151,8 +177,8 @@ function handleFeatureClick(index: number) {
     width: 128px;
     margin-bottom: 26px;
 
-    background-color: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(241, 236, 254, 1);
+    background-color: rgba(241, 241, 255, 0.44);
+    border: 1px solid rgba(193, 168, 255, 1);
     border-radius: 8px;
 
     display: flex;
@@ -186,6 +212,7 @@ function handleFeatureClick(index: number) {
   }
 
   @media (min-width: 1920px) {
+    padding-bottom: 0px;
     &-header {
       padding-left: 240px;
       padding-right: 240px;
@@ -251,18 +278,23 @@ function handleFeatureClick(index: number) {
 .home-builder-content {
   display: flex;
   align-items: stretch;
-  justify-content: center;
+  justify-content: space-between;
   gap: 80px;
   width: 100%;
   box-sizing: border-box;
   padding: 0 12.5% 0;
 
   @media (max-width: 1280px) {
-    padding: 0 10% 40px;
+    padding: 0 10% 0;
   }
 
   @media (min-width: 1920px) {
-    padding: 0 240px 48px;
+    padding: 0 240px 0px;
+    justify-content: center;
+    gap: 150px;
+    &-right {
+      width: 55%;
+    }
   }
 
   &-left {
@@ -271,16 +303,25 @@ function handleFeatureClick(index: number) {
     &-wrap {
       flex: 1;
       width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
       border-radius: 24px;
       overflow: hidden;
     }
 
     &-image {
+      grid-area: 1 / 1;
       display: block;
       width: 100%;
       height: 100%;
       object-fit: cover;
       object-position: center;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+
+      &--active {
+        opacity: 1;
+      }
     }
   }
 
@@ -288,13 +329,12 @@ function handleFeatureClick(index: number) {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 0;
+    gap: 8px;
   }
 
   &-feature {
     display: flex;
-    padding: 5%;
+    padding: 28px 32px;
     min-width: 0;
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -305,9 +345,8 @@ function handleFeatureClick(index: number) {
     }
 
     &-active {
-      background-color: #fff;
+      background-color: rgba(246, 246, 246, 1);
       border-radius: 20px;
-      box-shadow: 0 4px 30px 0 rgba(230, 230, 230, 0.6);
     }
 
     &-icon {
@@ -332,6 +371,16 @@ function handleFeatureClick(index: number) {
       font-size: var(--font-size-body-sm-sm);
       font-weight: 400;
       line-height: var(--line-height-body-xs);
+
+      @media (max-width: 1440px) {
+        font-size: 14px;
+      }
+
+      @media (max-width: 1024px) {
+        font-size: 10px
+      }
+
+
     }
   }
 
@@ -350,7 +399,28 @@ function handleFeatureClick(index: number) {
       height: 44px;
       font-size: 16px;
     }
+
   }
+  
+
+  @media (min-width: 1920px) {
+    &-right {
+      width: fit-content;
+    }
+    &-feature {
+      max-width: 100%;
+      width: 800px;
+    }
+  }
+
+  
+
+  @media (max-width: 1440px) {
+    &-feature {
+      padding: 5%;
+    }
+  }
+
 
   @media (max-width: 768px) {
     .btn-link {

@@ -71,6 +71,10 @@ const props = defineProps({
       line-height: var(--line-height-body-xs);
       letter-spacing: 0px;
       white-space: nowrap;
+
+      @media (min-width: 1281px) and (max-width: 1440px) {
+        font-size: 13px;
+      }
     }
   }
 }

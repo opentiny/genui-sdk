@@ -17,6 +17,7 @@ import HomeFeature from '@/components/HomeFeature.vue';
 import HomeBuilderContent from '@/components/HomeBuilderContent.vue';
 import HomeLink from '@/components/HomeLink.vue';
 import HomeExtend from '@/components/HomeExtend.vue';
+import HomePlugin from '@/components/HomePlugin.vue';
 import HomeMcpToolMobile from '@/components/HomeMcpToolMobile.vue';
 import { t } from '@/i18n';
 
@@ -160,6 +161,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
     <home-guide></home-guide>
     <home-feature></home-feature>
     <home-builder-content />
+    <home-plugin></home-plugin>
     <home-link></home-link>
   </div>
 </template>
@@ -183,6 +185,18 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
   .btn-link {
     + .btn-link {
       margin-left: 16px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .btn-link + .btn-link {
+      margin-left: 12px;
+    }
+
+    :deep(.operation-button-group .tiny-button) {
+      height: 40px;
+      padding-inline: 36px;
+      border-radius: 226px;
     }
   }
 
@@ -254,7 +268,14 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
-      background-image: linear-gradient(90deg, rgba(188, 67, 203, 1), rgba(14, 112, 255, 1) 92%);
+      background-image: linear-gradient(
+        90deg,
+        rgba(254, 65, 65, 1),
+        rgba(255, 62, 191, 1),
+        rgba(122, 54, 255, 1),
+        rgba(62, 146, 255, 1) 
+        92%
+       );
     }
 
     &-decsription {
@@ -262,7 +283,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       font-weight: 400;
       line-height: var(--line-height-description);
       text-align: left;
-      color: rgba(89, 89, 89, 1);
+      color: #808080;
       margin-bottom: 76px;
       animation: slideUpFromBottom 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.45s forwards;
       opacity: 0;
@@ -284,7 +305,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       padding: 8% 10%;
     }
 
-    @media (min-width: 1280px) and (max-width: 1920px) {
+    @media (min-width: 1280px) {
       &-title {
         font-size: var(--font-size-title-lg);
       }
@@ -296,6 +317,18 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       &-right {
         width: 45%;
         flex-shrink: 0;
+      }
+    }
+
+    @media (min-width: 1400px) and (max-width: 1600px) {
+      &-subtitle {
+        font-size: 42px;
+      }
+    }
+
+    @media (min-width: 1281px) and (max-width: 1366px) {
+      &-subtitle {
+        font-size: 40px;
       }
     }
 
@@ -312,6 +345,12 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
 
   .home-ability-2 {
     padding-bottom: 0 !important;
+  }
+
+  .home-ability-3 {
+    @media (max-width: 768px) {
+      margin-bottom: 46px;
+    }
   }
 
   :deep(.home-ability-2 .home-ability-content),
@@ -542,7 +581,7 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
   }
 
   &-label {
-    margin: 20px 0px 10px 0px;
+    margin: 50px 0px 10px 0px;
     font-size: var(--font-size-body-lg);
     font-weight: 600;
     line-height: var(--line-height-body-lg);
