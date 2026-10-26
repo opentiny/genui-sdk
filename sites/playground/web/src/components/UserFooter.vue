@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { ref, computed, inject } from 'vue';
-import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
 import { GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
 import { IconEdit, iconCopy } from '@opentiny/vue-icon';
 import { TinyButton } from '@opentiny/vue';
@@ -11,7 +10,7 @@ import EditInputRenderer from './EditInputRenderer.vue';
 import { t } from '../i18n';
 
 const props = defineProps<IBubbleSlotsProps>();
-const generating = computed(() => GeneratingStatus.includes(props.messageManager?.messageState.status));
+const generating = computed(() => props.messageEngine.isProcessing.value);
 const genuiConfig: any = inject(GENUI_CONFIG, null);
 
 const tooltipEffect = computed(() => {
@@ -29,7 +28,7 @@ const editingContent = ref('');
 
 // 获取消息内容
 const messageContent = computed(() => {
-  const content = props.bubbleProps.content;
+  const content = props.messages.at(-1)?.content;
   if (typeof content === 'string') {
     return content;
   } else if (content && typeof content === 'object') {
@@ -44,7 +43,7 @@ const messageContent = computed(() => {
 
 
 const handleCopyMessageByIndex = async () => {
-  const content = props.bubbleProps.content;
+  const content = props.messages.at(-1)?.content;
   let copyContent: string;
   if (typeof content === 'string') {
     copyContent = content;
@@ -66,8 +65,8 @@ const handleStartEditByIndex = () => {
 
 // 保存编辑
 const handleSaveEdit = () => {
-  const { messages, send } = props.messageManager;
-  const messageIndex = props.index;
+  const { messages, send } = props.messageEngine;
+  const messageIndex = props.messageIndexes.at(-1) ?? -1;
   const content = editingContent.value;
   messages.value[messageIndex].content = content;
   messages.value = messages.value.slice(0, messageIndex + 1);
@@ -134,16 +133,15 @@ const handleCancelEdit = () => {
   border-radius: 12px;
   padding: 4px;
 }
-
-.tr-bubble__content:hover + .user-footer-wrapper > .user-actions,
-.user-actions:hover {
-  opacity: 1;
-}
 </style>
 
 <style lang="scss">
-// 编辑状态隐藏气泡内容
-.tr-bubble__content-wrapper:has(.user-footer-wrapper.is-editing) .tr-bubble__content {
+.tr-bubble[data-role='user']:hover .user-footer-wrapper .user-actions,
+.user-footer-wrapper .user-actions:hover {
+  opacity: 1;
+}
+
+.tr-bubble:has(.user-footer-wrapper.is-editing) .tr-bubble__content {
   display: none;
 }
 </style>

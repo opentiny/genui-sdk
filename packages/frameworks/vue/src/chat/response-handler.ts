@@ -4,6 +4,8 @@ import { reactive, readonly, watch } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { emitter } from './event-emitter';
 import { useI18n } from './i18n';
+import type { ChatMessage, UseMessagePlugin } from '@opentiny/tiny-robot-kit';
+import type { IChatConfig } from './chat.types';
 
 export interface IResponseHandler<T> {
   name: string;
@@ -182,14 +184,20 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       context: any,
       handlers: { onData: (data: IChatMessage) => void; onDone: () => void; onError: (error: Error) => void },
     ) => {
-      const chatMessage = reactive<IChatMessage>({
-        role: 'assistant',
-        content: '',
-        messages: [],
-      });
+      const chatMessage =
+        context.chatMessage ??
+        reactive<IChatMessage>({
+          role: 'assistant',
+          content: '',
+          messages: [],
+        });
+      chatMessage.messages ??= [];
+      chatMessage.content ??= '';
       context.chatMessage = chatMessage;
       context.handlers = handlers;
-      handlers.onData(chatMessage);
+      if (!context.usesOfficialMessageEngine) {
+        handlers.onData(chatMessage);
+      }
       return false;
     },
     end: (context: any) => {
@@ -313,3 +321,96 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
     },
   },
 ];
+
+export interface ResponseHandlerController {
+  handleChunk: (turnId: string | null, currentMessage: ChatMessage, chunk: IStreamData) => void;
+  finish: (turnId: string | null, currentMessage?: ChatMessage) => void;
+  fail: (turnId: string | null, error: unknown) => void;
+}
+
+export function createResponseHandlerController(options: {
+  getHandlers: () => IResponseHandler<IStreamData>[];
+  getChatConfig: () => IChatConfig;
+  getContext?: () => Record<string, unknown>;
+}): ResponseHandlerController {
+  const contexts = new Map<string, any>();
+  const keyOf = (turnId: string | null) => turnId ?? '__default__';
+
+  const ensureContext = (turnId: string | null, currentMessage: ChatMessage) => {
+    const key = keyOf(turnId);
+    let context = contexts.get(key);
+    if (context) {
+      context.chatMessage = currentMessage;
+      return context;
+    }
+
+    context = {
+      ...options.getContext?.(),
+      chatConfig: options.getChatConfig(),
+      chatMessage: currentMessage,
+      usesOfficialMessageEngine: true,
+    };
+    const noops = {
+      onData: () => undefined,
+      onDone: () => undefined,
+      onError: () => undefined,
+    };
+    for (const handler of options.getHandlers()) {
+      handler.beforeRequest?.(context);
+      handler.start?.(context, noops);
+    }
+    contexts.set(key, context);
+    return context;
+  };
+
+  return {
+    handleChunk(turnId, currentMessage, chunk) {
+      const context = ensureContext(turnId, currentMessage);
+      for (const handler of options.getHandlers()) {
+        if (handler.match(chunk, context)) {
+          if (handler.handler(chunk, context)) break;
+        } else if (handler.notMatchHandler?.(chunk, context)) {
+          break;
+        }
+      }
+    },
+    finish(turnId, currentMessage) {
+      const key = keyOf(turnId);
+      const context = currentMessage ? ensureContext(turnId, currentMessage) : contexts.get(key);
+      if (!context) return;
+      for (const handler of options.getHandlers()) {
+        handler.end?.(context);
+      }
+      contexts.delete(key);
+    },
+    fail(turnId, error) {
+      const key = keyOf(turnId);
+      const context = contexts.get(key) ?? { chatConfig: options.getChatConfig(), usesOfficialMessageEngine: true };
+      for (const handler of options.getHandlers()) {
+        handler.onRequestError?.(context, error);
+      }
+      contexts.delete(key);
+    },
+  };
+}
+
+export function createResponseHandlerPlugin(controller: ResponseHandlerController): UseMessagePlugin {
+  return {
+    name: 'genui-response-handlers',
+    onAfterRequest(context) {
+      controller.finish(context.turnId, context.currentMessage);
+    },
+    onTurnAbort(context) {
+      controller.finish(context.turnId);
+    },
+    onError(context) {
+      controller.fail(context.turnId, context.error);
+      const error = context.error instanceof Error ? context.error : new Error(String(context.error));
+      context.appendMessage({
+        role: 'assistant',
+        content: '',
+        messages: [{ type: 'error-text', content: error.message }],
+      } as ChatMessage);
+    },
+  };
+}

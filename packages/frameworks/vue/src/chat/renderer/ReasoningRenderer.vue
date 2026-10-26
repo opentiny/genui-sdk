@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import { BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
-import { ref } from 'vue';
+import DOMPurify from 'dompurify';
+import MarkdownIt from 'markdown-it';
+import { computed, ref } from 'vue';
 import { useI18n } from '../i18n';
 
 const props = defineProps<{
@@ -16,13 +17,8 @@ const handleClick = () => {
   open.value = !open.value;
 };
 
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
-  mdConfig: { html: true },
-});
-
-const MarkdownContent = (markdownProps: { content: string }) =>
-  markdownRenderer.render({ content: markdownProps.content });
+const markdown = new MarkdownIt({ html: true });
+const renderedContent = computed(() => DOMPurify.sanitize(markdown.render(props.content ?? '')));
 </script>
 
 <template>
@@ -60,7 +56,7 @@ const MarkdownContent = (markdownProps: { content: string }) =>
         </div>
         <div class="border-line"></div>
       </div>
-      <MarkdownContent :content="props.content" class="detail-content" />
+      <div class="detail-content markdown-content" v-html="renderedContent"></div>
     </div>
   </div>
 </template>

@@ -48,8 +48,8 @@ const messages = [
   --tr-text-primary: #8b5cf6;
 
   /* Custom Tiny-Robot bubble styles */
-  --tr-bubble-content-border-radius: 16px;
-  --tr-bubble-content-padding: 20px 28px;
+  --tr-bubble-box-border-radius: 16px;
+  --tr-bubble-box-padding: 20px 28px;
 }
 </style>
 ```

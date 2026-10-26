@@ -40,9 +40,9 @@ export default function useTemplate(options?: UseTemplateOptions) {
     resetEmptyTemplateSchema();
   };
 
-  const switchTemplate = (id: string) => {
-    conversation.switchConversation(id);
-    const currentMessages = conversation.getCurrentConversation()?.messages;
+  const switchTemplate = async (id: string) => {
+    await conversation.switchConversation(id);
+    const currentMessages = conversation.getCurrentConversation()?.engine.messages.value;
 
     if (!currentMessages?.length) {
       resetEmptyTemplateSchema();
@@ -52,8 +52,8 @@ export default function useTemplate(options?: UseTemplateOptions) {
     schema.applySchemaFromMessages(currentMessages);
   };
 
-  const deleteTemplate = (id: string) => {
-    const isEmpty = conversation.deleteConversation(id);
+  const deleteTemplate = async (id: string) => {
+    const isEmpty = await conversation.deleteConversation(id);
     if (isEmpty) {
       createTemplate();
     }

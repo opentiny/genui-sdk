@@ -85,7 +85,7 @@ const toggleExpand = () => {
 .card-body {
   margin: 0;
   margin-top: 8px;
-  background-color: var(--tr-bubble-content-bg);
+  background-color: var(--tr-bubble-box-bg);
   padding: 8px 10px;
   border-radius: 6px;
   max-height: 60vh;

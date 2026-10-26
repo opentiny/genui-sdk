@@ -26,21 +26,22 @@ const ArrowLeftIcon = IconArrowLeft();
 
 const copyTooltip = ref(t('chatFooter.copy'));
 
+const index = computed(() => props.messageIndexes.at(-1) ?? -1);
+const chatMessage = computed(() => props.messages.at(-1) as any);
 const isLastBubble = computed(() => {
-  const { messages } = props.messageManager;
-  return props.index === messages.value.length - 1;
+  return index.value === props.messageEngine.messages.value.length - 1;
 });
 
 const revertAvailable = computed(() => {
-  return props.chatMessage['originChatMessage'] !== undefined;
+  return chatMessage.value?.originChatMessage !== undefined;
 });
 
 const notFinished = computed(() => {
-  return props.chatMessage.finishInfo?.choices?.[0]?.finish_reason !== 'stop';
+  return chatMessage.value?.finishInfo?.choices?.[0]?.finish_reason !== 'stop';
 });
 
 const copyContent = async () => {
-  const content = props.bubbleProps.content;
+  const content = chatMessage.value?.content;
   let copyContent: string;
   if (typeof content === 'string') {
     copyContent = content;
@@ -56,12 +57,12 @@ const copyContent = async () => {
 
 
 const refresh = () => {
-  const { messages, send } = props.messageManager;
-  const messageIndex = props.index;;
+  const { messages, send } = props.messageEngine;
+  const messageIndex = index.value;
   messages.value = messages.value.slice(0, messageIndex);
   send();
 };
-const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageManager, props.index);
+const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageEngine, index.value);
 
 </script>
 
@@ -89,7 +90,7 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
       @click="copyContent"
     >
     </tiny-button>
-    <FinishInfo style="margin-left: 8px;" :chat-message="props.chatMessage" />
+    <FinishInfo style="margin-left: 8px;" :chat-message="chatMessage" />
     <tiny-button
       v-if="notFinished"
       :reset-time="0"
@@ -118,18 +119,20 @@ const { markGenerateMore, revertGenerateMore } = useGenerateMore(props.messageMa
   display: flex;
   align-items: center;
   transition: opacity 0.2s ease;
-  
-  // 非最后一个气泡默认隐藏，悬浮时显示
+
   &:not(.is-last) {
     opacity: 0;
   }
-  
+
   &.is-last {
     opacity: 1;
   }
 }
-// 悬浮到气泡内容上时显示工具栏
-.tr-bubble__content:hover + .playground-assistant-footer,  .playground-assistant-footer:hover{
+</style>
+
+<style lang="scss">
+.tr-bubble[data-role='assistant']:hover .playground-assistant-footer,
+.playground-assistant-footer:hover {
   opacity: 1;
 }
 </style>

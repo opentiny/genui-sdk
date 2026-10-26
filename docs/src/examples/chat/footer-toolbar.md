@@ -4,12 +4,18 @@
 
 ## 给 Chat 组件传递自定义底部工具栏
 
-通过 `roles` 属性为助手和用户分别配置消息底部工具栏。每个角色下可以通过 `slots.trailer` 指定对应的底部组件。
+使用 `after`（或需要放在内容内部时使用 `content-footer`）插槽配置消息底部工具栏，
+再根据插槽参数中的 `role` 区分助手和用户消息。
 
 ```vue {12-23}
 <template>
   <GenuiConfigProvider :materials="materials">
-    <GenuiChat :url="url" :roles="roles" />
+    <GenuiChat :url="url">
+      <template #after="slotProps">
+        <AssistantFooter v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+        <UserFooter v-else-if="slotProps.role === 'user'" v-bind="slotProps" />
+      </template>
+    </GenuiChat>
   </GenuiConfigProvider>
 </template>
 
@@ -21,18 +27,6 @@ import UserFooter from './components/user-footer.vue';
 
 const url = 'https://your-chat-backend/api';
 
-const roles = {
-  assistant: {
-    slots: {
-      trailer: AssistantFooter,
-    },
-  },
-  user: {
-    slots: {
-      trailer: UserFooter,
-    },
-  },
-};
 </script>
 ```
 
@@ -40,23 +34,24 @@ const roles = {
 
 ```typescript
 interface IBubbleSlotsProps {
-  index: number;
-  bubbleProps: BubbleProps;
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+  contentIndex?: number;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageEngine: UseMessageReturn;
+  conversation: UseConversationReturn;
 }
 ```
 
-- `index`: 当前消息在消息列表中的索引（从 0 开始）
-- `bubbleProps`: 当前气泡的渲染属性，包含 `content` 等信息
+- `messages`: 当前气泡合并后的消息数组
+- `messageIndexes`: 这些消息在消息引擎中的原始索引
+- `role`: 当前气泡角色
 - `isFinished`: 当前回答是否已经结束，通常可以用来控制工具栏是否展示
-- `messageManager`: 消息管理器，包含当前消息列表和发送等方法
+- `messageEngine`: 当前会话的消息引擎，包含消息列表、发送和请求状态
+- `conversation`: 官方 `useConversation` 返回的会话管理对象
 
-`BubbleProps` 和 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
-
-查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
-
-查看 [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
+`UseMessageReturn` 和 `UseConversationReturn` 详情可以查看 TinyRobot 相关文档。
 
 ## 创建 user 底部工具栏组件
 

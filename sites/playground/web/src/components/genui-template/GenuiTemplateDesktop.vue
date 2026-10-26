@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue';
 import { GenuiRenderer as SchemaRenderer } from '@opentiny/genui-sdk-vue';
 import { TinyButton } from '@opentiny/vue';
 import { iconClose } from '@opentiny/vue-icon';
-import { GeneratingStatus } from '@opentiny/tiny-robot-kit';
 import GenuiTemplateChat from './GenuiTemplateChat.vue';
 import SchemaVersionHistoryPanel from './SchemaVersionHistoryPanel.vue';
 import SchemaJsonEditor from './SchemaJsonEditor.vue';
@@ -24,12 +23,8 @@ const { schema, conversation, versionControl, editor, ui, actions } = useTemplat
 const { isDevMode } = useSchemaDevMode();
 const chatRef = ref<InstanceType<typeof GenuiTemplateChat> | null>(null);
 
-const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
-const generating = computed(() =>
-  messageManager.value
-    ? GeneratingStatus.includes(messageManager.value.messageState.status)
-    : false,
-);
+const messageEngine = computed(() => conversation.conversationKit?.activeConversation.value?.engine ?? null);
+const generating = computed(() => messageEngine.value?.isProcessing.value ?? false);
 
 const isLatestVersion = computed(() => {
   const cardId = schema.currentCardId;
@@ -82,6 +77,14 @@ const {
 <template>
   <div class="genui-schema-template">
     <div class="genui-schema-template-item chat-container">
+      <button
+        v-if="rendererSchema && !ui.rendererPanelVisible"
+        type="button"
+        class="open-preview-fab"
+        @click="ui.setRendererPanelVisible(true)"
+      >
+        {{ t('templateEditor.previewRender') }}
+      </button>
       <genui-template-chat
         ref="chatRef"
         v-if="conversation.isTemplateInit"
@@ -184,6 +187,27 @@ const {
     height: 100%;
     min-height: 0;
     overflow: hidden;
+    position: relative;
+  }
+
+  .open-preview-fab {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 20;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: #191919;
+    background: #fff;
+    border: 1px solid rgb(232, 232, 232);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+
+    &:hover {
+      background: #fafafa;
+    }
   }
 
   .renderer-container {

@@ -4,12 +4,18 @@ The `GenuiChat` component supports custom footer toolbars for messages from diff
 
 ## Passing a Custom Footer Toolbar to GenuiChat
 
-Configure message footer toolbars for assistant and user roles via the `roles` prop. Under each role, specify the footer component with `slots.trailer`.
+Use the `after` slot (or `content-footer` when the toolbar should be inside the content area),
+then select the assistant or user toolbar from the slot's `role`.
 
 ```vue {12-23}
 <template>
   <GenuiConfigProvider :materials="materials">
-    <GenuiChat :url="url" :roles="roles" />
+    <GenuiChat :url="url">
+      <template #after="slotProps">
+        <AssistantFooter v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+        <UserFooter v-else-if="slotProps.role === 'user'" v-bind="slotProps" />
+      </template>
+    </GenuiChat>
   </GenuiConfigProvider>
 </template>
 
@@ -21,18 +27,6 @@ import UserFooter from './components/user-footer.vue';
 
 const url = 'https://your-chat-backend/api';
 
-const roles = {
-  assistant: {
-    slots: {
-      trailer: AssistantFooter,
-    },
-  },
-  user: {
-    slots: {
-      trailer: UserFooter,
-    },
-  },
-};
 </script>
 ```
 
@@ -40,23 +34,24 @@ const roles = {
 
 ```typescript
 interface IBubbleSlotsProps {
-  index: number;
-  bubbleProps: BubbleProps;
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+  contentIndex?: number;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
+  messageEngine: UseMessageReturn;
+  conversation: UseConversationReturn;
 }
 ```
 
-- `index`: Index of the current message in the message list (starting from 0)
-- `bubbleProps`: Render props for the current bubble, including `content` and other fields
+- `messages`: Messages merged into the current bubble
+- `messageIndexes`: Their original indexes in the message engine
+- `role`: Role of the current bubble
 - `isFinished`: Whether the current reply has finished; typically used to control toolbar visibility
-- `messageManager`: Message manager containing the current message list, send methods, and more
+- `messageEngine`: Message engine for the active conversation, including messages, send, and request state
+- `conversation`: Conversation manager returned by the official `useConversation`
 
-See TinyRobot documentation for details on `BubbleProps` and `UseMessageReturn`.
-
-See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definition and usage.
-
-See [UseMessageReturn](https://docs.opentiny.design/tiny-robot/guide/message.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definition and usage.
+See the TinyRobot documentation for `UseMessageReturn` and `UseConversationReturn`.
 
 ## Creating the User Footer Toolbar Component
 

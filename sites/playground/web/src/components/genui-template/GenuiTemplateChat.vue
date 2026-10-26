@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, reactive, h, inject, onMounted, onUnmounted } from 'vue';
+import { ref, watch, computed, reactive, h, inject, markRaw, defineComponent, onMounted, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
 import { useRoute } from 'vue-router';
 import '@opentiny/tiny-robot/dist/style.css';
@@ -8,14 +8,23 @@ import {
   TrSender,
   TrBubbleProvider,
   useTheme,
-  BubbleMarkdownContentRenderer,
+  BubbleRenderers,
+  Sender,
+  type BubbleContentRendererProps,
+  type BubbleMessage,
+  type BubbleRoleConfig,
+  type TemplateItem,
 } from '@opentiny/tiny-robot';
-import { GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
-import type { IChatMessage } from '@opentiny/genui-sdk-core';
 import { IconAi, IconUser, IconArrowDown } from '@opentiny/tiny-robot-svgs';
-import type { BubbleRoleConfig, UserItem } from '@opentiny/tiny-robot';
-import { scrollEnd, throttle, GENUI_CONFIG } from '@opentiny/genui-sdk-vue';
+import {
+  scrollEnd,
+  throttle,
+  GENUI_CONFIG,
+  createContentRendererMatches,
+  getResolvedContentText,
+  resolveBubbleContents,
+} from '@opentiny/genui-sdk-vue';
 import type { IMessage } from '@opentiny/genui-sdk-vue';
 import copy from 'clipboard-copy';
 import type {
@@ -59,7 +68,7 @@ const prevSchema = ref<string>('');
 const { schema, conversation, versionControl, stream, emitter } = useTemplateContext();
 const selectedNodeMap = new Map<string, SelectedSchemaNode>();
 
-const composerDrafts = reactive(new Map<string, { items: UserItem[] }>());
+const composerDrafts = reactive(new Map<string, { items: TemplateItem[] }>());
 const currentComposerDraft = computed(() => {
   const id = conversation.currentConversationId;
   if (!id) {
@@ -75,13 +84,14 @@ const currentComposerDraft = computed(() => {
 });
 const templateData = computed({
   get: () => currentComposerDraft.value?.items ?? [],
-  set: (value: UserItem[]) => {
+  set: (value: TemplateItem[]) => {
     const draft = currentComposerDraft.value;
     if (draft) {
       draft.items = value;
     }
   },
 });
+const senderExtensions = [Sender.Template.configure({ items: templateData })];
 
 const {
   handleSchemaJsonChanged,
@@ -98,13 +108,14 @@ watch(
   },
 );
 
-const messageManager = computed(() => conversation.conversationKit?.messageManager.value ?? null);
+const messageEngine = computed(() => conversation.getMessageEngine());
+const inputMessage = ref('');
 
 let inputMessageFromQueryApplied = false;
 watch(
   () => ({
     queryMessage: route.query['input-message'],
-    manager: messageManager.value,
+    manager: messageEngine.value,
     loading: conversation.templateConversationState?.loading,
   }),
   ({ queryMessage, manager, loading }) => {
@@ -114,58 +125,25 @@ watch(
     if (typeof queryMessage !== 'string' || !queryMessage || !manager || loading) {
       return;
     }
-    manager.inputMessage.value = queryMessage;
+    inputMessage.value = queryMessage;
     inputMessageFromQueryApplied = true;
   },
   { immediate: true },
 );
 
-const messages = computed(() => messageManager.value?.messages.value ?? []);
-
-const generating = computed(() =>
-  messageManager.value
-    ? GeneratingStatus.includes(messageManager.value.messageState.status)
-    : false,
-);
+const messages = computed(() => messageEngine.value?.messages.value ?? []);
+const generating = computed(() => messageEngine.value?.isProcessing.value ?? false);
 
 const messagesContainer: Ref<HTMLElement | undefined> = ref();
 
-const roles: Record<string, BubbleRoleConfig> = {
+const roleConfigs: Record<string, BubbleRoleConfig> = {
   assistant: {
     placement: 'start',
     avatar: h(IconAi, { style: { fontSize: '32px' } }),
-    maxWidth: '100%',
-    customContentField: 'messages',
-    slots: {
-      trailer: (slotProps: { bubbleProps: any; index?: number }) => {
-        const chatMessage = slotProps.index !== undefined
-          ? messageManager.value?.messages.value[slotProps.index]
-          : undefined;
-        if (chatMessage && isManualSchemaSaveMessage(chatMessage)) {
-          return null;
-        }
-
-        const isFinished =
-          slotProps.bubbleProps.role !== 'assistant' ||
-          (slotProps.index !== undefined && slotProps.index !== messages.value.length - 1) ||
-          !generating.value;
-        return h(AssistantFooter, {
-          bubbleProps: slotProps.bubbleProps,
-          index: slotProps.index,
-          isFinished,
-          messageManager: messageManager.value!,
-          chatMessage: (messageManager.value?.messages.value[slotProps.index] || {}) as IChatMessage,
-          onRefresh: handleRefresh,
-          onCopy: handleCopy,
-        });
-      },
-    },
   },
   user: {
     placement: 'end',
-    maxWidth: '90%',
     avatar: h(IconUser, { style: { fontSize: '32px' } }),
-    customContentField: 'messages',
   },
 };
 
@@ -189,11 +167,12 @@ const getCardMessageByIndex = (index: number) => {
   );
 };
 
-const handleRefresh = ({ index }: { index: number }) => {
-  if (!messageManager.value) {
+const handleRefresh = ({ messageIndexes }: { messageIndexes: number[] }) => {
+  const index = messageIndexes.at(-1) ?? -1;
+  if (!messageEngine.value) {
     return;
   }
-  const { messages, send } = messageManager.value;
+  const { messages, send } = messageEngine.value;
   const cardMessage = getCardMessageByIndex(index);
 
   prevSchema.value = cardMessage?.prevSchema ?? '';
@@ -228,7 +207,8 @@ const handleRefresh = ({ index }: { index: number }) => {
   send();
 };
 
-const handleCopy = async ({ index }: { index: number }) => {
+const handleCopy = async ({ messageIndexes }: { messageIndexes: number[] }) => {
+  const index = messageIndexes.at(-1) ?? -1;
   try {
     await copy((messages.value[index]?.content as string) || '');
   } catch (error) {
@@ -236,47 +216,122 @@ const handleCopy = async ({ index }: { index: number }) => {
   }
 };
 
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
-  mdConfig: { html: true },
-});
+const getResolvedContent = (rendererProps: BubbleContentRendererProps) => {
+  const resolved = resolveBubbleContents(rendererProps.message as BubbleMessage);
+  if (Array.isArray(resolved)) {
+    return (resolved[rendererProps.contentIndex] ?? {}) as Record<string, any>;
+  }
+  if (rendererProps.contentIndex === 0 && typeof resolved === 'string') {
+    return { type: 'text', text: resolved, content: resolved };
+  }
+  return {};
+};
 
-const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schema-manual') => (props: unknown) =>
-  h(TemplateSchemaMessageRenderer, {
-    itemProps: props,
-    type,
-    prevSchema: prevSchema.value,
-  });
+const MarkdownContentRenderer = markRaw(
+  defineComponent({
+    name: 'TemplateMarkdownContentRenderer',
+    props: {
+      message: { type: Object, required: true },
+      contentIndex: { type: Number, required: true },
+    },
+    setup(rendererProps) {
+      return () => {
+        const text = getResolvedContentText(getResolvedContent(rendererProps as BubbleContentRendererProps));
+        return h(BubbleRenderers.Markdown, {
+          message: { role: 'assistant', content: text },
+          contentIndex: 0,
+        });
+      };
+    },
+  }),
+);
+
+const wrapRenderer = (render: (content: Record<string, any>) => any) =>
+  markRaw(
+    defineComponent({
+      props: {
+        message: { type: Object, required: true },
+        contentIndex: { type: Number, required: true },
+      },
+      setup(rendererProps) {
+        return () => render(getResolvedContent(rendererProps as any));
+      },
+    }),
+  );
+
+const createSchemaMessageRenderer = (type: 'json-patch' | 'schema-card' | 'schema-manual') =>
+  wrapRenderer((content) =>
+    h(TemplateSchemaMessageRenderer, {
+      itemProps: content,
+      type,
+      prevSchema: prevSchema.value,
+    }),
+  );
 
 const messageRenderers = {
-  markdown: markdownRenderer,
-  'template-user': (props: {
-    segments?: import('./schema-composer').ComposerSegment[];
-    content?: string;
-  }) =>
+  markdown: MarkdownContentRenderer,
+  'template-user': wrapRenderer((content) =>
     h(TemplateUserMessageRenderer, {
-      segments: props.segments,
-      content: props.content,
+      segments: content.segments,
+      content: content.content,
     }),
+  ),
   'json-patch': createSchemaMessageRenderer('json-patch'),
   'schema-card': createSchemaMessageRenderer('schema-card'),
   'schema-manual': createSchemaMessageRenderer('schema-manual'),
 };
 
-const inputMessage = computed({
-  get: () => messageManager.value?.inputMessage.value ?? '',
-  set: (v: string) => {
-    if (messageManager.value) {
-      messageManager.value.inputMessage.value = v;
+const contentRendererMatches = createContentRendererMatches(messageRenderers);
+const contentResolver = (message: BubbleMessage) => resolveBubbleContents(message);
+
+const SCHEMA_CARD_TYPES = new Set(['schema-card', 'json-patch', 'schema-manual']);
+
+function hideMarkdownWhenSchemaCardPresent(list: typeof messages.value) {
+  return list.map((message) => {
+    if (message.role !== 'assistant') {
+      return message;
     }
+    const withItems = message as typeof message & { messages?: IMessageItem[] };
+    const items = withItems.messages;
+    if (!Array.isArray(items) || items.length === 0) {
+      return message;
+    }
+    const hasSchemaCard = items.some((item) => SCHEMA_CARD_TYPES.has(item.type));
+    if (!hasSchemaCard) {
+      return message;
+    }
+    const filtered = items.filter(
+      (item) => item.type !== 'markdown' && item.type !== 'text' && item.type !== 'custom-text',
+    );
+    if (filtered.length === items.length) {
+      return message;
+    }
+    return { ...withItems, messages: filtered };
+  });
+}
+
+const bubbleSlots = {
+  after: (slotProps: { messages: BubbleMessage[]; messageIndexes: number[]; role?: string }) => {
+    if (slotProps.role !== 'assistant' || !messageEngine.value || !conversation.conversationKit) return null;
+    const index = slotProps.messageIndexes.at(-1) ?? -1;
+    const chatMessage = messageEngine.value.messages.value[index];
+    if (!chatMessage || isManualSchemaSaveMessage(chatMessage)) return null;
+    return h(AssistantFooter, {
+      ...slotProps,
+      isFinished: index !== messages.value.length - 1 || !generating.value,
+      messageEngine: messageEngine.value,
+      conversation: conversation.conversationKit,
+      onRefresh: handleRefresh,
+      onCopy: handleCopy,
+    });
   },
-});
+};
 
 // 版本切换后已点选标签指向旧 schema 节点，剥除标签项（保留文字草稿）
 const clearComposerTags = () => {
   const draft = currentComposerDraft.value;
   if (draft?.items.length) {
-    draft.items = draft.items.filter((item) => item.type !== 'template');
+    draft.items = draft.items.filter((item) => item.type !== 'block');
   }
 };
 
@@ -289,31 +344,17 @@ const insertComposerTag = (node: SelectedSchemaNode) => {
   let items = draft.items.filter((item) => item.type !== 'text' || Boolean(item.content));
   if (
     !items.some((item) => item.type === 'text') &&
-    !items.some((item) => item.type === 'template') &&
+    !items.some((item) => item.type === 'block') &&
     inputMessage.value
   ) {
     items = [{ type: 'text', content: inputMessage.value }, ...items];
   }
   const id = generateId();
   selectedNodeMap.set(id, node);
-  draft.items = [...items, { type: 'template', content: node.componentName, id }];
+  draft.items = [...items, { type: 'block', content: node.componentName, id }];
 };
 
 const SENDER_MAX_LENGTH = 20000;
-
-const handleTemplateDataUpdate = (value: UserItem[]) => {
-  const draft = currentComposerDraft.value;
-  if (!draft) {
-    return;
-  }
-  draft.items = value.filter((item) => {
-    if (item.type === 'template') {
-      const node = selectedNodeMap.get((item as any).id as string);
-      return !node || (item as any).content === node.componentName;
-    }
-    return true;
-  });
-};
 
 const clearComposer = () => {
   const draft = currentComposerDraft.value;
@@ -332,9 +373,9 @@ const { scrollToBottom, autoScrollToBottom, isLastMessageInBottom } = scrollEnd(
 const throttledScrollToBottom = throttle(autoScrollToBottom, 400);
 
 const showMessages = computed(() => {
-  let list = messages.value;
+  let list = hideMarkdownWhenSchemaCardPresent(messages.value);
 
-  if (messageManager.value?.messageState.status === STATUS.PROCESSING) {
+  if (messageEngine.value?.requestState.value === 'processing' && list.at(-1)?.role === 'user') {
     return [
       ...list,
       {
@@ -380,7 +421,7 @@ const clearInputMessage = () => {
 
 const handleSendMessage = async () => {
   const draft = currentComposerDraft.value;
-  const snapshot: UserItem[] = draft?.items.length
+  const snapshot: TemplateItem[] = draft?.items.length
     ? draft.items
     : inputMessage.value
       ? [{ type: 'text', content: inputMessage.value }]
@@ -409,9 +450,8 @@ const handleSendMessage = async () => {
         }
       : {}),
   };
-  messages.value.push(userMessage);
-
-  if (messages.value.length === 1 && messages.value[0].role === 'user') {
+  const isFirstMessage = messages.value.length === 0;
+  if (isFirstMessage) {
     const currentConversationId = conversation.templateConversationState?.currentId;
     if (currentConversationId) {
       conversation.updateConversationTitle(currentConversationId, segmentsToPlainText(composer.segments).substring(0, 20));
@@ -419,7 +459,7 @@ const handleSendMessage = async () => {
   }
 
   prevSchema.value = JSON.stringify(schema.currentSchema);
-  messageManager.value?.send();
+  await messageEngine.value?.send(userMessage);
   clearInputMessage();
   scrollToBottom();
 };
@@ -466,8 +506,14 @@ onUnmounted(() => {
 <template>
   <div class="tg-chat-container" :class="{ 'dark': TinyGenuiConfig?.colorScheme === 'dark' }">
     <div class="messages-container" ref="messagesContainer">
-      <tr-bubble-provider v-if="showMessages.length" :content-renderers="messageRenderers">
-        <tr-bubble-list :items="showMessages" :roles="roles" auto-scroll> </tr-bubble-list>
+      <tr-bubble-provider v-if="showMessages.length" :content-renderer-matches="contentRendererMatches">
+        <tr-bubble-list
+          :messages="showMessages"
+          :role-configs="roleConfigs"
+          :content-resolver="contentResolver"
+          auto-scroll
+          v-slots="bubbleSlots"
+        />
       </tr-bubble-provider>
       <div v-else class="empty">
         <IconAi />
@@ -484,16 +530,15 @@ onUnmounted(() => {
       </div>
       <tr-sender
         v-model="inputMessage"
-        v-model:template-data="templateData"
+        :extensions="senderExtensions"
         :placeholder="generating ? t('loading.thinking') : t('template.inputPlaceholder')"
         :clearable="true"
         :loading="generating"
         :showWordLimit="true"
         :maxLength="SENDER_MAX_LENGTH"
-        @update:template-data="handleTemplateDataUpdate"
         @clear="clearInputMessage"
         @submit="handleSendMessage"
-        @cancel="() => messageManager?.abortRequest()"
+        @cancel="() => messageEngine?.abortRequest()"
       >
       </tr-sender>
       <div class="footer-text">{{ t('footer.aiGenerated') }}</div>
@@ -573,28 +618,36 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 
-:deep(.tr-bubble.placement-start) {
-  .tr-bubble__content {
-    padding: 0;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-  }
+:deep(.tr-bubble[data-placement='start'] .tr-bubble__content) {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  gap: 16px;
 }
 
-:deep(.tr-bubble.placement-start:has(.schema-version-card)),
-:deep(.tr-bubble.placement-end:has(.schema-version-card)) {
-  .tr-bubble__content {
-    padding: 0;
-    background: transparent;
-    border-radius: 0;
-    box-shadow: none;
-  }
+:deep(.tr-bubble[data-role='assistant'][data-placement='start'] .tr-bubble__content > .tr-bubble__box) {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
 }
 
-:deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items) {
-  > [type]:not([type='']):not([type='schema-card']):not([type='schema-manual']):not([type='loading-text']) {
-    display: var(--thinking-display, initial);
+:deep(.tr-bubble[data-role='assistant'] .tr-bubble__step-tool),
+:deep(.tr-bubble[data-role='assistant'] .tr-bubble__reasoning) {
+  display: var(--thinking-display, initial);
+}
+
+:deep(.tr-bubble[data-role='assistant'] .tr-bubble__content-items:has(.schema-version-card)),
+:deep(.tr-bubble[data-role='assistant'] [data-content-index]:has(.schema-version-card)) {
+  > [type]:not([type='schema-card']):not([type='schema-manual']):not([type='loading-text']) {
+    display: none;
   }
 }
 
@@ -604,16 +657,18 @@ onUnmounted(() => {
   }
 }
 
-:deep(.tr-bubble.placement-end) {
+:deep(.tr-bubble[data-placement='end']) {
   width: 100%;
 }
 
-@media (max-width: 768px) {
-  :deep(.tr-bubble__content-wrapper) {
-    max-width: calc(100% - 12px);
-  }
+:deep(.tr-bubble__content) {
+  max-width: calc(100% - var(--ti-gen-chat-avatar-and-gap-width, 56px) * 2);
+  overflow-x: auto;
+}
 
-  :deep(.tr-bubble__content-wrapper .tr-bubble__content-items) {
+@media (max-width: 768px) {
+  :deep(.tr-bubble__body) {
+    max-width: calc(100% - 12px);
     overflow-x: hidden;
   }
 }
@@ -713,8 +768,9 @@ onUnmounted(() => {
   }
 }
 
-.tiny-sender {
+:deep(.tr-sender) {
   width: 80%;
+  max-width: 100%;
   margin: 0 auto;
 }
 

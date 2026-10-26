@@ -1,18 +1,18 @@
 <template>
   <div class="genui-history">
-    <history-transfer-toolbar
+    <HistoryTransferToolbar
       v-model:selection-active="selectionActive"
-      :conversations="state.conversations"
+      :conversations="historyItems"
       :selected-ids="selectedConversations"
       @import-conversations="handleImportConversations"
       @batch-export="handleBatchExport"
       @batch-delete="handleBatchDelete"
     />
-    <tiny-checkbox-group v-model="selectedConversations">
-      <tr-history
+    <TinyCheckboxGroup v-model="selectedConversations">
+      <TrHistory
         class="tr-history-container"
         :data="groupedHistoryData"
-        :selected="state.currentId || undefined"
+        :selected="activeConversationId || undefined"
         :show-rename-controls="isTouchDevice"
         :menu-items="historyMenuItems"
         :menu-list-gap="12"
@@ -21,7 +21,7 @@
         @item-click="handleItemClick"
       >
         <template #item-prefix="{ item }">
-          <tiny-checkbox
+          <TinyCheckbox
             v-if="selectionActive"
             :label="item.id"
             :value="item.id"
@@ -29,106 +29,110 @@
             @click.stop
           />
         </template>
-      </tr-history>
-    </tiny-checkbox-group>
+      </TrHistory>
+    </TinyCheckboxGroup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { TrHistory, useTouchDevice } from '@opentiny/tiny-robot';
-import { type Conversation, type UseConversationReturn } from '@opentiny/tiny-robot-kit';
-import { HistoryTransferToolbar, downloadConversations, getHistoryMenuItems, groupByTimeBuckets } from './history-transfer';
+import { TrHistory, useTouchDevice, type HistoryItem, type HistoryMenuItem } from '@opentiny/tiny-robot';
+import type { ConversationInfo, UseConversationReturn } from '@opentiny/tiny-robot-kit';
+import {
+  HistoryTransferToolbar,
+  downloadConversations,
+  getHistoryMenuItems,
+  groupByTimeBuckets,
+  reconcileImportedConversationIds,
+  type TransferConversation,
+} from './history-transfer';
 import { TinyCheckbox, TinyCheckboxGroup, TinyModal } from '@opentiny/vue';
 import { t } from '../../i18n';
 import { computed, ref, watch } from 'vue';
 
+const props = defineProps<{ conversation: UseConversationReturn }>();
 const { isTouchDevice } = useTouchDevice();
-
 const historyMenuItems = getHistoryMenuItems();
-
 const selectedConversations = ref<string[]>([]);
 const selectionActive = ref(false);
 
+const conversations = computed(() => props.conversation.conversations.value);
+const activeConversationId = computed(() => props.conversation.activeConversationId.value);
+const historyItems = computed(() =>
+  conversations.value.map((item) => ({ ...item, title: item.title || t('conversation.newConversation') })),
+);
+const groupedHistoryData = computed(() => groupByTimeBuckets(historyItems.value) as any);
+
 watch(selectionActive, (active) => {
-  if (!active) {
-    selectedConversations.value = [];
-  }
+  if (!active) selectedConversations.value = [];
 });
-
-const props = defineProps<{
-  conversation: UseConversationReturn;
-}>();
-
-const { state, switchConversation, deleteConversation, updateTitle, createConversation, saveConversations } =
-  props.conversation;
-
-const groupedHistoryData = computed(() => groupByTimeBuckets(state.conversations));
-
 watch(
-  () => state.conversations.map((c) => c.id),
-  () => {
-    const idSet = new Set(state.conversations.map((c) => c.id));
+  () => conversations.value.map((item) => item.id),
+  (ids) => {
+    const idSet = new Set(ids);
     selectedConversations.value = selectedConversations.value.filter((id) => idSet.has(id));
   },
 );
 
-const handleImportConversations = (conversations: Conversation[]) => {
-  state.conversations.unshift(...conversations);
-  saveConversations();
+async function collectForExport(ids: string[]) {
+  const previous = activeConversationId.value;
+  const result: TransferConversation[] = [];
+  for (const id of ids) {
+    const active = await props.conversation.switchConversation(id);
+    const info = conversations.value.find((item) => item.id === id);
+    if (active && info) {
+      result.push({ ...info, messages: structuredClone(active.engine.messages.value) });
+    }
+  }
+  if (previous) await props.conversation.switchConversation(previous);
+  return result;
+}
+
+const handleImportConversations = async (imported: TransferConversation[]) => {
+  const reconciled = reconcileImportedConversationIds(conversations.value, imported);
+  for (const item of reconciled) {
+    const created = props.conversation.createConversation({
+      id: item.id,
+      title: item.title,
+      metadata: item.metadata,
+    });
+    created.engine.messages.value.splice(0, created.engine.messages.value.length, ...item.messages);
+  }
 };
 
-const handleItemClick = (item: Conversation) => {
-  switchConversation(item.id);
-};
+const handleItemClick = (item: HistoryItem) => props.conversation.switchConversation(item.id);
 
-const handleItemAction = (action: { id: string }, item: Conversation) => {
+const handleItemAction = async (action: HistoryMenuItem, item: HistoryItem) => {
   if (action.id === 'export') {
-    downloadConversations([item]);
+    downloadConversations(await collectForExport([item.id]));
     return;
   }
-
-  if (action.id === 'delete') {
-    deleteConversation(item.id);
-    saveConversations();
-  }
-
-  // 保证至少有一个会话
-  if (state.conversations.length === 0) {
-    createConversation();
-    saveConversations();
+  if (action.id !== 'delete') return;
+  await props.conversation.deleteConversation(item.id);
+  if (!conversations.value.length) {
+    props.conversation.createConversation({ title: t('conversation.newConversation') });
   }
 };
 
-const handleItemTitleChange = (title: string, item: Conversation) => {
-  updateTitle(item.id, title);
-  saveConversations();
-};
+const handleItemTitleChange = (title: string, item: HistoryItem) =>
+  props.conversation.updateConversationTitle(item.id, title);
 
-const handleBatchExport = () => {
-  const idSet = new Set(selectedConversations.value);
-  const items = state.conversations.filter((c) => idSet.has(c.id));
-  downloadConversations(items);
+const handleBatchExport = async (ids: string[]) => {
+  downloadConversations(await collectForExport(ids));
 };
 
 const handleBatchDelete = () => {
   const ids = [...selectedConversations.value];
-  if (ids.length === 0) {
-    return;
-  }
-  TinyModal.confirm(t('conversation.confirmBatchDelete', { count: ids.length }))
-    .then((type: 'confirm' | 'cancel') => {
-      if (type === 'cancel') {
-        return;
-      }
-      for (const id of ids) {
-        deleteConversation(id);
-      }
+  if (!ids.length) return;
+  TinyModal.confirm(t('conversation.confirmBatchDelete', { count: ids.length })).then(
+    async (type: 'confirm' | 'cancel') => {
+      if (type === 'cancel') return;
+      await Promise.all(ids.map((id) => props.conversation.deleteConversation(id)));
       selectedConversations.value = [];
-      if (state.conversations.length === 0) {
-        createConversation();
+      if (!conversations.value.length) {
+        props.conversation.createConversation({ title: t('conversation.newConversation') });
       }
-      saveConversations();
-    });
+    },
+  );
 };
 </script>
 
@@ -140,9 +144,9 @@ const handleBatchDelete = () => {
 }
 
 .tr-history-container {
-  --tr-history-empty-padding: calc((100vh - 380px) / 2) 0;
   --tr-history-empty-padding: calc((100dvh - 380px) / 2) 0;
   width: 100%;
+
   :deep(.tr-history__item.selected) {
     background-color: #f2f0f0;
   }

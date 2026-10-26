@@ -16,7 +16,8 @@ const {
   chatConfig,
   url,
   messages,
-  roles,
+  roleConfigs,
+  bubbleSlots,
   modelFeatures,
   customFetch,
   customExamples,
@@ -42,7 +43,8 @@ const rendererSlots = {
         :ref="setChatRef"
         :messages="messages"
         :chat-config="chatConfig"
-        :roles="roles"
+        :role-configs="roleConfigs"
+        :bubble-slots="bubbleSlots"
         :model="llmConfig.model"
         :temperature="llmConfig.temperature"
         :features="modelFeatures"

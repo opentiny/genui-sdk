@@ -16,9 +16,9 @@ export const modifyChatBody = (body: any) => {
   return body;
 }
 
-export function useGenerateMore(messageManager: any, index: number) {
+export function useGenerateMore(messageEngine: any, index: number) {
   const markGenerateMore = () => {
-    const { messages, send } = messageManager;
+    const { messages, send } = messageEngine;
     const messageIndex = index;
     messages.value = messages.value.slice(0, messageIndex + 1);
     const lastMessage = messages.value[messageIndex];
@@ -29,7 +29,7 @@ export function useGenerateMore(messageManager: any, index: number) {
   }
 
   const revertGenerateMore = () => {
-    const { messages } = messageManager;
+    const { messages } = messageEngine;
     const messageIndex = index;
     if (messages.value[messageIndex].originChatMessage) {
       try {
@@ -39,7 +39,6 @@ export function useGenerateMore(messageManager: any, index: number) {
         return;
       }
       messages.value[messageIndex].id = messages.value[messageIndex].id + '1'; // TODO: schema renderer with isError=true can not be reverted if id is not changed.
-      // saveConversations(); // TODO: unable to save conversations
     } else {
       console.warn('revertGenerateMore: originChatMessage not found');
     }

@@ -1,4 +1,4 @@
-import type { UserItem } from '@opentiny/tiny-robot';
+import type { TemplateItem } from '@opentiny/tiny-robot';
 import type { SelectedSchemaNode } from './schema-node-selection';
 
 export type ComposerSegment =
@@ -13,7 +13,7 @@ export interface ComposerContent {
 }
 
 export function templateDataToSegments(
-  templateData: UserItem[],
+  templateData: TemplateItem[],
   nodeMap: Map<string, SelectedSchemaNode>,
 ): ComposerSegment[] {
   const segments: ComposerSegment[] = [];
@@ -84,7 +84,7 @@ export function segmentsToApiContent(segments: ComposerSegment[]): string {
 }
 
 export function getComposerContent(
-  templateData: UserItem[],
+  templateData: TemplateItem[],
   nodeMap: Map<string, SelectedSchemaNode>,
 ): ComposerContent {
   const segments = templateDataToSegments(templateData, nodeMap);

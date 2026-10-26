@@ -1,18 +1,27 @@
-import { ref, shallowRef, computed } from 'vue';
-import { useConversation, IndexedDBStrategy } from '@opentiny/genui-sdk-vue';
-import { AIClient, type ChatMessage } from '@opentiny/tiny-robot-kit';
+import { computed, ref, shallowRef, watch } from 'vue';
+import {
+  createResponseHandlerController,
+  createResponseHandlerPlugin,
+  createToggleableConversationStorage,
+  createConversationStorage,
+  flushConversationStorage,
+  GENUI_TEMPLATE_CONVERSATION_DB_NAME,
+  useConversation,
+} from '@opentiny/genui-sdk-vue';
+import type { ChatMessage, UseConversationReturn } from '@opentiny/tiny-robot-kit';
 import { TemplateModelProvider } from '../template-provider';
 import { emitter } from '../template-chat-event-emitter';
 import type { LLMConfig } from '../chat.types';
 import {
   findLatestSchemaInConversation,
-  repairAllStalePendingSchemaCards,
   normalizeManualSchemaSaveMessages,
   normalizeTemplateUserSegments,
+  repairAllStalePendingSchemaCards,
 } from '../template-chat-utils';
 import { t } from '../../../i18n';
 
-const conversationKit = shallowRef<ReturnType<typeof useConversation> | null>(null);
+const conversationKit = shallowRef<UseConversationReturn | null>(null);
+const autoSaveMessages = ref(true);
 let templateProvider: TemplateModelProvider | null = null;
 let templateChatUrl = '';
 let templateLlmConfig: LLMConfig = { model: '', temperature: 0.3 };
@@ -24,90 +33,96 @@ export interface UseTemplateConversationOptions {
   onLoaded?: (messages: ChatMessage[] | undefined) => void;
 }
 
+function normalizeMessages(messages: ChatMessage[] | undefined) {
+  if (!messages) return;
+  repairAllStalePendingSchemaCards(messages);
+  normalizeManualSchemaSaveMessages(messages);
+  normalizeTemplateUserSegments(messages);
+}
+
 export function useTemplateConversation(options?: UseTemplateConversationOptions) {
   if (!conversationKit.value && options?.url) {
     const { url, llmConfig, onLoaded } = options;
     templateChatUrl = url;
     templateLlmConfig = llmConfig || templateLlmConfig;
-
     templateProvider = new TemplateModelProvider({
       url,
-      llmConfig: llmConfig || { model: '', temperature: 0.3 },
+      llmConfig: templateLlmConfig,
       emitter,
     });
 
-    const clientInstance = new AIClient({
-      provider: 'custom',
-      providerImplementation: templateProvider,
+    const controller = createResponseHandlerController({
+      getHandlers: () => templateProvider!.getResponseHandlers(),
+      getChatConfig: () => ({}),
+      getContext: () => templateProvider!.getResponseContext(),
     });
-
-    conversationKit.value = useConversation({
-      client: clientInstance,
-      autoSave: false,
-      allowEmpty: true,
-      storage: new IndexedDBStrategy('genui-ai-template', 'conversations', 'conversations-list'),
-      events: {
-        onReceiveData(data, messages, preventDefault) {
-          messages.value.push(data as any);
-          preventDefault();
-        },
-        onLoaded(conversations) {
-          if (!conversations.length) {
-            conversationKit.value!.createConversation(t('template.defaultTitle'));
-            conversationKit.value!.saveConversations();
-          }
-          const loadedMessages = conversationKit.value!.getCurrentConversation()?.messages;
-          const repairedPending = repairAllStalePendingSchemaCards(loadedMessages);
-          const normalizedManual = normalizeManualSchemaSaveMessages(loadedMessages);
-          const normalizedSegments = normalizeTemplateUserSegments(
-            conversations.flatMap((conversation) => conversation.messages ?? []),
-          );
-          if (repairedPending || normalizedManual || normalizedSegments) {
-            conversationKit.value!.saveConversations();
-          }
-          onLoaded?.(loadedMessages);
-        },
-        onFinish(_data: any, context) {
-          if (_data?.type === 'error') {
-            context.messages.value.push({
-              role: 'assistant',
-              content: '',
-              messages: [{ type: 'error-text', content: _data.error.message }],
-            });
-          }
-          repairAllStalePendingSchemaCards(context.messages.value);
-          conversationKit.value!.saveConversations();
+    const baseStorage = createConversationStorage(GENUI_TEMPLATE_CONVERSATION_DB_NAME);
+    let kit!: UseConversationReturn;
+    kit = useConversation({
+      storage: createToggleableConversationStorage(baseStorage, autoSaveMessages),
+      autoSaveMessages: true,
+      useMessageOptions: {
+        responseProvider: templateProvider.responseProvider,
+        requestMessageFieldsExclude: ['state', 'metadata', 'loading', 'messages', 'finishInfo', 'originChatMessage'],
+        plugins: [
+          createResponseHandlerPlugin(controller),
+          {
+            name: 'template-finalize',
+            onTurnEnd(context) {
+              normalizeMessages(context.messages);
+            },
+          },
+        ],
+        onCompletionChunk(context) {
+          controller.handleChunk(context.turnId, context.currentMessage, context.chunk as any);
         },
       },
+      onLoad(conversations) {
+        queueMicrotask(async () => {
+          if (conversations.length) {
+            await kit.switchConversation(conversations[0].id);
+          } else {
+            kit.createConversation({ title: t('template.defaultTitle') });
+          }
+          normalizeMessages(kit.activeConversation.value?.engine.messages.value);
+          onLoaded?.(kit.activeConversation.value?.engine.messages.value);
+        });
+      },
     });
-
+    watch(autoSaveMessages, async (enabled, previous) => {
+      if (!enabled || previous !== false) return;
+      const active = kit.activeConversation.value;
+      await flushConversationStorage(
+        baseStorage,
+        kit.conversations.value,
+        active ? { id: active.id, messages: active.engine.messages.value } : null,
+      );
+    });
+    conversationKit.value = kit;
     isTemplateInit.value = true;
   }
 
-  const messages = computed(() => conversationKit.value?.getCurrentConversation()?.messages ?? []);
-  const templateConversationState = computed(() => conversationKit.value?.state);
-  const currentConversationId = computed(() => conversationKit.value?.state.currentId);
-
-  const templateSchemaList = computed(() => {
-    if (!conversationKit.value) {
-      return [];
-    }
-
-    return conversationKit.value.state.conversations.map((item) => {
-      const schemaInfo = findLatestSchemaInConversation(item.messages);
+  const messages = computed(() => conversationKit.value?.activeConversation.value?.engine.messages.value ?? []);
+  const templateConversationState = computed(() => ({
+    conversations: conversationKit.value?.conversations.value ?? [],
+    currentId: conversationKit.value?.activeConversationId.value ?? null,
+    loading: false,
+  }));
+  const currentConversationId = computed(() => conversationKit.value?.activeConversationId.value ?? null);
+  const templateSchemaList = computed(() =>
+    (conversationKit.value?.conversations.value ?? []).map((item) => {
+      const active = conversationKit.value?.activeConversation.value;
+      const itemMessages = active?.id === item.id ? active.engine.messages.value : [];
       return {
         id: item.id,
         name: item.title,
-        schema: schemaInfo?.schema ?? '',
+        schema: findLatestSchemaInConversation(itemMessages)?.schema ?? '',
       };
-    });
-  });
+    }),
+  );
 
   function getTemplateChatBaseConfig() {
-    return {
-      url: templateChatUrl,
-      llmConfig: templateLlmConfig,
-    };
+    return { url: templateChatUrl, llmConfig: templateLlmConfig };
   }
 
   function changeLlmConfig(llmConfig: LLMConfig) {
@@ -115,47 +130,35 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
     templateProvider?.changeLlmConfig(llmConfig);
   }
 
-  function saveConversations() {
-    conversationKit.value?.saveConversations();
-  }
-
   function createConversation() {
-    if (!conversationKit.value) {
-      return;
-    }
-    conversationKit.value.createConversation(t('template.defaultTitle'));
-    saveConversations();
+    return conversationKit.value?.createConversation({ title: t('template.defaultTitle') });
   }
 
-  function switchConversation(id: string) {
-    conversationKit.value?.switchConversation(id);
+  async function switchConversation(id: string) {
+    const selected = await conversationKit.value?.switchConversation(id);
+    normalizeMessages(selected?.engine.messages.value);
+    return selected;
   }
 
-  function deleteConversation(id: string) {
-    if (!conversationKit.value) {
-      return false;
+  async function deleteConversation(id: string) {
+    if (!conversationKit.value) return false;
+    await conversationKit.value.deleteConversation(id);
+    if (!conversationKit.value.conversations.value.length) {
+      createConversation();
     }
-
-    const { state, deleteConversation: remove, saveConversations: save } = conversationKit.value;
-    remove(id);
-    save();
-    return state.conversations.length === 0;
+    return conversationKit.value.conversations.value.length === 0;
   }
 
   function updateConversationTitle(id: string, title: string) {
-    if (!conversationKit.value) {
-      return;
-    }
-    conversationKit.value.updateTitle(id, title);
-    saveConversations();
+    conversationKit.value?.updateConversationTitle(id, title);
   }
 
-  function getMessageManager() {
-    return conversationKit.value?.messageManager.value ?? null;
+  function getMessageEngine() {
+    return conversationKit.value?.activeConversation.value?.engine ?? null;
   }
 
   function getCurrentConversation() {
-    return conversationKit.value?.getCurrentConversation() ?? null;
+    return conversationKit.value?.activeConversation.value ?? null;
   }
 
   function setTemplateSchema(schema: unknown) {
@@ -164,6 +167,7 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
 
   return {
     isTemplateInit,
+    autoSaveMessages,
     conversationKit,
     templateProvider,
     messages,
@@ -172,12 +176,11 @@ export function useTemplateConversation(options?: UseTemplateConversationOptions
     templateSchemaList,
     getTemplateChatBaseConfig,
     changeLlmConfig,
-    saveConversations,
     createConversation,
     switchConversation,
     deleteConversation,
     updateConversationTitle,
-    getMessageManager,
+    getMessageEngine,
     getCurrentConversation,
     setTemplateSchema,
   };

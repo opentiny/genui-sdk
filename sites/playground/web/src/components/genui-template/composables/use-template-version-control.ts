@@ -41,9 +41,8 @@ export function useTemplateVersionControl() {
   const {
     templateConversationState,
     messages,
-    getMessageManager,
+    getMessageEngine,
     getCurrentConversation,
-    saveConversations,
   } = useTemplateConversation();
 
   const latestSchemaCardId = computed(() => findLatestSchemaCardInConversation(messages.value)?.cardId ?? '');
@@ -129,7 +128,7 @@ export function useTemplateVersionControl() {
       return;
     }
 
-    const msgs = getCurrentConversation()?.messages;
+    const msgs = getCurrentConversation()?.engine.messages.value;
     const aiCard = findSchemaCardByCardId(msgs, cardId);
     if (aiCard) {
       return aiCard;
@@ -154,7 +153,7 @@ export function useTemplateVersionControl() {
       sourceCardInput?: string;
     } = {},
   ) {
-    const messageMgr = getMessageManager();
+    const messageMgr = getMessageEngine();
     const currentConversation = getCurrentConversation();
     if (!messageMgr || !currentConversation) {
       return null;
@@ -231,14 +230,9 @@ export function useTemplateVersionControl() {
     }
 
     messageMgr.messages.value = [...msgs];
-    currentConversation.messages = [...msgs];
-    currentConversation.updatedAt = Date.now();
-
     setCurrentSchema(schemaPayload);
     setCurrentPreviewSchema(schemaPayload);
     setCurrentCardId(cardId);
-    saveConversations();
-
     return cardId;
   }
 
@@ -317,10 +311,8 @@ export function useTemplateVersionControl() {
     if (!conversationState) {
       return;
     }
-    const currentConversation = conversationState.conversations.find(
-      (item) => item.id === conversationState.currentId,
-    );
-    applySchemaFromMessages(currentConversation?.messages, {
+    const currentConversation = getCurrentConversation();
+    applySchemaFromMessages(currentConversation?.engine.messages.value, {
       clearIfMissing: !conversationState.loading,
     });
     resetVersionPreviewMode();

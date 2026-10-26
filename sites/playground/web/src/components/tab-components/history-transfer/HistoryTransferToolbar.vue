@@ -57,15 +57,18 @@ import {
   TinyDropdownMenu,
   TinyDropdownItem,
 } from '@opentiny/vue';
-import type { Conversation } from '@opentiny/tiny-robot-kit';
+import type { ConversationInfo } from '@opentiny/tiny-robot-kit';
 import { t } from '../../../i18n';
-import { downloadConversations, parseConversationFile, reconcileImportedConversationIds } from './history-transfer';
+import {
+  parseConversationFile,
+  type TransferConversation,
+} from './history-transfer';
 
 const selectionActive = defineModel<boolean>('selectionActive', { default: false });
 
 const props = withDefaults(
   defineProps<{
-    conversations: Conversation[];
+    conversations: ConversationInfo[];
     selectedIds?: string[];
   }>(),
   { selectedIds: () => [] },
@@ -76,8 +79,8 @@ const toggleSelectionMode = () => {
 };
 
 const emit = defineEmits<{
-  'import-conversations': [conversations: Conversation[]];
-  'batch-export': [];
+  'import-conversations': [conversations: TransferConversation[]];
+  'batch-export': [ids: string[]];
   'batch-delete': [];
 }>();
 
@@ -106,7 +109,7 @@ const exportAll = () => {
     return;
   }
 
-  downloadConversations(props.conversations);
+  emit('batch-export', props.conversations.map((item) => item.id));
 };
 
 const handleExportItemClick = (payload: { itemData?: { action: ExportMenuAction } }) => {
@@ -119,7 +122,7 @@ const handleExportItemClick = (payload: { itemData?: { action: ExportMenuAction 
     if (props.selectedIds.length === 0) {
       return;
     }
-    emit('batch-export');
+    emit('batch-export', props.selectedIds);
   }
 };
 
@@ -138,9 +141,8 @@ const handleImportFile = async (event: Event) => {
       return;
     }
 
-    const reconciledImported = reconcileImportedConversationIds(props.conversations, importedConversations);
-    emit('import-conversations', reconciledImported);
-    notify('success', t('history.importSuccess', { count: reconciledImported.length }));
+    emit('import-conversations', importedConversations);
+    notify('success', t('history.importSuccess', { count: importedConversations.length }));
   } catch (error) {
     const message = error instanceof Error ? error.message : t('history.importFailed');
     notify('error', message);

@@ -16,9 +16,9 @@ const CopyIcon = iconCopy();
 const vAutoTip = AutoTip;
 const copyTooltip = ref(t('chatFooter.copy'));
 
+const index = computed(() => props.messageIndexes.at(-1) ?? -1);
 const isLastBubble = computed(() => {
-  const { messages } = props.messageManager;
-  return props.index === messages.value.length - 1;
+  return index.value === props.messageEngine.messages.value.length - 1;
 });
 
 const copyContent = async () => {
@@ -54,16 +54,6 @@ const refresh = () => {
   align-items: center;
   transition: opacity 0.2s ease;
 
-  &:not(.is-last) {
-    opacity: 0;
-  }
-
-  &.is-last {
-    opacity: 1;
-  }
-}
-.tr-bubble__content:hover + .playground-assistant-footer,
-.playground-assistant-footer:hover {
   opacity: 1;
 }
 </style>

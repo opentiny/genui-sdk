@@ -27,10 +27,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // 获取所有会话列表
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
 // 获取当前会话ID
-const currentId = computed(() => conversation.value?.state.currentId);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 
@@ -42,7 +42,7 @@ const currentId = computed(() => conversation.value?.state.currentId);
 
 ```typescript
 const conversation = chatRef.value?.getConversation();
-const newConversationId = conversation?.createConversation('新会话标题');
+const newConversation = conversation?.createConversation({ title: '新会话标题' });
 ```
 
 ### 切换会话
@@ -59,12 +59,15 @@ const conversation = chatRef.value?.getConversation();
 conversation?.deleteConversation(conversationId);
 ```
 
-### 手动保存会话
+### 自动保存
 
-```typescript
-const conversation = chatRef.value?.getConversation();
-await conversation?.saveConversations();
-```
+会话和消息默认自动保存，无需手动调用保存方法。可在运行时通过
+`<GenuiChat :auto-save-messages="enabled" />` 关闭或重新开启消息自动保存。
+
+::: warning 升级说明
+TinyRobot 1.0 使用了新的会话存储结构，0.3.3 写入 IndexedDB 的历史记录不会自动迁移。
+如需保留旧数据，请在升级前自行导出，并通过自定义 `conversationStorage` 迁移。
+:::
 
 ## 配合侧边栏管理历史记录
 
@@ -110,12 +113,12 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 // 获取会话对象和状态
 const conversation = computed(() => chatRef.value?.getConversation());
-const conversations = computed(() => conversation.value?.state.conversations || []);
-const currentId = computed(() => conversation.value?.state.currentId);
+const conversations = computed(() => conversation.value?.conversations.value || []);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 
 // 创建新会话
 const handleNewConversation = () => {
-  conversation.value?.createConversation();
+  conversation.value?.createConversation({ title: '新会话' });
 };
 
 // 切换会话

@@ -27,10 +27,10 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // Get all conversations
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
 // Get the current conversation ID
-const currentId = computed(() => conversation.value?.state.currentId);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 </script>
 ```
 
@@ -42,7 +42,7 @@ Use the object returned by `getConversation()` to manage conversations:
 
 ```typescript
 const conversation = chatRef.value?.getConversation();
-const newConversationId = conversation?.createConversation('New Conversation Title');
+const newConversation = conversation?.createConversation({ title: 'New Conversation Title' });
 ```
 
 ### Switch Conversation
@@ -59,12 +59,17 @@ const conversation = chatRef.value?.getConversation();
 conversation?.deleteConversation(conversationId);
 ```
 
-### Manually Save Conversations
+### Auto-save
 
-```typescript
-const conversation = chatRef.value?.getConversation();
-await conversation?.saveConversations();
-```
+Conversations and messages are saved automatically by default; no manual save call is needed.
+You can disable or re-enable message auto-save at runtime with
+`<GenuiChat :auto-save-messages="enabled" />`.
+
+::: warning Upgrade note
+TinyRobot 1.0 uses a new conversation storage format. History written to IndexedDB by 0.3.3
+is not migrated automatically. Export old data before upgrading and migrate it through a
+custom `conversationStorage` if it must be retained.
+:::
 
 ## Managing History with a Sidebar
 
@@ -110,12 +115,12 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 
 // Get conversation object and state
 const conversation = computed(() => chatRef.value?.getConversation());
-const conversations = computed(() => conversation.value?.state.conversations || []);
-const currentId = computed(() => conversation.value?.state.currentId);
+const conversations = computed(() => conversation.value?.conversations.value || []);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
 
 // Create a new conversation
 const handleNewConversation = () => {
-  conversation.value?.createConversation();
+  conversation.value?.createConversation({ title: 'New Conversation' });
 };
 
 // Switch conversation

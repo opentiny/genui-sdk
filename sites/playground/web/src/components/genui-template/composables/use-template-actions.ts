@@ -93,6 +93,7 @@ export function useTemplateActions(deps?: TemplateActionsDeps) {
       return;
     }
     versionControl.selectVersionCard(cardId);
+    ui.setRendererPanelVisible(true);
   }
 
   async function handleHistoryEntrySelect(entry: ISchemaVersionHistoryEntry) {

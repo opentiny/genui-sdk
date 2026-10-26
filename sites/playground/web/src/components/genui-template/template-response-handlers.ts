@@ -1,4 +1,4 @@
-import { reactive, toRaw } from 'vue';
+import { toRaw } from 'vue';
 import { PatternExtractor, type IStreamData, type IStreamDelta } from '@opentiny/genui-sdk-core';
 import type { IResponseHandler } from '@opentiny/genui-sdk-vue';
 import type { IChatMessage } from './chat.types';
@@ -98,14 +98,18 @@ export function createTemplateResponseHandlers(): IResponseHandler<IStreamData>[
       match: () => false,
       handler: () => false,
       start: (context, handlers) => {
-        const chatMessage = reactive<IChatMessage>({
+        const chatMessage = (context.chatMessage ?? {
           role: 'assistant',
           content: '',
           messages: [],
-        });
+        }) as IChatMessage;
+        chatMessage.messages ??= [];
+        chatMessage.content ??= '';
         context.chatMessage = chatMessage;
         context.handlers = handlers;
-        handlers.onData(chatMessage as Parameters<typeof handlers.onData>[0]);
+        if (!context.usesOfficialMessageEngine) {
+          handlers.onData(chatMessage as Parameters<typeof handlers.onData>[0]);
+        }
       },
       end: (context) => {
         context.emitter.emit('notification', {

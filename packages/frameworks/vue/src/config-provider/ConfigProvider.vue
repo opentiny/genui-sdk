@@ -196,8 +196,7 @@ const robotProviderProps = computed(() => ({
 .tg-config-provider {
   --tr-sender-bg-color: var(--tr-container-bg-default);
   --tr-sender-text-color: var(--tr-text-primary);
-  --tr-sender-action-buttons-icon-color: var(--tr-text-secondary);
-  --tr-sender-action-buttons-send-bg-color: var(--tr-color-primary);
+  --tr-sender-placeholder-color: var(--tr-text-secondary);
   height: 100%;
 }
 </style>

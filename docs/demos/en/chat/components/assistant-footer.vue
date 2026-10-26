@@ -39,26 +39,25 @@
 import { computed } from 'vue';
 
 const props = defineProps<{
-  index: number;
-  bubbleProps: any;
+  messages: any[];
+  messageIndexes: number[];
   isFinished: boolean;
-  messageManager: any;
+  messageEngine: any;
 }>();
 
+const messageIndex = computed(() => props.messageIndexes.at(-1) ?? -1);
 const isLastBubble = computed(() => {
-  const { messages } = props.messageManager;
-  return props.index === messages.value.length - 1;
+  return messageIndex.value === props.messageEngine.messages.value.length - 1;
 });
 
 function handleCopy() {
-  const content = props.bubbleProps?.content || '';
+  const content = props.messages.at(-1)?.content || '';
   alert(`Copy message: ${content}`);
 }
 
 function handleRefresh() {
-  const { messages, send } = props.messageManager;
-  const messageIndex = props.index;
-  messages.value = messages.value.slice(0, messageIndex);
+  const { messages, send } = props.messageEngine;
+  messages.value = messages.value.slice(0, messageIndex.value);
   send();
 }
 </script>
@@ -71,14 +70,7 @@ function handleRefresh() {
   transition: opacity 0.2s ease;
 }
 
-/* Hide by default for non-last bubbles, show on hover */
-.assistant-footer:not(.is-last) {
-  opacity: 0;
-}
-
-.assistant-footer.is-last {
-  opacity: 1;
-}
+.assistant-footer { opacity: 1; }
 
 .footer-icon-btn {
   display: inline-flex;
@@ -98,13 +90,5 @@ function handleRefresh() {
 .footer-icon-btn:hover {
   background-color: #f5f5f5;
   color: #333;
-}
-</style>
-
-<style>
-/* Global style: show toolbar when hovering over bubble content */
-.tr-bubble__content:hover + .assistant-footer,
-.assistant-footer:hover {
-  opacity: 1;
 }
 </style>

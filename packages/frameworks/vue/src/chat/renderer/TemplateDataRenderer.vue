@@ -4,8 +4,8 @@
       <!-- text 类型：直接渲染文字 -->
       <span v-if="item.type === 'text'" class="text-item">{{ item.content }}</span>
 
-      <!-- template 类型：渲染文字，如果是图片则 hover 显示预览 -->
-      <span v-else-if="item.type === 'template'" class="template-item">
+      <!-- block 类型：渲染文字，如果是图片则 hover 显示预览 -->
+      <span v-else-if="item.type === 'block'" class="template-item">
         <tiny-popover width="200" trigger="hover" :content="item.content" placement="top">
           <template #reference>
             <span class="template-text" @click="handleImageClick(item)">{{ item.content }}</span>
@@ -33,14 +33,14 @@
 </template>
 
 <script setup lang="ts">
-import type { UserItem } from '@opentiny/tiny-robot';
+import type { TemplateItem } from '@opentiny/tiny-robot';
 import type { FileMeta } from '../file-upload/file-utils';
 import { IMAGE_MIME_TYPES } from '../file-upload/file-utils';
 import { ref } from 'vue';
 import { TinyPopover } from '@opentiny/vue';
 
 export interface Props {
-  templateData?: UserItem[];
+  templateData?: TemplateItem[];
   attachments?: FileMeta[];
 }
 
@@ -52,8 +52,8 @@ const props = withDefaults(defineProps<Props>(), {
 const fullscreenImage = ref<FileMeta | null>(null);
 
 // 判断是否为图片类型
-const isImageTemplate = (item: UserItem): boolean => {
-  if (item.type !== 'template' || !item.content) {
+const isImageTemplate = (item: TemplateItem): boolean => {
+  if (item.type !== 'block' || !item.content) {
     return false;
   }
 
@@ -69,8 +69,8 @@ const isImageTemplate = (item: UserItem): boolean => {
 };
 
 // 获取图片的 base64 数据
-const getImageBase64 = (item: UserItem): string => {
-  if (item.type !== 'template' || !item.content) {
+const getImageBase64 = (item: TemplateItem): string => {
+  if (item.type !== 'block' || !item.content) {
     return '';
   }
 
@@ -80,8 +80,8 @@ const getImageBase64 = (item: UserItem): string => {
 };
 
 // 获取对应的 attachment
-const getAttachment = (item: UserItem): FileMeta | undefined => {
-  if (item.type !== 'template' || !item.content) {
+const getAttachment = (item: TemplateItem): FileMeta | undefined => {
+  if (item.type !== 'block' || !item.content) {
     return undefined;
   }
 
@@ -89,7 +89,7 @@ const getAttachment = (item: UserItem): FileMeta | undefined => {
 };
 
 // 处理图片点击事件
-const handleImageClick = (item: UserItem) => {
+const handleImageClick = (item: TemplateItem) => {
   const fileMeta = getAttachment(item);
   if (!fileMeta) {
     return;

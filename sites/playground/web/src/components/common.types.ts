@@ -1,11 +1,14 @@
-import type { IChatMessage } from "@opentiny/genui-sdk-core";
+import type { BubbleMessage } from '@opentiny/tiny-robot';
+import type { UseConversationReturn, UseMessageReturn } from '@opentiny/tiny-robot-kit';
 
 export interface IBubbleSlotsProps {
-  index: number;
-  bubbleProps: { [key: string]: any };
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+  contentIndex?: number;
   isFinished: boolean;
-  messageManager: { [key: string]: any };
-  chatMessage: IChatMessage;
+  messageEngine: UseMessageReturn;
+  conversation: UseConversationReturn;
 }
 
 export interface INotificationEventEmitter {

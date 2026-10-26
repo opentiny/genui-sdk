@@ -119,7 +119,7 @@ export const getOverlapEliminatorHandler = (contentHandler: any) => {
   }
 }
 
-export const getContinueGeneratingHandler = (messageManager: any) => {
+export const getContinueGeneratingHandler = (messageEngine: any) => {
   return {
     name: 'continueGenerating',
     match: (chunkData, context) => {
@@ -129,7 +129,8 @@ export const getContinueGeneratingHandler = (messageManager: any) => {
       return false;
     },
     start: (context, handlers) => {
-      const messages = messageManager.value.messages;
+      const messages = messageEngine.value?.messages;
+      if (!messages) return;
       const chatMessage = messages.value[messages.value.length - 2];
 
       if (chatMessage.requireMore) {

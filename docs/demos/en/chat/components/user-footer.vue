@@ -37,18 +37,18 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-  index: number;
-  bubbleProps: any;
-  messageManager: any;
+  messages: any[];
+  messageIndexes: number[];
+  messageEngine: any;
 }>();
 
 function handleEdit() {
-  const content = props.bubbleProps?.content || '';
+  const content = props.messages.at(-1)?.content || '';
   alert(`Edit current question: ${content}`);
 }
 
 function handleCopy() {
-  const content = props.bubbleProps?.content || '';
+  const content = props.messages.at(-1)?.content || '';
   alert(`Copy message: ${content}`);
 }
 </script>
@@ -66,7 +66,7 @@ function handleCopy() {
 .user-actions {
   display: inline-flex;
   gap: 4px;
-  opacity: 0;
+  opacity: 1;
   transition: all 0.2s ease;
   background: #ffffff;
   border-radius: 12px;
@@ -91,13 +91,5 @@ function handleCopy() {
 .footer-icon-btn:hover {
   background-color: #f5f5f5;
   color: #333;
-}
-</style>
-
-<style>
-/* Global style: show toolbar when hovering over bubble content */
-.tr-bubble__content:hover + .user-footer-wrapper > .user-actions,
-.user-actions:hover {
-  opacity: 1;
 }
 </style>

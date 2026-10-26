@@ -147,7 +147,7 @@ const handleDev = () => {
   position: relative;
   cursor: pointer;
 
-  background-color: var(--tr-bubble-content-bg, #fff);
+  background-color: var(--tr-bubble-box-bg, #fff);
   display: flex;
   flex-direction: column;
   padding: 16px;

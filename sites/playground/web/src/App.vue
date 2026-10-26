@@ -103,12 +103,18 @@ if (!Array.isArray(llmConfig.openApiTools)) {
 }
 const customExamples = ref(normalizeCustomExamples(cacheCustomExamples));
 
-const chatConfig = reactive(
-  cacheChatConfig || {
-    addToolCallContext: false,
-    showThinkingResult: true,
-  },
-);
+const chatConfig = reactive({
+  addToolCallContext: false,
+  showThinkingResult: true,
+});
+if (cacheChatConfig && typeof cacheChatConfig === 'object') {
+  if ('addToolCallContext' in cacheChatConfig) {
+    chatConfig.addToolCallContext = cacheChatConfig.addToolCallContext === true;
+  }
+  if ('showThinkingResult' in cacheChatConfig) {
+    chatConfig.showThinkingResult = cacheChatConfig.showThinkingResult !== false;
+  }
+}
 
 const modelData = ref([]);
 const modelFeatures = ref({});
@@ -130,7 +136,7 @@ const syncModelFeatures = async (model) => {
   }
 };
 
-watch(() => llmConfig.model, syncModelFeatures);
+watch(() => llmConfig.model, syncModelFeatures, { immediate: true });
 const transformTheme = (themeConfig) => {
   const newThemeConfig = structuredClone(themeConfig);
   newThemeConfig.css = newThemeConfig.css
@@ -218,7 +224,7 @@ watch(chat, (instance) => {
 
     const newResponseHandlers = [
       ...defaultResponseHandlers,
-      getContinueGeneratingHandler(conversation.value.messageManager),
+      getContinueGeneratingHandler(computed(() => conversation.value?.activeConversation.value?.engine ?? null)),
       locationPartialSchemaJson(),
       {
         name: 'chatTiming',
@@ -263,22 +269,20 @@ watch(chat, (instance) => {
 
 const { isMobile } = useIsMobile();
 
-const roles = computed(() => {
+const roleConfigs = computed(() => {
   return {
     assistant: {
       avatar: isMobile.value ? null : h(IconAi, { style: { fontSize: '32px' } }),
-      slots: {
-        trailer: AssistantFooter,
-      },
     },
     user: {
       avatar: isMobile.value ? null : h(IconUser, { style: { fontSize: '32px' } }),
-      slots: {
-        trailer: UserFooter,
-      },
     },
   };
 });
+
+const bubbleSlots = {
+  after: (slotProps) => h(slotProps.role === 'assistant' ? AssistantFooter : UserFooter, slotProps),
+};
 
 const customFetch = createCustomFetch(() => ({
   ...llmConfig,
@@ -300,7 +304,8 @@ const playgroundContext = {
   theme,
   url,
   messages,
-  roles,
+  roleConfigs,
+  bubbleSlots,
   modelFeatures,
   customFetch,
   chat,

@@ -1,14 +1,17 @@
-import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
-import type { Component } from 'vue';
+import type { BubbleMessage, BubbleRoleConfig } from '@opentiny/tiny-robot';
+import type { Component, VNode } from 'vue';
 import type { IRendererSlots } from '../renderer';
-import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
+import type {
+  ConversationStorageStrategy,
+  UseConversationReturn,
+  UseMessageReturn,
+} from '@opentiny/tiny-robot-kit';
 import type {
   INotificationPayload,
   IGenPromptComponent,
   IGenPromptSnippet,
   IGenPromptExample,
   IGenPromptAction,
-  IChatMessage,
 } from '@opentiny/genui-sdk-core';
 
 export interface ICustomActionItem extends IGenPromptAction {
@@ -44,11 +47,20 @@ export interface IMessage {
 
 // 有几个插槽，参数都为这个类型
 export interface IBubbleSlotsProps {
-  index: number;
-  bubbleProps: BubbleProps;
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+  contentIndex?: number;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
-  chatMessage: IChatMessage;
+  messageEngine: UseMessageReturn;
+  conversation: UseConversationReturn;
+}
+
+export interface IBubbleSlots {
+  prefix?: (props: IBubbleSlotsProps) => VNode | VNode[] | null;
+  suffix?: (props: IBubbleSlotsProps) => VNode | VNode[] | null;
+  after?: (props: IBubbleSlotsProps) => VNode | VNode[] | null;
+  'content-footer'?: (props: IBubbleSlotsProps) => VNode | VNode[] | null;
 }
 
 /**
@@ -95,10 +107,13 @@ export interface IChatProps {
   customExamples?: IGenPromptExample[];
   customActions?: ICustomActionItem[];
   rendererSlots?: IRendererSlots;
-  thinkComponent?: Component<BubbleProps>;
-  roles?: IRolesConfig;
+  thinkComponent?: Component<any>;
+  roleConfigs?: IRolesConfig;
+  bubbleSlots?: IBubbleSlots;
   features?: ModelCapability;
   customFetch?: CustomFetch;
+  autoSaveMessages?: boolean;
+  conversationStorage?: ConversationStorageStrategy;
 }
 
 export interface ImageFeatures {

@@ -1,26 +1,20 @@
 import {
-  CustomModelProvider,
+  responseToAsyncGenerator,
   type EventEmitter,
+  type IResponseHandler,
 } from '@opentiny/genui-sdk-vue';
-import type { ChatCompletionRequest } from '@opentiny/tiny-robot-kit';
+import type { ChatMessage, MessageRequestBody, ResponseProvider } from '@opentiny/tiny-robot-kit';
+import type { IStreamData } from '@opentiny/genui-sdk-core';
 import { templateChat } from './template-chat-api';
 import { getBackendChatMessages, getLastUserMessage } from './template-chat-utils';
 import { segmentsToPlainText, type ComposerSegment } from './schema-composer';
 import { createTemplateResponseHandlers } from './template-response-handlers';
-import type { ITemplateUserMessageItem } from './chat.types';
-import type { LLMConfig } from './chat.types';
+import type { ITemplateUserMessageItem, LLMConfig } from './chat.types';
 
-function resolveDisplayInput(
-  lastUserMessage: { content?: unknown; messages?: unknown } | undefined,
-): string {
+function resolveDisplayInput(lastUserMessage: { content?: unknown; messages?: unknown } | undefined): string {
   const items = lastUserMessage?.messages as ITemplateUserMessageItem[] | undefined;
-  const segments: ComposerSegment[] | undefined = items?.find(
-    (item) => item.type === 'template-user',
-  )?.segments;
-  if (segments?.length) {
-    return segmentsToPlainText(segments);
-  }
-  return String(lastUserMessage?.content ?? '');
+  const segments: ComposerSegment[] | undefined = items?.find((item) => item.type === 'template-user')?.segments;
+  return segments?.length ? segmentsToPlainText(segments) : String(lastUserMessage?.content ?? '');
 }
 
 export interface ITemplateModelProviderOptions {
@@ -29,55 +23,51 @@ export interface ITemplateModelProviderOptions {
   emitter: EventEmitter;
 }
 
-export class TemplateModelProvider extends CustomModelProvider {
+export class TemplateModelProvider {
   private url: string;
   private llmConfig: LLMConfig;
   private templateSchema: unknown;
   private emitter: EventEmitter;
+  private responseContext: Record<string, unknown> = {};
+
+  readonly responseProvider: ResponseProvider = async (
+    request: MessageRequestBody,
+    signal: AbortSignal,
+  ) => {
+    const messages = request.messages as ChatMessage[];
+    const lastUserMessage = getLastUserMessage(messages);
+    this.responseContext = {
+      messageId: String(lastUserMessage?.messageId ?? ''),
+      input: resolveDisplayInput(lastUserMessage),
+      emitter: this.emitter,
+      requestId: Math.random().toString(36).substring(2, 10),
+    };
+    const response = await templateChat({
+      url: this.url,
+      messages: getBackendChatMessages(messages),
+      signal,
+      templateSchema: this.templateSchema,
+      llmConfig: this.llmConfig,
+    });
+    return responseToAsyncGenerator(response, signal);
+  };
 
   constructor({ url, llmConfig, emitter }: ITemplateModelProviderOptions) {
-    super({
-      getChatOptions: () => ({
-        url: this.url,
-        model: this.llmConfig.model,
-        temperature: this.llmConfig.temperature ?? 0.3,
-        chatConfig: {},
-        customComponents: [],
-        customSnippets: [],
-        customExamples: [],
-        customActions: [],
-      }),
-    });
     this.url = url;
     this.llmConfig = llmConfig;
     this.emitter = emitter;
-    this.setResponseHandlers(createTemplateResponseHandlers());
+  }
+
+  getResponseHandlers(): IResponseHandler<IStreamData>[] {
+    return createTemplateResponseHandlers();
+  }
+
+  getResponseContext() {
+    return this.responseContext;
   }
 
   changeLlmConfig(llmConfig: LLMConfig) {
     this.llmConfig = llmConfig;
-  }
-
-  override async getData(request: ChatCompletionRequest) {
-    return templateChat({
-      url: this.url,
-      messages: getBackendChatMessages(request.messages),
-      signal: request.options?.signal,
-      templateSchema: this.templateSchema,
-      llmConfig: this.llmConfig,
-    });
-  }
-
-  protected override setupStreamContext(
-    context: Record<string, unknown>,
-    request: ChatCompletionRequest,
-  ) {
-    super.setupStreamContext(context, request);
-    const lastUserMessage = getLastUserMessage(request.messages);
-    context.messageId = String(lastUserMessage?.messageId ?? '');
-    context.input = resolveDisplayInput(lastUserMessage);
-    context.emitter = this.emitter;
-    context.requestId = Math.random().toString(36).substring(2, 10);
   }
 
   setTemplateSchema(schema: unknown) {

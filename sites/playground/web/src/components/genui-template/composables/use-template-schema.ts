@@ -14,7 +14,7 @@ const currentPreviewSchemaComplete = ref(true);
 const currentCardId = ref<string>('');
 
 export function useTemplateSchema() {
-  const { setTemplateSchema, saveConversations } = useTemplateConversation();
+  const { setTemplateSchema } = useTemplateConversation();
 
   function setCurrentPreviewSchema(schema: any, isComplete: boolean = true) {
     if (schema && isComplete) {
@@ -47,9 +47,7 @@ export function useTemplateSchema() {
     options: { clearIfMissing?: boolean } = {},
   ) {
     const { clearIfMissing = true } = options;
-    if (backfillJsonPatchApplyFailedFlags(messages)) {
-      saveConversations();
-    }
+    backfillJsonPatchApplyFailedFlags(messages);
     const latestSchemaInfo = findLatestSchemaInConversation(messages);
 
     if (latestSchemaInfo) {

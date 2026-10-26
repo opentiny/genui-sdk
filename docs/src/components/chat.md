@@ -305,7 +305,7 @@ import CustomThinkComponent from './custom-think-component.vue';
 
 查看 [Chat 组件 - 自定义思考过程](../examples/chat/thinking-process) 了解详细用法和组件入参的详细类型
 
-### roles
+### roleConfigs
 
 - **类型**: `IRolesConfig`
 - **必填**: 否
@@ -313,23 +313,53 @@ import CustomThinkComponent from './custom-think-component.vue';
 
 ```vue
 <template>
-  <GenuiChat :url="url" :roles="rolesConfig" />
+  <GenuiChat :url="url" :roleConfigs="roleConfigs" />
 </template>
 
 <script setup>
-const rolesConfig = {
+const roleConfigs = {
   user: {
-    maxWidth: '80%',
-    // 其他TinyRobot的BubbleRoleConfig配置
+    placement: 'end',
+    shape: 'rounded',
   },
   assistant: {
-    maxWidth: '100%',
+    placement: 'start',
+    shape: 'none',
   },
 };
 </script>
 ```
 
 查看 [Chat 组件 - 自定义底部工具栏](../examples/chat/footer-toolbar) 了解详细用法
+
+### bubbleSlots
+
+- **类型**: `IBubbleSlots`
+- **必填**: 否
+- **说明**: 配置 `prefix`、`suffix`、`after` 和 `content-footer` 气泡插槽。
+
+也可直接使用同名模板插槽。插槽参数包含 `messages`、`messageIndexes`、`role`、
+`isFinished`、`messageEngine` 和 `conversation`。
+
+### autoSaveMessages
+
+- **类型**: `boolean`
+- **默认值**: `true`
+- **说明**: 是否自动持久化消息；支持运行时切换。会话和消息默认自动保存。
+
+```vue
+<GenuiChat :url="url" :auto-save-messages="autoSaveEnabled" />
+```
+
+### conversationStorage
+
+- **类型**: `ConversationStorageStrategy`
+- **必填**: 否
+- **说明**: 自定义 TinyRobot 1.0 会话存储策略。
+
+::: warning 升级说明
+TinyRobot 0.3.3 的 IndexedDB 历史记录不会自动迁移到 1.0 的存储结构。
+:::
 
 ### features
 
@@ -449,7 +479,7 @@ const selectors = [
 ### getConversation
 
 - **返回类型**: `UseConversationReturn`
-- **说明**: 获取会话管理对象，用于访问会话管理相关的 API，包括会话列表、当前会话、保存/加载会话等功能。
+- **说明**: 获取官方 `useConversation` 返回的会话管理对象。
 
 ```vue
 <template>
@@ -467,10 +497,15 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // 获取所有会话列表
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
 // 获取当前会话ID
-const currentId = computed(() => conversation.value?.state.currentId);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
+
+// 当前消息引擎及请求状态
+const messageEngine = computed(() => conversation.value?.activeConversation.value?.engine);
+const requestState = computed(() => messageEngine.value?.requestState.value);
+const isProcessing = computed(() => messageEngine.value?.isProcessing.value ?? false);
 </script>
 ```
 
@@ -630,19 +665,18 @@ interface IRolesConfig {
 interface BubbleRoleConfig {
   placement?: 'start' | 'end'; // 消息气泡位置
   avatar?: Component | VNode; // 头像组件
-  maxWidth?: string; // 消息最大宽度
-  slots?: {
-    // 插槽配置,可用于配置底部工具栏
-    trailer?: Component<IBubbleSlotsProps>;
-  };
+  shape?: 'corner' | 'rounded' | 'none'; // 气泡形状
+  hidden?: boolean; // 是否隐藏该角色
 }
 
 interface IBubbleSlotsProps {
-  index: number;
-  bubbleProps: BubbleProps;
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+  contentIndex?: number;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
-  chatMessage: IMessage
+  messageEngine: UseMessageReturn;
+  conversation: UseConversationReturn;
 }
 ```
 
@@ -660,9 +694,7 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-`BubbleProps` 、`UseConversationReturn`、 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
-
-查看 [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) 定义与用法
+`UseConversationReturn`、 `UseMessageReturn` 详情可以查看 TinyRobot 相关文档
 
 查看 [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) 定义与用法
 

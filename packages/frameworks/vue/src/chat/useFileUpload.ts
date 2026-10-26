@@ -1,4 +1,4 @@
-import type { UserItem } from '@opentiny/tiny-robot';
+import type { TemplateItem } from '@opentiny/tiny-robot';
 import { TinyNotify } from '@opentiny/vue';
 import { ref, type Ref } from 'vue';
 import { type FileMeta, processFiles, serializeFile } from './file-upload/file-utils';
@@ -8,7 +8,7 @@ import { useI18n } from './i18n';
 const useFileUpload = () => {
   const { t } = useI18n();
   const attachments = ref<FileMeta[]>([]);
-  const templateData = ref<UserItem[]>([]);
+  const templateData = ref<TemplateItem[]>([]);
 
   /**
    * 处理附件并生成消息内容
@@ -59,7 +59,7 @@ const useFileUpload = () => {
 
     for (const file of files) {
       templateData.value.push({
-        type: 'template',
+        type: 'block',
         content: file.name || '',
       });
       try {
@@ -86,7 +86,7 @@ const useFileUpload = () => {
    * @param templateData 当前的 templateData
    * @returns 更新后的 templateData
    */
-  const handleTemplateEdit = (templateData: Ref<UserItem[]>, inputMessage: string): UserItem[] => {
+  const handleTemplateEdit = (templateData: Ref<TemplateItem[]>, inputMessage: string): TemplateItem[] => {
     const newValue = templateData.value;
 
     // 收集 attachments 中所有的文件名
@@ -96,7 +96,7 @@ const useFileUpload = () => {
 
     // 过滤掉那些 content 在 attachments 中找不到的 template
     const updatedTemplateData = newValue.filter((item) => {
-      if (item.type === 'template') {
+      if (item.type === 'block') {
         // 如果 template 的 content 在 attachments 中找不到，删除这个 template
         const content = (item as any).content;
         return content && attachmentFileNames.has(content);
@@ -107,7 +107,7 @@ const useFileUpload = () => {
     // 收集更新后 templateData 中所有的 template 文件名
     const templateFileNames = new Set<string>(
       updatedTemplateData
-        .filter((item) => item.type === 'template' && (item as any).content)
+        .filter((item) => item.type === 'block' && (item as any).content)
         .map((item) => (item as any).content as string),
     );
 

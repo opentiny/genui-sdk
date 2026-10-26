@@ -1,4 +1,4 @@
-import type { Conversation } from '@opentiny/tiny-robot-kit';
+import type { ChatMessage, ConversationInfo } from '@opentiny/tiny-robot-kit';
 import { t } from '../../../i18n';
 import { formatDate, generateId } from '../../../utils';
 
@@ -15,7 +15,11 @@ const generateUniqueId = (existingIds: Set<string>) => {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
-const normalizeConversation = (value: unknown): Conversation | null => {
+export interface TransferConversation extends ConversationInfo {
+  messages: ChatMessage[];
+}
+
+const normalizeConversation = (value: unknown): TransferConversation | null => {
   if (!isRecord(value) || !Array.isArray(value.messages)) {
     return null;
   }
@@ -30,12 +34,15 @@ const normalizeConversation = (value: unknown): Conversation | null => {
     title: typeof value.title === 'string' && value.title.trim() ? value.title : t('conversation.newConversation'),
     createdAt: typeof value.createdAt === 'number' ? value.createdAt : Date.now(),
     updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : Date.now(),
-    messages: value.messages as Conversation['messages'],
+    messages: value.messages as ChatMessage[],
     metadata: isRecord(value.metadata) ? value.metadata : {},
   };
 };
 
-export const downloadConversations = (conversations: Conversation[], downloadBasenamePrefix = 'genui-history') => {
+export const downloadConversations = (
+  conversations: TransferConversation[],
+  downloadBasenamePrefix = 'genui-history',
+) => {
   const blob = new Blob([JSON.stringify(conversations, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
@@ -58,12 +65,12 @@ export const parseConversationFile = async (file: File) => {
     throw new Error(t('history.mustBeArray'));
   }
 
-  return rawData.map(normalizeConversation).filter(Boolean) as Conversation[];
+  return rawData.map(normalizeConversation).filter(Boolean) as TransferConversation[];
 };
 
 export const reconcileImportedConversationIds = (
-  existingConversations: Conversation[],
-  importedConversations: Conversation[],
+  existingConversations: ConversationInfo[],
+  importedConversations: TransferConversation[],
 ) => {
   const existingIds = new Set(existingConversations.map((conversation) => conversation.id));
 

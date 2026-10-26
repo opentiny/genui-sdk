@@ -7,284 +7,147 @@ This guide explains how to use the `GenuiRenderer` component with a chat UI such
 :::: tabs
 == npm
 ```bash
-npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+npm install @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot@1.0.0-rc.1 @opentiny/tiny-robot-kit@1.0.0-rc.1 dompurify@^3.3.1 markdown-it@^14.1.0
 ```
 == pnpm
 ```bash
-pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+pnpm add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot@1.0.0-rc.1 @opentiny/tiny-robot-kit@1.0.0-rc.1 dompurify@^3.3.1 markdown-it@^14.1.0
 ```
 == yarn
 ```bash
-yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot @opentiny/tiny-robot-kit
+yarn add @opentiny/genui-sdk-vue @opentiny/genui-sdk-materials-vue-opentiny-vue @opentiny/tiny-robot@1.0.0-rc.1 @opentiny/tiny-robot-kit@1.0.0-rc.1 dompurify@^3.3.1 markdown-it@^14.1.0
 ```
 ::::
 
 ## Basic usage
 
-First, create a custom model provider to handle streaming responses. Below is the full `CustomModelProvider` implementation:
+First, create a TinyRobot 1.0 `responseProvider`. It receives the standard request body and
+abort signal and returns an async iterator:
 
 ````typescript
-import {
-  BaseModelProvider,
-  type ChatCompletionRequest,
-  type ChatCompletionStreamResponse,
-} from '@opentiny/tiny-robot-kit';
-import { PatternExtractor, type IChatMessage } from '@opentiny/genui-sdk-core';
-import { reactive } from 'vue';
+import type { ResponseProvider } from '@opentiny/tiny-robot-kit';
 
-function appendMarkdown(content: string, chatMessage: IChatMessage) {
-  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'markdown') {
-    lastMessage.content += content;
-  } else {
-    chatMessage.messages.push({ type: 'markdown', content });
-  }
-}
-
-function appendSchemaCard(content: string, chatMessage: IChatMessage) {
-  const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-  if (lastMessage?.type === 'schema-card') {
-    lastMessage.content += content;
-  } else {
-    chatMessage.messages.push({ type: 'schema-card', content });
-  }
-}
-
-// Split markdown and schemaJson with PatternExtractor (default SchemaJsonPattern)
-function useSchemaStream() {
-  let chatMessageRef: IChatMessage | null = null;
-
-  const patternExtractor = new PatternExtractor({
-    onNormalWrite: (value) => {
-      if (!chatMessageRef) return;
-      chatMessageRef.content += value;
-      appendMarkdown(value, chatMessageRef);
-    },
-    onHandledWrite: (value) => {
-      if (!chatMessageRef) return;
-      chatMessageRef.content += value;
-      appendSchemaCard(value, chatMessageRef);
-    },
+export const responseProvider: ResponseProvider = async (request, signal) => {
+  const response = await fetch('https://your-chat-backend/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messages: request.messages, model: 'deepseek-v3.2', stream: true }),
+    signal,
   });
+  if (!response.ok || !response.body) throw new Error(`HTTP ${response.status}`);
 
-  const handleSchemaStream = (content: string, chatMessage: IChatMessage) => {
-    if (!content || typeof content !== 'string') return;
-    chatMessageRef = chatMessage;
-    patternExtractor.handleContent(content);
-  };
-
-  return { handleSchemaStream };
-}
-
-export class CustomModelProvider extends BaseModelProvider {
-  constructor(private url: string) {
-    super({ provider: 'custom' });
-  }
-
-  async chatStream(
-    request: ChatCompletionRequest,
-    handler: {
-      onData: (data: ChatCompletionStreamResponse) => void;
-      onDone: () => void;
-      onError: (error: any) => void;
-    },
-  ) {
-    const { onDone, onData } = handler;
-    let response: Response;
-
-    try {
-      response = await fetch(this.url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: request.messages,
-          model: 'deepseek-v3.2',
-          stream: true,
-        }),
-        signal: request.options?.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      onDone({ type: 'error', error } as any);
-      return;
-    }
-
+  return (async function* () {
     const reader = response.body!.getReader();
-    const decoder = new TextDecoder('utf-8');
+    const decoder = new TextDecoder();
     let buffer = '';
-    const { handleSchemaStream } = useSchemaStream();
-
-    const chatMessage = reactive<IChatMessage>({
-      role: 'assistant',
-      content: '',
-      messages: [],
-    });
-    onData(chatMessage as any);
-
-    while (true) {
+    while (!signal.aborted) {
       const { done, value } = await reader.read();
-      if (done) break;
-
+      if (done) return;
       buffer += decoder.decode(value, { stream: true });
-
-      while (true) {
-        const lineEnd = buffer.indexOf('\n');
-        if (lineEnd === -1) break;
-
-        const line = buffer.slice(0, lineEnd).trim();
-        buffer = buffer.slice(lineEnd + 1);
-
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          if (data === '[DONE]') {
-            onDone();
-            return;
-          }
-
-          try {
-            const chunk = JSON.parse(data);
-            const delta = chunk.choices?.[0]?.delta;
-            const content = delta?.content;
-
-            if (content) {
-              handleSchemaStream(content, chatMessage);
-              const lastMessage = chatMessage.messages[chatMessage.messages.length - 1];
-              if (lastMessage && lastMessage.type === 'schema-card' && !lastMessage.id) {
-                // Demo only: use Math.random as key
-                lastMessage.id = Math.random().toString(36).substring(2, 15);
-              }
-              onData(chatMessage as any);
-            }
-          } catch (e) {
-            console.error('Parse error:', e);
-          }
-        }
+      const lines = buffer.split('\n');
+      buffer = lines.pop() ?? '';
+      for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+        const data = line.slice(5).trim();
+        if (data === '[DONE]') return;
+        yield JSON.parse(data);
       }
     }
-
-    onDone();
-  }
-}
+  })();
+};
 ````
 
 Then use it in your component:
 
 ```vue
 <script setup lang="ts">
-import { ref, computed, h, reactive } from 'vue';
+import { computed, defineComponent, h, markRaw, ref } from 'vue';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
 import { GenuiConfigProvider } from '@opentiny/genui-sdk-vue/config-provider';
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
-import { TrBubbleList, TrSender, TrBubbleProvider, BubbleMarkdownContentRenderer } from '@opentiny/tiny-robot';
-import { AIClient, GeneratingStatus, STATUS } from '@opentiny/tiny-robot-kit';
-import type { ChatMessage } from '@opentiny/tiny-robot-kit';
+import {
+  BubbleRenderers,
+  TrBubbleList,
+  TrSender,
+  TrBubbleProvider,
+  type BubbleMessage,
+} from '@opentiny/tiny-robot';
+import { useMessage, type ChatMessage } from '@opentiny/tiny-robot-kit';
+import { PatternExtractor } from '@opentiny/genui-sdk-core';
 import '@opentiny/tiny-robot/dist/style.css';
 import type { IRendererProps } from '@opentiny/genui-sdk-vue';
-import { CustomModelProvider } from './CustomModelProvider'; // Import CustomModelProvider defined above
+import { responseProvider } from './responseProvider';
 
-const client = new AIClient({
-  provider: 'custom',
-  providerImplementation: new CustomModelProvider('https://your-chat-backend/api'),
-});
-
-const messages = ref<ChatMessage[]>([]);
 const inputMessage = ref('');
-const messageState = reactive({ status: STATUS.INIT, errorMsg: null });
-let abortController: AbortController | null = null;
-
-const generating = computed(() => GeneratingStatus.includes(messageState.status));
-
-const sendMessage = async (messageContent: string) => {
-  if (generating.value || !messageContent.trim()) return;
-
-  const userMessage: ChatMessage = {
-    role: 'user',
-    content: messageContent,
-  };
-  messages.value.push(userMessage);
-
-  messageState.status = STATUS.PROCESSING;
-  abortController = new AbortController();
-
-  try {
-    await client.chatStream(
-      {
-        messages: messages.value,
-        options: { stream: true, signal: abortController.signal },
-      },
-      {
-        onData: (data: any) => {
-          messageState.status = STATUS.STREAMING;
-          const lastMessage = messages.value[messages.value.length - 1];
-          if (lastMessage?.role === 'assistant') {
-            Object.assign(lastMessage, data);
-          } else {
-            messages.value.push(data);
-          }
+const extractors = new Map<string, PatternExtractor>();
+const messageEngine = useMessage({
+  responseProvider,
+  onCompletionChunk({ turnId, currentMessage, chunk }) {
+    const extractorKey = turnId ?? 'default';
+    const message = currentMessage as ChatMessage & { messages?: any[] };
+    message.messages ??= [];
+    let extractor = extractors.get(extractorKey);
+    if (!extractor) {
+      extractor = new PatternExtractor({
+        onNormalWrite(value) {
+          const last = message.messages!.at(-1);
+          if (last?.type === 'markdown') last.content += value;
+          else message.messages!.push({ type: 'markdown', content: value });
         },
-        onError: (error: any) => {
-          messageState.status = STATUS.ERROR;
-          messageState.errorMsg = error;
-          console.error('Stream error:', error);
+        onHandledWrite(value) {
+          const last = message.messages!.at(-1);
+          if (last?.type === 'schema-card') last.content += value;
+          else message.messages!.push({ type: 'schema-card', id: crypto.randomUUID(), content: value });
         },
-        onDone: () => {
-          messageState.status = STATUS.FINISHED;
-        },
-      },
-    );
-  } catch (error) {
-    messageState.status = STATUS.ERROR;
-  } finally {
-    abortController = null;
-  }
-};
-
-const abortRequest = () => {
-  abortController?.abort();
-  messageState.status = STATUS.FINISHED;
-};
-
-const markdownRenderer = new BubbleMarkdownContentRenderer({
-  defaultAttrs: { class: 'markdown-content' },
+      });
+      extractors.set(extractorKey, extractor);
+    }
+    extractor.handleContent(String((chunk as any).choices?.[0]?.delta?.content ?? ''));
+  },
 });
+const messages = messageEngine.messages;
+const requestState = messageEngine.requestState;
+const generating = messageEngine.isProcessing;
+const sendMessage = (content: string) => messageEngine.send({ role: 'user', content });
+const abortRequest = () => messageEngine.abortRequest();
 
 const lastSchemaCardId = computed(() => {
   const lastMsg = messages.value[messages.value.length - 1];
   if (lastMsg?.role !== 'assistant') return null;
-  const items = (lastMsg as any).messages;
-  if (!Array.isArray(items) || !items.length) return null;
-  const schemaCard = items.find((m: any) => m.type === 'schema-card');
+  const contents = (lastMsg as any).messages;
+  if (!Array.isArray(contents) || !contents.length) return null;
+  const schemaCard = contents.find((m: any) => m.type === 'schema-card');
   return schemaCard?.id || null;
 });
 
-const messageRenderers = {
-  'schema-card': (props: IRendererProps) => {
-    return h(
-      'div',
-      {},
-      h(GenuiRenderer, {
-        ...props,
-        generating: lastSchemaCardId.value === props.id ? generating.value : false,
-      }),
-    );
+const SchemaRenderer = markRaw(defineComponent({
+  props: { message: Object, contentIndex: Number },
+  setup(props) {
+    return () => {
+      const item = (props.message as any).messages?.[props.contentIndex ?? 0] as IRendererProps;
+      return h(GenuiRenderer, {
+        ...item,
+        generating: lastSchemaCardId.value === item.id && generating.value,
+      });
+    };
   },
-  markdown: markdownRenderer,
-};
+}));
+const contentRendererMatches = [
+  { find: (_message: BubbleMessage, content: any) => content.type === 'schema-card', renderer: SchemaRenderer },
+  { find: (_message: BubbleMessage, content: any) => content.type === 'markdown', renderer: BubbleRenderers.Markdown },
+];
+const contentResolver = (message: BubbleMessage) => (message as any).messages ?? message.content;
 
 const handleSubmit = (content: string) => {
   sendMessage(content);
 };
 
-const roles = {
+const roleConfigs = {
   user: {
     placement: 'end',
   },
   assistant: {
     placement: 'start',
-    customContentField: 'messages',
   },
 };
 </script>
@@ -293,15 +156,15 @@ const roles = {
   <GenuiConfigProvider :materials="materials">
     <div class="chat-container">
       <div class="messages-container">
-        <TrBubbleProvider :content-renderers="messageRenderers">
-          <TrBubbleList :items="messages" :roles="roles" />
+        <TrBubbleProvider :content-renderer-matches="contentRendererMatches">
+          <TrBubbleList :messages="messages" :role-configs="roleConfigs" :content-resolver="contentResolver" />
         </TrBubbleProvider>
       </div>
       <div class="sender-container">
         <TrSender
           v-model="inputMessage"
           :loading="generating"
-          :placeholder="generating ? 'Thinking...' : 'Enter a message'"
+          :placeholder="requestState === 'processing' ? 'Thinking...' : 'Enter a message'"
           @submit="handleSubmit"
           @cancel="abortRequest"
         />
@@ -332,6 +195,11 @@ const roles = {
 }
 </style>
 ```
+
+For multiple conversations and persistence, use the official `useConversation` and obtain the
+`useMessage` engine from `activeConversation.value?.engine`. Auto-save is enabled by default;
+`GenuiChat` can disable it at runtime through `autoSaveMessages`. IndexedDB history written by
+TinyRobot 0.3.3 is not migrated automatically to 1.0.
 
 ::: tip GenuiRenderer
 For drop-in compatibility without configuring materials, see [GenuiRenderer Legacy compatibility](../components/renderer#compatibility-component-genuilegacyrenderer).

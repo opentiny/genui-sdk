@@ -305,7 +305,7 @@ import CustomThinkComponent from './custom-think-component.vue';
 
 See [Chat - Custom Thinking Process](../examples/chat/thinking-process) for detailed usage and component prop types.
 
-### roles
+### roleConfigs
 
 - **Type**: `IRolesConfig`
 - **Required**: No
@@ -313,23 +313,54 @@ See [Chat - Custom Thinking Process](../examples/chat/thinking-process) for deta
 
 ```vue
 <template>
-  <GenuiChat :url="url" :roles="rolesConfig" />
+  <GenuiChat :url="url" :roleConfigs="roleConfigs" />
 </template>
 
 <script setup>
-const rolesConfig = {
+const roleConfigs = {
   user: {
-    maxWidth: '80%',
-    // Other TinyRobot BubbleRoleConfig options
+    placement: 'end',
+    shape: 'rounded',
   },
   assistant: {
-    maxWidth: '100%',
+    placement: 'start',
+    shape: 'none',
   },
 };
 </script>
 ```
 
 See [Chat - Custom Footer Toolbar](../examples/chat/footer-toolbar) for detailed usage.
+
+### bubbleSlots
+
+- **Type**: `IBubbleSlots`
+- **Required**: No
+- **Description**: Configures the `prefix`, `suffix`, `after`, and `content-footer` bubble slots.
+
+You can also use template slots with the same names. Slot props include `messages`,
+`messageIndexes`, `role`, `isFinished`, `messageEngine`, and `conversation`.
+
+### autoSaveMessages
+
+- **Type**: `boolean`
+- **Default**: `true`
+- **Description**: Controls automatic message persistence and can be changed at runtime.
+  Conversations and messages are saved automatically by default.
+
+```vue
+<GenuiChat :url="url" :auto-save-messages="autoSaveEnabled" />
+```
+
+### conversationStorage
+
+- **Type**: `ConversationStorageStrategy`
+- **Required**: No
+- **Description**: Supplies a custom TinyRobot 1.0 conversation storage strategy.
+
+::: warning Upgrade note
+IndexedDB history created by TinyRobot 0.3.3 is not migrated automatically to the 1.0 storage format.
+:::
 
 ### features
 
@@ -449,7 +480,7 @@ See [Renderer - Buffer Fields](../examples/renderer/required-complete-field-sele
 ### getConversation
 
 - **Return type**: `UseConversationReturn`
-- **Description**: Returns the conversation manager object for session APIs, including conversation list, current session, save/load, and related features.
+- **Description**: Returns the conversation manager created by the official `useConversation`.
 
 ```vue
 <template>
@@ -467,10 +498,15 @@ const chatRef = ref<InstanceType<typeof GenuiChat> | null>(null);
 const conversation = computed(() => chatRef.value?.getConversation());
 
 // Get all conversations
-const conversations = computed(() => conversation.value?.state.conversations || []);
+const conversations = computed(() => conversation.value?.conversations.value || []);
 
 // Get current conversation id
-const currentId = computed(() => conversation.value?.state.currentId);
+const currentId = computed(() => conversation.value?.activeConversationId.value);
+
+// Active message engine and request state
+const messageEngine = computed(() => conversation.value?.activeConversation.value?.engine);
+const requestState = computed(() => messageEngine.value?.requestState.value);
+const isProcessing = computed(() => messageEngine.value?.isProcessing.value ?? false);
 </script>
 ```
 
@@ -608,19 +644,18 @@ interface IRolesConfig {
 interface BubbleRoleConfig {
   placement?: 'start' | 'end'; // Message bubble placement
   avatar?: Component | VNode; // Avatar component
-  maxWidth?: string; // Maximum message width
-  slots?: {
-    // Slot config, e.g. footer toolbar
-    trailer?: Component<IBubbleSlotsProps>;
-  };
+  shape?: 'corner' | 'rounded' | 'none'; // Bubble shape
+  hidden?: boolean; // Whether this role is hidden
 }
 
 interface IBubbleSlotsProps {
-  index: number;
-  bubbleProps: BubbleProps;
+  messages: BubbleMessage[];
+  messageIndexes: number[];
+  role?: string;
+  contentIndex?: number;
   isFinished: boolean;
-  messageManager: UseMessageReturn;
-  chatMessage: IMessage
+  messageEngine: UseMessageReturn;
+  conversation: UseConversationReturn;
 }
 ```
 
@@ -638,9 +673,7 @@ type CustomFetch = (
 ) => Promise<Response> | Response;
 ```
 
-See TinyRobot documentation for `BubbleProps`, `UseConversationReturn`, and `UseMessageReturn`.
-
-See [BubbleProps](https://docs.opentiny.design/tiny-robot/guide/bubble.html#props) for definitions and usage.
+See TinyRobot documentation for `UseConversationReturn` and `UseMessageReturn`.
 
 See [UseConversationReturn](https://docs.opentiny.design/tiny-robot/guide/conversation.html#%E8%BF%94%E5%9B%9E%E5%80%BC) for definitions and usage.
 

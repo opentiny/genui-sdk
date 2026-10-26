@@ -151,7 +151,9 @@ watch(
 <template>
   <div class="schema-render-container" :class="{ dark: genuiConfig?.colorScheme === 'dark' }">
     <slot name="header" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
-    <SchemaRenderer :schema="displaySchema" ref="rendererInstance" />
+    <div class="schema-render-surface">
+      <SchemaRenderer :schema="displaySchema" ref="rendererInstance" />
+    </div>
     <slot name="footer" :schema="schema" :isError="isError" :isFinished="!props.generating"></slot>
   </div>
 </template>

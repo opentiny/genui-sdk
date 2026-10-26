@@ -1,6 +1,11 @@
 <template>
   <GenuiConfigProvider :materials="materials">
-    <GenuiChat :url="url" :roles="roles" :messages="messages" />
+    <GenuiChat :url="url" :messages="messages">
+      <template #after="slotProps">
+        <AssistantFooter v-if="slotProps.role === 'assistant'" v-bind="slotProps" />
+        <UserFooter v-else-if="slotProps.role === 'user'" v-bind="slotProps" />
+      </template>
+    </GenuiChat>
   </GenuiConfigProvider>
 </template>
 
@@ -11,19 +16,6 @@ import AssistantFooter from './components/assistant-footer.vue';
 import UserFooter from './components/user-footer.vue';
 
 const url = 'https://your-chat-backend/api';
-
-const roles = {
-  assistant: {
-    slots: {
-      trailer: AssistantFooter,
-    },
-  },
-  user: {
-    slots: {
-      trailer: UserFooter,
-    },
-  },
-};
 
 const messages = [
   {
