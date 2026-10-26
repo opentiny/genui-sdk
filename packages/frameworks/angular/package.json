@@ -10,7 +10,8 @@
   "scripts": {
     "ng": "ng",
     "start:server": "pnpm -F @opentiny/genui-sdk-server dev",
-    "start": "concurrently \"pnpm start:server\" \"ng serve renderer-use\"",
+    "start:app": "ng serve renderer-use",
+    "start": "concurrently \"pnpm start:server\" \"pnpm start:app\"",
     "prebuild": "ng build --project genui-renderer",
     "build": "ng build --project renderer-use",
     "prebuild:lib": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer-ng build:lib && pnpm -F @opentiny/genui-sdk-materials-angular-opentiny-ng build",
@@ -22,7 +23,8 @@
     "postbuild:element": "tsx ./projects/renderer-element/scripts/postbuild.ts",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "preview": "concurrently \"pnpm start:server\" \"ng serve --configuration production\""
+    "preview:app": "ng serve --configuration production  --project renderer-use",
+    "preview": "concurrently \"pnpm start:server\" \"pnpm preview:app\""
   },
   "prettier": {
     "printWidth": 100,
@@ -64,6 +66,7 @@
     "@angular/material": "^20.2.14",
     "ng-devui": "^18.0.0",
     "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-angular-angular-material": "workspace:*",
     "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "@opentiny/tiny-schema-renderer-ng": "workspace:*",
     "@types/jasmine": "~5.1.0",

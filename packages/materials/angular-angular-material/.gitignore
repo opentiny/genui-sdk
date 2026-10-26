@@ -1,0 +1,2 @@
+# ng-packagr 中间构建产物（最终发布物由 vite 二次打包输出到 /dist）
+/dist-ng
