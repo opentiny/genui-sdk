@@ -370,6 +370,16 @@ function handleFeatureClick(index: number) {
       font-size: var(--font-size-body-sm-sm);
       font-weight: 400;
       line-height: var(--line-height-body-xs);
+
+      @media (max-width: 1440px) {
+        font-size: 14px;
+      }
+
+      @media (max-width: 1024px) {
+        font-size: 10px
+      }
+
+
     }
   }
 
@@ -402,7 +412,9 @@ function handleFeatureClick(index: number) {
     }
   }
 
-  @media (max-width: 1280px) {
+  
+
+  @media (max-width: 1440px) {
     &-feature {
       padding: 5%;
     }
