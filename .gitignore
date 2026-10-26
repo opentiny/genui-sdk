@@ -165,6 +165,3 @@ packages/integrate/skill/genui-integration/references/materials/*-*.md
 
 # skill-generator CLI local preview; regenerate with generate:skill
 packages/skill-generator/example/
-
-# 本地非流式测试 demo
-sites/nonstream-demo/
