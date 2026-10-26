@@ -223,9 +223,7 @@ function watchReasoningEnd(context: any) {
 }
 
 // —— 以下四个切面处理函数同时服务两条路径 ——
-// 流式：handler 逐块传入 delta；非流式：complete 把完整 message 一次性包成一个 delta 传入。
-// 因此它们不关心「一次还是多次」，只关心「这一段内容是什么」。
-
+// 非流式：complete 把完整 message 一次性包成一个 delta 传入。
 function applyReasoning(delta: IStreamDelta, context: any) {
   context.reasoningMessage = onReasoningContent(delta.reasoning_content, delta, context.chatMessage);
   if (!context.handleReasoning) {
@@ -378,9 +376,6 @@ export const defaultResponseHandlers: IResponseHandler<IStreamData>[] = [
       applyContent(getStreamDelta(data), context);
       return true;
     },
-    // 非流式：整段内容一次性交给同一个 patternExtractor。
-    // 注意 extractor 由 start 创建，这里只负责喂内容 —— playground 会在 start 之后覆盖
-    // patternExtractor.onHandledWrite（按 framework 决定 schema-card 类型），所以不能在 complete 里重建它。
     complete: (data: ICompleteData, context: any) => {
       if (!data.content) return;
       applyContent({ content: data.content }, context);
