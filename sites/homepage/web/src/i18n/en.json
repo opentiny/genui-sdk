@@ -139,7 +139,8 @@
     },
     "description": "Turn AI replies from “plain text” into “clickable interfaces” — charts, forms, and mini apps render right in the conversation, and your actions flow into the next turn",
     "copy": "Copy",
-    "copied": "Copied"
+    "copied": "Copied",
+    "copyFail": "Copy failed"
   },
   "link": {
     "title": "Try OpenTiny GenUI now",

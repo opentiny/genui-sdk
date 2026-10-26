@@ -99,6 +99,7 @@ function handleFeatureClick(index: number) {
             :class="{ 'home-builder-content-left-image--active': activeIndex === index }"
             :src="feature.image"
             :alt="feature.title"
+            :aria-hidden="activeIndex !== index"
             loading="lazy"
           />
         </div>

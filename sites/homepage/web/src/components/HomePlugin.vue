@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
 import dshIcon from '@/assets/home_plugin_dsh_icon.svg';
 import crossIcon from '@/assets/home_plugin_cross_icon.svg';
 import deepseekIcon from '@/assets/home_plugin_deepseek_icon.svg';
@@ -10,11 +10,23 @@ import { t } from '@/i18n';
 
 const installCommand = 'dsh plugin --profile web add dsh-genui';
 
-const copied = ref(false);
-let copiedTimer: ReturnType<typeof setTimeout> | undefined;
+type CopyState = 'idle' | 'success' | 'fail';
+
+const copyState = ref<CopyState>('idle');
+let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
 
 onUnmounted(() => {
-  clearTimeout(copiedTimer);
+  clearTimeout(copyFeedbackTimer);
+});
+
+const copyLabel = computed(() => {
+  if (copyState.value === 'success') {
+    return t('plugin.copied');
+  }
+  if (copyState.value === 'fail') {
+    return t('plugin.copyFail');
+  }
+  return t('plugin.copy');
 });
 
 const copyText = (text: string) => {
@@ -41,16 +53,15 @@ const handleCopyCommand = async () => {
     succeeded = copyText(installCommand);
   }
 
-  if (!succeeded) {
-    return;
-  }
+  copyState.value = succeeded ? 'success' : 'fail';
 
-  copied.value = true;
-
-  clearTimeout(copiedTimer);
-  copiedTimer = setTimeout(() => {
-    copied.value = false;
-  }, 500);
+  clearTimeout(copyFeedbackTimer);
+  copyFeedbackTimer = setTimeout(
+    () => {
+      copyState.value = 'idle';
+    },
+    succeeded ? 500 : 2000,
+  );
 };
 </script>
 
@@ -74,11 +85,11 @@ const handleCopyCommand = async () => {
       </div>
       <div class="home-plugin-content-copy">
         <span>{{ installCommand }}</span>
-        <div class="home-plugin-content-copy-btn" @click="handleCopyCommand">
-          <img :src="copied ? checkmarkIcon : copyIcon" alt="">
-          <span>{{ copied ? t('plugin.copied') : t('plugin.copy') }}</span>
+        <button type="button" class="home-plugin-content-copy-btn" @click="handleCopyCommand">
+          <img :src="copyState === 'success' ? checkmarkIcon : copyIcon" alt="">
+          <span aria-live="polite">{{ copyLabel }}</span>
           <img class="home-plugin-content-copy-btn-preload" :src="checkmarkIcon" alt="" aria-hidden="true">
-        </div>
+        </button>
       </div>
     </div>
   </section>
@@ -178,6 +189,9 @@ const handleCopyCommand = async () => {
         margin-right: 4px;
         width: 84px;
         height: 40px;
+        border: none;
+        padding: 0;
+        font-family: inherit;
         border-radius: 6px;
         background-color: rgba(195, 31, 59, 1);
         cursor: pointer;

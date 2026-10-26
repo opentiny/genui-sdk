@@ -159,7 +159,7 @@ const handleCopyPrompt = async () => {
       <div class="home-guide-skill-descript">{{ t('guide.skill.description') }}</div>
       <div class="home-guide-skill-content">
         <div class="home-guide-skill-prompt">{{ t('guide.skill.prompt') }}</div>
-        <div class="home-guide-skill-copy" @click="handleCopyPrompt">
+        <button type="button" class="home-guide-skill-copy" @click="handleCopyPrompt">
           <span
             class="home-guide-skill-copy-icon"
             :class="{ 'home-guide-skill-copy-icon--success': copyState === 'success' }"
@@ -169,7 +169,7 @@ const handleCopyPrompt = async () => {
             aria-hidden="true"
           ></span>
           <span class="home-guide-skill-copy-text">{{ copyLabel }}</span>
-        </div>
+        </button>
       </div>
     </div>
     
@@ -413,6 +413,9 @@ const handleCopyPrompt = async () => {
         margin-left: auto;
         width: 142px;
         height: 36px;
+        border: none;
+        padding: 0;
+        font-family: inherit;
         border-radius: 62px;
         background-color: rgba(25, 25, 25, 1);
         cursor: pointer;

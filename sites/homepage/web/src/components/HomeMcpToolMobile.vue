@@ -43,7 +43,7 @@ const abilityThreePartContent = {
     </div>
     <div :class="`${wrapperClass}-subtitle genui-subtitle`">{{ t('ability.mcp.subtitle') }}</div>
     <div :class="`${wrapperClass}-content`">
-      <img :src="genuiAbility4" alt="genui-ability-3"/>
+      <img :src="genuiAbility4" alt="genui-ability-4"/>
       <div :class="`${wrapperClass}-content-container`">
         <div :class="`${wrapperClass}-content-title`">{{ abilityThreePartContent.title }}</div>
         <div :class="`${wrapperClass}-content-subtitle`">{{ abilityThreePartContent.subtitle }}</div>
