@@ -320,6 +320,18 @@ const { videoSrc: flowVideoSrc } = useLazyVideo(flowVideoRef, searchTicketVideo)
       }
     }
 
+    @media (min-width: 1400px) and (max-width: 1600px) {
+      &-subtitle {
+        font-size: 42px;
+      }
+    }
+
+    @media (min-width: 1281px) and (max-width: 1366px) {
+      &-subtitle {
+        font-size: 40px;
+      }
+    }
+
     @media (min-width: 1920px) {
       padding: 140px 232px;
 
