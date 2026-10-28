@@ -159,10 +159,7 @@ jobs:
       - name: Setup Node.js for trusted publishing
         uses: actions/setup-node@v4
         with:
-          node-version: '24'
-
-      - name: Install OIDC-capable npm CLI
-        run: npm install --global npm@11.6.0
+          node-version: '>=24.19.0 <25'
 
       - name: Publish Core to npm
         if: github.event.inputs.publish_optional_packages == 'true'

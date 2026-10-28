@@ -2,11 +2,6 @@
   "name": "@opentiny/genui-sdk-skill-generator",
   "version": "0.0.1",
   "description": "Generate Agent skills from genPrompt output",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/opentiny/genui-sdk",
-    "directory": "packages/skill-generator"
-  },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
