@@ -3,6 +3,7 @@ export * from './json-patch-validate';
 export * from './json-patch-format';
 export * from './schema-path';
 export * from './schema-id-generator';
+export * from './compress-context';
 export * from './context-message';
 export * from './conversation-schema';
 export * from './schema-input-ids';
