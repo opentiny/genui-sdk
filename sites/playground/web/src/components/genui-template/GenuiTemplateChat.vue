@@ -238,7 +238,9 @@ const handleRefresh = ({ index }: { index: number }) => {
   }
 
   messages.value = messages.value.slice(0, index);
-  resetContextCompress();
+  if (isCompressing.value) {
+    resetContextCompress();
+  }
 
   const lastUserMessage = getLastUserMessage(messages.value);
   if (lastUserMessage && !lastUserMessage.messageId) {

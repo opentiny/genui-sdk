@@ -1,9 +1,40 @@
 import type { ChatMessage } from '@opentiny/tiny-robot-kit';
 import { templateChat } from '../template-chat-api';
 import type { LLMConfig } from '../chat.types';
+import { locale } from '../../../i18n';
 import { isContextCompressMessage } from './context-message';
 
-const COMPRESS_PROMPT_PREFIX = (summaryText: string, turnsText: string) => `【任务】
+const COMPRESS_PROMPT_PREFIX_EN = (summaryText: string, turnsText: string) => `[Task]
+Merge the [Current Summary] and the [New Conversation] into an updated summary that will serve as the only context for the page-generation model going forward.
+
+The [Current Summary] is the product of the previous compression: keep only the information that is still valid, replace stale content with newer corrections/feedback, and drop items that are no longer relevant; do not copy it verbatim.
+The [New Conversation] is the content added since the last compression: merge the key information that affects future work into the summary.
+
+Summary length: information fidelity comes first — retain the user's goals, confirmed decisions, and precise key values such as component IDs and field names, then drop pleasantries and information recoverable from context; aim for a soft cap of about 500 words, relaxing when the information volume is large; do not output the word count.
+
+Organize the summary into the following 8 structured sections (omit empty sections entirely, do not output empty headings):
+1. Background Context: project type, tech stack, and the user's overall goal;
+2. Key Decisions: important technical choices and their reasons, architecture and design considerations, and the chosen solutions;
+3. Tool Usage Log: major tool/file operations, Schema changes, and other key actions, keeping complete and accurate information;
+4. User Intent Evolution: how the requirements evolved, priority adjustments, and newly added feature requests;
+5. Execution Results: successfully completed tasks, the UI/Schema changes produced and their reasons, and verification results;
+6. Errors and Solutions: the types of problems encountered, how they were handled, and lessons learned from rollbacks and alternative approaches;
+7. Open Issues: currently pending problems, known limitations and constraints, and items to handle later;
+8. Future Plans: the next action steps, and the names, IDs, or key values that will be used in later conversations.
+
+Notes:
+- Only record uncertainties related to the current task; assistant guesses must not be escalated into user requirements;
+- Do not mark anything as completed without evidence;
+- Do not fabricate information that does not exist in the history.
+
+[Current Summary]
+${summaryText || '(none)'}
+
+[New Conversation]
+${turnsText}
+`;
+
+const COMPRESS_PROMPT_PREFIX_ZH = (summaryText: string, turnsText: string) => `【任务】
 将「当前摘要」与「新增对话」合并，更新为一版新的会话摘要，作为后续页面生成模型继续工作的唯一上下文。
 
 「当前摘要」是上一次压缩的产物：仅保留其中仍有效的信息，较新的纠正/反馈替换旧内容，已失效的事项直接删除；不要逐字抄录。
@@ -32,6 +63,11 @@ ${summaryText || '（无）'}
 【新增对话】
 ${turnsText}
 `;
+
+const COMPRESS_PROMPT_PREFIX = (lang: string, summaryText: string, turnsText: string) =>
+  lang === 'en_US'
+    ? COMPRESS_PROMPT_PREFIX_EN(summaryText, turnsText)
+    : COMPRESS_PROMPT_PREFIX_ZH(summaryText, turnsText);
 
 const SCHEMA_HISTORY_ITEM_TYPES = new Set(['json-patch', 'schema-manual']);
 const SKIP_HISTORY_ITEM_TYPES = new Set(['loading-text']);
@@ -96,11 +132,12 @@ export async function compressConversationHistory(options: {
 
   const response = await templateChat({
     url,
-    messages: [{ role: 'user', content: COMPRESS_PROMPT_PREFIX(summaryText, turnsText) }],
+    messages: [{ role: 'user', content: COMPRESS_PROMPT_PREFIX(locale.value, summaryText, turnsText) }],
     signal: signal ?? new AbortController().signal,
     templateSchema,
     llmConfig,
     mode: 'compress',
+    lang: locale.value,
   });
 
   if (!response.body) {

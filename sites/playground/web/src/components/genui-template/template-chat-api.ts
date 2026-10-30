@@ -28,8 +28,9 @@ export const templateChat = async (chatOptions: {
   templateSchema: any;
   llmConfig: LLMConfig;
   mode?: TemplateChatMode;
+  lang?: string;
 }) => {
-  const { url, messages, signal, templateSchema, llmConfig, mode } = chatOptions;
+  const { url, messages, signal, templateSchema, llmConfig, mode, lang } = chatOptions;
 
   const requestMetadata = {
     playground: JSON.stringify(llmConfig),
@@ -46,6 +47,7 @@ export const templateChat = async (chatOptions: {
       metadata: requestMetadata,
       templateSchema: templateSchema,
       ...(mode && mode !== 'generate' ? { mode } : {}),
+      ...(lang ? { lang } : {}),
     }),
   };
 
