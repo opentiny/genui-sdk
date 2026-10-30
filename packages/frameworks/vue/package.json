@@ -58,7 +58,21 @@
     "./code-generator": {
       "types": "./dist/code-generator.d.ts",
       "import": "./dist/code-generator.js"
+    },
+    "./web-component": {
+      "types": "./dist/web-component/genui-config-renderer.d.ts",
+      "import": "./dist/web-component/genui-config-renderer.js"
+    },
+    "./web-component/*": {
+      "import": "./dist/web-component/*.js"
+    },
+    "./web-component-factory": {
+      "types": "./dist/web-component-factory.d.ts",
+      "import": "./dist/web-component-factory.js"
     }
+  },
+  "bin": {
+    "genui-build-web-component": "./dist/web-component-cli.js"
   },
   "type": "module",
   "files": [
@@ -67,11 +81,12 @@
   ],
   "scripts": {
     "build": "vite build",
+    "build:web-component:deps": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build",
+    "prebuild:web-component": "pnpm build:web-component:deps",
     "build:web-component": "vite build --config vite.config.web-component.ts",
-    "postbuild:web-component": "tsx scripts/transform-style.ts",
     "analyze": "vite build --mode analyze",
     "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build && pnpm -F @opentiny/tiny-schema-renderer build",
-    "build:lib:npm": "pnpm build",
+    "build:lib:npm": "pnpm build && pnpm build:web-component",
     "test": "vitest"
   },
   "dependencies": {
@@ -89,18 +104,17 @@
     "prettier": "^3.5.0",
     "uuid": "^11.1.0",
     "vue": "^3.5.13",
-    "@opentiny/tiny-engine-builtin-component": "^2.6.0"
+    "@opentiny/tiny-engine-builtin-component": "^2.6.0",
+    "vite": "^6.0.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite-plugin-css-injected-by-js": "^3.5.2"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.0",
     "@opentiny/tiny-schema-renderer": "workspace:*",
     "rollup-plugin-visualizer": "^6.0.5",
-    "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-plugin-dts": "^4.0.0",
     "typescript": "^5.9.3",
-    "tsx": "^4.8.1",
     "escape-string-regexp": "^1.0.5",
-    "vite": "^6.0.0",
     "vitest": "^3.0.0"
   }
 }
