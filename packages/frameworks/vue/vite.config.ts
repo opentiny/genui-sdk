@@ -45,7 +45,7 @@ export default defineConfig(({ mode }) => {
           'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
           'code-generator': path.resolve(__dirname, './src/code-generator/index.ts'),
           'web-component-factory': path.resolve(__dirname, './src/web-component/factories.ts'),
-          'web-component-cli': path.resolve(__dirname, './src/web-component-cli/bin.ts'),
+          'genui-sdk-vue-build': path.resolve(__dirname, './src/web-component-cli/bin.ts'),
         },
         formats: ['es'],
         fileName: (_, entryName) => `${entryName}.js`,

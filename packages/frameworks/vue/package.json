@@ -72,7 +72,7 @@
     }
   },
   "bin": {
-    "genui-build-web-component": "./dist/web-component-cli.js"
+    "genui-sdk-vue-build": "./dist/genui-sdk-vue-build.js"
   },
   "type": "module",
   "files": [

@@ -25,7 +25,7 @@ export function createUsage(): string {
   return `使用指定物料构建 GenUI Web Component（自定义元素）。
 
 用法：
-  genui-build-web-component --materials <物料> [options]
+  genui-sdk-vue-build --materials <物料> [options]
 
 选项：
   -m, --materials <来源>  物料来源，支持 npm 包名（如 my-materials 或 @scope/my-materials）
@@ -40,9 +40,9 @@ export function createUsage(): string {
   -v, --version           显示版本号
 
 示例：
-  genui-build-web-component -m @opentiny/genui-sdk-materials-vue-element-plus
-  genui-build-web-component -m ./my-materials -o dist/web-component -f my-renderer
-  genui-build-web-component -m @scope/materials-a -m ./materials-b --tag my-genui`;
+  genui-sdk-vue-build -m @opentiny/genui-sdk-materials-vue-element-plus
+  genui-sdk-vue-build -m ./my-materials -o dist/web-component -f my-renderer
+  genui-sdk-vue-build -m @scope/materials-a -m ./materials-b --tag my-genui`;
 }
 
 const readValue = (argv: string[], index: number, flag: string): string => {

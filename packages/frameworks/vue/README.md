@@ -94,14 +94,14 @@ The materials' `themeFactory` wraps the content in a scoped theme root and injec
 
 ### Build a renderer with your own materials
 
-The package also publishes a CLI, `genui-build-web-component`, which bundles the renderer together with any Vue materials library you point it at.
+The package also publishes a CLI, `genui-sdk-vue-build`, which bundles the renderer together with any Vue materials library you point it at.
 
 ```bash
 # npm package (defaults to the package's /materials entry)
-npx genui-build-web-component --materials @scope/my-materials
+npx genui-sdk-vue-build --materials @scope/my-materials
 
 # local path: a file, or a directory with package.json / dist/materials.js / src/index.ts
-npx genui-build-web-component --materials ./my-materials --tag my-genui --out-dir dist/web-component
+npx genui-sdk-vue-build --materials ./my-materials --tag my-genui --out-dir dist/web-component
 ```
 
 | Option                         | Description                                                                                                 |
