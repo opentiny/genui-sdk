@@ -1,11 +1,11 @@
 import { materialKey, materials } from 'virtual:genui-materials';
 import { createGenuiConfigRendererElement } from './create-element';
+import { defineGenuiConfigRenderer, GENUI_CONFIG_RENDERER_TAG } from './register';
 
 export { createGenuiConfigRendererElement };
 export { materialKey, materials };
 export { parseBooleanAttribute, parseJsonAttribute } from './parse-attribute';
-
-export const GENUI_CONFIG_RENDERER_TAG = 'genui-config-renderer';
+export { GENUI_CONFIG_RENDERER_TAG };
 
 export const GenuiConfigRendererElement = createGenuiConfigRendererElement(materials);
 
@@ -13,13 +13,7 @@ export function registerGenuiConfigRenderer(
   tagName = GENUI_CONFIG_RENDERER_TAG,
   element: CustomElementConstructor = GenuiConfigRendererElement,
 ) {
-  if (typeof customElements === 'undefined') return;
-  if (customElements.get(tagName)) return;
-  try {
-    customElements.define(tagName, element);
-  } catch (error) {
-    console.error(`Failed to define custom element ${tagName}:`, error);
-  }
+  defineGenuiConfigRenderer(tagName, element);
 }
 
 if (typeof window !== 'undefined') {

@@ -64,7 +64,11 @@ The bundle auto-registers the `<genui-config-renderer>` tag and exports `GenuiCo
 `theme` and `locale` are attributes on the element itself — there is nothing to wrap:
 
 ```html
-<genui-config-renderer theme="dark" locale="zh_CN" content='{"componentName":"Page","children":[]}'></genui-config-renderer>
+<genui-config-renderer
+  theme="dark"
+  locale="zh_CN"
+  content='{"componentName":"Page","children":[]}'
+></genui-config-renderer>
 ```
 
 ```js
@@ -103,9 +107,9 @@ npx genui-build-web-component --materials ./my-materials --tag my-genui --out-di
 | Option                         | Description                                                                                                 |
 | ------------------------------ | ----------------------------------------------------------------------------------------------------------- |
 | `-m, --materials <source>`     | npm package name or local path. Repeatable (or comma separated); several sources are merged into one bundle |
-| `-t, --tag <name>`             | Tag the bundle auto-registers (default `genui-config-renderer`)                                               |
+| `-t, --tag <name>`             | Tag the bundle auto-registers (default `genui-config-renderer`)                                             |
 | `-o, --out-dir <dir>`          | Output directory (default `dist/web-component`)                                                             |
-| `-f, --file-name <name>`       | Output file name without extension (default `genui-config-renderer`)                                          |
+| `-f, --file-name <name>`       | Output file name without extension (default `genui-config-renderer`)                                        |
 | `--no-minify` / `--sourcemap`  | Disable minification / emit a source map                                                                    |
 | `-h, --help` / `-v, --version` | Help / version                                                                                              |
 
