@@ -73,7 +73,7 @@ const props = defineProps({
       white-space: nowrap;
 
       @media (min-width: 1281px) and (max-width: 1440px) {
-        font-size: 13px;
+        font-size: 12px;
       }
     }
   }
