@@ -6871,6 +6871,10 @@
                                     "value": "enum"
                                   },
                                   {
+                                    "label": "下拉",
+                                    "value": "select"
+                                  },
+                                  {
                                     "label": "文件大小",
                                     "value": "filesize"
                                   },
