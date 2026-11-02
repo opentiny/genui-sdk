@@ -4,7 +4,9 @@ import type { SelectedSchemaNode } from '../schema-node-selection';
 import { normalizeManualEditInputs } from './schema-input-ids';
 import { t } from '../../../i18n';
 
-/** 压缩摘要消息类型（不展示在气泡列表，仅用于持久化与裁剪上下文） */
+/**
+ * 压缩摘要消息类型（不展示在气泡列表，仅用于持久化与裁剪上下文）
+ */
 export const CONTEXT_COMPRESS_MESSAGE_TYPE = 'context-compress' as const;
 
 export type ContextCompressMessageType = typeof CONTEXT_COMPRESS_MESSAGE_TYPE;
