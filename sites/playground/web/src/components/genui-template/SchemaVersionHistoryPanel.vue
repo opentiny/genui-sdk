@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { TinyButton } from '@opentiny/vue';
+import { AutoTip } from '@opentiny/vue-directive';
 import { iconClose } from '@opentiny/vue-icon';
 import type { PlaygroundColorTheme } from './composables/use-monaco-playground-theme';
 import { useTemplateContext } from './composables';
@@ -12,6 +13,7 @@ const props = defineProps<{
 }>();
 
 const TinyCloseIcon = iconClose();
+const vAutoTip = AutoTip;
 const { versionControl, ui, actions } = useTemplateContext();
 
 const isDark = computed(() => props.theme === 'dark');
@@ -94,7 +96,10 @@ const toggleGroup = (label: string) => {
               >
                 <div class="schema-version-history-panel__item-main">
                   <div class="schema-version-history-panel__item-time">{{ entry.timeLabel }}</div>
-                  <div class="schema-version-history-panel__item-desc">{{ entry.description }}</div>
+                  <div
+                    class="schema-version-history-panel__item-desc"
+                    v-auto-tip="{ content: entry.description }"
+                  >{{ entry.description }}</div>
                 </div>
               </button>
             </div>
@@ -275,7 +280,9 @@ const toggleGroup = (label: string) => {
     font-size: 13px;
     line-height: 20px;
     color: #808080;
-    word-break: break-word;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__empty {

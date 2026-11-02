@@ -1,6 +1,6 @@
 # Angular 集成指南
 
-本指南涵盖将 GenUI SDK 集成到 Angular 项目中的选型与 skill 增量说明。安装与逐步操作见在线文档。
+本指南涵盖将 GenUI SDK 集成到 Angular 项目中的选型与 skill 增量说明。安装与逐步操作见 `./guides/` 下的同步指南。
 
 ## 支持的 Angular 版本
 
@@ -11,7 +11,7 @@
 
 - **SDK 包**：安装 `@opentiny/genui-sdk-angular` 与官方物料包 `@opentiny/genui-sdk-materials-angular-opentiny-ng`；引入 `@opentiny/ng-themes` 样式；通过 `GenuiConfigProvider` 注入 `materials`
 - **运行时前置（使用官方 OpenTiny NG 物料时）**：`zone.js`、`provideZoneChangeDetection()`、`provideAnimations()` — 归因于 `@opentiny/ng` 物料库，而非 Angular 集成的通用要求
-- **详细步骤**：[安装与配置](https://docs.opentiny.design/genui-sdk/guide/angular/install)
+- **详细步骤**：[安装与配置](./guides/angular-install.md)
 
 ## Angular 21+ 说明
 
@@ -20,54 +20,20 @@ Angular 21 起框架推荐 zoneless 变更检测，并以 `animate.enter` / `ani
 - 官方物料 `@opentiny/ng` 仍依赖 Zone.js 与 legacy `provideAnimations()`
 - schema renderer 流式更新通过 `NgZone.run()` 触发变更检测，zoneless 路径未验证
 
-在 `@opentiny/ng` 完成 zoneless / 原生动画迁移前，即使项目使用 Angular 21，也应继续按 [安装文档](https://docs.opentiny.design/genui-sdk/guide/angular/install) 的 legacy 配置（Zone.js + `provideAnimations()`）。**不要**用 `animate.enter` / `animate.leave` 或 zoneless provider 替代当前物料所需的 legacy 动画与变更检测配置。
+在 `@opentiny/ng` 完成 zoneless / 原生动画迁移前，即使项目使用 Angular 21，也应继续按[安装文档](./guides/angular-install.md)的 legacy 配置（Zone.js + `provideAnimations()`）。**不要**用 `animate.enter` / `animate.leave` 或 zoneless provider 替代当前物料所需的 legacy 动画与变更检测配置。
 
 若使用自定义物料且完全不依赖 `@opentiny/ng`，Zone / Animation 要求可能减轻；但 GenUI renderer 的流式更新路径在 zoneless 下仍为**实验性、非官方支持**。
 
 ## 集成：GenuiRenderer
 
 - **概况**：Angular 暂无 `GenuiChat`，使用 `GenuiRenderer` 渲染生成式 UI；流式请求须在 `metadata.tinygenui` 中指定 `framework: 'Angular'`，以便后端返回 Angular 兼容 schema。
-- **详细步骤**：[使用 Renderer 组件](https://docs.opentiny.design/genui-sdk/guide/angular/start-with-renderer)
+- **详细步骤**：[使用 Renderer 组件](./guides/angular-start-with-renderer.md)
 
 ## 自定义动作
 
-定义可由生成式 UI 触发的动作。LLM 控制的 URL 不可信——打开链接前须配置 origin 白名单。
+定义可由生成式 UI 触发的动作。
 
 ```typescript
-const ALLOWED_NAVIGATION_ORIGINS = [
-  'https://opentiny.design',
-  'https://docs.opentiny.design',
-];
-
-function resolveAllowedNavigationUrl(rawUrl: unknown): URL | null {
-  if (typeof rawUrl !== 'string' || !rawUrl.trim()) return null;
-  let parsed: URL;
-  try {
-    parsed = new URL(rawUrl, window.location.origin);
-  } catch {
-    return null;
-  }
-  if (!['http:', 'https:'].includes(parsed.protocol)) return null;
-  const sameOrigin = parsed.origin === window.location.origin;
-  const allowlisted = ALLOWED_NAVIGATION_ORIGINS.includes(parsed.origin);
-  return sameOrigin || allowlisted ? parsed : null;
-}
-
-function openAllowedPage(rawUrl: unknown, rawTarget: unknown = '_self'): void {
-  const url = resolveAllowedNavigationUrl(rawUrl);
-  if (!url) {
-    console.warn('[openPage] blocked disallowed navigation target:', rawUrl);
-    return;
-  }
-  const target = rawTarget === '_blank' ? '_blank' : '_self';
-  const crossOrigin = url.origin !== window.location.origin;
-  if (target === '_blank' || crossOrigin) {
-    window.open(url.href, '_blank', 'noopener,noreferrer');
-    return;
-  }
-  window.location.assign(url.href);
-}
-
 import { Component } from '@angular/core';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
@@ -89,8 +55,8 @@ export class GenuiExample {
   
   customActions = {
     'openPage': {
-      execute: (params: { url?: string; target?: string }) => {
-        openAllowedPage(params.url, params.target);
+      execute: (params: any, context: any) => {
+        window.open(params.url, params.target || '_self');
       },
     },
     'showNotification': {
@@ -104,7 +70,33 @@ export class GenuiExample {
 
 ## 兼容组件
 
-v1.3.0 起须通过 `GenuiConfigProvider` 注入物料；从更早版本升级且希望零配置迁移时，可使用内置默认物料的 `GenuiLegacyRenderer`。详见 [GenuiRenderer Legacy 兼容说明](https://docs.opentiny.design/genui-sdk/components/angular/renderer#兼容组件-genuilegacyrenderer)。
+v1.3.0 起须通过 `GenuiConfigProvider` 注入物料。从更早版本升级且希望零配置迁移时，可使用 `GenuiLegacyRenderer`——内置 OpenTiny NG 默认物料，无需额外安装物料包：
+
+```ts
+import { Component } from '@angular/core';
+import { GenuiLegacyRenderer } from '@opentiny/genui-sdk-angular';
+
+@Component({
+  imports: [GenuiLegacyRenderer],
+  template: `
+    <genui-legacy-renderer [content]="schemaContent"></genui-legacy-renderer>
+  `,
+})
+export class GenuiExample {
+  schemaContent = {
+    componentName: 'Page',
+    children: [
+      {
+        componentName: 'TiButton',
+        props: { color: 'primary' },
+        children: [{ componentName: 'Text', props: { text: '提交' } }],
+      },
+    ],
+  };
+}
+```
+
+其余 Input、输出与 `GenuiRenderer` 一致（见[组件 API 文档](./guides/component-angular-renderer.md)）。Legacy 组件仅用于旧项目迁移，新项目应使用官方物料包 + `GenuiConfigProvider`。
 
 ## 与 Vue 的主要区别
 
@@ -168,7 +160,7 @@ body: JSON.stringify({
 
 ## 下一步
 
-- 了解 [自定义组件](../examples/angular/renderer/custom-components.md)
+- 了解 [自定义组件](../examples/renderer/custom-components.md)（Vue 示例，`customComponents` 机制与 Angular 一致）
 - 探索 [自定义动作](../examples/angular/renderer/custom-actions.md)
 - 配置 [必需完整字段选择器](../examples/angular/renderer/required-complete-field-selectors.md)
 - 查看 [状态管理示例](../examples/angular/renderer/state.md)

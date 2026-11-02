@@ -1,4 +1,9 @@
 import type { IGenPromptCustomConfig } from '@opentiny/genui-sdk-core';
+import type { BenchProtocol } from '../protocol/types';
+import type { BenchmarkFailureTag } from '../utils/health';
+import type { BenchmarkSuite } from '../suites';
+
+export type { BenchProtocol };
 
 // 内置基准任务定义（id + messages），与落盘后的 {@link LlmBenchmarkSample} 区分
 export interface LlmBenchmarkSampleCase {
@@ -39,7 +44,8 @@ export interface LlmBenchmarkMessageFinishInfo {
 }
 
 /**
- * 生成样本时 system prompt 的配置（与 chat-genui 对齐：genPrompt + specificPrompt + userAppendPrompt）。
+ * 生成样本时 system prompt 的配置。
+ * 核心为 SDK `genPrompt` 的 `tgCustomConfig`；`specificPrompt` / `userAppendPrompt` 为基准可选附加约束。
  */
 export type LlmBenchmarkPromptConfig = {
   tgCustomConfig: IGenPromptCustomConfig;
@@ -60,6 +66,8 @@ export type LlmBenchmarkJudgeConfig = {
 };
 
 export interface LlmBenchmarkRunOptions {
+  /** 固化运行语义的预设套件。显式 BENCH_* 配置优先于套件值。 */
+  suite?: BenchmarkSuite;
   /**
    * 单模型 id，或与 `models` 并存时作为「主模型」元数据（报告、Judge 默认、HTML 展示等）。
    * 可与 `models` 同时省略其一：至少须提供 **非空的 `models`** 或 **非空的 `model`**；入口会在生成前校验。
@@ -67,8 +75,19 @@ export interface LlmBenchmarkRunOptions {
   model?: string;
   /** 多模型对比：非空时按列表逐模型生成/过滤报告；与 `model` 可只配置其一或并存（并存时常用于指定主模型 + 多模型列表）。 */
   models?: string[];
-  // 与 chat-genui 一致，决定 genPrompt 使用的物料 materialsMeta（Vue / Angular）
+  /**
+   * 协议：`genui`（默认，schemaJson + genRootSchema）或 `a2ui`（`<a2ui-json>` + AJV）。
+   * 可用 `BENCH_PROTOCOL` 覆盖。`a2ui` 下忽略 framework / materialsVariant。
+   */
+  protocol?: BenchProtocol;
+  // 决定 genPrompt 使用的物料包 materialsMeta（Vue / Angular）
   framework?: 'Vue' | 'Angular';
+  /**
+   * 选用 materials 包导出的哪份 meta：`standard` → `materialsMeta`；Vue `mini` → `miniMaterialsMeta`。
+   * 勿与样本字段 `promptVariant`（full / plain 空 system 对照）混淆。
+   * 可用 `BENCH_MATERIALS_VARIANT` 覆盖。
+   */
+  materialsVariant?: 'mini' | 'standard';
   // 单场景过滤（兼容旧配置）
   scenario?: string;
   // 多场景过滤（优先级高于 scenario）
@@ -83,6 +102,19 @@ export interface LlmBenchmarkRunOptions {
   // 样本生成并发度（最小为 1）
   concurrency?: number;
   /**
+   * 按模型限制请求速率；key 为模型 id，value 表示一个滑动窗口内允许的请求数。
+   * 例如 `{ "DeepSeek-V3.2": { "requests": 5, "windowMs": 60000 } }`。
+   */
+  modelRateLimit?: Record<string, { requests: number; windowMs: number }>;
+  /** 生成请求重试配置；仅对限流、超时和临时网络/服务错误重试。 */
+  retry?: {
+    maxAttempts?: number;
+    /** 指数退避起始等待；高级配置，默认不需要改。 */
+    baseDelayMs?: number;
+    /** 指数退避最大等待；高级配置，默认不需要改。 */
+    maxDelayMs?: number;
+  };
+  /**
    * 单次 `streamText` 请求超时（毫秒），超时中止流并记入 `errorMessage`，避免挂死占满 worker。
    * 默认见 `benchmark.config`；可用 `BENCH_STREAM_TIMEOUT_MS` 覆盖，`0` 表示不限制。
    */
@@ -91,6 +123,8 @@ export interface LlmBenchmarkRunOptions {
   promptConfig: LlmBenchmarkPromptConfig;
   // 报告阶段是否启用 LLM-as-a-Judge 质量评估
   llmJudge?: LlmBenchmarkJudgeConfig;
+  /** 任一端到端协议失败时将进程退出码设为 1。 */
+  failOnProtocol?: boolean;
   /**
    * 是否额外生成对照样本：`system` 为空，仅 user messages（纯文本输出），与完整 system 并列落盘。
    */
@@ -120,6 +154,8 @@ export interface LlmBenchmarkRunOptions {
   // 本次 benchmark 入口开始时间戳（ms）。
   // 若提供，报告阶段会计算「从开始执行到报告输出」总耗时。
   benchmarkStartedAtMs?: number;
+  /** 生成阶段计算的运行元数据；报告阶段原样写入 report.json。 */
+  runMetadata?: Record<string, unknown>;
 }
 
 export interface LlmBenchmarkResultItem {
@@ -129,19 +165,24 @@ export interface LlmBenchmarkResultItem {
   runIndex?: number;
   // 样本生成时使用的模型 id（如 deepseek-chat）
   model?: string;
-  // 自请求开始到首个可观测输出 token 的毫秒数；未观测到则缺省。
+  /** 首个流式 chunk（text 或 reasoning）耗时。旧字段 `ttftMs` 兼容映射到此口径。 */
+  firstChunkMs?: number;
+  /** 首个用户可见 text chunk 耗时。 */
+  firstTextMs?: number;
+  // 自请求开始到首个可观测输出 token 的毫秒数；未观测到则缺省。历史兼容字段。
   ttftMs?: number;
   totalMs: number;
-  // 自请求开始到输出中首次出现 `TinyCard` 节点（`"componentName": "TinyCard"`）的毫秒数；未出现则缺省。
+  // 自请求开始到输出中首次「可观测 UI」的毫秒数（genui：wrapperComponent；a2ui：`"id":"root"`）；未出现则缺省。
   firstObservableComponentMs?: number;
   // TPOT（Time Per Output Token），ms/token；completionTokens≤1 时无意义，省略
   tpotMs?: number;
-  /** 是否解析到 ```schemaJson``` 代码块 */
+  /** 是否抽到协议块（字段名历史兼容：genui=schemaJson 围栏；a2ui=`<a2ui-json>`） */
   isSchemaJsonBlockFound: boolean;
-  /** 块内字符串是否为合法 JSON */
+  /** 块内是否为合法 JSON（genui 可经 repairJson；a2ui 严格 parse） */
   isSchemaJsonValidJson: boolean;
+  /** 是否通过当前协议校验（genui=genRootSchema；a2ui=AJV）。plain 样本跳过校验，固定为 false 且 `schemaValidationError=skipped_plain`，不计入通过率 */
   isSchemaJsonValidAgainstProtocol: boolean;
-  // schema 协议校验失败原因（如缺失字段路径）
+  // schema 协议校验失败原因（如缺失字段路径；plain 为 `skipped_plain`）
   schemaValidationError?: string;
   promptTokens: number;
   completionTokens: number;
@@ -149,6 +190,14 @@ export interface LlmBenchmarkResultItem {
   /** 生成 + Judge 合计 token（计费口径；未开 Judge 或未返回 usage 时等于 totalTokens） */
   benchTotalTokens: number;
   rawOutputChars: number;
+  /** 生成请求是否失败；失败样本保留在明细中，但默认不计入聚合性能与协议通过率。 */
+  requestFailed?: boolean;
+  failureTag?: BenchmarkFailureTag;
+  retryCount?: number;
+  retryWaitMs?: number;
+  rateLimitQueueWaitMs?: number;
+  lastRetryReason?: string;
+  rateLimited?: boolean;
   // LLM-as-a-Judge 分数（1~10）
   llmJudgeScore?: number;
   // LLM-as-a-Judge 给出的简要原因
@@ -170,6 +219,7 @@ export interface BenchmarkExcelDetailRow {
   model: string;
   scenario: string;
   runIndex: number;
+  failureTag: BenchmarkFailureTag | '';
   totalMs: number;
   /** 对应指标 TPOT（ms/token）；无则空单元格 */
   tpsMs: number | '';
@@ -184,6 +234,11 @@ export interface BenchmarkExcelDetailRow {
   /** Judge 请求输出 token（`LanguageModelUsage.outputTokens`） */
   llmJudgeOutputTokens: number | '';
   errorMessage: string;
+  retryCount: number | '';
+  retryWaitMs: number | '';
+  rateLimitQueueWaitMs: number | '';
+  lastRetryReason: string;
+  rateLimited: boolean | '';
   /** 原始：对照变体 */
   promptVariant: string;
   /** 原始：样本生成时间 ISO 字符串 */
@@ -196,15 +251,23 @@ export interface LlmBenchmarkSample {
   promptVariant?: 'full' | 'plain';
   runIndex?: number;
   model: string;
+  /** 生成时协议；缺省时报告阶段回退到运行配置 */
+  protocol?: BenchProtocol;
+  /** 生成时使用的框架；缺省时报告阶段回退到运行配置 */
+  framework?: 'Vue' | 'Angular';
+  /** 生成时使用的 materials 档位；缺省时报告阶段回退到运行配置 */
+  materialsVariant?: 'mini' | 'standard';
   messages: LlmBenchmarkMessage[];
   output: string;
   generatedAt: string;
   metrics: {
     /** 自请求开始到首 token 的毫秒数；未观测到则缺省。 */
+    firstChunkMs?: number;
+    firstTextMs?: number;
     ttftMs?: number;
     totalMs: number;
     /**
-     * 自请求开始到首次出现 `TinyCard` 的毫秒数（语义同 {@link LlmBenchmarkResultItem} 同名字段）。
+     * 自请求开始到首次可观测 UI 的毫秒数（语义同 {@link LlmBenchmarkResultItem} 同名字段）。
      * 旧版样本可能缺省；报告阶段按 0 处理。
      */
     firstObservableComponentMs?: number;
@@ -218,5 +281,10 @@ export interface LlmBenchmarkSample {
     promptCacheWriteTokens?: number;
     rawOutputChars: number;
     errorMessage?: string;
+    retryCount?: number;
+    retryWaitMs?: number;
+    rateLimitQueueWaitMs?: number;
+    lastRetryReason?: string;
+    rateLimited?: boolean;
   };
 }

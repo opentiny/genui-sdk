@@ -478,11 +478,12 @@ The data relationship between the two: the `bundle.json` in `meta` (the componen
 The whole "contract" of a materials package is expressed in two types, both defined in `@opentiny/genui-sdk-core`:
 
 ```typescript
-// Rendering side: component list + buffer fields + default value map
+// Rendering side: component list + buffer fields + default value map + theme
 interface IMaterials {
   components?: Record<string, unknown>;      // component name → runtime component
   requiredCompleteFieldSelectors?: string[]; // buffer field selectors
   defaultPropsMap?: Record<string, any>;     // component default props map
+  themeFactory?: MaterialsThemeFactory;      // materials theme factory (optional), see "Materials Theme"
   [key: string]: any;                        // allows extra fields
 }
 
@@ -498,7 +499,7 @@ interface IMaterialsMeta {
 
 What each one does:
 
-- **`IMaterials`**: consumed by the frontend renderer (injected via `GenuiConfigProvider`). When the renderer sees a `componentName` in a Schema, it looks up the corresponding Vue component in `components` to render it; `defaultPropsMap` fills in props that have not been generated yet during streaming; `requiredCompleteFieldSelectors` declares buffer fields that must be complete before rendering.
+- **`IMaterials`**: consumed by the frontend renderer (injected via `GenuiConfigProvider`). When the renderer sees a `componentName` in a Schema, it looks up the corresponding Vue component in `components` to render it; `defaultPropsMap` fills in props that have not been generated yet during streaming; `requiredCompleteFieldSelectors` declares buffer fields that must be complete before rendering; `themeFactory` is optional and declares the themes the materials support, letting the framework orchestrate them (see [Materials Theme](../components/materials/theme)).
 - **`IMaterialsMeta`**: consumed by the server-side `genPrompt`. `genPrompt` folds `materials` (the component protocols from `bundle.json`) and `whiteList` into the System Prompt, telling the LLM to use only the whitelisted components and to generate schemas following the component protocols.
 
 The two types align through **`componentName`**: the keys of `IMaterials.components` are the `componentName` values in the Schema, and they must match the `component` field of each component in `IMaterialsMeta` one-to-one.

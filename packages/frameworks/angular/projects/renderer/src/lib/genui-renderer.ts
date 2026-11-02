@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, ContentChild, Input, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
-import { DeltaPatcher, repairJson, RepairJsonState } from '@opentiny/genui-sdk-core';
+import { Component, ContentChild, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
+import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import {
   RendererMain as Renderer,
   Mapper,
@@ -9,7 +9,7 @@ import {
   ModuleRef,
   RENDERER_SETTINGS,
 } from '@opentiny/tiny-schema-renderer-ng';
-import { requiredCompleteFieldSelectors } from './config';
+import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { RendererSettingsService } from './renderer-settings.service';
 
 export const CARD_ID = Symbol('schema-card-id');
@@ -47,7 +47,7 @@ const errorSchema = {
   styleUrls: ['./genui-renderer.css'],
   exportAs: 'genuiRenderer',
 })
-export class GenuiRenderer implements OnInit {
+export class GenuiRenderer implements OnChanges, OnInit {
   @ViewChild('rendererInstance', { read: Renderer }) instance?: Renderer;
   @ContentChild('header') headerTemplate?: TemplateRef<any>;
   @ContentChild('footer') footerTemplate?: TemplateRef<any>;
@@ -64,6 +64,7 @@ export class GenuiRenderer implements OnInit {
   @Input() isJsonComplete?: boolean;
   public isError = false;
   protected deltaPatcher: DeltaPatcher | null = null;
+  protected activeRequiredCompleteFieldSelectorsText = '';
   protected schema: any = {};
   protected updateContextAndStateTimer: any | null = null;
 
@@ -85,16 +86,31 @@ export class GenuiRenderer implements OnInit {
   }
 
   ngOnInit() {
-    // TODO：待优化成provide inject
+    this.syncDeltaPatcher();
+  }
+
+  protected syncDeltaPatcher() {
+    const materials = this.rendererSettingsService.settings.materials as IMaterials | undefined;
+    const requiredCompleteFieldSelectors = [
+      ...internalRequiredCompleteFieldSelectors,
+      ...(materials?.requiredCompleteFieldSelectors || []),
+      ...(this.requiredCompleteFieldSelectors || []),
+    ];
+    const requiredCompleteFieldSelectorsText = JSON.stringify(requiredCompleteFieldSelectors);
+    if (this.deltaPatcher && requiredCompleteFieldSelectorsText === this.activeRequiredCompleteFieldSelectorsText) {
+      return;
+    }
+
+    this.activeRequiredCompleteFieldSelectorsText = requiredCompleteFieldSelectorsText;
     this.deltaPatcher = new DeltaPatcher({
-      requiredCompleteFieldSelectors: [
-        ...requiredCompleteFieldSelectors,
-        ...(this.requiredCompleteFieldSelectors || []),
-      ]
+      requiredCompleteFieldSelectors,
     });
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (!this.deltaPatcher || changes['requiredCompleteFieldSelectors']) {
+      this.syncDeltaPatcher();
+    }
     if (changes['content'] || changes['isJsonComplete']) {
       this.processNewContent(changes['content'].currentValue);
       // 异步等待渲染器初始化context后再设置

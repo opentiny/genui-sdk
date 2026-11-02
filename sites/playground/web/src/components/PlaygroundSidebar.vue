@@ -73,7 +73,10 @@ watch(
     if (mode === PlaygroundMode.Builder && activeName.value === 'history') {
       activeName.value = ENABLE_TEMPLATE ? 'template' : 'model';
     }
-    if (mode === PlaygroundMode.Builder && framework.value === 'Angular') {
+    if (
+      mode === PlaygroundMode.Builder &&
+      (framework.value === 'Angular' || framework.value === 'React')
+    ) {
       setFramework('Vue');
     }
   },

@@ -1,0 +1,15 @@
+.schema-render-container {
+  position: relative;
+}
+
+.schema-render-container:has(.loading-wrap):after {
+  display: none;
+}
+
+.schema-render-container .loading-wrap.loading-wrap {
+  display: none;
+}
+
+.schema-render-container .loading-wrap .loading {
+  display: none;
+}
