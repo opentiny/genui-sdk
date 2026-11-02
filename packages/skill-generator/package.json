@@ -6,7 +6,8 @@
   "homepage": "https://docs.opentiny.design/genui-sdk/components/skill-generator/api",
   "repository": {
     "type": "git",
-    "url": "https://github.com/opentiny/genui-sdk"
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/skill-generator"
   },
   "bugs": {
     "url": "https://github.com/opentiny/genui-sdk/issues"
