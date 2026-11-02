@@ -47,7 +47,7 @@ onMounted(() => {
   };
 
   if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(preloadImages);
+    window.requestIdleCallback(preloadImages, { timeout: 2000 });
   } else {
     setTimeout(preloadImages, 200);
   }
