@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { TinyButton } from '@opentiny/vue';
 import genuiBuilderDemoChat from '@/assets/genui_builder_demo_chat.svg?no-inline';
 import genuiBuilderDemoVersion from '@/assets/genui_builder_demo_version.svg?no-inline';
@@ -38,9 +38,6 @@ const features = computed(() => [
   },
 ]);
 
-const sectionRef = ref<HTMLElement | null>(null);
-let preloadObserver: IntersectionObserver | undefined;
-
 onMounted(() => {
   const preloadImages = () => {
     features.value.forEach(({ image }) => {
@@ -49,30 +46,11 @@ onMounted(() => {
     });
   };
 
-  if (!('IntersectionObserver' in window)) {
-    preloadImages();
-    return;
+  if (typeof window.requestIdleCallback === 'function') {
+    window.requestIdleCallback(preloadImages);
+  } else {
+    setTimeout(preloadImages, 200);
   }
-
-  preloadObserver = new IntersectionObserver(
-    ([entry]) => {
-      if (!entry.isIntersecting) {
-        return;
-      }
-      preloadImages();
-      preloadObserver?.disconnect();
-      preloadObserver = undefined;
-    },
-    { rootMargin: '600px 0px' },
-  );
-
-  if (sectionRef.value) {
-    preloadObserver.observe(sectionRef.value);
-  }
-});
-
-onBeforeUnmount(() => {
-  preloadObserver?.disconnect();
 });
 
 function handleFeatureClick(index: number) {
@@ -81,7 +59,7 @@ function handleFeatureClick(index: number) {
 </script>
 
 <template>
-  <section ref="sectionRef" :class="['home-builder-section', { 'home-builder-section-mobile': isMobile }]">
+  <section :class="['home-builder-section', { 'home-builder-section-mobile': isMobile }]">
     <div class="home-builder-section-header">
       <div class="home-builder-section-badge">
         <img class="home-builder-section-badge-icon" :src="genuiBuilderIconExperinment" alt="" />
