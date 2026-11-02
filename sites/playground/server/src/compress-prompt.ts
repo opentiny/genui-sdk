@@ -144,8 +144,18 @@ function serializeMessagesForCompress(messages: unknown[], lang: string): string
     .join('\n\n');
 }
 
+const SCHEMA_JSON_HINT_EN = `[schemaJson]
+Only for verifying the current page state; do not copy it into the output.`;
+
+const SCHEMA_JSON_HINT_ZH = `【schemaJson】
+仅用于核对页面现状，不要复制到输出。`;
+
 /** 无可压缩内容时抛错，由调用方返回 400 */
-export function buildCompressMessages(messages: unknown, lang: string): Array<{ role: 'user'; content: string }> {
+export function buildCompressMessages(
+  messages: unknown,
+  lang: string,
+  templateSchema: unknown,
+): Array<{ role: 'user'; content: string }> {
   const list = Array.isArray(messages) ? messages : [];
   const summaryMessage = list.find(isContextCompressMessage);
   const summaryContent = (summaryMessage as { content?: unknown } | undefined)?.content;
@@ -158,5 +168,10 @@ export function buildCompressMessages(messages: unknown, lang: string): Array<{ 
     throw new Error(lang === 'en_US' ? 'No compressible conversation content' : '没有可压缩的会话内容');
   }
 
-  return [{ role: 'user', content: COMPRESS_PROMPT_PREFIX(lang, summaryText, turnsText) }];
+  let content = COMPRESS_PROMPT_PREFIX(lang, summaryText, turnsText);
+  if (templateSchema) {
+    const hint = lang === 'en_US' ? SCHEMA_JSON_HINT_EN : SCHEMA_JSON_HINT_ZH;
+    content += `\n\n${hint}\n${JSON.stringify(templateSchema, null, 2)}`;
+  }
+  return [{ role: 'user', content }];
 }

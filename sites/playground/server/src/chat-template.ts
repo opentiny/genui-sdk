@@ -21,24 +21,8 @@ type StreamTextOptions = Parameters<typeof streamText>[0];
 const appendSchemaContext = (
   messages: ReturnType<typeof normalizeMessagesForAiSdk>,
   templateSchema: unknown,
-  compressMode: boolean,
-  lang: string,
 ) => {
   const schemaJson = JSON.stringify(templateSchema, null, 2);
-  if (compressMode) {
-    messages.push({
-      role: 'user',
-      content:
-        lang === 'en_US'
-          ? `[schemaJson]
-Only for verifying the current page state; do not copy it into the output.
-${schemaJson}`
-          : `【schemaJson】
-仅用于核对页面现状，不要复制到输出。
-${schemaJson}`,
-    });
-    return;
-  }
 
   const schemaJsonContext = `
           **当前 schemaJson（这是唯一可信的 ID 来源）：**
@@ -165,16 +149,16 @@ export const createChatTemplate = () => {
       let messages: ReturnType<typeof normalizeMessagesForAiSdk>;
       if (isCompressMode) {
         try {
-          messages = buildCompressMessages(body.messages, summaryLang);
+          messages = buildCompressMessages(body.messages, summaryLang, body.templateSchema);
         } catch (error) {
           res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
           return;
         }
       } else {
         messages = normalizeMessagesForAiSdk(body.messages);
-      }
-      if (body.templateSchema) {
-        appendSchemaContext(messages, body.templateSchema, isCompressMode, summaryLang);
+        if (body.templateSchema) {
+          appendSchemaContext(messages, body.templateSchema);
+        }
       }
       const providerOptions =
         provider?.name && extraBody && Object.keys(extraBody).length > 0
