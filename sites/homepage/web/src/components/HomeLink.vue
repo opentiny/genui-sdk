@@ -10,6 +10,8 @@ const { isMobile } = useMobile();
 const buttonSize = computed(() => {
   return isMobile.value ? 'medium' : 'large';
 });
+
+const hasPlayground = computed(() => Boolean(linkMap[LinkKey.Playground]));
 </script>
 
 <template>
@@ -24,11 +26,11 @@ const buttonSize = computed(() => {
         <div>{{ t('link.descriptionLine2') }}</div>
       </div>
       <div class="home-link-button-group">
-        <a v-if="linkMap[LinkKey.Playground]" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
+        <a v-if="hasPlayground" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button type="primary" :size="buttonSize" round>{{ t('link.tryNow') }}</tiny-button>
         </a>
         <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
-          <tiny-button :size="buttonSize" round ghost>{{ t('link.productDoc') }}</tiny-button>
+          <tiny-button :type="hasPlayground ? 'default' : 'primary'" :size="buttonSize" round :ghost="hasPlayground">{{ t('link.productDoc') }}</tiny-button>
         </a>
       </div>
     </div>
