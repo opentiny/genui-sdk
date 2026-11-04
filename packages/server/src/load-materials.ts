@@ -282,6 +282,8 @@ function normalizeMaterialsMeta(value: unknown, source: string, exportName: stri
     materials: meta.materials,
     examples: meta.examples,
     whiteList: Array.isArray(meta.whiteList) ? meta.whiteList : [],
+    // rules 会被 genPrompt 直接展开，非数组（如 JSON 里的 {}）会让请求阶段抛错
+    rules: Array.isArray(meta.rules) ? meta.rules : [],
   };
 }
 
