@@ -7,8 +7,6 @@ export type IToolCall = NonNullable<IStreamDelta['tool_calls']>[number];
 export interface INonStreamTiming {
   /** 发送请求 → 收到响应头 */
   ttfb: number;
-  /** 发送请求 → 响应体解析完成 */
-  durationMs: number;
 }
 
 const NON_STREAM_TIMING = Symbol('genui.non-stream-timing');
@@ -105,7 +103,7 @@ export const finishInfoParser = (json: ICompleteResponseJson) => {
     created: json.created,
     choices: [{ index: 0, finish_reason: json.choices?.[0]?.finish_reason ?? null }],
     usage: json.usage,
-    ...(timing ? { ttfb: timing.ttfb, durationMs: timing.durationMs } : {}),
+    ...(timing ? { ttfb: timing.ttfb } : {}),
   };
 };
 
