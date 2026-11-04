@@ -19,25 +19,6 @@ export interface IResponseHandler<T> {
   end?: (context: any) => void;
 }
 
-/** OpenAI chat.completion 的形状（非流式） */
-export interface ICompleteResponseJson {
-  id?: string;
-  object?: string;
-  model?: string;
-  created?: number;
-  choices?: {
-    index?: number;
-    message?: {
-      content?: string;
-      reasoning_content?: string;
-      tool_calls?: IStreamDelta['tool_calls'];
-      [field: string]: unknown;
-    };
-    finish_reason?: string | null;
-  }[];
-  usage?: IStreamData['usage'];
-}
-
 const getStreamDelta = (data: IStreamData): IStreamDelta => {
   return data.choices?.[0]?.delta ?? {};
 };

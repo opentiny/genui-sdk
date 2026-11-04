@@ -127,7 +127,7 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
     });
 
     chatOnReceiveData(response);
-    // 和streamChat对齐
+
     const onFinish = options.events?.onFinish;
     let defaultPrevented = false;
     if (onFinish) {

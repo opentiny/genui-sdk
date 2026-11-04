@@ -1,12 +1,11 @@
 import { type IChatMessage, type IMessageItem, type IStreamDelta } from '@opentiny/genui-sdk-core';
+import type { ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { v4 as uuidv4 } from 'uuid';
-import type { ICompleteResponseJson } from './response-handler';
 
 export type IToolCall = NonNullable<IStreamDelta['tool_calls']>[number];
 
 export interface INonStreamTiming {
-  /** 发送请求 → 收到响应头 */
-  ttfb: number;
+  waitMs: number;
 }
 
 const NON_STREAM_TIMING = Symbol('genui.non-stream-timing');
@@ -94,7 +93,7 @@ export const toolCallParser: IMessageParser = {
 };
 
 
-export const finishInfoParser = (json: ICompleteResponseJson) => {
+export const finishInfoParser = (json: ChatCompletionResponse) => {
   const timing = getNonStreamTiming(json);
   return {
     id: json.id,
@@ -103,7 +102,7 @@ export const finishInfoParser = (json: ICompleteResponseJson) => {
     created: json.created,
     choices: [{ index: 0, finish_reason: json.choices?.[0]?.finish_reason ?? null }],
     usage: json.usage,
-    ...(timing ? { ttfb: timing.ttfb } : {}),
+    ...(timing ? { waitMs: timing.waitMs } : {}),
   };
 };
 
@@ -151,7 +150,7 @@ export class MessageParser {
   private parsers: IMessageParser[] = [];
   private fields = new Map<string, (context: IParseContext) => unknown>();
 
-  finishInfo: (json: ICompleteResponseJson) => Record<string, unknown> | void = finishInfoParser;
+  finishInfo: (json: ChatCompletionResponse) => Record<string, unknown> | void = finishInfoParser;
 
   constructor(parsers: IMessageParser[] = [], fields: Array<[string, (context: IParseContext) => unknown]> = DEFAULT_FIELDS) {
     fields.forEach(([name, resolve]) => this.registerField(name, resolve));
@@ -281,21 +280,28 @@ export class MessageParser {
   }
 }
 
-export const defaultMessageParser = new MessageParser([
-  schemaJsonParser,
-  thinkParser,
-  reasoningContentParser,
-  toolCallParser,
-]);
+const DEFAULT_PARSERS: IMessageParser[] = [schemaJsonParser, thinkParser, reasoningContentParser, toolCallParser];
+
+export function createMessageParser(parsers: IMessageParser[] = []) {
+  const parser = new MessageParser([...DEFAULT_PARSERS]);
+  parsers.forEach((item) => {
+    if (parser.get(item.id)) {
+      parser.replace(item.id, item);
+    } else {
+      parser.register(item);
+    }
+  });
+  return parser;
+}
 
 export function parseCompleteResponse(
-  json: ICompleteResponseJson,
-  parser: MessageParser = defaultMessageParser,
+  json: ChatCompletionResponse,
+  parser: MessageParser = createMessageParser(),
 ): IChatMessage {
   const choice = json.choices?.[0];
-  const message = choice?.message ?? {};
+  const message = choice?.message;
   const finishReason = choice?.finish_reason ?? null;
-  const content = message.content ?? '';
+  const content = message?.content ?? '';
 
   // 生成到工具调用就停了时，content 是调工具前的开场白，排在 tool_calls 前
   const order =

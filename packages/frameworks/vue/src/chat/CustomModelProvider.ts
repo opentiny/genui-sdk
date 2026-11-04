@@ -92,7 +92,7 @@ export class CustomModelProvider extends BaseModelProvider {
     const response = await this.getData(request);
     const receivedAt = Date.now();
     const json = (await response.json()) as ChatCompletionResponse;
-    setNonStreamTiming(json, { ttfb: receivedAt - startedAt });
+    setNonStreamTiming(json, { waitMs: receivedAt - startedAt });
     return json;
   }
 
