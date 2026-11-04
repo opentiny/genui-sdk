@@ -263,27 +263,39 @@ function pickExport(moduleExports: unknown, exportName: string): unknown {
   return undefined;
 }
 
+/** Read a `string[]` field; `undefined` defaults to `[]`, any other shape is rejected. */
+function readStringArray(value: unknown, field: string, label: string): string[] {
+  if (value === undefined) {
+    return [];
+  }
+  if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
+    throw new Error(`${label} 的 ${field} 必须是字符串数组`);
+  }
+  return value;
+}
+
 /** Validate the metadata and fill in optional fields. */
 function normalizeMaterialsMeta(value: unknown, source: string, exportName: string): IMaterialsMeta {
+  const label = `物料 ${source} 的导出 ${exportName}`;
+
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
-    throw new Error(`物料 ${source} 的导出 ${exportName} 不是有效的物料元数据对象`);
+    throw new Error(`${label} 不是有效的物料元数据对象`);
   }
 
   const meta = value as Partial<IMaterialsMeta>;
   if (!Array.isArray(meta.materials)) {
-    throw new Error(`物料 ${source} 的导出 ${exportName} 缺少 materials 数组`);
+    throw new Error(`${label} 缺少 materials 数组`);
   }
   if (!Array.isArray(meta.examples)) {
-    throw new Error(`物料 ${source} 的导出 ${exportName} 缺少 examples 数组`);
+    throw new Error(`${label} 缺少 examples 数组`);
   }
 
   return {
     ...meta,
     materials: meta.materials,
     examples: meta.examples,
-    whiteList: Array.isArray(meta.whiteList) ? meta.whiteList : [],
-    // rules 会被 genPrompt 直接展开，非数组（如 JSON 里的 {}）会让请求阶段抛错
-    rules: Array.isArray(meta.rules) ? meta.rules : [],
+    whiteList: readStringArray(meta.whiteList, 'whiteList', label),
+    rules: readStringArray(meta.rules, 'rules', label),
   };
 }
 
