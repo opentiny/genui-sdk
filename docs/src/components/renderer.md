@@ -165,19 +165,39 @@ const customActions = {
 
 查看 [Renderer 配置缓冲字段](../examples/renderer/required-complete-field-selectors) 了解详细用法
 
-### state
+## Methods
 
-- **类型**: `Record<string, any>`
-- **必填**: 否
-- **说明**: 传递给渲染器的全局状态，可以在组件中通过上下文访问。
+通过模板 ref 可以访问 `GenuiRenderer` 暴露的方法，用于在渲染器外部读写状态。
+
+### setState
+
+- **类型**: `(state?: Record<string, any>, clear?: boolean) => void`
+- **说明**: 设置渲染器的全局状态，默认与已有状态合并；`clear` 为 `true` 时以传入的 state 覆盖已有状态。直接透传给底层渲染器，不做缓存：流式生成过程中 schema 每次更新都会用 schema 里的 state 重置状态，需要保留的状态请在 schema 更新后重新调用 `setState`。
 
 ```vue
 <template>
-  <GenuiRenderer :content="content" :state="{ userId: 123, userName: 'John' }" />
+  <GenuiRenderer ref="rendererRef" :content="content" />
 </template>
+
+<script setup lang="ts">
+import { onMounted, ref } from 'vue';
+import { GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-vue';
+
+const rendererRef = ref<IRendererExpose | null>(null);
+
+// 从历史记录中恢复状态：子组件挂载完成后注入，此时渲染器实例已就绪
+onMounted(() => {
+  rendererRef.value?.setState({ userId: 123, userName: 'John' });
+});
+</script>
 ```
 
 查看 [Renderer 传递合并 State](../examples/renderer/state) 了解详细用法
+
+### getState
+
+- **类型**: `() => Record<string, any>`
+- **说明**: 获取渲染器当前的全局状态（即渲染器 context 中的 `state`）。
 
 ## Slots
 
@@ -277,7 +297,15 @@ interface IRendererProps {
     }
   >;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, any>;
+}
+```
+
+### IRendererExpose
+
+```typescript
+interface IRendererExpose {
+  rendererInstance: IBaseRendererInstance | null; // 底层渲染器实例，复杂场景可以使用其API
+  getState: () => Record<string, any>; // 获取全局状态
+  setState: (state?: Record<string, any>, clear?: boolean) => void; // 设置全局状态
 }
 ```

@@ -12,8 +12,19 @@ export interface IRendererProps {
   customComponents?: Record<string, Component>;
   customActions?: Record<string, ICustomAction>;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, any>;
+}
+
+export interface IBaseRendererInstance {
+  setContext: (ctx: Record<string | symbol, any>, clear?: boolean) => void;
+  getContext: () => Record<string | symbol, any>;
+  setState: (state?: Record<string, any>, clear?: boolean) => void;
+}
+
+/** `GenuiRenderer` 通过模板 ref 暴露给外部的 API */
+export interface IRendererExpose {
+  rendererInstance: IBaseRendererInstance | null;
+  getState: () => Record<string, any>;
+  setState: (state?: Record<string, any>, clear?: boolean) => void;
 }
 
 export interface IRendererSlotsProps {

@@ -11,9 +11,9 @@ import type {
   UserTextItem,
 } from '@opentiny/tiny-robot';
 import { ref, watch, computed, h, inject } from 'vue';
-import type { Ref, Component } from 'vue';
+import type { Ref, Component, VNode } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
-import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
+import { bindCardIdToAction, scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
 import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue'; 
@@ -22,11 +22,11 @@ import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
 import { emitter } from './event-emitter';
-import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
+import type { IChatProps, ICustomActionItem, IRolesConfig, ISchemaCardProps } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
 import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
-import type { IRendererProps } from '../renderer';
+import type { IRendererExpose, IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
 import { useResize } from './composable/use-resize';
@@ -197,8 +197,16 @@ const customActionsMap = computed(() => {
 const messageRenderers = {
   'custom-text': (props: BubbleCommonProps & { content: string }) =>
     h('span', { class: 'tr-bubble__body-text' }, props.content),
-  'schema-card': (schemaCardProps: IRendererProps) => {
-    const isGenerating = lastSchemaCardId.value === schemaCardProps.id && generating.value;
+  'schema-card': (schemaCardProps: ISchemaCardProps) => {
+    const cardId = schemaCardProps.id;
+    const isGenerating = lastSchemaCardId.value === cardId && generating.value;
+    const customActions = Object.fromEntries(
+      Object.entries({
+        ...customActionsMap.value,
+        continueChat: continueChatAction,
+        saveState: saveStateAction,
+      }).map(([name, action]) => [name, bindCardIdToAction(action as ICustomActionItem, cardId)]),
+    );
 
     return h(
       'div',
@@ -210,12 +218,10 @@ const messageRenderers = {
           requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
           generating: isGenerating,
           customComponents: customComponentsMap.value,
-          customActions: {
-            ...customActionsMap.value,
-            continueChat: continueChatAction,
-            saveState: saveStateAction,
-          },
-          key: schemaCardProps.id,
+          customActions,
+          key: cardId,
+          onVnodeMounted: (vnode: VNode) =>
+            (vnode.component?.exposed as IRendererExpose | null)?.setState(schemaCardProps.state || {}),
         },
         {
           header: toSlotFunction(props.rendererSlots?.header),

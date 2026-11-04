@@ -1,5 +1,7 @@
 import { nextTick, onMounted, onUnmounted, type Ref, ref, h } from 'vue';
 import type { Component, VNode } from 'vue';
+import { cardIdSymbol } from './useChat';
+import type { ICustomActionItem } from './chat.types';
 
 function throttle<T extends (...args: any[]) => any>(fn: T, delay: number): (...args: Parameters<T>) => void {
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -160,5 +162,11 @@ export const toSlotFunction = (slot: Component<ISlotProps> | ((props: ISlotProps
   // 如果是组件，转换为插槽函数
   return (props: ISlotProps) => h(slot as Component<ISlotProps>, props);
 };
+
+export const bindCardIdToAction = <T extends ICustomActionItem>(action: T, cardId?: string): T => ({
+  ...action,
+  execute: (params: any, context: Record<string | symbol, any> = {}) =>
+    action.execute(params, { ...context, [cardIdSymbol]: cardId }),
+});
 
 export { scrollEnd, throttle };
