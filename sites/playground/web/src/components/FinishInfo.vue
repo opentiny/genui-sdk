@@ -60,6 +60,9 @@ const ttfbLabel = computed(() => formatDuration(finishChunk.value?.ttfb));
 const renderDurationLabel = computed(() => formatDuration(finishChunk.value?.renderDurationMs));
 
 const durationLabel = computed(() => {
+  // 非流式只量得到总耗时，没有分段的 ttfb + 渲染耗时
+  const durationMs = finishChunk.value?.durationMs;
+  if (durationMs != null) return formatDuration(durationMs);
   const ttfb = finishChunk.value?.ttfb;
   const renderDurationMs = finishChunk.value?.renderDurationMs;
   if (ttfb == null || renderDurationMs == null) return '';

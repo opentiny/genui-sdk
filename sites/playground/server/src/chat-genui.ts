@@ -248,6 +248,15 @@ export function createChatGenui() {
   const chatGenuiHandler = async (req: Request, res: Response): Promise<void> => {
     const abort = new AbortController();
     const body = JSON.parse(await getRawBody(req, { encoding: 'utf-8' }));
+    if (body.stream === false) {
+      res.status(400).json({
+        message: 'playground chat endpoint only supports streaming responses',
+        type: 'UnsupportedError',
+        param: 'stream',
+        code: 'UnsupportedError',
+      });
+      return;
+    }
     if (process.env.CHAT_UI_REPLAY_MODE === 'true') {
       res.setHeader('Content-Type', 'text/event-stream');
       const text = await fs.readFile(path.join(fileURLToPath(import.meta.url), '../replay/replay.txt'), 'utf-8');
