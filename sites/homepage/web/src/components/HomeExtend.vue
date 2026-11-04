@@ -374,19 +374,18 @@ onUnmounted(() => {
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
                 @click="handleCornerResume">
-                <img :src="playIcon" alt="">
+                <img class="home-extend-control-btn-icon" :src="playIcon" alt="">
               </tiny-button>
             </tiny-tooltip>
             <tiny-tooltip
               v-else
-              :content="
-                preparingPlayback ? t('extend.preparing') : hasPlayedOnce ? t('extend.replay') : t('extend.play')
-              "
+              :content="preparingPlayback ? t('extend.preparing') : t('extend.replay')"
+              :disabled="!preparingPlayback && !hasPlayedOnce"
               placement="top"
               effect="light"
             >
               <tiny-button
-                class="home-extend-control-btn"
+                class="home-extend-control-btn home-extend-control-btn--replay"
                 circle
                 :reset-time="0"
                 :size="streamControlsDocked ? 'medium' : 'large'"
@@ -394,7 +393,7 @@ onUnmounted(() => {
                 :disabled="preparingPlayback"
                 @click="handleCornerReplay"
                 >
-                <img v-if="!hasPlayedOnce" :src="playIcon" alt="">
+                <img class="home-extend-control-btn-icon" v-if="!hasPlayedOnce" :src="playIcon" alt="">
               </tiny-button>
             </tiny-tooltip>
           </div>
@@ -411,11 +410,38 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 0px 8%;
-  background-image: url('@/assets/home_extend_bg.svg');
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
+  background-image:
+    linear-gradient(to bottom, #fff 0%, rgba(255, 255, 255, 0) 120px),
+    url('@/assets/home_extend_bg.svg');
+  background-size: 100% 100%, cover;
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, center;
+  padding: 110px 12.5%;
+
+  @media (max-width: 1280px) {
+    padding: 80px 10%;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 10% 40px 10%;
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px;
+  }
+
+  &-title {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    @media (max-width: 1280px) {
+      &-subtitle {
+        margin-bottom: 40px;
+      }
+    }
+  }
 
   &-title {
     margin-bottom: 40px;
@@ -428,8 +454,8 @@ onUnmounted(() => {
     display: flex;
     flex-direction: column;
     border-radius: 20px;
-    border: 1px solid #fff;
-    box-shadow: 0 0 60px 0 rgba(217, 223, 255, 0.5);
+    border: 2px solid #fff;
+    background-color: rgba(255, 255, 255, 0.25);
 
 
     padding: 28px;
@@ -499,6 +525,12 @@ onUnmounted(() => {
       box-sizing: border-box;
       container-type: size;
       container-name: extend-stream;
+
+      @media (max-width: 768px) {
+        height: auto;
+        min-height: 0;
+        container-type: normal;
+      }
     }
 
     &-content-scroll {
@@ -510,6 +542,43 @@ onUnmounted(() => {
       box-sizing: border-box;
       scrollbar-gutter: stable;
       border-bottom-right-radius: 12px;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background-color: #dbdbdb;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+        background-clip: padding-box;
+        border-radius: 6px;
+
+        &:hover {
+          background-color: #c2c2c2;
+        }
+      }
+
+      @supports not selector(::-webkit-scrollbar) {
+        scrollbar-width: thin;
+        scrollbar-color: #dbdbdb transparent;
+      }
+
+      @media (max-width: 768px) {
+        flex: 0 0 auto;
+      }
+
+      @media (max-width: 480px) {
+        scrollbar-gutter: auto;
+
+        > div {
+          margin-inline: auto;
+        }
+      }
     }
 
     &-content-inner {
@@ -518,7 +587,11 @@ onUnmounted(() => {
       position: relative;
       width: 100%;
       @media (max-width: 768px) {
-        padding: 5px;
+        padding: 30px 30px;
+      }
+      // 下面 AI 行要用 cqw 反推缩放比例，容器查询宽度取内容盒宽度
+      @media (max-width: 480px) {
+        container-type: inline-size;
       }
     }
 
@@ -601,6 +674,12 @@ onUnmounted(() => {
   justify-content: flex-start;
   gap: 16px;
   width: 100%;
+
+  @media (max-width: 480px) {
+    width: 100%;
+    zoom: 0.7;
+    zoom: calc(100cqw / 300px);
+  }
 }
 
 .home-extend-avatar {
@@ -639,6 +718,7 @@ onUnmounted(() => {
   inset: 0;
   z-index: 10;
   pointer-events: none;
+  container-type: size;
 
   &-surface {
     position: absolute;
@@ -665,6 +745,36 @@ onUnmounted(() => {
 .home-extend-control-btn {
   border: none;
   box-shadow: 0 2px 4px #00000029;
+
+  &--replay {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  }
+
+  // 播放：播放按钮圆圈大小，暂停/继续按钮保持原尺寸不会变
+  .home-extend-stream-controls:not(.home-extend-stream-controls--docked) &--replay {
+    width: 56px;
+    height: 56px;
+  }
+
+  // 暂停：播放按钮三角形大小
+  &-icon {
+    width: 50px;
+    height: 50px;
+    transform: translate(2px, 0);
+    transition: width 0.3s ease, height 0.3s ease;
+  }
+
+  &--replay :deep(.tiny-svg) {
+    transform: translateX(2px);
+    width: 1.5em;
+    height: 1.5em;
+  }
+
+  // 播放：三角形大小
+  .home-extend-stream-controls:not(.home-extend-stream-controls--docked) &--replay .home-extend-control-btn-icon {
+    width: 56px;
+    height: 56px;
+  }
 }
 
 .extend-button-group {
@@ -672,17 +782,23 @@ onUnmounted(() => {
   height: 56px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 4px;
-  margin-bottom: 48px;
+  padding: 8px 12px;
+  gap: 8px;
+  margin-bottom: 60px;
+  border-radius: 87px;
+  background-color: rgba(232, 240, 255, 1);
+  &::before,
+  &::after {
+    display: none;
+  }
 
   .extend-button {
     height: 100%;
-    width: 200px;
+    padding-inline: 24px;
     margin-left: 0;
     border: none;
     background-color: transparent;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 400;
     color: rgba(89, 89, 89, 1);
 
@@ -690,12 +806,13 @@ onUnmounted(() => {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      
     }
 
     .extend-button-icon {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
+      margin-right: 6px;
     }
 
     &-element-2 {
@@ -707,7 +824,11 @@ onUnmounted(() => {
       background-color: #fff;
       box-shadow: 0 0 20px 0 rgba(207, 218, 228, 0.36);
       font-weight: 500;
-      color: rgba(25, 25, 25, 1)
+      color: rgba(25, 25, 25, 1);
+
+      .extend-button-icon {
+        filter: brightness(0.01);
+      }
     }
   }
 
@@ -725,4 +846,5 @@ onUnmounted(() => {
     border-radius: 6px;
   }
 }
+
 </style>

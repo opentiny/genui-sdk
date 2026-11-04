@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import genuiAbility3 from '@/assets/create-github.webp?no-inline';
+import genuiAbility4 from '@/assets/genui_ability_4_right.svg?no-inline';
 import { TinyTag } from '@opentiny/vue';
 import { t } from '@/i18n';
 const wrapperClass = 'home-mcp-tool-mobile';
@@ -43,7 +43,7 @@ const abilityThreePartContent = {
     </div>
     <div :class="`${wrapperClass}-subtitle genui-subtitle`">{{ t('ability.mcp.subtitle') }}</div>
     <div :class="`${wrapperClass}-content`">
-      <img :src="genuiAbility3" alt="genui-ability-3"/>
+      <img :src="genuiAbility4" alt="genui-ability-4"/>
       <div :class="`${wrapperClass}-content-container`">
         <div :class="`${wrapperClass}-content-title`">{{ abilityThreePartContent.title }}</div>
         <div :class="`${wrapperClass}-content-subtitle`">{{ abilityThreePartContent.subtitle }}</div>
