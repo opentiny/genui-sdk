@@ -65,6 +65,7 @@ export const enThemeConfig: DefaultTheme.Config = {
         items: [
           { text: 'GenuiRenderer', link: '/en/components/react/renderer' },
           { text: 'GenuiConfigProvider', link: '/en/components/react/config-provider' },
+          { text: 'generateCode', link: '/en/components/react/code-generator' },
         ],
       },
       {

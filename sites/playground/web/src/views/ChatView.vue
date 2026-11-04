@@ -77,6 +77,10 @@ const rendererSlots = {
   }
 }
 
+:deep(.schema-render-container--react) {
+  position: relative;
+}
+
 :deep(.schema-render-container .renderer-header) {
   position: absolute;
   top: 12px;
