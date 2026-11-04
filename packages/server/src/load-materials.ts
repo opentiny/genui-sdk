@@ -4,7 +4,7 @@ import { isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { IMaterialsMeta } from '@opentiny/genui-sdk-core';
 
-export const DEFAULT_MATERIALS_EXPORT = 'materialsMeta';
+const DEFAULT_MATERIALS_EXPORT = 'materialsMeta';
 
 const IMPORT_CONDITIONS = ['node', 'import'];
 
@@ -16,7 +16,7 @@ export interface ILoadMaterialsMetaOptions {
 }
 
 /** Whether the specifier is a file path instead of a package name. */
-export function isMaterialsPathSpecifier(specifier: string): boolean {
+function isMaterialsPathSpecifier(specifier: string): boolean {
   return (
     specifier.startsWith('.') ||
     specifier.startsWith('/') ||

@@ -67,17 +67,6 @@ equipChatCompletions(app, {
 app.listen(3100);
 ```
 
-Need the same "path or package name" resolution outside the CLI? Use `loadMaterialsMeta`, the helper the CLI is built on:
-
-```typescript
-import { startServer, loadMaterialsMeta } from '@opentiny/genui-sdk-server';
-
-// Package name (tries <package>/meta first), file path, or .json — same as --materials
-const materialsMeta = await loadMaterialsMeta('@opentiny/genui-sdk-materials-react-antd');
-
-startServer({ port: 3100, baseURL: 'https://api.openai.com/v1', apiKey: 'your-api-key', materialsMeta });
-```
-
 ## Documentation
 
 * [Server Usage Guide](https://docs.opentiny.design/genui-sdk/guide/server-usage)
