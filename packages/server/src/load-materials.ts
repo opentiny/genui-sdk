@@ -223,12 +223,15 @@ async function importPackageModule(specifier: string, cwd: string): Promise<unkn
 
   const requireFromCwd = createRequireFromCwd(cwd);
 
+  let resolvedPath: string;
   try {
-    const resolvedPath = requireFromCwd.resolve(specifier);
-    return await importFile(resolvedPath);
+    resolvedPath = requireFromCwd.resolve(specifier);
   } catch {
     return import(specifier);
   }
+
+  // 解析成功后再加载，模块自身的加载/执行错误直接抛出，不被兜底掩盖
+  return importFile(resolvedPath);
 }
 
 async function importModule(specifier: string, cwd: string): Promise<unknown> {
