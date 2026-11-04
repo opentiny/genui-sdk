@@ -156,8 +156,10 @@ jobs:
           export PUBLISH_PKG_JSONS
           node ./scripts/ci-replace-workspace-deps.js
 
-      - name: Setup .npmrc for publish
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      - name: Setup Node.js for trusted publishing
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=24.19.0 <25'
 
       - name: Publish Core to npm
         if: github.event.inputs.publish_optional_packages == 'true'
