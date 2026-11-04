@@ -23,6 +23,10 @@ describe('parseData', () => {
     expect(result).toBe(2);
   });
 
+  it('preserves leading and trailing whitespace in strings', () => {
+    expect(parseData('  keep spaces  ', {}, ctx)).toBe('  keep spaces  ');
+  });
+
   it('wires ref JSExpression into a ref-assignment callback', () => {
     const ctxWithRefs = { ...ctx, refs: { formRef: null } };
     const result = parseData({ ref: { type: 'JSExpression', value: 'this.refs.formRef' } }, {}, ctxWithRefs) as {

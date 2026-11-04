@@ -6,7 +6,6 @@ import {
   ElForm,
   ElFormItem,
   ElTable,
-  ElTableColumn,
   ElCard,
   ElRow,
   ElCol,
@@ -22,6 +21,7 @@ import {
   ElTabPane,
 } from 'element-plus';
 import ElIconSvg from './ElIconSvg.vue';
+import ElTableColumn from './ElTableColumn';
 
 export interface IComponents {
   [key: string]: Component;
@@ -35,6 +35,7 @@ export const components: IComponents = {
   ElForm,
   ElFormItem,
   ElTable,
+  // 包装版：解决流式渲染下 props.type 晚于列挂载导致 type 不生效的问题
   ElTableColumn,
   ElCard,
   ElRow,

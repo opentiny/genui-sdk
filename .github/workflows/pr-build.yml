@@ -27,5 +27,8 @@ jobs:
       - name: Install deps
         run: pnpm install --frozen-lockfile
 
+      - name: Test React renderer
+        run: pnpm --filter @opentiny/tiny-schema-renderer-react test
+
       - name: Build
         run: pnpm build

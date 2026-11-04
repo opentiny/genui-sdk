@@ -8,25 +8,18 @@ import type { ReactHostHandle, ReactHostContentProps } from './ReactHost.types';
 
 export type { ReactHostHandle, ReactHostContentProps };
 
-export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContentProps }>(
-  function ReactHost({ initial }, ref) {
+export const ReactHost = forwardRef<
+  ReactHostHandle,
+  { initial: ReactHostContentProps; onRendererReady?: () => void }
+>(
+  function ReactHost({ initial, onRendererReady }, ref) {
     const [props, setProps] = useState(initial);
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
-    const pendingContextRef = useRef<Record<string, unknown>>({});
-
-    const flushPendingContext = () => {
-      const renderer = rendererRef.current;
-      if (!renderer || !Object.keys(pendingContextRef.current).length) return;
-      renderer.setContext({ ...pendingContextRef.current });
-    };
 
     useImperativeHandle(ref, () => ({
       updateProps: setProps,
       getRendererHandle: () => rendererRef.current,
-      setContext: (ctx) => {
-        pendingContextRef.current = { ...pendingContextRef.current, ...ctx };
-        flushPendingContext();
-      },
+      setContext: (ctx) => rendererRef.current?.setContext(ctx),
     }));
 
     return React.createElement(
@@ -35,7 +28,7 @@ export const ReactHost = forwardRef<ReactHostHandle, { initial: ReactHostContent
       React.createElement(GenuiRenderer, {
         ref: (instance: SchemaRendererHandle | null) => {
           rendererRef.current = instance;
-          flushPendingContext();
+          if (instance) onRendererReady?.();
         },
         content: props.content,
         generating: props.generating,

@@ -35,6 +35,7 @@ export default defineConfig(({ mode }) => {
         entry: {
           index: path.resolve(__dirname, './src/index.ts'),
           chat: path.resolve(__dirname, './src/chat/index.ts'),
+          'legacy-config-provider': path.resolve(__dirname, './src/legacy-config-provider/index.ts'),
           'legacy-chat': path.resolve(__dirname, './src/legacy-chat/index.ts'),
           renderer: path.resolve(__dirname, './src/renderer/index.ts'),
           'legacy-renderer': path.resolve(__dirname, './src/legacy-renderer/index.ts'),

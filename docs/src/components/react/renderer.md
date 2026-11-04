@@ -194,6 +194,8 @@ export function Example({ content }: { content: string }) {
 - **必填**: 否
 - **说明**: 传递给渲染器的全局状态，可以在组件中通过上下文访问。
 
+React 表单组件应使用 `value` 或 `checked` 读取状态，并通过 `onChange` 类型的 `JSFunction` 更新状态；React 渲染器不支持使用 `model: true` 自动生成变更事件。
+
 ```tsx
 import { GenuiRenderer } from '@opentiny/genui-sdk-react';
 

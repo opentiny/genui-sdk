@@ -9,10 +9,10 @@ export function useRendererSettings(): IRendererSettings {
 
 export interface RendererContextProviderProps {
   children: ReactNode;
-  'render-settings'?: IRendererSettings;
+  renderSettings?: IRendererSettings;
 }
 
-export function RendererContextProvider({ children, 'render-settings': renderSettings }: RendererContextProviderProps) {
+export function RendererContextProvider({ children, renderSettings }: RendererContextProviderProps) {
   return (
     <RendererSettingsContext.Provider value={renderSettings ?? {}}>
       {children}

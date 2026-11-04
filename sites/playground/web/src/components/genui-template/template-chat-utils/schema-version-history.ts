@@ -190,22 +190,29 @@ function buildManualRestoreDescription(
     return t('templateEditor.generating');
   }
 
+  const hasExplicitSource = Boolean(edit.sourceCardId?.trim() || edit.sourceCardGeneratedTime?.trim());
+
   let sourceTime: string | null = null;
   if (edit.sourceCardGeneratedTime?.trim()) {
     sourceTime = formatHistoryPointTimeLabel(parseGeneratedTimeMs(edit.sourceCardGeneratedTime));
   } else if (edit.sourceCardId) {
     sourceTime = resolveCardVersionTimeLabel(entries, messages, edit.sourceCardId);
-  } else if (options.allowPrevSchemaInfer) {
-    sourceTime = inferSourceTimeFromPrevSchema(edit, entries, messages);
   }
 
+  // 显式来源（sourceCardId / sourceCardGeneratedTime）代表真实的「恢复到某版本」操作
   if (sourceTime) {
     return t('templateEditor.appliedFromVersion', { time: sourceTime });
   }
-
-  const hasExplicitSource = Boolean(edit.sourceCardId?.trim() || edit.sourceCardGeneratedTime?.trim());
   if (hasExplicitSource) {
     return t('templateEditor.appliedFromHistory');
+  }
+
+  // 无显式来源：本质是手动编辑保存；仅当首次编辑且 prevSchema 反推命中历史版本时，标注「基于哪一版编辑」
+  if (options.allowPrevSchemaInfer) {
+    const inferredTime = inferSourceTimeFromPrevSchema(edit, entries, messages);
+    if (inferredTime) {
+      return t('templateEditor.manualEditFromVersion', { time: inferredTime });
+    }
   }
 
   return resolveManualEditSaveTitle(edit);

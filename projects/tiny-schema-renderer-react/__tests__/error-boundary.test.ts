@@ -19,7 +19,7 @@ describe('SchemaRenderer error boundary', () => {
           { 'data-testid': 'host' },
           createElement(
             RendererContextProvider,
-            { 'render-settings': { materials: { components: { Boom } } } },
+            { renderSettings: { materials: { components: { Boom } } } },
             createElement(SchemaRenderer, {
               schema: {
                 componentName: 'Page',
@@ -49,7 +49,7 @@ describe('SchemaRenderer error boundary', () => {
       const { rerender, container } = render(
         createElement(
           RendererContextProvider,
-          { 'render-settings': { materials: { components: { Boom, Ok } } } },
+          { renderSettings: { materials: { components: { Boom, Ok } } } },
           createElement(SchemaRenderer, {
             schema: {
               componentName: 'Page',
@@ -66,7 +66,7 @@ describe('SchemaRenderer error boundary', () => {
       rerender(
         createElement(
           RendererContextProvider,
-          { 'render-settings': { materials: { components: { Boom, Ok } } } },
+          { renderSettings: { materials: { components: { Boom, Ok } } } },
           createElement(SchemaRenderer, {
             schema: {
               componentName: 'Page',
