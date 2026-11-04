@@ -5,7 +5,9 @@ import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
 import GenuiChat from '../chat/GenuiChat.vue';
 import type { IChatProps } from '../chat/chat.types';
 
-defineProps<IChatProps>();
+withDefaults(defineProps<IChatProps>(), {
+  stream: true,
+});
 
 const chatRef = ref<InstanceType<typeof GenuiChat>>();
 

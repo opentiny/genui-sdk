@@ -34,8 +34,11 @@ import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
 import { GENUI_CONFIG } from '../config-provider/injection-tokens';
 import { IResponseHandler, defaultResponseHandlers } from './response-handler';
+import { parseCompleteResponse } from './parse-complete-response';
 
-const props = defineProps<IChatProps>();
+const props = withDefaults(defineProps<IChatProps>(), {
+  stream: true,
+});
 
 const genuiConfig = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
@@ -233,6 +236,7 @@ const messageRenderers = {
 };
 
 const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
+const completeResponseHandler = ref<typeof parseCompleteResponse>(parseCompleteResponse);
 
 const customModelProvider = new CustomModelProvider({
   getChatOptions: () => ({
@@ -257,9 +261,14 @@ const client = new AIClient({
 let conversation = useConversation({
   client,
   autoSave: false,
+  useStreamByDefault: props.stream,
   events: {
     onReceiveData(data, messages, preventDefault) {
-      messages.value.push(data as any);
+      const response = data as any;
+      const message = Array.isArray(response?.messages)
+        ? response // 流式
+        : { ...response, ...completeResponseHandler.value(response) }; // 非流式
+      messages.value.push(message as any);
       preventDefault();
     },
     onLoaded(conversations) {
@@ -468,6 +477,12 @@ defineExpose({
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     responseHandlers.value = handlers;
     customModelProvider.setResponseHandlers(handlers);
+  },
+  // @experimental
+  getCompleteResponseHandler: () => completeResponseHandler.value,
+  // @experimental
+  setCompleteResponseHandler: (handler: typeof parseCompleteResponse) => {
+    completeResponseHandler.value = handler;
   },
   getMessageRenderers: () => messageRenderers,
   setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {
