@@ -8,6 +8,7 @@ import {
   Injector,
 } from '@angular/core';
 import { RendererContextService } from './context.service';
+import { ProjectedViews } from './block';
 
 @Directive({
   selector: '[rendererTemplate]',
@@ -25,12 +26,15 @@ export class RendererDirective {
     template: TemplateRef<any>;
     viewContainerRef: ViewContainerRef;
     injector: Injector | undefined;
+    contentChildrenIndex?: number;
+    projectedViews: ProjectedViews | null;
   }>;
   /**
    * Schema declaration order key for the rendered node (childIndex * STRIDE + loopIndex).
    * Exposed on the embedded-view context so descendant outlets register in schema order.
    */
   @Input() contentChildrenIndex?: number;
+  @Input() projectedViews: ProjectedViews | null = null;
 
   public internalAttributes: Record<string, any> = {};
   private get templateContext() {
@@ -66,7 +70,8 @@ export class RendererDirective {
       changes['scope'] ||
       changes['parent'] ||
       changes['contentChildrenIndex'] ||
-      changes['injector'];
+      changes['injector'] ||
+      changes['projectedViews'];
     if (!needsRender) {
       return;
     }

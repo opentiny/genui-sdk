@@ -14,10 +14,12 @@ export {
   getContentOutletSchemaIndex,
   getContentRefs,
   getOutletQueryCandidates,
+  getTemplateDirectiveInstances,
   patchContentQuery,
   patchOutletContentQueries,
   registerContentRef,
   setContentOutletSchemaIndex,
+  setTemplateDirectiveInstances,
   unregisterContentRef,
 } from './content-children-patch';
 export type {

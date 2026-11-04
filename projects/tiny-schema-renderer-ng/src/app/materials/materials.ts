@@ -49,6 +49,8 @@ import type { IRendererMaterials } from '../../../projects/renderer/src/renderer
 import { ListComponent } from '../list/list.component';
 import { ListItemComponent } from '../list/list-item.component';
 import { ListItemMarkerDirective } from '../list/list-item-marker.directive';
+import { FormDumpComponent } from '../form-dump/form-dump.component';
+import { StructuralDemoBannerComponent } from '../structural-demo-banner.component';
 
 (TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 (TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
@@ -58,6 +60,8 @@ import { ListItemMarkerDirective } from '../list/list-item-marker.directive';
 const components: Record<string, Type<any>> = {
   List: ListComponent,
   ListItem: ListItemComponent,
+  FormDump: FormDumpComponent,
+  StructuralDemoBanner: StructuralDemoBannerComponent,
   TiButton: TiButtonComponent,
   TiIcon: TiIconComponent,
   TiSelect: TiSelectComponent,
