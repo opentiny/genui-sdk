@@ -35,7 +35,7 @@ interface IStartServerOptions {
 
 - **Details**
 
-Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping to built-in defaults (Vue → OpenTiny Vue, Angular → OpenTiny Angular); other frameworks fall back to the Vue default. **Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus, the mini set, custom materials, etc.), the matching `materialsMeta` must be passed explicitly**, otherwise the generated component names will not match the frontend materials. The CLI can only use the built-in defaults.
+Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping to built-in defaults (Vue → OpenTiny Vue, Angular → OpenTiny Angular); other frameworks fall back to the Vue default. **Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus, the mini set, custom materials, etc.), the matching `materialsMeta` must be passed explicitly**, otherwise the generated component names will not match the frontend materials. The CLI can load the same materials with `-m, --materials`.
 
 - **Example**
 

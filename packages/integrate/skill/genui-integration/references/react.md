@@ -10,7 +10,7 @@
 ## 集成：GenuiRenderer
 
 - **概况**：React 暂无 `GenuiChat`，使用 `GenuiRenderer` 渲染生成式 UI；流式请求须在 `metadata.tinygenui` 中指定 `framework: 'React'`，以便后端返回 React 兼容 schema。
-- **服务端物料必须显式指定**：若后端使用 `genui-sdk-server`，必须在 `startServer` / `equipChatCompletions` 中显式传入 `@opentiny/genui-sdk-materials-react-antd/meta`（服务端不传时只会使用按 `framework` 选中的内置默认物料；React、Element Plus、mini、自定义物料等非默认物料不传都会与前端不一致——例如 `framework: 'React'` 会用到 Vue 默认物料，生成 `TinyButton` 等组件名）；详见 [Server 集成指南](./server.md) 的「物料配置（materialsMeta）」。
+- **服务端物料必须显式指定**：若后端使用 `genui-sdk-server`，必须在 `startServer` / `equipChatCompletions` 中显式传入 `@opentiny/genui-sdk-materials-react-antd/meta`，或用 CLI 的 `-m @opentiny/genui-sdk-materials-react-antd`（服务端不传时只会使用按 `framework` 选中的内置默认物料；React、Element Plus、mini、自定义物料等非默认物料不传都会与前端不一致——例如 `framework: 'React'` 会用到 Vue 默认物料，生成 `TinyButton` 等组件名）；详见 [Server 集成指南](./server.md) 的「物料配置（materialsMeta）」。
 - **详细步骤**：[安装与配置](./guides/react-install.md)、[使用 Renderer 组件](./guides/react-start-with-renderer.md)
 
 ## 流式数据处理流程

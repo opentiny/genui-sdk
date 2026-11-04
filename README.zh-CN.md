@@ -195,7 +195,7 @@ const systemPrompt = genPrompt('Vue', materialsMeta, customConfig);
 
 ### 服务端 Server
 
-提供 OpenAI 兼容的 Chat Completions 服务与流式 SchemaJson 支持。CLI 只能使用内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny NG）；当前端使用其他物料包时，须显式传入 `materialsMeta`。
+提供 OpenAI 兼容的 Chat Completions 服务与流式 SchemaJson 支持。CLI 默认使用内置物料（Vue → OpenTiny Vue，Angular → OpenTiny NG），也可以通过 `-m, --materials` 指定其他物料包或物料 meta 文件。
 
 ```bash
 # .env
@@ -206,6 +206,8 @@ const systemPrompt = genPrompt('Vue', materialsMeta, customConfig);
 npx genui-sdk-server            # 默认端口 3100
 npx genui-sdk-server -p 3000    # 指定端口
 npx genui-sdk-server -e .env.production
+npx genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd   # 按包名指定物料
+npx genui-sdk-server -m ./my-materials.mjs                        # 按文件路径指定物料
 ```
 
 编程方式：
