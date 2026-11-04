@@ -275,11 +275,10 @@ function normalizeMaterialsMeta(value: unknown, source: string, exportName: stri
   }
 
   return {
+    ...meta,
     materials: meta.materials,
     examples: meta.examples,
     whiteList: Array.isArray(meta.whiteList) ? meta.whiteList : [],
-    ...(meta.wrapperComponent !== undefined ? { wrapperComponent: meta.wrapperComponent } : {}),
-    ...(Array.isArray(meta.rules) ? { rules: meta.rules } : {}),
   };
 }
 
