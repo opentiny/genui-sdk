@@ -123,7 +123,7 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
         }
       } else {
         json = (raw as Record<string, unknown>) || {};
-        isCompleted = props.generating ? false : (props.isJsonComplete ?? true);
+        isCompleted = props.isJsonComplete ?? true;
       }
 
       if (!isCompleted && json && 'lifeCycles' in json) {

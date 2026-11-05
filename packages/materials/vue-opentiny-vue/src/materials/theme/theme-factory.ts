@@ -26,6 +26,9 @@ function resolveDescriptor(
   );
 }
 
+/**
+ * @experimental 实验特性，API 可能在后续版本中发生变更。
+ */
 export function themeFactory(): IMaterialsTheme {
   // 框架渲染 root 时不传 props，主题通过闭包 ref 传入，root 类型保持不变避免子树重挂载
   const theme = ref('light');

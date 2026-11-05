@@ -10,6 +10,8 @@ const { isMobile } = useMobile();
 const buttonSize = computed(() => {
   return isMobile.value ? 'medium' : 'large';
 });
+
+const hasPlayground = computed(() => Boolean(linkMap[LinkKey.Playground]));
 </script>
 
 <template>
@@ -24,11 +26,11 @@ const buttonSize = computed(() => {
         <div>{{ t('link.descriptionLine2') }}</div>
       </div>
       <div class="home-link-button-group">
-        <a v-if="linkMap[LinkKey.Playground]" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
+        <a v-if="hasPlayground" :href="linkMap[LinkKey.Playground]" target="_blank" rel="noopener noreferrer" class="btn-link">
           <tiny-button type="primary" :size="buttonSize" round>{{ t('link.tryNow') }}</tiny-button>
         </a>
         <a :href="linkMap[LinkKey.DevDoc]" target="_blank" rel="noopener noreferrer" class="btn-link">
-          <tiny-button :size="buttonSize" round ghost>{{ t('link.productDoc') }}</tiny-button>
+          <tiny-button :type="hasPlayground ? 'default' : 'primary'" :size="buttonSize" round :ghost="hasPlayground">{{ t('link.productDoc') }}</tiny-button>
         </a>
       </div>
     </div>
@@ -68,19 +70,6 @@ const buttonSize = computed(() => {
     line-height: 26px;
     text-align: center;
     margin-bottom: 36px;
-  }
-
-  &-title {
-    color: rgba(255, 123, 123, 1);
-    background-image: linear-gradient(
-      90deg,
-      rgba(255, 123, 123, 1) 0%,
-      rgba(157, 54, 240, 1) 50%,
-      rgba(18, 115, 255, 1) 100%
-    );
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
   }
 
   @media (min-width: 1920px) {
