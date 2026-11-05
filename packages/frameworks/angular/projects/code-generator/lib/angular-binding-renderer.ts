@@ -7,7 +7,7 @@ import { EMPTY_LOOP_SCOPE, JS_EXPRESSION, JS_FUNCTION, JS_SLOT, UNWRAP_QUOTES, s
 import type { IBaseHelpers } from './base-helpers';
 import { AngularMaterialsRegistry } from './angular-materials-registry';
 import { AngularRefResolver } from './angular-ref-resolver';
-import { AngularSourceText } from './angular-source-text';
+import { AngularFunctionParser } from './angular-function-parser';
 import type {
   AngularBindingKind,
   IAngularMaterialsConfig,
@@ -36,7 +36,7 @@ export class AngularBindingRenderer {
   constructor(
     private readonly registry: AngularMaterialsRegistry,
     private readonly refs: AngularRefResolver,
-    private readonly sourceText: AngularSourceText,
+    private readonly functionParser: AngularFunctionParser,
     private readonly base: IBaseHelpers,
   ) {}
   toTemplateValue(
@@ -65,6 +65,8 @@ export class AngularBindingRenderer {
   ): string {
     const name = `__expr${++description.templateExprCounter}`;
     const code = this.expressionCode(expr);
+    // loopScope.templateVars：外层 *ngFor 引入的变量（item、index），由模板渲染器逐层下传时累加。
+    // description.templateLocals：全 schema refName（#x）与 ng-template 的 let-* 变量，出码前先全量扫一遍存好。
     const vars = [...new Set([...loopScope.templateVars, ...description.templateLocals])].filter((v) =>
       new RegExp(`(?<!\\.)\\b${v}\\b`).test(code),
     );
@@ -112,6 +114,7 @@ export class AngularBindingRenderer {
     return true;
   }
 
+  // 右值解析
   resolveBindingRight(
     kind: AngularBindingKind,
     key: string,
@@ -146,7 +149,6 @@ export class AngularBindingRenderer {
     }
 
     if (propType === JS_EXPRESSION) {
-      // 双向绑定的左侧必须可赋值,提升成方法会丢掉赋值目标,只能原样落模板
       const expr =
         kind === 'twoWay'
           ? this.toTemplateValue(rawValue)
@@ -189,7 +191,7 @@ export class AngularBindingRenderer {
     loopScope: ILoopScope,
   ): string | null {
     if (item?.type === JS_FUNCTION) {
-      const fnInfo = this.sourceText.parseFunctionOrThrow(item.value ?? '');  // 解析是否异步、参数、函数体这3项信息
+      const fnInfo = this.functionParser.parseFunctionOrThrow(item.value ?? '');  // 解析是否异步、参数、函数体这3项信息
 
       // JSFunction类型的value值是匿名函数，需要加名字。计数器走元数据，保证每次出码从 0 开始
       description.templateMethodCounter++;

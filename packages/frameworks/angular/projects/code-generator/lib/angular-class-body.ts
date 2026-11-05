@@ -8,11 +8,11 @@ import { stateGetterToken } from './constants';
 import { MEMBER_NAME_RE, unwrapExpression } from './utils';
 import { AngularBindingRenderer } from './angular-binding-renderer';
 import { AngularRefResolver } from './angular-ref-resolver';
-import { AngularSourceText } from './angular-source-text';
+import { AngularFunctionParser } from './angular-function-parser';
 
 export class AngularClassBodyBuilder {
   constructor(
-    private readonly sourceText: AngularSourceText,
+    private readonly functionParser: AngularFunctionParser,
     private readonly bindings: AngularBindingRenderer,
     private readonly refs: AngularRefResolver,
   ) {}
@@ -41,7 +41,7 @@ export class AngularClassBodyBuilder {
         return MEMBER_NAME_RE.test(key) ? `${key} = ${this.buildJSFunctionExpression(item.value)};` : '';
       }
 
-      const info = this.sourceText.parseFunctionOrThrow(item.value);
+      const info = this.functionParser.parseFunctionOrThrow(item.value);
       const asyncPrefix = info.type ? `${info.type} ` : '';
       const methodName = asyncPrefix && key.startsWith(asyncPrefix.trim())
         ? key.slice(asyncPrefix.length)
@@ -86,7 +86,7 @@ export class AngularClassBodyBuilder {
     if (!hookFn) {
       return { body: '', isAsync: false };
     }
-    const info = this.sourceText.parseFunctionOrThrow(hookFn.value ?? '');
+    const info = this.functionParser.parseFunctionOrThrow(hookFn.value ?? '');
     return { body: info.body, isAsync: info.type === 'async' };
   }
 
@@ -137,7 +137,7 @@ export class AngularClassBodyBuilder {
 
   // 只有箭头才能把函数体里的 this 锁在组件实例上。
   buildJSFunctionExpression(value: string): string {
-    const info = this.sourceText.parseFunctionOrThrow(value);
+    const info = this.functionParser.parseFunctionOrThrow(value);
     const asyncPrefix = info.type ? `${info.type} ` : '';
     const body = info.body;
     // 形参显式标 any

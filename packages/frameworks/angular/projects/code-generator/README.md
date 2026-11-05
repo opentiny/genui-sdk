@@ -20,17 +20,20 @@ projects/code-generator/
 ├── tsconfig.json                    
 ├── code-generator-base.ts           # 类1:框架无关基类
 ├── angular-code-generator.ts        # 类2:Angular出码门面(装配下面各层,拼出组件文件)
-├── angular-source-text.ts           # 文本层:JSFunction 源串解析/改写/prettier
-├── angular-materials-registry.ts    # 物料层:组件名 → tag/选择器/import 清单
-├── angular-ref-resolver.ts          # ref 层:模板 #name ⇄ 类里 refs.<name>
-├── angular-binding-renderer.ts      # 绑定层:props → [x]/(x)/静态属性/let-*
-├── angular-template-renderer.ts     # 模板层:schema 树 → template 串
-├── angular-class-body.ts            # 类体层:state/methods/生命周期 → 类成员
-├── base-helpers.ts                  # 基类纯函数的注入接口(各层不是基类子类)
-├── constants.ts                     # 协议串常量
-├── utils.ts                         # 小工具(取名字/转大小写/转义等)
-├── types.ts                         # 公共类型
 ├── index.ts                         # 对外导出
+├── lib/                             # 各层实现与工具类
+│   ├── angular-function-parser.ts   # 函数解析层:JSFunction 解析/.bind(this) 改写
+│   ├── angular-source-formatter.ts  # 文本层:prettier 格式化与 TS 语法校验
+│   ├── angular-materials-registry.ts# 物料层:组件名 → tag/选择器/NgModule/组件类
+│   ├── angular-import-builder.ts    # import 层:物料模块 + @ViewChild 字段类型 → import 行
+│   ├── angular-ref-resolver.ts      # ref 层:模板 #name ⇄ 类里 refs.<name>
+│   ├── angular-binding-renderer.ts  # 绑定层:props → [x]/(x)/静态属性/let-*
+│   ├── angular-template-renderer.ts # 模板层:schema 树 → template 串
+│   ├── angular-class-body.ts        # 类体层:state/methods/生命周期 → 类成员
+│   ├── base-helpers.ts              # 基类纯函数的注入接口(各层不是基类子类)
+│   ├── constants.ts                 # 协议串常量
+│   ├── utils.ts                     # 小工具(取名字/转大小写/转义等)
+│   └── types.ts                     # 公共类型
 ├── .local/                          # 本地临时物,不入库
 │   ├── TEST-PROMPTS.md              # 出码测试用的提示词
 │   └── headless/entry.ts            # 无头跑法(不开浏览器)

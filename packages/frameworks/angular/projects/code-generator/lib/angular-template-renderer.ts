@@ -39,11 +39,7 @@ export class AngularTemplateRenderer {
     result.push((children as string) || '');
   }
 
-  /**
-   * 非数组 children 的兜底。协议上 children 只有数组与字符串两种,运行时还会遇到对象形态:
-   * 「漏写数组括号的单节点」与「协议节点」。这两类照字面量落模板会变成 "[object Object]",
-   * 所以在此按能否表达成内容分别处理,表达不出来的丢弃(不产出垃圾文本)。
-   */
+
   generateObjectChildren(
     children: NodeSchema,
     description: ICodegenDescription,

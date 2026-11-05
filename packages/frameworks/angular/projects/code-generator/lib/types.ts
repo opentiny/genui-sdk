@@ -27,7 +27,7 @@ export interface IViewChildRef {
   /** 字段类型:ElementRef / TemplateRef<any> / 物料组件类名 / any */
   fieldType: string;
 
-  /** fieldType 为物料组件类名时,该类的 npm 包名(buildImports 需把它并入该包的 import 行) */
+  /** fieldType 为物料组件类名时,该类的 npm 包名(AngularImportBuilder 需把它并入该包的 import 行) */
   fieldTypePackage?: string;
 
   /** ngAfterViewInit 里的赋值目标 */

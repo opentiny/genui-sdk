@@ -1,24 +1,15 @@
 /**
- * 出码文本层：解析 JSFunction 的源码串、把 `function () {…}.bind(this)` 改写成箭头函数，最后把整份源码交给 prettier。
+ * JSFunction 解析层：解析 `function 名字(...) { ... }` 与箭头函数，并把函数体里的
+ * `function () {…}.bind(this)` 改写成箭头函数（改写是解析的一部分：产出统一的箭头形态）。
  * 只借基类那两个纯函数（见 IBaseHelpers），自身不持有出码状态。
  */
 import type { IBaseHelpers } from './base-helpers';
 
-export interface IPrettierFailure {
-  /** 失败发生在模板段还是外层 TS 段 */
-  stage: 'template' | 'typescript';
-  message: string;
-}
-
-export interface IPrettierResult {
-  code: string;
-  failure?: IPrettierFailure;
-}
-
-export class AngularSourceText {
+export class AngularFunctionParser {
   constructor(private readonly base: IBaseHelpers) {}
   parseFunctionOrThrow(fnStr: string): { type: string; params: string[]; body: string } {
     const info = this.base.getFunctionInfo(fnStr);
+    // 如果是箭头函数，则用parseArrowFunction解析
     const parsed = info ?? this.parseArrowFunction(fnStr);
     if (parsed) {
       return { ...parsed, body: this.rewriteBindThis(parsed.body) };
@@ -181,74 +172,5 @@ export class AngularSourceText {
     }
     // 只剥最外层花括号，内层原样保留
     return { type, params, body: body.slice(1, -1) };
-  }
-
-  /** 格式化产物；失败时返回原文与失败阶段,由调用方落到 errors 通道 */
-  async formatWithPrettier(source: string, prettierOpts: Record<string, unknown>): Promise<IPrettierResult> {
-    let stage: IPrettierFailure['stage'] = 'template';
-    try {
-      const [
-        { format },
-        { default: htmlPlugin },
-        { default: typescriptPlugin },
-        { default: estreePlugin },
-      ] = await Promise.all([
-        import('prettier/standalone'),
-        import('prettier/plugins/html'),
-        import('prettier/plugins/typescript'),
-        import('prettier/plugins/estree'),
-      ]);
-
-      // 1) 抽出并格式化 inline template
-      let formatted = source;
-      const templateMatch = source.match(/template: `([\s\S]*?)`,/);
-      if (templateMatch) {
-        const formattedTemplate = await format(templateMatch[1], {
-          ...prettierOpts,
-          parser: 'angular',
-          plugins: [htmlPlugin],
-        });
-        const indentedTemplate = formattedTemplate
-          .trimEnd()
-          .split('\n')
-          .map((line: string) => `      ${line}`)
-          .join('\n');
-        formatted = source.replace(
-          /template: `([\s\S]*?)`,/,
-          () => `template: \`\n${indentedTemplate}\n  \`,`,
-        );
-      }
-
-      // 2) 整体格式化外层 TS 结构
-      stage = 'typescript';
-      return {
-        code: await format(formatted, {
-          ...prettierOpts,
-          parser: 'typescript',
-          plugins: [typescriptPlugin, estreePlugin],
-        }),
-      };
-    } catch (error) {
-      return { code: source, failure: { stage, message: error instanceof Error ? error.message : String(error) } };
-    }
-  }
-
-  /** TS 语法校验(借 prettier 的 TS parser 完整解析一遍)，通过返回 null */
-  async checkTypeScript(source: string, prettierOpts: Record<string, unknown>): Promise<string | null> {
-    try {
-      const [{ format }, { default: typescriptPlugin }, { default: estreePlugin }] = await Promise.all([
-        import('prettier/standalone'),
-        import('prettier/plugins/typescript'),
-        import('prettier/plugins/estree'),
-      ]);
-      await format(source, {
-        ...prettierOpts,
-        parser: 'typescript',
-        plugins: [typescriptPlugin, estreePlugin],
-      });
-      return null;
-    } catch (error) {
-      return error instanceof Error ? error.message : String(error);
-    }
   }
 }

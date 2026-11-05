@@ -7,16 +7,18 @@ import type {
   ICodeGeneratorResult,
   ICodegenDescription,
   ICodegenError,
-} from './types';
-import { capitalize, escapeTemplateLiteral, hyphenate } from './utils';
-import { AngularBindingRenderer } from './angular-binding-renderer';
-import { AngularClassBodyBuilder } from './angular-class-body';
-import { AngularMaterialsRegistry } from './angular-materials-registry';
-import { AngularOutputValidator } from './angular-output-validator';
-import { AngularRefResolver } from './angular-ref-resolver';
-import { AngularSourceText } from './angular-source-text';
-import { AngularTemplateRenderer } from './angular-template-renderer';
-import type { IBaseHelpers } from './base-helpers';
+} from './lib/types';
+import { capitalize, escapeTemplateLiteral, hyphenate } from './lib/utils';
+import { AngularBindingRenderer } from './lib/angular-binding-renderer';
+import { AngularClassBodyBuilder } from './lib/angular-class-body';
+import { AngularImportBuilder } from './lib/angular-import-builder';
+import { AngularMaterialsRegistry } from './lib/angular-materials-registry';
+import { AngularOutputValidator } from './lib/angular-output-validator';
+import { AngularRefResolver } from './lib/angular-ref-resolver';
+import { AngularFunctionParser } from './lib/angular-function-parser';
+import { AngularSourceFormatter } from './lib/angular-source-formatter';
+import { AngularTemplateRenderer } from './lib/angular-template-renderer';
+import type { IBaseHelpers } from './lib/base-helpers';
 import { CodeGeneratorBase } from './code-generator-base';
 
 /** Angular 出码默认 prettier 参数(parser 为 typescript;模板部分单独用 parser 'angular') */
@@ -38,8 +40,10 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   private readonly bindings: AngularBindingRenderer;
   private readonly template: AngularTemplateRenderer;
   private readonly classBody: AngularClassBodyBuilder;
+  private readonly importBuilder: AngularImportBuilder;
   private readonly prettierOpts: Record<string, unknown>;
-  private readonly sourceText: AngularSourceText;
+  private readonly functionParser: AngularFunctionParser;
+  private readonly sourceFormatter: AngularSourceFormatter;
   private readonly baseHelpers: IBaseHelpers;
   private readonly validator: AngularOutputValidator;
   private readonly enableCompileValidation: boolean;
@@ -62,12 +66,14 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       resolvePropValueType: (value) => this.resolvePropValueType(value),
       isOnEventKey: (key) => this.isOnEventKey(key),
     };
-    this.sourceText = new AngularSourceText(this.baseHelpers);
+    this.functionParser = new AngularFunctionParser(this.baseHelpers);
+    this.sourceFormatter = new AngularSourceFormatter();
     this.registry = new AngularMaterialsRegistry([...options.materials]);
     this.refs = new AngularRefResolver(this.registry, this.baseHelpers);
-    this.bindings = new AngularBindingRenderer(this.registry, this.refs, this.sourceText, this.baseHelpers);
+    this.bindings = new AngularBindingRenderer(this.registry, this.refs, this.functionParser, this.baseHelpers);
     this.template = new AngularTemplateRenderer(this.bindings, this.registry);
-    this.classBody = new AngularClassBodyBuilder(this.sourceText, this.bindings, this.refs);
+    this.classBody = new AngularClassBodyBuilder(this.functionParser, this.bindings, this.refs);
+    this.importBuilder = new AngularImportBuilder(this.registry);
     this.validator = new AngularOutputValidator(this.registry);
     this.enableCompileValidation = options.enableCompileValidation !== false;
     this.prettierOpts = {
@@ -77,7 +83,9 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
   }
 
   protected override getFunctionInfo(fnStr: string): { type: string; params: string[]; body: string } | null {
-    return this.sourceText.parseArrowFunction(fnStr) ?? super.getFunctionInfo(fnStr);
+    // 箭头必须优先：基类正则会把箭头体里的 `if (x) {` 认成函数头并返回一个看起来合法的错误结果（不是 null），
+    // 先调 super 就拿不到箭头解析的机会了。
+    return this.functionParser.parseArrowFunction(fnStr) ?? super.getFunctionInfo(fnStr);
   }
 
   protected buildAngularComponentSource({ schema, name }: { schema: CardSchema; name?: string }): string {
@@ -119,7 +127,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     const hasAfterViewInit = !!lifecycle.afterViewInit;
     // 类型符号从已生成的声明串反查,避免「类型来源」与「导入清单」两处手工维护而漂移
     const declarations = `${viewChildDecls}\n${refsField}\n${stateFields}`;
-    const { importStatements, moduleNames } = this.registry.buildImports(codegenMeta, {
+    const { importStatements, moduleNames } = this.importBuilder.buildImports(codegenMeta, {
       init: hasInit,
       destroy: hasDestroy,
       afterViewInit: hasAfterViewInit,
@@ -194,7 +202,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
       type: 'page',
     };
     if (formatWithPrettier) {
-      const formatted = await this.sourceText.formatWithPrettier(panel.panelValue, panel.prettierOpts);
+      const formatted = await this.sourceFormatter.format(panel.panelValue, panel.prettierOpts);
       panel.panelValue = formatted.code;
       if (formatted.failure) {
         errors.push({
@@ -203,7 +211,7 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
         });
       }
     } else if (this.enableCompileValidation) {
-      const syntaxError = await this.sourceText.checkTypeScript(panel.panelValue, panel.prettierOpts);
+      const syntaxError = await this.sourceFormatter.checkTypeScript(panel.panelValue, panel.prettierOpts);
       if (syntaxError) {
         errors.push({ code: 'TS_SYNTAX', message: `TypeScript 语法错误：${syntaxError}` });
       }

@@ -1,11 +1,11 @@
 import type { CardSchema } from '@opentiny/genui-sdk-core';
-import { JS_EXPRESSION, JS_FUNCTION, JS_SLOT } from './constants';
+import { JS_EXPRESSION, JS_FUNCTION, JS_SLOT } from './lib/constants';
 import type {
   ICodeGeneratorParams,
   ICodegenDescription,
   IFrameworkCodeGenerator,
   ICodeGeneratorResult,
-} from './types';
+} from './lib/types';
 export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICodeGeneratorParams, ICodeGeneratorResult> {
 
   protected replaceThis(value: string): string {
