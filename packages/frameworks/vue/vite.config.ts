@@ -24,6 +24,7 @@ export default defineConfig(({ mode }) => {
         rollupTypes: true,
         bundledPackages: ['zod', 'zod-to-json-schema'],
         include: ['src'],
+        // CLI 为纯 Node 脚本，不需要对外类型，且引用了 vite 等构建期依赖
         compilerOptions: {
           skipLibCheck: true,
         },
@@ -59,6 +60,8 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         external: [
           ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
+          // CLI 使用 node 内置模块，浏览器产物中不涉及
+          /^node:/,
         ],
       },
     },
