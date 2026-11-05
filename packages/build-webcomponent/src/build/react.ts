@@ -5,7 +5,7 @@ import path from 'node:path';
 import { build, normalizePath } from 'vite';
 import { createWebComponentDts } from '../dts';
 import { resolvePackageDir, resolvePackageMainEntry } from '../resolve-materials';
-import { createWebComponentViteConfig } from '../frameworks/react/build-config';
+import { createWebComponentViteConfig } from './react-config';
 import {
   PACKAGE_ROOT,
   createEntryCode,
@@ -14,10 +14,10 @@ import {
   type BuildWebComponentResult,
 } from './shared';
 
-/** 工厂是本包预编译好的产物；genui 运行时由本包 dependencies 提供 */
+/** 预编译好的工厂；genui 运行时由本包 dependencies 提供 */
 const FACTORY_FILE = path.join(PACKAGE_ROOT, 'dist/frameworks/react/index.js');
 
-/** 本地优先：使用方项目里的 react 与物料共用一份；找不到时回退到 CLI 包安装的那份 */
+/** Prefer the consumer's React so materials share it; fall back to this package's copy */
 function resolveReactDir(packageName: 'react' | 'react-dom', cwd: string): string {
   const froms = [cwd, PACKAGE_ROOT];
   for (const from of froms) {

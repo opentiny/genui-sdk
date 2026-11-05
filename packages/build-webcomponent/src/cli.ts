@@ -17,7 +17,6 @@ function formatPath(file: string, cwd: string): string {
   return relative.startsWith('..') ? file : relative;
 }
 
-/** 命令行的完整流程：解析参数 → 解析物料 → 交给对应的框架构建器 → 打印产物 */
 export async function runWebComponentBuildCli(argv: string[], cwd = process.cwd()): Promise<void> {
   let options: WebComponentCliOptions;
   try {

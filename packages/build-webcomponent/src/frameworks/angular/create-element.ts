@@ -10,12 +10,13 @@ import { GenuiConfigRendererRoot } from './genui-config-renderer-root';
 export const GENUI_CONFIG_RENDERER_TAG = 'genui-config-renderer';
 
 /**
- * 创建渲染器自定义元素的构造函数。
+ * Creates the custom element constructor for the renderer.
  *
- * 与 Vue / React 的工厂不同，这里是异步的：`@angular/elements` 的 `createCustomElement`
- * 需要一个已经初始化好的 injector，而 Angular 应用只能通过 `createApplication()` 异步拿到。
- * 因此对外暴露的是 `Promise<CustomElementConstructor>`，注册完成前标签保持未定义状态，
- * `customElements.define()` 之后浏览器会自动升级页面里已存在的标签，不需要使用方额外处理。
+ * Unlike Vue / React this is async: `createCustomElement` needs an initialized
+ * injector, and Angular only hands one out through `createApplication()`. The factory
+ * therefore exposes a `Promise<CustomElementConstructor>`; until it resolves the tag
+ * stays undefined, and `customElements.define()` upgrades tags already in the page,
+ * so consumers need no extra work.
  */
 export function createGenuiConfigRendererElement(materials: IMaterials = {}): Promise<CustomElementConstructor> {
   return createApplication({
@@ -29,7 +30,7 @@ export function createGenuiConfigRendererElement(materials: IMaterials = {}): Pr
   }).then((appRef) => createCustomElement(GenuiConfigRendererRoot, { injector: appRef.injector }));
 }
 
-/** 创建元素并注册标签；`customElements.whenDefined(tagName)` 可等到注册完成 */
+/** Creates the element and registers the tag; await customElements.whenDefined(tagName) */
 export function defineGenuiConfigRenderer(
   tagName: string = GENUI_CONFIG_RENDERER_TAG,
   materials: IMaterials = {},

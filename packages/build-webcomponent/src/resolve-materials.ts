@@ -6,9 +6,7 @@ import path from 'node:path';
 const DEFAULT_MATERIALS_SUBPATH = 'materials';
 
 export interface ResolvedMaterialsSource {
-  /** 原始输入，用于日志与 materialKey */
   input: string;
-  /** 绝对路径 */
   entry: string;
   kind: 'path' | 'package';
 }
@@ -23,7 +21,7 @@ function isPathLike(spec: string): boolean {
   );
 }
 
-/** ~ 必须展开成绝对路径，否则会被当成相对路径 */
+/** `~` must be expanded, otherwise it is treated as a relative path */
 function expandHome(spec: string): string {
   if (spec === '~') return os.homedir();
   if (spec.startsWith('~/') || spec.startsWith(`~${path.sep}`)) {
@@ -138,7 +136,7 @@ export function resolvePackageDir(packageName: string, from: string): string {
   return packageDir;
 }
 
-/** 不走 require.resolve：core 这类包只声明了 import 条件，require 条件解析不到 */
+/** Bypasses require.resolve: packages like core only declare an `import` condition */
 export function resolvePackageMainEntry(packageName: string, from: string): string {
   const packageDir = resolvePackageDir(packageName, from);
   const pkg = JSON.parse(readFileSync(path.join(packageDir, 'package.json'), 'utf-8')) as Record<string, any>;
@@ -149,7 +147,7 @@ export function resolvePackageMainEntry(packageName: string, from: string): stri
   return entry;
 }
 
-/** require.resolve 受 CJS 条件限制，兜底直接读 package.json 的 exports / module / main */
+/** require.resolve is bound to CJS conditions; fall back to reading exports / module / main */
 function resolvePackageViaManifest(spec: string, cwd: string): string | undefined {
   const { packageName, subpath } = splitPackageSpec(spec);
   const packageDir = findPackageDir(packageName, cwd);

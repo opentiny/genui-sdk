@@ -45,7 +45,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "node scripts/clean-dist.mjs && node scripts/build-frameworks.mjs && node scripts/build-angular-runtime.mjs && vite build",
+    "build": "node scripts/clean-dist.mjs && node scripts/build-frameworks.mjs && vite build",
     "build:angular": "node scripts/build-angular-runtime.mjs",
     "test": "vitest run"
   },

@@ -5,19 +5,15 @@ export type Framework = 'vue' | 'react' | 'angular';
 export const FRAMEWORKS: Framework[] = ['vue', 'react', 'angular'];
 export const DEFAULT_FRAMEWORK: Framework = 'vue';
 export const DEFAULT_TAG_NAME = 'genui-config-renderer';
-/** 不含扩展名 */
 export const DEFAULT_FILE_NAME = 'genui-config-renderer';
-/** 相对于执行命令的目录 */
 export const DEFAULT_OUT_DIR = 'dist/web-component';
 
 export interface WebComponentCliOptions {
   framework: Framework;
-  /** npm 包名或本地路径，可重复指定 */
+/** npm 包名或本地路径，可重复指定 */
   materials: string[];
   tagName: string;
-  /** 绝对路径 */
   outDir: string;
-  /** 不含扩展名 */
   fileName: string;
   minify: boolean;
   sourcemap: boolean;

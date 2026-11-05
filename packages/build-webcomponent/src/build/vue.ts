@@ -5,7 +5,7 @@ import path from 'node:path';
 import { build, normalizePath } from 'vite';
 import { createWebComponentDts } from '../dts';
 import { resolvePackageDir, resolvePackageMainEntry } from '../resolve-materials';
-import { createWebComponentViteConfig } from '../frameworks/vue/build-config';
+import { createWebComponentViteConfig } from './vue-config';
 import {
   PACKAGE_ROOT,
   createCwdResolverPlugin,
@@ -15,7 +15,7 @@ import {
   type BuildWebComponentResult,
 } from './shared';
 
-/** 工厂是本包预编译好的产物；genui 运行时由本包 dependencies 提供，使用方不需要单独安装 */
+/** 预编译好的工厂；genui 运行时由本包 dependencies 提供 */
 const FACTORY_FILE = path.join(PACKAGE_ROOT, 'dist/frameworks/vue/index.js');
 
 function resolveVueDir(cwd: string): string {

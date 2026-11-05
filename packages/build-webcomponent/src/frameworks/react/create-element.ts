@@ -20,7 +20,6 @@ const ATTRIBUTE_TO_PROP = {
   'is-json-complete': 'isJsonComplete',
   'required-complete-field-selectors': 'requiredCompleteFieldSelectors',
   state: 'state',
-  id: 'id',
 } as const satisfies Record<string, PropName>;
 
 type AttributeName = keyof typeof ATTRIBUTE_TO_PROP;
@@ -42,7 +41,7 @@ function readAttribute(name: AttributeName, value: string | null): unknown {
   }
 }
 
-/** property 赋值时把 JSON 字符串收敛成对象，避免把字符串塞给只接受对象的渲染器 props */
+/** Coerce JSON strings on property assignment so object-only renderer props never get a string */
 function normalizePropertyValue(name: PropName, value: unknown): unknown {
   if (name === 'content') return value;
   if (name === 'generating' || name === 'isJsonComplete') return parseBooleanAttribute(value as boolean | string);
@@ -52,12 +51,12 @@ function normalizePropertyValue(name: PropName, value: unknown): unknown {
 }
 
 /**
- * 创建 GenUI 渲染器的自定义元素构造函数。
+ * Creates the custom element constructor for the GenUI renderer.
  *
- * React 没有 Vue 的 `defineCustomElement`，这里手写一个 `HTMLElement`：
- * - 物料是构建期确定的对象，通过闭包传进来，不作为 attribute
- * - 用 light DOM（不挂 shadow root），全局主题变量与物料样式才能生效
- * - React root 挂在内部容器上，卸载时 `unmount()`，多次插入/移除可以复用
+ * React has no `defineCustomElement`, so this hand-rolls an `HTMLElement`:
+ * - materials are fixed at build time and passed in through the closure, never as an attribute
+ * - it renders into light DOM (no shadow root) so global theme variables and materials styles apply
+ * - one React root lives on the inner container and is reused across reconnects
  */
 export function createGenuiConfigRendererElement(materials: IMaterials = {}): CustomElementConstructor {
   return class GenuiConfigRendererElement extends HTMLElement {
@@ -162,7 +161,7 @@ export function createGenuiConfigRendererElement(materials: IMaterials = {}): Cu
       this.#setProp('notify', value);
     }
 
-    /** 没有传入 notify 时，把通知转成 DOM 事件，方便纯 HTML 宿主监听 */
+    /** 没有外部传入 notify 时，把通知转成 DOM 事件，方便纯 HTML 宿主监听 */
     #dispatchNotify = (payload: Parameters<NotifyHandler>[0]): void => {
       this.dispatchEvent(new CustomEvent('genui-notify', { detail: payload, bubbles: true, composed: true }));
     };

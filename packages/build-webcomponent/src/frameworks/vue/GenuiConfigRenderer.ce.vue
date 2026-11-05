@@ -6,7 +6,6 @@ import type { I18nMessages } from '../chat/i18n';
 import { GenuiRenderer } from '@opentiny/genui-sdk-vue/renderer';
 import { GENUI_BAKED_MATERIALS } from './materials-token';
 import { parseBooleanAttribute, parseJsonAttribute } from './parse-attribute';
-import { createUniqueId } from './unique-id';
 
 defineOptions({
   shadowRoot: false,
@@ -18,8 +17,6 @@ const props = defineProps<{
   /** 如 zh_CN、en_US */
   locale?: string;
   i18n?: string | Record<string, unknown>;
-  // 必须声明成 prop：不声明会 fallthrough 覆盖内部容器的 :id，导致同一个 id 出现两次
-  id?: string;
 
   // 渲染器的属性，声明在这里才能被 defineCustomElement 暴露成同名 attribute / property
   content?: string | Record<string, unknown>;
@@ -30,8 +27,6 @@ const props = defineProps<{
   requiredCompleteFieldSelectors?: string | string[];
   state?: string | Record<string, unknown>;
 }>();
-
-const containerId = createUniqueId('genui-config-renderer');
 
 // 由 createGenuiConfigRendererElement 的 configureApp 注入
 const bakedMaterials = inject<MergedMaterials>(GENUI_BAKED_MATERIALS, {});
@@ -58,7 +53,7 @@ const isJsonComplete = computed(() => parseBooleanAttribute(props.isJsonComplete
 </script>
 
 <template>
-  <ConfigProvider :id="containerId" :theme="theme" :locale="locale" :i18n="parsedI18n" :materials="bakedMaterials">
+  <ConfigProvider :theme="theme" :locale="locale" :i18n="parsedI18n" :materials="bakedMaterials">
     <GenuiRenderer
       :content="content ?? '{}'"
       :generating="isGenerating"
@@ -66,7 +61,6 @@ const isJsonComplete = computed(() => parseBooleanAttribute(props.isJsonComplete
       :custom-components="parsedCustomComponents"
       :custom-actions="parsedCustomActions"
       :required-complete-field-selectors="parsedRequiredCompleteFieldSelectors"
-      :id="id"
       :state="parsedState"
     />
   </ConfigProvider>

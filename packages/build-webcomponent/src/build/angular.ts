@@ -5,7 +5,7 @@ import path from 'node:path';
 import { build, normalizePath } from 'vite';
 import { createWebComponentDts } from '../dts';
 import { resolvePackageDir, resolvePackageMainEntry } from '../resolve-materials';
-import { createWebComponentViteConfig } from '../frameworks/angular/build-config';
+import { createWebComponentViteConfig } from './angular-config';
 import {
   PACKAGE_ROOT,
   createCwdResolverPlugin,
@@ -18,7 +18,6 @@ import {
 /** ngc 预编译产物，模板已编译成 Ivy 指令，运行时不再需要 Angular 编译器 */
 const FACTORY_FILE = path.join(PACKAGE_ROOT, 'dist/frameworks/angular/index.js');
 
-/** 包内入口优先，兼容从 npm 安装（dist/index.mjs）与仓库内（output/dist/index.mjs）两种布局 */
 function resolveRuntime(cwd: string) {
   if (!existsSync(FACTORY_FILE)) {
     throw new Error(

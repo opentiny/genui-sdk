@@ -17,7 +17,6 @@ import { jsonAttribute } from './attribute-transform';
   imports: [GenuiRenderer],
   template: `
     <genui-renderer
-      [id]="id"
       [content]="content"
       [generating]="generating"
       [isJsonComplete]="isJsonComplete"
@@ -47,7 +46,6 @@ export class GenuiConfigRendererRoot {
     );
   };
 
-  @Input() id?: string;
   // content 保留原始字符串：流式输出时是半截 JSON，交给渲染器里的 repairJson 处理
   @Input() content: string | object = '{}';
   @Input({ transform: booleanAttribute }) generating = false;

@@ -6,7 +6,6 @@ import type { BuildWebComponentOptions, BuildWebComponentResult } from './shared
 export * from './shared';
 export { buildAngularWebComponent, buildReactWebComponent, buildVueWebComponent };
 
-/** 按框架选择对应的构建实现 */
 export function buildWebComponent(options: BuildWebComponentOptions): Promise<BuildWebComponentResult> {
   switch (options.framework) {
     case 'react':

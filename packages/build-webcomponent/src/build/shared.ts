@@ -12,7 +12,7 @@ export const MATERIAL_ID_PREFIX = 'virtual:genui-web-component-material:';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
-/** 兼容从 dist/ 和源码目录两种位置运行 */
+/** Works from both dist/ and the source tree */
 export function findPackageRoot(start = here): string {
   let dir = start;
   for (;;) {
@@ -59,12 +59,12 @@ export interface BuildWebComponentResult {
 
 const toLiteral = (value: string) => JSON.stringify(value);
 
-/** 物料合并后的 key，用于调试与产物元信息 */
+/** Merged materials key, used for debugging and bundle metadata */
 export function createMaterialKey(materials: ResolvedMaterialsSource[]): string {
   return materials.map((material) => material.input).join('+');
 }
 
-/** 虚拟模块：把每个物料包映射成可打包的入口 */
+/** Virtual modules mapping each materials package to an entry Rollup can bundle */
 export function createResolverPlugin(
   materials: ResolvedMaterialsSource[],
   runtime: Record<string, string>,
@@ -85,8 +85,9 @@ export function createResolverPlugin(
 }
 
 /**
- * 预编译工厂里被 external 掉的包（例如 Vue 端依赖的 TinyVue 组件库）
- * 需要从执行命令的项目或物料所在包解析，确保和物料共用同一份实现。
+ * Resolves packages left external in the prebuilt factory (for example the TinyVue
+ * component library on the Vue side) from the consumer's project or the materials
+ * package, so both share a single implementation.
  */
 export function createCwdResolverPlugin(fromDirs: string | string[], patterns: RegExp[]): Plugin {
   const dirs = Array.isArray(fromDirs) ? fromDirs : [fromDirs];
@@ -109,8 +110,9 @@ export function createCwdResolverPlugin(fromDirs: string | string[], patterns: R
 }
 
 /**
- * 生成临时入口：注入物料、注册标签。
- * Angular 的注册是异步的，入口会直接导出 Promise，与默认产物包保持同一套声明。
+ * Builds the temporary entry: inject materials and register the tag.
+ * Angular registers asynchronously, so its entry exports a Promise, matching the
+ * declarations of the default package.
  */
 export function createEntryCode(options: BuildWebComponentOptions): string {
   const { materials, tagName, framework } = options;
