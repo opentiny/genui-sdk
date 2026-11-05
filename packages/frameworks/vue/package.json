@@ -58,21 +58,7 @@
     "./code-generator": {
       "types": "./dist/code-generator.d.ts",
       "import": "./dist/code-generator.js"
-    },
-    "./web-component": {
-      "types": "./dist/web-component/genui-config-renderer.d.ts",
-      "import": "./dist/web-component/genui-config-renderer.js"
-    },
-    "./web-component/*": {
-      "import": "./dist/web-component/*.js"
-    },
-    "./web-component-factory": {
-      "types": "./dist/web-component-factory.d.ts",
-      "import": "./dist/web-component-factory.js"
     }
-  },
-  "bin": {
-    "genui-sdk-vue-build": "./dist/genui-sdk-vue-build.js"
   },
   "type": "module",
   "files": [
@@ -81,12 +67,9 @@
   ],
   "scripts": {
     "build": "vite build",
-    "build:web-component:deps": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/tiny-schema-renderer build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build",
-    "prebuild:web-component": "pnpm build:web-component:deps",
-    "build:web-component": "vite build --config vite.config.web-component.ts",
     "analyze": "vite build --mode analyze",
     "prebuild:lib:npm": "pnpm -F @opentiny/genui-sdk-core build && pnpm -F @opentiny/genui-sdk-materials-vue-opentiny-vue build && pnpm -F @opentiny/tiny-schema-renderer build",
-    "build:lib:npm": "pnpm build && pnpm build:web-component",
+    "build:lib:npm": "pnpm build",
     "test": "vitest"
   },
   "dependencies": {

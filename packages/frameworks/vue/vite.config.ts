@@ -25,7 +25,6 @@ export default defineConfig(({ mode }) => {
         bundledPackages: ['zod', 'zod-to-json-schema'],
         include: ['src'],
         // CLI 为纯 Node 脚本，不需要对外类型，且引用了 vite 等构建期依赖
-        exclude: ['src/web-component-cli/**'],
         compilerOptions: {
           skipLibCheck: true,
         },
@@ -44,8 +43,6 @@ export default defineConfig(({ mode }) => {
           'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
           'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
           'code-generator': path.resolve(__dirname, './src/code-generator/index.ts'),
-          'web-component-factory': path.resolve(__dirname, './src/web-component/factories.ts'),
-          'genui-sdk-vue-build': path.resolve(__dirname, './src/web-component-cli/bin.ts'),
         },
         formats: ['es'],
         fileName: (_, entryName) => `${entryName}.js`,
