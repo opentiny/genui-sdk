@@ -1,0 +1,100 @@
+{
+  "name": "@opentiny/genui-sdk-build-webcomponent",
+  "version": "0.0.0",
+  "description": "Build GenUI custom elements (web components) for Vue, React and Angular with your own materials",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/build-webcomponent"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "generative-ui",
+    "opentiny",
+    "web-component",
+    "custom-element",
+    "cli",
+    "vue",
+    "react",
+    "angular"
+  ],
+  "type": "module",
+  "bin": {
+    "genui-sdk-build-webcomponent": "./dist/bin.mjs"
+  },
+  "main": "./dist/index.mjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node scripts/clean-dist.mjs && node scripts/build-frameworks.mjs && node scripts/build-angular-runtime.mjs && vite build",
+    "build:angular": "node scripts/build-angular-runtime.mjs",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@angular/compiler-cli": "^20.3.0",
+    "@babel/core": "^7.28.5",
+    "@opentiny/genui-sdk-angular": "workspace:~",
+    "@opentiny/genui-sdk-core": "workspace:~",
+    "@opentiny/genui-sdk-react": "workspace:~",
+    "@opentiny/genui-sdk-vue": "workspace:~",
+    "@opentiny/tiny-schema-renderer-ng": "workspace:~",
+    "@opentiny/vue": "~3.31.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "@vitejs/plugin-vue": "^5.0.0",
+    "@vue/compiler-sfc": "^3.5.13",
+    "vite": "^6.0.0",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
+    "vue": "^3.5.13"
+  },
+  "peerDependencies": {
+    "@angular/core": ">=20.0.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0",
+    "vue": ">=3.5.0",
+    "zone.js": ">=0.14.0"
+  },
+  "peerDependenciesMeta": {
+    "@angular/core": {
+      "optional": true
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "vue": {
+      "optional": true
+    },
+    "zone.js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@angular/core": "^20.3.0",
+    "@angular/elements": "^20.3.16",
+    "@angular/platform-browser": "^20.3.0",
+    "jsdom": "^26.1.0",
+    "typescript": "~5.8.0",
+    "vite-plugin-dts": "^4.0.0"
+  }
+}
