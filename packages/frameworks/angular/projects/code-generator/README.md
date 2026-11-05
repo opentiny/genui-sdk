@@ -9,7 +9,7 @@ Angular 代码出码器:把 AI 产出的页面 schema(`CardSchema`)转换为 Ang
 - **`CodeGeneratorBase`** —— 框架无关基类,与 Vue 出码共用
 - **`AngularCodeGenerator`** —— Angular 特定,出码入口 + 物料配置(实例属性,构造时注入)
 
-各物料包(TinyNG等)各自提供一份 `IAngularMaterialsConfig`, 如 TinyNG 的 `@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator` 导出 `TINYNG_CONFIG`, 向AngularCodeGenerato构造函数传入`TINYNG_CONFIG`后，其实例即可出码。
+各物料包(TinyNG等)各自提供一份 `IAngularMaterialsConfig`, 如 TinyNG 的 `@opentiny/genui-sdk-materials-angular-opentiny-ng/generator-config` 导出 `TINYNG_CONFIG`, 向AngularCodeGenerato构造函数传入`TINYNG_CONFIG`后，其实例即可出码。
 
 ## 目录结构
 
@@ -44,12 +44,12 @@ projects/code-generator/
     │   └── preview.html preview.ts preview.less styles.less tsconfig.app.json
     └── generated/schema-card.ts     # 出码产物:5175 页复制它,4201 页渲染它
 
-packages/materials/angular-opentiny-ng/src/code-generator/
+packages/materials/angular-opentiny-ng/src/generator-config/
 ├── config.ts                        #   TINYNG_CONFIG(物料配置汇总)
 ├── derive-materials-maps.ts         #   从本包 ɵcmp 元数据推导 5 张映射表
 ├── types.ts                         #   配置结构约定(与出码器侧结构对齐)
 ├── record.md                        #   特殊处理的原因与历史
-└── index.ts                         #   子出口 .../code-generator
+└── index.ts                         #   子出口 .../generator-config
 ```
 
 ## 使用
@@ -58,7 +58,7 @@ packages/materials/angular-opentiny-ng/src/code-generator/
 import { AngularCodeGenerator } from './code-generator';
 
 // 物料配置从物料包里取,出码器本身不自带
-import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
+import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/generator-config';
 
 // 唯一入口即构造器
 new AngularCodeGenerator({ materials: [TINYNG_CONFIG] }).generate({ pageInfo: { schema } });           // 单物料包

@@ -194,6 +194,9 @@ export interface IAngularCodeGeneratorOptions {
   enableCompileValidation?: boolean;
 }
 
+/** generateCode 的入参:与 Vue 版对称,组件映射(Angular 侧是物料配置)与 pageInfo 放在同一个对象里 */
+export interface IAngularGenerateCodeParams extends ICodeGeneratorParams, IAngularCodeGeneratorOptions {}
+
 export interface IAngularCoreImportNeeds {
   /** 组件是否声明了 @Output(当前恒为 false,保留给后续事件输出) */
   outputs?: boolean;

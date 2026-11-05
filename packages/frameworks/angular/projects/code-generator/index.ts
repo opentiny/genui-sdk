@@ -1,3 +1,3 @@
 export * from './lib/types';
-export { AngularCodeGenerator } from './angular-code-generator';
+export { AngularCodeGenerator, generateCode } from './angular-code-generator';
 export { CodeGeneratorBase } from './code-generator-base';

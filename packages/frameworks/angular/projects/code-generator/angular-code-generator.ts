@@ -3,6 +3,7 @@ import type {
   ICodeGeneratorParams,
   ICodePanel,
   IAngularCodeGeneratorOptions,
+  IAngularGenerateCodeParams,
   IAngularClassSectionDefinition,
   ICodeGeneratorResult,
   ICodegenDescription,
@@ -219,3 +220,21 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
     return { ...panel, errors };
   }
 }
+
+export const generateCode = ({
+  materials,
+  prettierOpts,
+  enableCompileValidation,
+  ...params
+}: IAngularGenerateCodeParams): Promise<ICodeGeneratorResult> =>
+  new AngularCodeGenerator({ materials, prettierOpts, enableCompileValidation }).generate(params);
+
+// 用法
+// import { generateCode } from '@opentiny/genui-sdk-angular/code-generator';
+// import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/generator-config';
+
+// const { panelName, panelValue, errors } = await generateCode({
+//   pageInfo: { name: 'OrderForm', schema },
+//   formatWithPrettier: true,
+//   materials: [TINYNG_CONFIG],
+// });

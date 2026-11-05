@@ -46,10 +46,10 @@
       "import": "./dist/materials.js",
       "require": "./dist/materials.js"
     },
-    "./code-generator": {
-      "types": "./dist/code-generator.d.ts",
-      "import": "./dist/code-generator.js",
-      "require": "./dist/code-generator.js"
+    "./generator-config": {
+      "types": "./dist/generator-config.d.ts",
+      "import": "./dist/generator-config.js",
+      "require": "./dist/generator-config.js"
     }
   },
   "scripts": {

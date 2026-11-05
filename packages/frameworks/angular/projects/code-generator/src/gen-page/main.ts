@@ -1,6 +1,6 @@
 import './style.css';
 import { AngularCodeGenerator } from '../../index';
-import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
+import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/generator-config';
 
 const $ = <T extends HTMLElement>(sel: string): T => {
   const el = document.querySelector<T>(sel);

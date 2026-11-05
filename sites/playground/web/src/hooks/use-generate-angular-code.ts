@@ -1,5 +1,5 @@
 import { AngularCodeGenerator } from '@opentiny/genui-sdk-angular/code-generator';
-import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/code-generator';
+import { TINYNG_CONFIG } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/generator-config';
 import { runCodeExport } from '../utils';
 
 export const useGenerateAngularCode = () => {
