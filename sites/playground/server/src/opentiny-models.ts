@@ -3,6 +3,7 @@ interface OpenTinyModel {
   provider: string;
   type: string;
   display_name: string;
+  context_window?: number;
   capabilities?: {
     vision?: boolean;
     reasoning?: {
@@ -41,12 +42,15 @@ export function convertOpenTinyToProviderModelsData(resp: OpenTinyModelsResponse
   const models = Array.isArray(resp?.models) ? resp.models : [];
 
   const convertedModels = models.flatMap((model) => {
-    const { display_name, id, type, capabilities, provider } = model;
+    const { display_name, id, type, capabilities, provider, context_window } = model;
     const supportImage =
       type === 'vision' || capabilities?.vision === true || capabilities?.fileUpload?.supportDirectImage === true;
 
     const modelName = display_name && provider ? `${provider}_${display_name}` : id;
     const base: any = { id };
+    if (context_window != null) {
+      base.context_window = context_window;
+    }
     if (supportImage) {
       base.features = { supportImage: true };
     }

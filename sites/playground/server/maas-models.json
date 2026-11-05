@@ -7,7 +7,7 @@
       {
         "name": "OpenPangu-2.0-Flash",
         "id": "openpangu-2.0-flash",
-        "contextWindow": 512000,
+        "context_window": 512000,
         "supportJsonFormat": false,
         "specificPrompt": "",
         "extraBody": {
@@ -19,14 +19,14 @@
       {
         "name": "OpenPangu-2.0-Flash-thinking",
         "id": "openpangu-2.0-flash",
-        "contextWindow": 512000,
+        "context_window": 512000,
         "supportJsonFormat": false,
         "specificPrompt": ""
       },
       {
         "name": "DeepSeek-V4-Flash",
         "id": "deepseek-v4-flash",
-        "contextWindow": 1000000,
+        "context_window": 1000000,
         "supportJsonFormat": false,
         "specificPrompt": "",
         "extraBody": {
@@ -38,7 +38,7 @@
       {
         "name": "DeepSeek-V4-Flash-thinking",
         "id": "deepseek-v4-flash",
-        "contextWindow": 1000000,
+        "context_window": 1000000,
         "supportJsonFormat": false,
         "specificPrompt": "",
         "extraBody": {
@@ -50,7 +50,7 @@
       {
         "name": "DeepSeek-V4-Pro",
         "id": "deepseek-v4-pro",
-        "contextWindow": 1000000,
+        "context_window": 1000000,
         "supportJsonFormat": false,
         "specificPrompt": "",
         "extraBody": {
@@ -62,7 +62,7 @@
       {
         "name": "DeepSeek-V4-Pro-thinking",
         "id": "deepseek-v4-pro",
-        "contextWindow": 1000000,
+        "context_window": 1000000,
         "supportJsonFormat": false,
         "extraBody": {
           "thinking": {
@@ -73,7 +73,7 @@
       {
         "name": "GLM5.2",
         "id": "glm-5.2",
-        "contextWindow": 1000000,
+        "context_window": 1000000,
         "supportJsonFormat": false,
         "extraBody": {
           "thinking": {
@@ -84,13 +84,13 @@
       {
         "name": "GLM5.2-thinking",
         "id": "glm-5.2",
-        "contextWindow": 1000000,
+        "context_window": 1000000,
         "supportJsonFormat": false
       },
       {
         "name": "GLM5.1",
         "id": "glm-5.1",
-        "contextWindow": 198000,
+        "context_window": 198000,
         "supportJsonFormat": false,
         "extraBody": {
           "thinking": {
@@ -101,13 +101,13 @@
       {
         "name": "GLM5.1-thinking",
         "id": "glm-5.1",
-        "contextWindow": 198000,
+        "context_window": 198000,
         "supportJsonFormat": false
       },
       {
         "name": "Kimi-K2.6",
         "id": "kimi-k2.6",
-        "contextWindow": 262144,
+        "context_window": 262144,
         "supportJsonFormat": false,
         "extraBody": {
           "thinking": {
@@ -118,19 +118,19 @@
       {
         "name": "Kimi-K2.6-thinking",
         "id": "kimi-k2.6",
-        "contextWindow": 262144,
+        "context_window": 262144,
         "supportJsonFormat": false
       },
       {
         "name": "Qwen3-30B-A3B",
         "id": "qwen3-30b-a3b",
-        "contextWindow": 131072,
+        "context_window": 131072,
         "supportJsonFormat": false
       },
       {
         "name": "Qwen2.5-VL-72B",
         "id": "qwen2.5-vl-72b",
-        "contextWindow": 131072,
+        "context_window": 131072,
         "supportJsonFormat": false,
         "features": {
           "supportImage": true,

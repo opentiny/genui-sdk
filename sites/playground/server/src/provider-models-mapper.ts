@@ -77,7 +77,7 @@ export class ProviderModelMapper {
     return Array.from(this.map.values()).map((info) => ({
       name: info.model.name,
       features: info.model.features,
-      contextWindow: info.model.contextWindow,
+      context_window: info.model.context_window,
     }));
   }
 

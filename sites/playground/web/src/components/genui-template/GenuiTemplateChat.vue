@@ -370,7 +370,7 @@ const contextCompress = useContextCompress({
   }),
   saveConversations: conversation.saveConversations,
   scrollToBottom,
-  contextWindowTokens: computed(() => modelFeatures.value?.contextWindow),
+  contextWindowTokens: computed(() => modelFeatures.value?.context_window),
 });
 
 const {
