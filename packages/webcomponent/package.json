@@ -1,0 +1,49 @@
+{
+  "name": "@opentiny/genui-sdk-webcomponent",
+  "version": "0.0.0",
+  "description": "Ready-to-use GenUI custom element with Vue and OpenTiny Vue materials baked in",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/webcomponent"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "generative-ui",
+    "opentiny",
+    "web-component",
+    "custom-element",
+    "vue"
+  ],
+  "type": "module",
+  "main": "./dist/genui-config-renderer.js",
+  "module": "./dist/genui-config-renderer.js",
+  "types": "./dist/genui-config-renderer.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/genui-config-renderer.d.ts",
+      "import": "./dist/genui-config-renderer.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/genui-sdk-build-webcomponent": "workspace:*",
+    "vue": "^3.5.13"
+  }
+}
