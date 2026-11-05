@@ -39,7 +39,7 @@ The GenUI runtimes (`@opentiny/genui-sdk-vue` / `-react` / `-angular`) are depen
 | `-t, --tag <name>`         | Custom element tag name, default `genui-config-renderer`                 |
 | `-o, --out-dir <dir>`      | Output directory, default `dist/web-component`, relative to the cwd      |
 | `-f, --file-name <name>`   | Output file name without extension, default `genui-config-renderer`      |
-| `--no-minify`              | Disable minification                                                     |
+| `--minify` / `--no-minify` | Enable / disable minification (enabled by default)                       |
 | `--sourcemap`              | Emit source maps                                                         |
 | `-h, --help`               | Show help                                                                |
 | `-v, --version`            | Show version                                                             |
@@ -52,7 +52,7 @@ dist/web-component/
 └─ genui-config-renderer.d.ts  matching type declarations
 ```
 
-The bundle registers `<genui-config-renderer>` on load and exports `GenuiConfigRendererElement`, `GENUI_CONFIG_RENDERER_TAG`, `registerGenuiConfigRenderer`, `createGenuiConfigRendererElement`, `materials` and `materialKey`.
+The bundle registers `<genui-config-renderer>` on load and exports `GenuiConfigRendererElement`, `GENUI_CONFIG_RENDERER_TAG`, `registerGenuiConfigRenderer`, `createGenuiConfigRendererElement`, `materials` and `materialKey`. With `-F angular`, `createGenuiConfigRendererElement` is replaced by `defineGenuiConfigRenderer`, and `GenuiConfigRendererElement` resolves asynchronously.
 
 Angular registration is asynchronous: `GenuiConfigRendererElement` is a `Promise<CustomElementConstructor>`, and elements already in the page are upgraded once registration completes. Angular bundles also require `zone.js` and `@angular/core` to be installed in the project.
 

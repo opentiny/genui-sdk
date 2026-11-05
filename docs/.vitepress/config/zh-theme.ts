@@ -47,8 +47,13 @@ export const zhThemeConfig: DefaultTheme.Config = {
           { text: 'GenuiChat', link: '/components/chat' },
           { text: 'GenuiConfigProvider', link: '/components/config-provider' },
           { text: 'generateCode', link: '/components/code-generator' },
-          { text: 'Web Component', link: '/components/web-component' },
-          { text: 'Web Component CLI', link: '/components/web-component-cli' },
+        ],
+      },
+      {
+        text: 'Web Component 文档',
+        items: [
+          { text: 'Web Component 包', link: '/components/webcomponent/' },
+          { text: 'Web Component CLI', link: '/components/webcomponent/cli' },
         ],
       },
       {

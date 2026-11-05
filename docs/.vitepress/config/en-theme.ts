@@ -51,8 +51,13 @@ export const enThemeConfig: DefaultTheme.Config = {
           { text: 'GenuiChat', link: '/en/components/chat' },
           { text: 'GenuiConfigProvider', link: '/en/components/config-provider' },
           { text: 'generateCode', link: '/en/components/code-generator' },
-          { text: 'Web Component', link: '/en/components/web-component' },
-          { text: 'Web Component CLI', link: '/en/components/web-component-cli' },
+        ],
+      },
+      {
+        text: 'Web Component',
+        items: [
+          { text: 'Web Component package', link: '/en/components/webcomponent/' },
+          { text: 'Web Component CLI', link: '/en/components/webcomponent/cli' },
         ],
       },
       {
