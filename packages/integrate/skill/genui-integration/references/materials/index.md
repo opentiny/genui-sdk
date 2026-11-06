@@ -2,7 +2,7 @@
 
 GenUI SDK 自 v1.3.0 起将核心 SDK 与 UI 物料解耦，需通过 `GenuiConfigProvider` 注入物料。本目录汇总官方物料包与可选方案。
 
-类型定义（`IMaterials`、`IMaterialsMeta`、`IMaterialsTheme`）见 [Core API](../guides/core-api.md)（构建时从 docs 同步）。
+类型定义（`IMaterials`、`IMaterialsMeta`、`IMaterialsRuntime`）见 [Core API](../guides/core-api.md)（构建时从 docs 同步）。
 
 ## 官方物料（默认推荐）
 
