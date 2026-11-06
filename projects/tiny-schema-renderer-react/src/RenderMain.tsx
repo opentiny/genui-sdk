@@ -84,6 +84,11 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
     });
   }, [contextApi, pageInitSignature]);
 
+  /** materials 变化时刷新上下文中的 utils（setSchema 仅在 schema 变化时重跑，不会同步 utils） */
+  useEffect(() => {
+    setContext({ utils: materials?.utils ?? {} });
+  }, [materials, setContext]);
+
   useEffect(() => {
     // TODO: 方案待讨论
     setDefaultSlotRenderer(

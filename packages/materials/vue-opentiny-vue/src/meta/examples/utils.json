@@ -29,7 +29,7 @@
   "methods": {
     "onCopy": {
       "type": "JSFunction",
-      "value": "function onCopy() { this.utils.debounce(() => { this.state.copied = true }, 300)() }"
+      "value": "function onCopy() { (this._copyDebounced ??= this.utils.debounce(() => { this.state.copied = true }, 300))() }"
     }
   },
   "componentName": "Page",

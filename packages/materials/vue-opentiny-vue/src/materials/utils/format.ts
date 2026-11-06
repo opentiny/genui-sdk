@@ -6,13 +6,14 @@ export function formatDate(date: Date | number | string, format = 'YYYY-MM-DD') 
   if (Number.isNaN(d.getTime())) {
     return '';
   }
+  // 全局替换各占位符（先 YYYY 再其余，替换结果均为数字，不会引入新的占位符）
   return format
-    .replace('YYYY', String(d.getFullYear()))
-    .replace('MM', padStart(d.getMonth() + 1))
-    .replace('DD', padStart(d.getDate()))
-    .replace('HH', padStart(d.getHours()))
-    .replace('mm', padStart(d.getMinutes()))
-    .replace('ss', padStart(d.getSeconds()));
+    .replace(/YYYY/g, String(d.getFullYear()))
+    .replace(/MM/g, padStart(d.getMonth() + 1))
+    .replace(/DD/g, padStart(d.getDate()))
+    .replace(/HH/g, padStart(d.getHours()))
+    .replace(/mm/g, padStart(d.getMinutes()))
+    .replace(/ss/g, padStart(d.getSeconds()));
 }
 
 /** JSFunction 类型：物料包内联实现的工具函数，格式化金额（千分位 + 固定小数位） */

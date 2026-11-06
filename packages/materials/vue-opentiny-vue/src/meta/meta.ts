@@ -44,13 +44,15 @@ const utilsMeta: IUtilsMeta[] = [
   {
     name: 'debounce',
     description: '防抖：延迟 wait 毫秒后执行，多次调用只执行最后一次，返回带 cancel / flush 方法的防抖函数',
-    typeSchema: '<T extends (...args: any[]) => any>(func: T, wait?: number) => T',
+    typeSchema:
+      '<T extends (...args: any[]) => any>(func: T, wait?: number) => ((...args: Parameters<T>) => ReturnType<T> | undefined) & { cancel(): void; flush(): ReturnType<T> | undefined }',
     usage: 'const fn = this.utils.debounce(() => { ... }, 300); fn.cancel()',
   },
   {
     name: 'throttle',
     description: '节流：wait 毫秒内最多执行一次',
-    typeSchema: '<T extends (...args: any[]) => any>(func: T, wait?: number) => T',
+    typeSchema:
+      '<T extends (...args: any[]) => any>(func: T, wait?: number) => ((...args: Parameters<T>) => ReturnType<T> | undefined) & { cancel(): void; flush(): ReturnType<T> | undefined }',
     usage: 'this.utils.throttle(() => { ... }, 300)',
   },
   {

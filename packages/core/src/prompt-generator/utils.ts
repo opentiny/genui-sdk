@@ -1,12 +1,13 @@
 import type { IUtilsMeta } from '../material/materials-meta';
 
-/** 单行类型用行内代码，多行类型（如类声明）用缩进代码块 */
+/** 单行类型用行内代码，多行类型（如类声明）用列表项内的围栏代码块 */
 function formatTypeSchema(typeSchema: string): string {
   if (!typeSchema.includes('\n')) {
     return `\`${typeSchema}\``;
   }
   const indented = typeSchema.split('\n').map((line) => `  ${line}`).join('\n');
-  return `\`\`\`ts\n${indented}\n  \`\`\``;
+  // 围栏必须独占一行才能渲染为代码块，整体缩进使其保持在列表项内
+  return `\n  \`\`\`ts\n${indented}\n  \`\`\``;
 }
 
 export function genUtilsPrompt(utils: IUtilsMeta[] = []) {

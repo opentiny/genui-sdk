@@ -23,6 +23,7 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     Object.assign(defaultPropsMap, src.defaultPropsMap ?? {});
+    // utils / components / defaultPropsMap 均为同名键后者覆盖前者（后注册的物料包优先），可用于定制或替换内置实现
     Object.assign(utils, src.utils ?? {});
     if (src.themeFactory) {
       const factories = Array.isArray(src.themeFactory) ? src.themeFactory : [src.themeFactory];

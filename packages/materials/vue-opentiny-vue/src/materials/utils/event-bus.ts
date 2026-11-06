@@ -2,7 +2,8 @@ type Handler = (...args: unknown[]) => void;
 
 /** JSFunction 类型：物料包内联实现的工具类，事件总线，可用于页面内组件间通信 */
 export class EventBus {
-  private handlers: Record<string, Handler[]> = {};
+  // 使用无原型对象，避免事件名与 Object 原型键（如 constructor/toString）冲突
+  private handlers: Record<string, Handler[]> = Object.create(null);
 
   /**
    * 监听事件

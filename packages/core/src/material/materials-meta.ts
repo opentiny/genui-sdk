@@ -8,11 +8,7 @@ export interface IExample {
   schema: CardSchema;
 }
 
-/**
- * 页面可用的工具描述，用于向 LLM 说明 `this.utils.xxx` 的类型与完整用法。
- * typeSchema 采用 TS 类型字符串：天然支持任意类型（函数签名、类、对象、联合类型、泛型、递归嵌套），
- * 是 LLM 最熟悉的类型语言，LLM 无需额外学习成本；`usage` 补充具体调用示例。
- */
+/** 页面可用的工具描述，typeSchema 为 TS 类型字符串（选型理由见 docs/inner-docs/utils-type-schema.md） */
 export interface IUtilsMeta {
   name: string;
   description?: string;

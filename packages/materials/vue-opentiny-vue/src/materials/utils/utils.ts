@@ -1,4 +1,8 @@
-import _ from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
+import debounce from 'lodash/debounce';
+import throttle from 'lodash/throttle';
+import isNil from 'lodash/isNil';
+import get from 'lodash/get';
 import dayjs from 'dayjs';
 
 import { EventBus } from './event-bus';
@@ -13,12 +17,12 @@ import { formatDate, formatMoney } from './format';
  * schema 中无需声明 utils 字段。
  */
 export const utils: Record<string, unknown> = {
-  // 外部引入：npm 包安装为依赖后直接导出
-  cloneDeep: _.cloneDeep,
-  debounce: _.debounce,
-  throttle: _.throttle,
-  isNil: _.isNil,
-  get: _.get,
+  // 外部引入：npm 包安装为依赖后直接导出（lodash 按需引入，避免整库打包）
+  cloneDeep,
+  debounce,
+  throttle,
+  isNil,
+  get,
   // 外部整库导入：Day.js 日期时间库（依赖示例）
   dayjs,
   // JSFunction 类型：物料包内联实现
