@@ -85,9 +85,9 @@
     "timeBucket": {
       "today": "Today",
       "yesterday": "Yesterday",
-      "twoDaysAgo": "2 days ago",
-      "aWeekAgo": "Past week",
-      "aMonthAgo": "Past month"
+      "pastWeek": "Past week",
+      "pastMonth": "Past month",
+      "earlier": "Over a month ago"
     }
   },
   "template": {
