@@ -25,7 +25,7 @@ import { emitter } from './event-emitter';
 import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
-import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
+import type { IChatMessage, IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
@@ -34,7 +34,7 @@ import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
 import { GENUI_CONFIG } from '../config-provider/injection-tokens';
 import { IResponseHandler, defaultResponseHandlers } from './response-handler';
-import { parseCompleteResponse } from './parse-complete-response';
+import { parseCompleteResponse, reportToolCallResult as reportToolCallResultInMessages } from './parse-complete-response';
 
 const props = withDefaults(defineProps<IChatProps>(), {
   stream: true,
@@ -267,7 +267,12 @@ let conversation = useConversation({
       const response = data as any;
       const message = Array.isArray(response?.messages)
         ? response // 流式
-        : { ...response, ...completeResponseHandler.value(response) }; // 非流式
+        : {
+            ...response,
+            ...completeResponseHandler.value(response, undefined, {
+              addToolCallContext: props.chatConfig?.addToolCallContext,
+            }),
+          }; // 非流式
       messages.value.push(message as any);
       preventDefault();
     },
@@ -298,6 +303,12 @@ let conversation = useConversation({
 const { messageManager, createConversation, updateTitle, state: conversationState, saveConversations } = conversation;
 
 const messages = computed(() => messageManager.value.messages.value);
+
+/** 非流式下用户自己执行完工具后，把结果交回组件 */
+const reportToolCallResult = (toolCallId: string, result: unknown) =>
+  reportToolCallResultInMessages(messages.value as unknown as IChatMessage[], toolCallId, result, {
+    addToolCallContext: props.chatConfig?.addToolCallContext,
+  });
 
 const inputMessage = computed({
   get: () => messageManager.value.inputMessage.value,
@@ -478,6 +489,8 @@ defineExpose({
     responseHandlers.value = handlers;
     customModelProvider.setResponseHandlers(handlers);
   },
+  // @experimental
+  reportToolCallResult,
   // @experimental
   getCompleteResponseHandler: () => completeResponseHandler.value,
   // @experimental

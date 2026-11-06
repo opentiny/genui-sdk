@@ -1,8 +1,23 @@
 import { type IChatMessage, type IMessageItem, type IStreamDelta } from '@opentiny/genui-sdk-core';
 import type { ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
 import { v4 as uuidv4 } from 'uuid';
+import { useI18n } from './i18n';
 
 export type IToolCall = NonNullable<IStreamDelta['tool_calls']>[number];
+
+/** 非流式下由调用方补齐的工具执行结果 */
+export interface IToolCallResult {
+  id: string;
+  function: {
+    arguments?: unknown;
+    result: unknown;
+  };
+}
+
+export interface IParseCompleteResponseOptions {
+  /** 是否把“工具名称 / 参数 / 结果”补进消息正文 */
+  addToolCallContext?: boolean;
+}
 
 export interface INonStreamTiming {
   waitMs: number;
@@ -294,9 +309,94 @@ export function createMessageParser(parsers: IMessageParser[] = []) {
   return parser;
 }
 
+/** 工具调用自带的 arguments 是 JSON 字符串，统一转成对象 */
+function normalizeArguments(raw: unknown, toolItem: IMessageItem & { type: 'tool' }) {
+  let value = raw;
+  if (value == null) {
+    try {
+      value = JSON.parse(toolItem.content).arguments;
+    } catch {
+      return raw;
+    }
+  }
+  if (typeof value !== 'string') return value;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
+}
+
+/** 把工具结果写回已经解析出的工具项：标 success，内容为 { arguments, result } */
+export function applyToolCallResults(
+  chatMessage: IChatMessage,
+  toolCallsResult: IToolCallResult[],
+  options: IParseCompleteResponseOptions = {},
+) {
+  const toolItems = chatMessage.messages.filter(
+    (item): item is IMessageItem & { type: 'tool' } => item.type === 'tool',
+  );
+  const toolItemMap = new Map(toolItems.map((item) => [item.id, item]));
+  const { t } = useI18n();
+
+  for (const toolCallResult of toolCallsResult) {
+    const toolItem = toolCallResult?.id ? toolItemMap.get(toolCallResult.id) : undefined;
+    if (!toolItem) continue;
+
+    const args = normalizeArguments(toolCallResult.function?.arguments, toolItem);
+    const result = toolCallResult.function?.result;
+
+    toolItem.status = 'success';
+    toolItem.content = JSON.stringify({ arguments: args, result }, null, 2);
+
+    if (options.addToolCallContext) {
+      chatMessage.content +=
+        t('toolCall.context', {
+          toolName: toolItem.name,
+          toolParams: JSON.stringify(args ?? null),
+          toolResult: JSON.stringify(result ?? null),
+        }) + '\n\n';
+    }
+  }
+
+}
+
+/** 从消息列表里找到包含该工具调用的消息并写回结果 */
+export function reportToolCallResult(
+  chatMessages: Array<IChatMessage | null | undefined>,
+  toolCallId: string,
+  result: unknown,
+  options: IParseCompleteResponseOptions = {},
+) {
+  for (let index = chatMessages.length - 1; index >= 0; index -= 1) {
+    const chatMessage = chatMessages[index];
+    if (chatMessage?.role !== 'assistant' || !Array.isArray(chatMessage.messages)) continue;
+    if (!chatMessage.messages.some((item) => item.type === 'tool' && item.id === toolCallId)) continue;
+    applyToolCallResults(chatMessage, [{ id: toolCallId, function: { result } }], options);
+    return true;
+  }
+  return false;
+}
+
+/** 结果优先取 message.tool_calls_result，其次取每个 tool_call 上的 function.result */
+function getToolCallResults(message: Record<string, any> | undefined): IToolCallResult[] {
+  if (!message) return [];
+  if (Array.isArray(message.tool_calls_result) && message.tool_calls_result.length) {
+    return message.tool_calls_result;
+  }
+  if (!Array.isArray(message.tool_calls)) return [];
+  return message.tool_calls
+    .filter((toolCall: any) => toolCall?.function?.result !== undefined)
+    .map((toolCall: any) => ({
+      id: toolCall.id,
+      function: { arguments: toolCall.function.arguments, result: toolCall.function.result },
+    }));
+}
+
 export function parseCompleteResponse(
   json: ChatCompletionResponse,
   parser: MessageParser = createMessageParser(),
+  options: IParseCompleteResponseOptions = {},
 ): IChatMessage {
   const choice = json.choices?.[0];
   const message = choice?.message;
@@ -314,6 +414,8 @@ export function parseCompleteResponse(
     content,
     messages: parser.parse({ ...message, content }, order),
   };
+
+  applyToolCallResults(chatMessage, getToolCallResults(message), options);
 
   const finishInfoResult = parser.finishInfo(json);
   if (finishInfoResult) chatMessage.finishInfo = finishInfoResult;
