@@ -218,6 +218,7 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
       }
     } catch (error) {
       if (controller.signal.aborted) {
+        options.events?.onFinish?.('aborted', { messages, messageState }, () => {});
         return;
       }
       messageState.status = STATUS.ERROR;
