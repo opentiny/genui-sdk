@@ -13,7 +13,7 @@ When used with `GenuiRenderer`, you typically need to inject component materials
 - **Type**: `string`
 - **Required**: No
 - **Default**: `'light'`
-- **Description**: Theme id, such as `light` / `dark`. ConfigProvider passes `theme`, `locale`, and the system color scheme to the materials `runtimeFactory`, then renders the `root` returned by `apply()` around `children`.
+- **Description**: Theme id, such as `light` / `dark`. ConfigProvider passes `theme` and `locale` to the materials `runtimeFactory`, then renders the `root` returned by `apply()` around `children`.
 
 ### locale
 
@@ -80,7 +80,7 @@ export type NotifyHandler = (options: {
 - `root` must be a React component;
 - Keep the root component reference stable, usually by creating it once in the factory closure; creating a new component on every `apply()` remounts the subtree;
 - When `theme` / `locale` are omitted, the defaults `'light'` / `'zh_CN'` are used and `apply()` is always called;
-- A system color-scheme change calls `apply()` again but does not recreate an unchanged root.
+- When `theme` is `auto`, a system color-scheme change calls `apply()` again but does not recreate an unchanged root.
 
 The root returned by the React Ant Design materials is Ant Design's `ConfigProvider`, covering both the theme algorithm and locale.
 

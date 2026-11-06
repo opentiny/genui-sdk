@@ -16,7 +16,7 @@
 - **Type**: `string`
 - **Required**: No
 - **Default**: `undefined` (runtime is not invoked)
-- **Description**: Theme identifier. When provided, it is passed to the materials `runtimeFactory` together with `locale`, and its `apply()` performs the switch. The current system color scheme (`prefers-color-scheme`) is also passed as `systemColorScheme`. Angular materials do not handle themes yet.
+- **Description**: Theme identifier. When provided, it is passed to the materials `runtimeFactory` together with `locale`, and its `apply()` performs the switch. Angular materials do not handle themes yet.
 
 ### locale
 

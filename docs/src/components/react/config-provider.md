@@ -13,7 +13,7 @@
 - **类型**: `string`
 - **必填**: 否
 - **默认值**: `'light'`
-- **说明**: 主题标识，例如 `light` / `dark`。ConfigProvider 会把 `theme`、`locale` 和系统深浅色交给物料声明的 `runtimeFactory`，并把 `apply()` 返回的 `root` 渲染在 `children` 外层。
+- **说明**: 主题标识，例如 `light` / `dark`。ConfigProvider 会把 `theme`、`locale` 交给物料声明的 `runtimeFactory`，并把 `apply()` 返回的 `root` 渲染在 `children` 外层。
 
 ### locale
 
@@ -80,7 +80,7 @@ export type NotifyHandler = (options: {
 - `root` 必须是 React 组件；
 - `root` 的组件引用应保持稳定，通常在工厂闭包里只创建一次；每次 `apply()` 新建组件会导致子树反复卸载重建；
 - `theme` / `locale` 未传时使用默认值 `'light'` / `'zh_CN'`，并且始终会调用 `apply()`；
-- 系统深浅色变化会重新 `apply()`，但不会重建未变化的 root。
+- `theme` 为 `auto` 时，系统深浅色变化会重新 `apply()`，但不会重建未变化的 root。
 
 当前 React Ant Design 物料返回的 root 是 Ant Design 的 `ConfigProvider`，同时承载主题算法和 locale。
 

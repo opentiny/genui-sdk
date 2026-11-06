@@ -16,7 +16,7 @@
 - **类型**: `string`
 - **必填**: 否
 - **默认值**: `undefined`（不主动调用 runtime）
-- **说明**: 主题标识。传入后会与 `locale` 一起交给物料声明的 `runtimeFactory`，由其 `apply()` 执行主题切换；同时会把系统深浅色（`prefers-color-scheme`）作为 `systemColorScheme` 传入。Angular 物料目前不处理主题。
+- **说明**: 主题标识。传入后会与 `locale` 一起交给物料声明的 `runtimeFactory`，由其 `apply()` 执行主题切换。Angular 物料目前不处理主题。
 
 ### locale
 

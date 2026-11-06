@@ -421,10 +421,6 @@ interface IMaterialsRuntimeConfig {
   locale: MaterialsLocaleId; // recommended canonical id such as zh_CN; any string is allowed
 }
 
-interface IMaterialsRuntimeContext {
-  systemColorScheme: ThemeColorScheme; // system light/dark scheme
-}
-
 interface IMaterialsRuntimeApplyResult {
   theme?: IThemeDescriptor; // effective theme
   locale?: ILocaleDescriptor; // effective locale
@@ -434,17 +430,14 @@ interface IMaterialsRuntimeApplyResult {
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[]; // supported themes
   readonly locales?: readonly ILocaleDescriptor[]; // canonical locale ids; may be a superset of GenUI Chat copy
-  apply(
-    config: Readonly<IMaterialsRuntimeConfig>,
-    context: Readonly<IMaterialsRuntimeContext>,
-  ): IMaterialsRuntimeApplyResult;
+  apply(config: Readonly<IMaterialsRuntimeConfig>): IMaterialsRuntimeApplyResult;
   dispose?(): void; // clean up when removed or when ConfigProvider unmounts
 }
 
 type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 ```
 
-`apply()` runs when the runtime is first created, then runs again whenever `theme`, `locale`, or the system color scheme changes. When the UI library needs a provider, return `root` from `apply()` and ConfigProvider wraps the content with it. Keep the root component reference stable (usually created once in the factory closure); do not create a new one on every `apply()` call, or the subtree will be unmounted and remounted repeatedly.
+`apply()` runs when the runtime is first created, then runs again whenever `theme` or `locale` changes. When `theme` is `auto`, a system color-scheme change also re-invokes it. The runtime resolves `auto` itself from `prefers-color-scheme`; `getSystemColorScheme()` is provided for that. When the UI library needs a provider, return `root` from `apply()` and ConfigProvider wraps the content with it. Keep the root component reference stable (usually created once in the factory closure); do not create a new one on every `apply()` call, or the subtree will be unmounted and remounted repeatedly.
 
 The `root` component type is decided by each framework implementation and cannot be shared across frameworks.
 

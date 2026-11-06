@@ -33,10 +33,14 @@ export interface IMaterialsRuntimeConfig {
 }
 
 /**
+ * 读取系统深浅色偏好，供 `auto` 主题自行解析。
  * @experimental 实验特性，API 可能在后续版本中发生变更。
  */
-export interface IMaterialsRuntimeContext {
-  systemColorScheme: ThemeColorScheme;
+export function getSystemColorScheme(): ThemeColorScheme {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+    return 'light';
+  }
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
 /**
@@ -55,10 +59,7 @@ export interface IMaterialsRuntimeApplyResult {
 export interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
   readonly locales?: readonly ILocaleDescriptor[];
-  apply(
-    config: Readonly<IMaterialsRuntimeConfig>,
-    context: Readonly<IMaterialsRuntimeContext>,
-  ): IMaterialsRuntimeApplyResult;
+  apply(config: Readonly<IMaterialsRuntimeConfig>): IMaterialsRuntimeApplyResult;
   dispose?(): void;
 }
 

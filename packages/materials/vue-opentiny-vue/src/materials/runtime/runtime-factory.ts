@@ -1,4 +1,10 @@
-import type { ILocaleDescriptor, IThemeDescriptor, MaterialsRuntimeFactory, ThemeColorScheme } from '@opentiny/genui-sdk-core';
+import {
+  getSystemColorScheme,
+  type ILocaleDescriptor,
+  type IThemeDescriptor,
+  type MaterialsRuntimeFactory,
+  type ThemeColorScheme,
+} from '@opentiny/genui-sdk-core';
 import { use as tinyUse, zhCN as tinyZhCN, enUS as tinyEnUS, esLA as tinyEsLA, ptBR as tinyPtBR } from '@opentiny/vue-locale';
 import { defineComponent, h, ref } from 'vue';
 import RuntimeRoot from './RuntimeRoot.vue';
@@ -51,8 +57,8 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
   return {
     themes,
     locales,
-    apply(config, context) {
-      const themeDescriptor = resolveThemeDescriptor(config.theme, context.systemColorScheme);
+    apply(config) {
+      const themeDescriptor = resolveThemeDescriptor(config.theme, getSystemColorScheme());
       theme.value = themeDescriptor.id;
       return { theme: themeDescriptor, locale: applyLocale(config.locale), root };
     },

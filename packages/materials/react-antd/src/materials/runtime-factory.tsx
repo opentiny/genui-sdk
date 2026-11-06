@@ -6,11 +6,12 @@ import enUSModule from 'antd/locale/en_US.js';
 import esESModule from 'antd/locale/es_ES.js';
 import frFRModule from 'antd/locale/fr_FR.js';
 import ptBRModule from 'antd/locale/pt_BR.js';
-import type {
-  ILocaleDescriptor,
-  IThemeDescriptor,
-  MaterialsRuntimeFactory,
-  ThemeColorScheme,
+import {
+  getSystemColorScheme,
+  type ILocaleDescriptor,
+  type IThemeDescriptor,
+  type MaterialsRuntimeFactory,
+  type ThemeColorScheme,
 } from '@opentiny/genui-sdk-core';
 
 function resolveLocaleModule(localeModule: Locale | { default: Locale }): Locale {
@@ -64,8 +65,8 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
   return {
     themes,
     locales,
-    apply(config, context) {
-      const themeDescriptor = resolveThemeDescriptor(config.theme, context.systemColorScheme);
+    apply(config) {
+      const themeDescriptor = resolveThemeDescriptor(config.theme, getSystemColorScheme());
       const localeDescriptor = resolveLocale(config.locale);
 
       colorScheme = themeDescriptor.colorScheme ?? 'light';

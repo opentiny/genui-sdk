@@ -134,7 +134,7 @@ const customI18n: I18nMessages = {
 
 - **类型**: `MergedMaterials`（单个 `IMaterials` 也可直接传入）
 - **必填**: 否（使用 `GenuiRenderer` / `GenuiChat` 时需要配置）
-- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。物料可通过 `runtimeFactory` 声明组件库运行时；ConfigProvider 会创建并缓存运行时实例，首次渲染及主题、语言或系统亮暗色变化时调用 `apply()`，并用 `apply()` 返回的 `root` 包裹内容。
+- **说明**: 渲染器使用的组件物料。通常传入物料包，例如 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 提供的 `materials` 对象。物料可通过 `runtimeFactory` 声明组件库运行时；ConfigProvider 会创建并缓存运行时实例，首次渲染、主题或语言变化时调用 `apply()`，`theme` 为 `auto` 时系统深浅色变化也会重新调用，并用 `apply()` 返回的 `root` 包裹内容。
 
 ```vue
 <template>

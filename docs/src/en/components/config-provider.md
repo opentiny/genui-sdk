@@ -136,7 +136,7 @@ See [GenuiConfigProvider - i18n Configuration](../examples/config-provider/i18n)
 
 - **Type**: `MergedMaterials` (a single `IMaterials` object is also accepted)
 - **Required**: No (required when using `GenuiRenderer` / `GenuiChat`)
-- **Description**: Component materials for the renderer. Usually pass materials from a materials package, e.g. the `materials` object from `@opentiny/genui-sdk-materials-vue-opentiny-vue`. Materials may declare a UI-library runtime through `runtimeFactory`. ConfigProvider creates and caches the runtime instance, calls `apply()` initially and when theme, locale, or the system color scheme changes, and wraps the content with the `root` returned by `apply()`.
+- **Description**: Component materials for the renderer. Usually pass materials from a materials package, e.g. the `materials` object from `@opentiny/genui-sdk-materials-vue-opentiny-vue`. Materials may declare a UI-library runtime through `runtimeFactory`. ConfigProvider creates and caches the runtime instance, calls `apply()` initially, on theme or locale changes, and on system color-scheme changes while theme is `auto`, then wraps the content with the `root` returned by `apply()`.
 
 ```vue
 <template>

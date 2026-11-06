@@ -514,10 +514,7 @@ When a UI library needs a config provider for theme or locale switching, integra
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
   readonly locales?: readonly ILocaleDescriptor[];
-  apply(
-    config: Readonly<{ theme: string; locale: MaterialsLocaleId }>,
-    context: Readonly<{ systemColorScheme: 'light' | 'dark' }>,
-  ): {
+  apply(config: Readonly<{ theme: string; locale: MaterialsLocaleId }>): {
     theme?: IThemeDescriptor;
     locale?: ILocaleDescriptor;
     root?: unknown;
@@ -532,7 +529,7 @@ Follow these constraints when implementing a runtime:
 
 - Create `root` once in the `runtimeFactory()` closure and return the same reference from every `apply()` call. Do not create a new root component inside `apply()`, or the wrapped subtree will be unmounted and remounted repeatedly.
 - The root component type must match the host framework: Vue components for Vue, React components for React, and Angular component classes for Angular. An Angular root also needs a default `<ng-content>`; roots cannot be reused across frameworks.
-- `apply()` runs during initial setup, then runs again when `theme`, `locale`, or the system color scheme changes. Use reactive state captured by the runtime to pass updates to `root`.
+- `apply()` runs during initial setup, then runs again when `theme` or `locale` changes. When `theme` is `auto`, a system color-scheme change also re-invokes it. Use reactive state captured by the runtime to pass updates to `root`.
 - The Angular ConfigProvider does not call `apply()` when both `theme` and `locale` are omitted, so no root is rendered; pass at least one when you need a root.
 - Use `dispose()` only for runtime-level cleanup. ConfigProvider calls it when the factory is removed or the provider unmounts.
 - Material sets for the same UI library should reuse the same exported `runtimeFactory` reference. `mergeMaterials()` deduplicates factories by reference and nests roots from different UI libraries in merge order.
@@ -541,11 +538,12 @@ Follow these constraints when implementing a runtime:
 Attach the factory to the materials object:
 
 ```typescript
-import type {
-  ILocaleDescriptor,
-  IMaterials,
-  IThemeDescriptor,
-  MaterialsRuntimeFactory,
+import {
+  getSystemColorScheme,
+  type ILocaleDescriptor,
+  type IMaterials,
+  type IThemeDescriptor,
+  type MaterialsRuntimeFactory,
 } from '@opentiny/genui-sdk-core';
 import { defineComponent, h, ref } from 'vue';
 import RuntimeRoot from './runtime/RuntimeRoot.vue';
@@ -584,10 +582,11 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
   return {
     themes,
     locales,
-    apply(config, context) {
+    apply(config) {
+      const systemColorScheme = getSystemColorScheme();
       const descriptor = themes.find((item) => item.id === config.theme) ?? {
-        id: context.systemColorScheme,
-        colorScheme: context.systemColorScheme,
+        id: systemColorScheme,
+        colorScheme: systemColorScheme,
       };
       theme.value = descriptor.id;
       return { theme: descriptor, locale: applyLocale(config.locale), root };

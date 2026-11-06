@@ -508,10 +508,7 @@ interface IMaterialsMeta {
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
   readonly locales?: readonly ILocaleDescriptor[];
-  apply(
-    config: Readonly<{ theme: string; locale: MaterialsLocaleId }>,
-    context: Readonly<{ systemColorScheme: 'light' | 'dark' }>,
-  ): {
+  apply(config: Readonly<{ theme: string; locale: MaterialsLocaleId }>): {
     theme?: IThemeDescriptor;
     locale?: ILocaleDescriptor;
     root?: unknown;
@@ -526,7 +523,7 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 
 - `root` 在 `runtimeFactory()` 的闭包里创建一次，每次 `apply()` 返回同一个引用；不要在 `apply()` 中重新创建根组件，否则包裹的子树会被反复卸载重建。
 - `root` 的组件类型必须和宿主框架一致：Vue 用 Vue 组件，React 用 React 组件，Angular 用 Angular 组件类；Angular root 还需要一个默认的 `<ng-content>`，不能直接复用其他框架的 root。
-- `apply()` 首次初始化时就会执行，此后 `theme`、`locale` 或系统亮暗色变化时再次执行。可通过闭包中的响应式状态把新配置传给 `root`。
+- `apply()` 首次初始化时就会执行，此后 `theme`、`locale` 变化时再次执行；`theme` 为 `auto` 时，系统深浅色变化也会再次执行。可通过闭包中的响应式状态把新配置传给 `root`。
 - Angular 版 ConfigProvider 在 `theme` / `locale` 都未传时不会调用 `apply()`，因此也不会渲染 root；需要 root 时至少传一个。
 - `dispose()` 只负责回收运行时级副作用；ConfigProvider 移除该工厂或自身卸载时会调用它。
 - 同一组件库的多个物料集合应复用同一个导出的 `runtimeFactory` 引用。`mergeMaterials()` 会按引用去重，不同组件库的根组件则按合并顺序嵌套。
@@ -535,11 +532,12 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 物料对象只需挂载工厂：
 
 ```typescript
-import type {
-  ILocaleDescriptor,
-  IMaterials,
-  IThemeDescriptor,
-  MaterialsRuntimeFactory,
+import {
+  getSystemColorScheme,
+  type ILocaleDescriptor,
+  type IMaterials,
+  type IThemeDescriptor,
+  type MaterialsRuntimeFactory,
 } from '@opentiny/genui-sdk-core';
 import { defineComponent, h, ref } from 'vue';
 import RuntimeRoot from './runtime/RuntimeRoot.vue';
@@ -578,10 +576,11 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
   return {
     themes,
     locales,
-    apply(config, context) {
+    apply(config) {
+      const systemColorScheme = getSystemColorScheme();
       const descriptor = themes.find((item) => item.id === config.theme) ?? {
-        id: context.systemColorScheme,
-        colorScheme: context.systemColorScheme,
+        id: systemColorScheme,
+        colorScheme: systemColorScheme,
       };
       theme.value = descriptor.id;
       return { theme: descriptor, locale: applyLocale(config.locale), root };

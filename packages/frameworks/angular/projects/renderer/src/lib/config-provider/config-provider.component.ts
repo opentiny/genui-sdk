@@ -20,7 +20,6 @@ import type {
   IMaterialsRuntime,
   MaterialsRuntimeFactory,
   MergedMaterials,
-  ThemeColorScheme,
 } from '@opentiny/genui-sdk-core';
 import {
   RENDERER_SETTINGS,
@@ -91,12 +90,13 @@ export class GenuiConfigProvider implements AfterViewInit, OnChanges, OnInit, On
   private readonly runtimeInstances = new Map<MaterialsRuntimeFactory, IMaterialsRuntime>();
   private runtimeRootsRenderer?: GenuiRuntimeRootsRenderer;
   private initialApplyDone = false;
-  private systemColorScheme: ThemeColorScheme = 'light';
   private mediaQuery?: MediaQueryList;
 
-  private readonly handleSystemColorSchemeChange = (event: MediaQueryListEvent) => {
-    this.systemColorScheme = event.matches ? 'dark' : 'light';
-    this.applyRuntimes();
+  // theme 为 auto 时，系统深浅色变化需要让物料重新解析一遍主题。
+  private readonly handleSystemColorSchemeChange = () => {
+    if ((this.theme ?? 'light') === 'auto') {
+      this.applyRuntimes();
+    }
   };
 
   constructor(
@@ -184,7 +184,6 @@ export class GenuiConfigProvider implements AfterViewInit, OnChanges, OnInit, On
       return;
     }
     this.mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    this.systemColorScheme = this.mediaQuery.matches ? 'dark' : 'light';
     this.mediaQuery.addEventListener('change', this.handleSystemColorSchemeChange);
   }
 
@@ -201,12 +200,10 @@ export class GenuiConfigProvider implements AfterViewInit, OnChanges, OnInit, On
       theme: this.theme ?? 'light',
       locale: this.locale ?? 'zh_CN',
     };
-    const context = { systemColorScheme: this.systemColorScheme };
-
     const roots: Type<unknown>[] = [];
 
     for (const factory of factories) {
-      const result = this.runtimeInstances.get(factory)?.apply(config, context);
+      const result = this.runtimeInstances.get(factory)?.apply(config);
       if (!result?.root) {
         continue;
       }

@@ -87,21 +87,23 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
     });
   }
 
+  const isAutoTheme = computed(() => (toValue(options.theme) || 'light') === 'auto');
+
   watch(
     () =>
       [
         runtimeFactories.value,
         toValue(options.theme) || 'light',
         toValue(options.locale) || 'zh_CN',
-        toValue(options.systemColorScheme),
+        isAutoTheme.value ? toValue(options.systemColorScheme) : null,
       ] as const,
-    ([factories, theme, locale, systemColorScheme]) => {
+    ([factories, theme, locale]) => {
       const runtimes = resolveRuntimeInstances(factories);
       const results: IMaterialsRuntimeApplyResult[] = [];
       const roots: Component[] = [];
 
       for (const runtime of runtimes) {
-        const result = runtime.apply({ theme, locale }, { systemColorScheme });
+        const result = runtime.apply({ theme, locale });
         if (result.root) {
           roots.push(result.root as Component);
         }
@@ -109,7 +111,7 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
       }
 
       runtimeRoots.value = roots;
-      colorScheme.value = resolveColorScheme(results, theme, systemColorScheme);
+      colorScheme.value = resolveColorScheme(results, theme, toValue(options.systemColorScheme));
     },
     { immediate: true },
   );

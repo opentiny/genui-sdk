@@ -420,10 +420,6 @@ interface IMaterialsRuntimeConfig {
   locale: MaterialsLocaleId; // 推荐 zh_CN 这种规范 id，可为任意字符串
 }
 
-interface IMaterialsRuntimeContext {
-  systemColorScheme: ThemeColorScheme; // 系统亮暗色
-}
-
 interface IMaterialsRuntimeApplyResult {
   theme?: IThemeDescriptor; // 实际生效的主题
   locale?: ILocaleDescriptor; // 实际生效的语言
@@ -433,17 +429,14 @@ interface IMaterialsRuntimeApplyResult {
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[]; // 支持的主题描述
   readonly locales?: readonly ILocaleDescriptor[]; // 支持的规范语言 id，可多于 GenUI Chat 文案
-  apply(
-    config: Readonly<IMaterialsRuntimeConfig>,
-    context: Readonly<IMaterialsRuntimeContext>,
-  ): IMaterialsRuntimeApplyResult;
+  apply(config: Readonly<IMaterialsRuntimeConfig>): IMaterialsRuntimeApplyResult;
   dispose?(): void; // 运行时移除或 ConfigProvider 卸载时回收副作用
 }
 
 type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 ```
 
-`apply()` 在运行时首次创建时就会调用，此后 `theme`、`locale` 或系统亮暗色变化时会再次调用。需要组件库 Provider 时，由 `apply()` 返回 `root`，ConfigProvider 用它在内容外层包裹；`root` 的组件引用应保持稳定（通常在工厂闭包里创建一次），不要在每次 `apply()` 时新建，否则子树会被反复卸载重建。
+`apply()` 在运行时首次创建时就会调用，此后 `theme` 或 `locale` 变化时会再次调用；`theme` 为 `auto` 时，系统深浅色变化也会重新调用。`auto` 由物料自己读取 `prefers-color-scheme` 解析，可用 `getSystemColorScheme()` 获取。需要组件库 Provider 时，由 `apply()` 返回 `root`，ConfigProvider 用它在内容外层包裹；`root` 的组件引用应保持稳定（通常在工厂闭包里创建一次），不要在每次 `apply()` 时新建，否则子树会被反复卸载重建。
 
 `root` 的组件类型由各框架实现决定，不能跨框架复用。
 
