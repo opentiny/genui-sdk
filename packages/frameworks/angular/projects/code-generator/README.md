@@ -65,6 +65,28 @@ new AngularCodeGenerator({ materials: [TINYNG_CONFIG] }).generate({ pageInfo: { 
 new AngularCodeGenerator({ materials: [TINYNG_CONFIG, MATERIAL_CONFIG] }).generate({ pageInfo: { schema } }); // 多物料包混合出码
 ```
 
+自定义组件/指令(物料配置之外的)用 `defineCustomMaterials` 描述,按 `importPath` 自动分组,追加到 `materials` 即可:
+
+```ts
+import { defineCustomMaterials } from '@opentiny/genui-sdk-angular/code-generator';
+
+const CUSTOM = defineCustomMaterials({
+  components: [{ componentName: 'MyChart', importPath: './my-chart.component', importSymbol: 'MyChartComponent' }],
+  directives: [
+    {
+      directiveName: 'MyCustomDirective',
+      importPath: './my-custom.directive',
+      importSymbol: 'MyCustomDirective',
+      selector: 'myCustomDirective',
+    },
+  ],
+});
+
+new AngularCodeGenerator({ materials: [...CUSTOM, TINYNG_CONFIG] });
+```
+
+`schema` 节点的 `directives: [{ directiveName }]` 与渲染器约定一致:出码会把指令的 `selector` 属性写到宿主元素上,并把 `importSymbol` 加进 `imports`。未在物料配置中声明的指令会产出一条 `UNKNOWN_DIRECTIVE` 自检错误(不会像未知组件那样触发 Angular 编译报错)。
+
 ## 启动测试界面
 ```bash
 cd packages/frameworks/angular/projects/code-generator

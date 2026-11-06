@@ -7,6 +7,21 @@ export interface IAngularAttributeSelector {
   value?: string;
 }
 
+/** 指令配置:出码要把指令「写」进模板,所以必须知道宿主属性选择器与 import 符号 */
+export interface IAngularDirectiveConfig {
+  /** 宿主元素上要写出的属性选择器,如 { name: 'tiTip' };只支持属性型选择器 */
+  selector: IAngularAttributeSelector;
+
+  /** 放进 @Component({ imports: [...] }) 的符号:standalone 指令类,或指令所属 NgModule */
+  importSymbol: string;
+
+  /** 真实 @Output 名,用于把 onXxx 识别成事件绑定 */
+  outputs?: string[];
+
+  /** 指令输入名重命名(schema 键 → 指令真实键) */
+  propRename?: Record<string, string>;
+}
+
 export interface IAngularMaterialsConfig {
 
   /** 组件名 → 宿主元素标签选择器,如 { TiButton: 'button', TiSelect: 'ti-select' } */
@@ -41,4 +56,7 @@ export interface IAngularMaterialsConfig {
 
   /** 该物料包全部组件名集合,供出码器按组件名路由到所属物料包;缺省取 elementSelector 的键 */
   materialsComponents?: Set<string>;
+
+  /** 指令名 → 指令配置;schema 节点 directives 里的名字在这里查 */
+  directiveMap?: Record<string, IAngularDirectiveConfig>;
 }

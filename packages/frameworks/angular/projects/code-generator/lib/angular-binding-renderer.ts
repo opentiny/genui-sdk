@@ -277,13 +277,17 @@ export class AngularBindingRenderer {
     key: string,
     componentName: string,
     cfg: IAngularMaterialsConfig,
+    directiveNames: readonly string[] = [],
   ): string | null {
     const stripped = ON_PREFIXED_KEY_RE.exec(key)?.[1];
     const candidates = [
       key,
       stripped ? stripped.charAt(0).toLowerCase() + stripped.slice(1) : null,
     ];
-    const outputs = cfg.componentOutputs?.[componentName];
+    const outputs = [
+      ...(cfg.componentOutputs?.[componentName] ?? []),
+      ...directiveNames.flatMap((name) => this.registry.resolveDirective(name)?.def.outputs ?? []),
+    ];
 
     for (const candidate of candidates) {
       if (!candidate) continue;
@@ -367,6 +371,7 @@ export class AngularBindingRenderer {
     componentName: string,
     schemaMethods: Methods,
     loopScope: ILoopScope = EMPTY_LOOP_SCOPE,
+    directiveNames: readonly string[] = [],
   ): void {
     Object.entries(props).forEach(([rawKey, rawValue]) => {
       let key = rawKey === 'className' ? 'class' : rawKey;
@@ -390,7 +395,14 @@ export class AngularBindingRenderer {
       }
 
       // ai输出的属性名和组件合法属性名不同 就rename
-      const rename = cfg.propRename?.[componentName ?? '']?.[key];
+      let rename = cfg.propRename?.[componentName ?? '']?.[key];
+      if (!rename) {
+        // 指令的输入与组件共用同一张 props 表,先命中哪条指令的 rename 就用哪条
+        for (const directiveName of directiveNames) {
+          rename = this.registry.resolveDirective(directiveName)?.def.propRename?.[key];
+          if (rename) break;
+        }
+      }
       if (rename) {
         key = rename;
       }
@@ -398,7 +410,7 @@ export class AngularBindingRenderer {
       // 左值决定括号,右值统一由 resolveBindingRight 产出(内部覆盖字面量/表达式/函数)
       const propType = this.base.resolvePropValueType(rawValue); // 'JSExpression' 'JSFunction'
       // 键名不带on的是否命中该组件的真实 @Output(命中即事件绑定)
-      const outputName = this.resolveOutputName(key, componentName ?? '', cfg);
+      const outputName = this.resolveOutputName(key, componentName ?? '', cfg, directiveNames);
       const kind = this.resolveBindingKind(key, propType, rawValue, outputName);
       // 键名会原样拼进模板属性表:不合法就整条丢弃
       if (!this.isSafeBindingName(kind, key, outputName)) {

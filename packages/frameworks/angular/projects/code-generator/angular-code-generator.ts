@@ -192,7 +192,11 @@ export class AngularCodeGenerator extends CodeGeneratorBase {
 
     // 产物照常返回,校验结果单独走 errors,由调用方决定是否展示/中断
     const errors: ICodegenError[] = this.enableCompileValidation
-      ? [...this.validator.validateTemplate(template), ...this.validator.validateComponentSet(description.componentSet)]
+      ? [
+          ...this.validator.validateTemplate(template),
+          ...this.validator.validateComponentSet(description.componentSet),
+          ...this.validator.validateDirectiveSet(description.directiveSet),
+        ]
       : [];
 
     const panel: ICodePanel = {

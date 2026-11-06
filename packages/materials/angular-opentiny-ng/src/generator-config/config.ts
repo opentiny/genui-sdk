@@ -11,6 +11,7 @@ const {
   componentExportMap,
   componentOutputs,
   materialsComponents,
+  directiveMap,
 } = deriveMaterialsMaps(materials);
 
 export const TINYNG_CONFIG: IAngularMaterialsConfig = {
@@ -22,4 +23,5 @@ export const TINYNG_CONFIG: IAngularMaterialsConfig = {
   propBlacklist: { TiTable: ['border', 'stripe'] },
   componentOutputs,
   materialsComponents,
+  directiveMap,
 };

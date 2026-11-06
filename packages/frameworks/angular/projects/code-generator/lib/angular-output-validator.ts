@@ -31,6 +31,21 @@ export class AngularOutputValidator {
     }
   }
 
+  validateDirectiveSet(directiveSet: Iterable<string>): ICodegenError[] {
+    const errors: ICodegenError[] = [];
+    for (const directiveName of directiveSet) {
+      if (this.registry.declaresDirective(directiveName)) {
+        continue;
+      }
+      // 未挂上的指令在模板里只是一个普通属性,Angular 不会像未知组件那样报错,只能在这里兜住
+      errors.push({
+        code: 'UNKNOWN_DIRECTIVE',
+        message: `指令 "${directiveName}" 未在物料配置中声明，模板不会挂载它。`,
+      });
+    }
+    return errors;
+  }
+
   validateComponentSet(componentSet: Iterable<string>): ICodegenError[] {
     const errors: ICodegenError[] = [];
     for (const componentName of componentSet) {

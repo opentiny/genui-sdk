@@ -34,6 +34,26 @@ export class AngularImportBuilder {
       list.push(moduleName);
     });
 
+    // 指令同样要进 imports: []:standalone 指令填指令类,非 standalone 填所属 NgModule
+    description.directiveSet.forEach((directiveName) => {
+      const resolved = this.registry.resolveDirective(directiveName);
+      if (!resolved) {
+        return;
+      }
+      const { importSymbol } = resolved.def;
+      if (!importSymbol || seenModules.has(importSymbol)) {
+        return;
+      }
+      seenModules.add(importSymbol);
+      moduleNames.push(importSymbol);
+      let list = modulesByPackage.get(resolved.config.libraryPackage);
+      if (!list) {
+        list = [];
+        modulesByPackage.set(resolved.config.libraryPackage, list);
+      }
+      list.push(importSymbol);
+    });
+
     // @ViewChild 的字段类型是物料组件类名时,该符号必须与 NgModule 落在同一条 import 里,
     // 否则产物报 `Cannot find name 'TiTableComponent'`。
     // 只并入 modulesByPackage(import 行);moduleNames 会进 @Component({imports:[…]}),

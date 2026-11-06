@@ -4,7 +4,12 @@
  */
 import type { CardSchema, JSFunction, Methods, NodeSchema } from '@opentiny/genui-sdk-core';
 import { EMPTY_LOOP_SCOPE, JS_EXPRESSION, JS_FUNCTION, JS_SLOT } from './constants';
-import type { IAngularTemplateAttr, ICodegenDescription, ILoopScope } from './types';
+import type {
+  IAngularNodeDirective,
+  IAngularTemplateAttr,
+  ICodegenDescription,
+  ILoopScope,
+} from './types';
 import { AngularBindingRenderer } from './angular-binding-renderer';
 import { AngularMaterialsRegistry } from './angular-materials-registry';
 import { MEMBER_NAME_RE, toMemberName } from './utils';
@@ -136,6 +141,9 @@ export class AngularTemplateRenderer {
     const result: string[] = [];
     const { componentName, loop, loopArgs = ['item'], condition, props = {}, children } = schema; // 子组件没有css属性，所以不解构
 
+    const rawDirectives = (schema as unknown as { directives?: IAngularNodeDirective[] }).directives;
+    const directives = Array.isArray(rawDirectives) ? rawDirectives : [];
+
     // 判断是不是NgTemplate
     const isTemplate = this.registry.isNgTemplateComponent(componentName);
 
@@ -162,6 +170,12 @@ export class AngularTemplateRenderer {
       // 用于记录要import 哪些组件
       description.componentSet.add(componentName);
     }
+
+
+    const directiveNames = isTemplate
+      ? []
+      : directives.map((item) => item?.directiveName).filter((name): name is string => Boolean(name));
+    directiveNames.forEach((name) => description.directiveSet.add(name));
 
     const attrsArr: IAngularTemplateAttr[] = [];
 
@@ -213,7 +227,18 @@ export class AngularTemplateRenderer {
     const loopScope = this.resolveLoopScope(loop, loopArgs, !!ngIfAttr, parentLoopScope);
 
     // 处理元素属性
-    this.bindings.handleBinding(props as Record<string, unknown>, attrsArr, description, componentName, schemaMethods, loopScope);
+    this.bindings.handleBinding(
+      props as Record<string, unknown>,
+      attrsArr,
+      description,
+      componentName,
+      schemaMethods,
+      loopScope,
+      directiveNames,
+    );
+
+    // 指令挂载:选择器属性还没被 props 绑定写出来时补一个裸属性
+    this.applyDirectiveAttrs(directiveNames, attrsArr);
 
     result.push(this.bindings.renderAttrs(attrsArr));
 
@@ -233,5 +258,28 @@ export class AngularTemplateRenderer {
     }
 
     return result.join('');
+  }
+
+  /**
+   * 指令只能通过选择器在模板里「命中」,所以要把属性写到宿主元素上。
+   * props 里若已有同名绑定([x] / [(x)] / x),指令已经挂上,不能再补第二个同名属性。
+   */
+  private applyDirectiveAttrs(directiveNames: readonly string[], attrsArr: IAngularTemplateAttr[]): void {
+    if (!directiveNames.length) {
+      return;
+    }
+    const used = new Set(
+      attrsArr.map(({ left }) => left.replace(/^\[?\(?/, '').replace(/\)?\]?$/, '')),
+    );
+    for (const directiveName of directiveNames) {
+      const selector = this.registry.resolveDirective(directiveName)?.def.selector;
+      if (!selector || used.has(selector.name)) {
+        continue;
+      }
+      used.add(selector.name);
+      attrsArr.push(
+        selector.value === undefined ? { left: selector.name } : { left: selector.name, right: `"${selector.value}"` },
+      );
+    }
   }
 }

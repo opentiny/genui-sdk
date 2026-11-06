@@ -70,6 +70,7 @@ export abstract class CodeGeneratorBase implements IFrameworkCodeGenerator<ICode
   protected createCodegenMeta(): ICodegenDescription { // 
     return {
       componentSet: new Set(),
+      directiveSet: new Set(),
       templateLocals: new Set(),
       iconComponents: { componentNames: [], exportNames: [] }, // 纯预留
       stateAccessors: [],

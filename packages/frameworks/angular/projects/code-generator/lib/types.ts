@@ -52,6 +52,9 @@ export interface ILoopScope {
 
 export interface ICodegenDescription {
   componentSet: Set<string>;
+
+  /** schema 节点 directives 里用到的指令名,供 import 与自检 */
+  directiveSet: Set<string>;
   /** #name / refName / ng-template 的 let- 变量:与循环变量同理,函数体引用到就得接成形参 */
   templateLocals: Set<string>;
   iconComponents: { componentNames: string[]; exportNames: string[] };
@@ -141,6 +144,28 @@ export interface IAngularAttributeSelector {
   value?: string;
 }
 
+/**
+ * schema 节点上的指令声明
+ */
+export interface IAngularNodeDirective {
+  directiveName: string;
+}
+
+/** 指令配置:出码要把指令「写」进模板,所以必须知道宿主属性选择器与 import 符号 */
+export interface IAngularDirectiveConfig {
+  /** 宿主元素上要写出的属性选择器,如 { name: 'tiTip' };只支持属性型选择器 */
+  selector: IAngularAttributeSelector;
+
+  /** 放进 @Component({ imports: [...] }) 的符号:standalone 指令类,或指令所属 NgModule */
+  importSymbol: string;
+
+  /** 真实 @Output 名,用于把 onXxx 识别成事件绑定 */
+  outputs?: string[];
+
+  /** 指令输入名重命名(schema 键 → 指令真实键) */
+  propRename?: Record<string, string>;
+}
+
 export interface IAngularMaterialsConfig {
   /** 组件名 → 宿主元素标签选择器，如 { TiButton: 'button', TiSelect: 'ti-select' } */
   elementSelector: Record<string, string>;
@@ -176,13 +201,16 @@ export interface IAngularMaterialsConfig {
 
   /** 该物料包全部组件名集合,供 resolveConfig 按组件名路由到所属物料包 */
   materialsComponents?: Set<string>;
+
+  /** 指令名 → 指令配置;schema 节点 directives 里的名字在这里查 */
+  directiveMap?: Record<string, IAngularDirectiveConfig>;
 }
 
 /** 产物自检结果。message 与 Vue 出码的 errors 通道保持同形,playground 直接消费 */
 export interface ICodegenError {
   message: string;
-  /** 模板解析 / 未声明的组件 / TS 语法 / prettier 格式化 */
-  code: 'TEMPLATE_PARSE' | 'UNKNOWN_COMPONENT' | 'TS_SYNTAX' | 'PRETTIER';
+  /** 模板解析 / 未声明的组件 / 未声明的指令 / TS 语法 / prettier 格式化 */
+  code: 'TEMPLATE_PARSE' | 'UNKNOWN_COMPONENT' | 'UNKNOWN_DIRECTIVE' | 'TS_SYNTAX' | 'PRETTIER';
 }
 
 export type ICodeGeneratorResult = ICodePanel & { errors: ICodegenError[] };
@@ -196,6 +224,45 @@ export interface IAngularCodeGeneratorOptions {
 
 /** generateCode 的入参:与 Vue 版对称,组件映射(Angular 侧是物料配置)与 pageInfo 放在同一个对象里 */
 export interface IAngularGenerateCodeParams extends ICodeGeneratorParams, IAngularCodeGeneratorOptions {}
+
+/**
+ * 用户自定义组件/指令的字符串描述。出码需要 import 路径与类名文本,
+ */
+export interface IAngularCustomComponent {
+  /** schema 里的 componentName */
+  componentName: string;
+  /** import 来源:包名或相对生成文件的路径 */
+  importPath: string;
+  /** 放进 imports: [] 的符号:standalone 组件类,或所属 NgModule */
+  importSymbol: string;
+  /** 宿主标签,缺省 hyphenate(componentName) */
+  selector?: string;
+  /** 属性型选择器,如 [{ name: 'myChart' }] */
+  attributeSelectors?: IAngularAttributeSelector[];
+  /** @ViewChild 字段类型用的组件类名 */
+  componentClass?: string;
+  outputs?: string[];
+  propRename?: Record<string, string>;
+  propBlacklist?: string[];
+}
+
+export interface IAngularCustomDirective {
+  /** schema 节点 directives 里的 directiveName */
+  directiveName: string;
+  /** import 来源:包名或相对生成文件的路径 */
+  importPath: string;
+  /** 放进 imports: [] 的符号:standalone 指令类,或所属 NgModule */
+  importSymbol: string;
+  /** 宿主元素上要写出的属性名 */
+  selector: string;
+  outputs?: string[];
+  propRename?: Record<string, string>;
+}
+
+export interface IAngularCustomMaterials {
+  components?: readonly IAngularCustomComponent[];
+  directives?: readonly IAngularCustomDirective[];
+}
 
 export interface IAngularCoreImportNeeds {
   /** 组件是否声明了 @Output(当前恒为 false,保留给后续事件输出) */

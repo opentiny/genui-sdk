@@ -2,7 +2,7 @@
  * 物料层：把物料配置翻成「组件名 → tag / 属性选择器 / NgModule / 组件类」的查询。
  */
 import { NG_TEMPLATE_SCHEMA_NAME } from './constants';
-import type { IAngularAttributeSelector, IAngularMaterialsConfig } from './types';
+import type { IAngularAttributeSelector, IAngularDirectiveConfig, IAngularMaterialsConfig } from './types';
 import { hyphenate, TAG_NAME_RE } from './utils';
 
 export class AngularMaterialsRegistry {
@@ -20,6 +20,22 @@ export class AngularMaterialsRegistry {
   /** 是否有任一物料配置声明过这个组件名(产物自检用) */
   declaresComponent(componentName: string): boolean {
     return this.configs.some((config) => this.configDeclaresComponent(config, componentName));
+  }
+
+  /** 指令名 → 声明它的物料配置与指令配置;未声明返回 null */
+  resolveDirective(directiveName: string): { config: IAngularMaterialsConfig; def: IAngularDirectiveConfig } | null {
+    for (const config of this.configs) {
+      const def = config.directiveMap?.[directiveName];
+      if (def) {
+        return { config, def };
+      }
+    }
+    return null;
+  }
+
+  /** 是否有任一物料配置声明过这个指令名(产物自检用) */
+  declaresDirective(directiveName: string): boolean {
+    return this.resolveDirective(directiveName) !== null;
   }
 
   /** 组件名 → 对应的物料配置。 */
