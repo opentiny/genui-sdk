@@ -69,14 +69,17 @@ export function createChatCompletionHandler(config: IChatCompletionHandlerConfig
         throw new GenUIChatAPIError(message, response.status, response.statusText, String(response.status));
       }
 
-      if (response.headers.get('content-type')?.includes('text/event-stream')) {
+      const contentType = response.headers.get('content-type') ?? 'application/json';
+      if (contentType.includes('text/event-stream')) {
         res.setHeader('Content-Type', 'text/event-stream');
         const bodyStream = response.body as ReadableStream<Uint8Array>;
         const readable = Readable.fromWeb(bodyStream);
         readable.on('error', (err: Error) => handleStreamError(err, res));
         readable.pipe(res);
-      } else {
-        throw new Error('Response body is not a valid stream');
+      } else { // 非流式
+        res.statusCode = response.status;
+        res.setHeader('Content-Type', contentType);
+        res.end(await response.text());
       }
     } catch (error: unknown) {
       console.error('Error in chat-completion handler try/catch:', error, (error as Error)?.message);

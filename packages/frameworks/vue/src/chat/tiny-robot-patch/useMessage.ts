@@ -32,7 +32,7 @@ export interface UseMessageOptions {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onReceiveData?: <T = any>(data: T, messages: Ref<ChatMessage[]>, preventDefault: () => void) => void;
     onFinish?: (
-      finishReason: string | undefined,
+      finishReason: string | null | undefined | { type: 'error'; error: unknown },
       context: { messages: Ref<ChatMessage[]>; messageState: Reactive<MessageState> },
       preventDefault: () => void,
     ) => void;
@@ -127,6 +127,17 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
     });
 
     chatOnReceiveData(response);
+
+    const onFinish = options.events?.onFinish;
+    let defaultPrevented = false;
+    if (onFinish) {
+      onFinish(response.choices?.[0]?.finish_reason, { messages, messageState }, () => {
+        defaultPrevented = true;
+      });
+    }
+    if (!defaultPrevented && messageState.status !== STATUS.ABORTED) {
+      messageState.status = STATUS.FINISHED;
+    }
   };
 
   const streamChatOnReceiveData = (data: ChatCompletionStreamResponse) => {
@@ -196,19 +207,24 @@ export function useMessage(options: UseMessageOptions): UseMessageReturn {
     messageState.status = STATUS.PROCESSING;
     messageState.errorMsg = null;
 
-    // 创建中止控制器
-    abortController = new AbortController();
+    const controller = new AbortController();
+    abortController = controller;
 
     try {
       if (useStream.value) {
-        await streamChat(abortController);
+        await streamChat(controller);
       } else {
-        await chat(abortController);
+        await chat(controller);
       }
     } catch (error) {
-      messageState.errorMsg = errorMessage;
+      if (controller.signal.aborted) {
+        options.events?.onFinish?.('aborted', { messages, messageState }, () => {});
+        return;
+      }
       messageState.status = STATUS.ERROR;
+      messageState.errorMsg = errorMessage;
       console.error('Send message error:', error);
+      options.events?.onFinish?.({ type: 'error', error }, { messages, messageState }, () => {});
     } finally {
       abortController = null;
     }
