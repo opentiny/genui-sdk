@@ -42,7 +42,7 @@ jobs:
       - name: Build genui-sdk-playground-web
         run: pnpm build:playground-web --base=${{ secrets.GENUI_ASSETS_URL }}/${{ github.event.inputs.env || 'alpha' }}/
         env:
-          NODE_OPTIONS: --max_old_space_size=4096
+          NODE_OPTIONS: --max_old_space_size=8192
           VITE_CHAT_URL: ${{ vars.GENUI_BACKEND_URL }}/chat-genui
           VITE_GET_MODELS_URL: ${{ vars.GENUI_BACKEND_URL }}/get-models
           VITE_CHECK_MCP_URL: ${{ vars.GENUI_BACKEND_URL }}/check-mcp
