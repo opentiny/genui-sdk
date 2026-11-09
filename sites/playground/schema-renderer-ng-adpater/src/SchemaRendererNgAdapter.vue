@@ -1,16 +1,20 @@
 <template>
-  <genui-renderer-ng-element v-if="mounted" v-bind="props"></genui-renderer-ng-element>
+  <genui-renderer-ng-element v-if="mounted" ref="rendererRef" v-bind="elementProps"></genui-renderer-ng-element>
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, ref } from 'vue';
+import { computed, onActivated, onDeactivated, ref, onMounted } from 'vue';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/polyfills.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/main.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/styles.css';
 
+type GenuiRendererElement = HTMLElement & {
+  getState?: () => Record<string, any>;
+  setState?: (state?: Record<string, any>) => void;
+};
+
 const props = defineProps<{
-  id?: string;
-  state?: Record<string, any>;
+  rendererState?: Record<string, any>;
   generating: boolean;
   content: string | object;
   customDirectives?: Record<string, any>;
@@ -19,6 +23,12 @@ const props = defineProps<{
   customActions?: Record<string, any>;
   requiredCompleteFieldSelectors?: string[];
 }>();
+
+const rendererRef = ref<GenuiRendererElement | null>(null);
+
+onMounted(() => {
+  rendererRef.value?.setState?.(props.rendererState || {});
+});
 
 /**
  * Vue keep-alive detaches the tree → CE disconnectedCallback → Angular Elements

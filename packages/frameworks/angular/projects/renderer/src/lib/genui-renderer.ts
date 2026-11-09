@@ -12,7 +12,6 @@ import {
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { RendererSettingsService } from './renderer-settings.service';
 
-export const CARD_ID = Symbol('schema-card-id');
 export interface ICustomAction {
   execute: (params: any, context: Record<string, any>) => any;
   [key: string]: any;
@@ -51,8 +50,6 @@ export class GenuiRenderer implements OnChanges, OnInit {
   @ViewChild('rendererInstance', { read: Renderer }) instance?: Renderer;
   @ContentChild('header') headerTemplate?: TemplateRef<any>;
   @ContentChild('footer') footerTemplate?: TemplateRef<any>;
-  @Input() id?: string;
-  @Input() state?: Record<string, any>;
   @Input() generating = false;
   @Input() content: string | object = '{}';
   @Input() customDirectives?: Record<string, Type<any>> = {};
@@ -192,12 +189,18 @@ export class GenuiRenderer implements OnChanges, OnInit {
     this.instance?.setContext({
       callAction: this.callAction.bind(this),
     });
-    if (this.id) {
-      this.instance?.setContext({
-        [CARD_ID]: this.id,
-      });
-    }
-    this.instance?.setState(this.state);
+  }
+
+  get rendererInstance(): Renderer | null {
+    return this.instance ?? null;
+  }
+
+  getState(): Record<string, any> {
+    return (this.instance?.getContext()?.['state'] as Record<string, any>) || {};
+  }
+
+  setState(state: Record<string, any> = {}) {
+    this.instance?.setState(state);
   }
 
   protected updateCustomDirectives(customDirectives: Record<string, Type<any>>) {
