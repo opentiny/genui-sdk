@@ -1,4 +1,5 @@
-import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
+import { useEffect, useRef } from 'react';
+import { GenuiConfigProvider, GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-react';
 import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 
 const generating = false;
@@ -108,12 +109,19 @@ const customActions = {
 };
 
 export default function Demo() {
+  const rendererRef = useRef<IRendererExpose | null>(null);
+
+  // Inject state after mount; schema updates reset it, so re-call after streaming updates
+  useEffect(() => {
+    rendererRef.current?.setState(historyState);
+  }, []);
+
   return (
     <GenuiConfigProvider materials={materials}>
       <GenuiRenderer
+        ref={rendererRef}
         content={content}
         generating={generating}
-        state={historyState}
         customActions={customActions}
         isJsonComplete
       />

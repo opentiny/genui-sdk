@@ -188,61 +188,54 @@ export function Example({ content }: { content: string }) {
 }
 ```
 
-### state
+## Methods
 
-- **Type**: `Record<string, any>`
-- **Required**: No
-- **Description**: Global state passed to the renderer, accessible in components via context.
+Access the methods `GenuiRenderer` exposes through a ref to read or write state from outside the component.
+
+### setState
+
+- **Type**: `(state?: Record<string, unknown>) => void`
+- **Description**: Sets the renderer's global state, shallow-merging it into existing state so fields you do not pass are preserved. It is passed straight through to the underlying renderer and is not cached: every streamed schema update resets the state from the schema, so call `setState` again after an update if the state must be kept.
 
 React form components should read state through `value` or `checked` and update it with an `onChange` JSFunction. The React renderer does not use `model: true` to generate change handlers automatically.
 
 ```tsx
-import { GenuiRenderer } from '@opentiny/genui-sdk-react';
+import { useEffect, useRef } from 'react';
+import { GenuiConfigProvider, GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-react';
+import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 
-const schemaContent = {
-  componentName: 'Page',
-  state: {
-    userId: null,
-    userName: '',
-  },
-  children: [
-    {
-      componentName: 'Text',
-      props: {
-        text: {
-          type: 'JSExpression',
-          value: 'this.state.userName',
-        },
-      },
-    },
-  ],
-};
-
-const state = {
+const savedState = {
   userId: 123,
   userName: 'John',
 };
 
-export function Example() {
-  return <GenuiRenderer content={schemaContent} state={state} isJsonComplete />;
+export function Example({ content }: { content: string }) {
+  const rendererRef = useRef<IRendererExpose | null>(null);
+
+  // Restore state from history after the component mounts
+  useEffect(() => {
+    rendererRef.current?.setState(savedState);
+  }, []);
+
+  return (
+    <GenuiConfigProvider materials={materials}>
+      <GenuiRenderer ref={rendererRef} content={content} isJsonComplete />
+    </GenuiConfigProvider>
+  );
 }
 ```
 
 See [Renderer merged state](../../examples/react/renderer/state) for detailed usage.
 
-### id
+### getState
 
-- **Type**: `string`
-- **Required**: No
-- **Description**: Card identifier written to the renderer context as `cardId`, useful for distinguishing instances in custom actions.
+- **Type**: `() => Record<string, unknown>`
+- **Description**: Returns the renderer's current global state (the `state` in its context).
 
-```tsx
-import { GenuiRenderer } from '@opentiny/genui-sdk-react';
+### rendererInstance
 
-export function Example({ content }: { content: string }) {
-  return <GenuiRenderer content={content} id="card-1" isJsonComplete />;
-}
-```
+- **Type**: `SchemaRendererHandle | null`
+- **Description**: The underlying renderer instance. Its API (such as `getContext` and `setContext`) is available for advanced scenarios.
 
 ## Types
 
@@ -256,8 +249,16 @@ interface IRendererProps {
   customComponents?: Record<string, ComponentType>;
   customActions?: Record<string, ICustomAction>;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, unknown>;
+}
+```
+
+### IRendererExpose
+
+```typescript
+interface IRendererExpose {
+  rendererInstance: SchemaRendererHandle | null; // underlying renderer instance; its API is available for advanced scenarios
+  getState: () => Record<string, unknown>; // read global state
+  setState: (state?: Record<string, unknown>) => void; // write global state
 }
 ```
 

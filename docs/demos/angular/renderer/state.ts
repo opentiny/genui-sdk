@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 
@@ -6,11 +6,12 @@ import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/mat
   imports: [GenuiConfigProvider, GenuiRenderer],
   template: `
     <genui-config-provider [materials]="activeMaterials">
-      <genui-renderer [content]="schemaContent" [customActions]="customActions" [state]="historyState">  </genui-renderer>
+      <genui-renderer [content]="schemaContent" [customActions]="customActions">  </genui-renderer>
     </genui-config-provider>
   `,
 })
-export class GenuiExample {
+export class GenuiExample implements AfterViewInit {
+  @ViewChild(GenuiRenderer) renderer!: GenuiRenderer;
   activeMaterials = materials;
   schemaContent = {
     componentName: 'Page',
@@ -99,6 +100,11 @@ export class GenuiExample {
       age: 30,
     },
   };
+
+  // 挂载完成后注入历史状态；流式 schema 更新会重置状态，需要时可在更新后重新调用
+  ngAfterViewInit() {
+    this.renderer.setState(this.historyState);
+  }
 
   customActions = {
     getState: {
