@@ -33,6 +33,12 @@ const materials = inject<IMaterials>(GENUI_MATERIALS, {});
 const genuiConfig = inject(GENUI_CONFIG, null);
 const customSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
 
+// TinyVue 通过 inject('TinyMode') 决定使用 pc 还是 mobile-first 模板。
+// 只注入到渲染器子树，避免移动端模板泄漏到聊天输入框等宿主 UI。
+if (materials?.mode) {
+  provide('TinyMode', materials.mode);
+}
+
 watch(() => props.customComponents, (newVal) => {
   // TODO:  1、materials.components更新后，customComponents会丢失 2、旧的customComponents没有被移除
   if (materials.components) {

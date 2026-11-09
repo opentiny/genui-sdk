@@ -15,5 +15,5 @@ export interface IPlaygroundConfig {
   skills?: PlaygroundSkillConfig[];
   openApiTools?: OpenApiToolServiceConfig[];
   promptVariant?: IMaterialsMetaVariantKey;
-  componentLib?: 'TinyVue' | 'ElementPlus' | 'TinyNg' | 'Antd';
+  componentLib?: 'TinyVue' | 'TinyVueMobile' | 'ElementPlus' | 'TinyNg' | 'Antd';
 }

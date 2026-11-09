@@ -798,6 +798,64 @@ importers:
         specifier: ^4.0.0
         version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
 
+  packages/materials/vue-opentiny-vue-mobile:
+    dependencies:
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@opentiny/genui-sdk-materials-vue-opentiny-vue':
+        specifier: workspace:*
+        version: link:../vue-opentiny-vue
+      '@opentiny/vue-action-sheet':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-common':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-popup':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-pull-refresh':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tabbar':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tabbar-item':
+        specifier: ~3.31.0
+        version: 3.31.0
+      tailwind-merge:
+        specifier: ^1.14.0
+        version: 1.14.0
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.26(typescript@5.9.3)
+    devDependencies:
+      '@opentiny/vue-runtime':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@vitejs/plugin-vue':
+        specifier: ^5.0.0
+        version: 5.2.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))(vue@3.5.26(typescript@5.9.3))
+      '@vue/tsconfig':
+        specifier: ^0.8.1
+        version: 0.8.1(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
+      escape-string-regexp:
+        specifier: ^1.0.5
+        version: 1.0.5
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite-plugin-css-injected-by-js:
+        specifier: ^3.5.2
+        version: 3.5.2(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+      vite-plugin-dts:
+        specifier: ^4.0.0
+        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+
   packages/server:
     dependencies:
       '@opentiny/genui-sdk-core':
@@ -1258,6 +1316,9 @@ importers:
       '@opentiny/genui-sdk-materials-vue-opentiny-vue':
         specifier: workspace:*
         version: link:../../../packages/materials/vue-opentiny-vue
+      '@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile':
+        specifier: workspace:*
+        version: link:../../../packages/materials/vue-opentiny-vue-mobile
       ai:
         specifier: 5.0.10
         version: 5.0.10(zod@3.25.76)
@@ -1352,6 +1413,9 @@ importers:
       '@opentiny/genui-sdk-materials-vue-opentiny-vue':
         specifier: workspace:*
         version: link:../../../packages/materials/vue-opentiny-vue
+      '@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile':
+        specifier: workspace:*
+        version: link:../../../packages/materials/vue-opentiny-vue-mobile
       '@opentiny/genui-sdk-vue':
         specifier: workspace:*
         version: link:../../../packages/frameworks/vue
@@ -5483,6 +5547,9 @@ packages:
 
   '@opentiny/vue-row@3.31.0':
     resolution: {integrity: sha512-1TWBaglS1SDcv9KvJAtk8+F9tSNEsfPOCdCrG6iucDW65LOgWFXe33hVBKVwxbgitHl4GHQvChdgeNAolU+3VQ==}
+
+  '@opentiny/vue-runtime@3.31.0':
+    resolution: {integrity: sha512-87DfU7ljvcV6YTNcZFwUigTbtYsjlTN19ElMP0nWTkm5KhgDwIMiUnYkKHTUC+Ky5F0aac+scRWQoVPLiTvR9w==}
 
   '@opentiny/vue-scroll-text@3.28.0':
     resolution: {integrity: sha512-vriA80WLgbITukWsUkEE6BDX/kVnA44SuNt4/EAoUDNYi0Wtk12imFnNtzWCdlGknNxcrWqm3JXxvYmz22rmLQ==}
@@ -17845,6 +17912,8 @@ snapshots:
       '@opentiny/vue-common': 3.31.0
       '@opentiny/vue-renderless': 3.31.0
       '@opentiny/vue-theme': 3.31.1
+
+  '@opentiny/vue-runtime@3.31.0': {}
 
   '@opentiny/vue-scroll-text@3.28.0':
     dependencies:
