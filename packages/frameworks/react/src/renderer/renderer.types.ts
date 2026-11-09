@@ -1,4 +1,5 @@
 import type { IGenPromptAction } from '@opentiny/genui-sdk-core';
+import type { SchemaRendererHandle } from '@opentiny/tiny-schema-renderer-react';
 import type { GenuiMaterials } from '../config-provider';
 
 export interface ICustomAction extends Partial<IGenPromptAction> {
@@ -12,6 +13,10 @@ export interface IRendererProps {
   customComponents?: GenuiMaterials;
   customActions?: Record<string, ICustomAction>;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, unknown>;
+}
+
+export interface IRendererExpose {
+  rendererInstance: SchemaRendererHandle | null;
+  getState: () => Record<string, unknown>;
+  setState: (state?: Record<string, unknown>) => void;
 }
