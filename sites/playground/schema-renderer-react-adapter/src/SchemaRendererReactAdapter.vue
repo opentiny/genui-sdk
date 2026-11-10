@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount, toRaw, nextTick } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount, toRaw } from 'vue';
 import { createRoot, type Root } from 'react-dom/client';
 import React from 'react';
 import type { ReactHostHandle, ReactHostContentProps } from './ReactHost.types';
@@ -113,6 +113,11 @@ watch(() => props.schema, () => syncReactProps(), { deep: true, flush: 'post' })
 watch(
   () => [props.generating, props.isJsonComplete, props.customActions],
   () => syncReactProps(),
+  { deep: true },
+);
+watch(
+  () => props.rendererState,
+  () => applyRendererState(),
   { deep: true },
 );
 

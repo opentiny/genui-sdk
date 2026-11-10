@@ -12,14 +12,34 @@ type GenuiRendererElement = HTMLElement & {
   rendererInstance?: GenuiRenderer['rendererInstance'];
   getState?: () => Record<string, any>;
   setState?: (state?: Record<string, any>) => void;
+  connectedCallback?: () => void;
 };
+
+/**
+ * 元素插入文档（connect）之前调用 setState 时，Angular 组件实例还不存在，
+ * 直接透传会导致状态被丢弃。这里先暂存，等 renderer 就绪后再回填。
+ */
+const pendingState = new WeakMap<GenuiRendererElement, Record<string, any>>();
+
+function applyPendingState(element: GenuiRendererElement) {
+  const instance = element.ngElementStrategy?.componentRef?.instance;
+  if (!instance) {
+    return;
+  }
+  const state = pendingState.get(element);
+  if (!state) {
+    return;
+  }
+  pendingState.delete(element);
+  instance.setState(state);
+}
 
 createApplication({
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideAnimations(),
     { provide: GENUI_MATERIALS, useValue: materials },
-  ]
+  ],
 }).then((appRef) => {
   const elementCtor = createCustomElement(GenuiRenderer, {
     injector: appRef.injector,
@@ -40,8 +60,17 @@ createApplication({
     return this.ngElementStrategy?.componentRef?.instance?.getState() ?? {};
   };
 
-  elementProto.setState = function (state: Record<string, any> = {}) {
-    this.ngElementStrategy?.componentRef?.instance?.setState(state);
+  elementProto.setState = function (this: GenuiRendererElement, state: Record<string, any> = {}) {
+    pendingState.set(this, { ...(pendingState.get(this) || {}), ...state });
+    applyPendingState(this);
+  };
+
+  // Angular Elements 在 connectedCallback 中同步创建组件实例，
+  // 因此在原生 connectedCallback 之后即可安全回填之前暂存的状态。
+  const originalConnectedCallback = elementProto.connectedCallback;
+  elementProto.connectedCallback = function (this: GenuiRendererElement) {
+    originalConnectedCallback?.call(this);
+    applyPendingState(this);
   };
 
   Object.defineProperty(elementProto, 'rendererInstance', {

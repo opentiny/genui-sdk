@@ -1,5 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, ContentChild, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ContentChild,
+  Input,
+  NgZone,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  TemplateRef,
+  Type,
+  ViewChild,
+} from '@angular/core';
 import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import {
   RendererMain as Renderer,
@@ -65,7 +77,11 @@ export class GenuiRenderer implements OnChanges, OnInit {
   protected schema: any = {};
   protected updateContextAndStateTimer: any | null = null;
 
-  constructor(private readonly rendererSettingsService: RendererSettingsService) {}
+  constructor(
+    private readonly rendererSettingsService: RendererSettingsService,
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   get displaySchema() {
     if (this.isError) {
@@ -200,7 +216,15 @@ export class GenuiRenderer implements OnChanges, OnInit {
   }
 
   setState(state: Record<string, any> = {}) {
-    this.instance?.setState(state);
+    const instance = this.instance;
+    if (!instance || !state) {
+      return;
+    }
+    // 只更新 context，不会触发变更检测，因此这里主动进入 zone 并补一次 CD，
+    this.ngZone.run(() => {
+      instance.setState(state);
+      this.cdr.detectChanges();
+    });
   }
 
   protected updateCustomDirectives(customDirectives: Record<string, Type<any>>) {

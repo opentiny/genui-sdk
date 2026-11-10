@@ -103,7 +103,8 @@ export const GenuiRenderer = forwardRef<IRendererExpose, IRendererProps>(
 
     const contentKeyRef = useRef('');
 
-    const initPatch = useRef(false)
+    const initPatch = useRef(false);
+    const mountPatchDone = useRef(false);
 
     function patchSchema() {
       let json: Record<string, unknown> = {};
@@ -138,16 +139,19 @@ export const GenuiRenderer = forwardRef<IRendererExpose, IRendererProps>(
       setDisplaySchema({ ...schemaRef.current });
     }
 
-    patchSchema();
+    if (!initPatch.current) {
+      initPatch.current = true;
+      patchSchema();
+    }
 
     useEffect(() => {
-      if (initPatch.current) {
-        initPatch.current = true;
+      if (!mountPatchDone.current) {
+        mountPatchDone.current = true;
         return;
       }
       setIsError(false);
       patchSchema();
-    }, [props.content, props.isJsonComplete, props.generating]);
+    }, [props.content, props.isJsonComplete]);
 
     useEffect(() => {
       updateContextAndState();

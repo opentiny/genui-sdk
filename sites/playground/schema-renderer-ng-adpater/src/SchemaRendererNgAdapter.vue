@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onActivated, onDeactivated, ref, onMounted } from 'vue';
+import { computed, onActivated, onDeactivated, ref, watch } from 'vue';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/polyfills.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/main.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/styles.css';
@@ -26,9 +26,32 @@ const props = defineProps<{
 
 const rendererRef = ref<GenuiRendererElement | null>(null);
 
-onMounted(() => {
-  rendererRef.value?.setState?.(props.rendererState || {});
+/** rendererState 不参与属性透传，改为挂载后通过元素方法设置 */
+const elementProps = computed(() => {
+  const { rendererState: _rendererState, ...inputs } = props;
+  return inputs;
 });
+
+function applyRendererState() {
+  rendererRef.value?.setState?.(props.rendererState || {});
+}
+
+// 元素挂载 / keep-alive 重新激活（元素会重建）后回填状态
+watch(
+  rendererRef,
+  (element) => {
+    if (element) {
+      applyRendererState();
+    }
+  },
+  { flush: 'post' },
+);
+
+watch(
+  () => props.rendererState,
+  () => applyRendererState(),
+  { deep: true },
+);
 
 /**
  * Vue keep-alive detaches the tree → CE disconnectedCallback → Angular Elements
