@@ -91,10 +91,13 @@
     "@opentiny/vue-tooltip": "~3.31.0",
     "@opentiny/vue-transfer": "~3.31.0",
     "@opentiny/vue-tree": "~3.31.0",
+    "dayjs": "^1.11.20",
     "gridstack": "^12.4.2",
+    "lodash": "4.17.21",
     "vue": "^3.5.13"
   },
   "devDependencies": {
+    "@types/lodash": "^4.17.21",
     "@vitejs/plugin-vue": "^5.0.0",
     "@vue/tsconfig": "^0.8.1",
     "escape-string-regexp": "^1.0.5",
