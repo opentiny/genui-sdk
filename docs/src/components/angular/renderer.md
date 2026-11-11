@@ -387,23 +387,35 @@ export class GenuiExample {
 
 查看 [Renderer 配置缓冲字段](../../examples/angular/renderer/required-complete-field-selectors) 了解详细用法
 
-### state
+## Properties
 
-- **类型**: `Record<string, any>`
-- **必填**: 否
-- **说明**: 传递给渲染器的全局状态，可以在组件中通过上下文访问。
+### rendererInstance
+
+- **类型**: `RendererMain | null`
+- **说明**: 底层渲染器实例，复杂场景可以直接调用其 API（如 `getContext`、`setContext`）。组件实例上已有的 `instance` 属性指向同一实例。
+
+## Methods
+
+通过模板引用（`@ViewChild`）可以访问 `GenuiRenderer` 暴露的方法，用于在渲染器外部读写状态。
+
+### setState
+
+- **类型**: `(state?: Record<string, any>) => void`
+- **说明**: 设置渲染器的全局状态，与已有状态浅层合并，未传入的字段会保留。直接透传给底层渲染器，不做缓存：流式生成过程中 schema 每次更新都会用 schema 里的 state 重置状态，需要保留的状态请在 schema 更新后重新调用 `setState`。
 
 ```ts
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
 
 @Component({
   imports: [GenuiRenderer],
   template: `
-    <genui-renderer [content]="schemaContent" [state]="state"> </genui-renderer>
+    <genui-renderer [content]="schemaContent" />
   `,
 })
-export class GenuiExample {
+export class GenuiExample implements AfterViewInit {
+  @ViewChild(GenuiRenderer) renderer!: GenuiRenderer;
+
   schemaContent = {
     componentName: 'Page',
     state: {
@@ -423,19 +435,19 @@ export class GenuiExample {
     ],
   };
 
-  // 从某种历史记录恢复
-  state = this.getFromCache();
-  getFromCache() {
-    return {
-      userId: 123,
-      userName: 'John'
-    }
+  // 视图初始化完成后注入状态，此时渲染器实例已就绪
+  ngAfterViewInit() {
+    this.renderer.setState({ userId: 123, userName: 'John' });
   }
 }
-
 ```
 
 查看 [Renderer 传递合并 State](../../examples/angular/renderer/state) 了解详细用法
+
+### getState
+
+- **类型**: `() => Record<string, any>`
+- **说明**: 获取渲染器当前的全局状态（即渲染器 context 中的 `state`）。
 
 ## Template
 

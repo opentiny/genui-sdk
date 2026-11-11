@@ -1,5 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { Component, ContentChild, Input, OnChanges, OnInit, SimpleChanges, TemplateRef, Type, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ContentChild,
+  Input,
+  NgZone,
+  OnChanges,
+  OnInit,
+  SimpleChanges,
+  TemplateRef,
+  Type,
+  ViewChild,
+} from '@angular/core';
 import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import {
   RendererMain as Renderer,
@@ -12,7 +24,6 @@ import {
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { RendererSettingsService } from './renderer-settings.service';
 
-export const CARD_ID = Symbol('schema-card-id');
 export interface ICustomAction {
   execute: (params: any, context: Record<string, any>) => any;
   [key: string]: any;
@@ -51,8 +62,6 @@ export class GenuiRenderer implements OnChanges, OnInit {
   @ViewChild('rendererInstance', { read: Renderer }) instance?: Renderer;
   @ContentChild('header') headerTemplate?: TemplateRef<any>;
   @ContentChild('footer') footerTemplate?: TemplateRef<any>;
-  @Input() id?: string;
-  @Input() state?: Record<string, any>;
   @Input() generating = false;
   @Input() content: string | object = '{}';
   @Input() customDirectives?: Record<string, Type<any>> = {};
@@ -68,7 +77,11 @@ export class GenuiRenderer implements OnChanges, OnInit {
   protected schema: any = {};
   protected updateContextAndStateTimer: any | null = null;
 
-  constructor(private readonly rendererSettingsService: RendererSettingsService) {}
+  constructor(
+    private readonly rendererSettingsService: RendererSettingsService,
+    private readonly ngZone: NgZone,
+    private readonly cdr: ChangeDetectorRef,
+  ) {}
 
   get displaySchema() {
     if (this.isError) {
@@ -192,12 +205,26 @@ export class GenuiRenderer implements OnChanges, OnInit {
     this.instance?.setContext({
       callAction: this.callAction.bind(this),
     });
-    if (this.id) {
-      this.instance?.setContext({
-        [CARD_ID]: this.id,
-      });
+  }
+
+  get rendererInstance(): Renderer | null {
+    return this.instance ?? null;
+  }
+
+  getState(): Record<string, any> {
+    return (this.instance?.getContext()?.['state'] as Record<string, any>) || {};
+  }
+
+  setState(state: Record<string, any> = {}) {
+    const instance = this.instance;
+    if (!instance || !state) {
+      return;
     }
-    this.instance?.setState(this.state);
+    // 只更新 context，不会触发变更检测，因此这里主动进入 zone 并补一次 CD，
+    this.ngZone.run(() => {
+      instance.setState(state);
+      this.cdr.detectChanges();
+    });
   }
 
   protected updateCustomDirectives(customDirectives: Record<string, Type<any>>) {

@@ -1,37 +1,46 @@
 # Renderer 组件 - 传递合并 State
 
-通过 `state`，你可以向渲染器传递初始状态，这些状态会在初始化时合并到全局状态中，可以在组件中通过上下文访问。
+通过组件实例方法 `setState`，你可以向渲染器注入状态，这些状态会合并到全局状态中，可以在组件中通过上下文访问。
 
-## 给组件传递 State
+## 给组件注入 State
 
-通过 `state` 向 `GenuiRenderer` 组件传递初始状态。State 会在组件初始化时合并到全局状态中，**不会动态更新**。
+通过 `setState` 向渲染器注入状态是浅层合并。`setState` 仅针对当前运行时做注入，不做存储，因此在流式场景下，schema 里的 state 更新会清空之前 `setState` 设置的状态，因此流式场景下需控制 `setState` 的时机。
 
 ### 应用场景
 
-`state` 主要用于**历史记录回写**场景，当需要回显历史对话中的状态时，可以通过 `state` 传递之前保存的状态数据，让渲染器恢复到之前的状态。
+`setState` 主要用于**历史记录回写**场景，当需要回显历史对话中的状态时，可以通过 `setState` 传递之前保存的状态数据，让渲染器恢复到之前的状态。
 
 ### 基础用法
 
-```vue {12-18}
-<template>
-  <GenuiRenderer :content="content" :generating="generating" :state="savedState" />
-</template>
+```ts
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
 
-<script setup lang="ts">
-import { ref } from 'vue';
-import { GenuiRenderer } from '@opentiny/genui-sdk-vue';
+@Component({
+  imports: [GenuiRenderer],
+  template: `
+    <genui-renderer [content]="content" [generating]="generating" />
+  `,
+})
+export class GenuiExample implements AfterViewInit {
+  @ViewChild(GenuiRenderer) renderer!: GenuiRenderer;
 
-const generating = ref(false);
-const content = ref({});
+  generating = false;
+  content = {};
 
-// 从历史记录中恢复的状态
-const savedState = {
-  formData: {
-    name: 'John Doe',
-    age: 30,
-  },
-};
-</script>
+  // 从历史记录中恢复的状态
+  savedState = {
+    formData: {
+      name: 'John Doe',
+      age: 30,
+    },
+  };
+
+  // 视图初始化完成后注入状态，此时渲染器实例已就绪
+  ngAfterViewInit() {
+    this.renderer.setState(this.savedState);
+  }
+}
 ```
 
 ### 在 Action 中访问 State
@@ -47,7 +56,6 @@ const customActions = {
     },
   },
 };
-
 ```
 
 #### 完整示例：
@@ -56,6 +64,7 @@ const customActions = {
 
 ## 注意事项
 
-1. **初始化合并**：State 只在组件初始化时合并到全局状态，后续更新不会生效
-2. **历史回显**：主要用于历史记录回写场景，恢复之前保存的状态
-3. **数据格式**：State 应该是可序列化的数据，避免存储函数、DOM 元素等
+1. **合并更新**：`setState` 与已有状态浅层合并，未传入的字段会保留
+2. **流式更新**：schema 每次更新都会用 schema 里的 state 重置状态，需要保留的状态要在更新后重新调用 `setState`
+3. **历史回显**：主要用于历史记录回写场景，恢复之前保存的状态
+4. **数据格式**：State 应该是可序列化的数据，避免存储函数、DOM 元素等

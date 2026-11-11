@@ -1,15 +1,21 @@
 <template>
-  <genui-renderer-ng-element v-if="mounted" v-bind="props"></genui-renderer-ng-element>
+  <genui-renderer-ng-element v-if="mounted" ref="rendererRef" v-bind="elementProps"></genui-renderer-ng-element>
 </template>
 
 <script setup lang="ts">
-import { onActivated, onDeactivated, ref } from 'vue';
+import { computed, onActivated, onDeactivated, ref, watch } from 'vue';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/polyfills.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/main.js';
 import '@opentiny/genui-sdk-angular/dist/renderer-element/browser/styles.css';
 
+const ELEMENT_TAG = 'genui-renderer-ng-element';
+
+type GenuiRendererElement = HTMLElement & {
+  getState?: () => Record<string, any>;
+  setState?: (state?: Record<string, any>) => void;
+};
+
 const props = defineProps<{
-  id?: string;
   state?: Record<string, any>;
   generating: boolean;
   content: string | object;
@@ -19,6 +25,26 @@ const props = defineProps<{
   customActions?: Record<string, any>;
   requiredCompleteFieldSelectors?: string[];
 }>();
+
+const rendererRef = ref<GenuiRendererElement | null>(null);
+const elementProps = computed(() => {
+  const { state: _state, ...rest } = props;
+  return rest;
+});
+
+// 状态通过元素上的 setState 注入，不再作为 @Input 传递
+function applyState() {
+  customElements.whenDefined(ELEMENT_TAG).then(() => {
+    rendererRef.value?.setState?.(props.state || {});
+  });
+}
+
+watch(rendererRef, (element) => {
+  if (element) {
+    applyState();
+  }
+});
+watch(() => props.state, () => applyState(), { deep: true });
 
 /**
  * Vue keep-alive detaches the tree → CE disconnectedCallback → Angular Elements

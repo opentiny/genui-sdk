@@ -5,7 +5,7 @@ const GenuiRendererNg = defineAsyncComponent(() =>
   import('schema-renderer-ng-adpater').then((m) => m.SchemaRendererNgAdapter),
 );
 
-/** Angular context 用的是另一份 CARD_ID Symbol，注入 Vue Chat 的 cardIdSymbol 才能让 saveState 定位到消息 */
+/** Angular 渲染器的 action 上下文需要 Vue Chat 的 cardIdSymbol，saveState 才能定位到消息 */
 function bindCardIdToAction<T extends { execute: (params: any, context: Record<string | symbol, any>) => any }>(
   action: T,
   cardId: string,
@@ -24,7 +24,7 @@ export function getMessageRendererAngular(instance: InstanceType<typeof GenuiCha
   return (schemaCardProps) => {
     const props = instance.getProps();
     const { continueChatAction, saveStateAction } = instance;
-    const cardId = schemaCardProps.id;
+    const { id: cardId, state, ...rendererProps } = schemaCardProps;
     const customActions = {
       continueChat: bindCardIdToAction(continueChatAction, cardId),
       saveState: bindCardIdToAction(saveStateAction, cardId),
@@ -32,11 +32,12 @@ export function getMessageRendererAngular(instance: InstanceType<typeof GenuiCha
     return h(
       'div',
       h(GenuiRendererNg, {
-        ...schemaCardProps,
+        ...rendererProps,
+        rendererState: state,
         requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
-        generating: instance.lastSchemaCardId === schemaCardProps.id ? instance.generating : false,
+        generating: instance.lastSchemaCardId === cardId ? instance.generating : false,
         customActions,
-        key: schemaCardProps.id,
+        key: cardId,
       }),
     );
   };

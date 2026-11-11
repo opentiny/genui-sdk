@@ -1,4 +1,5 @@
-import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
+import { useEffect, useRef } from 'react';
+import { GenuiConfigProvider, GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-react';
 import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 
 const generating = false;
@@ -108,12 +109,19 @@ const customActions = {
 };
 
 export default function Demo() {
+  const rendererRef = useRef<IRendererExpose | null>(null);
+
+  // 挂载完成后注入历史状态；若卡片仍在流式更新，schema 变化会重置状态，需在更新后重新调用
+  useEffect(() => {
+    rendererRef.current?.setState(historyState);
+  }, []);
+
   return (
     <GenuiConfigProvider materials={materials}>
       <GenuiRenderer
+        ref={rendererRef}
         content={content}
         generating={generating}
-        state={historyState}
         customActions={customActions}
         isJsonComplete
       />

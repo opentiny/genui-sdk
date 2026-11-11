@@ -1,4 +1,4 @@
-import { Component, Input, Type } from '@angular/core';
+import { Component, Input, Type, ViewChild } from '@angular/core';
 import { materials as defaultMaterials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 import { GenuiRenderer, type ICustomAction } from '../genui-renderer';
 import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
@@ -10,8 +10,6 @@ import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
   providers: [{ provide: GENUI_MATERIALS, useValue: defaultMaterials }],
   template: `
     <genui-renderer
-      [id]="id"
-      [state]="state"
       [generating]="generating"
       [content]="content"
       [customDirectives]="customDirectives"
@@ -34,8 +32,7 @@ import { GENUI_MATERIALS } from '../config-provider/injection-tokens';
   exportAs: 'genuiLegacyRenderer',
 })
 export class GenuiLegacyRenderer {
-  @Input() id?: string;
-  @Input() state?: Record<string, any>;
+  @ViewChild(GenuiRenderer) renderer?: GenuiRenderer;
   @Input() generating = false;
   @Input() content: string | object = '{}';
   @Input() customDirectives?: Record<string, Type<any>> = {};
@@ -44,4 +41,16 @@ export class GenuiLegacyRenderer {
   @Input() customActions?: Record<string, ICustomAction> = {};
   @Input() requiredCompleteFieldSelectors?: string[];
   @Input() isJsonComplete?: boolean;
+
+  get rendererInstance() {
+    return this.renderer?.rendererInstance ?? null;
+  }
+
+  getState(): Record<string, any> {
+    return this.renderer?.getState() ?? {};
+  }
+
+  setState(state: Record<string, any> = {}) {
+    this.renderer?.setState(state);
+  }
 }

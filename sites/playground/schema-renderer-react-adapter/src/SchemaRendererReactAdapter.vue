@@ -17,7 +17,6 @@ const props = defineProps<{
   generating?: boolean;
   isJsonComplete?: boolean;
   customActions?: Record<string, CustomAction>;
-  rendererId?: string;
   rendererState?: Record<string, unknown>;
 }>();
 
@@ -61,8 +60,6 @@ function buildContentProps(): ReactHostContentProps | null {
     generating: props.generating,
     isJsonComplete: resolveIsJsonComplete(),
     customActions: props.customActions ? toRaw(props.customActions) : undefined,
-    id: props.rendererId,
-    state: props.rendererState,
   };
 }
 
@@ -73,9 +70,16 @@ function flushPendingContext() {
   pendingContext.value = {};
 }
 
+function applyRendererState() {
+  hostHandleRef.current?.setState(props.rendererState || {});
+}
+
 function onHostReady(handle: ReactHostHandle | null) {
   hostHandleRef.current = handle;
-  if (handle) flushPendingContext();
+  if (handle) {
+    flushPendingContext();
+    applyRendererState();
+  }
 }
 
 async function syncReactProps() {
@@ -107,8 +111,13 @@ onMounted(async () => {
 
 watch(() => props.schema, () => syncReactProps(), { deep: true, flush: 'post' });
 watch(
-  () => [props.generating, props.isJsonComplete, props.customActions, props.rendererId, props.rendererState],
+  () => [props.generating, props.isJsonComplete, props.customActions],
   () => syncReactProps(),
+  { deep: true },
+);
+watch(
+  () => props.rendererState,
+  () => applyRendererState(),
   { deep: true },
 );
 
@@ -124,10 +133,10 @@ function setContext(ctx: Record<string, unknown>) {
   flushPendingContext();
 }
 function getContext() {
-  return hostHandleRef.current?.getRendererHandle()?.getContext() ?? {};
+  return hostHandleRef.current?.getRendererHandle()?.rendererInstance?.getContext() ?? {};
 }
-function setState(state: Record<string, unknown>) {
-  hostHandleRef.current?.getRendererHandle()?.setState(state);
+function setState(state?: Record<string, unknown>) {
+  hostHandleRef.current?.setState(state);
 }
 
 defineExpose({ setContext, getContext, setState });
