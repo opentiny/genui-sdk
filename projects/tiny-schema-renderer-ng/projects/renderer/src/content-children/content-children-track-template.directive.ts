@@ -30,7 +30,12 @@ export class ContentChildrenTrackTemplateDirective implements OnInit, OnChanges,
   /** Schema declaration order key (`childIndex * STRIDE`). */
   @Input() contentChildrenIndex?: number;
 
-  constructor(private readonly templateRef: TemplateRef<unknown>) {}
+  /**
+   * Public so {@link SchemaTemplateDirectivesDirective} can reuse the same TemplateRef
+   * that content-children registration uses (bare `inject(TemplateRef)` can resolve to a
+   * parent `#ngTemplate` wrapper under projection).
+   */
+  constructor(readonly templateRef: TemplateRef<unknown>) {}
 
   ngOnInit() {
     this.syncRegistration();

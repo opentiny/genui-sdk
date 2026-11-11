@@ -1,0 +1,90 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TiTabs",
+      "props": {
+        "activeTab": "tab1",
+        "type": "line"
+      },
+      "children": [
+        {
+          "componentName": "TiTab",
+          "props": {
+            "header": "基本信息",
+            "id": "tab1",
+            "active": true
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "padding: 20px;"
+              },
+              "children": [
+                {
+                  "componentName": "h4",
+                  "children": "个人信息"
+                },
+                {
+                  "componentName": "p",
+                  "children": "这里显示基本信息内容"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TiTab",
+          "props": {
+            "header": "详细信息",
+            "id": "tab2"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "padding: 20px;"
+              },
+              "children": [
+                {
+                  "componentName": "h4",
+                  "children": "详细资料"
+                },
+                {
+                  "componentName": "p",
+                  "children": "这里显示详细信息内容"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TiTab",
+          "props": {
+            "header": "设置",
+            "id": "tab3"
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "props": {
+                "style": "padding: 20px;"
+              },
+              "children": [
+                {
+                  "componentName": "h4",
+                  "children": "系统设置"
+                },
+                {
+                  "componentName": "p",
+                  "children": "这里显示设置选项"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
