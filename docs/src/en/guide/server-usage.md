@@ -64,6 +64,15 @@ npx genui-sdk-server --envFile .env.production
 # Specify port (shorthand: -p)
 npx genui-sdk-server --port 3000
 
+# Materials by package name (the /meta subpath may be omitted)
+npx genui-sdk-server --materials @opentiny/genui-sdk-materials-react-antd
+
+# Materials by module/JSON file path
+npx genui-sdk-server --materials ./my-materials.mjs
+
+# Pick a named export (e.g. the Vue mini set)
+npx genui-sdk-server --materials @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
+
 # Start with environment variables (git bash)
 export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 ```
@@ -118,12 +127,12 @@ When `materialsMeta` is omitted from `startServer` / `equipChatCompletions`, the
 
 **Whenever the frontend materials differ from the built-in defaults above, the matching `materialsMeta` must be passed explicitly on the server**, including but not limited to:
 
-| Frontend materials | Server must be passed |
-| --- | --- |
-| React Ant Design `@opentiny/genui-sdk-materials-react-antd` | `@opentiny/genui-sdk-materials-react-antd/meta` |
-| Vue Element Plus `@opentiny/genui-sdk-materials-vue-element-plus` | `@opentiny/genui-sdk-materials-vue-element-plus/meta` |
-| Vue mini set `miniMaterials` | `miniMaterialsMeta` |
-| Custom materials | Your own `IMaterialsMeta` |
+| Frontend materials | Programmatic equivalent | CLI equivalent |
+| --- | --- | --- |
+| React Ant Design `@opentiny/genui-sdk-materials-react-antd` | `@opentiny/genui-sdk-materials-react-antd/meta` | `-m @opentiny/genui-sdk-materials-react-antd` |
+| Vue Element Plus `@opentiny/genui-sdk-materials-vue-element-plus` | `@opentiny/genui-sdk-materials-vue-element-plus/meta` | `-m @opentiny/genui-sdk-materials-vue-element-plus` |
+| Vue mini set `miniMaterials` | `miniMaterialsMeta` | `-m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta` |
+| Custom materials | Your own `IMaterialsMeta` | `-m ./my-materials.mjs` (module or `.json` file path) |
 
 With a React frontend:
 
@@ -153,7 +162,20 @@ startServer({
 });
 ```
 
-> The CLI (`npx genui-sdk-server`) exposes no materials option and **can only use the built-in default materials**. As soon as the frontend replaces its materials (React, Element Plus, the mini set, custom materials, etc.), you must switch to Option 2 (programmatic startup) or Option 3 (Express integration) and pass `materialsMeta` explicitly.
+> The CLI (`npx genui-sdk-server`) supports loading materials by package name or module/JSON file path through `-m, --materials`, and `--materials-export` selects the named export; when omitted it still uses the built-in defaults. So whichever startup option you use, the server materials can stay consistent with the frontend:
+>
+> ```bash
+> # By package name (the /meta subpath is picked automatically)
+> npx genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd
+>
+> # By file path (module or .json)
+> npx genui-sdk-server -m ./my-materials.mjs
+>
+> # Pick a named export (e.g. the Vue mini set)
+> npx genui-sdk-server -m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
+> ```
+>
+> Package names are resolved from the current working directory, so the material package must be installed in the project that runs the CLI. When only a package name is given, the CLI first tries the `<package>/meta` subpath and falls back to the package entry.
 
 ## Client usage
 
