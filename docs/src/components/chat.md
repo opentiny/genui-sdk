@@ -70,6 +70,57 @@ function sendMessage() {
 </template>
 ```
 
+### stream
+
+- **类型**: `boolean`
+- **必填**: 否
+- **默认值**: `true`
+- **说明**: 是否使用流式响应。默认以 SSE 流式接收并逐字渲染；设为 `false` 时走非流式 completion，等待完整响应返回后一次性渲染。
+
+```vue
+<template>
+  <GenuiChat :url="url" model="deepseek-v3.2" :stream="false" />
+</template>
+```
+
+#### 非流式下的工具调用
+
+非流式响应只有一帧，组件不会替你执行工具。你在 `customFetch` 里跑完工具后，把结果补回响应即可：
+
+```json
+{
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"北京\"}",
+              "result": {
+                "temp": 12
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+- 结果可以写在 `tool_calls[i].function.result` 上，也可以按流式格式放在 `message.tool_calls_result` 里（`[{ id, function: { arguments, result } }]`）。
+- 有结果的工具卡片显示“已调用”，内容为 `{ arguments, result }`；开启 `chatConfig.addToolCallContext` 后，调用信息还会以文本形式补进消息正文。
+- 没有结果的工具卡片保持“正在调用”（`running`），直到你把结果交给组件才变成“已调用”。
+- 如果工具是在消息渲染之后才执行完，可以通过组件实例的 `reportToolCallResult(toolCallId, result)` 补交结果（`@experimental`）。
+- 多轮工具调用请把各轮的 `tool_calls` 和结果合并进同一条 message 返回，卡片会按顺序展示。
+
 ### messages
 
 - **类型**: `IMessage[]`
