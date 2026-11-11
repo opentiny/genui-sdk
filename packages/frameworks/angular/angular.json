@@ -213,6 +213,33 @@
           }
         }
       }
+    },
+    "code-generator-preview": {
+      "projectType": "application",
+      "root": "projects/code-generator/src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "projects/code-generator/src/preview/preview.ts",
+            "index": "projects/code-generator/src/preview/preview.html",
+            "tsConfig": "projects/code-generator/src/preview/tsconfig.app.json",
+            "inlineStyleLanguage": "less",
+            "styles": ["projects/code-generator/src/preview/styles.less"],
+            "polyfills": ["zone.js"],
+            "optimization": false,
+            "extractLicenses": false,
+            "sourceMap": true
+          }
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": {
+            "buildTarget": "code-generator-preview:build",
+            "port": 4201
+          }
+        }
+      }
     }
   },
   "cli": {

@@ -1,7 +1,7 @@
 import type { Type } from '@angular/core';
 import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-sdk-core';
 import { materialsMeta } from '../meta';
-import { autoApplyDirectives, directives } from './directives';
+import { autoApplyDirectives, directives, directivesModuleMap } from './directives';
 import { components, modules } from './components';
 
 export type AutoApplyDirectivePattern = Record<
@@ -12,6 +12,7 @@ export type AutoApplyDirectivePattern = Record<
 export interface INgMaterials extends IMaterials {
   modules?: Record<string, Type<any>>;
   directives?: Record<string, Type<any>>;
+  directivesModuleMap?: Record<string, Type<any>>;
   autoApplyDirectives?: AutoApplyDirectivePattern;
 }
 
@@ -19,6 +20,7 @@ export const materials: INgMaterials = {
   components,
   modules,
   directives,
+  directivesModuleMap,
   autoApplyDirectives,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
 };
