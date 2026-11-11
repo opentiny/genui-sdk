@@ -12,10 +12,40 @@ import { buildOpenApiTools } from './openapi-tools/index.js';
 import { genPlaygroundPrompt } from './gen-prompt/index.js';
 import { generateJsonPatchPrompt } from './json-patch-prompt.js';
 import { normalizeMessagesForAiSdk } from './normalize-messages.js';
+import { COMPRESS_SYSTEM_PROMPT, buildCompressMessages } from './compress-prompt.js';
 import type { IPlaygroundConfig, LLMConfigParams } from './types/index.js';
 import { resolveComponentLib } from './utils/resolve-component-lib.js';
 
 type StreamTextOptions = Parameters<typeof streamText>[0];
+
+const appendSchemaContext = (
+  messages: ReturnType<typeof normalizeMessagesForAiSdk>,
+  templateSchema: unknown,
+) => {
+  const schemaJson = JSON.stringify(templateSchema, null, 2);
+
+  const schemaJsonContext = `
+          **当前 schemaJson（这是唯一可信的 ID 来源）：**
+          \`\`\`schemaJson
+          ${schemaJson}
+          \`\`\`
+          `;
+  if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
+    if (Array.isArray(messages[messages.length - 1].content)) {
+      messages[messages.length - 1].content.push({
+        type: 'text',
+        text: schemaJsonContext,
+      });
+    } else {
+      messages[messages.length - 1].content += schemaJsonContext;
+    }
+  } else {
+    messages.push({
+      role: 'user',
+      content: schemaJsonContext,
+    });
+  }
+};
 
 const getPlaygroundConfig = (playgroundStr: string) => {
   let playgroundConfig: IPlaygroundConfig = {
@@ -83,6 +113,8 @@ export const createChatTemplate = () => {
 
       const playgroundConfig = getPlaygroundConfig(playgroundStr);
       const { mcpServers, framework, componentLib, userAppendPrompt, openApiTools, promptVariant } = playgroundConfig;
+      const isCompressMode = body.mode === 'compress';
+      const summaryLang = typeof body.lang === 'string' && body.lang ? body.lang : 'zh_CN';
 
       const llmConfigParams: LLMConfigParams = {
         model: playgroundConfig.model,
@@ -92,40 +124,40 @@ export const createChatTemplate = () => {
 
       const llmConfig = await generateLlmConfig(llmConfigParams);
       const { model, temperature, prompt: customSystemPrompt, specificPrompt, provider, extraBody } = llmConfig;
-      const { tools: mcpTools, clientsMap } = await generateAiSdkTools(
-        mcpServers.filter((s) => s.enabled),
-        abort.signal,
-      );
-      const openApiBuiltTools = await buildOpenApiTools(openApiTools);
-      const tools = { ...openApiBuiltTools, ...mcpTools };
+
+      let tools: Awaited<ReturnType<typeof generateAiSdkTools>>['tools'] &
+        Awaited<ReturnType<typeof buildOpenApiTools>> = {};
+      let clientsMap: Awaited<ReturnType<typeof generateAiSdkTools>>['clientsMap'] = new Map();
+      if (!isCompressMode) {
+        const mcp = await generateAiSdkTools(
+          mcpServers.filter((s) => s.enabled),
+          abort.signal,
+        );
+        clientsMap = mcp.clientsMap;
+        const openApiBuiltTools = await buildOpenApiTools(openApiTools);
+        tools = { ...openApiBuiltTools, ...mcp.tools };
+      }
+
       const maxSteps = 30;
-      const systemPrompt = `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
+      const systemPrompt = isCompressMode
+        ? COMPRESS_SYSTEM_PROMPT(summaryLang)
+        : `${genPlaygroundPrompt(framework, { promptVariant, componentLib }, tgCustomConfig)}
       ${body.templateSchema ? generateJsonPatchPrompt() : ''}
       ${specificPrompt}
       ${customSystemPrompt}`;
 
-      const messages = normalizeMessagesForAiSdk(body.messages);
-      if (body.templateSchema) {
-        const schemaJsonContext = `
-          **当前 schemaJson（这是唯一可信的 ID 来源）：**
-          \`\`\`schemaJson
-          ${JSON.stringify(body.templateSchema, null, 2)}
-          \`\`\`
-          `;
-        if (messages.length > 0 && messages[messages.length - 1].role === 'user') {
-          if (Array.isArray(messages[messages.length - 1].content)) {
-            messages[messages.length - 1].content.push({
-              type: 'text',
-              text: schemaJsonContext,
-            });
-          } else {
-            messages[messages.length - 1].content += schemaJsonContext;
-          }
-        } else {
-          messages.push({
-            role: 'user',
-            content: schemaJsonContext,
-          });
+      let messages: ReturnType<typeof normalizeMessagesForAiSdk>;
+      if (isCompressMode) {
+        try {
+          messages = buildCompressMessages(body.messages, summaryLang, body.templateSchema);
+        } catch (error) {
+          res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+          return;
+        }
+      } else {
+        messages = normalizeMessagesForAiSdk(body.messages);
+        if (body.templateSchema) {
+          appendSchemaContext(messages, body.templateSchema);
         }
       }
       const providerOptions =
@@ -139,9 +171,13 @@ export const createChatTemplate = () => {
         system: systemPrompt,
         messages: messages,
         abortSignal: abort.signal,
-        tools,
-        toolChoice: 'auto',
-        stopWhen: stepCountIs(maxSteps),
+        ...(isCompressMode
+          ? {}
+          : {
+              tools,
+              toolChoice: 'auto' as const,
+              stopWhen: stepCountIs(maxSteps),
+            }),
         ...(providerOptions ? { providerOptions } : {}),
       } as const;
 
