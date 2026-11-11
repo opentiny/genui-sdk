@@ -1,14 +1,13 @@
 import type { IMaterials, MergedMaterials } from './materials';
-import type { MaterialsThemeFactory } from './materials-theme';
+import type { MaterialsRuntimeFactory } from './materials-runtime';
 
-const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory'];
+const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'runtimeFactory'];
 
-export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
+export function mergeMaterials(...sources: (IMaterials | MergedMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
   const requiredCompleteFieldSelectors: string[] = [];
   const defaultPropsMap: Record<string, any> = {};
-  const themes: MaterialsThemeFactory[] = [];
-  const seenThemes = new Set<MaterialsThemeFactory>();
+  const runtimeFactories = new Set<MaterialsRuntimeFactory>();
   const extra: Record<string, unknown> = {};
 
   for (const src of sources) {
@@ -22,12 +21,11 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     Object.assign(defaultPropsMap, src.defaultPropsMap ?? {});
-    if (src.themeFactory) {
-      const factories = Array.isArray(src.themeFactory) ? src.themeFactory : [src.themeFactory];
+    if (src.runtimeFactory) {
+      const factories = Array.isArray(src.runtimeFactory) ? src.runtimeFactory : [src.runtimeFactory];
       for (const factory of factories) {
-        if (factory && !seenThemes.has(factory)) {
-          seenThemes.add(factory);
-          themes.push(factory);
+        if (factory) {
+          runtimeFactories.add(factory);
         }
       }
     }
@@ -45,8 +43,8 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
     ...extra,
   };
 
-  if (themes.length > 0) {
-    merged.themeFactory = themes;
+  if (runtimeFactories.size > 0) {
+    merged.runtimeFactory = [...runtimeFactories];
   }
 
   return merged;

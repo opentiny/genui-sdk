@@ -1,4 +1,4 @@
-import type { MaterialsThemeFactory } from './materials-theme';
+import type { MaterialsRuntimeFactory } from './materials-runtime';
 
 export type IMaterialComponent = unknown;
 
@@ -11,16 +11,16 @@ export interface IMaterials {
   /**
    * @experimental 实验特性，API 可能在后续版本中发生变更。
    */
-  themeFactory?: MaterialsThemeFactory;
+  runtimeFactory?: MaterialsRuntimeFactory;
   [key: string]: any;
 }
 
 /**
  * @experimental 实验特性，API 可能在后续版本中发生变更。
  */
-export type MergedMaterials = Omit<IMaterials, 'themeFactory'> & {
+export type MergedMaterials = Omit<IMaterials, 'runtimeFactory'> & {
   /**
    * @experimental 实验特性，API 可能在后续版本中发生变更。
    */
-  themeFactory?: MaterialsThemeFactory | MaterialsThemeFactory[];
+  runtimeFactory?: MaterialsRuntimeFactory | MaterialsRuntimeFactory[];
 };

@@ -117,12 +117,14 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+  // optional: i18n — see "UI library i18n" below
 };
 ```
 
 - `components`: the component list; the renderer resolves `componentName → component` through it.
 - `defaultPropsMap`: generated automatically by `buildMaterialDefaultValueMap` from the `defaultValue` fields in `bundle.json`, so rendering stays stable even when streaming fields are incomplete.
 - `requiredCompleteFieldSelectors`: **buffer fields**. Once declared, these fields only participate in rendering after they are complete, avoiding errors caused by incomplete fields during streaming (e.g. `[componentName=NSelect] > props > options`). See [Configuring Buffer Fields](./renderer/required-complete-field-selectors) for the syntax.
+- `i18n` (optional): bridge for UI-library built-in strings; see [UI library i18n](#ui-library-i18n).
 
 Finally, add the `materials` subpath entry:
 
@@ -478,12 +480,12 @@ The data relationship between the two: the `bundle.json` in `meta` (the componen
 The whole "contract" of a materials package is expressed in two types, both defined in `@opentiny/genui-sdk-core`:
 
 ```typescript
-// Rendering side: component list + buffer fields + default value map + theme
+// Rendering side: component list + buffer fields + default value map + materials runtime
 interface IMaterials {
   components?: Record<string, unknown>;      // component name → runtime component
   requiredCompleteFieldSelectors?: string[]; // buffer field selectors
   defaultPropsMap?: Record<string, any>;     // component default props map
-  themeFactory?: MaterialsThemeFactory;      // materials theme factory (optional), see "Materials Theme"
+  runtimeFactory?: MaterialsRuntimeFactory;  // optional UI-library runtime factory
   [key: string]: any;                        // allows extra fields
 }
 
@@ -499,10 +501,116 @@ interface IMaterialsMeta {
 
 What each one does:
 
-- **`IMaterials`**: consumed by the frontend renderer (injected via `GenuiConfigProvider`). When the renderer sees a `componentName` in a Schema, it looks up the corresponding Vue component in `components` to render it; `defaultPropsMap` fills in props that have not been generated yet during streaming; `requiredCompleteFieldSelectors` declares buffer fields that must be complete before rendering; `themeFactory` is optional and declares the themes the materials support, letting the framework orchestrate them (see [Materials Theme](../components/materials/theme)).
+- **`IMaterials`**: consumed by the frontend renderer (injected via `GenuiConfigProvider`). When the renderer sees a `componentName` in a Schema, it looks up the corresponding Vue component in `components` to render it; `defaultPropsMap` fills in props that have not been generated yet during streaming; `requiredCompleteFieldSelectors` declares buffer fields that must be complete before rendering; optional `runtimeFactory` handles the UI library's theme, locale, and root provider together (see [Materials Runtime](../components/core/api#imaterialsruntime)).
 - **`IMaterialsMeta`**: consumed by the server-side `genPrompt`. `genPrompt` folds `materials` (the component protocols from `bundle.json`) and `whiteList` into the System Prompt, telling the LLM to use only the whitelisted components and to generate schemas following the component protocols.
 
 The two types align through **`componentName`**: the keys of `IMaterials.components` are the `componentName` values in the Schema, and they must match the `component` field of each component in `IMaterialsMeta` one-to-one.
+
+### Materials Runtime (Theme and i18n)
+
+When a UI library needs a config provider for theme or locale switching, integrate it through `runtimeFactory`. One UI library provides one `runtimeFactory`, which creates one runtime instance. `apply()` may return a stable `root` that owns the UI-library config provider. Theme and locale therefore share the same provider and cannot overwrite each other through separate wrappers.
+
+```typescript
+interface IMaterialsRuntime {
+  readonly themes?: readonly IThemeDescriptor[];
+  readonly locales?: readonly ILocaleDescriptor[];
+  apply(config: Readonly<{ theme: string; locale: MaterialsLocaleId }>): {
+    theme?: IThemeDescriptor;
+    locale?: ILocaleDescriptor;
+    root?: unknown;
+  };
+  dispose?(): void;
+}
+
+type MaterialsRuntimeFactory = () => IMaterialsRuntime;
+```
+
+Follow these constraints when implementing a runtime:
+
+- Create `root` once in the `runtimeFactory()` closure and return the same reference from every `apply()` call. Do not create a new root component inside `apply()`, or the wrapped subtree will be unmounted and remounted repeatedly.
+- The root component type must match the host framework: Vue components for Vue, React components for React, and Angular component classes for Angular. An Angular root also needs a default `<ng-content>`; roots cannot be reused across frameworks.
+- `apply()` runs during initial setup, then runs again when `theme` or `locale` changes. When `theme` is `auto`, a system color-scheme change also re-invokes it. Use reactive state captured by the runtime to pass updates to `root`.
+- The Angular ConfigProvider does not call `apply()` when both `theme` and `locale` are omitted, so no root is rendered; pass at least one when you need a root.
+- Use `dispose()` only for runtime-level cleanup. ConfigProvider calls it when the factory is removed or the provider unmounts.
+- Material sets for the same UI library should reuse the same exported `runtimeFactory` reference. `mergeMaterials()` deduplicates factories by reference and nests roots from different UI libraries in merge order.
+- Declare supported languages in one `locales` list as `{ id, pack }` (canonical `language_REGION` id plus the UI-library pack). Pull `applyLocale` out of `apply()`, the same way theme resolution is extracted.
+
+Attach the factory to the materials object:
+
+```typescript
+import {
+  getSystemColorScheme,
+  type ILocaleDescriptor,
+  type IMaterials,
+  type IThemeDescriptor,
+  type MaterialsRuntimeFactory,
+} from '@opentiny/genui-sdk-core';
+import { defineComponent, h, ref } from 'vue';
+import RuntimeRoot from './runtime/RuntimeRoot.vue';
+
+const themes: IThemeDescriptor[] = [
+  { id: 'light', colorScheme: 'light' },
+  { id: 'dark', colorScheme: 'dark' },
+];
+
+const locales = [
+  { id: 'zh_CN', pack: 'zh-CN' },
+  { id: 'en_US', pack: 'en-US' },
+  { id: 'pt_BR', pack: 'pt-BR' },
+];
+
+function resolveLocale(locale: string) {
+  return locales.find((item) => item.id === locale) ?? locales[0];
+}
+
+export const runtimeFactory: MaterialsRuntimeFactory = () => {
+  const theme = ref('light');
+  const locale = ref('zh_CN');
+  const root = defineComponent({
+    name: 'CustomMaterialsRuntimeRoot',
+    setup(_, { slots }) {
+      return () => h(RuntimeRoot, { theme: theme.value, locale: locale.value }, slots);
+    },
+  });
+
+  function applyLocale(localeId: string): ILocaleDescriptor {
+    const current = resolveLocale(localeId);
+    locale.value = current.pack;
+    return current;
+  }
+
+  return {
+    themes,
+    locales,
+    apply(config) {
+      const systemColorScheme = getSystemColorScheme();
+      const descriptor = themes.find((item) => item.id === config.theme) ?? {
+        id: systemColorScheme,
+        colorScheme: systemColorScheme,
+      };
+      theme.value = descriptor.id;
+      return { theme: descriptor, locale: applyLocale(config.locale), root };
+    },
+  };
+};
+
+export const materials: IMaterials = {
+  components,
+  runtimeFactory,
+};
+```
+
+`RuntimeRoot.vue` should create exactly one UI-library config provider and receive the reactive `theme` and `locale` values together. If the library switches locale through a global API and needs no provider, return only `locale` from `apply()` and omit `root`.
+
+Application integration remains unchanged:
+
+```vue
+<GenuiConfigProvider :locale="locale" :materials="materials">
+  <GenuiChat ... />
+</GenuiConfigProvider>
+```
+
+The `locale` prop updates both GenUI Chat copy and the materials runtime. The runtime owns UI-library strings such as pagination, empty states, and date pickers. Continue to use ConfigProvider's `i18n` prop for custom GenUI Chat copy. See [Internationalization](./config-provider/i18n).
 
 ### The Protocol Type of `bundle.json`
 

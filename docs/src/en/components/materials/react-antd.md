@@ -15,7 +15,7 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: Ant Design component map for ConfigProvider.
+- **Description**: Ant Design component map for ConfigProvider. It ships a `runtimeFactory` that uses Ant Design's `ConfigProvider` for theme and locale: `theme` supports `light` / `dark` (`defaultAlgorithm` / `darkAlgorithm`), and `locales` declares `zh_CN` / `en_US` / `es_ES` / `fr_FR` / `pt_BR`. `apply()` returns an Ant Design `ConfigProvider` as `root`; GenUI ConfigProvider renders it around the content. The root reference is stable, so changing theme or locale does not recreate the rendered subtree.
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
@@ -25,7 +25,7 @@ import 'antd/dist/reset.css';
 ```tsx
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
 
-<GenuiConfigProvider materials={materials}>
+<GenuiConfigProvider materials={materials} theme="dark" locale="en_US">
   <GenuiRenderer content={schema} />
 </GenuiConfigProvider>
 ```
