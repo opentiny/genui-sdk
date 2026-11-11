@@ -26,13 +26,15 @@ function genPrompt(
 | `framework` | `IGenPromptFramework` \| `IGenPromptFrameworkConfig` | 是 | 框架名（如 `'Vue'`）或自定义框架配置；传字符串时会合并该框架默认 rules |
 | `materialsMeta` | [`IMaterialsMeta`](#imaterialsmeta) | 是 | 物料元数据，通常从物料包的 `meta` 入口引入 |
 | `tgCustomConfig` | [`IGenPromptCustomConfig`](#igenpromptcustomconfig) | 否 | 自定义组件、Snippets、示例、Action |
-| `options` | [`IGenPromptOptions`](#igenpromptoptions) | 否 | 控制 Prompt 各段落是否生成，以及额外 rules |
+| `options` | [`IGenPromptOptions`](#igenpromptoptions) | 否 | 选择 Generate / Builder 模式、控制 Prompt 段落以及追加 rules |
 
 - **返回值**: `string` — 拼接后的 System Prompt
 
 - **详细信息**
 
-Prompt 通常包含：前缀、可用组件、JSON Schema、示例、Snippets、About This、Actions、生成规则。各段落可通过 `options` 开关裁剪。
+Prompt 通常包含：前缀、可用组件、JSON Schema、示例、Snippets、About This、Actions 和规则。`options.mode` 默认为 `'generate'`，要求模型输出完整的 `schemaJson`；设置为 `'builder'` 后会复用相同的物料上下文，但要求模型根据当前 schemaJSON 输出 `jsonPatch`。两种模式的输出协议互斥。
+
+Builder 模式支持 `builder.includePatchSchema`、`builder.includeExamples` 和 `builder.validationLevel` 配置。当前 schemaJSON 属于每轮请求的动态上下文，应放在用户消息中，不应拼进 System Prompt。
 
 - **示例**
 
@@ -60,6 +62,13 @@ const prompt = genPrompt(
   },
   { includeJsonSchema: false },
 );
+
+const builderPrompt = genPrompt('Vue', materialsMeta, undefined, {
+  mode: 'builder',
+  builder: {
+    validationLevel: 'strict',
+  },
+});
 ```
 
 ### PatternExtractor
