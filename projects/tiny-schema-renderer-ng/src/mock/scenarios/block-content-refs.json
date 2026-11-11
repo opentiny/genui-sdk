@@ -1,0 +1,70 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "margin-top: 24px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px;"
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "区块 contentRefs：List header 模板 + ListItem 投影",
+            "style": "display: block; font-weight: 600; margin-bottom: 8px;"
+          }
+        },
+        {
+          "componentName": "ContentRefList",
+          "children": [
+            {
+              "componentName": "NgTemplate",
+              "props": {
+                "refName": "header",
+                "let": {
+                  "title": "title"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "`header: ${title}`"
+                    },
+                    "style": "display: block; color: #0e7490; font-weight: 600;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ContentRefListItem",
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "item A",
+                    "style": "display:block;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ContentRefListItem",
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "item B",
+                    "style": "display:block;"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

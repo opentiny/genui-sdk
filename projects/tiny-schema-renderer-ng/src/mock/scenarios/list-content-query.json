@@ -1,0 +1,212 @@
+{
+  "componentName": "Page",
+  "state": {
+    "listItems": [
+      {
+        "label": "第一项"
+      },
+      {
+        "label": "第二项"
+      },
+      {
+        "label": "第三项"
+      }
+    ]
+  },
+  "methods": {
+    "appendListItem": {
+      "type": "JSFunction",
+      "value": "function appendListItem() { var n = this.state.listItems.length + 1; this.state.listItems = this.state.listItems.concat([{ label: '第' + n + '项' }]) }"
+    },
+    "removeFirstListItem": {
+      "type": "JSFunction",
+      "value": "function removeFirstListItem() { this.state.listItems = this.state.listItems.slice(1) }"
+    }
+  },
+  "refs": {
+    "list": null
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "margin-bottom: 16px;"
+      },
+      "children": [
+        {
+          "componentName": "List",
+          "props": {
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.list"
+            },
+            "refName": "listComponent"
+          },
+          "children": [
+            {
+              "componentName": "NgTemplate",
+              "props": {
+                "refName": "item",
+                "let": {
+                  "label": "label"
+                }
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "style": "color: #2563eb; font-weight: 600; display: block;",
+                    "text": {
+                      "type": "JSExpression",
+                      "value": "label + '来自 contentChild(TemplateRef)'"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "ListItem",
+              "loop": {
+                "type": "JSExpression",
+                "value": "this.state.listItems"
+              },
+              "loopArgs": [
+                "item",
+                "index"
+              ],
+              "directives": [
+                {
+                  "directiveName": "ListItemMarker"
+                }
+              ],
+              "props": {
+                "label": {
+                  "type": "JSExpression",
+                  "value": "item.label"
+                }
+              }
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "label": "自定义 TemplateRef"
+              },
+              "children": [
+                {
+                  "componentName": "NgTemplate",
+                  "props": {
+                    "refName": "listHeaderSlot"
+                  },
+                  "children": [
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "refName": "headerSpan",
+                        "style": "color: #7c3aed; font-weight: 700;"
+                      },
+                      "children": "HEADER SLOT"
+                    }
+                  ]
+                },
+                {
+                  "componentName": "NgTemplate",
+                  "props": {
+                    "refName": "itemBody",
+                    "let": {
+                      "labelFromScope": "label",
+                      "myContext": "$implicit",
+                      "index": "index"
+                    }
+                  },
+                  "children": [
+                    {
+                      "componentName": "span",
+                      "props": {
+                        "refName": "spanElement",
+                        "style": "color: #2563eb; font-weight: 600;"
+                      },
+                      "children": "哈哈哈来自 contentChild('itemBody')"
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "labelFromScope + myContext.hello + index"
+                        },
+                        "onClick": {
+                          "type": "JSExpression",
+                          "value": "() => { console.log(spanElement, headerSpan) }"
+                        }
+                      },
+                      "directives": [
+                        {
+                          "directiveName": "ListItemMarker"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "refName": "listHeader",
+                "label": "命名头 (refName=listHeader)",
+                "header": true
+              }
+            },
+            {
+              "componentName": "ListItem",
+              "props": {
+                "label": "单度挂载指令"
+              },
+              "directives": [
+                {
+                  "directiveName": "ListItemMarker"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "primary",
+            "style": "margin-top: 8px; margin-right: 8px;",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.appendListItem"
+            }
+          },
+          "children": "在末尾增加一项"
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "danger",
+            "style": "margin-top: 8px;",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.removeFirstListItem"
+            }
+          },
+          "children": "去除第一项"
+        },
+        {
+          "componentName": "TiButton",
+          "props": {
+            "color": "primary",
+            "style": "margin-top: 8px; margin-right: 8px;",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "() => { console.log(this.refs.list.getLabels()); console.log(listComponent.getLabels()); }"
+            }
+          },
+          "children": "打印所有子选项"
+        }
+      ]
+    }
+  ]
+}

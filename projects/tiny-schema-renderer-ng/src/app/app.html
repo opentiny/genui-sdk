@@ -1,1 +1,16 @@
-<tiny-schema-renderer [schema]="schema()"></tiny-schema-renderer>
+<nav class="scenario-bar" aria-label="示例场景">
+  @for (item of scenarios; track item.id) {
+    <button
+      type="button"
+      [class.is-active]="activeScenarioId() === item.id"
+      [attr.aria-selected]="activeScenarioId() === item.id"
+      (click)="selectScenario(item.id)"
+    >
+      {{ item.label }}
+    </button>
+  }
+</nav>
+@for (id of [activeScenarioId()]; track id) {
+  <!-- Recreate the renderer per scenario so the previous page is destroyed before the next schema binds. -->
+  <tiny-schema-renderer [schema]="schema()"></tiny-schema-renderer>
+}
