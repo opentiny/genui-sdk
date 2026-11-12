@@ -7,7 +7,7 @@
       "notify": true
     }
   },
-  "css": ".mobile-page { padding: 16px; background: #ffffff; min-height: 100vh; }.mobile-title { margin: 0 0 16px; font-size: 20px; font-weight: 600; }.mobile-actions { margin-top: 24px; }",
+  "css": ".mobile-page { padding: 16px; background: #ffffff; }.mobile-title { margin: 0 0 16px; font-size: 20px; font-weight: 600; }.mobile-actions { margin-top: 24px; }",
   "methods": {
     "submit": {
       "type": "JSFunction",

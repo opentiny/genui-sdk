@@ -1,0 +1,211 @@
+{
+  "state": {
+    "sheetVisible": false,
+    "dialogVisible": false,
+    "lastAction": ""
+  },
+  "css": ".mobile-page { padding: 16px; background: #f5f5f5; }.mobile-title { margin: 0 0 16px; font-size: 20px; font-weight: 600; }.mobile-card { margin-bottom: 16px; }.mobile-card-title { margin: 0 0 12px; font-size: 16px; }.info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }.info-label { color: #666666; }.info-value { color: #1f1f1f; }.actions { display: flex; gap: 12px; }.actions .tiny-button { flex: 1; }.actions-result { display: block; margin-top: 16px; color: #666666; font-size: 13px; text-align: center; }.dialog-text { margin: 0; padding: 8px 0; font-size: 14px; color: #1f1f1f; }.dialog-footer { display: flex; gap: 12px; }.dialog-footer .tiny-button { flex: 1; }",
+  "methods": {
+    "openSheet": {
+      "type": "JSFunction",
+      "value": "function openSheet() { this.state.sheetVisible = true }"
+    },
+    "closeSheet": {
+      "type": "JSFunction",
+      "value": "function closeSheet() { this.state.sheetVisible = false }"
+    },
+    "onActionClick": {
+      "type": "JSFunction",
+      "value": "function onActionClick(item) { this.state.lastAction = item; this.state.sheetVisible = false }"
+    },
+    "openDialog": {
+      "type": "JSFunction",
+      "value": "function openDialog() { this.state.dialogVisible = true }"
+    },
+    "closeDialog": {
+      "type": "JSFunction",
+      "value": "function closeDialog() { this.state.dialogVisible = false }"
+    },
+    "confirmCancel": {
+      "type": "JSFunction",
+      "value": "function confirmCancel() { this.state.lastAction = '取消订单'; this.state.dialogVisible = false }"
+    }
+  },
+  "componentName": "Page",
+  "props": {
+    "className": "mobile-page"
+  },
+  "children": [
+    {
+      "componentName": "h2",
+      "props": {
+        "className": "mobile-title"
+      },
+      "children": "订单详情"
+    },
+    {
+      "componentName": "TinyCard",
+      "props": {
+        "className": "mobile-card"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "className": "mobile-card-title"
+          },
+          "children": "订单 #ORD-20240918"
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "info-row"
+          },
+          "children": [
+            { "componentName": "span", "props": { "className": "info-label" }, "children": "商品" },
+            { "componentName": "span", "props": { "className": "info-value" }, "children": "无线降噪耳机" }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "info-row"
+          },
+          "children": [
+            { "componentName": "span", "props": { "className": "info-label" }, "children": "金额" },
+            { "componentName": "span", "props": { "className": "info-value" }, "children": "¥ 899.00" }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "info-row"
+          },
+          "children": [
+            { "componentName": "span", "props": { "className": "info-label" }, "children": "状态" },
+            { "componentName": "span", "props": { "className": "info-value" }, "children": "待发货" }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "div",
+      "props": {
+        "className": "actions"
+      },
+      "children": [
+        {
+          "componentName": "TinyButton",
+          "props": {
+            "text": "分享",
+            "type": "primary",
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.openSheet"
+            }
+          }
+        },
+        {
+          "componentName": "TinyButton",
+          "props": {
+            "text": "取消订单",
+            "type": "danger",
+            "plain": true,
+            "onClick": {
+              "type": "JSExpression",
+              "value": "this.openDialog"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "componentName": "Text",
+      "props": {
+        "className": "actions-result",
+        "text": {
+          "type": "JSExpression",
+          "value": "this.state.lastAction ? '上次操作：' + this.state.lastAction : '还没有执行操作'"
+        }
+      }
+    },
+    {
+      "componentName": "TinyActionSheet",
+      "props": {
+        "visible": {
+          "type": "JSExpression",
+          "model": true,
+          "value": "this.state.sheetVisible"
+        },
+        "type": "action",
+        "title": "分享到",
+        "showHeader": true,
+        "menus": ["分享给好友", "复制链接", "收藏"],
+        "onClick": {
+          "type": "JSExpression",
+          "value": "this.onActionClick"
+        },
+        "onClose": {
+          "type": "JSExpression",
+          "value": "this.closeSheet"
+        }
+      }
+    },
+    {
+      "componentName": "TinyDialogBox",
+      "props": {
+        "visible": {
+          "type": "JSExpression",
+          "model": true,
+          "value": "this.state.dialogVisible"
+        },
+        "title": "取消订单",
+        "width": "85%",
+        "center": true,
+        "onClose": {
+          "type": "JSExpression",
+          "value": "this.closeDialog"
+        }
+      },
+      "children": [
+        {
+          "componentName": "p",
+          "props": {
+            "className": "dialog-text"
+          },
+          "children": "取消后订单不可恢复，确定要取消吗？"
+        },
+        {
+          "componentName": "div",
+          "slot": "footer",
+          "props": {
+            "className": "dialog-footer"
+          },
+          "children": [
+            {
+              "componentName": "TinyButton",
+              "props": {
+                "text": "再想想",
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.closeDialog"
+                }
+              }
+            },
+            {
+              "componentName": "TinyButton",
+              "props": {
+                "text": "确认取消",
+                "type": "danger",
+                "onClick": {
+                  "type": "JSExpression",
+                  "value": "this.confirmCancel"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

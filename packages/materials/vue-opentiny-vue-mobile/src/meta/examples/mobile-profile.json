@@ -1,0 +1,215 @@
+{
+  "state": {},
+  "css": ".mobile-page { padding: 16px; background: #f5f5f5; }.profile-header { display: flex; align-items: center; gap: 12px; padding: 16px; background: #ffffff; border-radius: 12px; margin-bottom: 12px; }.profile-name { margin: 0; font-size: 18px; font-weight: 600; }.profile-role { margin: 4px 0 8px; color: #666666; font-size: 13px; }.profile-tags { display: flex; gap: 8px; }.mobile-card { margin-bottom: 12px; }.mobile-card-title { margin: 0 0 12px; font-size: 16px; }.info-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }.info-label { color: #666666; }.info-value { color: #1f1f1f; }.profile-hint { margin: 8px 0 0; color: #666666; font-size: 13px; }",
+  "methods": {},
+  "componentName": "Page",
+  "props": {
+    "className": "mobile-page"
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "className": "profile-header"
+      },
+      "children": [
+        {
+          "componentName": "TinyUserHead",
+          "props": {
+            "type": "label",
+            "value": "张",
+            "size": 56,
+            "round": true,
+            "color": "#ffffff",
+            "backgroundColor": "#5e7ce0"
+          }
+        },
+        {
+          "componentName": "div",
+          "children": [
+            {
+              "componentName": "h3",
+              "props": {
+                "className": "profile-name"
+              },
+              "children": "张伟"
+            },
+            {
+              "componentName": "p",
+              "props": {
+                "className": "profile-role"
+              },
+              "children": "产品经理 · 用户体验部"
+            },
+            {
+              "componentName": "div",
+              "props": {
+                "className": "profile-tags"
+              },
+              "children": [
+                {
+                  "componentName": "TinyTag",
+                  "props": {
+                    "text": "核心成员",
+                    "type": "primary",
+                    "effect": "light",
+                    "round": true
+                  }
+                },
+                {
+                  "componentName": "TinyTag",
+                  "props": {
+                    "text": "已认证",
+                    "type": "success",
+                    "effect": "light",
+                    "round": true
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "TinyCard",
+      "props": {
+        "className": "mobile-card"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "className": "mobile-card-title"
+          },
+          "children": "基本信息"
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "info-row"
+          },
+          "children": [
+            { "componentName": "span", "props": { "className": "info-label" }, "children": "工号" },
+            { "componentName": "span", "props": { "className": "info-value" }, "children": "10086" }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "info-row"
+          },
+          "children": [
+            { "componentName": "span", "props": { "className": "info-label" }, "children": "手机号" },
+            { "componentName": "span", "props": { "className": "info-value" }, "children": "138****8888" }
+          ]
+        },
+        {
+          "componentName": "div",
+          "props": {
+            "className": "info-row"
+          },
+          "children": [
+            { "componentName": "span", "props": { "className": "info-label" }, "children": "邮箱" },
+            { "componentName": "span", "props": { "className": "info-value" }, "children": "zhangwei@example.com" }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "TinyCard",
+      "props": {
+        "className": "mobile-card"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "className": "mobile-card-title"
+          },
+          "children": "资料完整度"
+        },
+        {
+          "componentName": "TinyProgress",
+          "props": {
+            "percentage": 72,
+            "strokeWidth": 8,
+            "showText": true
+          }
+        },
+        {
+          "componentName": "p",
+          "props": {
+            "className": "profile-hint"
+          },
+          "children": "补充紧急联系人信息可提升至 90%"
+        },
+        {
+          "componentName": "TinyDivider",
+          "props": {
+            "direction": "horizontal",
+            "contentPosition": "left"
+          },
+          "children": "常用标签"
+        },
+        {
+          "componentName": "TinySpace",
+          "props": {
+            "size": "small",
+            "direction": "horizontal",
+            "wrap": true
+          },
+          "children": [
+            {
+              "componentName": "TinyTag",
+              "props": { "text": "数据分析", "type": "primary", "effect": "light", "round": true }
+            },
+            {
+              "componentName": "TinyTag",
+              "props": { "text": "用户研究", "type": "success", "effect": "light", "round": true }
+            },
+            {
+              "componentName": "TinyTag",
+              "props": { "text": "原型设计", "type": "info", "effect": "light", "round": true }
+            },
+            {
+              "componentName": "TinyTag",
+              "props": { "text": "A/B 实验", "type": "warning", "effect": "light", "round": true }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "componentName": "TinyCard",
+      "props": {
+        "className": "mobile-card"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "className": "mobile-card-title"
+          },
+          "children": "服务评分"
+        },
+        {
+          "componentName": "TinyRate",
+          "props": {
+            "modelValue": 4,
+            "max": 5,
+            "disabled": true,
+            "showText": true
+          }
+        },
+        {
+          "componentName": "p",
+          "props": {
+            "className": "profile-hint"
+          },
+          "children": "近 30 天共收到 18 条评价"
+        }
+      ]
+    }
+  ]
+}

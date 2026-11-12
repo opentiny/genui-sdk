@@ -1,0 +1,166 @@
+{
+  "state": {
+    "messages": [
+      { "avatar": "张", "name": "张三", "text": "提交了周报，等待你审批", "time": "09:12", "unread": 2 },
+      { "avatar": "李", "name": "李四", "text": "在「移动端改版」中 @ 了你", "time": "昨天", "unread": 1 },
+      { "avatar": "王", "name": "王五", "text": "邀请你加入项目「数据看板」", "time": "周一", "unread": 0 }
+    ],
+    "refreshing": false,
+    "loading": false,
+    "finished": false
+  },
+  "css": ".mobile-page { background: #f5f5f5; }.mobile-title { margin: 0; padding: 16px 16px 8px; font-size: 20px; font-weight: 600; }.message-card { display: flex; align-items: flex-start; gap: 12px; margin: 0 16px 10px; padding: 14px; background: #ffffff; border-radius: 12px; }.message-main { flex: 1; min-width: 0; }.message-row { display: flex; align-items: center; justify-content: space-between; }.message-name { font-size: 15px; font-weight: 600; color: #1f1f1f; }.message-time { font-size: 12px; color: #999999; }.message-text { display: block; margin-top: 6px; font-size: 13px; color: #666666; }",
+  "methods": {
+    "onRefresh": {
+      "type": "JSFunction",
+      "value": "function onRefresh() { var self = this; this.state.refreshing = true; setTimeout(function () { self.state.messages.unshift({ avatar: '新', name: '新消息', text: '下拉刷新出一条新消息', time: '刚刚', unread: 1 }); self.state.refreshing = false; }, 800) }"
+    },
+    "onLoad": {
+      "type": "JSFunction",
+      "value": "function onLoad() { var self = this; if (this.state.loading || this.state.finished) { return } this.state.loading = true; setTimeout(function () { self.state.messages.push({ avatar: '赵', name: '赵六', text: '发来一条历史消息', time: '上周', unread: 0 }); self.state.loading = false; if (self.state.messages.length >= 8) { self.state.finished = true } }, 800) }"
+    }
+  },
+  "componentName": "Page",
+  "props": {
+    "className": "mobile-page"
+  },
+  "children": [
+    {
+      "componentName": "h2",
+      "props": {
+        "className": "mobile-title"
+      },
+      "children": "消息中心"
+    },
+    {
+      "componentName": "TinyPullRefresh",
+      "props": {
+        "modelValue": {
+          "type": "JSExpression",
+          "model": true,
+          "value": "this.state.refreshing"
+        },
+        "loadingText": "正在刷新...",
+        "successText": "刷新完成",
+        "onRefresh": {
+          "type": "JSExpression",
+          "value": "this.onRefresh"
+        }
+      },
+      "children": [
+        {
+          "componentName": "TinyLoadList",
+          "props": {
+            "loading": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.loading"
+            },
+            "finished": {
+              "type": "JSExpression",
+              "value": "this.state.finished"
+            },
+            "loadingText": "正在加载更多...",
+            "finishedText": "没有更多消息了",
+            "offset": 100,
+            "onLoad": {
+              "type": "JSExpression",
+              "value": "this.onLoad"
+            }
+          },
+          "children": [
+            {
+              "componentName": "div",
+              "loop": {
+                "type": "JSExpression",
+                "value": "this.state.messages"
+              },
+              "loopArgs": ["msg", "index"],
+              "props": {
+                "className": "message-card"
+              },
+              "children": [
+                {
+                  "componentName": "TinyBadge",
+                  "props": {
+                    "value": {
+                      "type": "JSExpression",
+                      "value": "msg.unread"
+                    },
+                    "hidden": {
+                      "type": "JSExpression",
+                      "value": "msg.unread === 0"
+                    },
+                    "type": "danger"
+                  },
+                  "children": [
+                    {
+                      "componentName": "TinyUserHead",
+                      "props": {
+                        "type": "label",
+                        "value": {
+                          "type": "JSExpression",
+                          "value": "msg.avatar"
+                        },
+                        "size": 44,
+                        "round": true,
+                        "color": "#ffffff",
+                        "backgroundColor": "#5e7ce0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "componentName": "div",
+                  "props": {
+                    "className": "message-main"
+                  },
+                  "children": [
+                    {
+                      "componentName": "div",
+                      "props": {
+                        "className": "message-row"
+                      },
+                      "children": [
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "className": "message-name",
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "msg.name"
+                            }
+                          }
+                        },
+                        {
+                          "componentName": "Text",
+                          "props": {
+                            "className": "message-time",
+                            "text": {
+                              "type": "JSExpression",
+                              "value": "msg.time"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "componentName": "Text",
+                      "props": {
+                        "className": "message-text",
+                        "text": {
+                          "type": "JSExpression",
+                          "value": "msg.text"
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,9 +1,7 @@
 import '@opentiny/vue-runtime/dist3/tailwind.css';
+import './mobile-fixes.css';
 import './design-config';
 import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-sdk-core';
-import {
-  materials as baseMaterials,
-} from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
 import { mobileMaterialsMeta } from '../meta';
 import { components } from './components';
 
@@ -15,10 +13,12 @@ const requiredCompleteFieldSelectors = [
   '[componentName=TinyTabItem] > props > name',
 ];
 
-export const materials: IMaterials = {
+export const materials: IMaterials & { mode: 'mobile-first' } = {
   components,
   mode: 'mobile-first',
   requiredCompleteFieldSelectors,
-  defaultPropsMap: buildMaterialDefaultValueMap(mobileMaterialsMeta),
-  themeFactory: baseMaterials.themeFactory,
+  defaultPropsMap: {
+    ...buildMaterialDefaultValueMap(mobileMaterialsMeta),
+    TinyCard: { 'auto-width': true },
+  },
 };

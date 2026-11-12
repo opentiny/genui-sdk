@@ -1,7 +1,7 @@
 # @opentiny/genui-sdk-materials-vue-opentiny-vue-mobile
 
-基于 TinyVue **mobile-first** 模式的 GenUI Vue 移动端物料包。组件名、props 与 PC 物料保持一致，
-由 `mode: 'mobile-first'` 驱动 TinyVue 在运行时选用移动端模板。
+基于 TinyVue **mobile-first** 模式的 GenUI Vue 移动端物料包。组件名、props 与 PC 物料保持一致。
+包内不依赖、也不修改 `genui-sdk-core` / `genui-sdk-vue` 的代码，移动端模板的开启方式见下文。
 
 ## 使用
 
@@ -18,8 +18,12 @@ import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile
 </template>
 ```
 
-`GenuiRenderer` 读取 `materials.mode` 并向渲染子树注入 `TinyMode`，TinyVue 组件据此切换模板。
-注入范围只覆盖 schema 渲染内容，聊天输入框等宿主 UI 仍使用 PC 模板。
+TinyVue 组件通过 `inject('TinyMode')` 决定使用 PC 还是 mobile-first 模板。物料包的
+`themeFactory` 会注册一个主题 root（`GenuiConfigProvider` 用 `materials.themeFactory` 渲染它），
+root 在 `setup` 里 `provide('TinyMode', 'mobile-first')`，覆盖整个 `GenuiConfigProvider` 子树。
+
+因此物料必须配合 `GenuiConfigProvider` 使用；直接渲染 `GenuiRenderer` 时没有这层 root，
+TinyVue 会回退到 PC 模板。
 
 物料包内已引入 `@opentiny/vue-runtime/dist3/tailwind.css`（TinyVue mobile-first 模板依赖的
 Tailwind 工具类），无需额外引入样式。这部分样式是全局的（含 Tailwind preflight），只在
@@ -32,11 +36,20 @@ Tailwind 工具类），无需额外引入样式。这部分样式是全局的�
 
 ## 与 PC 物料的关系
 
-- 复用 `@opentiny/genui-sdk-materials-vue-opentiny-vue` 的组件注册表与物料协议；
+- 物料协议与 PC 物料包一致（组件名、props、白名单格式），组件直接取自 `@opentiny/vue-*`；
 - 用移动端白名单收窄 prompt 可用的组件（仅保留 3.31 提供 mobile-first 模板的组件）；
-- 额外注册移动端组件：`TinyTabbar`、`TinyTabbarItem`、`TinyActionSheet`、`TinyPullRefresh`、`TinyPopup`。
+- 额外注册移动端组件：`TinyActionSheet`、`TinyPullRefresh`、`TinyPopup`。
 
-由于 `mode` 是全局注入的，移动端物料不能与 PC 物料合并使用，需要按组件库切换整包替换。
+由于 `TinyMode` 注入作用于整个 `GenuiConfigProvider` 子树，移动端物料不能与 PC 物料合并使用，
+需要按组件库切换整包替换。
+
+## 宽度适配
+
+TinyVue mobile-first 的 `TinyCard` 默认带固定宽度（`size-medium` → `w-96`，384px），在 360/390
+宽的手机上会撑出横向滚动。物料在 `defaultPropsMap` 里默认 `TinyCard.auto-width = true`，让卡片
+跟随容器宽度；模型显式传 `auto-width` 时以传入值为准。
+
+其余常用组件（表单、选择器、标签页、轮播、分页、折叠等）在 360/390 宽下检查过无横向溢出。
 
 ## 构建
 
