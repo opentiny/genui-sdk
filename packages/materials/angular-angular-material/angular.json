@@ -1,0 +1,30 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "newProjectRoot": "projects",
+  "projects": {
+    "mat-materials": {
+      "projectType": "library",
+      "root": "projects/mat-materials",
+      "sourceRoot": "projects/mat-materials/src",
+      "prefix": "mat",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:ng-packagr",
+          "configurations": {
+            "production": {
+              "tsConfig": "projects/mat-materials/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/mat-materials/tsconfig.lib.json"
+            }
+          },
+          "defaultConfiguration": "production"
+        }
+      }
+    }
+  },
+  "cli": {
+    "analytics": false
+  }
+}

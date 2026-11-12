@@ -3,6 +3,10 @@ import type { MaterialsThemeFactory } from './materials-theme';
 
 const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory'];
 
+function isMergeableRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
 export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
   const requiredCompleteFieldSelectors: string[] = [];
@@ -32,9 +36,13 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     for (const key of Object.keys(src)) {
-      if (!handleKeys.includes(key)) {
-        extra[key] = (src as Record<string, unknown>)[key];
+      if (handleKeys.includes(key)) {
+        continue;
       }
+      const next = (src as Record<string, unknown>)[key];
+      const prev = extra[key];
+      extra[key] =
+        isMergeableRecord(prev) && isMergeableRecord(next) ? { ...prev, ...next } : next;
     }
   }
 
