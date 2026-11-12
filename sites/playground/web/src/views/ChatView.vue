@@ -1,5 +1,5 @@
 <script setup>
-import { computed, shallowRef, watch } from 'vue';
+import { computed } from 'vue';
 import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
 import { IconAi } from '@opentiny/tiny-robot-svgs';
 import { materials as tinyMaterials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
@@ -20,39 +20,10 @@ const {
   modelFeatures,
   customFetch,
   customExamples,
-  chat,
-  componentLib,
+  chat
 } = usePlaygroundViewContext();
 
-const isMobileMaterials = computed(() => componentLib.value === 'TinyVueMobile');
-const mobileMaterials = shallowRef(null);
-
-// 移动端物料会全局注入 Tailwind（含 preflight），按需加载避免影响 PC 界面
-watch(
-  componentLib,
-  async (lib) => {
-    if (lib !== 'TinyVueMobile' || mobileMaterials.value) {
-      return;
-    }
-    const { materials } = await import('@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile/materials');
-    mobileMaterials.value = materials;
-  },
-  { immediate: true },
-);
-
-// 移动端物料通过 TinyMode 切换组件模板，不能与 PC 物料合并
-const materials = computed(() =>
-  isMobileMaterials.value && mobileMaterials.value
-    ? mobileMaterials.value
-    : mergeMaterials(tinyMaterials, epMaterials),
-);
-
-const materialsKey = computed(() => {
-  if (!isMobileMaterials.value) {
-    return 'pc';
-  }
-  return mobileMaterials.value ? 'mobile-first' : 'mobile-loading';
-});
+const materials = mergeMaterials(tinyMaterials, epMaterials)
 
 const setChatRef = (el) => {
   if (el) chat.value = el;
@@ -65,13 +36,7 @@ const rendererSlots = {
 
 <template>
   <PlaygroundViewShell>
-    <GenuiConfigProvider
-      :key="materialsKey"
-      :theme="theme"
-      :locale="locale"
-      :materials="materials"
-      style="height: 100%"
-    >
+    <GenuiConfigProvider :theme="theme" :locale="locale" :materials="materials" style="height: 100%">
       <GenuiChat
         :url="url"
         :ref="setChatRef"

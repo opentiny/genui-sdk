@@ -5,13 +5,12 @@ import {
   type IMaterialsMeta,
 } from '@opentiny/genui-sdk-core';
 import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
-import { mobileMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile/meta';
 import { materialsMeta as epMaterialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
 import { materialsMeta as ngMaterialsMeta } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/meta';
 import { materialsMeta as reactMaterialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
 import type { IMaterialsMetaVariantKey, IFrameworkKey } from '../types/playground-config.js';
 
-type IComponentLibKey = 'TinyVue' | 'TinyVueMobile' | 'ElementPlus' | 'TinyNg' | 'Antd';
+type IComponentLibKey = 'TinyVue' | 'ElementPlus' | 'TinyNg' | 'Antd';
 type IVariantMap<T> = Partial<Record<IMaterialsMetaVariantKey, T>>;
 type ILibMap<T> = Partial<Record<IComponentLibKey, IVariantMap<T>>>;
 
@@ -29,11 +28,6 @@ const metaMap: IMetaMap = {
       mini: miniMaterialsMeta,
       standard: materialsMeta,
       plus: plusMaterialsMeta,
-    },
-    TinyVueMobile: {
-      mini: mobileMaterialsMeta,
-      standard: mobileMaterialsMeta,
-      plus: mobileMaterialsMeta,
     },
     ElementPlus: {
       mini: epMaterialsMeta,

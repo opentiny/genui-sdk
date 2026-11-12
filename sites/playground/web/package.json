@@ -14,7 +14,6 @@
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile": "workspace:*",
     "@opentiny/genui-sdk-vue": "workspace:*",
     "@opentiny/tiny-robot": "0.3.3",
     "@opentiny/tiny-robot-kit": "0.3.3",
