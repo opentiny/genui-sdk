@@ -2,12 +2,8 @@
 import TinySliderBase from '@opentiny/vue-slider';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-// TinyVue 3.31 mobile-first 模板给滑块写 role="slider"、给滑槽不写 role，
-// 但 renderless 的 bindMouseDown 只认 PC 那套 role 值（tiny-slider__handle / tiny-slider__range），
-// 于是所有 mousedown 都被判成点错地方直接 return，滑块拖不动。
-// 在捕获阶段临时换成它认的值，事件派发完再还原，不破坏 aria。
-// 必须用宏任务还原：真实事件里浏览器在每个监听器之后就会清空微任务队列，
-// 微任务会赶在目标元素的 mousedown 监听器之前把 role 改回去。
+// 修复 mobile-first 模板的 role 与 renderless 期望值不一致导致滑块拖不动：
+// 捕获阶段临时改写 role，宏任务里还原。
 const ROLE_BY_TAG: Record<string, string> = {
   'tiny-slider-handle': 'tiny-slider__handle',
   'tiny-slider-range': 'tiny-slider__range',

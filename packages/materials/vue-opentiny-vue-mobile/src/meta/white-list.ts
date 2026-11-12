@@ -1,4 +1,3 @@
-// 仅列出在 3.31 提供 mobile-first 模板的组件，避免在移动端渲染出 PC 模板
 export const mobileWhiteList = [
   'a',
   'h1',

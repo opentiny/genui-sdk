@@ -1,57 +1,55 @@
 # @opentiny/genui-sdk-materials-vue-opentiny-vue-mobile
 
-基于 TinyVue **mobile-first** 模式的 GenUI Vue 移动端物料包。组件名、props 与 PC 物料保持一致。
-包内不依赖、也不修改 `genui-sdk-core` / `genui-sdk-vue` 的代码，移动端模板的开启方式见下文。
+A GenUI Vue materials package based on TinyVue's **mobile-first** mode. Component names and props stay identical to the PC materials package.
 
-## 使用
+## Install
 
-```vue
-<script setup>
-import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
-import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile/materials';
-</script>
-
-<template>
-  <GenuiConfigProvider :materials="materials">
-    <GenuiChat ... />
-  </GenuiConfigProvider>
-</template>
+```bash
+npm install @opentiny/genui-sdk-materials-vue-opentiny-vue-mobile @opentiny/genui-sdk-vue @opentiny/genui-sdk-core
 ```
 
-TinyVue 组件通过 `inject('TinyMode')` 决定使用 PC 还是 mobile-first 模板。物料包的
-`themeFactory` 会注册一个主题 root（`GenuiConfigProvider` 用 `materials.themeFactory` 渲染它），
-root 在 `setup` 里 `provide('TinyMode', 'mobile-first')`，覆盖整个 `GenuiConfigProvider` 子树。
+## Quick Start
 
-因此物料必须配合 `GenuiConfigProvider` 使用；直接渲染 `GenuiRenderer` 时没有这层 root，
-TinyVue 会回退到 PC 模板。
+```ts
+import { GenuiConfigProvider, GenuiChat } from '@opentiny/genui-sdk-vue';
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue-mobile/materials';
+```
 
-物料包内已引入 `@opentiny/vue-runtime/dist3/tailwind.css`（TinyVue mobile-first 模板依赖的
-Tailwind 工具类），无需额外引入样式。这部分样式是全局的（含 Tailwind preflight），只在
-同时使用 PC 物料的应用里建议按需加载。
+```vue
+<GenuiConfigProvider :materials="materials">
+  <GenuiChat />
+</GenuiConfigProvider>
+```
 
-另外，单包版 `@opentiny/vue-common@3.31.0` 的 `customDesignConfig.twMerge` 是返回空串的
-空实现，而 mobile-first 模板的类名都经由它输出，不替换的话组件会丢掉全部动态类（输入框
-无边框、图标撑满整行）。物料入口的 `design-config.ts` 会用 `tailwind-merge` 覆盖该实现，
-因此 `tailwind-merge` 是运行时依赖，不能省。
+## Enabling Mobile-First
 
-## 与 PC 物料的关系
+TinyVue components choose between the `pc` and `mobile-first` templates via `inject('TinyMode')`. The materials declare `mode: 'mobile-first'`; `GenuiRenderer` reads that field from the injected materials and provides `TinyMode` to its render subtree. Injecting the materials into `GenuiConfigProvider` is therefore all that is required.
 
-- 物料协议与 PC 物料包一致（组件名、props、白名单格式），组件直接取自 `@opentiny/vue-*`；
-- 用移动端白名单收窄 prompt 可用的组件（仅保留 3.31 提供 mobile-first 模板的组件）；
-- 额外注册移动端组件：`TinyActionSheet`、`TinyPullRefresh`、`TinyPopup`。
+The injection happens in the renderer rather than the provider so that host UI outside the rendered schema (for example the `GenuiChat` sender built on the PC `TinyInput`) is not switched to mobile-first.
 
-由于 `TinyMode` 注入作用于整个 `GenuiConfigProvider` 子树，移动端物料不能与 PC 物料合并使用，
-需要按组件库切换整包替换。
+`mode` accepts `'pc' | 'mobile-first'`. TinyVue's legacy `mobile` mode is not supported: no `@opentiny/vue-*` 3.31 package ships a `mobile` template.
 
-## 宽度适配
+## Styles
 
-TinyVue mobile-first 的 `TinyCard` 默认带固定宽度（`size-medium` → `w-96`，384px），在 360/390
-宽的手机上会撑出横向滚动。物料在 `defaultPropsMap` 里默认 `TinyCard.auto-width = true`，让卡片
-跟随容器宽度；模型显式传 `auto-width` 时以传入值为准。
+The package imports `@opentiny/vue-runtime/dist3/tailwind.css`, which provides the Tailwind utility classes used by TinyVue's mobile-first templates. No extra styles are needed. Note that this CSS is global (it includes Tailwind preflight); load it on demand if PC materials are also used in the same application.
 
-其余常用组件（表单、选择器、标签页、轮播、分页、折叠等）在 360/390 宽下检查过无横向溢出。
+In the standalone `@opentiny/vue-common@3.31.0` build, `customDesignConfig.twMerge` is a no-op that returns an empty string. The mobile-first templates route all dynamic class names through it, so without a replacement components lose every dynamic class (borderless inputs, oversized icons). `design-config.ts` at the materials entry overrides it with `tailwind-merge`, which is why `tailwind-merge` is a runtime dependency and must not be removed.
 
-## 构建
+## Relationship to PC Materials
+
+- The protocol is identical to the PC materials package (component names, props, whitelist format); components are imported directly from `@opentiny/vue-*`.
+- The whitelist is narrowed to components that ship a `mobile-first` template in 3.31.
+- Mobile-only components are additionally registered: `TinyActionSheet`, `TinyPullRefresh`, `TinyPopup`.
+
+Because `TinyMode` applies to the whole render subtree, do not merge this package with the PC materials; switch packages per component library.
+
+## Width Adaptation
+
+TinyVue's mobile-first `TinyCard` has a fixed default width (`size-medium` → `w-96`, 384px), which overflows 360/390px phones and causes horizontal scrolling. The materials set `TinyCard.auto-width = true` in `defaultPropsMap` so cards follow their container; an explicit `auto-width` value from the model still wins.
+
+The other common components (forms, selects, tabs, carousel, pager, collapse, etc.) were checked at 360/390px widths with no horizontal overflow.
+
+## Build
 
 ```bash
 pnpm --filter @opentiny/genui-sdk-materials-vue-opentiny-vue-mobile build
