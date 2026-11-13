@@ -176,32 +176,39 @@
           "children": "取消后订单不可恢复，确定要取消吗？"
         },
         {
-          "componentName": "div",
-          "slot": "footer",
+          "componentName": "Template",
           "props": {
-            "className": "dialog-footer"
+            "slot": "footer"
           },
           "children": [
             {
-              "componentName": "TinyButton",
+              "componentName": "div",
               "props": {
-                "text": "再想想",
-                "onClick": {
-                  "type": "JSExpression",
-                  "value": "this.closeDialog"
+                "className": "dialog-footer"
+              },
+              "children": [
+                {
+                  "componentName": "TinyButton",
+                  "props": {
+                    "text": "再想想",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.closeDialog"
+                    }
+                  }
+                },
+                {
+                  "componentName": "TinyButton",
+                  "props": {
+                    "text": "确认取消",
+                    "type": "danger",
+                    "onClick": {
+                      "type": "JSExpression",
+                      "value": "this.confirmCancel"
+                    }
+                  }
                 }
-              }
-            },
-            {
-              "componentName": "TinyButton",
-              "props": {
-                "text": "确认取消",
-                "type": "danger",
-                "onClick": {
-                  "type": "JSExpression",
-                  "value": "this.confirmCancel"
-                }
-              }
+              ]
             }
           ]
         }

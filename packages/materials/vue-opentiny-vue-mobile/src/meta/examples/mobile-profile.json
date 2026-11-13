@@ -50,7 +50,7 @@
                 {
                   "componentName": "TinyTag",
                   "props": {
-                    "text": "核心成员",
+                    "value": "核心成员",
                     "type": "primary",
                     "effect": "light",
                     "round": true
@@ -59,7 +59,7 @@
                 {
                   "componentName": "TinyTag",
                   "props": {
-                    "text": "已认证",
+                    "value": "已认证",
                     "type": "success",
                     "effect": "light",
                     "round": true
@@ -162,19 +162,19 @@
           "children": [
             {
               "componentName": "TinyTag",
-              "props": { "text": "数据分析", "type": "primary", "effect": "light", "round": true }
+              "props": { "value": "数据分析", "type": "primary", "effect": "light", "round": true }
             },
             {
               "componentName": "TinyTag",
-              "props": { "text": "用户研究", "type": "success", "effect": "light", "round": true }
+              "props": { "value": "用户研究", "type": "success", "effect": "light", "round": true }
             },
             {
               "componentName": "TinyTag",
-              "props": { "text": "原型设计", "type": "info", "effect": "light", "round": true }
+              "props": { "value": "原型设计", "type": "info", "effect": "light", "round": true }
             },
             {
               "componentName": "TinyTag",
-              "props": { "text": "A/B 实验", "type": "warning", "effect": "light", "round": true }
+              "props": { "value": "A/B 实验", "type": "warning", "effect": "light", "round": true }
             }
           ]
         }

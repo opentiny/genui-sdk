@@ -11,7 +11,7 @@
   "methods": {
     "submit": {
       "type": "JSFunction",
-      "value": "function submit() { console.log('提交', this.state.formData) }"
+      "value": "function submit() { if (!this.state.formData.name || !this.state.formData.phone) { this.callAction('continueChat', { message: '请填写姓名和手机号' }); return; } this.callAction('continueChat', { message: '员工信息已提交，请继续' }); }"
     }
   },
   "componentName": "Page",
