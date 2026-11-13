@@ -1,9 +1,8 @@
+<!-- 修复 mobile-first 的滑块划不动的问题 -->
 <script setup lang="ts">
 import TinySliderBase from '@opentiny/vue-slider';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-// 修复 mobile-first 模板的 role 与 renderless 期望值不一致导致滑块拖不动：
-// 捕获阶段临时改写 role，宏任务里还原。
 const ROLE_BY_TAG: Record<string, string> = {
   'tiny-slider-handle': 'tiny-slider__handle',
   'tiny-slider-range': 'tiny-slider__range',

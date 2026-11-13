@@ -3,8 +3,8 @@
   min-width: 0;
 }
 
-/* tiny-robot 的气泡按内容收缩，移动端 schema 卡片会被压成很窄一条。
-   撑满气泡的可用宽度（类名来自 @opentiny/tiny-robot）。 */
+/* 移动端物料给 TinyCard 默认开了 auto-width，它因此失去了 w-96（384px）的固有宽度。 
+外层气泡 wrapper 按内容定宽就塌了，所以才需要在气泡层用 flex: 1 1 auto 把宽度重新撑起来。*/
 .tr-bubble__content-wrapper:has(.schema-render-container) {
   flex: 1 1 auto;
   width: auto;
@@ -23,37 +23,15 @@
   min-height: 0 !important;
 }
 
-/* 模型按整页布局常给卡片写左右 margin，和满宽的图片、粘性栏混排时各区块左右边缘参差 */
+/* 避免模型按整页布局常给卡片写左右 margin，和满宽的图片、粘性栏混排时各区块左右边缘参差 */
 .schema-render-container [data-tag='TinyCard'] {
   margin-left: 0 !important;
   margin-right: 0 !important;
 }
 
 /* 按钮自带 overflow-hidden，作为 flex 项时 min-width 解析为 0；
-   与 w-full 的输入框并排会被挤到只剩省略号。撑到文字宽度，同时不影响模型写的 flex: 1 */
+   容易被挤到只剩省略号。撑到文字宽度，同时不影响模型写的 flex: 1 */
 .schema-render-container [data-tag='TinyButton'],
 .schema-render-container [data-tag='tiny-button'] {
   min-width: max-content;
-}
-
-/* mobile-first 没有 size-large，模板里 gcls('size-large') 返回空串，按钮不带任何高度类，
-   孤立时只有 21px。模型看不到尺寸枚举，仍可能写 large，这里按 medium（h-10 sm:h-8）补。
-   有基础高度类（默认/中/小/迷你分别是 h-10/h-10/h-8/h-7）的按钮不受影响。 */
-.schema-render-container [data-tag='TinyButton']:not([class*=' h-']) {
-  height: var(--tiny-spacing-10, 2.5rem);
-  font-size: var(--tiny-fontSize-sm, 0.875rem);
-}
-
-@media (min-width: 640px) {
-  .schema-render-container [data-tag='TinyButton']:not([class*=' h-']) {
-    height: var(--tiny-spacing-8, 2rem);
-  }
-}
-
-/* 模型把 footer 按钮写在默认插槽里（渲染器只认 Template 节点上的 slot），
-   ActionSheet 仍会补一个内置「确定」；正文已有按钮时隐藏它，避免两个确认键 */
-[data-tag='TinyDialogBox']:has([data-tag='action-sheet-body'] [data-tag='TinyButton'])
-  [data-tag='action-sheet-footer']
-  > [data-tag='tiny-button'] {
-  display: none;
 }

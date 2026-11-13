@@ -1759,7 +1759,7 @@
                       }
                     },
                     "description": {
-                      "zh_CN": "按钮大小"
+                      "zh_CN": "按钮大小，仅支持 medium / small / mini（默认 medium），不支持 large"
                     },
                     "labelPosition": "left"
                   },
@@ -7388,7 +7388,7 @@
           "name": {
             "zh_CN": "操作面板"
           },
-          "description": "从底部弹出的操作面板，常用于让用户从一组操作中选择",
+          "description": "从底部弹出的操作面板，常用于让用户从一组操作中选择。确认按钮直接写在 children 里（如 TinyButton），不要设置 showFooter，否则底部会额外出现一个内置的「确定」",
           "schema": {
             "properties": [
               {
