@@ -797,6 +797,187 @@ importers:
       vite-plugin-dts:
         specifier: ^4.0.0
         version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+  packages/materials/vue-opentiny-vue-mobile:
+    dependencies:
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../../core
+      '@opentiny/vue-action-sheet':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-alert':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-badge':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-button':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-card':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-carousel':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-carousel-item':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-cascader':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-checkbox':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-checkbox-group':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-collapse':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-collapse-item':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-common':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-config-provider':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-dialog-box':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-divider':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-drawer':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-form':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-form-item':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-icon':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-image':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-input':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-load-list':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-numeric':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-pager':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-popover':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-popup':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-progress':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-pull-refresh':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-radio':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-radio-group':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-rate':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-search':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-select':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-skeleton':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-slider':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-space':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-steps':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-sticky':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-switch':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tab-item':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tabs':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tag':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tag-group':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-theme':
+        specifier: ~3.31.0
+        version: 3.31.1
+      '@opentiny/vue-time-line':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-tooltip':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@opentiny/vue-user-head':
+        specifier: ~3.31.0
+        version: 3.31.0
+      tailwind-merge:
+        specifier: ^1.14.0
+        version: 1.14.0
+      vue:
+        specifier: ^3.5.13
+        version: 3.5.26(typescript@5.9.3)
+    devDependencies:
+      '@opentiny/vue-runtime':
+        specifier: ~3.31.0
+        version: 3.31.0
+      '@vitejs/plugin-vue':
+        specifier: ^5.0.0
+        version: 5.2.4(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))(vue@3.5.26(typescript@5.9.3))
+      '@vue/tsconfig':
+        specifier: ^0.8.1
+        version: 0.8.1(typescript@5.9.3)(vue@3.5.26(typescript@5.9.3))
+      escape-string-regexp:
+        specifier: ^1.0.5
+        version: 1.0.5
+      typescript:
+        specifier: ^5.8.2
+        version: 5.9.3
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
+      vite-plugin-css-injected-by-js:
+        specifier: ^3.5.2
+        version: 3.5.2(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+      vite-plugin-dts:
+        specifier: ^4.0.0
+        version: 4.5.4(@types/node@25.5.0)(rollup@4.54.0)(typescript@5.9.3)(vite@6.4.1(@types/node@25.5.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0))
+
 
   packages/server:
     dependencies:
@@ -6922,6 +7103,9 @@ packages:
 
   '@yarnpkg/lockfile@1.1.0':
     resolution: {integrity: sha512-GpSwvyXOcOOlV70vbnzjj4fW5xW/FdUF6nQEt1ENy7m4ZCczi1+/buVUPAqmGfqznsORNFzUMjctTIp8a9tuCQ==}
+  '@opentiny/vue-runtime@3.31.0':
+    resolution: {integrity: sha512-87DfU7ljvcV6YTNcZFwUigTbtYsjlTN19ElMP0nWTkm5KhgDwIMiUnYkKHTUC+Ky5F0aac+scRWQoVPLiTvR9w==}
+
 
   abbrev@3.0.1:
     resolution: {integrity: sha512-AO2ac6pjRB3SJmGJo+v5/aK6Omggp6fsLrs6wN9bd35ulu4cCwaAU9+7ZhXjeqHVkaHThLuzH0nZr0YpCDhygg==}
@@ -20429,6 +20613,8 @@ snapshots:
       vue: 3.5.26(typescript@5.9.3)
 
   '@yarnpkg/lockfile@1.1.0': {}
+  '@opentiny/vue-runtime@3.31.0': {}
+
 
   abbrev@3.0.1: {}
 
