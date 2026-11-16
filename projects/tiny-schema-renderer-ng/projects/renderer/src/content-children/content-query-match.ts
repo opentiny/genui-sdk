@@ -307,8 +307,10 @@ function pickMatchForTemplateEntry(
 
 /**
  * All ref entries for one parent: its direct children, or — when the query declares
- * `{ descendants: true }` — the direct children of every descendant outlet too
- * (`descendantOutlets` provided by ContentChildrenService, pre-sorted in schema order).
+ * `{ descendants: true }` — those children followed by each descendant outlet's children.
+ * `descendantOutlets` is already preorder. Indexes are local to each parent, so each list
+ * is sorted on its own and the lists are concatenated; a global sort would put a nested
+ * child ahead of its parent.
  */
 function collectRefsForTarget(
   parentOutlet: ComponentOutlet | null | undefined,
@@ -318,14 +320,20 @@ function collectRefsForTarget(
   if (!parentOutlet) {
     return [];
   }
-  const refs = getContentRefs(parentOutlet);
+  const refs = refsInSchemaOrder(getContentRefs(parentOutlet));
   if (!target.descendants) {
     return refs;
   }
   for (const outlet of descendantOutlets ?? []) {
-    refs.push(...getContentRefs(outlet));
+    refs.push(...refsInSchemaOrder(getContentRefs(outlet)));
   }
   return refs;
+}
+
+function refsInSchemaOrder(refs: ContentRefEntry[]): ContentRefEntry[] {
+  return refs.slice().sort(
+    (a, b) => (a.index ?? Number.MAX_SAFE_INTEGER) - (b.index ?? Number.MAX_SAFE_INTEGER),
+  );
 }
 
 /** Resolve query matches for one parent from the ref registry, in schema declaration order. */
@@ -335,10 +343,6 @@ export function resolvePatchResults(
   descendantOutlets?: ComponentOutlet[] | null,
 ): unknown[] {
   const entries = collectRefsForTarget(parentOutlet, target, descendantOutlets);
-
-  entries.sort(
-    (a, b) => (a.index ?? Number.MAX_SAFE_INTEGER) - (b.index ?? Number.MAX_SAFE_INTEGER),
-  );
 
   const results: unknown[] = [];
   for (const item of entries) {
