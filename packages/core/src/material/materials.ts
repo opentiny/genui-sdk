@@ -6,6 +6,8 @@ export type IMaterialsMap = Record<string, IMaterialComponent>;
 
 export interface IMaterials {
   components?: IMaterialsMap;
+  /** 区块注册表，key 为区块组件名 */
+  blocks?: Record<string, any>;
   requiredCompleteFieldSelectors?: string[];
   defaultPropsMap?: Record<string, any>;
   /**

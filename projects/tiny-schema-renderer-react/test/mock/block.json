@@ -1,0 +1,76 @@
+{
+  "componentName": "TestBlock",
+  "state": {
+    "title": "Hello, World!"
+  },
+  "inputs": {
+    "text": {
+      "type": "string",
+      "description": "区块展示的文本"
+    }
+  },
+  "outputs": {
+    "clickText": {
+      "type": "string",
+      "description": "点击区块内容时触发"
+    }
+  },
+  "children": [
+    {
+      "componentName": "Slot",
+      "props": {
+        "name": "header",
+        "params": [
+          {
+            "name": "title",
+            "value": {
+              "type": "JSExpression",
+              "value": "this.state.title"
+            }
+          }
+        ]
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": {
+              "type": "JSExpression",
+              "value": "`内置 header：${this.state.title}`"
+            },
+            "style": {
+              "color": "red"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "componentName": "AntButton",
+      "props": {
+        "type": "primary",
+        "onClick": {
+          "type": "JSFunction",
+          "value": "function(event) { this.dispatchEvent('clickText', event) }"
+        }
+      },
+      "children": {
+        "type": "JSExpression",
+        "value": "`区块内容：${this.props.text}`"
+      }
+    },
+    {
+      "componentName": "Slot",
+      "props": {
+        "description": "默认插槽"
+      }
+    },
+    {
+      "componentName": "Slot",
+      "props": {
+        "description": "没有参数和兜底内容的插槽",
+        "name": "footer"
+      }
+    }
+  ]
+}

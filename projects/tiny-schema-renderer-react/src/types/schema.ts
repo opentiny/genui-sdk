@@ -37,8 +37,8 @@ export type RootNode = Omit<Node, 'id'> & {
   children?: Node[];
   dataSource?: any;
   bridge?: any;
-  inputs?: any[];
-  outputs?: any[];
+  inputs?: any[] | Record<string, any>;
+  outputs?: any[] | Record<string, any>;
   schema?: any;
 };
 

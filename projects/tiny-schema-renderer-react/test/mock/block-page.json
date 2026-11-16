@@ -1,0 +1,62 @@
+{
+  "componentName": "Page",
+  "state": {
+    "formItemList": [
+      {
+        "label": "表单标签 A"
+      },
+      {
+        "label": "表单标签 B"
+      }
+    ]
+  },
+  "children": [
+    {
+      "componentName": "TestBlock",
+      "props": {
+        "text": "来自外部属性",
+        "onClickText": {
+          "type": "JSFunction",
+          "value": "function(event) { console.log('block event clickText', event) }"
+        }
+      },
+      "children": [
+        {
+          "componentName": "Template",
+          "props": {
+            "slot": "header",
+            "params": ["title"]
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "`外部 header：${this.state.formItemList[0].label} + ${title}`"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "Template",
+          "props": {
+            "slot": "footer"
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "`外部 footer：${this.state.formItemList[1].label}`"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
