@@ -1,4 +1,4 @@
-import { QueryList, ɵgetLContext as getLContext } from '@angular/core';
+import { QueryList, ɵgetDirectives, ɵgetLContext as getLContext } from '@angular/core';
 import { SIGNAL } from '@angular/core/primitives/signals';
 import { ContentQueryPatchTarget } from './content-query-types';
 
@@ -195,7 +195,69 @@ export function isContentQueryIndex(lView: any, queryIndex: number): boolean {
   return false;
 }
 
-/** Infer contentChild vs contentChildren without reading the signal (reading resets its QueryList). */
+/**
+ * Absolute LView slot of this directive. `tView.contentQueries` stores that slot
+ * (`def.contentQueries(Create, instance, directiveIndex)`), not the offset within the node.
+ */
+export function getDirectiveIndexOnTNode(instance: object): number | null {
+  try {
+    const ctx = getLContext(instance);
+    const lView = ctx?.lView;
+    const nodeIndex = ctx?.nodeIndex;
+    if (!lView || nodeIndex == null) {
+      return null;
+    }
+    const tNode = lView[1]?.data?.[nodeIndex] as
+      | { directiveStart?: number; directiveEnd?: number }
+      | undefined;
+    const start = tNode?.directiveStart;
+    const end = tNode?.directiveEnd;
+    if (typeof start === 'number' && typeof end === 'number') {
+      for (let i = start; i < end; i++) {
+        if (lView[i] === instance) {
+          return i;
+        }
+      }
+    }
+    const native = ctx.native ?? lView[nodeIndex];
+    if (native != null && typeof start === 'number') {
+      const dirs = ɵgetDirectives(native as Node);
+      const idx = dirs.indexOf(instance as never);
+      if (idx >= 0) {
+        return start + idx;
+      }
+    }
+  } catch {
+    // Host may not be attached yet.
+  }
+  return null;
+}
+
+/** Query indexes in `tView.contentQueries` owned by `dirIndex`. Unfiltered scans are not a match. */
+export function contentQueryIndexesForDirective(
+  lView: any,
+  dirIndex: number | null,
+): { indexes: number[]; filtered: boolean } {
+  const indexes: number[] = [];
+  const contentQueries = lView?.[1]?.contentQueries;
+  if (Array.isArray(contentQueries) && dirIndex != null) {
+    for (let i = 0; i < contentQueries.length; i += 2) {
+      if (contentQueries[i + 1] === dirIndex) {
+        indexes.push(contentQueries[i]);
+      }
+    }
+    if (indexes.length) {
+      return { indexes, filtered: true };
+    }
+  }
+  return { indexes, filtered: false };
+}
+
+/**
+ * Infer contentChild vs contentChildren without reading the signal (reading resets its QueryList).
+ * Angular keeps that bit in the query-signal closure, not on the node or QueryFlags, so the field
+ * name is the only available signal: plurals, `children`, and `items` are multi-value.
+ */
 function inferFirstOnly(propertyName: string): boolean {
   if (/children|items/i.test(propertyName)) {
     return false;
@@ -327,9 +389,11 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
     if (lView) {
       const lQueries = findLQueries(lView);
       const tQueries = getTQueries(lView);
-      if (lQueries) {
+      const owned = contentQueryIndexesForDirective(lView, getDirectiveIndexOnTNode(instance));
+      const ownedIndexes = owned.filtered ? new Set(owned.indexes) : null;
+      if (lQueries && ownedIndexes) {
         lQueries.queries.forEach((lQuery, index) => {
-          if (!isContentQueryIndex(lView, index)) {
+          if (!ownedIndexes.has(index) || !isContentQueryIndex(lView, index)) {
             return;
           }
           const queryList = lQuery.queryList;

@@ -1,10 +1,4 @@
-import {
-  InjectionToken,
-  QueryList,
-  Type,
-  ɵgetDirectives,
-  ɵgetLContext as getLContext,
-} from '@angular/core';
+import { InjectionToken, QueryList, Type, ɵgetLContext as getLContext } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
 import { ContentQueryPatchTarget, OutletContentRefEntry } from './content-query-types';
 import { getContentRefs, getTemplateDirectiveInstances } from './content-ref-registry';
@@ -12,7 +6,9 @@ import {
   IVY_ASSIGN_FIRST_RE,
   IVY_ASSIGN_RE,
   QUERY_FLAG_DESCENDANTS,
+  contentQueryIndexesForDirective,
   discoverContentQueryTargets,
+  getDirectiveIndexOnTNode,
   getTQueries,
   isContentQueryIndex,
   ivyCtxProps,
@@ -141,65 +137,6 @@ function collectContentQueryFieldNames(ctor: Type<unknown>): { names: string[]; 
   return { names, firstOnly };
 }
 
-function getDirectiveIndexOnTNode(instance: object): number | null {
-  try {
-    const ctx = getLContext(instance);
-    const lView = ctx?.lView;
-    const nodeIndex = ctx?.nodeIndex;
-    if (!lView || nodeIndex == null) {
-      return null;
-    }
-    const tNode = lView[1]?.data?.[nodeIndex] as
-      | { directiveStart?: number; directiveEnd?: number }
-      | undefined;
-    const start = tNode?.directiveStart;
-    const end = tNode?.directiveEnd;
-    if (typeof start === 'number' && typeof end === 'number') {
-      for (let i = start; i < end; i++) {
-        if (lView[i] === instance) {
-          return i - start;
-        }
-      }
-    }
-    const native = ctx.native ?? lView[nodeIndex];
-    if (native != null) {
-      const dirs = ɵgetDirectives(native as Node);
-      const idx = dirs.indexOf(instance as never);
-      if (idx >= 0) {
-        return idx;
-      }
-    }
-  } catch {
-    // Host may not be attached yet.
-  }
-  return null;
-}
-
-function contentQueryIndexesForDirective(
-  lView: any,
-  dirIndex: number | null,
-): { indexes: number[]; filtered: boolean } {
-  const indexes: number[] = [];
-  const contentQueries = lView?.[1]?.contentQueries;
-  if (Array.isArray(contentQueries) && dirIndex != null) {
-    for (let i = 0; i < contentQueries.length; i += 2) {
-      if (contentQueries[i + 1] === dirIndex) {
-        indexes.push(contentQueries[i]);
-      }
-    }
-    if (indexes.length) {
-      return { indexes, filtered: true };
-    }
-  }
-  const queries = getTQueries(lView)?.queries ?? [];
-  for (let i = 0; i < queries.length; i++) {
-    if (isContentQueryIndex(lView, i)) {
-      indexes.push(i);
-    }
-  }
-  return { indexes, filtered: false };
-}
-
 /**
  * Host-directive `@ContentChild` predicates are the live Types stored on TView
  * (`tQuery.metadata.predicate`). Matching uses `instanceof`, not minified names.
@@ -217,7 +154,17 @@ function collectQueryDefsFromLView(instance: object, ctor: Type<unknown>): HostD
     }
     const fields = collectContentQueryFieldNames(ctor);
     const dirIndex = getDirectiveIndexOnTNode(instance);
-    const { indexes, filtered } = contentQueryIndexesForDirective(lView, dirIndex);
+    let { indexes, filtered } = contentQueryIndexesForDirective(lView, dirIndex);
+    if (!filtered) {
+      // Index miss: only accept the whole-view list when its length matches this class's fields.
+      indexes = [];
+      const queries = getTQueries(lView)?.queries ?? [];
+      for (let i = 0; i < queries.length; i++) {
+        if (isContentQueryIndex(lView, i)) {
+          indexes.push(i);
+        }
+      }
+    }
     const owned = indexes.filter((index) => isContentQueryIndex(lView, index));
     if (!owned.length) {
       return [];
