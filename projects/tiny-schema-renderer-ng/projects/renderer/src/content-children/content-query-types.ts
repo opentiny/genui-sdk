@@ -13,6 +13,8 @@ export interface ContentQueryPatchTarget {
   firstOnly?: boolean;
   /** true when the query declares `{ descendants: true }` — match nested content too. */
   descendants?: boolean;
+  /** `{ read }` token. Absent means the query result is the matched instance. */
+  read?: unknown;
   /** Host component instance — needed to install signal shims. */
   hostInstance?: object;
 }

@@ -23,6 +23,7 @@ const hostShimBindings = new WeakMap<
     firstOnly: boolean;
     predicate: unknown;
     descendants: boolean;
+    read: unknown;
   }>
 >();
 
@@ -38,6 +39,7 @@ export function rememberShimBinding(
   firstOnly: boolean,
   predicate: unknown,
   descendants: boolean,
+  read: unknown = null,
 ): void {
   let list = hostShimBindings.get(host);
   if (!list) {
@@ -50,9 +52,10 @@ export function rememberShimBinding(
     existing.firstOnly = firstOnly;
     existing.propertyName = propertyName;
     existing.descendants = descendants;
+    existing.read = read ?? existing.read;
     return;
   }
-  list.push({ signalNode, propertyName, firstOnly, predicate, descendants });
+  list.push({ signalNode, propertyName, firstOnly, predicate, descendants, read });
 }
 
 /**
@@ -106,7 +109,7 @@ export function getPredicateFromSignalNode(node: any): unknown {
 /** Read `{ predicate, flags }` from a bound query signal node, best-effort. */
 function getSignalQueryMetadata(
   node: any,
-): { predicate: unknown; flags: number } | null {
+): { predicate: unknown; flags: number; read: unknown } | null {
   try {
     const lView = node?._lView;
     const queryIndex = node?._queryIndex;
@@ -123,7 +126,11 @@ function getSignalQueryMetadata(
         ? queries.getByIndex(queryIndex)
         : queries.queries?.[queryIndex];
     return tQuery?.metadata
-      ? { predicate: tQuery.metadata.predicate ?? null, flags: tQuery.metadata.flags ?? 0 }
+      ? {
+          predicate: tQuery.metadata.predicate ?? null,
+          flags: tQuery.metadata.flags ?? 0,
+          read: tQuery.metadata.read ?? null,
+        }
       : null;
   } catch {
     return null;
@@ -409,6 +416,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
             queryList,
             predicate,
             descendants: !!((tQuery?.metadata?.flags ?? 0) & QUERY_FLAG_DESCENDANTS),
+            read: tQuery?.metadata?.read ?? null,
             hostInstance: instance,
           });
         });
@@ -474,6 +482,9 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
           if (existing.predicate == null && signalMeta?.predicate != null) {
             existing.predicate = signalMeta.predicate;
           }
+          if (existing.read == null && signalMeta?.read != null) {
+            existing.read = signalMeta.read;
+          }
         }
         continue;
       }
@@ -486,6 +497,7 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         signalNode: node,
         firstOnly,
         descendants: !!((signalMeta?.flags ?? 0) & QUERY_FLAG_DESCENDANTS),
+        read: signalMeta?.read ?? null,
         hostInstance: instance,
       });
     } else if (shimBindings) {
@@ -511,6 +523,9 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
         existing.hostInstance = instance;
         if (existing.predicate == null && binding.predicate != null) {
           existing.predicate = binding.predicate;
+        }
+        if (existing.read == null && binding.read != null) {
+          existing.read = binding.read;
         }
       }
     }

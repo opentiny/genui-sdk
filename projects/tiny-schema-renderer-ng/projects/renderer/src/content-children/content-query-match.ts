@@ -1,4 +1,4 @@
-import { InjectionToken, Injector, TemplateRef, Type, ɵgetDirectives } from '@angular/core';
+import { ElementRef, InjectionToken, Injector, TemplateRef, Type, ViewContainerRef, ɵgetDirectives } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
 import { readDeclaredProviders, useExistingProviderTokens } from '../directive-providers';
 import {
@@ -160,6 +160,48 @@ function pickMatchForOutlet(
       if (provided != null) {
         return provided;
       }
+    }
+  }
+  return undefined;
+}
+
+/**
+ * `{ read }` selects a different token than the matched directive. Unresolved reads are
+ * dropped so a directive instance is not returned where an ElementRef was requested.
+ */
+function applyQueryRead(
+  match: unknown,
+  read: unknown,
+  source: { outlet?: ComponentOutlet; templateRef?: TemplateRef<unknown> },
+): unknown {
+  if (read == null) {
+    return match;
+  }
+  if (read === ElementRef) {
+    if (source.outlet?.componentRef?.location) {
+      return source.outlet.componentRef.location;
+    }
+    return source.outlet ? resolveProvidedToken(source.outlet, ElementRef) : undefined;
+  }
+  if (read === TemplateRef) {
+    if (source.templateRef) {
+      return source.templateRef;
+    }
+    return source.outlet ? resolveProvidedToken(source.outlet, TemplateRef) : undefined;
+  }
+  if (read === ViewContainerRef) {
+    return source.outlet ? resolveProvidedToken(source.outlet, ViewContainerRef) : undefined;
+  }
+  if (typeof read === 'function' || read instanceof InjectionToken) {
+    const token = read as Type<unknown> | InjectionToken<unknown>;
+    if (source.outlet) {
+      const provided = resolveProvidedToken(source.outlet, token);
+      if (provided != null) {
+        return provided;
+      }
+    }
+    if (match != null && typeof match === 'object') {
+      return resolveProvidedTokenFromInstance(match, token);
     }
   }
   return undefined;
@@ -348,13 +390,17 @@ export function resolvePatchResults(
   for (const item of entries) {
     if (item.kind === 'outlet') {
       const match = pickMatchForOutlet(item.outlet, target.predicate, item.refName);
-      if (match != null) {
-        results.push(match);
+      const value = match == null ? undefined : applyQueryRead(match, target.read, { outlet: item.outlet });
+      if (value !== undefined) {
+        results.push(value);
       }
     } else {
       const match = pickMatchForTemplateEntry(item, target.predicate);
-      if (match != null) {
-        results.push(match);
+      const value = match == null
+        ? undefined
+        : applyQueryRead(match, target.read, { templateRef: item.templateRef });
+      if (value !== undefined) {
+        results.push(value);
       }
     }
   }

@@ -75,8 +75,17 @@ function installOrUpdateSignalShim(
   results: unknown[],
   predicate: unknown = null,
   descendants = false,
+  read: unknown = null,
 ): boolean {
-  rememberShimBinding(hostInstance, signalNode, propertyName, firstOnly, predicate, descendants);
+  rememberShimBinding(
+    hostInstance,
+    signalNode,
+    propertyName,
+    firstOnly,
+    predicate,
+    descendants,
+    read,
+  );
   const nextValue = firstOnly ? results[0] ?? undefined : results;
   let shim = signalShims.get(signalNode);
   if (!shim) {
@@ -120,6 +129,7 @@ export function syncHostSignalShims(
         queryList: null as any,
         predicate: binding.predicate,
         descendants: binding.descendants,
+        read: binding.read,
       },
       parentOutlet,
       descendantOutlets,
@@ -133,6 +143,7 @@ export function syncHostSignalShims(
         results,
         binding.predicate,
         binding.descendants,
+        binding.read,
       )
     ) {
       changed = true;
@@ -177,6 +188,7 @@ export function patchContentQuery(
       !!target.firstOnly,
       target.predicate,
       !!target.descendants,
+      target.read,
     );
   }
 

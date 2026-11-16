@@ -76,6 +76,7 @@ type HostDirectiveQueryDef = {
   predicate: unknown;
   firstOnly: boolean;
   descendants: boolean;
+  read?: unknown;
 };
 
 function isUsableQueryPredicate(predicate: unknown): boolean {
@@ -188,6 +189,7 @@ function collectQueryDefsFromLView(instance: object, ctor: Type<unknown>): HostD
         // promote every query just because the class also has a ContentChild.
         firstOnly: fields.firstOnly.has(propertyName),
         descendants: !!(flags & QUERY_FLAG_DESCENDANTS),
+        read: tQuery?.metadata?.read ?? null,
       });
     }
     return results;
@@ -234,6 +236,7 @@ function collectDirectiveQueryDefs(ctor: Type<unknown>, instance?: object): Host
           predicate,
           firstOnly: !!q.first,
           descendants: !!q.descendants,
+          read: q.read ?? null,
         });
       }
     }
@@ -292,6 +295,7 @@ function patchHostDirectiveContentQueries(
           predicate: q.predicate,
           firstOnly: q.firstOnly,
           descendants: q.descendants,
+          read: q.read,
           hostInstance: candidate,
         },
         parentOutlet,
