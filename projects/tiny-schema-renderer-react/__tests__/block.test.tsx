@@ -97,6 +97,20 @@ describe('schema block', () => {
     expect(container.querySelector('.builtin-header')?.textContent).toBe('builtin-header');
   });
 
+  it('renders Slot fallback when the consumer Template has no children', () => {
+    const { container } = renderPage(
+      createPageSchema([
+        {
+          componentName: 'InfoCard',
+          props: { title: 'Current' },
+          children: [{ componentName: 'Template', props: { slot: 'header' } }],
+        },
+      ]),
+    );
+
+    expect(container.querySelector('.builtin-header')?.textContent).toBe('builtin-header');
+  });
+
   it('renders consumer Template slots with block params and consumer context', () => {
     const { container } = renderPage(
       createPageSchema([

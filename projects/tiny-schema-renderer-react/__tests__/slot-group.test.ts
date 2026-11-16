@@ -22,6 +22,12 @@ describe('groupSlotChildren', () => {
     expect(plainChildren).toHaveLength(1);
   });
 
+  it('skips empty Template children so Slot can render its fallback', () => {
+    const { groups } = groupSlotChildren([{ componentName: 'Template', props: { slot: 'header' } } as Node]);
+
+    expect(groups).toEqual({});
+  });
+
   it('returns empty groups when children is not an array', () => {
     expect(groupSlotChildren(undefined)).toEqual({ groups: {}, plainChildren: [] });
     expect(groupSlotChildren('text' as unknown as Node['children'])).toEqual({ groups: {}, plainChildren: [] });
