@@ -38,7 +38,11 @@ export function groupSlotChildren(children: Node['children']): SlotGroups {
     if (!child) return;
     if (isTemplateNode(child)) {
       const slotName = getTemplateSlotName(child);
-      groups[slotName] = [...(groups[slotName] ?? []), ...toNodeArray(child.children)];
+      const nodes = toNodeArray(child.children);
+      // 空的 Template 视为使用方没有提供内容，交给 Slot 渲染兜底 children
+      if (nodes.length) {
+        groups[slotName] = [...(groups[slotName] ?? []), ...nodes];
+      }
       return;
     }
     plainChildren.push(child);

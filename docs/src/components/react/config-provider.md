@@ -66,7 +66,7 @@ const userCard = {
       props: {
         onClick: {
           type: 'JSFunction',
-          value: "function() { this.dispatchEvent('expand', !this.state.expanded) }",
+          value: "function() { this.state.expanded = !this.state.expanded; this.dispatchEvent('expand', this.state.expanded) }",
         },
       },
       children: {

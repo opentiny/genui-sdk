@@ -117,6 +117,5 @@ export function loadBlock(name: string, context?: object | null): SchemaBlockCom
 }
 
 export function getBlock(name: string, context?: object | null): SchemaBlockComponent | null {
-  if (!getBlockSchema(name, context)) return null;
   return loadBlock(name, context);
 }
