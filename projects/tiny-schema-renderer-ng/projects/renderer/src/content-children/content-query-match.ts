@@ -210,7 +210,7 @@ function applyQueryRead(
 /** Resolve a class / DI token provided by this outlet's host (component or host directives). */
 function resolveProvidedToken(
   outlet: ComponentOutlet,
-  token: Type<unknown> | InjectionToken<unknown>,
+  token: Type<unknown> | InjectionToken<unknown> | Function,
 ): unknown {
   const injectors = [outlet.componentRef?.injector, outlet.componentInjector].filter(
     (injector): injector is Injector => injector != null,

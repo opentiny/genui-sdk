@@ -155,7 +155,7 @@ function findLQueries(lView: any): { queries: Array<{ queryList: QueryList<unkno
   return null;
 }
 
-export function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: unknown; flags?: number }; _declarationNodeIndex?: number }> } | null {
+export function getTQueries(lView: any): { queries?: Array<{ metadata?: { predicate?: unknown; flags?: number; read?: unknown }; _declarationNodeIndex?: number }> } | null {
   const tView = lView?.[1];
   const queries = tView?.queries;
   if (!queries) {
