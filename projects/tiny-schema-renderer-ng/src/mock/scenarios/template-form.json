@@ -215,7 +215,7 @@
                 "color": "primary",
                 "onClick": {
                   "type": "JSFunction",
-                  "value": "function() { var status = {}; this.refs.tdForm.querySelectorAll('[name]').forEach(function (el) { status[el.name] = { value: el.value, valid: el.classList.contains('ng-valid'), invalid: el.classList.contains('ng-invalid'), touched: el.classList.contains('ng-touched'), dirty: el.classList.contains('ng-dirty') }; }); console.log('模板驱动表单校验结果:', status); console.log('模板驱动表单数据:', this.state.templateDrivenForm); }"
+                  "value": "function() { var status = {}; this.refs.tdForm.querySelectorAll('[name]').forEach(function (el) { if (el.type === 'radio') { if (!status[el.name]) { status[el.name] = { value: null, valid: true, invalid: false, touched: false, dirty: false }; } if (el.checked) { status[el.name].value = el.value; } status[el.name].valid = status[el.name].valid && el.classList.contains('ng-valid'); status[el.name].invalid = status[el.name].invalid || el.classList.contains('ng-invalid'); status[el.name].touched = status[el.name].touched || el.classList.contains('ng-touched'); status[el.name].dirty = status[el.name].dirty || el.classList.contains('ng-dirty'); return; } status[el.name] = { value: el.type === 'checkbox' ? el.checked : el.value, valid: el.classList.contains('ng-valid'), invalid: el.classList.contains('ng-invalid'), touched: el.classList.contains('ng-touched'), dirty: el.classList.contains('ng-dirty') }; }); console.log('模板驱动表单校验结果:', status); console.log('模板驱动表单数据:', this.state.templateDrivenForm); }"
                 }
               },
               "children": "打印表单数据"

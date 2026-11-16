@@ -3,7 +3,7 @@
     <button
       type="button"
       [class.is-active]="activeScenarioId() === item.id"
-      [attr.aria-selected]="activeScenarioId() === item.id"
+      [attr.aria-pressed]="activeScenarioId() === item.id"
       (click)="selectScenario(item.id)"
     >
       {{ item.label }}

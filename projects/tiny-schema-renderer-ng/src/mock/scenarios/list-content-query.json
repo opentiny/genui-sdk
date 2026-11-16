@@ -136,7 +136,7 @@
                         },
                         "onClick": {
                           "type": "JSExpression",
-                          "value": "() => { console.log(spanElement, headerSpan) }"
+                          "value": "() => { console.log(spanElement) }"
                         }
                       },
                       "directives": [
