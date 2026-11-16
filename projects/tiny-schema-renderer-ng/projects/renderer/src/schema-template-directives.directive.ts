@@ -19,6 +19,7 @@ import { Subscription } from 'rxjs';
 import { toOnEventName } from './parser/event-utils';
 import { setTemplateDirectiveInstances } from './content-children/content-children-patch';
 import { ContentChildrenTrackTemplateDirective } from './content-children/content-children-track-template.directive';
+import { useExistingProviderTokens } from './directive-providers';
 
 /**
  * Dynamically instantiate directives on a schema `NgTemplate` host.
@@ -249,19 +250,11 @@ function sameTypeList(a: Type<unknown>[], b: Type<unknown>[]): boolean {
 
 function providersForDirectiveInstance(Dir: Type<unknown>, instance: object): Provider[] {
   const providers: Provider[] = [{ provide: Dir, useValue: instance }];
-  const def = (Dir as Type<unknown> & { ɵdir?: { providers?: unknown[] } }).ɵdir;
-  const declared = def?.providers;
-  if (!Array.isArray(declared)) {
-    return providers;
-  }
-  for (const entry of declared) {
-    if (!entry || typeof entry !== 'object' || !('provide' in entry)) {
-      continue;
-    }
-    const token = (entry as { provide: unknown }).provide;
-    if (token != null && token !== Dir) {
-      providers.push({ provide: token as Type<unknown>, useValue: instance });
-    }
+  const def =
+    (Dir as Type<unknown> & { ɵdir?: object; ɵcmp?: object }).ɵdir
+    ?? (Dir as Type<unknown> & { ɵcmp?: object }).ɵcmp;
+  for (const token of useExistingProviderTokens(def, Dir)) {
+    providers.push({ provide: token as Type<unknown>, useValue: instance });
   }
   return providers;
 }

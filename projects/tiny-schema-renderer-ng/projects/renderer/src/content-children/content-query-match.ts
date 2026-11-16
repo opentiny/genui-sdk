@@ -1,5 +1,6 @@
 import { InjectionToken, Injector, TemplateRef, Type, ɵgetDirectives } from '@angular/core';
 import { ComponentOutlet } from '../component-outlet';
+import { readDeclaredProviders, useExistingProviderTokens } from '../directive-providers';
 import {
   ContentQueryPatchTarget,
   ContentRefEntry,
@@ -253,8 +254,8 @@ function typeNameMatches(instance: object, predicateName: string): boolean {
   }
   const def = (instance.constructor as Type<any> & { ɵdir?: any; ɵcmp?: any }).ɵdir
     ?? (instance.constructor as Type<any> & { ɵcmp?: any }).ɵcmp;
-  const providers = def?.providers;
-  if (!Array.isArray(providers)) {
+  const providers = readDeclaredProviders(def);
+  if (!providers.length) {
     return false;
   }
   return providers.some(
@@ -268,30 +269,16 @@ function typeNameMatches(instance: object, predicateName: string): boolean {
   );
 }
 
-/** Read `ɵdir.providers` / `ɵcmp.providers` for `useExisting` matching (no injector walk). */
+/** `useExisting` aliases of this instance's class (no injector walk). */
 function resolveProvidedTokenFromInstance(
   instance: object,
   token: Type<unknown> | InjectionToken<unknown>,
 ): unknown {
-  const def = (instance.constructor as Type<any> & { ɵdir?: any; ɵcmp?: any }).ɵdir
-    ?? (instance.constructor as Type<any> & { ɵcmp?: any }).ɵcmp;
-  const providers = def?.providers;
-  if (!Array.isArray(providers)) {
-    return undefined;
-  }
-  for (const provider of providers) {
-    if (
-      provider
-      && typeof provider === 'object'
-      && 'provide' in provider
-      && provider.provide === token
-      && 'useExisting' in provider
-    ) {
-      // useExisting points at the declaring class; the live instance is `instance`.
-      return instance;
-    }
-  }
-  return undefined;
+  const ctor = instance.constructor as Type<unknown>;
+  const def =
+    (ctor as Type<unknown> & { ɵdir?: object; ɵcmp?: object }).ɵdir
+    ?? (ctor as Type<unknown> & { ɵcmp?: object }).ɵcmp;
+  return useExistingProviderTokens(def, ctor).includes(token) ? instance : undefined;
 }
 
 function pickMatchForTemplateEntry(
