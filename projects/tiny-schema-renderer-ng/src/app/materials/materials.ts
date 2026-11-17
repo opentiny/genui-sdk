@@ -51,6 +51,10 @@ import { ListItemComponent } from '../list/list-item.component';
 import { ListItemMarkerDirective } from '../list/list-item-marker.directive';
 import { FormDumpComponent } from '../form-dump/form-dump.component';
 import { StructuralDemoBannerComponent } from '../structural-demo-banner.component';
+import {
+  DescendantNodeComponent,
+  DescendantScanComponent,
+} from '../descendant-order/descendant-order.component';
 
 (TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 (TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
@@ -62,6 +66,8 @@ const components: Record<string, Type<any>> = {
   ListItem: ListItemComponent,
   FormDump: FormDumpComponent,
   StructuralDemoBanner: StructuralDemoBannerComponent,
+  DescendantScan: DescendantScanComponent,
+  DescendantNode: DescendantNodeComponent,
   TiButton: TiButtonComponent,
   TiIcon: TiIconComponent,
   TiSelect: TiSelectComponent,
