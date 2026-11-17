@@ -5,7 +5,7 @@ import path from 'node:path';
 import { Command } from 'commander';
 import type { IMaterialsMeta } from '@opentiny/genui-sdk-core';
 import { startServer } from './start-server';
-import { loadMaterialsMeta } from './load-materials';
+import { DEFAULT_MATERIALS_EXPORT, loadMaterialsMeta } from './load-materials';
 
 const program = new Command();
 
@@ -20,7 +20,7 @@ program
   )
   .option(
     '--materials-export <name>',
-    '物料模块中的导出名（默认 materialsMeta，如 Vue 精简集用 miniMaterialsMeta）',
+    `物料模块中的导出名（默认 ${DEFAULT_MATERIALS_EXPORT}，如 Vue 精简集用 miniMaterialsMeta）`,
   )
   .helpOption('-h, --help', '查看命令帮助信息')
   .action(
@@ -61,7 +61,7 @@ program
             exportName: materialsExport,
           });
           console.info(
-            `已加载物料：${materials}（导出 ${materialsExport || 'materialsMeta'}，${materialsMeta.materials.length} 个组件定义）`,
+            `已加载物料：${materials}（导出 ${materialsExport || DEFAULT_MATERIALS_EXPORT}，${materialsMeta.materials.length} 个组件定义）`,
           );
         } catch (error) {
           console.error(`物料加载失败：${(error as Error).message}`);

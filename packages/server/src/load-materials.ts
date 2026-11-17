@@ -4,7 +4,7 @@ import { isAbsolute, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { IMaterialsMeta } from '@opentiny/genui-sdk-core';
 
-const DEFAULT_MATERIALS_EXPORT = 'materialsMeta';
+export const DEFAULT_MATERIALS_EXPORT = 'materialsMeta';
 
 const IMPORT_CONDITIONS = ['node', 'import'];
 
@@ -271,7 +271,7 @@ function readStringArray(value: unknown, field: string, label: string): string[]
   if (!Array.isArray(value) || value.some((item) => typeof item !== 'string')) {
     throw new Error(`${label} 的 ${field} 必须是字符串数组`);
   }
-  return value;
+  return value as string[];
 }
 
 /** Validate the metadata and fill in optional fields. */
