@@ -360,28 +360,41 @@ function pickMatchForTemplateEntry(
 }
 
 /**
- * All ref entries for one parent: its direct children, or — when the query declares
- * `{ descendants: true }` — those children followed by each descendant outlet's children.
- * `descendantOutlets` is already preorder. Indexes are local to each parent, so each list
- * is sorted on its own and the lists are concatenated; a global sort would put a nested
- * child ahead of its parent.
+ * All ref entries for one parent. Direct queries return that parent's children.
+ * `{ descendants: true }` walks preorder: each child, then that child's own descendants,
+ * before the next sibling. A parent with children A, B and A containing C yields A, C, B.
+ * Indexes stay local to each parent. A flat concat of every descendant list would emit
+ * A, B, C instead.
  */
 function collectRefsForTarget(
   parentOutlet: ComponentOutlet | null | undefined,
   target: ContentQueryPatchTarget,
-  descendantOutlets?: ComponentOutlet[] | null,
 ): ContentRefEntry[] {
   if (!parentOutlet) {
     return [];
   }
-  const refs = refsInSchemaOrder(getContentRefs(parentOutlet));
   if (!target.descendants) {
-    return refs;
+    return refsInSchemaOrder(getContentRefs(parentOutlet));
   }
-  for (const outlet of descendantOutlets ?? []) {
-    refs.push(...refsInSchemaOrder(getContentRefs(outlet)));
+  return collectDescendantRefs(parentOutlet, new Set());
+}
+
+function collectDescendantRefs(
+  outlet: ComponentOutlet,
+  visited: Set<ComponentOutlet>,
+): ContentRefEntry[] {
+  if (visited.has(outlet)) {
+    return [];
   }
-  return refs;
+  visited.add(outlet);
+  const result: ContentRefEntry[] = [];
+  for (const ref of refsInSchemaOrder(getContentRefs(outlet))) {
+    result.push(ref);
+    if (ref.kind === 'outlet') {
+      result.push(...collectDescendantRefs(ref.outlet, visited));
+    }
+  }
+  return result;
 }
 
 function refsInSchemaOrder(refs: ContentRefEntry[]): ContentRefEntry[] {
@@ -390,13 +403,16 @@ function refsInSchemaOrder(refs: ContentRefEntry[]): ContentRefEntry[] {
   );
 }
 
-/** Resolve query matches for one parent from the ref registry, in schema declaration order. */
+/**
+ * Resolve query matches for one parent from the ref registry, in schema declaration order.
+ * Descendant order comes from each outlet ref's own children, not from `descendantOutlets`.
+ */
 export function resolvePatchResults(
   target: ContentQueryPatchTarget,
   parentOutlet?: ComponentOutlet | null,
-  descendantOutlets?: ComponentOutlet[] | null,
+  _descendantOutlets?: ComponentOutlet[] | null,
 ): unknown[] {
-  const entries = collectRefsForTarget(parentOutlet, target, descendantOutlets);
+  const entries = collectRefsForTarget(parentOutlet, target);
 
   const results: unknown[] = [];
   for (const item of entries) {
