@@ -1,0 +1,18 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "CardinalityScan",
+      "children": [
+        {
+          "componentName": "CardinalityNode",
+          "props": { "name": "A" }
+        },
+        {
+          "componentName": "CardinalityNode",
+          "props": { "name": "B" }
+        }
+      ]
+    }
+  ]
+}

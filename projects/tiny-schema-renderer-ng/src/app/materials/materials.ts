@@ -55,6 +55,10 @@ import {
   DescendantNodeComponent,
   DescendantScanComponent,
 } from '../descendant-order/descendant-order.component';
+import {
+  CardinalityNodeComponent,
+  CardinalityScanComponent,
+} from '../cardinality/cardinality.component';
 
 (TiTextComponent['ɵcmp'] as any).selectors[0][0] = 'input';
 (TiTextareaComponent['ɵcmp'] as any).selectors[0][0] = 'textarea';
@@ -68,6 +72,8 @@ const components: Record<string, Type<any>> = {
   StructuralDemoBanner: StructuralDemoBannerComponent,
   DescendantScan: DescendantScanComponent,
   DescendantNode: DescendantNodeComponent,
+  CardinalityScan: CardinalityScanComponent,
+  CardinalityNode: CardinalityNodeComponent,
   TiButton: TiButtonComponent,
   TiIcon: TiIconComponent,
   TiSelect: TiSelectComponent,

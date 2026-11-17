@@ -9,6 +9,7 @@ import structural from '../mock/scenarios/structural.json';
 import block_projection from '../mock/scenarios/block-projection.json';
 import block_content_refs from '../mock/scenarios/block-content-refs.json';
 import descendant_order from '../mock/scenarios/descendant-order.json';
+import cardinality from '../mock/scenarios/cardinality.json';
 
 export interface DemoScenario {
   id: string;
@@ -29,4 +30,5 @@ export const demoScenarios: DemoScenario[] = [
   { id: 'block-projection', label: 'Block 投影', schema: block_projection },
   { id: 'block-content-refs', label: 'Block contentRefs', schema: block_content_refs },
   { id: 'descendant-order', label: '后代顺序', schema: descendant_order },
+  { id: 'cardinality', label: '查询基数', schema: cardinality },
 ];

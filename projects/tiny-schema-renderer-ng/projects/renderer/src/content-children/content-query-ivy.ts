@@ -1,5 +1,5 @@
 import { QueryList, ɵgetDirectives, ɵgetLContext as getLContext } from '@angular/core';
-import { SIGNAL } from '@angular/core/primitives/signals';
+import { SIGNAL, untracked } from '@angular/core/primitives/signals';
 import { ContentQueryPatchTarget } from './content-query-types';
 
 /**
@@ -322,10 +322,55 @@ export function contentQueryIndexesForDirective(
   return { indexes, filtered: false };
 }
 
+/** Angular `RuntimeErrorCode.REQUIRED_QUERY_NO_VALUE` — `contentChild.required` on an empty query. */
+const REQUIRED_QUERY_NO_VALUE = -951;
+
+function isRequiredQueryError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) {
+    return false;
+  }
+  if ('code' in error && (error as { code?: unknown }).code === REQUIRED_QUERY_NO_VALUE) {
+    return true;
+  }
+  return error instanceof Error && /query result is required/i.test(error.message);
+}
+
 /**
- * Infer contentChild vs contentChildren without reading the signal (reading resets its QueryList).
- * Angular keeps that bit in the query-signal closure, not on the node or QueryFlags, so the field
- * name is the only available signal: plurals, `children`, and `items` are multi-value.
+ * `contentChild` / `contentChildren` cardinality lives in the query computed's closure, not on
+ * QueryFlags or the signal node. Calling the signal runs `refreshSignalQuery`, which
+ * `QueryList.reset`s native matches and wipes a patched list.
+ *
+ * Detach `_lView` first. `refreshSignalQuery` then takes its empty path and does not touch the
+ * QueryList: a single-result query returns `undefined` (`.required` throws), a multi-result
+ * query returns an array. `untracked` keeps the `_dirtyCounter` read off any active consumer.
+ * Returns null when the empty result is not that pair, so the caller can fall back.
+ */
+function signalQueryFirstOnly(signalNode: any): boolean | null {
+  const computation = signalNode?.computation;
+  if (typeof computation !== 'function') {
+    return null;
+  }
+  const savedLView = signalNode._lView;
+  signalNode._lView = undefined;
+  try {
+    const value = untracked(() => computation());
+    if (Array.isArray(value)) {
+      return false;
+    }
+    if (value === undefined) {
+      return true;
+    }
+    return null;
+  } catch (error) {
+    return isRequiredQueryError(error) ? true : null;
+  } finally {
+    signalNode._lView = savedLView;
+  }
+}
+
+/**
+ * Last-resort contentChild vs contentChildren guess when {@link signalQueryFirstOnly} cannot
+ * read the closure. Plurals, `children`, and `items` are treated as multi-value.
  */
 function inferFirstOnly(propertyName: string): boolean {
   if (/children|items/i.test(propertyName)) {
@@ -531,7 +576,9 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       if (viewQueryProps.has(key) || viewQueryLists.has(queryList)) {
         continue;
       }
-      const firstOnly = inferFirstOnly(key);
+      // Cardinality comes from the query computed. The field name is only a fallback when
+      // that probe cannot tell single-result from multi-result.
+      const firstOnly = signalQueryFirstOnly(node) ?? inferFirstOnly(key);
       const signalMeta = getSignalQueryMetadata(node);
       if (seen.has(queryList)) {
         const existing = targets.find((t) => t.queryList === queryList);
