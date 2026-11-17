@@ -173,9 +173,15 @@ function collectQueryDefsFromLView(instance: object, ctor: Type<unknown>): HostD
     if (!filtered && owned.length !== fields.names.length) {
       return [];
     }
+    // Signal queries are emitted first and consumed with queryAdvance(), so they have no
+    // assigned field. Keep the trailing indexes, which line up with `ctx.foo = _t` writes.
+    const aligned =
+      filtered && fields.names.length > 0 && owned.length > fields.names.length
+        ? owned.slice(owned.length - fields.names.length)
+        : owned;
     const results: HostDirectiveQueryDef[] = [];
-    for (let i = 0; i < owned.length && i < fields.names.length; i++) {
-      const tQuery = tQueries[owned[i]];
+    for (let i = 0; i < aligned.length && i < fields.names.length; i++) {
+      const tQuery = tQueries[aligned[i]];
       const predicate = tQuery?.metadata?.predicate;
       if (!isUsableQueryPredicate(predicate)) {
         continue;

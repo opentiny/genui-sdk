@@ -189,17 +189,8 @@ export function isContentQueryIndex(lView: any, queryIndex: number): boolean {
     // View query: createTQuery(..., -1)
     return tQuery._declarationNodeIndex !== -1;
   }
-  // Fallback: tView.contentQueries lists [queryStartIdx, directiveIdx, ...] pairs —
-  // treat any queryIndex >= a listed start as content if no other signal is available.
-  const contentQueries = tView?.contentQueries;
-  if (Array.isArray(contentQueries) && contentQueries.length) {
-    for (let i = 0; i < contentQueries.length; i += 2) {
-      if (contentQueries[i] === queryIndex) {
-        return true;
-      }
-    }
-  }
-  return false;
+  // Fallback: each directive owns the queries from its start index up to the next directive.
+  return contentQuerySpans(tView).some((span) => queryIndex >= span.start && queryIndex < span.end);
 }
 
 /**
@@ -240,17 +231,57 @@ export function getDirectiveIndexOnTNode(instance: object): number | null {
   return null;
 }
 
-/** Query indexes in `tView.contentQueries` owned by `dirIndex`. Unfiltered scans are not a match. */
+/**
+ * `saveContentQueryAndDirectiveIndex` writes one `[start, directiveIndex]` pair per directive.
+ * That directive owns every query from `start` until the next pair. MatFormField's control
+ * query sits after the label signal, so the start index alone never selects it.
+ */
+function contentQuerySpans(tView: any): { start: number; end: number; directiveIndex: number }[] {
+  const contentQueries = tView?.contentQueries;
+  if (!Array.isArray(contentQueries) || contentQueries.length < 2) {
+    return [];
+  }
+  const queries = tView?.queries;
+  const queryCount =
+    typeof queries?.length === 'number'
+      ? queries.length
+      : Array.isArray(queries?.queries)
+        ? queries.queries.length
+        : Array.isArray(queries)
+          ? queries.length
+          : 0;
+  const spans: { start: number; end: number; directiveIndex: number }[] = [];
+  for (let i = 0; i < contentQueries.length; i += 2) {
+    const start = contentQueries[i];
+    if (typeof start !== 'number') {
+      continue;
+    }
+    let end = queryCount > start ? queryCount : start + 1;
+    for (let j = i + 2; j < contentQueries.length; j += 2) {
+      const nextStart = contentQueries[j];
+      if (typeof nextStart === 'number' && nextStart > start) {
+        end = nextStart;
+        break;
+      }
+    }
+    spans.push({ start, end, directiveIndex: contentQueries[i + 1] });
+  }
+  return spans;
+}
+
+/** Query indexes owned by `dirIndex`. Unfiltered scans are not a match. */
 export function contentQueryIndexesForDirective(
   lView: any,
   dirIndex: number | null,
 ): { indexes: number[]; filtered: boolean } {
   const indexes: number[] = [];
-  const contentQueries = lView?.[1]?.contentQueries;
-  if (Array.isArray(contentQueries) && dirIndex != null) {
-    for (let i = 0; i < contentQueries.length; i += 2) {
-      if (contentQueries[i + 1] === dirIndex) {
-        indexes.push(contentQueries[i]);
+  if (dirIndex != null) {
+    for (const span of contentQuerySpans(lView?.[1])) {
+      if (span.directiveIndex !== dirIndex) {
+        continue;
+      }
+      for (let queryIndex = span.start; queryIndex < span.end; queryIndex++) {
+        indexes.push(queryIndex);
       }
     }
     if (indexes.length) {

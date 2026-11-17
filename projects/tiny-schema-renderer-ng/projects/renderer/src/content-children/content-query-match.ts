@@ -235,6 +235,18 @@ function resolveProvidedToken(
       // ignore
     }
   }
+  // `injector.get` misses `{ provide: Token, useExisting: Directive }` when the provider
+  // lives on the directive def rather than this outlet injector. MatInput is not
+  // `instanceof MatFormFieldControl`; the alias is the match Angular's content query uses.
+  if (typeof token === 'function' || token instanceof InjectionToken) {
+    const aliasToken = token as Type<unknown> | InjectionToken<unknown>;
+    for (const candidate of getOutletQueryCandidates(outlet)) {
+      const provided = resolveProvidedTokenFromInstance(candidate, aliasToken);
+      if (provided != null) {
+        return provided;
+      }
+    }
+  }
   return undefined;
 }
 
