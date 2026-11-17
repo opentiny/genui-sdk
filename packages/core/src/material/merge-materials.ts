@@ -3,8 +3,12 @@ import type { MaterialsThemeFactory } from './materials-theme';
 
 const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory'];
 
-function isMergeableRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
+// These are name → value maps. A later pack may ship an empty map (Angular Material
+// standalone components do). Replacing the whole map would drop earlier NgModules.
+const recordKeys = ['modules', 'directives', 'autoApplyDirectives', 'directivesModuleMap', 'blocks'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
@@ -39,10 +43,13 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       if (handleKeys.includes(key)) {
         continue;
       }
-      const next = (src as Record<string, unknown>)[key];
-      const prev = extra[key];
-      extra[key] =
-        isMergeableRecord(prev) && isMergeableRecord(next) ? { ...prev, ...next } : next;
+      const incoming = (src as Record<string, unknown>)[key];
+      if (recordKeys.includes(key) && isRecord(incoming)) {
+        const current = extra[key];
+        extra[key] = { ...(isRecord(current) ? current : {}), ...incoming };
+        continue;
+      }
+      extra[key] = incoming;
     }
   }
 
