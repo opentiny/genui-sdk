@@ -13,13 +13,31 @@ type ProvidersResolver = (
 
 const capturedProviders = new WeakMap<object, readonly unknown[]>();
 
+/** Angular walks `Provider[]` recursively, including `providers: [[{ provide, useExisting }]]`. */
+function flattenProviders(entries: readonly unknown[]): unknown[] {
+  const flat: unknown[] = [];
+  const visit = (entry: unknown) => {
+    if (Array.isArray(entry)) {
+      for (const child of entry) {
+        visit(child);
+      }
+      return;
+    }
+    flat.push(entry);
+  };
+  for (const entry of entries) {
+    visit(entry);
+  }
+  return flat;
+}
+
 export function readDeclaredProviders(def: object | null | undefined): readonly unknown[] {
   if (!def) {
     return [];
   }
   const declared = (def as { providers?: unknown }).providers;
   if (Array.isArray(declared)) {
-    return declared;
+    return flattenProviders(declared);
   }
   const cached = capturedProviders.get(def);
   if (cached) {
@@ -41,7 +59,7 @@ export function readDeclaredProviders(def: object | null | undefined): readonly 
       throw err;
     }
   }
-  const list = captured ?? [];
+  const list = flattenProviders(captured ?? []);
   capturedProviders.set(def, list);
   return list;
 }

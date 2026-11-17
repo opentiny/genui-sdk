@@ -83,6 +83,37 @@ function isQuerySignal(value: unknown): value is ((...args: any[]) => any) {
   return getQuerySignalNode(value) != null;
 }
 
+/**
+ * TView query indexes of contentChild()/contentChildren() on this instance.
+ * Decorator queries are the owned indexes that are not in this set. Positions are not
+ * assumed: a base-class decorator query is registered before a subclass signal query.
+ */
+export function contentSignalQueryIndexes(host: object): Set<number> {
+  const indexes = new Set<number>();
+  const addNode = (node: { _queryIndex?: unknown } | null) => {
+    if (typeof node?._queryIndex === 'number') {
+      indexes.add(node._queryIndex);
+    }
+  };
+  let current: object | null = host;
+  let depth = 0;
+  while (current && depth < 8 && current !== Object.prototype) {
+    for (const key of Object.keys(current)) {
+      try {
+        addNode(getQuerySignalNode((current as Record<string, unknown>)[key]));
+      } catch {
+        // A getter may throw before the view is ready.
+      }
+    }
+    for (const binding of hostShimBindings.get(current) ?? []) {
+      addNode(binding.signalNode);
+    }
+    current = Object.getPrototypeOf(current);
+    depth++;
+  }
+  return indexes;
+}
+
 /** Ivy `ctx.foo` or minified `n.foo` — identifiers minify, property names usually do not. */
 const IVY_CTX_PROP = '[A-Za-z_$][\\w$]*\\.([A-Za-z_$][\\w$]*)';
 export const IVY_ASSIGN_FIRST_RE = new RegExp(

@@ -7,6 +7,7 @@ import {
   IVY_ASSIGN_RE,
   QUERY_FLAG_DESCENDANTS,
   contentQueryIndexesForDirective,
+  contentSignalQueryIndexes,
   discoverContentQueryTargets,
   getDirectiveIndexOnTNode,
   getTQueries,
@@ -110,23 +111,11 @@ function contentQueryFieldNames(contentQueries: Function): { names: string[]; fi
 }
 
 function collectContentQueryFieldNames(ctor: Type<unknown>): { names: string[]; firstOnly: Set<string> } {
-  const names: string[] = [];
-  const firstOnly = new Set<string>();
+  const chain: Type<unknown>[] = [];
   let current: Type<unknown> | null | undefined = ctor;
   let depth = 0;
   while (current && depth < 8) {
-    const dir = (current as Type<unknown> & { ɵdir?: { contentQueries?: Function } }).ɵdir;
-    if (typeof dir?.contentQueries === 'function') {
-      const fields = contentQueryFieldNames(dir.contentQueries);
-      for (const name of fields.names) {
-        if (!names.includes(name)) {
-          names.push(name);
-        }
-      }
-      for (const name of fields.firstOnly) {
-        firstOnly.add(name);
-      }
-    }
+    chain.push(current);
     const proto = Object.getPrototypeOf(current.prototype);
     const nextCtor = proto?.constructor as Type<unknown> | undefined;
     if (!nextCtor || nextCtor === Object || nextCtor === current) {
@@ -134,6 +123,24 @@ function collectContentQueryFieldNames(ctor: Type<unknown>): { names: string[]; 
     }
     current = nextCtor;
     depth++;
+  }
+  // inheritContentQueries runs the base function first, then the subclass.
+  const names: string[] = [];
+  const firstOnly = new Set<string>();
+  for (const cls of chain.reverse()) {
+    const dir = (cls as Type<unknown> & { ɵdir?: { contentQueries?: Function } }).ɵdir;
+    if (typeof dir?.contentQueries !== 'function') {
+      continue;
+    }
+    const fields = contentQueryFieldNames(dir.contentQueries);
+    for (const name of fields.names) {
+      if (!names.includes(name)) {
+        names.push(name);
+      }
+    }
+    for (const name of fields.firstOnly) {
+      firstOnly.add(name);
+    }
   }
   return { names, firstOnly };
 }
@@ -167,21 +174,19 @@ function collectQueryDefsFromLView(instance: object, ctor: Type<unknown>): HostD
       }
     }
     const owned = indexes.filter((index) => isContentQueryIndex(lView, index));
-    if (!owned.length) {
+    if (!owned.length || !fields.names.length) {
       return [];
     }
-    if (!filtered && owned.length !== fields.names.length) {
+    // Signal queries share this directive's index span but have no `ctx.foo =` write.
+    // Drop their real TView indexes. A base decorator query stays ahead of a subclass signal.
+    const signalIndexes = contentSignalQueryIndexes(instance);
+    const decoratorIndexes = owned.filter((index) => !signalIndexes.has(index));
+    if (decoratorIndexes.length !== fields.names.length) {
       return [];
     }
-    // Signal queries are emitted first and consumed with queryAdvance(), so they have no
-    // assigned field. Keep the trailing indexes, which line up with `ctx.foo = _t` writes.
-    const aligned =
-      filtered && fields.names.length > 0 && owned.length > fields.names.length
-        ? owned.slice(owned.length - fields.names.length)
-        : owned;
     const results: HostDirectiveQueryDef[] = [];
-    for (let i = 0; i < aligned.length && i < fields.names.length; i++) {
-      const tQuery = tQueries[aligned[i]];
+    for (let i = 0; i < fields.names.length; i++) {
+      const tQuery = tQueries[decoratorIndexes[i]];
       const predicate = tQuery?.metadata?.predicate;
       if (!isUsableQueryPredicate(predicate)) {
         continue;
