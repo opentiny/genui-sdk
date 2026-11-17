@@ -546,9 +546,12 @@ export function discoverContentQueryTargets(instance: object): ContentQueryPatch
       if (viewQueryProps.has(key) || viewQueryLists.has(value)) {
         continue;
       }
-      // Manual QueryLists (MatDrawerContainer._drawers) are filled from another ContentChildren
-      // list. Patching them with every descendant makes `_watchDrawerToggle` see non-drawers.
-      if (contentQueryProps.size > 0 && !contentQueryProps.has(key) && !seen.has(value)) {
+      // Positive evidence only. The name must come from compiled `contentQueries`, or this
+      // list must already be an owned content-query QueryList (`seen`). An empty name set is
+      // not a pass: `rows = new QueryList()` on a component with no content query would
+      // otherwise be reset to the projected children. The same skip keeps
+      // MatDrawerContainer._drawers off the patch path.
+      if (!contentQueryProps.has(key) && !seen.has(value)) {
         continue;
       }
       if (seen.has(value)) {
