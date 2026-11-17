@@ -18,20 +18,20 @@ describe('mergeMaterials', () => {
       },
     );
 
-    expect(merged.components).toMatchObject({
+    expect(merged['components']).toMatchObject({
       TiTable: { name: 'TiTable' },
       TiCard: { name: 'TiCard' },
       MatButton: { name: 'MatButton' },
     });
-    expect(merged.modules).toEqual({
+    expect(merged['modules']).toEqual({
       TiTable: tiTableModule,
       TiCard: { name: 'TiCardModule' },
     });
-    expect(merged.directives).toEqual({
+    expect(merged['directives']).toEqual({
       tiCol: { name: 'tiCol' },
       matInput: { name: 'matInput' },
     });
-    expect(Object.keys(merged.autoApplyDirectives as object)).toEqual(['matInput']);
+    expect(Object.keys(merged['autoApplyDirectives'] as object)).toEqual(['matInput']);
   });
 
   it('同名 module 以后面的为准', () => {
@@ -41,6 +41,6 @@ describe('mergeMaterials', () => {
       { modules: { Shared: first } },
       { modules: { Shared: second } },
     );
-    expect(merged.modules).toEqual({ Shared: second });
+    expect(merged['modules']).toEqual({ Shared: second });
   });
 });
