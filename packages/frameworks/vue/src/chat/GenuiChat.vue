@@ -13,7 +13,7 @@ import type {
 import { ref, watch, computed, h, inject } from 'vue';
 import type { Ref, Component, VNode } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
-import { bindCardIdToAction, scrollEnd, throttle, toSlotFunction } from './chat-utils';
+import { bindCardIdToAction, normalizeSchemaCardIds, scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
 import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue'; 
@@ -135,6 +135,9 @@ const getCardMessage = (cardId: string) => {
   const flatMessages = flatAllMessages(messages.value);
   return flatMessages.find((message: IMessageItem) => 'id' in message && message.id === cardId);
 };
+
+// 如果用户传入的messages中包含schema-card类型的消息，则需要将其id进行规范化处理，确保在后续的操作中能够正确匹配到对应的消息
+const initialMessages = normalizeSchemaCardIds(props.messages || []);
 
 const saveState = (context: Record<string | symbol, any>) => {
   const cardId = context[cardIdSymbol];
@@ -289,9 +292,9 @@ let conversation = useConversation({
       }
 
       // 如果通过 props.messages 传入了初始消息，则在会话加载完成后覆盖当前会话的消息
-      if (props.messages?.length) {
+      if (initialMessages.length) {
         const currentMessages = messageManager.value.messages.value;
-        currentMessages.splice(0, currentMessages.length, ...(props.messages as any));
+        currentMessages.splice(0, currentMessages.length, ...(initialMessages as any));
       }
     },
     onFinish(data: any, context) {
@@ -327,8 +330,8 @@ const setInputMessage = (message: string) => {
   inputMessage.value = message;
 };
 
-if (props.messages?.length) {
-  messages.value.splice(0, messages.value.length, ...(props.messages as any));
+if (initialMessages.length) {
+  messages.value.splice(0, messages.value.length, ...(initialMessages as any));
 }
 
 const { attachments, templateData, clearAttachments, processAttachments, handleFilesSelected, handleTemplateEdit } =

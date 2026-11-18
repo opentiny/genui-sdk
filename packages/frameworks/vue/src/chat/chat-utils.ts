@@ -1,5 +1,6 @@
 import { nextTick, onMounted, onUnmounted, type Ref, ref, h } from 'vue';
 import type { Component, VNode } from 'vue';
+import { v4 as uuidv4 } from 'uuid';
 import { cardIdSymbol } from './useChat';
 import type { ICustomActionItem } from './chat.types';
 
@@ -168,5 +169,25 @@ export const bindCardIdToAction = <T extends ICustomActionItem>(action: T, cardI
   execute: (params: any, context: Record<string | symbol, any> = {}) =>
     action.execute(params, { ...context, [cardIdSymbol]: cardId }),
 });
+
+type IMessageLike = { type?: string; id?: string; messages?: IMessageLike[]; [customKey: string]: any };
+
+const normalizeSchemaCardId = (message: IMessageLike): IMessageLike => {
+  let normalized = message;
+  if (Array.isArray(message.messages)) {
+    const children = message.messages.map(normalizeSchemaCardId);
+    if (children.some((child, index) => child !== message.messages?.[index])) {
+      normalized = { ...normalized, messages: children };
+    }
+  }
+  // schema-card 的 id 会作为渲染 key，也是 saveState 定位消息的依据，缺失时需要补齐
+  if (normalized.type === 'schema-card' && !normalized.id) {
+    normalized = { ...normalized, id: uuidv4() };
+  }
+  return normalized;
+};
+
+export const normalizeSchemaCardIds = <T extends IMessageLike>(messages: T[]): T[] =>
+  messages.map((message) => normalizeSchemaCardId(message) as T);
 
 export { scrollEnd, throttle };
