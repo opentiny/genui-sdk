@@ -256,6 +256,7 @@
     "justNow": "Just now",
     "appliedFromVersion": "Applied from version at {time}",
     "appliedFromHistory": "Applied from history",
+    "manualEditFromVersion": "Manually edited version at {time}",
     "authorUser": "User",
     "authorAi": "AI",
     "timeToday": "Today",

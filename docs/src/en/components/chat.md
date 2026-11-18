@@ -70,6 +70,57 @@ function sendMessage() {
 </template>
 ```
 
+### stream
+
+- **Type**: `boolean`
+- **Required**: No
+- **Default**: `true`
+- **Description**: Whether to use a streaming response. By default the response is received as an SSE stream and rendered incrementally; set it to `false` to use a non-streaming completion and render the full response once it arrives.
+
+```vue
+<template>
+  <GenuiChat :url="url" model="deepseek-v3.2" :stream="false" />
+</template>
+```
+
+#### Tool calls in non-streaming mode
+
+A non-streaming response is a single frame and the component does not execute tools for you. Run the tools in `customFetch` and attach the results to the response:
+
+```json
+{
+  "choices": [
+    {
+      "index": 0,
+      "finish_reason": "tool_calls",
+      "message": {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "call_1",
+            "type": "function",
+            "function": {
+              "name": "get_weather",
+              "arguments": "{\"city\":\"Beijing\"}",
+              "result": {
+                "temp": 12
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
+- Put the result on `tool_calls[i].function.result`, or provide it in the streaming-compatible `message.tool_calls_result` (`[{ id, function: { arguments, result } }]`).
+- A tool with a result is rendered as "Succeeded" with `{ arguments, result }` as its content; with `chatConfig.addToolCallContext` enabled the call is also appended to the message body as text.
+- A tool without a result stays "Running" until the result is handed to the component.
+- If a tool finishes after the message has been rendered, report it with `reportToolCallResult(toolCallId, result)` on the component instance (`@experimental`).
+- For multi-step tool calls, merge all rounds of `tool_calls` and their results into the same message; the cards are rendered in order.
+
 ### messages
 
 - **Type**: `IMessage[]`

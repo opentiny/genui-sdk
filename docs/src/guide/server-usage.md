@@ -72,14 +72,14 @@ export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10, // 端口冲突时最大尝试次数
-  materialsMeta,
+  materialsMeta, // 物料须与前端一致；非内置默认物料时必须显式传入，见「物料配置（materialsMeta）」
 });
 ```
 
@@ -88,7 +88,7 @@ startServer({
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import cors from 'cors';
 
 const app = express();
@@ -98,11 +98,62 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
-  materialsMeta, // 不传则根据请求的 framework 取默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular）
+  materialsMeta, // 不传则按 framework 取内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular）；其他物料须显式传入，见「物料配置（materialsMeta）」
 });
 
 app.listen(3000);
 ```
+
+### 物料配置（materialsMeta）
+
+Server 会把物料元数据（`materialsMeta`）注入 system prompt，让大模型按物料包中真实存在的组件名生成 schema。因此**服务端使用的物料必须与前端 `GenuiConfigProvider` 注入的物料一致**，否则大模型生成的组件名前端无法渲染（例如服务端用 Vue 物料、前端用 React 物料时，会生成 `TinyButton`，而 React 侧只有 Ant Design 的 `Button`）。
+
+`startServer` / `equipChatCompletions` 的 `materialsMeta` 不传时，服务端按请求 `metadata.tinygenui.framework` 选择内置默认物料：
+
+| framework | 服务端内置默认物料 |
+| --- | --- |
+| `Vue` | `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta` |
+| `Angular` | `@opentiny/genui-sdk-materials-angular-opentiny-ng/meta` |
+| 其他 / 未指定 | 回落到 Vue 默认物料 |
+
+**只要前端物料与上表的内置默认不一致，就必须在服务端显式传入对应的 `materialsMeta`**，包括但不限于：
+
+| 前端物料 | 服务端需传入 |
+| --- | --- |
+| React Ant Design `@opentiny/genui-sdk-materials-react-antd` | `@opentiny/genui-sdk-materials-react-antd/meta` |
+| Vue Element Plus `@opentiny/genui-sdk-materials-vue-element-plus` | `@opentiny/genui-sdk-materials-vue-element-plus/meta` |
+| Vue 精简集 `miniMaterials` | `miniMaterialsMeta` |
+| 自定义物料 | 自行提供的 `IMaterialsMeta` |
+
+以 React 前端为例：
+
+```typescript
+import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
+
+startServer({
+  port: 3100,
+  baseURL: 'https://api.openai.com/v1',
+  apiKey: '',
+  materialsMeta, // 与前端注入的 React 物料保持一致
+});
+```
+
+以 Vue Element Plus 前端为例：
+
+```typescript
+import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+
+startServer({
+  port: 3100,
+  baseURL: 'https://api.openai.com/v1',
+  apiKey: '',
+  materialsMeta, // 与前端注入的 Element Plus 物料保持一致
+});
+```
+
+> CLI（`npx genui-sdk-server`）不提供物料参数，**只能使用内置默认物料**。前端一旦替换了物料（React、Element Plus、mini 精简集、自定义物料等），都必须改用「方式二：编程方式」或「方式三：集成到现有 Express 应用」显式传入 `materialsMeta`。
 
 ## 请求发起端使用
 
@@ -149,7 +200,7 @@ data: [DONE]
 
 ```json
 {
-  "framework": "Vue", // 或 "Angular"
+  "framework": "Vue", // 或 "Angular" / "React"
   "strategy": "append", // "append" | "prepend" | "override"
   "customComponents": [], // 自定义组件 schema 数组
   "customExamples": [], // 自定义组件使用示例
@@ -158,7 +209,7 @@ data: [DONE]
 }
 ```
 
-- `framework`: 指定前端框架（Vue 或 Angular），用于生成对应的渲染器配置
+- `framework`: 指定前端框架（`Vue`、`Angular` 或 `React`），用于生成对应的渲染器配置，并决定不传 `materialsMeta` 时使用哪套内置默认物料（详见上文「物料配置（materialsMeta）」）
 - `strategy`: 提示词合并策略
   - `append`: 追加到现有 system message（默认）
   - `prepend`: 前置到现有 system message

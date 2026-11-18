@@ -1,5 +1,5 @@
 import type { LlmBenchmarkResultItem } from './types';
-import { comparisonScenarioLabel, formatNumber } from '../utils';
+import { comparisonScenarioLabel, countsTowardProtocolGate, formatNumber, isPlainPromptVariant } from '../utils';
 
 function toDisplayNumber(value: number | undefined) {
   return typeof value === 'number' ? formatNumber(value, 2) : '';
@@ -26,7 +26,7 @@ export function printBenchmarkTable(results: LlmBenchmarkResultItem[]) {
       tinyCardMs: toDisplayNumber(item.firstObservableComponentMs),
       totalMs: formatNumber(item.totalMs, 2),
       tpotMsPerTok: item.tpotMs == null ? '' : formatNumber(item.tpotMs, 2),
-      validSchema: item.isSchemaJsonValidAgainstProtocol,
+      validSchema: isPlainPromptVariant(item) ? 'skipped' : item.isSchemaJsonValidAgainstProtocol,
       schemaError: item.schemaValidationError ?? '',
       promptTokens: item.promptTokens,
       completionTokens: item.completionTokens,
@@ -65,14 +65,16 @@ export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
     return;
   }
 
-  const successCount = results.filter((item) => item.isSchemaJsonValidAgainstProtocol).length;
-  const avgTtft = averageDefined(results.map((item) => item.ttftMs));
-  const avgFirstObs = averageDefined(results.map((item) => item.firstObservableComponentMs));
-  const avgTotal = results.reduce((sum, item) => sum + item.totalMs, 0) / results.length;
-  const tpotDefined = results.filter((item) => typeof item.tpotMs === 'number');
+  const protocolRows = results.filter(countsTowardProtocolGate);
+  const successful = results.filter((item) => item.requestFailed !== true);
+  const successCount = protocolRows.filter((item) => item.isSchemaJsonValidAgainstProtocol).length;
+  const avgTtft = averageDefined(successful.map((item) => item.ttftMs));
+  const avgFirstObs = averageDefined(successful.map((item) => item.firstObservableComponentMs));
+  const avgTotal = averageDefined(successful.map((item) => item.totalMs));
+  const tpotDefined = successful.filter((item) => typeof item.tpotMs === 'number');
   const avgTpot =
     tpotDefined.length > 0 ? tpotDefined.reduce((sum, item) => sum + (item.tpotMs as number), 0) / tpotDefined.length : null;
-  const totalTokens = results.reduce((sum, item) => sum + item.totalTokens, 0);
+  const totalTokens = successful.length > 0 ? successful.reduce((sum, item) => sum + item.totalTokens, 0) : null;
   const uniqueScenarioCount = new Set(results.map((item) => comparisonScenarioLabel(item))).size;
   const uniqueModelCount = new Set(results.map((item) => item.model).filter(Boolean)).size;
   const judgeScores = results.map((item) => item.llmJudgeScore).filter((score): score is number => typeof score === 'number');
@@ -82,13 +84,14 @@ export function printBenchmarkSummary(results: LlmBenchmarkResultItem[]) {
       scenarios: uniqueScenarioCount,
       models: uniqueModelCount,
       runs: results.length,
-      validSchema: `${successCount}/${results.length}`,
+      validSchema:
+        protocolRows.length === 0 ? 'N/A (plain)' : `${successCount}/${protocolRows.length}`,
       avgJudgeScore: avgJudgeScore == null ? 'N/A' : formatNumber(avgJudgeScore, 2),
       avgTtftMs: avgTtft == null ? 'N/A' : formatNumber(avgTtft, 2),
       avgTinyCardMs: avgFirstObs == null ? 'N/A' : formatNumber(avgFirstObs, 2),
-      avgTotalMs: formatNumber(avgTotal, 2),
+      avgTotalMs: avgTotal == null ? 'N/A' : formatNumber(avgTotal, 2),
       avgTpotMsPerTok: avgTpot == null ? 'N/A' : formatNumber(avgTpot, 2),
-      totalTokens,
+      totalTokens: totalTokens ?? 'N/A',
     },
   ];
 

@@ -1,7 +1,7 @@
 {
   "name": "@opentiny/genui-sdk-integration-skill",
   "version": "1.0.0",
-  "description": "GenUI SDK integration skill for AI assistants (Vue, Angular, Server)",
+  "description": "GenUI SDK integration skill for AI assistants (Vue, Angular, React, Server)",
   "author": "OpenTiny Team",
   "license": "MIT",
   "homepage": "https://docs.opentiny.design/genui-sdk/",
@@ -27,7 +27,9 @@
     "claude",
     "integration",
     "vue",
-    "angular"
+    "angular",
+    "react",
+    "server"
   ],
   "files": [
     "SKILL.md",

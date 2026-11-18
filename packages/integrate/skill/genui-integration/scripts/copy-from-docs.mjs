@@ -135,6 +135,8 @@ function rewriteGuideLinks(content, outputName) {
     .replaceAll('](./config-provider)', '](./component-react-config-provider.md)')
     // react guide 内指向物料专页的链接，本地化到 skill 的 references/materials/
     .replaceAll('](../../components/materials/react-antd)', '](../materials/react-antd.md)')
+    .replaceAll('](../server-usage)', '](../server.md)')
+    .replaceAll('](../../guide/server-usage)', '](../server.md)')
     .replaceAll(/(\]\((?:\.\.\/)+examples\/([^)#]+))(?:#[^)]*)?\)/g, '](../../examples/$2.md)')
     .replaceAll(/^\!\[[^\]]*\]\([^)]*\/public\/[^)]+\)\s*$/gm, '');
 

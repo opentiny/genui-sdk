@@ -22,10 +22,12 @@ interface IStartServerOptions {
   maxAttempts?: number;
   /**
    * Materials metadata fixed at startup for system prompt generation.
-   * If omitted, built-in materials are selected by request tinygenui.framework:
+   * If omitted, built-in default materials are selected by request tinygenui.framework:
    * - Vue → `@opentiny/genui-sdk-materials-vue-opentiny-vue`
    * - Angular → `@opentiny/genui-sdk-materials-angular-opentiny-ng`
    * - Other / missing framework → Vue materials by default
+   * Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus,
+   * the mini set, custom materials, etc.), pass the matching materialsMeta explicitly.
    */
   materialsMeta?: IMaterialsMeta;
 }
@@ -33,20 +35,20 @@ interface IStartServerOptions {
 
 - **Details**
 
-Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping (Vue → OpenTiny Vue, Angular → OpenTiny Angular).
+Creates an Express app with CORS enabled and registers the chat route (`/chat/completions`). If the specified port is in use, it automatically tries the next port (up to `maxAttempts` times). On success, the server address is printed to the console. Materials are fixed at startup via `materialsMeta` and cannot be switched per request. When omitted, they follow the request `framework` mapping to built-in defaults (Vue → OpenTiny Vue, Angular → OpenTiny Angular); other frameworks fall back to the Vue default. **Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus, the mini set, custom materials, etc.), the matching `materialsMeta` must be passed explicitly**, otherwise the generated component names will not match the frontend materials. The CLI can only use the built-in defaults.
 
 - **Example**
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10,
-  materialsMeta,
+  materialsMeta, // Vue built-in default materials; switch to the matching meta for React / Element Plus / custom materials
 });
 ```
 
@@ -74,6 +76,7 @@ interface IEquipChatCompletionsOptions {
    * If omitted, built-in materials are selected by request tinygenui.framework:
    * - Vue → `@opentiny/genui-sdk-materials-vue-opentiny-vue`
    * - Angular → `@opentiny/genui-sdk-materials-angular-opentiny-ng`
+   * - React → no built-in materials; pass `@opentiny/genui-sdk-materials-react-antd/meta` explicitly
    * - Other / missing framework → Vue materials by default
    */
   materialsMeta?: IMaterialsMeta;
@@ -82,14 +85,14 @@ interface IEquipChatCompletionsOptions {
 
 - **Details**
 
-Creates a chat completion request instance, builds a request handler, and registers it on the specified route (POST). Materials are fixed via `materialsMeta` when equipping the route. When omitted, they follow the request `framework` mapping (Vue → OpenTiny Vue, Angular → OpenTiny Angular).
+Creates a chat completion request instance, builds a request handler, and registers it on the specified route (POST). Materials are fixed via `materialsMeta` when equipping the route. When omitted, they follow the request `framework` mapping to built-in defaults (Vue → OpenTiny Vue, Angular → OpenTiny Angular). **Whenever the frontend materials differ from these defaults (React materials, Vue Element Plus, the mini set, custom materials, etc.), the matching `materialsMeta` must be passed explicitly.**
 
 - **Example**
 
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 const app = express();
 
@@ -97,7 +100,7 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
-  materialsMeta,
+  materialsMeta, // Vue built-in default materials; switch to the matching meta for React / Element Plus / custom materials
 });
 
 app.listen(3000);

@@ -55,6 +55,8 @@ yarn add express cors express-rate-limit
 
 > `express`、`cors` 用于 Express 集成与 CORS 配置；`express-rate-limit` 用于速率限制示例。
 
+若前端物料不是服务端内置默认（React 物料、Vue Element Plus、mini 精简集、自定义物料等），还需在项目里安装对应的物料包，例如 `npm install @opentiny/genui-sdk-materials-react-antd`。
+
 ## 配置
 
 ### 环境变量
@@ -93,18 +95,22 @@ npx genui-sdk-server --port 3000
 export API_KEY=your-key BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 ```
 
+> CLI 不提供物料参数，**只能使用内置默认物料**（Vue → OpenTiny Vue，Angular → OpenTiny Angular）。前端一旦替换了物料（React、Element Plus、mini、自定义物料等），请改用下面的「模式 2」或「模式 3」显式传入对应的 `materialsMeta`，详见「物料配置（materialsMeta）」。
+
 ### 模式 2: 编程方式启动
 
 从你的 TypeScript/JavaScript 代码启动服务器:
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: process.env.API_KEY || '',
   maxAttempts: 10, // 端口被占用时的最大尝试次数
+  materialsMeta, // 物料须与前端一致；非内置默认物料时必须显式传入，见「物料配置（materialsMeta）」
 });
 ```
 
@@ -120,6 +126,7 @@ startServer({
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import cors from 'cors';
 
 const app = express();
@@ -161,6 +168,7 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: process.env.API_KEY || '',
   baseURL: 'https://api.openai.com/v1',
+  materialsMeta, // 物料须与前端一致；非内置默认物料时必须显式传入，见「物料配置（materialsMeta）」
 });
 
 app.listen(3000, () => {
@@ -173,6 +181,57 @@ app.listen(3000, () => {
 - 想要向现有路由添加 GenUI 功能
 - 需要自定义中间件或认证
 - 想要将 GenUI 与其他 API 端点结合
+
+### 物料配置（materialsMeta）
+
+Server 会把 `materialsMeta` 注入 system prompt，让大模型按物料包中真实存在的组件名生成 schema。**服务端物料必须与前端 `GenuiConfigProvider` 注入的物料一致**，否则生成的组件名前端无法渲染。
+
+`startServer` / `equipChatCompletions` 不传 `materialsMeta` 时，服务端按请求 `metadata.tinygenui.framework` 选择内置默认物料：
+
+| framework | 服务端内置默认物料 |
+| --- | --- |
+| `Vue` | `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta` |
+| `Angular` | `@opentiny/genui-sdk-materials-angular-opentiny-ng/meta` |
+| 其他 / 未指定 | 回落到 Vue 默认物料 |
+
+**只要前端物料与上表的内置默认不一致，就必须在服务端显式传入对应的 `materialsMeta`**：
+
+| 前端物料 | 服务端需传入 |
+| --- | --- |
+| React Ant Design | `@opentiny/genui-sdk-materials-react-antd/meta` |
+| Vue Element Plus | `@opentiny/genui-sdk-materials-vue-element-plus/meta` |
+| Vue 精简集 | `miniMaterialsMeta` |
+| 自定义物料 | 自备 `IMaterialsMeta` |
+
+以 React 前端为例：
+
+```typescript
+import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
+
+startServer({
+  port: 3100,
+  baseURL: 'https://api.openai.com/v1',
+  apiKey: process.env.API_KEY || '',
+  materialsMeta, // 与前端注入的 React 物料保持一致
+});
+```
+
+以 Vue Element Plus 前端为例：
+
+```typescript
+import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+
+startServer({
+  port: 3100,
+  baseURL: 'https://api.openai.com/v1',
+  apiKey: process.env.API_KEY || '',
+  materialsMeta, // 与前端注入的 Element Plus 物料保持一致
+});
+```
+
+> CLI（`npx genui-sdk-server`）不提供物料参数，**只能使用内置默认物料**；前端一旦替换了物料（React、Element Plus、mini、自定义物料等），就必须改用「模式 2」或「模式 3」显式传入 `materialsMeta`。
 
 ## API 参考
 
@@ -237,7 +296,7 @@ data: [DONE]
 - `"Angular"` - 生成 Angular 兼容的 schema
 - `"React"` - 生成 React 兼容的 schema
 
-> 注意：服务端按 framework 取默认物料元数据时，`Vue` → OpenTiny Vue、`Angular` → OpenTiny Angular；`React` 须由集成方显式传入 React Ant Design 物料包的 `materialsMeta`（`@opentiny/genui-sdk-materials-react-antd/meta`），否则回落到 Vue 默认物料，生成的 schema 组件名与 React 物料不匹配。
+> 注意：服务端按 framework 取内置默认物料时，`Vue` → OpenTiny Vue、`Angular` → OpenTiny Angular，其他 framework 回落到 Vue 默认物料。**前端物料只要与内置默认不一致（React、Element Plus、mini、自定义物料等），都必须在服务端显式传入对应的 `materialsMeta`**，否则生成的组件名与前端物料不匹配。详见上文「物料配置（materialsMeta）」。
 
 **strategy**: 提示词合并策略
 - `"append"` - 追加到现有系统消息 (默认)
@@ -575,9 +634,19 @@ CMD ["npx", "genui-sdk-server"]
 2. 检查客户端是否可以处理 SSE 格式
 3. 验证代理/负载均衡器支持流式传输
 
+### 生成的组件名与前端不匹配
+
+**问题**: 大模型生成的组件（如 `TinyButton`）在前端渲染失败或提示组件不存在
+
+**解决方案**:
+1. 确认服务端 `materialsMeta` 与前端 `GenuiConfigProvider` 注入的物料包一致（见上文「物料配置（materialsMeta）」）
+2. 前端只要替换了物料（React、Element Plus、mini、自定义物料等），就必须在服务端显式传入对应的 `materialsMeta`，且不要用 CLI 启动
+3. 确认请求 `metadata.tinygenui.framework` 与前端框架一致
+
 ## 下一步
 
 - 设置 [Vue 前端](./vue.md) 来连接到你的服务器
 - 设置 [Angular 前端](./angular.md) 来连接到你的服务器
+- 设置 [React 前端](./react.md) 来连接到你的服务器（React 属非内置默认物料，记得在服务端显式传入 `materialsMeta`）
 - 配置 [自定义组件](../examples/renderer/custom-components.md) 用于定制化 UI
 - 实现 [自定义动作](../examples/renderer/custom-actions.md) 用于交互功能

@@ -1,9 +1,14 @@
 import { BaseModelProvider, type ChatCompletionRequest, type ChatCompletionResponse } from '@opentiny/tiny-robot-kit';
+import {
+  type IGenPromptSnippet,
+  type IGenPromptExample,
+  type IChatMessage,
+  type IStreamData,
+} from '@opentiny/genui-sdk-core';
 import { chat } from './chat-api';
 import type { IChatConfig, ICustomComponentItem, CustomFetch, ICustomActionItem } from './chat.types';
-import type { IGenPromptSnippet, IGenPromptExample } from '@opentiny/genui-sdk-core';
-import type { IChatMessage, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IResponseHandler } from './response-handler';
+import { setNonStreamTiming } from './parse-complete-response';
 
 async function readChunk(reader: ReadableStreamDefaultReader<Uint8Array>, handler: (data: string) => void) {
   let buffer = '';
@@ -73,6 +78,7 @@ export class CustomModelProvider extends BaseModelProvider {
       model,
       temperature,
       signal: request.options?.signal,
+      stream: request.options?.stream ?? true,
       customComponents,
       customSnippets,
       customExamples,
@@ -81,8 +87,13 @@ export class CustomModelProvider extends BaseModelProvider {
     });
   }
 
-  async chat(_: ChatCompletionRequest) {
-    return {} as ChatCompletionResponse;
+  async chat(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+    const startedAt = Date.now();
+    const response = await this.getData(request);
+    const receivedAt = Date.now();
+    const json = (await response.json()) as ChatCompletionResponse;
+    setNonStreamTiming(json, { waitMs: receivedAt - startedAt });
+    return json;
   }
 
   async chatStream(request: any, handler: { onData: any; onDone: any; onError: any }) {

@@ -19,6 +19,7 @@
         "style": "width: 100%;"
       },
       "children": [
+        { "componentName": "ElTableColumn", "props": { "type": "index", "label": "序号", "width": 60, "align": "center" } },
         { "componentName": "ElTableColumn", "props": { "prop": "name", "label": "姓名", "width": 120 } },
         { "componentName": "ElTableColumn", "props": { "prop": "id", "label": "工号", "width": 100 } },
         { "componentName": "ElTableColumn", "props": { "prop": "sex", "label": "性别", "width": 80 } },

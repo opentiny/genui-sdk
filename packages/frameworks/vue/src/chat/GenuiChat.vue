@@ -25,7 +25,7 @@ import { emitter } from './event-emitter';
 import type { IChatProps, ICustomActionItem, IRolesConfig, ISchemaCardProps } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
-import type { IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
+import type { IChatMessage, IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
 import type { IRendererExpose, IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
@@ -34,8 +34,11 @@ import { useConversation } from './tiny-robot-patch/useConversation';
 import { useI18n } from './i18n';
 import { GENUI_CONFIG } from '../config-provider/injection-tokens';
 import { IResponseHandler, defaultResponseHandlers } from './response-handler';
+import { parseCompleteResponse, reportToolCallResult as reportToolCallResultInMessages } from './parse-complete-response';
 
-const props = defineProps<IChatProps>();
+const props = withDefaults(defineProps<IChatProps>(), {
+  stream: true,
+});
 
 const genuiConfig = inject(GENUI_CONFIG, null);
 const { t } = useI18n();
@@ -239,6 +242,7 @@ const messageRenderers = {
 };
 
 const responseHandlers: Ref<IResponseHandler<IStreamData>[]> = ref(defaultResponseHandlers);
+const completeResponseHandler = ref<typeof parseCompleteResponse>(parseCompleteResponse);
 
 const customModelProvider = new CustomModelProvider({
   getChatOptions: () => ({
@@ -263,9 +267,19 @@ const client = new AIClient({
 let conversation = useConversation({
   client,
   autoSave: false,
+  useStreamByDefault: props.stream,
   events: {
     onReceiveData(data, messages, preventDefault) {
-      messages.value.push(data as any);
+      const response = data as any;
+      const message = Array.isArray(response?.messages)
+        ? response // 流式
+        : {
+            ...response,
+            ...completeResponseHandler.value(response, undefined, {
+              addToolCallContext: props.chatConfig?.addToolCallContext,
+            }),
+          }; // 非流式
+      messages.value.push(message as any);
       preventDefault();
     },
     onLoaded(conversations) {
@@ -295,6 +309,12 @@ let conversation = useConversation({
 const { messageManager, createConversation, updateTitle, state: conversationState, saveConversations } = conversation;
 
 const messages = computed(() => messageManager.value.messages.value);
+
+/** 非流式下用户自己执行完工具后，把结果交回组件 */
+const reportToolCallResult = (toolCallId: string, result: unknown) =>
+  reportToolCallResultInMessages(messages.value as unknown as IChatMessage[], toolCallId, result, {
+    addToolCallContext: props.chatConfig?.addToolCallContext,
+  });
 
 const inputMessage = computed({
   get: () => messageManager.value.inputMessage.value,
@@ -474,6 +494,14 @@ defineExpose({
   setResponseHandlers: (handlers: IResponseHandler<IStreamData>[]) => {
     responseHandlers.value = handlers;
     customModelProvider.setResponseHandlers(handlers);
+  },
+  // @experimental
+  reportToolCallResult,
+  // @experimental
+  getCompleteResponseHandler: () => completeResponseHandler.value,
+  // @experimental
+  setCompleteResponseHandler: (handler: typeof parseCompleteResponse) => {
+    completeResponseHandler.value = handler;
   },
   getMessageRenderers: () => messageRenderers,
   setMessageRenderer: (key: string, renderer: Component<IRendererProps>) => {

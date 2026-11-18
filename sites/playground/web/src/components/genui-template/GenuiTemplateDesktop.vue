@@ -67,7 +67,10 @@ const {
   highlight: inspectHighlight,
   onMouseMove: handleRendererMouseMove,
   onMouseLeave: handleRendererMouseLeave,
-  onClick: handleRendererInspectClick,
+  onMouseDown: handleRendererMouseDown,
+  onBlock: handleRendererBlock,
+  onPointerDown: handleRendererPointerDown,
+  onKeyDown: handleRendererKeyDown,
 } = useSchemaRendererInspect({
   isDevMode,
   schema: rendererSchema,
@@ -123,9 +126,16 @@ const {
               'schema-renderer',
               { 'is-inspectable': isDevMode, 'is-inspect-locked': isDevMode && !inspectSelectable },
             ]"
-            @mousemove="handleRendererMouseMove"
+            @mousemove.capture="handleRendererMouseMove"
+            @pointermove.capture="handleRendererMouseMove"
             @mouseleave="handleRendererMouseLeave"
-            @click.capture="handleRendererInspectClick"
+            @mousedown.capture="handleRendererMouseDown"
+            @mouseup.capture="handleRendererBlock"
+            @click.capture="handleRendererBlock"
+            @dblclick.capture="handleRendererBlock"
+            @pointerdown.capture="handleRendererPointerDown"
+            @pointerup.capture="handleRendererBlock"
+            @keydown.capture="handleRendererKeyDown"
           >
             <schema-renderer
               :key="rendererSchemaKey"
@@ -226,7 +236,7 @@ const {
     .schema-inspect-overlay {
       position: absolute;
       inset: 0;
-      z-index: 30;
+      z-index: 10;
       overflow: hidden;
       pointer-events: none;
     }

@@ -72,14 +72,14 @@ export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 
 ```typescript
 import { startServer } from '@opentiny/genui-sdk-server';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 
 startServer({
   port: 3100,
   baseURL: 'https://api.openai.com/v1',
   apiKey: '',
   maxAttempts: 10, // Max retries when port is in use
-  materialsMeta,
+  materialsMeta, // Must match the frontend materials; required whenever they differ from the built-in defaults. See "Materials configuration (materialsMeta)".
 });
 ```
 
@@ -88,7 +88,7 @@ startServer({
 ```typescript
 import express from 'express';
 import { equipChatCompletions } from '@opentiny/genui-sdk-server';
-import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
 import cors from 'cors';
 
 const app = express();
@@ -98,11 +98,62 @@ equipChatCompletions(app, {
   route: '/chat/completions',
   apiKey: '',
   baseURL: 'https://api.openai.com/v1',
-  materialsMeta, // If omitted, default materials are selected by request framework (Vue → OpenTiny Vue, Angular → OpenTiny Angular)
+  materialsMeta, // If omitted, built-in defaults are selected by request framework (Vue → OpenTiny Vue, Angular → OpenTiny Angular). Any other materials must be passed explicitly; see "Materials configuration (materialsMeta)".
 });
 
 app.listen(3000);
 ```
+
+### Materials configuration (materialsMeta)
+
+The server injects materials metadata (`materialsMeta`) into the system prompt so the LLM generates schemas using component names that actually exist in the materials package. Therefore **the materials used by the server must match those injected by the frontend `GenuiConfigProvider`**; otherwise the generated component names cannot be rendered by the frontend (for example, with Vue materials on the server and React materials on the frontend, the LLM generates `TinyButton`, while React only has Ant Design's `Button`).
+
+When `materialsMeta` is omitted from `startServer` / `equipChatCompletions`, the server selects built-in default materials based on the request `metadata.tinygenui.framework`:
+
+| framework | Server built-in default materials |
+| --- | --- |
+| `Vue` | `@opentiny/genui-sdk-materials-vue-opentiny-vue/meta` |
+| `Angular` | `@opentiny/genui-sdk-materials-angular-opentiny-ng/meta` |
+| Other / unspecified | Falls back to the Vue default materials |
+
+**Whenever the frontend materials differ from the built-in defaults above, the matching `materialsMeta` must be passed explicitly on the server**, including but not limited to:
+
+| Frontend materials | Server must be passed |
+| --- | --- |
+| React Ant Design `@opentiny/genui-sdk-materials-react-antd` | `@opentiny/genui-sdk-materials-react-antd/meta` |
+| Vue Element Plus `@opentiny/genui-sdk-materials-vue-element-plus` | `@opentiny/genui-sdk-materials-vue-element-plus/meta` |
+| Vue mini set `miniMaterials` | `miniMaterialsMeta` |
+| Custom materials | Your own `IMaterialsMeta` |
+
+With a React frontend:
+
+```typescript
+import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-react-antd/meta';
+
+startServer({
+  port: 3100,
+  baseURL: 'https://api.openai.com/v1',
+  apiKey: '',
+  materialsMeta, // Keep consistent with the React materials injected on the frontend
+});
+```
+
+With a Vue Element Plus frontend:
+
+```typescript
+import { startServer } from '@opentiny/genui-sdk-server';
+import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-element-plus/meta';
+
+startServer({
+  port: 3100,
+  baseURL: 'https://api.openai.com/v1',
+  apiKey: '',
+  materialsMeta, // Keep consistent with the Element Plus materials injected on the frontend
+});
+```
+
+> The CLI (`npx genui-sdk-server`) exposes no materials option and **can only use the built-in default materials**. As soon as the frontend replaces its materials (React, Element Plus, the mini set, custom materials, etc.), you must switch to Option 2 (programmatic startup) or Option 3 (Express integration) and pass `materialsMeta` explicitly.
 
 ## Client usage
 
@@ -149,7 +200,7 @@ Pass GenUI configuration via `metadata.tinygenui` to improve LLM generation (JSO
 
 ```json
 {
-  "framework": "Vue", // or "Angular"
+  "framework": "Vue", // or "Angular" / "React"
   "strategy": "append", // "append" | "prepend" | "override"
   "customComponents": [], // Custom component schema array
   "customExamples": [], // Custom component usage examples
@@ -158,7 +209,7 @@ Pass GenUI configuration via `metadata.tinygenui` to improve LLM generation (JSO
 }
 ```
 
-- `framework`: Target frontend framework (Vue or Angular) for renderer configuration
+- `framework`: Target frontend framework (`Vue`, `Angular` or `React`) for renderer configuration; it also determines which built-in default materials are used when `materialsMeta` is omitted (see [Materials configuration (materialsMeta)](#materials-configuration-materialsmeta))
 - `strategy`: Prompt merge strategy
   - `append`: Append to the existing system message (default)
   - `prepend`: Prepend to the existing system message

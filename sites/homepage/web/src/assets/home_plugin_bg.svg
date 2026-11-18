@@ -1,0 +1,27 @@
+<svg viewBox="0 0 1920 732" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1920.000000" height="732.000000" fill="none">
+	<defs>
+		<g id="pixso_custom_effect_0">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="300" />
+		</g>
+		<filter id="filter_0" width="1493.456543" height="838.423096" x="519.543457" y="33.576904" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_0)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="100" result="effect_layerBlur_1" />
+		</filter>
+		<g id="pixso_custom_effect_1">
+			<effect visibility="visible" effectType="gaussianBlur" stdDeviation="300" />
+		</g>
+		<filter id="filter_1" width="1589.000000" height="828.000000" x="-94.000000" y="35.000000" filterUnits="userSpaceOnUse" customEffect="url(#pixso_custom_effect_1)" color-interpolation-filters="sRGB">
+			<feFlood flood-opacity="0" result="BackgroundImageFix" />
+			<feBlend result="shape" in="SourceGraphic" in2="BackgroundImageFix" mode="normal" />
+			<feGaussianBlur stdDeviation="100" result="effect_layerBlur_1" />
+		</filter>
+	</defs>
+	<rect id="容器 56713" width="1920.000000" height="732.000000" x="0.000000" y="0.000000" fill="rgb(255,255,255)" />
+	<g opacity="0.699999988" filter="url(#filter_0)">
+		<path id="椭圆 3787" d="M1713 448.764C1713 506.175 1559.77 561.424 1492.16 571.953C1429.48 572.432 1345 569.262 1232.21 561.427C606.139 517.937 878.5 432.528 878.5 362.5C878.5 292.473 1062.64 374.378 1232.21 353.151C1401.78 331.925 1713 378.736 1713 448.764Z" fill="rgb(196,167,255)" fill-rule="evenodd" />
+	</g>
+	<g opacity="0.800000012" filter="url(#filter_1)">
+		<path id="椭圆 3788" d="M1195 435.53C1195 479.909 1119.67 518.992 1016.49 541.82C955.997 555.204 885.935 563 815.87 563C626.305 563 206 505.928 206 435.528C206 365.129 736.393 324.385 815.871 347.995C895.349 371.606 958.999 292.985 1090.4 369.025C1184.78 401.969 1195 395.017 1195 435.53Z" fill="rgb(181,211,255)" fill-rule="evenodd" />
+	</g>
+</svg>

@@ -6,6 +6,7 @@ import {
   resolveRenderableSchemaFromMessages,
   backfillJsonPatchApplyFailedFlags,
 } from '../template-chat-utils';
+import { generateIdForComponents } from '../template-chat-utils/schema-id-generator';
 
 const currentSchema = shallowRef<any>(null);
 const currentPreviewSchema = shallowRef<any>(null);
@@ -16,6 +17,9 @@ export function useTemplateSchema() {
   const { setTemplateSchema, saveConversations } = useTemplateConversation();
 
   function setCurrentPreviewSchema(schema: any, isComplete: boolean = true) {
+    if (schema && isComplete) {
+      generateIdForComponents(schema);
+    }
     currentPreviewSchema.value = schema;
     if (isComplete !== currentPreviewSchemaComplete.value) {
       currentPreviewSchemaComplete.value = isComplete;
@@ -23,6 +27,9 @@ export function useTemplateSchema() {
   }
 
   function setCurrentSchema(schema: any) {
+    if (schema) {
+      generateIdForComponents(schema);
+    }
     currentSchema.value = schema;
     setTemplateSchema(schema);
   }
@@ -48,6 +55,7 @@ export function useTemplateSchema() {
     if (latestSchemaInfo) {
       const resolved = resolveRenderableSchemaFromMessages(messages);
       if (resolved) {
+        generateIdForComponents(resolved.schema);
         currentSchema.value = resolved.schema;
         currentPreviewSchema.value = resolved.schema;
         currentPreviewSchemaComplete.value = true;
