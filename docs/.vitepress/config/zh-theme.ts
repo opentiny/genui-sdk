@@ -61,6 +61,7 @@ export const zhThemeConfig: DefaultTheme.Config = {
         items: [
           { text: 'GenuiRenderer', link: '/components/react/renderer' },
           { text: 'GenuiConfigProvider', link: '/components/react/config-provider' },
+          { text: 'generateCode', link: '/components/react/code-generator' },
         ],
       },
       {

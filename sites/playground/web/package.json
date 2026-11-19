@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "test": "vitest run",
     "build": "vue-tsc -b && vite build",
     "dev:alpha": "vite --mode alpha",
     "build:alpha": "vue-tsc -b && vite build --mode alpha-prod",
@@ -14,6 +15,8 @@
     "@opentiny/genui-sdk-core": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
+    "@opentiny/genui-sdk-materials-react-antd": "workspace:*",
+    "@opentiny/genui-sdk-react": "workspace:*",
     "@opentiny/genui-sdk-vue": "workspace:*",
     "@opentiny/tiny-robot": "0.3.3",
     "@opentiny/tiny-robot-kit": "0.3.3",
@@ -46,6 +49,7 @@
     "vite": "^7.1.2",
     "vite-jsconfig-paths": "^2.0.1",
     "vite-plugin-node-polyfills": "^0.24.0",
+    "vitest": "^3.0.0",
     "vue-tsc": "^3.0.5",
     "@vitejs/plugin-react": "^4.3.0"
   }

@@ -51,8 +51,14 @@
       "@opentiny/genui-sdk-react": [
         "../../../packages/frameworks/react/src/index.ts"
       ],
+      "@opentiny/genui-sdk-react/code-generator": [
+        "../../../packages/frameworks/react/src/code-generator/index.ts"
+      ],
       "@opentiny/genui-sdk-materials-react-antd/materials": [
         "../../../packages/materials/react-antd/src/materials/index.ts"
+      ],
+      "@opentiny/genui-sdk-materials-react-antd/meta": [
+        "../../../packages/materials/react-antd/src/meta/index.ts"
       ],
       "@opentiny/tiny-schema-renderer-react": [
         "../../../projects/tiny-schema-renderer-react/src/index.ts"
