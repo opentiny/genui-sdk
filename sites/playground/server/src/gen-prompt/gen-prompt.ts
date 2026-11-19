@@ -58,19 +58,26 @@ export function genPlaygroundPrompt(
   framework: IFrameworkKey,
   materialConfig: IPlaygroundMaterialConfig,
   tgCustomConfig?: IGenPromptCustomConfig,
+  options?: IGenPromptOptions,
 ) {
   const { promptVariant, componentLib } = materialConfig;
   const variant = promptVariant || 'standard';
   const libKey = componentLib as IComponentLibKey;
   const meta = metaMap[framework]?.[libKey]?.[variant] ?? metaMap[framework]?.[libKey]?.standard;
+  const variantOptions = optionsMap[framework]?.[variant] ?? {};
 
   return genPrompt(
     framework,
     meta ?? materialsMeta,
     tgCustomConfig,
     {
-      ...(optionsMap[framework]?.[variant] ?? {}),
-      rules: [...(optionsMap[framework]?.[variant]?.rules ?? [])],
+      ...variantOptions,
+      ...options,
+      builder: {
+        ...variantOptions.builder,
+        ...options?.builder,
+      },
+      rules: [...(variantOptions.rules ?? []), ...(options?.rules ?? [])],
     },
   );
 }
