@@ -91,11 +91,20 @@ npx genui-sdk-server --envFile .env.production
 # 使用自定义端口
 npx genui-sdk-server --port 3000
 
+# 按物料包名指定物料（可省略 /meta 子路径）
+npx genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd
+
+# 按物料模块/JSON 文件路径指定物料
+npx genui-sdk-server -m ./my-materials.mjs
+
+# 指定物料导出名（如 Vue 精简集）
+npx genui-sdk-server -m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
+
 # 使用环境变量 (Git Bash)
 export API_KEY=your-key BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 ```
 
-> CLI 不提供物料参数，**只能使用内置默认物料**（Vue → OpenTiny Vue，Angular → OpenTiny Angular）。前端一旦替换了物料（React、Element Plus、mini、自定义物料等），请改用下面的「模式 2」或「模式 3」显式传入对应的 `materialsMeta`，详见「物料配置（materialsMeta）」。
+> CLI 不传 `--materials` 时使用内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular）。前端替换了物料（React、Element Plus、mini、自定义物料等）时，用 `-m, --materials` 指定物料包名或模块/JSON 文件路径即可保持一致；也可改用下面的「模式 2」或「模式 3」通过 `materialsMeta` 显式传入。详见「物料配置（materialsMeta）」。
 
 ### 模式 2: 编程方式启动
 
@@ -196,12 +205,12 @@ Server 会把 `materialsMeta` 注入 system prompt，让大模型按物料包中
 
 **只要前端物料与上表的内置默认不一致，就必须在服务端显式传入对应的 `materialsMeta`**：
 
-| 前端物料 | 服务端需传入 |
-| --- | --- |
-| React Ant Design | `@opentiny/genui-sdk-materials-react-antd/meta` |
-| Vue Element Plus | `@opentiny/genui-sdk-materials-vue-element-plus/meta` |
-| Vue 精简集 | `miniMaterialsMeta` |
-| 自定义物料 | 自备 `IMaterialsMeta` |
+| 前端物料 | 编程方式需传入 | CLI 等价写法 |
+| --- | --- | --- |
+| React Ant Design | `@opentiny/genui-sdk-materials-react-antd/meta` | `-m @opentiny/genui-sdk-materials-react-antd` |
+| Vue Element Plus | `@opentiny/genui-sdk-materials-vue-element-plus/meta` | `-m @opentiny/genui-sdk-materials-vue-element-plus` |
+| Vue 精简集 | `miniMaterialsMeta` | `-m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta` |
+| 自定义物料 | 自备 `IMaterialsMeta` | `-m ./my-materials.mjs`（模块或 `.json` 文件路径） |
 
 以 React 前端为例：
 
@@ -231,7 +240,7 @@ startServer({
 });
 ```
 
-> CLI（`npx genui-sdk-server`）不提供物料参数，**只能使用内置默认物料**；前端一旦替换了物料（React、Element Plus、mini、自定义物料等），就必须改用「模式 2」或「模式 3」显式传入 `materialsMeta`。
+> CLI（`npx genui-sdk-server`）通过 `-m, --materials` 按物料包名或模块/JSON 文件路径加载物料，并可用 `--materials-export` 指定导出名；不传时使用内置默认物料。因此前端替换了物料（React、Element Plus、mini、自定义物料等）时，既可以用 CLI 的 `-m` 指定，也可以改用「模式 2」或「模式 3」显式传入 `materialsMeta`。
 
 ## API 参考
 
@@ -640,13 +649,13 @@ CMD ["npx", "genui-sdk-server"]
 
 **解决方案**:
 1. 确认服务端 `materialsMeta` 与前端 `GenuiConfigProvider` 注入的物料包一致（见上文「物料配置（materialsMeta）」）
-2. 前端只要替换了物料（React、Element Plus、mini、自定义物料等），就必须在服务端显式传入对应的 `materialsMeta`，且不要用 CLI 启动
+2. 前端只要替换了物料（React、Element Plus、mini、自定义物料等），就必须在服务端显式传入对应的 `materialsMeta`（编程方式或 Express 集成），或改用 CLI 的 `-m, --materials` 指定同一套物料
 3. 确认请求 `metadata.tinygenui.framework` 与前端框架一致
 
 ## 下一步
 
 - 设置 [Vue 前端](./vue.md) 来连接到你的服务器
 - 设置 [Angular 前端](./angular.md) 来连接到你的服务器
-- 设置 [React 前端](./react.md) 来连接到你的服务器（React 属非内置默认物料，记得在服务端显式传入 `materialsMeta`）
+- 设置 [React 前端](./react.md) 来连接到你的服务器（React 属非内置默认物料，记得在服务端显式传入 `materialsMeta`，或用 CLI 的 `-m @opentiny/genui-sdk-materials-react-antd`）
 - 配置 [自定义组件](../examples/renderer/custom-components.md) 用于定制化 UI
 - 实现 [自定义动作](../examples/renderer/custom-actions.md) 用于交互功能
