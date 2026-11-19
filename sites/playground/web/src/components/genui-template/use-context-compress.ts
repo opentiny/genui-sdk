@@ -207,16 +207,21 @@ export function useContextCompress(options: UseContextCompressOptions) {
 
   onUnmounted(reset);
 
-  const compress = async () => {
-    if (isButtonDisabled.value) return;
+  /**
+   * 执行压缩，返回调用方是否应继续后续流程：
+   * - true：无需压缩、压缩成功或压缩失败（降级继续发送原文）
+   * - false：用户取消压缩或本次请求已被取代，调用方应终止后续流程
+   */
+  const compress = async (): Promise<boolean> => {
+    if (isButtonDisabled.value) return true;
 
     const plan = compressionPlan.value;
-    if (!plan) return;
+    if (!plan) return true;
 
     const { url, llmConfig, templateSchema } = options.getTemplateChatConfig();
     if (!url) {
       notifyCompressError(t('template.compressNoUrl'));
-      return;
+      return true;
     }
 
     const targetMessages = options.messages.value;
@@ -240,7 +245,7 @@ export function useContextCompress(options: UseContextCompressOptions) {
       const isCurrentRequest = () => abortController === controller;
 
       if (controller.signal.aborted || !isCurrentRequest()) {
-        return;
+        return false;
       }
 
       // 追加式滚动摘要：新摘要追加到历史末尾，旧摘要全部保留。
@@ -256,7 +261,7 @@ export function useContextCompress(options: UseContextCompressOptions) {
       lastCompressOccupiedTokens.value = calibratedOccupiedTokens.value;
 
       if (!isCurrentRequest()) {
-        return;
+        return false;
       }
       if (startedId === options.currentConversationId.value) {
         status.value = 'compressed';
@@ -265,6 +270,7 @@ export function useContextCompress(options: UseContextCompressOptions) {
         status.value = 'idle';
       }
     } catch (error) {
+      const abortedByUser = controller.signal.aborted;
       if (!isCompressAbortError(error, controller.signal)) {
         console.error('会话压缩失败', error);
         notifyCompressError(t('template.compressFailed'));
@@ -272,9 +278,13 @@ export function useContextCompress(options: UseContextCompressOptions) {
       if (
         abortController === controller &&
         startedId === options.currentConversationId.value &&
-        !controller.signal.aborted
+        !abortedByUser
       ) {
         status.value = 'idle';
+      }
+      if (abortedByUser) {
+        // 用户已取消压缩：终止后续流程（不降级发送）
+        return false;
       }
     } finally {
       if (abortController === controller) {
@@ -282,6 +292,7 @@ export function useContextCompress(options: UseContextCompressOptions) {
         compressingConversationId.value = undefined;
       }
     }
+    return true;
   };
 
   return {

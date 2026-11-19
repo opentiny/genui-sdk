@@ -456,9 +456,14 @@ const clearInputMessage = () => {
 const handleSendMessage = async () => {
   if (isCompressing.value) return;
 
+  const startedConversationId = currentConversationId.value;
+
   if (shouldAutoCompress.value) {
-    // 发送前先压缩；失败时 compress 内部已通知用户，此处按降级策略继续发送原文
-    await compress();
+    // 发送前先压缩；压缩失败时 compress 内部已通知用户，按降级策略继续发送原文；
+    // 用户取消压缩或压缩期间切换会话，则终止本次发送
+    const shouldProceed = await compress();
+    if (!shouldProceed) return;
+    if (currentConversationId.value !== startedConversationId) return;
   }
 
   const draft = currentComposerDraft.value;
