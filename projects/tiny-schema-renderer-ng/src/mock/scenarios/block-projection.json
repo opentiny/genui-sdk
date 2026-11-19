@@ -1,0 +1,36 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TestBlock",
+      "props": {
+        "text": "外部传入属性",
+        "onClickText": {
+          "type": "JSFunction",
+          "value": "function(content) { console.log('Text clicked', content) }"
+        }
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected header",
+            "header": true,
+            "style": {
+              "color": "green"
+            }
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected from page",
+            "style": {
+              "color": "blue"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

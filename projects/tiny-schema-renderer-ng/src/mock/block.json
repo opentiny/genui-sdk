@@ -1,0 +1,60 @@
+{
+    "componentName": "TestBlock",
+    "state": {
+      "title": "Hello, World!"
+    },
+    "children": [
+      {
+        "componentName": "NgContent",
+        "props": {
+          "select": "[header]"
+        },
+        "children": [
+          {
+            "componentName": "Text",
+            "props": {
+              "text": {
+                "type": "JSExpression",
+                "value": "`Built-in header: ${this.state.title}`"
+              },
+              "style": {
+                "color": "red"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "componentName": "Text",
+        "props": {
+          "text": {
+            "type": "JSExpression",
+            "value": "`Text from input: ${this.props.text}`"
+          },
+          "onClick": {
+            "type": "JSFunction",
+            "value": "function(event) { this.dispatchEvent('clickText', event)}"
+          }
+        }
+      },
+      {
+        "componentName": "NgContent"
+      },
+      {
+        "componentName": "NgContent",
+        "props": {
+          "select": "[footer]"
+        }
+      }
+    ],
+    "inputs": {
+      "text": {
+        "type": "string"
+      }
+    },
+    "outputs": {
+      "clickText": {
+        "type": "string"
+      }
+    }
+  }

@@ -1,0 +1,298 @@
+{
+  "componentName": "Page",
+  "state": {
+    "structuralShow": true,
+    "structuralItems": [
+      "alpha",
+      "beta",
+      "gamma"
+    ],
+    "structuralSwitch": "b",
+    "structuralPluralCount": 1
+  },
+  "refs": {
+    "structuralOutletSource": null
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "margin: 16px 0; padding: 12px; border: 1px dashed #94a3b8;"
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "NgTemplate 结构性指令（ngIf / ngFor / ngTemplateOutlet / ngComponentOutlet / ngSwitch / ngPlural）",
+            "style": "display: block; font-weight: 700; margin-bottom: 8px;"
+          }
+        },
+        {
+          "componentName": "NgTemplate",
+          "directives": [
+            {
+              "directiveName": "ngIf"
+            }
+          ],
+          "props": {
+            "ngIf": {
+              "type": "JSExpression",
+              "value": "this.state.structuralShow"
+            }
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": "ngIf: structuralShow === true",
+                "style": "display: block; color: #059669;"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "NgTemplate",
+          "directives": [
+            {
+              "directiveName": "ngFor"
+            }
+          ],
+          "props": {
+            "ngForOf": {
+              "type": "JSExpression",
+              "value": "this.state.structuralItems"
+            },
+            "let": {
+              "item": "$implicit",
+              "i": "index"
+            }
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "`ngFor[${i}]: ${item}`"
+                },
+                "style": "display: block; color: #2563eb;"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "NgTemplate",
+          "props": {
+            "ref": {
+              "type": "JSExpression",
+              "value": "this.refs.structuralOutletSource"
+            },
+            "refName": "structuralOutletSource",
+            "let": {
+              "msg": "$implicit"
+            }
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "`outlet source: ${msg}`"
+                },
+                "style": "display: block; color: #7c3aed;"
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "NgTemplate",
+          "directives": [
+            {
+              "directiveName": "ngTemplateOutlet"
+            }
+          ],
+          "props": {
+            "ngTemplateOutlet": {
+              "type": "JSExpression",
+              "value": "this.refs.structuralOutletSource"
+            },
+            "ngTemplateOutletContext": {
+              "type": "JSExpression",
+              "value": "{ $implicit: 'from ngTemplateOutlet' }"
+            }
+          }
+        },
+        {
+          "componentName": "NgTemplate",
+          "directives": [
+            {
+              "directiveName": "ngComponentOutlet"
+            }
+          ],
+          "props": {
+            "ngComponentOutlet": {
+              "type": "JSExpression",
+              "value": "globalThis.__structuralDemoBanner"
+            },
+            "ngComponentOutletInputs": {
+              "type": "JSExpression",
+              "value": "{ label: 'ngComponentOutlet: StructuralDemoBanner' }"
+            }
+          }
+        },
+        {
+          "componentName": "div",
+          "directives": [
+            {
+              "directiveName": "ngSwitch"
+            }
+          ],
+          "props": {
+            "ngSwitch": {
+              "type": "JSExpression",
+              "value": "this.state.structuralSwitch"
+            },
+            "style": "margin-top: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "NgTemplate",
+              "directives": [
+                {
+                  "directiveName": "ngSwitchCase"
+                }
+              ],
+              "props": {
+                "ngSwitchCase": "a"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "ngSwitchCase: a",
+                    "style": "display: block; color: #b45309;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "NgTemplate",
+              "directives": [
+                {
+                  "directiveName": "ngSwitchCase"
+                }
+              ],
+              "props": {
+                "ngSwitchCase": "b"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "ngSwitchCase: b (matched)",
+                    "style": "display: block; color: #b45309; font-weight: 600;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "NgTemplate",
+              "directives": [
+                {
+                  "directiveName": "ngSwitchDefault"
+                }
+              ],
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "ngSwitchDefault",
+                    "style": "display: block; color: #b45309;"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "componentName": "div",
+          "directives": [
+            {
+              "directiveName": "ngPlural"
+            }
+          ],
+          "props": {
+            "ngPlural": {
+              "type": "JSExpression",
+              "value": "this.state.structuralPluralCount"
+            },
+            "style": "margin-top: 8px;"
+          },
+          "children": [
+            {
+              "componentName": "NgTemplate",
+              "directives": [
+                {
+                  "directiveName": "ngPluralCase"
+                }
+              ],
+              "props": {
+                "ngPluralCase": "0"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "ngPluralCase =0: none",
+                    "style": "display: block; color: #0e7490;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "NgTemplate",
+              "directives": [
+                {
+                  "directiveName": "ngPluralCase"
+                }
+              ],
+              "props": {
+                "ngPluralCase": "one"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "ngPluralCase one: singular (matched when count=1)",
+                    "style": "display: block; color: #0e7490; font-weight: 600;"
+                  }
+                }
+              ]
+            },
+            {
+              "componentName": "NgTemplate",
+              "directives": [
+                {
+                  "directiveName": "ngPluralCase"
+                }
+              ],
+              "props": {
+                "ngPluralCase": "other"
+              },
+              "children": [
+                {
+                  "componentName": "Text",
+                  "props": {
+                    "text": "ngPluralCase other: plural",
+                    "style": "display: block; color: #0e7490;"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
