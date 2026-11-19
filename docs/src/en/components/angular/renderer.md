@@ -388,23 +388,35 @@ export class GenuiExample {
 
 See [Renderer - Buffer Field Configuration](../../examples/angular/renderer/required-complete-field-selectors) for detailed usage.
 
-### state
+## Properties
 
-- **Type**: `Record<string, any>`
-- **Required**: No
-- **Description**: Global state passed to the renderer, accessible in components via context.
+### rendererInstance
+
+- **Type**: `RendererMain | null`
+- **Description**: The underlying renderer instance. Its API (such as `getContext` and `setContext`) is available for advanced scenarios. The component's existing `instance` property points to the same instance.
+
+## Methods
+
+Access the methods `GenuiRenderer` exposes through a template reference (`@ViewChild`) to read or write state from outside the component.
+
+### setState
+
+- **Type**: `(state?: Record<string, any>) => void`
+- **Description**: Sets the renderer's global state, shallow-merging it into existing state so fields you do not pass are preserved. It is passed straight through to the underlying renderer and is not cached: every streamed schema update resets the state from the schema, so call `setState` again after an update if the state must be kept.
 
 ```ts
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
 
 @Component({
   imports: [GenuiRenderer],
   template: `
-    <genui-renderer [content]="schemaContent" [state]="state"> </genui-renderer>
+    <genui-renderer [content]="schemaContent" />
   `,
 })
-export class GenuiExample {
+export class GenuiExample implements AfterViewInit {
+  @ViewChild(GenuiRenderer) renderer!: GenuiRenderer;
+
   schemaContent = {
     componentName: 'Page',
     state: {
@@ -424,19 +436,19 @@ export class GenuiExample {
     ],
   };
 
-  // Restore from some history record
-  state = this.getFromCache();
-  getFromCache() {
-    return {
-      userId: 123,
-      userName: 'John'
-    }
+  // Inject state after view init, when the renderer instance is ready
+  ngAfterViewInit() {
+    this.renderer.setState({ userId: 123, userName: 'John' });
   }
 }
-
 ```
 
 See [Renderer - Passing and Merging State](../../examples/angular/renderer/state) for detailed usage.
+
+### getState
+
+- **Type**: `() => Record<string, any>`
+- **Description**: Returns the renderer's current global state (the `state` in its context).
 
 ## Template
 

@@ -2,6 +2,7 @@ import {
   forwardRef,
   useCallback,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -13,7 +14,7 @@ import type { SchemaRendererHandle, SchemaRendererProps } from '@opentiny/tiny-s
 import type { InstanceMaterials } from '@opentiny/tiny-schema-renderer-react';
 import { useGenuiMaterials, useGenuiNotify } from '../config-provider';
 import { requiredCompleteFieldSelectors as defaultSelectors } from './config';
-import type { IRendererProps } from './renderer.types';
+import type { IRendererExpose, IRendererProps } from './renderer.types';
 import './renderer.css';
 
 type RootNode = NonNullable<SchemaRendererProps['schema']>;
@@ -30,7 +31,7 @@ const errorSchema: RootNode = {
 
 const emptySchema: RootNode = { componentName: 'Page' };
 
-export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
+export const GenuiRenderer = forwardRef<IRendererExpose, IRendererProps>(
   function GenuiRenderer(props, ref) {
     const contextMaterials = useGenuiMaterials();
     const notify = useGenuiNotify();
@@ -52,6 +53,11 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
       [contextMaterials, mergedComponents, notify],
     );
     const rendererRef = useRef<SchemaRendererHandle | null>(null);
+    const exposeRef = useRef<IRendererExpose>({
+      rendererInstance: null,
+      getState: () => (rendererRef.current?.getContext()?.state as Record<string, unknown>) || {},
+      setState: (state = {}) => rendererRef.current?.setState(state),
+    });
 
     const updateContextAndState = useCallback(() => {
       const instance = rendererRef.current;
@@ -66,23 +72,14 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
           return props.customActions[actionName].execute(params, instance.getContext());
         },
       });
-      if (props.id) {
-        instance.setContext({ cardId: props.id });
-      }
-      instance.setState(props.state || {});
-    }, [props.customActions, props.id, props.state]);
+    }, [props.customActions]);
 
-    const setRendererRef = useCallback(
-      (instance: SchemaRendererHandle | null) => {
-        rendererRef.current = instance;
-        if (typeof ref === 'function') {
-          ref(instance);
-        } else if (ref) {
-          ref.current = instance;
-        }
-      },
-      [ref],
-    );
+    const setRendererRef = useCallback((instance: SchemaRendererHandle | null) => {
+      rendererRef.current = instance;
+      exposeRef.current.rendererInstance = instance;
+    }, []);
+
+    useImperativeHandle(ref, () => exposeRef.current, []);
 
     useEffect(() => {
       updateContextAndState();
@@ -105,8 +102,11 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
     );
 
     const contentKeyRef = useRef('');
-    useEffect(() => {
-      setIsError(false);
+
+    const initPatch = useRef(false);
+    const mountPatchDone = useRef(false);
+
+    function patchSchema() {
       let json: Record<string, unknown> = {};
       let isCompleted = true;
       const raw = props.content;
@@ -137,7 +137,21 @@ export const GenuiRenderer = forwardRef<SchemaRendererHandle, IRendererProps>(
 
       patcherRef.current?.patchWithDelta(schemaRef.current, json, isCompleted);
       setDisplaySchema({ ...schemaRef.current });
-    }, [props.content, props.isJsonComplete, props.generating]);
+    }
+
+    if (!initPatch.current) {
+      initPatch.current = true;
+      patchSchema();
+    }
+
+    useEffect(() => {
+      if (!mountPatchDone.current) {
+        mountPatchDone.current = true;
+        return;
+      }
+      setIsError(false);
+      patchSchema();
+    }, [props.content, props.isJsonComplete]);
 
     useEffect(() => {
       updateContextAndState();

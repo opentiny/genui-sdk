@@ -91,7 +91,7 @@ const content = ref({
   ]
 });
 
-// 从历史记录中恢复的状态（初始化时合并到全局状态）
+// 从历史记录中恢复的状态（挂载后通过 setState 注入）
 const historyState = {
   formData: {
     name: 'John Doe',

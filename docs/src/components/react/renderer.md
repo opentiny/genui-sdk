@@ -188,61 +188,54 @@ export function Example({ content }: { content: string }) {
 }
 ```
 
-### state
+## Methods
 
-- **类型**: `Record<string, any>`
-- **必填**: 否
-- **说明**: 传递给渲染器的全局状态，可以在组件中通过上下文访问。
+通过 `ref` 可以访问 `GenuiRenderer` 暴露的方法，用于在渲染器外部读写状态。
+
+### setState
+
+- **类型**: `(state?: Record<string, unknown>) => void`
+- **说明**: 设置渲染器的全局状态，与已有状态浅层合并，未传入的字段会保留。直接透传给底层渲染器，不做缓存：流式生成过程中 schema 每次更新都会用 schema 里的 state 重置状态，需要保留的状态请在 schema 更新后重新调用 `setState`。
 
 React 表单组件应使用 `value` 或 `checked` 读取状态，并通过 `onChange` 类型的 `JSFunction` 更新状态；React 渲染器不支持使用 `model: true` 自动生成变更事件。
 
 ```tsx
-import { GenuiRenderer } from '@opentiny/genui-sdk-react';
+import { useEffect, useRef } from 'react';
+import { GenuiConfigProvider, GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-react';
+import { materials } from '@opentiny/genui-sdk-materials-react-antd/materials';
 
-const schemaContent = {
-  componentName: 'Page',
-  state: {
-    userId: null,
-    userName: '',
-  },
-  children: [
-    {
-      componentName: 'Text',
-      props: {
-        text: {
-          type: 'JSExpression',
-          value: 'this.state.userName',
-        },
-      },
-    },
-  ],
-};
-
-const state = {
+const savedState = {
   userId: 123,
   userName: 'John',
 };
 
-export function Example() {
-  return <GenuiRenderer content={schemaContent} state={state} isJsonComplete />;
+export function Example({ content }: { content: string }) {
+  const rendererRef = useRef<IRendererExpose | null>(null);
+
+  // 从历史记录中恢复状态：组件挂载完成后注入
+  useEffect(() => {
+    rendererRef.current?.setState(savedState);
+  }, []);
+
+  return (
+    <GenuiConfigProvider materials={materials}>
+      <GenuiRenderer ref={rendererRef} content={content} isJsonComplete />
+    </GenuiConfigProvider>
+  );
 }
 ```
 
 查看 [Renderer 传递合并 State](../../examples/react/renderer/state) 了解详细用法
 
-### id
+### getState
 
-- **类型**: `string`
-- **必填**: 否
-- **说明**: 卡片标识，会写入渲染器上下文的 `cardId`，便于在自定义动作中区分实例。
+- **类型**: `() => Record<string, unknown>`
+- **说明**: 获取渲染器当前的全局状态（即渲染器 context 中的 `state`）。
 
-```tsx
-import { GenuiRenderer } from '@opentiny/genui-sdk-react';
+### rendererInstance
 
-export function Example({ content }: { content: string }) {
-  return <GenuiRenderer content={content} id="card-1" isJsonComplete />;
-}
-```
+- **类型**: `SchemaRendererHandle | null`
+- **说明**: 底层渲染器实例，复杂场景可以直接调用其 API（如 `getContext`、`setContext`）。
 
 ## Types
 
@@ -256,8 +249,16 @@ interface IRendererProps {
   customComponents?: Record<string, ComponentType>;
   customActions?: Record<string, ICustomAction>;
   requiredCompleteFieldSelectors?: string[];
-  id?: string;
-  state?: Record<string, unknown>;
+}
+```
+
+### IRendererExpose
+
+```typescript
+interface IRendererExpose {
+  rendererInstance: SchemaRendererHandle | null; // 底层渲染器实例，复杂场景可以使用其 API
+  getState: () => Record<string, unknown>; // 获取全局状态
+  setState: (state?: Record<string, unknown>) => void; // 设置全局状态
 }
 ```
 

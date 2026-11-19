@@ -12,7 +12,7 @@ An Angular component library for enhanced LLM display and interaction. Stream AI
 ## Usage
 
 ```typescript
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-angular';
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 
@@ -23,17 +23,22 @@ import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/mat
     <genui-config-provider [materials]="materials">
       <genui-renderer
         [content]="schemaContent"
-        [state]="state"
         [generating]="isGenerating"
       />
     </genui-config-provider>
   `,
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit {
+  @ViewChild(GenuiRenderer) renderer!: GenuiRenderer;
+
   materials = materials;
   schemaContent = '{}';
   state: Record<string, any> = {};
   isGenerating = false;
+
+  ngAfterViewInit() {
+    this.renderer.setState(this.state);
+  }
 }
 ```
 

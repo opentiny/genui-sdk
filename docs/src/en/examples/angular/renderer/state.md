@@ -1,28 +1,30 @@
 # Renderer - Passing and Merging State
 
-Use `state` to pass initial state to the renderer. It is merged into global state on init and accessible from component context.
+Use the instance method `setState` to inject state into the renderer. It is merged into global state and accessible from component context.
 
-## Passing State to the Component
+## Injecting State into the Component
 
-State is merged when the component initializes and **does not update dynamically**.
+`setState` performs a shallow merge into existing state. It only injects into the current runtime and stores nothing, so in streaming scenarios a schema state update wipes out the state previously set by `setState`. You therefore need to control when `setState` is called while streaming.
 
 ### Use Case
 
-`state` is mainly for **restoring history**: pass saved state from a past conversation so the renderer can rehydrate.
+`setState` is mainly for **restoring history**: pass saved state from a past conversation so the renderer can rehydrate.
 
 ### Basic Usage
 
 ```ts
-import { Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GenuiRenderer } from '@opentiny/genui-sdk-angular';
 
 @Component({
   imports: [GenuiRenderer],
   template: `
-    <genui-renderer [content]="content" [generating]="generating" [state]="savedState" />
+    <genui-renderer [content]="content" [generating]="generating" />
   `,
 })
-export class GenuiExample {
+export class GenuiExample implements AfterViewInit {
+  @ViewChild(GenuiRenderer) renderer!: GenuiRenderer;
+
   generating = false;
   content = {};
 
@@ -33,6 +35,11 @@ export class GenuiExample {
       age: 30,
     },
   };
+
+  // Inject state after view init, when the renderer instance is ready
+  ngAfterViewInit() {
+    this.renderer.setState(this.savedState);
+  }
 }
 ```
 
@@ -57,6 +64,7 @@ const customActions = {
 
 ## Notes
 
-1. **Init-only merge**: State is merged only on init; later updates are ignored.
-2. **History replay**: Intended for restoring saved conversation state.
-3. **Serializable data**: Avoid functions, DOM nodes, and other non-serializable values.
+1. **Merged updates**: `setState` shallow-merges into existing state; fields you do not pass are preserved.
+2. **Streaming updates**: Every schema update resets the state from the schema, so re-call `setState` after an update if the state must be kept.
+3. **History replay**: Intended for restoring saved conversation state.
+4. **Serializable data**: Avoid functions, DOM nodes, and other non-serializable values.
