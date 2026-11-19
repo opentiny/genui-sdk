@@ -1,0 +1,37 @@
+.schema-render-container {
+  width: 100%;
+  min-width: 0;
+}
+
+/* 移动端物料给 TinyCard 默认开了 auto-width，它因此失去了 w-96（384px）的固有宽度。 
+外层气泡 wrapper 按内容定宽就塌了，所以才需要在气泡层用 flex: 1 1 auto 把宽度重新撑起来。*/
+.tr-bubble__content-wrapper:has(.schema-render-container) {
+  flex: 1 1 auto;
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.tr-bubble__content-wrapper:has(.schema-render-container) .tr-bubble__content,
+.tr-bubble__content-wrapper:has(.schema-render-container) .tr-bubble__content-items {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 模型习惯给页面根节点写 min-height: 100vh；聊天卡片不是视口，会撑出一整屏空白 */
+.schema-render-container > [data-tag] {
+  min-height: 0 !important;
+}
+
+/* 避免模型按整页布局常给卡片写左右 margin，和满宽的图片、粘性栏混排时各区块左右边缘参差 */
+.schema-render-container [data-tag='TinyCard'] {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* 按钮自带 overflow-hidden，作为 flex 项时 min-width 解析为 0；
+   容易被挤到只剩省略号。撑到文字宽度，同时不影响模型写的 flex: 1 */
+.schema-render-container [data-tag='TinyButton'],
+.schema-render-container [data-tag='tiny-button'] {
+  min-width: max-content;
+}

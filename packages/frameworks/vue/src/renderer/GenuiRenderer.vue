@@ -31,6 +31,11 @@ const callAction = (actionName: string, params: any) => {
 
 const materials = inject<IMaterials>(GENUI_MATERIALS, {});
 const genuiConfig = inject(GENUI_CONFIG, null);
+
+const materialsMode = materials.mode;
+if (materialsMode === 'pc' || materialsMode === 'mobile-first') {
+  provide('TinyMode', materialsMode);
+}
 const customSettings = inject(RENDERER_SETTINGS_KEY, {}) as Record<string, any>;
 
 watch(() => props.customComponents, (newVal) => {
