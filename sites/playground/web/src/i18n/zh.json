@@ -85,9 +85,9 @@
     "timeBucket": {
       "today": "今天",
       "yesterday": "昨天",
-      "twoDaysAgo": "两天前",
-      "aWeekAgo": "一周前",
-      "aMonthAgo": "一个月前"
+      "pastWeek": "近一周",
+      "pastMonth": "近一个月",
+      "earlier": "一个月以前"
     }
   },
   "template": {

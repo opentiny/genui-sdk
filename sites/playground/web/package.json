@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@opentiny/genui-sdk-core": "workspace:*",
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:*",
     "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
     "@opentiny/genui-sdk-vue": "workspace:*",

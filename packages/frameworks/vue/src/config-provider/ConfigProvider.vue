@@ -1,29 +1,11 @@
 <script setup lang="ts">
 import { ThemeProvider } from '@opentiny/tiny-robot';
-import {
-  type IMaterialsTheme,
-  type MaterialsThemeFactory,
-  type MergedMaterials,
-  type IThemeApplyResult,
-  type ThemeColorScheme,
-} from '@opentiny/genui-sdk-core';
-import {
-  watch,
-  provide,
-  inject,
-  computed,
-  ref,
-  shallowRef,
-  onBeforeUnmount,
-  defineComponent,
-  h,
-  type Component,
-  type PropType,
-  type VNode,
-} from 'vue';
+import type { MergedMaterials } from '@opentiny/genui-sdk-core';
+import { watch, provide, inject, computed } from 'vue';
 import { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-renderer';
 import { I18nMessages, useI18n } from '../chat/i18n';
 import { GENUI_I18N, GENUI_CONFIG, GENUI_MATERIALS } from './injection-tokens';
+import { MaterialsRuntimeRoots, useMaterialsRuntime } from './use-materials-runtime';
 import { useMediaTheme } from './use-media-theme';
 import type { NotifyHandler } from './notify.types';
 
@@ -47,36 +29,12 @@ const i18n = useI18n();
 provide(GENUI_I18N, i18n);
 
 const { theme: mediaTheme } = useMediaTheme();
-
-const themeFactories = computed<MaterialsThemeFactory[]>(() => {
-  const themeFactory = props.materials?.themeFactory;
-  if (!themeFactory) {
-    return [];
-  }
-  return Array.isArray(themeFactory) ? themeFactory : [themeFactory];
+const { colorScheme, runtimeRoots } = useMaterialsRuntime({
+  materials: () => props.materials,
+  theme: () => props.theme,
+  locale: () => props.locale,
+  systemColorScheme: mediaTheme,
 });
-
-const themeInstances = new Map<MaterialsThemeFactory, IMaterialsTheme>();
-
-function resolveThemeInstances(factories: MaterialsThemeFactory[]) {
-  for (const key of themeInstances.keys()) {
-    if (!factories.includes(key)) {
-      themeInstances.delete(key);
-    }
-  }
-  return factories.map((factory) => {
-    let instance = themeInstances.get(factory);
-    if (!instance) {
-      instance = factory();
-      themeInstances.set(factory, instance);
-    }
-    return instance;
-  });
-}
-
-const theme = computed(() => props.theme || 'light');
-
-const colorScheme = ref<ThemeColorScheme>('light');
 
 const genuiConfig = computed(() => ({
   colorScheme: colorScheme.value,
@@ -86,9 +44,13 @@ const genuiConfig = computed(() => ({
 provide(GENUI_CONFIG, genuiConfig);
 
 const internalMaterials = {};
-watch(() => props.materials, (newVal) => {
-  Object.assign(internalMaterials, newVal);
-}, { immediate: true });
+watch(
+  () => props.materials,
+  (newVal) => {
+    Object.assign(internalMaterials, newVal);
+  },
+  { immediate: true },
+);
 
 provide(GENUI_MATERIALS, internalMaterials);
 
@@ -116,66 +78,6 @@ watch(
   { immediate: true },
 );
 
-const ThemeRoots = defineComponent({
-  name: 'ThemeRoots',
-  props: {
-    roots: { type: Array as PropType<Component[]>, required: true },
-  },
-  setup(props, { slots }) {
-    return () => {
-      const children = slots.default?.() ?? [];
-      return props.roots.reduceRight<VNode | VNode[]>(
-        (acc, root) => h(root, {}, () => acc),
-        children,
-      );
-    };
-  },
-});
-
-const themeRoots = shallowRef<Component[]>([]);
-
-let applied: IThemeApplyResult[] = [];
-
-function clearTheme() {
-  const pending = applied;
-  applied = [];
-  pending.forEach((item) => item.dispose?.());
-}
-
-watch(
-  () => [themeFactories.value, theme.value, mediaTheme.value, props.id] as const,
-  ([factories, themeValue, systemColorScheme]) => {
-    const apis = resolveThemeInstances(factories);
-    clearTheme();
-    const results: IThemeApplyResult[] = [];
-    const roots: Component[] = [];
-
-    for (const api of apis) {
-      const result = api.apply(themeValue, { systemColorScheme });
-      if (result.root) {
-        roots.push(result.root as Component);
-      }
-      results.push(result);
-      applied.push(result);
-    }
-
-    themeRoots.value = roots;
-    colorScheme.value =
-      results.find((result) => result.descriptor.colorScheme)?.descriptor.colorScheme ??
-      (themeValue === 'auto'
-        ? systemColorScheme
-        : themeValue === 'dark'
-          ? 'dark'
-          : 'light');
-  },
-  { immediate: true },
-);
-
-onBeforeUnmount(() => {
-  clearTheme();
-  themeInstances.clear();
-});
-
 const robotProviderProps = computed(() => ({
   colorMode: colorScheme.value,
   targetElement: `#${props.id}`,
@@ -185,9 +87,9 @@ const robotProviderProps = computed(() => ({
 <template>
   <div :id="props.id" class="tg-config-provider">
     <ThemeProvider v-bind="robotProviderProps">
-      <ThemeRoots :roots="themeRoots">
+      <MaterialsRuntimeRoots :roots="runtimeRoots">
         <slot />
-      </ThemeRoots>
+      </MaterialsRuntimeRoots>
     </ThemeProvider>
   </div>
 </template>

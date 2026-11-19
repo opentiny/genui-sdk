@@ -15,14 +15,14 @@ See [Core - IMaterials](../core/api#imaterials) / [IMaterialsMeta](../core/api#i
 ## materials
 
 - **Type**: `IMaterials`
-- **Description**: OpenTiny NG component map for ConfigProvider.
+- **Description**: OpenTiny NG component map for ConfigProvider. Its `runtimeFactory` declares `zh_CN` / `en_US` / `es_US` / `fr_FR` / `pt_BR` on `locales`. Driven by the ConfigProvider `locale` input, it matches the canonical id and calls `TiLocale.setLocale`. This runtime's `apply()` returns only `locale` and no `root`, and it does not manage themes. Locale is a TinyNG global setting, so already-mounted components do not react automatically; recreate the rendered content when switching locales (the playground's Angular CE remounts).
 
 ```typescript
 import { materials } from '@opentiny/genui-sdk-materials-angular-opentiny-ng/materials';
 ```
 
 ```html
-<genui-config-provider [materials]="materials">
+<genui-config-provider [materials]="materials" locale="zh_CN">
   <genui-renderer ... />
 </genui-config-provider>
 ```

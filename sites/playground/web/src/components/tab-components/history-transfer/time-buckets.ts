@@ -3,9 +3,9 @@ import { t } from '../../../i18n';
 export enum TimeBucketKey {
   Today = 'today',
   Yesterday = 'yesterday',
-  TwoDaysAgo = 'twoDaysAgo',
-  AWeekAgo = 'aWeekAgo',
-  AMonthAgo = 'aMonthAgo',
+  PastWeek = 'pastWeek',
+  PastMonth = 'pastMonth',
+  Earlier = 'earlier',
 };
 
 export type TimeBucketLabel = (typeof TimeBucketKey)[keyof typeof TimeBucketKey];
@@ -13,9 +13,9 @@ export type TimeBucketLabel = (typeof TimeBucketKey)[keyof typeof TimeBucketKey]
 export const TIME_BUCKET_LABELS = [
   TimeBucketKey.Today,
   TimeBucketKey.Yesterday,
-  TimeBucketKey.TwoDaysAgo,
-  TimeBucketKey.AWeekAgo,
-  TimeBucketKey.AMonthAgo,
+  TimeBucketKey.PastWeek,
+  TimeBucketKey.PastMonth,
+  TimeBucketKey.Earlier,
 ] as const satisfies readonly TimeBucketLabel[];
 
 export const getTimeBucketDisplayLabel = (label: TimeBucketLabel): string =>
@@ -36,11 +36,11 @@ export const calendarDayDiffFromToday = (createdAtMs: number, nowMs: number) => 
 
 /**
  * 按本地日历日，根据 `createdAt` 归入时间桶。
- * 无合法 `createdAt` 时归入 一个月之前。
+ * 无合法 `createdAt` 时归入“更早”。
  */
 export const timeBucketLabelForCreatedAt = (createdAt: unknown, nowMs: number = Date.now()): TimeBucketLabel => {
-  if (typeof createdAt !== 'number' || Number.isNaN(createdAt)) {
-    return TimeBucketKey.AMonthAgo;
+  if (typeof createdAt !== 'number' || !Number.isFinite(createdAt)) {
+    return TimeBucketKey.Earlier;
   }
 
   const dayDiff = calendarDayDiffFromToday(createdAt, nowMs);
@@ -50,13 +50,13 @@ export const timeBucketLabelForCreatedAt = (createdAt: unknown, nowMs: number = 
   if (dayDiff === 1) {
     return TimeBucketKey.Yesterday;
   }
-  if (dayDiff === 2) {
-    return TimeBucketKey.TwoDaysAgo;
-  }
   if (dayDiff < 7) {
-    return TimeBucketKey.AWeekAgo;
+    return TimeBucketKey.PastWeek;
   }
-  return TimeBucketKey.AMonthAgo;
+  if (dayDiff < 30) {
+    return TimeBucketKey.PastMonth;
+  }
+  return TimeBucketKey.Earlier;
 };
 
 type WithCreatedAt = { createdAt?: unknown };
