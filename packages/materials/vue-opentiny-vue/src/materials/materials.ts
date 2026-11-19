@@ -2,6 +2,7 @@ import { buildMaterialDefaultValueMap, type IMaterials } from '@opentiny/genui-s
 import { materialsMeta, miniMaterialsMeta, plusMaterialsMeta } from '../meta';
 import { components } from './components';
 import { themeFactory } from './theme';
+import { utils } from './utils';
 
 const baseRequiredCompleteFieldSelectors = [
   '[componentName=TinyNumeric] > props > controlsPosition',
@@ -27,6 +28,7 @@ export const materials: IMaterials = {
   requiredCompleteFieldSelectors: standardRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
   themeFactory,
+  utils,
 };
 
 export const miniMaterials: IMaterials = {
@@ -34,6 +36,7 @@ export const miniMaterials: IMaterials = {
   requiredCompleteFieldSelectors: baseRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(miniMaterialsMeta),
   themeFactory,
+  utils,
 };
 
 export const plusMaterials: IMaterials = {
@@ -41,4 +44,5 @@ export const plusMaterials: IMaterials = {
   requiredCompleteFieldSelectors: plusRequiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(plusMaterialsMeta),
   themeFactory,
+  utils,
 };

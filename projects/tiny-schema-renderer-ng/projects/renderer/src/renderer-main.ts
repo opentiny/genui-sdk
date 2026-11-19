@@ -9,6 +9,7 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { RendererContextService } from './context.service';
+import { getMaterials } from './parser/material-getter';
 import { parseData } from './parser/schema-parser';
 import { getPageLifeCycleFns } from './life-cycles';
 import { setPageCss } from './css/page-css';
@@ -183,6 +184,9 @@ export class RendererMain implements OnDestroy {
     };
     this.contextService.setContext(context, true);
     this.applyRendererSettings();
+    // 注入物料包注册的 utils，与 base / React 渲染器一致：JSFunction / JSExpression 中通过 this.utils.xxx 调用
+    const materials = getMaterials(this.contextService.getContext());
+    this.contextService.setContext({ utils: materials.utils ?? {} });
     this.setMethods(newSchema.methods || {}, true);
     this._setState(newSchema.state || {}, true);
     this._setRefs(newSchema.refs || {}, true);

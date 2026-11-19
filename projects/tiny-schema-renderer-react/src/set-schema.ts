@@ -1,5 +1,6 @@
 import { handleScopedCss, parseData } from './engine';
 import { getPageLifeCycleFns, type LifeCycleFn, type LifeCycles } from './life-cycles';
+import { getMaterials } from './materials';
 import type { CardSchema } from './types';
 import type { PageContextApi } from './use-context';
 
@@ -108,12 +109,12 @@ export async function setSchema(
       return;
     }
 
-    const cssScopeId =
-      contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+    const cssScopeId = contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
     const nextContext = { ...contextApi.getContext() };
+    const materials = getMaterials(contextApi.getContext());
     delete nextContext.state;
     delete nextContext.refs;
-    contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId }, true);
+    contextApi.setContext({ ...nextContext, state: {}, refs: {}, cssScopeId, utils: materials?.utils ?? {} }, true);
 
     setMethods(schema.methods as Record<string, unknown> | undefined, contextApi, true);
     setState(schema.state as Record<string, unknown> | undefined, contextApi, true);
