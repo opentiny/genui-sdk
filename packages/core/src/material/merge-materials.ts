@@ -3,6 +3,14 @@ import type { MaterialsThemeFactory } from './materials-theme';
 
 const handleKeys = ['components', 'requiredCompleteFieldSelectors', 'defaultPropsMap', 'themeFactory'];
 
+// These are name → value maps. A later pack may ship an empty map (Angular Material
+// standalone components do). Replacing the whole map would drop earlier NgModules.
+const recordKeys = ['modules', 'directives', 'autoApplyDirectives', 'directivesModuleMap', 'blocks'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMaterials {
   const components: Record<string, unknown> = {};
   const requiredCompleteFieldSelectors: string[] = [];
@@ -32,9 +40,16 @@ export function mergeMaterials(...sources: (IMaterials | undefined)[]): MergedMa
       }
     }
     for (const key of Object.keys(src)) {
-      if (!handleKeys.includes(key)) {
-        extra[key] = (src as Record<string, unknown>)[key];
+      if (handleKeys.includes(key)) {
+        continue;
       }
+      const incoming = (src as Record<string, unknown>)[key];
+      if (recordKeys.includes(key) && isRecord(incoming)) {
+        const current = extra[key];
+        extra[key] = { ...(isRecord(current) ? current : {}), ...incoming };
+        continue;
+      }
+      extra[key] = incoming;
     }
   }
 

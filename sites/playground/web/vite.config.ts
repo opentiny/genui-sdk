@@ -64,7 +64,11 @@ export default defineConfig(({ command }) => {
       dedupe: ['react', 'react-dom'],
     },
     optimizeDeps: {
-      exclude: ['monaco-editor', 'monaco-editor-vue3'],
+      exclude: [
+        'monaco-editor',
+        'monaco-editor-vue3',
+        '@opentiny/genui-sdk-angular',
+      ],
     },
     build: {
       rollupOptions: {

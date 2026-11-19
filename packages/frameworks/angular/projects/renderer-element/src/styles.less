@@ -1,6 +1,96 @@
+/* Ligature font for MatIcon fontIcon — must be global, not nested in the CE host. */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url('https://fonts.gstatic.com/s/materialicons/v143/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2') format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Overlay attaches to document.body, so these rules must stay global. */
+@import (inline) '@angular/cdk/overlay-prebuilt.css';
+
 genui-renderer-ng-element {
+  @import (multiple, inline) '@angular/material/prebuilt-themes/azure-blue.css';
   @import (multiple, inline) '@opentiny/ng-themes/styles.css';
   @import (multiple, inline) '@opentiny/ng-themes/theme-default.css';
+}
+
+/* MatSelect / menu / datepicker panels are attached here, not inside the CE. */
+.cdk-overlay-container {
+  @import (multiple, inline) '@angular/material/prebuilt-themes/azure-blue.css';
+}
+
+/* After postbuild unwraps `html`/`body` onto this host, keep the CE canvas
+   transparent so playground cards show through. Cards / overlays stay opaque. */
+genui-renderer-ng-element {
+  --mat-sys-background: transparent;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-surface-dim: #ffffff;
+  --mat-sys-surface-bright: #ffffff;
+  --mat-sys-surface-container: #ffffff;
+  --mat-sys-surface-container-low: #ffffff;
+  --mat-sys-surface-container-lowest: #ffffff;
+  --mat-sys-surface-container-high: #ffffff;
+  --mat-sys-surface-container-highest: #ffffff;
+  --mat-sys-surface-variant: #ffffff;
+  color-scheme: light;
+  background-color: transparent;
+  display: block;
+}
+
+genui-renderer-ng-element .mat-toolbar.mat-primary {
+  --mat-toolbar-container-background-color: var(--mat-sys-primary);
+  --mat-toolbar-container-text-color: var(--mat-sys-on-primary);
+}
+
+genui-renderer-ng-element .mat-toolbar.mat-accent {
+  --mat-toolbar-container-background-color: var(--mat-sys-secondary);
+  --mat-toolbar-container-text-color: var(--mat-sys-on-secondary);
+}
+
+genui-renderer-ng-element .mat-toolbar.mat-warn {
+  --mat-toolbar-container-background-color: var(--mat-sys-error);
+  --mat-toolbar-container-text-color: var(--mat-sys-on-error);
+}
+
+genui-renderer-ng-element .mat-toolbar.mat-primary,
+genui-renderer-ng-element .mat-toolbar.mat-accent,
+genui-renderer-ng-element .mat-toolbar.mat-warn {
+  --mat-icon-color: var(--mat-toolbar-container-text-color);
+  --mat-icon-button-icon-color: var(--mat-toolbar-container-text-color);
+  --mat-icon-button-state-layer-color: var(--mat-toolbar-container-text-color);
+}
+
+genui-renderer-ng-element .mat-mdc-card {
+  --mat-card-elevated-container-color: #ffffff;
+  --mat-card-outlined-container-color: #ffffff;
+  --mat-card-filled-container-color: #ffffff;
+}
+
+.cdk-overlay-container {
+  --mat-sys-background: #ffffff;
+  --mat-sys-surface: #ffffff;
+  --mat-sys-surface-container: #ffffff;
+  --mat-sys-surface-container-low: #ffffff;
+  --mat-sys-surface-container-high: #ffffff;
+  --mat-sys-surface-container-highest: #ffffff;
+  color-scheme: light;
 }
 
 ti-drop {
