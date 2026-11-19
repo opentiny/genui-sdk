@@ -1,6 +1,7 @@
 import type { IMaterialsMeta, IMaterialsProtocol } from '@opentiny/genui-sdk-core';
 import { generateCode as generateVueCode } from '@opentiny/genui-sdk-vue/code-generator';
 import { materialsMeta } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/meta';
+import { runCodeExport } from '../utils';
 
 type IComponentMapItem = {
   componentName: string;
@@ -52,35 +53,20 @@ const getComponentsMap = (meta?: IMaterialsMeta) => {
   return map;
 };
 
-const downloadTextFile = (filename: string, text: string): void => {
-  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = /\.vue$/i.test(filename) ? filename : `${filename}.vue`;
-  link.rel = 'noopener';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-};
-
 export const useExportVueCode = (meta: IMaterialsMeta = materialsMeta) => {
   const componentsMap = getComponentsMap(meta);
 
-  const exportVueCode = async (schema: any): Promise<void> => {
-    const { panelValue: code, panelName: fileName, errors } = await generateVueCode({
-      pageInfo: { schema },
-      componentsMap,
-      formatWithPrettier: true,
-    });
-
-    if (errors?.length) {
-      console.error('生成代码校验出错：', errors);
-    }
-
-    downloadTextFile(fileName, code);
-  };
+  const exportVueCode = (schema: any) =>
+    runCodeExport(
+      () =>
+        generateVueCode({
+          pageInfo: { schema },
+          componentsMap,
+          formatWithPrettier: true,
+        }),
+      'SchemaCard.vue',
+      '.vue',
+    );
 
   return {
     exportVueCode,

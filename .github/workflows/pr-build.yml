@@ -31,4 +31,7 @@ jobs:
         run: pnpm --filter @opentiny/tiny-schema-renderer-react test
 
       - name: Build
+        env:
+          # playground 引入了 Angular 出码器与 @angular/compiler,默认约 4GB 的堆在 vite 渲染 chunk 阶段会 OOM
+          NODE_OPTIONS: --max_old_space_size=8192
         run: pnpm build

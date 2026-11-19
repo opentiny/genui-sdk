@@ -43,3 +43,7 @@ __screenshots__/
 Thumbs.db
 
 /output
+
+# 根 workspace 统一管理依赖（见仓库根 pnpm-lock.yaml）
+/pnpm-lock.yaml
+/package-lock.json
