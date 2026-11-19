@@ -1,6 +1,6 @@
 import type { BubbleRoleConfig, BubbleProps } from '@opentiny/tiny-robot';
 import type { Component } from 'vue';
-import type { IRendererSlots } from '../renderer';
+import type { IRendererProps, IRendererSlots } from '../renderer';
 import type { UseMessageReturn } from '@opentiny/tiny-robot-kit';
 import type {
   INotificationPayload,
@@ -20,6 +20,10 @@ export interface IRolesConfig {
   assistant: Partial<BubbleRoleConfig>;
 }
 
+export interface ISchemaCardProps extends IRendererProps {
+  id?: string;
+  state?: Record<string, any>;
+}
 
 // 自定义组件项，扩展 IGenPromptComponent 添加 ref（组件引用）
 export interface ICustomComponentItem extends IGenPromptComponent {
