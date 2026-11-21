@@ -1,7 +1,15 @@
 import { StrictMode, type ReactNode } from 'react';
 import { cleanup, fireEvent, render, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { defineBlock, getBlock, getSchemaIOKeys, loadBlock, type BlockSchema } from '../src/block';
+import {
+  defineBlock,
+  getBlock,
+  getBlockEventNames,
+  getBlockPropertyNames,
+  getBlockSlotNames,
+  loadBlock,
+  type BlockSchema,
+} from '../src/block';
 import type { RootNode } from '../src/types';
 import { SchemaRenderer } from '../src/RenderMain';
 import { RendererContextProvider } from '../src/RendererContextProvider';
@@ -9,8 +17,14 @@ import { RendererContextProvider } from '../src/RendererContextProvider';
 const cardBlock: BlockSchema = {
   componentName: 'InfoCard',
   state: { visits: 3 },
-  inputs: { title: { type: 'string' } },
-  outputs: { change: { type: 'number' } },
+  schema: {
+    properties: [{ content: [{ property: 'title', type: 'string' }] }],
+    events: { onChange: { type: 'event', functionInfo: { params: [{ name: 'value', type: 'number' }] } } },
+    slots: {
+      header: { params: ['title'] },
+      footer: {},
+    },
+  },
   children: [
     {
       componentName: 'Text',
@@ -35,6 +49,7 @@ const cardBlock: BlockSchema = {
       componentName: 'Slot',
       props: { name: 'footer' },
     },
+    { componentName: 'Slot' },
     {
       componentName: 'button',
       props: {
@@ -97,31 +112,17 @@ describe('schema block', () => {
     expect(container.querySelector('.builtin-header')?.textContent).toBe('builtin-header');
   });
 
-  it('renders Slot fallback when the consumer Template has no children', () => {
+  it('renders consumer JSSlot slots with block params and consumer context', () => {
     const { container } = renderPage(
       createPageSchema([
         {
           componentName: 'InfoCard',
-          props: { title: 'Current' },
-          children: [{ componentName: 'Template', props: { slot: 'header' } }],
-        },
-      ]),
-    );
-
-    expect(container.querySelector('.builtin-header')?.textContent).toBe('builtin-header');
-  });
-
-  it('renders consumer Template slots with block params and consumer context', () => {
-    const { container } = renderPage(
-      createPageSchema([
-        {
-          componentName: 'InfoCard',
-          props: { title: 'Current' },
-          children: [
-            {
-              componentName: 'Template',
-              props: { slot: 'header', params: ['title'] },
-              children: [
+          props: {
+            title: 'Current',
+            header: {
+              type: 'JSSlot',
+              params: ['title'],
+              value: [
                 {
                   componentName: 'Text',
                   props: {
@@ -131,10 +132,9 @@ describe('schema block', () => {
                 },
               ],
             },
-            {
-              componentName: 'Template',
-              props: { slot: 'footer' },
-              children: [
+            footer: {
+              type: 'JSSlot',
+              value: [
                 {
                   componentName: 'Text',
                   props: {
@@ -144,7 +144,7 @@ describe('schema block', () => {
                 },
               ],
             },
-          ],
+          },
         },
       ]),
     );
@@ -156,7 +156,59 @@ describe('schema block', () => {
     expect(container.querySelector('.builtin-header')).toBeNull();
   });
 
-  it('dispatches declared output events to onXxx props', () => {
+  it('fills the default slot with consumer children', () => {
+    const { container } = renderPage(
+      createPageSchema([
+        {
+          componentName: 'InfoCard',
+          props: {
+            title: 'Current',
+            header: {
+              type: 'JSSlot',
+              value: [
+                {
+                  componentName: 'Text',
+                  props: {
+                    className: 'slot-header',
+                    text: { type: 'JSExpression', value: '`header:${this.state.pageCount}`' },
+                  },
+                },
+              ],
+            },
+            footer: {
+              type: 'JSSlot',
+              value: [
+                {
+                  componentName: 'Text',
+                  props: {
+                    className: 'slot-footer',
+                    text: { type: 'JSExpression', value: '`page:${this.state.pageCount}`' },
+                  },
+                },
+              ],
+            },
+          },
+          children: [
+            {
+              componentName: 'Text',
+              props: {
+                className: 'slot-default',
+                text: { type: 'JSExpression', value: '`default:${this.state.pageCount}`' },
+              },
+            },
+          ],
+        },
+      ]),
+    );
+
+    // children 进入默认插槽，表达式在使用方上下文求值
+    expect(container.querySelector('.slot-default')?.textContent).toBe('default:1');
+    // header/footer 插槽由 JSSlot 属性提供，兜底内容不渲染
+    expect(container.querySelector('.slot-header')?.textContent).toBe('header:1');
+    expect(container.querySelector('.builtin-header')).toBeNull();
+  });
+
+  it('dispatches declared events to onXxx props', () => {
     const { getByTestId } = renderPage(
       createPageSchema([
         {
@@ -173,11 +225,47 @@ describe('schema block', () => {
     expect((globalThis as Record<string, unknown>).__blockChange).toBe(3);
   });
 
-  it('warns when dispatching an event that is not declared in outputs', () => {
+  it('maps an unprefixed event name to the declared onXxx handler prop', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const eventBlock: BlockSchema = {
+      componentName: 'SelectBlock',
+      schema: { events: { onSelect: { type: 'event' } } },
+      children: [
+        {
+          componentName: 'button',
+          props: {
+            'data-testid': 'select-event',
+            onClick: { type: 'JSFunction', value: "function() { this.dispatchEvent('select', 7) }" },
+          },
+          children: 'select',
+        },
+      ],
+    };
+
+    const { getByTestId } = render(
+      <RendererContextProvider
+        renderSettings={{ materials: { components: {}, blocks: { SelectBlock: eventBlock } } }}
+      >
+        <SchemaRenderer schema={createPageSchema([
+          {
+            componentName: 'SelectBlock',
+            props: { onSelect: { type: 'JSFunction', value: 'function(value) { window.__blockChange = value }' } },
+          },
+        ])} />
+      </RendererContextProvider>,
+    );
+
+    fireEvent.click(getByTestId('select-event'));
+    expect((globalThis as Record<string, unknown>).__blockChange).toBe(7);
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
+  it('warns when dispatching an event that is not declared in events', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const schema: BlockSchema = {
       componentName: 'WarningBlock',
-      outputs: { change: { type: 'number' } },
+      schema: { events: { onChange: { type: 'event' } } },
       children: [
         {
           componentName: 'button',
@@ -252,7 +340,7 @@ describe('schema block', () => {
   it('supports nested blocks', () => {
     const outerBlock: BlockSchema = {
       componentName: 'OuterBlock',
-      inputs: { label: { type: 'string' } },
+      schema: { properties: [{ content: [{ property: 'label', type: 'string' }] }] },
       children: [
         {
           componentName: 'Text',
@@ -302,35 +390,26 @@ describe('schema block', () => {
     expect(container.querySelector('.manual-header')?.textContent).toBe('manual:Manual');
   });
 
-  it('supports array-style inputs/outputs declarations', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const arrayIOBlock: BlockSchema = {
-      componentName: 'ArrayIOBlock',
-      inputs: [{ name: 'title', type: 'string' }],
-      outputs: [{ name: 'change', type: 'number' }],
-      children: [
-        {
-          componentName: 'button',
-          props: {
-            'data-testid': 'array-io',
-            onClick: { type: 'JSFunction', value: "function() { this.dispatchEvent('change', 7) }" },
-          },
-          children: 'change',
-        },
-      ],
+  it('supports JSSlot value as a single node object', () => {
+    const singleSlotBlock: BlockSchema = {
+      componentName: 'SingleSlotBlock',
+      schema: { slots: { footer: {} } },
+      children: [{ componentName: 'Slot', props: { name: 'footer' } }],
     };
 
-    const { getByTestId } = render(
+    const { container } = render(
       <RendererContextProvider
-        renderSettings={{ materials: { components: {}, blocks: { ArrayIOBlock: arrayIOBlock } } }}
+        renderSettings={{ materials: { components: {}, blocks: { SingleSlotBlock: singleSlotBlock } } }}
       >
         <SchemaRenderer
           schema={createPageSchema([
             {
-              componentName: 'ArrayIOBlock',
+              componentName: 'SingleSlotBlock',
               props: {
-                title: 'array',
-                onChange: { type: 'JSFunction', value: 'function(value) { window.__blockChange = value }' },
+                footer: {
+                  type: 'JSSlot',
+                  value: { componentName: 'Text', props: { text: 'single-node-slot' } },
+                },
               },
             },
           ])}
@@ -338,10 +417,37 @@ describe('schema block', () => {
       </RendererContextProvider>,
     );
 
-    fireEvent.click(getByTestId('array-io'));
-    expect((globalThis as Record<string, unknown>).__blockChange).toBe(7);
-    expect(warn).not.toHaveBeenCalled();
-    warn.mockRestore();
+    expect(container.textContent).toContain('single-node-slot');
+  });
+
+  it('renders a lowercase slot component name', () => {
+    const lowerSlotBlock: BlockSchema = {
+      componentName: 'LowerSlotBlock',
+      schema: { slots: { footer: {} } },
+      children: [{ componentName: 'slot', props: { name: 'footer' } }],
+    };
+
+    const { container } = render(
+      <RendererContextProvider
+        renderSettings={{ materials: { components: {}, blocks: { LowerSlotBlock: lowerSlotBlock } } }}
+      >
+        <SchemaRenderer
+          schema={createPageSchema([
+            {
+              componentName: 'LowerSlotBlock',
+              props: {
+                footer: {
+                  type: 'JSSlot',
+                  value: [{ componentName: 'Text', props: { text: 'lower-slot' } }],
+                },
+              },
+            },
+          ])}
+        />
+      </RendererContextProvider>,
+    );
+
+    expect(container.textContent).toContain('lower-slot');
   });
 
   it('shares css scope and style element between same-name blocks', async () => {
@@ -373,40 +479,10 @@ describe('schema block', () => {
     });
   });
 
-  it('supports lowercase slot component name', () => {
-    const lowerSlotBlock: BlockSchema = {
-      componentName: 'LowerSlotBlock',
-      children: [{ componentName: 'slot', props: { name: 'footer' } }],
-    };
-
-    const { container } = render(
-      <RendererContextProvider
-        renderSettings={{ materials: { components: {}, blocks: { LowerSlotBlock: lowerSlotBlock } } }}
-      >
-        <SchemaRenderer
-          schema={createPageSchema([
-            {
-              componentName: 'LowerSlotBlock',
-              children: [
-                {
-                  componentName: 'Template',
-                  props: { slot: 'footer' },
-                  children: [{ componentName: 'Text', props: { text: 'lower-slot' } }],
-                },
-              ],
-            },
-          ])}
-        />
-      </RendererContextProvider>,
-    );
-
-    expect(container.textContent).toContain('lower-slot');
-  });
-
-  it('exposes block helpers aligned with the Vue renderer', () => {
-    expect(getSchemaIOKeys({ title: { type: 'string' } })).toEqual(['title']);
-    expect(getSchemaIOKeys([{ name: 'title' }, { type: 'string' }])).toEqual(['title']);
-    expect(getSchemaIOKeys(null)).toEqual([]);
+  it('exposes block helpers aligned with the bundle-style declarations', () => {
+    expect(getBlockPropertyNames(cardBlock)).toEqual(['title']);
+    expect(getBlockEventNames(cardBlock)).toEqual(['onChange']);
+    expect(getBlockSlotNames(cardBlock)).toEqual(['header', 'footer']);
     expect(getBlock('Missing', { InfoCard: cardBlock })).toBeNull();
     expect(getBlock('InfoCard', { InfoCard: cardBlock })).toBe(loadBlock('InfoCard', { InfoCard: cardBlock }));
   });

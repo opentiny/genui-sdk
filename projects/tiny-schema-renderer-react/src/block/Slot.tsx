@@ -29,7 +29,7 @@ function toSlotScope(params: SlotProps['params']): Record<string, unknown> {
   return typeof params === 'object' ? { ...(params as Record<string, unknown>) } : {};
 }
 
-/** 区块内的插槽占位，由使用方的 Template 子节点填充 */
+/** 区块内的插槽占位，由使用方的 JSSlot 属性（具名插槽）或 children（默认插槽）填充 */
 export function Slot({ name = 'default', params, children }: SlotProps) {
   const block = useBlockContext();
   const renderSlot = block?.slots?.[name];

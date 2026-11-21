@@ -1,8 +1,7 @@
 import { useRef } from 'react';
 import { BLOCKS } from '../context-symbols';
 import type { PageContextApi } from '../use-context';
-import type { BlockCache } from './define-block';
-import type { BlockEventDispatcher } from './types';
+import type { BlockCache, BlockEventDispatcher } from './define-block';
 
 /** 自定义属性名只能小写，区块名按原样拼进去会被 React 告警 */
 function toScopeName(blockName: string) {

@@ -32,11 +32,12 @@ export function Example({ content }: { content: string }) {
 
 #### 区块（blocks）
 
-`materials.blocks` 用于注册区块。区块是带有输入输出声明的可复用 schema 片段，可以在渲染的 schema 中像普通组件一样按组件名使用。
+`materials.blocks` 用于注册区块。区块是可复用的 schema 片段，可以在渲染的 schema 中像普通组件一样按组件名使用。区块的声明结构与物料 bundle 中的组件定义一致，都放在 `schema` 字段下：
 
-- `inputs`：声明区块接收的属性，区块内的表达式通过 `this.props` 访问
-- `outputs`：声明区块派发的事件，使用方通过 `onXxx` 属性监听，区块内通过 `this.dispatchEvent(name, ...args)` 派发
-- `children`：区块内部 UI，可使用内置组件 `Slot` 声明插槽，使用方通过 `Template` 子节点填充
+- `schema.properties`：声明区块接收的属性（数组写法，按分组组织，`property` 为属性名），区块内的表达式通过 `this.props` 访问
+- `schema.events`：声明区块派发的事件，key 即使用方监听的属性名（如 `onExpand`，与 bundle 的组件事件声明一致）；区块内通过 `this.dispatchEvent(name, ...args)` 派发，`name` 写事件名（如 `expand`），渲染器自动映射为 on 前缀的属性名（`onExpand`）查找监听器
+- `schema.slots`：声明区块的插槽，key 为插槽名，`params` 声明插槽内容可访问的作用域参数
+- `children`：区块内部 UI，用内置组件 `Slot` 声明插槽出口；`Slot` 的 `params` 向插槽内容传作用域参数，`children` 是使用方未提供该插槽时的兜底内容
 
 ```tsx
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
@@ -46,11 +47,23 @@ import 'antd/dist/reset.css';
 const userCard = {
   componentName: 'UserCard',
   state: { expanded: false },
-  inputs: {
-    name: { type: 'string', description: '用户名称' },
-  },
-  outputs: {
-    expand: { type: 'boolean', description: '展开状态变化' },
+  schema: {
+    properties: [
+      {
+        label: { zh_CN: '基础属性' },
+        content: [{ property: 'name', type: 'string', description: { zh_CN: '用户名称' } }],
+      },
+    ],
+    events: {
+      onExpand: {
+        type: 'event',
+        description: { zh_CN: '展开状态变化' },
+        functionInfo: { params: [{ name: 'expanded', type: 'boolean' }], returns: {} },
+      },
+    },
+    slots: {
+      header: { description: { zh_CN: '自定义头部' }, params: ['name'] },
+    },
   },
   children: [
     {
@@ -69,10 +82,17 @@ const userCard = {
           value: "function() { this.state.expanded = !this.state.expanded; this.dispatchEvent('expand', this.state.expanded) }",
         },
       },
-      children: {
-        type: 'JSExpression',
-        value: '`${this.props.name}：${this.state.expanded ? "已展开" : "已收起"}`',
-      },
+      children: [
+        {
+          componentName: 'Text',
+          props: {
+            text: {
+              type: 'JSExpression',
+              value: '`${this.props.name}：${this.state.expanded ? "已展开" : "已收起"}`',
+            },
+          },
+        },
+      ],
     },
   ],
 };
@@ -86,7 +106,7 @@ export function Example({ content }: { content: string }) {
 }
 ```
 
-在 schema 中按组件名使用区块，通过 `Template` 填充具名插槽，插槽内容可以访问 `Slot` 声明的 `params`：
+在 schema 中按组件名使用区块：普通属性直接传值，事件通过声明过的属性名（如 `onExpand`）传 `JSFunction` 监听，具名插槽以 `JSSlot` 属性填充（`params` 声明插槽内容使用的参数名，`value` 为插槽节点），默认插槽直接写在区块节点的 `children`：
 
 ```json
 {
@@ -96,24 +116,28 @@ export function Example({ content }: { content: string }) {
     "onExpand": {
       "type": "JSFunction",
       "value": "function(expanded) { console.log(expanded) }"
-    }
-  },
-  "children": [
-    {
-      "componentName": "Template",
-      "props": { "slot": "header", "params": ["name"] },
-      "children": [
+    },
+    "header": {
+      "type": "JSSlot",
+      "params": ["name"],
+      "value": [
         {
           "componentName": "Text",
           "props": { "text": { "type": "JSExpression", "value": "`你好，${name}`" } }
         }
       ]
     }
+  },
+  "children": [
+    {
+      "componentName": "Text",
+      "props": { "text": "默认插槽内容" }
+    }
   ]
 }
 ```
 
-区块拥有独立的 `state`、`methods` 与 `refs`，与所在页面互不干扰；插槽内容属于使用方，其中的 `this.state` 指向使用方页面的状态。使用方未提供插槽时，渲染 `Slot` 的 `children` 作为兜底内容。
+区块拥有独立的 `state`、`methods` 与 `refs`，与所在页面互不干扰；插槽内容属于使用方，其中的 `this.state` 指向使用方页面的状态，区块通过 `Slot` 的 `params` 传出的参数优先于使用方作用域。使用方未提供插槽时，渲染 `Slot` 的 `children` 作为兜底内容。
 
 ## Children
 

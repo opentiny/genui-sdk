@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
-import type { BlockEventDispatcher, BlockSlots } from './types';
+import type { BlockEventDispatcher } from './define-block';
+import type { BlockSlots } from './slots';
 
 export interface BlockContextValue {
   name: string;

@@ -29,21 +29,23 @@ describe('SchemaRenderer SSR', () => {
       children: [
         {
           componentName: 'InfoCard',
-          props: { title: 'SSR block' },
-          children: [
-            {
-              componentName: 'Template',
-              props: { slot: 'header' },
-              children: [{ componentName: 'Text', props: { text: 'slot content' } }],
+          props: {
+            title: 'SSR block',
+            header: {
+              type: 'JSSlot',
+              value: [{ componentName: 'Text', props: { text: 'slot content' } }],
             },
-          ],
+          },
         },
       ],
     };
     const blocks = {
       InfoCard: {
         componentName: 'InfoCard',
-        inputs: { title: { type: 'string' } },
+        schema: {
+          properties: [{ content: [{ property: 'title', type: 'string' }] }],
+          slots: { header: { description: { zh_CN: '头部' } } },
+        },
         children: [
           { componentName: 'Text', props: { text: { type: 'JSExpression', value: 'this.props.title' } } },
           {

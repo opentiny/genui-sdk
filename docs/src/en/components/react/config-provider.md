@@ -32,11 +32,12 @@ See [React Ant Design materials](../materials/react-antd) for materials exports.
 
 #### Blocks
 
-`materials.blocks` registers blocks. A block is a reusable schema fragment with declared inputs and outputs, and can be used by name in a rendered schema just like a regular component.
+`materials.blocks` registers blocks. A block is a reusable schema fragment that can be used by name in a rendered schema just like a regular component. A block's declarations follow the same structure as component definitions in the materials bundle, placed under the `schema` field:
 
-- `inputs`: declares the props a block accepts; expressions inside the block read them via `this.props`
-- `outputs`: declares the events a block emits; consumers listen via `onXxx`, and the block emits via `this.dispatchEvent(name, ...args)`
-- `children`: the block's internal UI; use the built-in `Slot` component to declare slots, which consumers fill with `Template` children
+- `schema.properties`: declares the props a block accepts (grouped arrays, `property` is the prop name); expressions inside the block read them via `this.props`
+- `schema.events`: declares the events a block emits; the key is the prop name the consumer listens on (such as `onExpand`, aligned with bundle component event declarations). The block emits via `this.dispatchEvent(name, ...args)`, where `name` is the event name (such as `expand`); the renderer maps it to the on-prefixed prop name (`onExpand`) to find the listener
+- `schema.slots`: declares the block's slots; the key is the slot name and `params` declares the scope parameters available to slot content
+- `children`: the block's internal UI; use the built-in `Slot` component to declare slot outlets. `Slot`'s `params` passes scope parameters to slot content, and its `children` are the fallback rendered when the consumer provides no slot
 
 ```tsx
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
@@ -46,11 +47,23 @@ import 'antd/dist/reset.css';
 const userCard = {
   componentName: 'UserCard',
   state: { expanded: false },
-  inputs: {
-    name: { type: 'string', description: 'User name' },
-  },
-  outputs: {
-    expand: { type: 'boolean', description: 'Expand state changed' },
+  schema: {
+    properties: [
+      {
+        label: { zh_CN: '基础属性' },
+        content: [{ property: 'name', type: 'string', description: { zh_CN: '用户名称' } }],
+      },
+    ],
+    events: {
+      onExpand: {
+        type: 'event',
+        description: { zh_CN: '展开状态变化' },
+        functionInfo: { params: [{ name: 'expanded', type: 'boolean' }], returns: {} },
+      },
+    },
+    slots: {
+      header: { description: { zh_CN: '自定义头部' }, params: ['name'] },
+    },
   },
   children: [
     {
@@ -69,10 +82,17 @@ const userCard = {
           value: "function() { this.state.expanded = !this.state.expanded; this.dispatchEvent('expand', this.state.expanded) }",
         },
       },
-      children: {
-        type: 'JSExpression',
-        value: '`${this.props.name}: ${this.state.expanded ? "expanded" : "collapsed"}`',
-      },
+      children: [
+        {
+          componentName: 'Text',
+          props: {
+            text: {
+              type: 'JSExpression',
+              value: '`${this.props.name}: ${this.state.expanded ? "expanded" : "collapsed"}`',
+            },
+          },
+        },
+      ],
     },
   ],
 };
@@ -86,7 +106,7 @@ export function Example({ content }: { content: string }) {
 }
 ```
 
-Use the block by name in a schema, and fill named slots with `Template`. Slot content can access the `params` declared by `Slot`:
+Use the block by name in a schema: pass plain values to props, listen to events with a `JSFunction` on the declared prop name (such as `onExpand`), fill named slots with `JSSlot` props (`params` declares the parameter names used by the slot content, `value` holds the slot nodes), and put default slot content directly in the block node's `children`:
 
 ```json
 {
@@ -96,24 +116,28 @@ Use the block by name in a schema, and fill named slots with `Template`. Slot co
     "onExpand": {
       "type": "JSFunction",
       "value": "function(expanded) { console.log(expanded) }"
-    }
-  },
-  "children": [
-    {
-      "componentName": "Template",
-      "props": { "slot": "header", "params": ["name"] },
-      "children": [
+    },
+    "header": {
+      "type": "JSSlot",
+      "params": ["name"],
+      "value": [
         {
           "componentName": "Text",
           "props": { "text": { "type": "JSExpression", "value": "`Hello, ${name}`" } }
         }
       ]
     }
+  },
+  "children": [
+    {
+      "componentName": "Text",
+      "props": { "text": "Default slot content" }
+    }
   ]
 }
 ```
 
-A block has its own `state`, `methods`, and `refs`, isolated from the page that renders it. Slot content belongs to the consumer, so its `this.state` refers to the consumer page's state. When the consumer provides no slot, the `Slot`'s `children` are rendered as the fallback.
+A block has its own `state`, `methods`, and `refs`, isolated from the page that renders it. Slot content belongs to the consumer, so its `this.state` refers to the consumer page's state; parameters passed by the block via `Slot`'s `params` take precedence over the consumer scope. When the consumer provides no slot, the `Slot`'s `children` are rendered as the fallback.
 
 ## Children
 

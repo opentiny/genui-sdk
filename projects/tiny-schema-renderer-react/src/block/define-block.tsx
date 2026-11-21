@@ -2,7 +2,26 @@ import { createElement, useCallback, useRef, type ComponentType, type ReactNode 
 import { SchemaRenderer } from '../RenderMain';
 import { BLOCKS, MATERIALS } from '../context-symbols';
 import { BlockContext } from './block-context';
-import { getSchemaIOKeys, type BlockEventDispatcher, type BlockSchema, type BlockSlots } from './types';
+import type { BlockSchema } from './schema';
+import type { BlockSlots } from './slots';
+
+export type BlockEventDispatcher = (event: string, ...args: unknown[]) => void;
+
+/** 读取属性声明名（properties 各分组展开） */
+export function getBlockPropertyNames(schema?: BlockSchema | null): string[] {
+  const groups = schema?.schema?.properties;
+  if (!Array.isArray(groups)) return [];
+  return groups.flatMap((group) =>
+    (group?.content ?? []).map((item) => item?.property).filter((name): name is string => !!name),
+  );
+}
+
+/** 读取事件声明名（events 的 key，即使用方监听的属性名，如 onChange） */
+export function getBlockEventNames(schema?: BlockSchema | null): string[] {
+  const events = schema?.schema?.events;
+  if (!events || typeof events !== 'object') return [];
+  return Object.keys(events);
+}
 
 export interface SchemaBlockProps {
   slots?: BlockSlots;
@@ -31,12 +50,12 @@ function getHandlerName(event: string): string {
 }
 
 /**
- * 根据区块 schema 定义 React 组件：inputs 通过 this.props 读取，outputs 通过 this.dispatchEvent 派发，
- * schema 中的 Slot 由使用方的 Template 填充。注册到 materials.blocks 后即可按组件名使用，
+ * 根据 schema 定义 React 组件：属性通过 this.props 读取，事件通过 this.dispatchEvent 派发，
+ * schema 中的 Slot 由使用方的 JSSlot 属性（具名插槽）或 children（默认插槽）填充。注册到 materials.blocks 后即可按组件名使用，
  * 也可以像普通组件一样直接渲染，区块内部会自己挂载 SchemaRenderer。
  */
 export function defineBlock(name: string, schema: BlockSchema): SchemaBlockComponent {
-  const outputKeys = getSchemaIOKeys(schema.outputs);
+  const eventKeys = getBlockEventNames(schema);
 
   function SchemaBlock(props: SchemaBlockProps) {
     const propsRef = useRef(props);
@@ -47,13 +66,14 @@ export function defineBlock(name: string, schema: BlockSchema): SchemaBlockCompo
         console.warn(`[schema-renderer] Block "${name}" dispatchEvent expects an event name string.`);
         return;
       }
-      const handler = propsRef.current?.[getHandlerName(event)];
+      const handlerName = getHandlerName(event);
+      const handler = propsRef.current?.[handlerName];
       if (typeof handler === 'function') {
         (handler as (...payload: unknown[]) => void)(...args);
         return;
       }
       // 宿主未监听已声明的事件属正常情况，未声明才需要告警
-      if (!outputKeys.includes(event)) {
+      if (!eventKeys.includes(handlerName)) {
         console.warn(`[schema-renderer] Block "${name}" does not declare output event "${event}".`);
       }
     }, []);
