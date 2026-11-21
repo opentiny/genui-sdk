@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { RendererContextProvider, SchemaRenderer } from '../src';
-import { demos } from './mock';
+import { blocks, demos } from './mock';
 import { components } from './components';
 import { transformJSX } from '../src/transform-jsx';
 
-const renderSettings = { materials: { components }, transformJSX };
+const renderSettings = { materials: { components, blocks }, transformJSX };
 
 export function App() {
   const [activeId, setActiveId] = useState(demos[0].id);

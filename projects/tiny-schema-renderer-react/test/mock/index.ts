@@ -1,4 +1,5 @@
 import type { RootNode } from '../../src/types';
+import type { BlockSchema } from '../../src/block';
 import formValidationSchema from './form-validation.json';
 import tableSchema from './table.json';
 import tabsSchema from './tabs.json';
@@ -7,6 +8,8 @@ import stateTransitionsSchema from './state-transitions.json';
 import bindThisSchema from './bind-this.json';
 import jsxParseSchema from './jsx-parse.json';
 import cssScopeSchema from './css-scope.json';
+import blockSchema from './block.json';
+import blockPageSchema from './block-page.json';
 
 export interface DemoItem {
   id: string;
@@ -23,4 +26,9 @@ export const demos: DemoItem[] = [
   { id: 'jsx', label: 'JSX 解析', schema: jsxParseSchema as RootNode },
   { id: 'css-scope', label: 'CSS scope 化', schema: cssScopeSchema as RootNode },
   { id: 'empty', label: '空 children（Loading）', schema: emptyChildrenSchema as RootNode },
+  { id: 'block', label: '区块 + 插槽', schema: blockPageSchema as RootNode },
 ];
+
+export const blocks: Record<string, BlockSchema> = {
+  TestBlock: blockSchema as BlockSchema,
+};

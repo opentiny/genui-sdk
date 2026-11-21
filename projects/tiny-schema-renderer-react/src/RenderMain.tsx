@@ -1,19 +1,36 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
+import {
+  forwardRef,
+  useCallback,
+  useContext as reactUseContext,
+  useEffect,
+  useImperativeHandle,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import type { RootNode, Node } from './types';
 import { setDefaultSlotRenderer } from './engine';
 import { setCustomSettings } from './engine/use-custom-setting';
 import { useContext } from './use-context';
-import { PageContextProvider } from './page-context';
+import { PageContext, PageContextProvider, RENDERER_INSTANCE_ID } from './page-context';
 import { setSchema, setState } from './set-schema';
 import type { LifeCycleFn } from './life-cycles';
 import { SchemaNodeRenderer, normalizeChildren } from './Render';
 import { SchemaErrorBoundary } from './SchemaErrorBoundary';
 import { Loading } from './Loading';
 import { useRendererSettings } from './RendererContextProvider';
-import { MATERIALS } from './materials';
+import { BLOCKS, MATERIALS } from './context-symbols';
 import { NOTIFY } from './engine/notify';
+import type { BlockEventDispatcher } from './block';
+import { useBlockRuntime } from './block/runtime';
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
+const noop = () => {};
+
+function generateRendererInstanceId() {
+  return Math.random().toString(36).slice(2, 8);
+}
 
 export interface SchemaRendererHandle {
   setContext: (ctx: Record<string, unknown>) => void;
@@ -23,14 +40,39 @@ export interface SchemaRendererHandle {
 
 export interface SchemaRendererProps {
   schema: RootNode | null;
+  props?: Record<string, unknown>;
+  dispatchEvent?: BlockEventDispatcher;
+  blockName?: string;
 }
 
 export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(function SchemaRenderer(
-  { schema },
+  { schema, props: blockProps, dispatchEvent = noop, blockName },
   ref,
 ) {
   const contextApi = useContext();
-  const { context, getContext, setContext } = contextApi;
+  const { getContext, setContext } = contextApi;
+
+  // 嵌套渲染器（区块）复用父渲染器的实例 id，同名区块才能共享同一个 css scope
+  const parentContext = reactUseContext(PageContext);
+  const parentInstanceId = (parentContext as Record<PropertyKey, unknown> | null)?.[RENDERER_INSTANCE_ID];
+  const rendererInstanceIdRef = useRef<string | null>(null);
+  if (!rendererInstanceIdRef.current) {
+    rendererInstanceIdRef.current =
+      typeof parentInstanceId === 'string' ? parentInstanceId : generateRendererInstanceId();
+  }
+  const rendererInstanceId = rendererInstanceIdRef.current;
+
+  // 区块运行时：同步 this.props / this.dispatchEvent，并解析区块缓存与 css scope
+  const { cssScopeId, blocksCache } = useBlockRuntime({
+    contextApi,
+    parentContext,
+    rendererInstanceId,
+    blockName,
+    blockProps,
+    dispatchEvent,
+  });
+
+  const { context } = contextApi;
   const pageOnUnmountedRef = useRef<LifeCycleFn | null>(null);
   const schemaRef = useRef<RootNode | null>(schema);
   schemaRef.current = schema;
@@ -40,6 +82,8 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   const instanceCtx = context as typeof context & Record<symbol, unknown>;
   instanceCtx[MATERIALS] = materials;
   instanceCtx[NOTIFY] = notify;
+  instanceCtx[RENDERER_INSTANCE_ID] = rendererInstanceId;
+  instanceCtx[BLOCKS] = blocksCache;
   const pageContext = useMemo(() => ({ ...instanceCtx }), [instanceCtx, materials, notify]);
 
   useImperativeHandle(
@@ -81,6 +125,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       setPageOnUnmounted: (fn) => {
         pageOnUnmountedRef.current = fn;
       },
+      cssScopeId,
     });
   }, [contextApi, pageInitSignature]);
 
@@ -106,16 +151,8 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
 
   return (
     <PageContextProvider value={pageContext}>
-      <SchemaErrorBoundary
-        componentName="Page"
-        resetKey={schema}
-        notifyContext={pageContext}
-      >
-        {schema?.children?.length ? (
-          <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} />
-        ) : (
-          <Loading />
-        )}
+      <SchemaErrorBoundary componentName={blockName ?? 'Page'} resetKey={schema} notifyContext={pageContext}>
+        {schema?.children?.length ? <SchemaNodeRenderer schema={rootChildrenSchema} parent={schema} /> : <Loading />}
       </SchemaErrorBoundary>
     </PageContextProvider>
   );

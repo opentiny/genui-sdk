@@ -1,0 +1,104 @@
+{
+  "componentName": "TestBlock",
+  "description": "信息卡片区块：标题 + 访问计数 + 可定制头/尾/默认内容",
+  "schema": {
+    "properties": [
+      {
+        "label": { "zh_CN": "基础属性" },
+        "content": [
+          {
+            "property": "text",
+            "type": "string",
+            "description": { "zh_CN": "区块展示的文本" }
+          }
+        ]
+      }
+    ],
+    "events": {
+      "onClickText": {
+        "type": "event",
+        "description": { "zh_CN": "点击区块内容时触发" },
+        "functionInfo": {
+          "params": [
+            {
+              "name": "event",
+              "type": "Object",
+              "description": { "zh_CN": "点击事件对象" }
+            }
+          ],
+          "returns": {}
+        }
+      }
+    },
+    "slots": {
+      "header": {
+        "description": { "zh_CN": "自定义头部；未提供时渲染兜底内容" },
+        "params": ["title"]
+      },
+      "footer": {
+        "description": { "zh_CN": "没有参数和兜底内容的插槽" }
+      },
+      "default": {
+        "description": { "zh_CN": "默认插槽；使用方直接写在区块节点的 children" }
+      }
+    }
+  },
+  "state": {
+    "title": "Hello, World!"
+  },
+  "children": [
+    {
+      "componentName": "Slot",
+      "props": {
+        "name": "header",
+        "params": [
+          {
+            "name": "title",
+            "value": { "type": "JSExpression", "value": "this.state.title" }
+          }
+        ]
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "className": "builtin-header",
+            "text": { "type": "JSExpression", "value": "`内置 header：${this.state.title}`" },
+            "style": { "color": "red" }
+          }
+        }
+      ]
+    },
+    {
+      "componentName": "AntButton",
+      "props": {
+        "type": "primary",
+        "onClick": {
+          "type": "JSFunction",
+          "value": "function(event) { this.dispatchEvent('clickText', event) }"
+        }
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": { "type": "JSExpression", "value": "`区块内容：${this.props.text}`" }
+          }
+        }
+      ]
+    },
+    {
+      "componentName": "Slot",
+      "props": {
+        "description": "默认插槽"
+      }
+    },
+    {
+      "componentName": "Slot",
+      "props": {
+        "description": "没有参数和兜底内容的插槽",
+        "name": "footer"
+      }
+    }
+  ]
+}
