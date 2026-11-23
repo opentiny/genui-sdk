@@ -1,6 +1,6 @@
 import { Component, EventEmitter, SimpleChanges, Type, forwardRef } from "@angular/core";
 import { RendererMain } from "../renderer-main";
-import { getBlockInputNames, getBlockOutputNames, type BlockSchema } from "./block-schema";
+import { getBlockInputNames, getBlockOutputNames, type BlockSchema, type BlockSchemaNode } from "./block-schema";
 import { ProjectedViews, RENDER_BLOCK_MARKER, SET_CONTENT_REFS, SET_PROJECTED_VIEWS } from "./projection/projected-view";
 
 const NAME = Symbol('name');
@@ -27,9 +27,7 @@ class DynamicProperties implements Record<string, unknown> {
 })
 export class RenderBlockComponent extends DynamicProperties {
   public [NAME]!: string;
-  public [SCHEMA]!: BlockSchema & {
-    contentRefs?: Record<string, string>,
-  };
+  public [SCHEMA]!: BlockSchema;
   public [CHANGES_KEY]!: string[];
 
   public get _schema() {
@@ -51,7 +49,7 @@ export class RenderBlockComponent extends DynamicProperties {
     this._contentRefs = refs ?? {};
   }
 
-  protected init(name: string, schema: any) {
+  protected init(name: string, schema: BlockSchema) {
     this[NAME] = name;
     this[SCHEMA] = schema;
     this[CHANGES_KEY] = this._getChangesKeys()
@@ -123,18 +121,18 @@ export function getComponentOutputs(schema: BlockSchema) {
 }
 
 /** Depth-first: each schema `NgContent` becomes one slot; `props.select` or `*`. */
-export function extractNgContentSelectors(schema: any): string[] {
+export function extractNgContentSelectors(schema: BlockSchemaNode): string[] {
   const selectors: string[] = [];
   walkNgContent(schema, selectors);
   return selectors;
 }
 
-function walkNgContent(node: any, selectors: string[]) {
+function walkNgContent(node: BlockSchemaNode | null | undefined, selectors: string[]) {
   if (!node || typeof node !== 'object') {
     return;
   }
   if (node.componentName === 'NgContent') {
-    const select = node.props?.select;
+    const select = node.props?.['select'];
     selectors.push(typeof select === 'string' && select.trim() ? select.trim() : '*');
   }
   const children = node.children;
@@ -153,7 +151,7 @@ function toKebabCase(name: string) {
     .toLowerCase();
 }
 
-export function blockComponentFactory(name: string, schema: any): Type<any> {
+export function blockComponentFactory(name: string, schema: BlockSchema): Type<any> {
   const componentType = class extends RenderBlockComponent {
     constructor() {
       super();

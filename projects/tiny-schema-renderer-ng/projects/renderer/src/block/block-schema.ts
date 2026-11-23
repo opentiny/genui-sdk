@@ -14,7 +14,19 @@ export interface BlockComponentSchema {
   projectionSelectors?: Record<string, unknown>
 }
 
-export interface BlockSchema {
+/** 区块渲染树节点。children 与根节点同形，供 NgContent 投影遍历。 */
+export interface BlockSchemaNode {
+  componentName?: string
+  props?: Record<string, unknown>
+  children?: BlockSchemaNode[] | string
+  directives?: unknown[]
+  [key: string]: unknown
+}
+
+/** 区块 schema：渲染树根字段加上对外接口 schema。 */
+export interface BlockSchema extends BlockSchemaNode {
+  state?: Record<string, unknown>
+  contentRefs?: Record<string, string>
   schema?: BlockComponentSchema
 }
 
