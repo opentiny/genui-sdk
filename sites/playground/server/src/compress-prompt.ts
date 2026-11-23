@@ -98,26 +98,18 @@ const COMPRESS_PROMPT_PREFIX = (lang: string, summaryText: string, turnsText: st
 
 const CONTEXT_COMPRESS_MESSAGE_TYPE = 'context-compress';
 
-const SCHEMA_HISTORY_ITEM_TYPES = new Set(['json-patch', 'schema-manual']);
-const SKIP_HISTORY_ITEM_TYPES = new Set(['loading-text']);
-
 const ROLE_LABELS: Record<string, { user: string; assistant: string }> = {
   en_US: { user: 'User', assistant: 'Assistant' },
   zh_CN: { user: '用户', assistant: '助手' },
 };
 
-const COMPRESS_TEXTS: Record<
-  string,
-  { schemaChange: string; schemaJsonHint: string; noContentError: string }
-> = {
+const COMPRESS_TEXTS: Record<string, { schemaJsonHint: string; noContentError: string }> = {
   en_US: {
-    schemaChange: '[Schema change]',
     schemaJsonHint: `[schemaJson]
 Only for verifying the current page state; do not copy it into the output.`,
     noContentError: 'No compressible conversation content',
   },
   zh_CN: {
-    schemaChange: '[Schema 变更]',
     schemaJsonHint: `【schemaJson】
 仅用于核对页面现状，不要复制到输出。`,
     noContentError: '没有可压缩的会话内容',
@@ -126,45 +118,26 @@ Only for verifying the current page state; do not copy it into the output.`,
 
 const compressTexts = (lang: string) => COMPRESS_TEXTS[lang] ?? COMPRESS_TEXTS.zh_CN;
 
-type HistoryItem = { type?: string; content?: string; input?: string };
-
 function isContextCompressMessage(message: unknown): boolean {
   return (message as { type?: string } | null | undefined)?.type === CONTEXT_COMPRESS_MESSAGE_TYPE;
 }
 
-function serializeHistoryItem(item: HistoryItem, lang: string): string {
-  if (item.type && SKIP_HISTORY_ITEM_TYPES.has(item.type)) {
-    return '';
-  }
-  // 完整快照与上送的 templateSchema 重复，用户意图已由消息原文覆盖
-  if (item.type?.startsWith('schema-card')) {
-    return '';
-  }
-  if (item.type && SCHEMA_HISTORY_ITEM_TYPES.has(item.type)) {
-    const label = compressTexts(lang).schemaChange;
-    return item.input ? `${label} ${item.input}` : label;
-  }
-  return item.content ?? item.input ?? '';
-}
-
-function serializeStructuredMessages(items: HistoryItem[] | undefined, lang: string): string {
-  if (!Array.isArray(items) || items.length === 0) {
-    return '';
-  }
-  return items.map((item) => serializeHistoryItem(item, lang)).filter(Boolean).join('\n');
-}
-
+/**
+ * 只序列化顶层 content：模型在正常对话中也只消费 role+content，
+ * 结构化 items（schema-card 等）不会发给模型，无需参与压缩。
+ */
 function serializeMessagesForCompress(messages: unknown[], lang: string): string {
   const labels = ROLE_LABELS[lang] ?? ROLE_LABELS.zh_CN;
   return messages
-    .filter((m) => (m as { role?: string })?.role === 'user' || (m as { role?: string })?.role === 'assistant')
     .map((m) => {
-      const record = m as { role?: string; content?: unknown; messages?: HistoryItem[] };
-      const roleLabel = record.role === 'user' ? labels.user : labels.assistant;
-      const structured = serializeStructuredMessages(record.messages, lang);
-      const text = structured || (typeof record.content === 'string' ? record.content : '');
-      return `${roleLabel}: ${text}`;
+      const record = m as { role?: string; content?: unknown };
+      if (record.role !== 'user' && record.role !== 'assistant') {
+        return '';
+      }
+      const text = typeof record.content === 'string' ? record.content.trim() : '';
+      return text ? `${record.role === 'user' ? labels.user : labels.assistant}: ${text}` : '';
     })
+    .filter(Boolean)
     .join('\n\n');
 }
 

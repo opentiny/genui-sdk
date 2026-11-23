@@ -3,22 +3,6 @@ import { templateChat } from '../template-chat-api';
 import type { LLMConfig } from '../chat.types';
 import { locale } from '../../../i18n';
 
-type CompressHistoryItem = { type?: string; content?: string; input?: string };
-
-function toCompressPayloadMessage(message: ChatMessage): ChatMessage {
-  const { messages, finishInfo, ...rest } = message as ChatMessage & {
-    messages?: CompressHistoryItem[];
-    finishInfo?: unknown;
-  };
-  if (!Array.isArray(messages) || messages.length === 0) {
-    return rest as ChatMessage;
-  }
-  const slimItems = messages
-    .filter((item) => !item.type?.startsWith('schema-card') && item.type !== 'loading-text')
-    .map((item) => ({ type: item.type, content: item.content, input: item.input }));
-  return { ...rest, messages: slimItems } as ChatMessage;
-}
-
 function throwAborted(): never {
   const error = new Error('压缩请求已中止');
   error.name = 'AbortError';
@@ -34,13 +18,22 @@ export async function compressConversationHistory(options: {
 }): Promise<string> {
   const { url, messages, templateSchema, llmConfig, signal } = options;
 
+  // 压缩走独立接口：由基础地址派生 /compress 子路径
+  const compressUrl = `${url.replace(/\/+$/, '')}/compress`;
+
+  // 只上送模型实际可读的顶层 content；type 用于服务端识别压缩摘要消息
+  const payloadMessages = messages.map((message) => ({
+    role: message.role,
+    content: typeof message.content === 'string' ? message.content : '',
+    type: (message as { type?: string }).type,
+  }));
+
   const response = await templateChat({
-    url,
-    messages: messages.map(toCompressPayloadMessage),
+    url: compressUrl,
+    messages: payloadMessages,
     signal: signal ?? new AbortController().signal,
     templateSchema,
     llmConfig,
-    mode: 'compress',
     lang: locale.value,
   });
 

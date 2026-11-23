@@ -22,7 +22,7 @@ dotenv.config({ path: envPath });
 dotenv.config();
 
 const { chatGenuiHandler } = createChatGenui();
-const { chatTemplateHandler } = createChatTemplate();
+const { chatTemplateHandler, chatTemplateCompressHandler } = createChatTemplate();
 
 const app = express();
 
@@ -105,6 +105,7 @@ app.post('/check-mcp', checkMcpHandler);
 app.post('/check-openapi-tools', checkOpenApiToolsHandler);
 app.post('/fetch-agent-card', fetchAgentCardHandler);
 app.post('/chat-template', chatTemplateHandler);
+app.post('/chat-template/compress', chatTemplateCompressHandler);
 
 const port = process.env.PORT || 3008
 
