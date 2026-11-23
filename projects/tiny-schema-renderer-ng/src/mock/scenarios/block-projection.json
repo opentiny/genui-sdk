@@ -15,6 +15,16 @@
           "componentName": "Text",
           "props": {
             "text": "Projected header",
+            "footer": true,
+            "style": {
+              "color": "yellow"
+            }
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected header",
             "header": true,
             "style": {
               "color": "green"
@@ -29,6 +39,29 @@
               "color": "blue"
             }
           }
+        },
+        {
+          "componentName": "NgTemplate",
+          "props": {
+            "refName": "header",
+            "let": {
+              "title2": "title"
+            }
+          },
+          "children": [
+            {
+              "componentName":"Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "title2 + '模板'"
+                },
+                "style": {
+                  "color": "red"
+                }
+              }
+            }
+          ]
         }
       ]
     }

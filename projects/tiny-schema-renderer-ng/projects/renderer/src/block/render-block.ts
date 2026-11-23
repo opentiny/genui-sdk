@@ -1,5 +1,6 @@
 import { Component, EventEmitter, SimpleChanges, Type, forwardRef } from "@angular/core";
 import { RendererMain } from "../renderer-main";
+import { getBlockInputNames, getBlockOutputNames, type BlockSchema } from "./block-schema";
 import { ProjectedViews, RENDER_BLOCK_MARKER, SET_CONTENT_REFS, SET_PROJECTED_VIEWS } from "./projection/projected-view";
 
 const NAME = Symbol('name');
@@ -26,9 +27,7 @@ class DynamicProperties implements Record<string, unknown> {
 })
 export class RenderBlockComponent extends DynamicProperties {
   public [NAME]!: string;
-  public [SCHEMA]!: {
-    inputs: Record<string, unknown>,
-    outputs: Record<string, unknown>,
+  public [SCHEMA]!: BlockSchema & {
     contentRefs?: Record<string, string>,
   };
   public [CHANGES_KEY]!: string[];
@@ -74,7 +73,7 @@ export class RenderBlockComponent extends DynamicProperties {
   }
 
   protected _getChangesKeys() {
-    return Object.keys(this[SCHEMA].inputs || []);
+    return getBlockInputNames(this[SCHEMA]);
   }
   protected _getUpdatedProps() {
     return this[CHANGES_KEY].reduce((acc: Record<string, unknown>, key: string) => {
@@ -84,29 +83,30 @@ export class RenderBlockComponent extends DynamicProperties {
   }
 
   protected _initEventEmitter() {
-    Object.keys(this[SCHEMA].outputs || {}).forEach(key => {
+    getBlockOutputNames(this[SCHEMA]).forEach(key => {
       (this as any)[key] = new EventEmitter<any>()
     })
   }
 
   public _dispatchEvent = (event: string, ...data: any) => {
-    if (Object.keys(this[SCHEMA].outputs || {}).includes(event)) {
+    const outputNames = getBlockOutputNames(this[SCHEMA])
+    if (outputNames.includes(event)) {
       // Single payload: emit the value itself so `(out)="fn($event)"` gets the original
       // argument, not a one-element array. Multiple args keep the array form.
       const payload = data.length === 1 ? data[0] : data;
       ((this as any)[event] as EventEmitter<any>).emit(payload)
     } else {
-      console.warn(`Event ${event} not found in schema.outputs`)
+      console.warn(`Event ${event} not found in schema.events`)
     }
   }
 }
 
-export function getComponentInputs(schema: any, declare = false) {
+export function getComponentInputs(schema: BlockSchema, declare = false) {
   return Object.fromEntries(
-    Object.entries(schema.inputs || {}).map(([key, value]) => [
+    getBlockInputNames(schema).map((key) => [
       key,
-      declare 
-      ? key 
+      declare
+      ? key
       : [key, 0, null]  // [alias, inputFlag, transform]
         /* InputFlag:
           - None = 0
@@ -116,9 +116,9 @@ export function getComponentInputs(schema: any, declare = false) {
     ])
   );
 }
-export function getComponentOutputs(schema: any) {
+export function getComponentOutputs(schema: BlockSchema) {
   return Object.fromEntries(
-    Object.entries(schema.outputs || {}).map(([key, value]) => [key, key])
+    getBlockOutputNames(schema).map((key) => [key, key])
   );
 }
 

@@ -1,60 +1,142 @@
 {
-    "componentName": "TestBlock",
-    "state": {
-      "title": "Hello, World!"
+  "componentName": "TestBlock",
+  "state": {
+    "title": "Hello, World!"
+  },
+  "contentRefs": {
+    "headerTemplate": "header"
+  },
+  "children": [
+    {
+      "componentName": "Text",
+      "props": {
+        "text": "headerTemplate"
+      }
     },
-    "children": [
-      {
-        "componentName": "NgContent",
-        "props": {
-          "select": "[header]"
+    {
+      "componentName": "NgTemplate",
+      "props": {
+        "ngTemplateOutlet": {
+          "type": "JSExpression",
+          "value": "this.contentRefs.headerTemplate"
         },
-        "children": [
+        "ngTemplateOutletContext": {
+          "title": {
+            "type": "JSExpression",
+            "value": "this.state.title"
+          }
+        }
+      },
+      "directives": [
+        {
+          "directiveName": "ngTemplateOutlet"
+        }
+      ]
+    },
+    {
+      "componentName": "Text",
+      "props": {
+        "text": "[header]"
+      }
+    },
+    {
+      "componentName": "NgContent",
+      "props": {
+        "select": "[header]"
+      }
+    },
+    {
+      "componentName": "Text",
+      "props": {
+        "text": "[inside]"
+      }
+    },
+    {
+      "componentName": "Text",
+      "props": {
+        "text": {
+          "type": "JSExpression",
+          "value": "`Text from input: ${this.props.text}`"
+        },
+        "onClick": {
+          "type": "JSFunction",
+          "value": "function(event) { this.dispatchEvent('clickText', event)}"
+        }
+      }
+    },
+    {
+      "componentName": "Text",
+      "props": {
+        "text": "[outside]"
+      }
+    },
+    {
+      "componentName": "NgContent"
+    },
+    {
+      "componentName": "Text",
+      "props": {
+        "text": "[footer]"
+      }
+    },
+    {
+      "componentName": "NgContent",
+      "props": {
+        "select": "[footer]"
+      }
+    }
+  ],
+  "schema": {
+    "properties": [
+      {
+        "label": { "zh_CN": "基础属性" },
+        "content": [
           {
-            "componentName": "Text",
-            "props": {
-              "text": {
-                "type": "JSExpression",
-                "value": "`Built-in header: ${this.state.title}`"
-              },
-              "style": {
-                "color": "red"
-              }
-            }
+            "property": "text",
+            "type": "string",
+            "description": { "zh_CN": "正文展示的文本" }
           }
         ]
-      },
-      {
-        "componentName": "Text",
-        "props": {
-          "text": {
-            "type": "JSExpression",
-            "value": "`Text from input: ${this.props.text}`"
-          },
-          "onClick": {
-            "type": "JSFunction",
-            "value": "function(event) { this.dispatchEvent('clickText', event)}"
-          }
-        }
-      },
-      {
-        "componentName": "NgContent"
-      },
-      {
-        "componentName": "NgContent",
-        "props": {
-          "select": "[footer]"
-        }
       }
     ],
-    "inputs": {
-      "text": {
-        "type": "string"
+    "events": {
+      "onClickText": {
+        "type": "event",
+        "description": { "zh_CN": "点击文本时触发事件" },
+        "functionInfo": {
+          "params": [
+            {
+              "name": "event",
+              "type": "Object",
+              "description": { "zh_CN": "点击事件对象" }
+            }
+          ],
+          "returns": {}
+        }
       }
     },
-    "outputs": {
-      "clickText": {
-        "type": "string"
+    "slots": {
+      "header": {
+        "description": { "zh_CN": "自定义头部模板" },
+        "params": [
+          {
+            "name": "title",
+            "type": "string",
+            "description": { "zh_CN": "标题" }
+          }
+        ]
+      }
+    },
+    "projectionSelectors": {
+      "[header]": {
+        "description": { "zh_CN": "头部投影" }
+      },
+      "*": {
+        "description": { "zh_CN": "默认投影" }
+      },
+      "[footer]": {
+        "description": { "zh_CN": "尾部投影" }
       }
     }
   }
+}

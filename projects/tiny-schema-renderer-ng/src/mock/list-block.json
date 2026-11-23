@@ -3,8 +3,25 @@
   "contentRefs": {
     "header": "header"
   },
-  "inputs": {},
-  "outputs": {},
+  "schema": {
+    "slots": {
+      "header": {
+        "description": { "zh_CN": "列表头部模板" },
+        "params": [
+          {
+            "name": "title",
+            "type": "string",
+            "description": { "zh_CN": "标题" }
+          }
+        ]
+      }
+    },
+    "projectionSelectors": {
+      "*": {
+        "description": { "zh_CN": "列表内容投影" }
+      }
+    }
+  },
   "children": [
     {
       "componentName": "NgTemplate",

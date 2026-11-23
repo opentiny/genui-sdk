@@ -1,7 +1,12 @@
 {
   "componentName": "ContentRefListItem",
-  "inputs": {},
-  "outputs": {},
+  "schema": {
+    "projectionSelectors": {
+      "*": {
+        "description": { "zh_CN": "列表项内容投影" }
+      }
+    }
+  },
   "children": [
     {
       "componentName": "div",
