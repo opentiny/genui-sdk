@@ -128,6 +128,8 @@ The current Angular OpenTiny NG materials **do not return a root** and only hand
 
 `GenuiConfigProvider` can be nested. When the inner provider does not pass `materials` / `notify`, it inherits the parent configuration; passing them overrides it. `theme` / `locale` only invoke the runtime when explicitly provided, so an inner provider can override the locale or theme on its own.
 
+Note that the runtime always receives the inner provider's fully resolved config. When the inner provider passes only `theme` (or only `locale`), the missing value falls back to its default (`light` / `zh_CN`), **not** to the parent's value. For example, an inner provider that changes only the theme passes `zh_CN` to the runtime — and for TinyNG, whose materials switch the global locale through `TiLocale.setLocale` outside the root, that also resets the whole application's locale to Chinese. To preserve the other setting, always pass both `theme` and `locale` explicitly.
+
 ```ts
 @Component({
   imports: [GenuiConfigProvider, GenuiRenderer],

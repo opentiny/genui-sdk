@@ -2,6 +2,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -33,6 +34,9 @@ export function useGenuiNotify(): NotifyHandler | undefined {
   return useContext(NotifyContext);
 }
 
+/**
+ * 从 materials 中解析去重后的运行时工厂列表。
+ */
 function resolveRuntimeFactories(materials: IMaterials): MaterialsRuntimeFactory[] {
   const runtimeFactory = (materials as MergedMaterials).runtimeFactory;
   if (!runtimeFactory) {
@@ -41,6 +45,9 @@ function resolveRuntimeFactories(materials: IMaterials): MaterialsRuntimeFactory
   return [...new Set(Array.isArray(runtimeFactory) ? runtimeFactory : [runtimeFactory])];
 }
 
+/**
+ * 监听系统深浅色偏好，供 `theme: 'auto'` 使用；不支持 `matchMedia` 的环境固定返回 `light`。
+ */
 function useSystemColorScheme(): ThemeColorScheme {
   const [colorScheme, setColorScheme] = useState<ThemeColorScheme>(getSystemColorScheme);
 
@@ -67,19 +74,33 @@ export interface GenuiConfigProviderProps {
   children: React.ReactNode;
 }
 
+// 在布局阶段应用运行时配置，保证首帧绘制前 root 已包裹内容；SSR 环境退化为 useEffect。
+const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
+/**
+ * ConfigProvider 的 React 实现。
+ *
+ * 运行时的创建、apply、dispose 全部发生在提交后的 effect 中，渲染阶段保持纯净：
+ * 并发渲染被打断时不会误销毁提交树仍在使用的运行时；工厂不变时复用已有实例，
+ * root 引用保持稳定，主题或语言切换不会导致包裹的子树重挂载。
+ */
 export function GenuiConfigProvider({ theme, locale, materials, notify, children }: GenuiConfigProviderProps) {
   const materialsValue = useMemo(() => materials ?? defaultMaterials, [materials]);
   const runtimeFactories = useMemo(() => resolveRuntimeFactories(materialsValue), [materialsValue]);
   const runtimeInstancesRef = useRef<Map<MaterialsRuntimeFactory, IMaterialsRuntime>>(new Map());
+  const runtimeGenerationRef = useRef(0);
+  const [runtimeRoots, setRuntimeRoots] = useState<RuntimeRoot[]>([]);
   const systemColorScheme = useSystemColorScheme();
 
   const resolvedTheme = theme || 'light';
+  const resolvedLocale = locale || 'zh_CN';
   const isAutoTheme = resolvedTheme === 'auto';
   const themeSystemColorScheme = isAutoTheme ? systemColorScheme : null;
 
-  const runtimeRoots = useMemo(() => {
+  useIsomorphicLayoutEffect(() => {
     const instances = runtimeInstancesRef.current;
 
+    // dispose 仅针对本次提交中已移除的工厂；仍在配置中的工厂复用实例并重新 apply。
     for (const [factory, runtime] of instances) {
       if (!runtimeFactories.includes(factory)) {
         runtime.dispose?.();
@@ -88,8 +109,6 @@ export function GenuiConfigProvider({ theme, locale, materials, notify, children
     }
 
     const roots: RuntimeRoot[] = [];
-    const resolvedLocale = locale || 'zh_CN';
-
     for (const factory of runtimeFactories) {
       let runtime = instances.get(factory);
       if (!runtime) {
@@ -102,14 +121,23 @@ export function GenuiConfigProvider({ theme, locale, materials, notify, children
       }
     }
 
-    return roots;
-  }, [runtimeFactories, theme, locale, themeSystemColorScheme]);
+    // 每次应用后都更新 roots，让闭包式 root（如 Ant Design）重新渲染拿到最新配置。
+    setRuntimeRoots(roots);
+  }, [runtimeFactories, resolvedTheme, resolvedLocale, themeSystemColorScheme]);
 
   useEffect(() => {
     const instances = runtimeInstancesRef.current;
+    runtimeGenerationRef.current += 1;
+    const generation = runtimeGenerationRef.current;
     return () => {
-      instances.forEach((runtime) => runtime.dispose?.());
-      instances.clear();
+      // 延迟到宏任务再回收：React 18 StrictMode 会在清理后同步重放 effect，
+      // 重放会递增 generation；真正卸载时不会发生重放，定时器回调据此区分两种场景。
+      setTimeout(() => {
+        if (runtimeGenerationRef.current === generation) {
+          instances.forEach((runtime) => runtime.dispose?.());
+          instances.clear();
+        }
+      }, 0);
     };
   }, []);
 

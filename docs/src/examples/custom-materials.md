@@ -113,14 +113,14 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
-  // 可选：i18n，见下方「物料组件库国际化」
+  // 可选：runtimeFactory，见下方「物料运行时（主题与国际化）」
 };
 ```
 
 - `components`：组件清单，渲染器通过它解析 `componentName → 组件`。
 - `defaultPropsMap`：由 `buildMaterialDefaultValueMap` 根据 `bundle.json` 里的 `defaultValue` 自动生成，流式渲染时字段不全也能自动补全。
 - `requiredCompleteFieldSelectors`：**缓冲字段**。声明后，这些字段要等完整才参与渲染，避免流式过程中因字段不完整而报错（如 `[componentName=NSelect] > props > options`）。语法详见 [配置缓冲字段](./renderer/required-complete-field-selectors)。
-- `i18n`（可选）：组件库内置文案桥接，见 [物料组件库国际化](#物料组件库国际化)。
+- `runtimeFactory`（可选）：物料运行时工厂，由 ConfigProvider 调用其 `apply()` 统一切换组件库主题与语言，见 [物料运行时（主题与国际化）](#物料运行时主题与国际化)。
 
 最后补上 `materials` 子路径入口：
 
@@ -529,10 +529,12 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 - 同一组件库的多个物料集合应复用同一个导出的 `runtimeFactory` 引用。`mergeMaterials()` 会按引用去重，不同组件库的根组件则按合并顺序嵌套。
 - 用同一个 `locales` 数组声明规范 id 和组件库语言包（`{ id, pack }`）。`applyLocale` 从 `apply()` 里抽出，写法与主题解析对称。
 
-物料对象只需挂载工厂：
+在第二步导出的 `materials` 对象上追加 `runtimeFactory`（保留 `defaultPropsMap`、`requiredCompleteFieldSelectors` 等已有配置）：
 
 ```typescript
+// src/materials/materials.ts —— 在第二步文件的基础上追加运行时相关内容
 import {
+  buildMaterialDefaultValueMap,
   getSystemColorScheme,
   type ILocaleDescriptor,
   type IMaterials,
@@ -540,17 +542,24 @@ import {
   type MaterialsRuntimeFactory,
 } from '@opentiny/genui-sdk-core';
 import { defineComponent, h, ref } from 'vue';
+import { enUS, ptBR, zhCN } from 'naive-ui';
+import { materialsMeta } from '../meta';
+import { components } from './components';
 import RuntimeRoot from './runtime/RuntimeRoot.vue';
+
+// 第二步声明的缓冲字段保持不变
+const requiredCompleteFieldSelectors = [];
 
 const themes: IThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
   { id: 'dark', colorScheme: 'dark' },
 ];
 
+// pack 直接使用 naive-ui 的语言包对象，由 RuntimeRoot 传给 NConfigProvider。
 const locales = [
-  { id: 'zh_CN', pack: 'zh-CN' },
-  { id: 'en_US', pack: 'en-US' },
-  { id: 'pt_BR', pack: 'pt-BR' },
+  { id: 'zh_CN', pack: zhCN },
+  { id: 'en_US', pack: enUS },
+  { id: 'pt_BR', pack: ptBR },
 ];
 
 function resolveLocale(locale: string) {
@@ -559,7 +568,7 @@ function resolveLocale(locale: string) {
 
 export const runtimeFactory: MaterialsRuntimeFactory = () => {
   const theme = ref('light');
-  const locale = ref('zh_CN');
+  const locale = ref(zhCN);
   const root = defineComponent({
     name: 'CustomMaterialsRuntimeRoot',
     setup(_, { slots }) {
@@ -588,13 +597,53 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
   };
 };
 
+// 在第二步导出的 materials 上追加 runtimeFactory，保留 defaultPropsMap 与 requiredCompleteFieldSelectors。
 export const materials: IMaterials = {
   components,
+  requiredCompleteFieldSelectors,
+  defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
   runtimeFactory,
 };
 ```
 
-其中 `RuntimeRoot.vue` 应只创建一个组件库 ConfigProvider，并同时接收响应式的 `theme` 和 `locale`。如果组件库只通过全局 API 切换语言、不需要 Provider，可以在 `apply()` 中只返回 `locale`，不返回 `root`。
+其中 `RuntimeRoot.vue` 是 `apply()` 返回的稳定 root：只创建一个组件库 ConfigProvider，并把运行时传来的 `theme`、`locale` 映射成组件库需要的值。注意 Naive UI 的 `:locale` 需要语言包对象（不是 `'zh-CN'` 这类字符串），日期文案还需要单独的 `:date-locale`：
+
+```vue
+<!-- src/materials/runtime/RuntimeRoot.vue -->
+<template>
+  <NConfigProvider :theme="naiveTheme" :locale="locale" :date-locale="dateLocale">
+    <slot />
+  </NConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { darkTheme, dateEnUS, datePtBR, dateZhCN, enUS, ptBR, type NLocale } from 'naive-ui';
+
+const props = defineProps<{
+  // runtimeFactory 传入的 theme 是 'light' / 'dark' 字符串
+  theme: string;
+  // locale 是 naive-ui 语言包对象，见上方 locales 的 pack 字段
+  locale: NLocale;
+}>();
+
+// Naive UI 暗色主题需要传入 darkTheme 实例，light 传 null
+const naiveTheme = computed(() => (props.theme === 'dark' ? darkTheme : null));
+
+// 日期文案需要单独的 date-locale，按语言包对应关系转换
+const dateLocale = computed(() => {
+  if (props.locale === enUS) {
+    return dateEnUS;
+  }
+  if (props.locale === ptBR) {
+    return datePtBR;
+  }
+  return dateZhCN;
+});
+</script>
+```
+
+如果组件库只通过全局 API 切换语言、不需要 Provider，可以在 `apply()` 中只返回 `locale`，不返回 `root`。
 
 集成方仍然只需配置 `GenuiConfigProvider`：
 

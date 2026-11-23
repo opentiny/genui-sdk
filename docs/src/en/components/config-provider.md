@@ -92,6 +92,10 @@ See [GenuiConfigProvider - Custom Theme](../examples/config-provider/custom-them
     <GenuiChat :url="url" />
   </GenuiConfigProvider>
 </template>
+
+<script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+</script>
 ```
 
 ### i18n

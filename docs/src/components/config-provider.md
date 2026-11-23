@@ -90,6 +90,10 @@ const schemaContent = {
     <GenuiChat :url="url" />
   </GenuiConfigProvider>
 </template>
+
+<script setup lang="ts">
+import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
+</script>
 ```
 
 ### i18n

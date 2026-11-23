@@ -564,9 +564,6 @@ importers:
       '@opentiny/genui-sdk-core':
         specifier: workspace:*
         version: link:../../core
-      dayjs:
-        specifier: ^1.11.13
-        version: 1.11.20
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: ^5.0.0

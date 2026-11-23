@@ -117,14 +117,14 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
-  // optional: i18n — see "UI library i18n" below
+  // optional: runtimeFactory — see "Materials Runtime (Theme and i18n)" below
 };
 ```
 
 - `components`: the component list; the renderer resolves `componentName → component` through it.
 - `defaultPropsMap`: generated automatically by `buildMaterialDefaultValueMap` from the `defaultValue` fields in `bundle.json`, so rendering stays stable even when streaming fields are incomplete.
 - `requiredCompleteFieldSelectors`: **buffer fields**. Once declared, these fields only participate in rendering after they are complete, avoiding errors caused by incomplete fields during streaming (e.g. `[componentName=NSelect] > props > options`). See [Configuring Buffer Fields](./renderer/required-complete-field-selectors) for the syntax.
-- `i18n` (optional): bridge for UI-library built-in strings; see [UI library i18n](#ui-library-i18n).
+- `runtimeFactory` (optional): factory for the materials runtime; ConfigProvider calls its `apply()` to switch the UI library's theme and locale together. See [Materials Runtime (Theme and i18n)](#materials-runtime-theme-and-i18n).
 
 Finally, add the `materials` subpath entry:
 
@@ -535,10 +535,12 @@ Follow these constraints when implementing a runtime:
 - Material sets for the same UI library should reuse the same exported `runtimeFactory` reference. `mergeMaterials()` deduplicates factories by reference and nests roots from different UI libraries in merge order.
 - Declare supported languages in one `locales` list as `{ id, pack }` (canonical `language_REGION` id plus the UI-library pack). Pull `applyLocale` out of `apply()`, the same way theme resolution is extracted.
 
-Attach the factory to the materials object:
+Add `runtimeFactory` to the materials object exported in Step 2 (keep `defaultPropsMap`, `requiredCompleteFieldSelectors`, and the other existing fields):
 
 ```typescript
+// src/materials/materials.ts — extends the Step 2 file with the runtime parts
 import {
+  buildMaterialDefaultValueMap,
   getSystemColorScheme,
   type ILocaleDescriptor,
   type IMaterials,
@@ -546,17 +548,24 @@ import {
   type MaterialsRuntimeFactory,
 } from '@opentiny/genui-sdk-core';
 import { defineComponent, h, ref } from 'vue';
+import { enUS, ptBR, zhCN } from 'naive-ui';
+import { materialsMeta } from '../meta';
+import { components } from './components';
 import RuntimeRoot from './runtime/RuntimeRoot.vue';
+
+// Buffer fields declared in Step 2 stay unchanged
+const requiredCompleteFieldSelectors = [];
 
 const themes: IThemeDescriptor[] = [
   { id: 'light', colorScheme: 'light' },
   { id: 'dark', colorScheme: 'dark' },
 ];
 
+// The packs are naive-ui locale objects, passed straight to NConfigProvider inside RuntimeRoot.
 const locales = [
-  { id: 'zh_CN', pack: 'zh-CN' },
-  { id: 'en_US', pack: 'en-US' },
-  { id: 'pt_BR', pack: 'pt-BR' },
+  { id: 'zh_CN', pack: zhCN },
+  { id: 'en_US', pack: enUS },
+  { id: 'pt_BR', pack: ptBR },
 ];
 
 function resolveLocale(locale: string) {
@@ -565,7 +574,7 @@ function resolveLocale(locale: string) {
 
 export const runtimeFactory: MaterialsRuntimeFactory = () => {
   const theme = ref('light');
-  const locale = ref('zh_CN');
+  const locale = ref(zhCN);
   const root = defineComponent({
     name: 'CustomMaterialsRuntimeRoot',
     setup(_, { slots }) {
@@ -594,13 +603,53 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
   };
 };
 
+// Add runtimeFactory to the materials object from Step 2, keeping defaultPropsMap and requiredCompleteFieldSelectors.
 export const materials: IMaterials = {
   components,
+  requiredCompleteFieldSelectors,
+  defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
   runtimeFactory,
 };
 ```
 
-`RuntimeRoot.vue` should create exactly one UI-library config provider and receive the reactive `theme` and `locale` values together. If the library switches locale through a global API and needs no provider, return only `locale` from `apply()` and omit `root`.
+`RuntimeRoot.vue` is the stable root returned by `apply()`: create exactly one UI-library config provider and map the runtime's `theme` and `locale` values to what the library expects. Note that Naive UI's `:locale` expects a locale object (not a string such as `'zh-CN'`), and date strings need a separate `:date-locale`:
+
+```vue
+<!-- src/materials/runtime/RuntimeRoot.vue -->
+<template>
+  <NConfigProvider :theme="naiveTheme" :locale="locale" :date-locale="dateLocale">
+    <slot />
+  </NConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { darkTheme, dateEnUS, datePtBR, dateZhCN, enUS, ptBR, type NLocale } from 'naive-ui';
+
+const props = defineProps<{
+  // theme passed by runtimeFactory: 'light' / 'dark' strings
+  theme: string;
+  // locale is a naive-ui locale object, see the pack field of locales above
+  locale: NLocale;
+}>();
+
+// Naive UI's dark theme requires the darkTheme instance; pass null for light
+const naiveTheme = computed(() => (props.theme === 'dark' ? darkTheme : null));
+
+// Date strings need a separate date-locale, mapped from the same language pack
+const dateLocale = computed(() => {
+  if (props.locale === enUS) {
+    return dateEnUS;
+  }
+  if (props.locale === ptBR) {
+    return datePtBR;
+  }
+  return dateZhCN;
+});
+</script>
+```
+
+If the library switches locale through a global API and needs no provider, return only `locale` from `apply()` and omit `root`.
 
 Application integration remains unchanged:
 

@@ -128,6 +128,8 @@ export class GenuiExample {
 
 `GenuiConfigProvider` 支持嵌套。内层未传入 `materials` / `notify` 时会自动继承父级配置；传入时覆盖父级。`theme` / `locale` 只有显式传入时才会调用 runtime，因此内层可以单独覆盖语言或主题。
 
+注意：runtime 收到的始终是内层解析后的完整配置。内层只传 `theme`（或只传 `locale`）时，缺失的一项会回退到默认值（`light` / `zh_CN`），**而不是父级传入的值**。例如内层只改主题时，运行时收到的 locale 是 `zh_CN`——对 TinyNG 这类在 root 之外通过 `TiLocale.setLocale` 修改全局语言的物料包，这还会把整个应用的语言重置成中文。因此需要保留另一项配置时，内层必须显式传入 `theme` 和 `locale` 两个值。
+
 ```ts
 @Component({
   imports: [GenuiConfigProvider, GenuiRenderer],

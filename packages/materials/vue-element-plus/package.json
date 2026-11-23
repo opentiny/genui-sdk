@@ -36,8 +36,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*",
-    "dayjs": "^1.11.13"
+    "@opentiny/genui-sdk-core": "workspace:*"
   },
   "peerDependencies": {
     "element-plus": "^2.9.0",
