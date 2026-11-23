@@ -161,8 +161,6 @@ export function useContextCompress(options: UseContextCompressOptions) {
     return calibrationBaselineTokens.value + incremental;
   });
 
-  const contextUsagePercent = computed(() => calibratedOccupiedTokens.value / usableWindowTokens.value);
-
   /** 上次压缩完成后的占用基线（token），null 表示尚未压缩过 */
   const lastCompressOccupiedTokens = ref<number | null>(null);
   /** 距离上次压缩是否已积累足够多的新内容（防止压缩收益不足时每轮重复触发） */
@@ -172,15 +170,17 @@ export function useContextCompress(options: UseContextCompressOptions) {
       calibratedOccupiedTokens.value >= lastCompressOccupiedTokens.value + minGrowthTokens.value,
   );
 
-  /** 是否达到自动压缩阈值：占用超阈值、距上次压缩积累足够、有可压缩内容、且当前空闲 */
-  const shouldAutoCompress = computed(
-    () =>
-      contextUsagePercent.value >= compressThresholdPercent &&
-      hasEnoughGrowthSinceCompress.value &&
-      compressionPlan.value !== null &&
-      !isCompressing.value &&
-      !options.generating.value,
-  );
+  /**
+   * 是否达到自动压缩阈值：占用超阈值、距上次压缩积累足够、有可压缩内容、且当前空闲。
+   * extraTokens：尚未入列、但会随本次请求发给模型的内容（如输入框草稿）的估算 token，
+   * 需一并计入占用，避免贴近阈值时本次请求超出模型窗口。
+   */
+  const shouldAutoCompress = (extraTokens = 0) =>
+    (calibratedOccupiedTokens.value + extraTokens) / usableWindowTokens.value >= compressThresholdPercent &&
+    hasEnoughGrowthSinceCompress.value &&
+    compressionPlan.value !== null &&
+    !isCompressing.value &&
+    !options.generating.value;
 
   // 切换会话时重置压缩基线（会话级状态）
   watch(

@@ -27,6 +27,7 @@ import type {
   ISchemaManualMessageItem,
 } from './chat.types';
 import {
+  estimateTextTokens,
   finalizePendingSchemaCard,
   findLatestPendingSchemaCard,
   findSchemaCardByCardId,
@@ -458,14 +459,6 @@ const handleSendMessage = async () => {
 
   const startedConversationId = currentConversationId.value;
 
-  if (shouldAutoCompress.value) {
-    // 发送前先压缩；压缩失败时 compress 内部已通知用户，按降级策略继续发送原文；
-    // 用户取消压缩或压缩期间切换会话，则终止本次发送
-    const shouldProceed = await compress();
-    if (!shouldProceed) return;
-    if (currentConversationId.value !== startedConversationId) return;
-  }
-
   const draft = currentComposerDraft.value;
   const snapshot: UserItem[] = draft?.items.length
     ? draft.items
@@ -475,6 +468,15 @@ const handleSendMessage = async () => {
   const composer = getComposerContent(snapshot, selectedNodeMap);
   if (composer.isEmpty || composer.textLength > SENDER_MAX_LENGTH) {
     return;
+  }
+
+  if (shouldAutoCompress(estimateTextTokens(composer.apiContent))) {
+    // 发送前先压缩：草稿会随本次请求发给模型，其 token 已计入阈值判断；
+    // 压缩失败时 compress 内部已通知用户，按降级策略继续发送原文；
+    // 用户取消压缩或压缩期间切换会话，则终止本次发送
+    const shouldProceed = await compress();
+    if (!shouldProceed) return;
+    if (currentConversationId.value !== startedConversationId) return;
   }
 
   const cardId = generateId();

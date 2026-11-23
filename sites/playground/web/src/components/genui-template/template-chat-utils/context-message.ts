@@ -174,13 +174,19 @@ export interface ContextTokenEstimate {
 }
 
 /**
- * 估算单条消息占用的 token 数（粗略）：英文约 4 字符/token，中文约 1.5 字符/token，统一按 3 字符/token 折中。
- * 只算顶层 content：assistant 的 content 是流式累积的模型原始输出全文，user 为输入文本；
- * 结构化 messages 数组（schema-card 等）不会发给模型，不计入。
+ * 估算文本占用的 token 数（粗略）：英文约 4 字符/token，中文约 1.5 字符/token，统一按 3 字符/token 折中。
+ */
+export function estimateTextTokens(text: string): number {
+  return Math.ceil(text.length / 3) + 4; // +4 估算 role 等元数据开销
+}
+
+/**
+ * 估算单条消息占用的 token 数：只算顶层 content —— assistant 的 content 是流式累积的
+ * 模型原始输出全文，user 为输入文本；结构化 messages 数组（schema-card 等）不会发给模型，不计入。
  */
 function estimateMessageTokens(message: ChatMessage): number {
   const content = typeof message.content === 'string' ? message.content : '';
-  return Math.ceil(content.length / 3) + 4; // +4 估算 role 等元数据开销
+  return estimateTextTokens(content);
 }
 
 /**
