@@ -21,7 +21,7 @@ const cardBlock: BlockSchema = {
     properties: [{ content: [{ property: 'title', type: 'string' }] }],
     events: { onChange: { type: 'event', functionInfo: { params: [{ name: 'value', type: 'number' }] } } },
     slots: {
-      header: { params: ['title'] },
+      header: { params: [{ name: 'title', type: 'string' }] },
       footer: {},
     },
   },
@@ -365,6 +365,73 @@ describe('schema block', () => {
     expect(container.textContent).toContain('inner:x');
   });
 
+  it('resolves nested block slot outlets to the nearest block context', () => {
+    // 内层区块：具名插槽 body，若插槽通道解析错层会渲染出兜底内容
+    const innerBlock: BlockSchema = {
+      componentName: 'InnerBlock',
+      schema: { slots: { body: {} } },
+      children: [
+        {
+          componentName: 'Slot',
+          props: { name: 'body' },
+          children: [{ componentName: 'Text', props: { className: 'inner-fallback', text: 'inner-fallback' } }],
+        },
+      ],
+    };
+
+    // 外层区块：插槽 content 的内容由页面提供，内容里嵌了内层区块
+    const outerBlock: BlockSchema = {
+      componentName: 'OuterBlock',
+      schema: { slots: { content: {} } },
+      children: [
+        {
+          componentName: 'Slot',
+          props: { name: 'content' },
+          children: [{ componentName: 'Text', props: { className: 'outer-fallback', text: 'outer-fallback' } }],
+        },
+      ],
+    };
+
+    const { container } = render(
+      <RendererContextProvider
+        renderSettings={{ materials: { components: {}, blocks: { InnerBlock: innerBlock, OuterBlock: outerBlock } } }}
+      >
+        <SchemaRenderer
+          schema={createPageSchema([
+            {
+              componentName: 'OuterBlock',
+              props: {
+                content: {
+                  type: 'JSSlot',
+                  value: [
+                    {
+                      componentName: 'InnerBlock',
+                      // 内层区块自己的插槽：渲染时必须解析到 InnerBlock 的插槽通道而非 OuterBlock 的
+                      props: {
+                        body: {
+                          type: 'JSSlot',
+                          value: [
+                            { componentName: 'Text', props: { className: 'inner-body', text: 'inner-body-from-page' } },
+                          ],
+                        },
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          ])}
+        />
+      </RendererContextProvider>,
+    );
+
+    // 外层插槽正常装填，兜底不渲染
+    expect(container.querySelector('.outer-fallback')).toBeNull();
+    // 内层插槽解析到 InnerBlock 自己的 context：页面提供的内容渲染、兜底不渲染
+    expect(container.querySelector('.inner-body')?.textContent).toBe('inner-body-from-page');
+    expect(container.querySelector('.inner-fallback')).toBeNull();
+  });
+
   it('supports rendering a block component manually inside a renderer', () => {
     const ManualBlock = defineBlock('ManualBlock', cardBlock);
 
@@ -373,9 +440,7 @@ describe('schema block', () => {
         <ManualBlock
           title="Manual"
           onChange={() => {}}
-          slots={{
-            header: (scope) => <em className="manual-header">{`manual:${scope?.title}`}</em>,
-          }}
+          header={(scope) => <em className="manual-header">{`manual:${scope?.title}`}</em>}
         />
       );
     }

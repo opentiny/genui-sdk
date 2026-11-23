@@ -58,8 +58,8 @@ export interface BlockEventConfig {
 export interface BlockSlotConfig {
   label?: BlockI18nText;
   description?: BlockI18nText;
-  /** 插槽内容可访问的作用域参数名，对应使用方 JSSlot 的 params */
-  params?: string[];
+  /** 插槽内容可访问的作用域参数，声明格式与 functionInfo.params 相同 */
+  params?: BlockFunctionParam[];
   [key: string]: unknown;
 }
 

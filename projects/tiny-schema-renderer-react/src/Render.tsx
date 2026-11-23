@@ -4,8 +4,7 @@ import type { Node, RootNode } from './types';
 import type { PageContextValue } from './engine';
 import { getComponent } from './materials';
 import { PageContext } from './page-context';
-import { collectBlockSlots, getBlockSlotNames, isSchemaBlockComponent } from './block';
-import type { SchemaBlockComponent } from './block';
+import { isSlotOutletName, renderSlotOutlet } from './block';
 
 export function normalizeChildren(children: Node['children']): Node[] {
   if (children == null) return [];
@@ -26,7 +25,7 @@ function renderNodes(
   });
 }
 
-function getChildren(schema: Node, mergeScope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
+export function getChildren(schema: Node, mergeScope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
   if (!Array.isArray(schema.children)) {
     const content = parseData(schema.children, mergeScope, context);
     return content as React.ReactNode;
@@ -48,14 +47,13 @@ function renderComponent(
     return null;
   }
 
-  const component = getComponent(componentName, context);
+  // Slot 出口是渲染期指令：直接执行使用方传入的插槽渲染器，不经过组件解析
+  const isOutlet = isSlotOutletName(componentName);
+  const component = isOutlet ? null : getComponent(componentName, context);
 
-  if (!component) {
+  if (!isOutlet && !component) {
     return null;
   }
-
-  const isBlock = isSchemaBlockComponent(component);
-  const declaredSlots = isBlock ? getBlockSlotNames((component as SchemaBlockComponent).__blockSchema) : [];
 
   const loopList = parseData(loop, scope, context) as unknown[];
 
@@ -68,16 +66,14 @@ function renderComponent(
 
     const { children: _c, schema: _schema, ...elementProps } = getBindProps(schema, mergeScope, context);
     const elementKey = index !== undefined ? index : key;
-    const elementPropsWithKey: Record<string, unknown> = { ...elementProps, key: elementKey };
 
-    let children: React.ReactNode = null;
-    if (isBlock) {
-      // 使用方的具名插槽通过 JSSlot 属性传入、默认插槽写在 children，区块只通过 Slot 渲染插槽内容
-      elementPropsWithKey.slots = collectBlockSlots(schema, mergeScope, context, declaredSlots, elementPropsWithKey);
-    } else {
-      children = getChildren(schema, mergeScope, context);
+    if (isOutlet) {
+      return renderSlotOutlet(schema, elementProps, mergeScope, context, elementKey);
     }
 
+    // 区块节点与普通节点一致：JSSlot 属性已编译为插槽渲染函数留在 props 里，children 作为默认插槽内容
+    const elementPropsWithKey: Record<string, unknown> = { ...elementProps, key: elementKey };
+    const children = getChildren(schema, mergeScope, context);
     return React.createElement(component as string | ComponentType, elementPropsWithKey, children);
   };
 

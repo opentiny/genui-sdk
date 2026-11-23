@@ -37,7 +37,7 @@ export interface BlockRuntime {
 
 /**
  * 区块运行时：把 props / dispatchEvent 同步进渲染器上下文，并解析区块缓存与 css scope。
- * 在 render 阶段写入，保证区块首帧即可读到 this.props / this.dispatchEvent；
+ * 在 render 阶段写入，保证区块首帧即可读到 this.props / this.dispatchEvent，
  * setSchema 只重置 state / refs，刷新 schema 不会丢失这两个字段。
  */
 export function useBlockRuntime(options: BlockRuntimeOptions): BlockRuntime {

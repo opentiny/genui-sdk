@@ -9,7 +9,7 @@
           {
             "property": "text",
             "type": "string",
-            "description": { "zh_CN": "区块展示的文本" }
+            "description": { "zh_CN": "正文展示的文本" }
           }
         ]
       }
@@ -17,7 +17,7 @@
     "events": {
       "onClickText": {
         "type": "event",
-        "description": { "zh_CN": "点击区块内容时触发" },
+        "description": { "zh_CN": "点击主要按钮时触发事件" },
         "functionInfo": {
           "params": [
             {
@@ -33,13 +33,19 @@
     "slots": {
       "header": {
         "description": { "zh_CN": "自定义头部；未提供时渲染兜底内容" },
-        "params": ["title"]
+        "params": [
+          {
+            "name": "title",
+            "type": "string",
+            "description": { "zh_CN": "标题文本" }
+          }
+        ]
       },
       "footer": {
-        "description": { "zh_CN": "没有参数和兜底内容的插槽" }
+        "description": { "zh_CN": "底部显示的内容" }
       },
       "default": {
-        "description": { "zh_CN": "默认插槽；使用方直接写在区块节点的 children" }
+        "description": { "zh_CN": "主要区域显示的内容" }
       }
     }
   },

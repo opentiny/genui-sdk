@@ -130,13 +130,14 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   }, [contextApi, pageInitSignature]);
 
   useEffect(() => {
-    // TODO: 方案待讨论
-    setDefaultSlotRenderer(
-      (children, scope, _ctx) =>
-        normalizeChildren(children as Node['children']).map((child, i) => (
-          <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={schemaRef.current} />
-        )) as unknown[],
-    );
+    // JSSlot 内容属于使用方：编译时用闭包里的 ctx 固定使用方上下文，
+    // 插槽内容里的 this.state / this.props 解析回使用方页面而非区块内部
+    setDefaultSlotRenderer((children, scope, ctx) => {
+      const nodes = normalizeChildren(children as Node['children']).map((child, i) => (
+        <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={schemaRef.current} />
+      ));
+      return [<PageContext.Provider value={ctx}>{nodes}</PageContext.Provider>];
+    });
 
     return () => {
       invokePageOnUnmounted();

@@ -1,9 +1,7 @@
-import { createElement, useCallback, useRef, type ComponentType, type ReactNode } from 'react';
+import { createElement, type ComponentType, type ReactNode } from 'react';
 import { SchemaRenderer } from '../RenderMain';
 import { BLOCKS, MATERIALS } from '../context-symbols';
-import { BlockContext } from './block-context';
 import type { BlockSchema } from './schema';
-import type { BlockSlots } from './slots';
 
 export type BlockEventDispatcher = (event: string, ...args: unknown[]) => void;
 
@@ -24,7 +22,6 @@ export function getBlockEventNames(schema?: BlockSchema | null): string[] {
 }
 
 export interface SchemaBlockProps {
-  slots?: BlockSlots;
   children?: ReactNode;
   [key: string]: unknown;
 }
@@ -34,7 +31,7 @@ export type SchemaBlockComponent = ComponentType<SchemaBlockProps> & {
 };
 
 /** 不应出现在区块 this.props 中的属性 */
-const BLOCK_INTERNAL_PROPS = new Set(['data-id', 'data-tag', 'children', 'slots', 'key']);
+const BLOCK_INTERNAL_PROPS = new Set(['data-id', 'data-tag', 'children', 'key']);
 
 function pickBlockProps(props: Record<string, unknown>): Record<string, unknown> {
   const blockProps: Record<string, unknown> = {};
@@ -58,16 +55,15 @@ export function defineBlock(name: string, schema: BlockSchema): SchemaBlockCompo
   const eventKeys = getBlockEventNames(schema);
 
   function SchemaBlock(props: SchemaBlockProps) {
-    const propsRef = useRef(props);
-    propsRef.current = props;
-
-    const dispatchEvent = useCallback<BlockEventDispatcher>((event, ...args) => {
+    // dispatchEvent 每次渲染重建闭包：捕获当次 props，随 runtime 的 props 同步进上下文，
+    // 事件触发时读到的就是最近一次渲染的使用方监听器（onXxx props 每次渲染都在变，稳定引用无收益）
+    const dispatchEvent: BlockEventDispatcher = (event, ...args) => {
       if (typeof event !== 'string' || !event) {
         console.warn(`[schema-renderer] Block "${name}" dispatchEvent expects an event name string.`);
         return;
       }
       const handlerName = getHandlerName(event);
-      const handler = propsRef.current?.[handlerName];
+      const handler = props[handlerName];
       if (typeof handler === 'function') {
         (handler as (...payload: unknown[]) => void)(...args);
         return;
@@ -76,20 +72,19 @@ export function defineBlock(name: string, schema: BlockSchema): SchemaBlockCompo
       if (!eventKeys.includes(handlerName)) {
         console.warn(`[schema-renderer] Block "${name}" does not declare output event "${event}".`);
       }
-    }, []);
+    };
 
-    const { slots: passedSlots, children, ...restProps } = props;
-    const slots: BlockSlots = { ...(passedSlots ?? {}) };
-    if (children != null && !slots.default) {
-      slots.default = () => children;
-    }
+    const { children, ...restProps } = props;
     const blockProps = pickBlockProps(restProps);
 
-    return createElement(
-      BlockContext.Provider,
-      { value: { name, props: blockProps, dispatchEvent, slots } },
-      createElement(SchemaRenderer, { schema, props: blockProps, dispatchEvent, blockName: name }),
-    );
+    // 默认插槽：使用方写在 children 里的内容已在使用方上下文中求值，作为 default 插槽下传；
+    // 具名插槽（JSSlot 编译出的渲染函数）已在编译时固定使用方上下文，无需在此加工
+    if (children != null && blockProps.default === undefined) {
+      blockProps.default = () => children;
+    }
+
+    // 插槽渲染函数留在 props 里，与普通属性同通道传入区块渲染器，区块内的 Slot 出口直接消费
+    return createElement(SchemaRenderer, { schema, props: blockProps, dispatchEvent, blockName: name });
   }
 
   SchemaBlock.displayName = `SchemaBlock(${name})`;

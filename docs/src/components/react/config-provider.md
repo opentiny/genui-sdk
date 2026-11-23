@@ -37,7 +37,7 @@ export function Example({ content }: { content: string }) {
 - `schema.properties`：声明区块接收的属性（数组写法，按分组组织，`property` 为属性名），区块内的表达式通过 `this.props` 访问
 - `schema.events`：声明区块派发的事件，key 即使用方监听的属性名（如 `onExpand`，与 bundle 的组件事件声明一致）；区块内通过 `this.dispatchEvent(name, ...args)` 派发，`name` 写事件名（如 `expand`），渲染器自动映射为 on 前缀的属性名（`onExpand`）查找监听器
 - `schema.slots`：声明区块的插槽，key 为插槽名，`params` 声明插槽内容可访问的作用域参数
-- `children`：区块内部 UI，用内置组件 `Slot` 声明插槽出口；`Slot` 的 `params` 向插槽内容传作用域参数，`children` 是使用方未提供该插槽时的兜底内容
+- `children`：区块内部 UI，用内置的 `Slot` 节点声明插槽出口；`Slot` 是渲染期指令（不经过组件解析），渲染器遇到它时直接执行使用方传入的插槽渲染器；`Slot` 的 `params` 向插槽内容传作用域参数，`children` 是使用方未提供该插槽时的兜底内容
 
 ```tsx
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
@@ -62,7 +62,7 @@ const userCard = {
       },
     },
     slots: {
-      header: { description: { zh_CN: '自定义头部' }, params: ['name'] },
+      header: { description: { zh_CN: '自定义头部' }, params: [{ name: 'name', type: 'string' }] },
     },
   },
   children: [

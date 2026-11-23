@@ -23,12 +23,6 @@ export {
 } from './define-block';
 export type { BlockCache, BlockEventDispatcher, SchemaBlockComponent, SchemaBlockProps } from './define-block';
 
-// —— 插槽：使用方装填 + 区块内出口 ——
-export { collectBlockSlots, getBlockSlotNames } from './slots';
-export type { BlockSlotRenderer, BlockSlots } from './slots';
-export { Slot } from './Slot';
-export type { SlotParam, SlotProps } from './Slot';
-
-// —— 区块上下文 ——
-export { BlockContext, useBlockContext } from './block-context';
-export type { BlockContextValue } from './block-context';
+// —— 插槽：区块内出口（Slot 是渲染期指令，插槽函数随 props 通道下传）——
+export { getBlockSlotNames, isSlotOutletName, renderSlotOutlet, toSlotScope } from './slots';
+export type { BlockSlotRenderer, SlotOutletProps } from './slots';
