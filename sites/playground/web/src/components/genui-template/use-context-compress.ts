@@ -163,12 +163,15 @@ export function useContextCompress(options: UseContextCompressOptions) {
 
   /** 上次压缩完成后的占用基线（token），null 表示尚未压缩过 */
   const lastCompressOccupiedTokens = ref<number | null>(null);
-  /** 距离上次压缩是否已积累足够多的新内容（防止压缩收益不足时每轮重复触发） */
-  const hasEnoughGrowthSinceCompress = computed(
-    () =>
-      lastCompressOccupiedTokens.value === null ||
-      calibratedOccupiedTokens.value >= lastCompressOccupiedTokens.value + minGrowthTokens.value,
-  );
+  /**
+   * 距离上次压缩是否已积累足够多的新内容（防止压缩收益不足时每轮重复触发）。
+   * extraTokens：随本次请求发给模型但尚未入列的内容（如输入框草稿）的估算 token，
+   * 同样属于真实增长，需一并计入比较。
+   */
+  const hasEnoughGrowthSinceCompress = (extraTokens = 0) =>
+    lastCompressOccupiedTokens.value === null ||
+    calibratedOccupiedTokens.value + extraTokens >=
+      lastCompressOccupiedTokens.value + minGrowthTokens.value;
 
   /**
    * 是否达到自动压缩阈值：占用超阈值、距上次压缩积累足够、有可压缩内容、且当前空闲。
@@ -177,7 +180,7 @@ export function useContextCompress(options: UseContextCompressOptions) {
    */
   const shouldAutoCompress = (extraTokens = 0) =>
     (calibratedOccupiedTokens.value + extraTokens) / usableWindowTokens.value >= compressThresholdPercent &&
-    hasEnoughGrowthSinceCompress.value &&
+    hasEnoughGrowthSinceCompress(extraTokens) &&
     compressionPlan.value !== null &&
     !isCompressing.value &&
     !options.generating.value;
