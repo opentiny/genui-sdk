@@ -35,7 +35,7 @@ See [React Ant Design materials](../materials/react-antd) for materials exports.
 `materials.blocks` registers blocks. A block is a reusable schema fragment that can be used by name in a rendered schema just like a regular component. A block's declarations follow the same structure as component definitions in the materials bundle, placed under the `schema` field:
 
 - `schema.properties`: declares the props a block accepts (grouped arrays, `property` is the prop name); expressions inside the block read them via `this.props`
-- `schema.events`: declares the events a block emits; the key is the prop name the consumer listens on (such as `onExpand`, aligned with bundle component event declarations). The block emits via `this.dispatchEvent(name, ...args)`, where `name` is the event name (such as `expand`); the renderer maps it to the on-prefixed prop name (`onExpand`) to find the listener
+- `schema.events`: declares the events a block exposes; the key is the prop name the consumer listens on (such as `onExpand`, aligned with bundle component event declarations), serving as a contract hint for IDEs / LLMs. Inside the block, call it directly like native React (`this.props.onExpand(...)`) — there is no extra event dispatch mechanism
 - `schema.slots`: declares the block's slots; the key is the slot name and `params` declares the scope parameters available to slot content
 - `children`: the block's internal UI; use the built-in `Slot` node to declare slot outlets. `Slot` is a render-time directive (it bypasses component resolution): when the renderer meets it, it directly invokes the slot renderer provided by the consumer. `Slot`'s `params` passes scope parameters to slot content, and its `children` are the fallback rendered when the consumer provides no slot
 
@@ -79,7 +79,7 @@ const userCard = {
       props: {
         onClick: {
           type: 'JSFunction',
-          value: "function() { this.state.expanded = !this.state.expanded; this.dispatchEvent('expand', this.state.expanded) }",
+          value: "function() { this.state.expanded = !this.state.expanded; this.props.onExpand(this.state.expanded) }",
         },
       },
       children: [

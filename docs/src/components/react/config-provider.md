@@ -35,7 +35,7 @@ export function Example({ content }: { content: string }) {
 `materials.blocks` 用于注册区块。区块是可复用的 schema 片段，可以在渲染的 schema 中像普通组件一样按组件名使用。区块的声明结构与物料 bundle 中的组件定义一致，都放在 `schema` 字段下：
 
 - `schema.properties`：声明区块接收的属性（数组写法，按分组组织，`property` 为属性名），区块内的表达式通过 `this.props` 访问
-- `schema.events`：声明区块派发的事件，key 即使用方监听的属性名（如 `onExpand`，与 bundle 的组件事件声明一致）；区块内通过 `this.dispatchEvent(name, ...args)` 派发，`name` 写事件名（如 `expand`），渲染器自动映射为 on 前缀的属性名（`onExpand`）查找监听器
+- `schema.events`：声明区块对外暴露的事件，key 即使用方监听的属性名（如 `onExpand`，与 bundle 的组件事件声明一致），作为 IDE / LLM 的契约提示；区块内像 React 原生一样直接调用 `this.props.onExpand(...)`，不经过额外的事件派发机制
 - `schema.slots`：声明区块的插槽，key 为插槽名，`params` 声明插槽内容可访问的作用域参数
 - `children`：区块内部 UI，用内置的 `Slot` 节点声明插槽出口；`Slot` 是渲染期指令（不经过组件解析），渲染器遇到它时直接执行使用方传入的插槽渲染器；`Slot` 的 `params` 向插槽内容传作用域参数，`children` 是使用方未提供该插槽时的兜底内容
 
@@ -79,7 +79,7 @@ const userCard = {
       props: {
         onClick: {
           type: 'JSFunction',
-          value: "function() { this.state.expanded = !this.state.expanded; this.dispatchEvent('expand', this.state.expanded) }",
+          value: "function() { this.state.expanded = !this.state.expanded; this.props.onExpand(this.state.expanded) }",
         },
       },
       children: [

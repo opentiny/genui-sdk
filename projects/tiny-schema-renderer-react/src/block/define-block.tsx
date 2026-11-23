@@ -3,8 +3,6 @@ import { SchemaRenderer } from '../RenderMain';
 import { BLOCKS, MATERIALS } from '../context-symbols';
 import type { BlockSchema } from './schema';
 
-export type BlockEventDispatcher = (event: string, ...args: unknown[]) => void;
-
 /** 读取属性声明名（properties 各分组展开） */
 export function getBlockPropertyNames(schema?: BlockSchema | null): string[] {
   const groups = schema?.schema?.properties;
@@ -42,38 +40,14 @@ function pickBlockProps(props: Record<string, unknown>): Record<string, unknown>
   return blockProps;
 }
 
-function getHandlerName(event: string): string {
-  return `on${event.charAt(0).toUpperCase()}${event.slice(1)}`;
-}
-
 /**
- * 根据 schema 定义 React 组件：属性通过 this.props 读取，事件通过 this.dispatchEvent 派发，
- * schema 中的 Slot 由使用方的 JSSlot 属性（具名插槽）或 children（默认插槽）填充。注册到 materials.blocks 后即可按组件名使用，
+ * 根据 schema 定义 React 组件：所有 props（属性、onXxx 事件监听、插槽渲染函数）原样进入区块内
+ * 的 this.props，像 React 原生一样直接调用；schema 中的 Slot 出口由使用方的 JSSlot 属性
+ * （具名插槽）或 children（默认插槽）填充。注册到 materials.blocks 后即可按组件名使用，
  * 也可以像普通组件一样直接渲染，区块内部会自己挂载 SchemaRenderer。
  */
 export function defineBlock(name: string, schema: BlockSchema): SchemaBlockComponent {
-  const eventKeys = getBlockEventNames(schema);
-
   function SchemaBlock(props: SchemaBlockProps) {
-    // dispatchEvent 每次渲染重建闭包：捕获当次 props，随 runtime 的 props 同步进上下文，
-    // 事件触发时读到的就是最近一次渲染的使用方监听器（onXxx props 每次渲染都在变，稳定引用无收益）
-    const dispatchEvent: BlockEventDispatcher = (event, ...args) => {
-      if (typeof event !== 'string' || !event) {
-        console.warn(`[schema-renderer] Block "${name}" dispatchEvent expects an event name string.`);
-        return;
-      }
-      const handlerName = getHandlerName(event);
-      const handler = props[handlerName];
-      if (typeof handler === 'function') {
-        (handler as (...payload: unknown[]) => void)(...args);
-        return;
-      }
-      // 宿主未监听已声明的事件属正常情况，未声明才需要告警
-      if (!eventKeys.includes(handlerName)) {
-        console.warn(`[schema-renderer] Block "${name}" does not declare output event "${event}".`);
-      }
-    };
-
     const { children, ...restProps } = props;
     const blockProps = pickBlockProps(restProps);
 
@@ -83,8 +57,7 @@ export function defineBlock(name: string, schema: BlockSchema): SchemaBlockCompo
       blockProps.default = () => children;
     }
 
-    // 插槽渲染函数留在 props 里，与普通属性同通道传入区块渲染器，区块内的 Slot 出口直接消费
-    return createElement(SchemaRenderer, { schema, props: blockProps, dispatchEvent, blockName: name });
+    return createElement(SchemaRenderer, { schema, props: blockProps, blockName: name });
   }
 
   SchemaBlock.displayName = `SchemaBlock(${name})`;

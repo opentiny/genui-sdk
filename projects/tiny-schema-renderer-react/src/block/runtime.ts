@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { BLOCKS } from '../context-symbols';
 import type { PageContextApi } from '../use-context';
-import type { BlockCache, BlockEventDispatcher } from './define-block';
+import type { BlockCache } from './define-block';
 
 /** 自定义属性名只能小写，区块名按原样拼进去会被 React 告警 */
 function toScopeName(blockName: string) {
@@ -27,7 +27,6 @@ export interface BlockRuntimeOptions {
   blockName?: string;
   /** 区块输入属性，区块内通过 this.props 访问 */
   blockProps?: Record<string, unknown>;
-  dispatchEvent: BlockEventDispatcher;
 }
 
 export interface BlockRuntime {
@@ -36,21 +35,18 @@ export interface BlockRuntime {
 }
 
 /**
- * 区块运行时：把 props / dispatchEvent 同步进渲染器上下文，并解析区块缓存与 css scope。
- * 在 render 阶段写入，保证区块首帧即可读到 this.props / this.dispatchEvent，
- * setSchema 只重置 state / refs，刷新 schema 不会丢失这两个字段。
+ * 区块运行时：把 props 同步进渲染器上下文，并解析区块缓存与 css scope。
+ * 在 render 阶段写入，保证区块首帧即可读到 this.props；
+ * setSchema 只重置 state / refs，刷新 schema 不会丢失该字段。
  */
 export function useBlockRuntime(options: BlockRuntimeOptions): BlockRuntime {
-  const { contextApi, parentContext, rendererInstanceId, blockName, blockProps, dispatchEvent } = options;
+  const { contextApi, parentContext, rendererInstanceId, blockName, blockProps } = options;
   const { getContext, setContext } = contextApi;
 
   const runtimeContext = getContext();
   const nextRuntimeContext: Record<string, unknown> = {};
   if (blockProps !== undefined && runtimeContext.props !== blockProps) {
     nextRuntimeContext.props = blockProps;
-  }
-  if (runtimeContext.dispatchEvent !== dispatchEvent) {
-    nextRuntimeContext.dispatchEvent = dispatchEvent;
   }
   if (Object.keys(nextRuntimeContext).length) {
     setContext(nextRuntimeContext);

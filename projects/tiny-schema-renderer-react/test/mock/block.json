@@ -81,7 +81,7 @@
         "type": "primary",
         "onClick": {
           "type": "JSFunction",
-          "value": "function(event) { this.dispatchEvent('clickText', event) }"
+          "value": "function(event) { this.props.onClickText(event) }"
         }
       },
       "children": [

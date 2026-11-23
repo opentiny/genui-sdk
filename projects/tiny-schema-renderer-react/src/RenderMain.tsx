@@ -21,12 +21,9 @@ import { Loading } from './Loading';
 import { useRendererSettings } from './RendererContextProvider';
 import { BLOCKS, MATERIALS } from './context-symbols';
 import { NOTIFY } from './engine/notify';
-import type { BlockEventDispatcher } from './block';
 import { useBlockRuntime } from './block/runtime';
 
 const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
-
-const noop = () => {};
 
 function generateRendererInstanceId() {
   return Math.random().toString(36).slice(2, 8);
@@ -41,12 +38,11 @@ export interface SchemaRendererHandle {
 export interface SchemaRendererProps {
   schema: RootNode | null;
   props?: Record<string, unknown>;
-  dispatchEvent?: BlockEventDispatcher;
   blockName?: string;
 }
 
 export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererProps>(function SchemaRenderer(
-  { schema, props: blockProps, dispatchEvent = noop, blockName },
+  { schema, props: blockProps, blockName },
   ref,
 ) {
   const contextApi = useContext();
@@ -62,14 +58,13 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
   }
   const rendererInstanceId = rendererInstanceIdRef.current;
 
-  // 区块运行时：同步 this.props / this.dispatchEvent，并解析区块缓存与 css scope
+  // 区块运行时：同步 this.props，并解析区块缓存与 css scope
   const { cssScopeId, blocksCache } = useBlockRuntime({
     contextApi,
     parentContext,
     rendererInstanceId,
     blockName,
     blockProps,
-    dispatchEvent,
   });
 
   const { context } = contextApi;

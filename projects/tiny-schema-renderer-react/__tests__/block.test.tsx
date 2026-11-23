@@ -62,7 +62,7 @@ const cardBlock: BlockSchema = {
       componentName: 'button',
       props: {
         'data-testid': 'notify',
-        onClick: { type: 'JSFunction', value: "function() { this.dispatchEvent('change', this.state.visits) }" },
+        onClick: { type: 'JSFunction', value: "function() { this.props.onChange(this.state.visits) }" },
       },
       children: 'notify',
     },
@@ -208,7 +208,7 @@ describe('schema block', () => {
     expect(container.querySelector('.builtin-header')).toBeNull();
   });
 
-  it('dispatches declared events to onXxx props', () => {
+  it('invokes consumer event props directly like React handlers', () => {
     const { getByTestId } = renderPage(
       createPageSchema([
         {
@@ -223,70 +223,6 @@ describe('schema block', () => {
 
     fireEvent.click(getByTestId('notify'));
     expect((globalThis as Record<string, unknown>).__blockChange).toBe(3);
-  });
-
-  it('maps an unprefixed event name to the declared onXxx handler prop', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const eventBlock: BlockSchema = {
-      componentName: 'SelectBlock',
-      schema: { events: { onSelect: { type: 'event' } } },
-      children: [
-        {
-          componentName: 'button',
-          props: {
-            'data-testid': 'select-event',
-            onClick: { type: 'JSFunction', value: "function() { this.dispatchEvent('select', 7) }" },
-          },
-          children: 'select',
-        },
-      ],
-    };
-
-    const { getByTestId } = render(
-      <RendererContextProvider
-        renderSettings={{ materials: { components: {}, blocks: { SelectBlock: eventBlock } } }}
-      >
-        <SchemaRenderer schema={createPageSchema([
-          {
-            componentName: 'SelectBlock',
-            props: { onSelect: { type: 'JSFunction', value: 'function(value) { window.__blockChange = value }' } },
-          },
-        ])} />
-      </RendererContextProvider>,
-    );
-
-    fireEvent.click(getByTestId('select-event'));
-    expect((globalThis as Record<string, unknown>).__blockChange).toBe(7);
-    expect(warn).not.toHaveBeenCalled();
-    warn.mockRestore();
-  });
-
-  it('warns when dispatching an event that is not declared in events', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const schema: BlockSchema = {
-      componentName: 'WarningBlock',
-      schema: { events: { onChange: { type: 'event' } } },
-      children: [
-        {
-          componentName: 'button',
-          props: {
-            'data-testid': 'unknown-event',
-            onClick: { type: 'JSFunction', value: "function() { this.dispatchEvent('unknown') }" },
-          },
-          children: 'unknown',
-        },
-      ],
-    };
-
-    const { getByTestId } = render(
-      <RendererContextProvider renderSettings={{ materials: { components: {}, blocks: { WarningBlock: schema } } }}>
-        <SchemaRenderer schema={createPageSchema([{ componentName: 'WarningBlock' }])} />
-      </RendererContextProvider>,
-    );
-
-    fireEvent.click(getByTestId('unknown-event'));
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('does not declare output event "unknown"'));
-    warn.mockRestore();
   });
 
   it('keeps block state across parent re-renders and isolated from page state', () => {

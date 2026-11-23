@@ -21,7 +21,7 @@ export {
   isSchemaBlockComponent,
   loadBlock,
 } from './define-block';
-export type { BlockCache, BlockEventDispatcher, SchemaBlockComponent, SchemaBlockProps } from './define-block';
+export type { BlockCache, SchemaBlockComponent, SchemaBlockProps } from './define-block';
 
 // —— 插槽：区块内出口（Slot 是渲染期指令，插槽函数随 props 通道下传）——
 export { getBlockSlotNames, isSlotOutletName, renderSlotOutlet, toSlotScope } from './slots';
