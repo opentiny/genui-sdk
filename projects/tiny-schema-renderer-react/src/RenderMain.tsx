@@ -131,7 +131,7 @@ export const SchemaRenderer = forwardRef<SchemaRendererHandle, SchemaRendererPro
       const nodes = normalizeChildren(children as Node['children']).map((child, i) => (
         <SchemaNodeRenderer key={child.id ?? i} schema={child} scope={scope} parent={schemaRef.current} />
       ));
-      return [<PageContext.Provider value={ctx}>{nodes}</PageContext.Provider>];
+      return [<PageContext.Provider key={0} value={ctx}>{nodes}</PageContext.Provider>];
     });
 
     return () => {

@@ -14,10 +14,10 @@
     {
       "componentName": "TestBlock",
       "props": {
-        "text": "来自外部属性",
-        "onClickText": {
+        "btnText": "测试按钮",
+        "onClick": {
           "type": "JSFunction",
-          "value": "function(event) { console.log('block event clickText', event) }"
+          "value": "function(event) { console.log('block event click', event) }"
         },
         "header": {
           "type": "JSSlot",

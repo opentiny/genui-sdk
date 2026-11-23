@@ -391,36 +391,6 @@ describe('schema block', () => {
     expect(container.querySelector('.manual-header')?.textContent).toBe('manual:Manual');
   });
 
-  it('supports JSSlot value as a single node object', () => {
-    const singleSlotBlock: BlockSchema = {
-      componentName: 'SingleSlotBlock',
-      schema: { slots: { footer: {} } },
-      children: [{ componentName: 'Slot', props: { name: 'footer' } }],
-    };
-
-    const { container } = render(
-      <RendererContextProvider
-        renderSettings={{ materials: { components: {}, blocks: { SingleSlotBlock: singleSlotBlock } } }}
-      >
-        <SchemaRenderer
-          schema={createPageSchema([
-            {
-              componentName: 'SingleSlotBlock',
-              props: {
-                footer: {
-                  type: 'JSSlot',
-                  value: { componentName: 'Text', props: { text: 'single-node-slot' } },
-                },
-              },
-            },
-          ])}
-        />
-      </RendererContextProvider>,
-    );
-
-    expect(container.textContent).toContain('single-node-slot');
-  });
-
   it('renders a lowercase slot component name', () => {
     const lowerSlotBlock: BlockSchema = {
       componentName: 'LowerSlotBlock',

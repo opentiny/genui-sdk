@@ -7,17 +7,17 @@
         "label": { "zh_CN": "基础属性" },
         "content": [
           {
-            "property": "text",
+            "property": "btnText",
             "type": "string",
-            "description": { "zh_CN": "正文展示的文本" }
+            "description": { "zh_CN": "按钮文本" }
           }
         ]
       }
     ],
     "events": {
-      "onClickText": {
+      "onClick": {
         "type": "event",
-        "description": { "zh_CN": "点击主要按钮时触发事件" },
+        "description": { "zh_CN": "点击按钮时触发事件" },
         "functionInfo": {
           "params": [
             {
@@ -54,57 +54,68 @@
   },
   "children": [
     {
-      "componentName": "Slot",
+      "componentName": "div",
       "props": {
-        "name": "header",
-        "params": [
-          {
-            "name": "title",
-            "value": { "type": "JSExpression", "value": "this.state.title" }
-          }
-        ]
-      },
-      "children": [
-        {
-          "componentName": "Text",
-          "props": {
-            "className": "builtin-header",
-            "text": { "type": "JSExpression", "value": "`内置 header：${this.state.title}`" },
-            "style": { "color": "red" }
-          }
-        }
-      ]
-    },
-    {
-      "componentName": "AntButton",
-      "props": {
-        "type": "primary",
-        "onClick": {
-          "type": "JSFunction",
-          "value": "function(event) { this.props.onClickText(event) }"
+        "style": {
+          "display": "flex",
+          "flexDirection": "column",
+          "gap": "8px"
         }
       },
       "children": [
         {
-          "componentName": "Text",
+          "componentName": "Slot",
           "props": {
-            "text": { "type": "JSExpression", "value": "`区块内容：${this.props.text}`" }
+            "name": "header",
+            "params": [
+              {
+                "name": "title",
+                "value": { "type": "JSExpression", "value": "this.state.title" }
+              }
+            ]
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "className": "builtin-header",
+                "text": { "type": "JSExpression", "value": "`内置 header：${this.state.title}`" }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "AntButton",
+          "props": {
+            "type": "primary",
+            "onClick": {
+              "type": "JSFunction",
+              "value": "function(event) { this.props.onClick(event) }"
+            }
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": { "type": "JSExpression", "value": "this.props.btnText" }
+              }
+            }
+          ]
+        },
+        {
+          "componentName": "Slot",
+          "props": {
+            "description": "默认插槽"
+          }
+        },
+        {
+          "componentName": "Slot",
+          "props": {
+            "description": "底部插槽",
+            "name": "footer"
           }
         }
       ]
-    },
-    {
-      "componentName": "Slot",
-      "props": {
-        "description": "默认插槽"
-      }
-    },
-    {
-      "componentName": "Slot",
-      "props": {
-        "description": "没有参数和兜底内容的插槽",
-        "name": "footer"
-      }
     }
   ]
 }
