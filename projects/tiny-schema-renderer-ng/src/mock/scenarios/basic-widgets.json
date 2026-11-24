@@ -1,0 +1,201 @@
+{
+  "componentName": "Page",
+  "state": {
+    "inputValue": "输入框默认值",
+    "selectValue": {},
+    "obj": {
+      "name": "张三"
+    }
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {},
+      "children": [
+        {
+          "componentName": "h2",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": "信息展示卡片"
+        },
+        {
+          "componentName": "Img",
+          "props": {
+            "src": "https://tinyengine-assets.obs.cn-north-4.myhuaweicloud.com/files/designer-default-icon.jpg",
+            "alt": "示例图片",
+            "style": "width: 100%; max-width: 300px; display: block; margin: 0 auto 16px;"
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "style": "color:red",
+            "text": {
+              "type": "JSExpression",
+              "value": "this.state.obj.name"
+            }
+          }
+        },
+        {
+          "componentName": "TiButton",
+          "directives": [
+            {
+              "directiveName": "log"
+            }
+          ],
+          "props": {
+            "onLog": {
+              "type": "JSExpression",
+              "value": "(data) => { console.log('log', data) }"
+            }
+          },
+          "children": [
+            {
+              "componentName": "Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "item + '序号' + index"
+                },
+                "onClick": {
+                  "type": "JSFunction",
+                  "value": "(event) => { console.log('onClick', event, item, index); if (index=== 2) {console.log(this.state)} }"
+                }
+              }
+            }
+          ],
+          "loop": {
+            "type": "JSExpression",
+            "value": "[ '按钮1', '按钮2', '按钮3' ]"
+          },
+          "loopArgs": [
+            "item",
+            "index"
+          ]
+        },
+        {
+          "componentName": "TiSelect",
+          "props": {
+            "options": {
+              "type": "JSExpression",
+              "value": "[ { label: '选项1', value: '选项1' }, { label: '选项2', value: '选项2' }, { label: '选项3', value: '选项3' } ]"
+            },
+            "ngModel": {
+              "type": "JSExpression",
+              "value": "this.state.selectValue"
+            },
+            "onBlur": {
+              "type": "JSFunction",
+              "value": "() => { console.log('onBlur') }"
+            },
+            "onNgModelChange": {
+              "type": "JSFunction",
+              "value": "(data) => { console.log('onNgModelChange'), this.state.selectValue = data }"
+            },
+            "placeholder": {
+              "type": "JSExpression",
+              "value": "'请选择国家'"
+            }
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            }
+          ]
+        },
+        {
+          "componentName": "TiText",
+          "props": {
+            "ngModel": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.obj.name"
+            },
+            "placeholder": "请输入"
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            },
+            {
+              "directiveName": "defaultValueAccessor"
+            }
+          ]
+        },
+        {
+          "componentName": "input",
+          "props": {
+            "ngModel": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.inputValue"
+            }
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            },
+            {
+              "directiveName": "defaultValueAccessor"
+            }
+          ]
+        },
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-bottom: 8px;"
+          },
+          "children": "无序列表"
+        },
+        {
+          "componentName": "ul",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "li",
+              "children": "无序列表项1"
+            },
+            {
+              "componentName": "li",
+              "children": "无序列表项2"
+            },
+            {
+              "componentName": "li",
+              "children": "无序列表项3"
+            }
+          ]
+        },
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "margin-bottom: 8px;"
+          },
+          "children": "有序列表"
+        },
+        {
+          "componentName": "ol",
+          "props": {
+            "style": "margin-bottom: 16px;"
+          },
+          "children": [
+            {
+              "componentName": "li",
+              "children": "有序列表项1"
+            },
+            {
+              "componentName": "li",
+              "children": "有序列表项2"
+            },
+            {
+              "componentName": "li",
+              "children": "有序列表项3"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

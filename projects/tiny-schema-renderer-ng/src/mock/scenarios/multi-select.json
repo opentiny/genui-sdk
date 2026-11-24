@@ -1,0 +1,67 @@
+{
+  "componentName": "Page",
+  "state": {
+    "selectedHobbies": []
+  },
+  "children": [
+    {
+      "componentName": "div",
+      "props": {
+        "style": "display: flex; flex-direction: column; gap: 16px; padding: 20px;"
+      },
+      "children": [
+        {
+          "componentName": "h3",
+          "props": {
+            "style": "font-size: 16px; font-weight: bold; margin-bottom: 10px;"
+          },
+          "children": "请选择兴趣爱好（可多选）"
+        },
+        {
+          "componentName": "TiSelect",
+          "props": {
+            "ngModel": {
+              "type": "JSExpression",
+              "model": true,
+              "value": "this.state.selectedHobbies"
+            },
+            "options": [
+              {
+                "label": "阅读",
+                "value": "reading"
+              },
+              {
+                "label": "运动",
+                "value": "sports"
+              },
+              {
+                "label": "音乐",
+                "value": "music"
+              },
+              {
+                "label": "旅行",
+                "value": "travel"
+              },
+              {
+                "label": "烹饪",
+                "value": "cooking"
+              },
+              {
+                "label": "摄影",
+                "value": "photography"
+              }
+            ],
+            "placeholder": "请选择兴趣爱好",
+            "multiple": true,
+            "clearable": true
+          },
+          "directives": [
+            {
+              "directiveName": "ngModel"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

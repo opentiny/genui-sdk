@@ -1,0 +1,69 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "TestBlock",
+      "props": {
+        "text": "外部传入属性",
+        "onClickText": {
+          "type": "JSFunction",
+          "value": "function(content) { console.log('Text clicked', content) }"
+        }
+      },
+      "children": [
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected header",
+            "footer": true,
+            "style": {
+              "color": "yellow"
+            }
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected header",
+            "header": true,
+            "style": {
+              "color": "green"
+            }
+          }
+        },
+        {
+          "componentName": "Text",
+          "props": {
+            "text": "Projected from page",
+            "style": {
+              "color": "blue"
+            }
+          }
+        },
+        {
+          "componentName": "NgTemplate",
+          "props": {
+            "refName": "header",
+            "let": {
+              "title2": "title"
+            }
+          },
+          "children": [
+            {
+              "componentName":"Text",
+              "props": {
+                "text": {
+                  "type": "JSExpression",
+                  "value": "title2 + '模板'"
+                },
+                "style": {
+                  "color": "red"
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

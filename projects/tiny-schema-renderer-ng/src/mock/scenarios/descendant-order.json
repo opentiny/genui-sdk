@@ -1,0 +1,24 @@
+{
+  "componentName": "Page",
+  "children": [
+    {
+      "componentName": "DescendantScan",
+      "children": [
+        {
+          "componentName": "DescendantNode",
+          "props": { "name": "A" },
+          "children": [
+            {
+              "componentName": "DescendantNode",
+              "props": { "name": "C" }
+            }
+          ]
+        },
+        {
+          "componentName": "DescendantNode",
+          "props": { "name": "B" }
+        }
+      ]
+    }
+  ]
+}

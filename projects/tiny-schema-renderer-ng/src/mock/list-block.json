@@ -1,0 +1,44 @@
+{
+  "componentName": "ContentRefList",
+  "contentRefs": {
+    "header": "header"
+  },
+  "schema": {
+    "slots": {
+      "header": {
+        "description": { "zh_CN": "列表头部模板" },
+        "params": [
+          {
+            "name": "title",
+            "type": "string",
+            "description": { "zh_CN": "标题" }
+          }
+        ]
+      }
+    },
+    "projectionSelectors": {
+      "*": {
+        "description": { "zh_CN": "列表内容投影" }
+      }
+    }
+  },
+  "children": [
+    {
+      "componentName": "NgTemplate",
+      "directives": [{ "directiveName": "ngTemplateOutlet" }],
+      "props": {
+        "ngTemplateOutlet": {
+          "type": "JSExpression",
+          "value": "this.contentRefs.header"
+        },
+        "ngTemplateOutletContext": {
+          "title": "from inside"
+        },
+        "style": "display: block; margin-bottom: 8px; padding: 8px; background: #ecfeff; border: 1px solid #a5f3fc;"
+      }
+    },
+    {
+      "componentName": "NgContent"
+    }
+  ]
+}
