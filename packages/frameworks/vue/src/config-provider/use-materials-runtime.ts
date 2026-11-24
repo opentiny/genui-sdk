@@ -54,13 +54,15 @@ function resolveRuntimeFactories(materials: MergedMaterials | undefined): Materi
 
 function resolveColorScheme(
   results: IMaterialsRuntimeApplyResult[],
-  theme: string,
   systemColorScheme: ThemeColorScheme,
 ): ThemeColorScheme {
-  return (
-    results.find((result) => result.theme?.colorScheme)?.theme?.colorScheme ??
-    (theme === 'auto' ? systemColorScheme : theme === 'dark' ? 'dark' : 'light')
-  );
+  for (let index = results.length - 1; index >= 0; index -= 1) {
+    const colorScheme = results[index].theme?.colorScheme;
+    if (colorScheme) {
+      return colorScheme;
+    }
+  }
+  return systemColorScheme;
 }
 
 export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
@@ -111,7 +113,7 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
       }
 
       runtimeRoots.value = roots;
-      colorScheme.value = resolveColorScheme(results, theme, toValue(options.systemColorScheme));
+      colorScheme.value = resolveColorScheme(results, toValue(options.systemColorScheme));
     },
     { immediate: true },
   );
