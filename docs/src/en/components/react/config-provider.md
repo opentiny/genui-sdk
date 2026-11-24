@@ -76,6 +76,7 @@ const userCard = {
       },
       children: [{ componentName: 'Text', props: { text: 'Default header' } }],
     },
+    { componentName: 'Slot' },
     {
       componentName: 'AntButton',
       props: {

@@ -208,6 +208,26 @@ describe('schema block', () => {
     expect(container.querySelector('.builtin-header')).toBeNull();
   });
 
+  it('accepts a single node object as JSSlot value', () => {
+    const { container } = renderPage(
+      createPageSchema([
+        {
+          componentName: 'InfoCard',
+          props: {
+            header: {
+              type: 'JSSlot',
+              // 单节点对象：解析时包一层数组，与数组值行为一致
+              value: { componentName: 'Text', props: { className: 'single-node', text: 'single' } },
+            },
+          },
+        },
+      ]),
+    );
+
+    expect(container.querySelector('.single-node')?.textContent).toBe('single');
+    expect(container.querySelector('.builtin-header')).toBeNull();
+  });
+
   it('invokes consumer event props directly like React handlers', () => {
     const { getByTestId } = renderPage(
       createPageSchema([
