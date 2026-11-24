@@ -91,7 +91,7 @@ const content = ref({
   ]
 });
 
-// State restored from history (merged into global state on initialization)
+// State restored from history (injected via setState after mount)
 const historyState = {
   formData: {
     name: 'John Doe',

@@ -54,7 +54,6 @@ export function getMessageRendererReact(instance: GenuiChatInstance) {
           continueChat: bindCardIdToAction(continueChatAction, cardId),
           saveState: bindCardIdToAction(saveStateAction, cardId),
         },
-        rendererId: cardId,
         rendererState: schemaCardProps.state,
         key: cardId,
       }),
