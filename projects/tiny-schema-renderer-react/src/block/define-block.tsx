@@ -1,6 +1,7 @@
 import { createElement, type ComponentType, type ReactNode } from 'react';
 import { SchemaRenderer } from '../RenderMain';
 import { BLOCKS, MATERIALS } from '../context-symbols';
+import { getBlockSlotNames } from './slots';
 import type { BlockSchema } from './schema';
 
 /** 读取属性声明名（properties 各分组展开） */
@@ -28,28 +29,38 @@ export type SchemaBlockComponent = ComponentType<SchemaBlockProps> & {
   __blockSchema: BlockSchema;
 };
 
-/** 不应出现在区块 this.props 中的属性 */
-const BLOCK_INTERNAL_PROPS = new Set(['data-id', 'data-tag', 'children', 'key']);
+function getBlockAllowedPropNames(schema: BlockSchema): Set<string> {
+  return new Set<string>([
+    ...getBlockPropertyNames(schema),
+    ...getBlockEventNames(schema),
+    ...getBlockSlotNames(schema),
+    'default',
+  ]);
+}
 
-function pickBlockProps(props: Record<string, unknown>): Record<string, unknown> {
+function pickBlockProps(props: Record<string, unknown>, allowed: Set<string>): Record<string, unknown> {
   const blockProps: Record<string, unknown> = {};
   Object.keys(props).forEach((key) => {
-    if (BLOCK_INTERNAL_PROPS.has(key) || key.startsWith('data-schema-')) return;
-    blockProps[key] = props[key];
+    if (allowed.has(key)) blockProps[key] = props[key];
   });
   return blockProps;
 }
 
 /**
- * 根据 schema 定义 React 组件：所有 props（属性、onXxx 事件监听、插槽渲染函数）原样进入区块内
- * 的 this.props，像 React 原生一样直接调用；schema 中的 Slot 出口由使用方的 JSSlot 属性
- * （具名插槽）或 children（默认插槽）填充。注册到 materials.blocks 后即可按组件名使用，
- * 也可以像普通组件一样直接渲染，区块内部会自己挂载 SchemaRenderer。
+ * 根据 schema 定义 React 组件：只有 schema 声明过的输入（properties 属性、events 的
+ * onXxx 事件监听、slots 插槽渲染函数）进入区块内的 this.props，与 Vue 按声明过滤
+ * props 的机制一致；区块内像 React 原生一样直接调用，未声明的属性与渲染器内部标记
+ * 不会混入。schema 中的 Slot 出口由使用方的 JSSlot 属性（具名插槽）或 children
+ * （默认插槽）填充。注册到 materials.blocks 后即可按组件名使用，也可以像普通组件
+ * 一样直接渲染，区块内部会自己挂载 SchemaRenderer。
  */
 export function defineBlock(name: string, schema: BlockSchema): SchemaBlockComponent {
+  // schema 引用在 defineBlock 时固定，声明白名单只需构建一次
+  const allowedProps = getBlockAllowedPropNames(schema);
+
   function SchemaBlock(props: SchemaBlockProps) {
     const { children, ...restProps } = props;
-    const blockProps = pickBlockProps(restProps);
+    const blockProps = pickBlockProps(restProps, allowedProps);
 
     // 默认插槽：使用方写在 children 里的内容已在使用方上下文中求值，作为 default 插槽下传；
     // 具名插槽（JSSlot 编译出的渲染函数）已在编译时固定使用方上下文，无需在此加工

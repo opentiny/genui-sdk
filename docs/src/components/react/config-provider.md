@@ -36,8 +36,10 @@ export function Example({ content }: { content: string }) {
 
 - `schema.properties`：声明区块接收的属性（数组写法，按分组组织，`property` 为属性名），区块内的表达式通过 `this.props` 访问
 - `schema.events`：声明区块对外暴露的事件，key 即使用方监听的属性名（如 `onExpand`，与 bundle 的组件事件声明一致），作为 IDE / LLM 的契约提示；区块内像 React 原生一样直接调用 `this.props.onExpand(...)`，不经过额外的事件派发机制
-- `schema.slots`：声明区块的插槽，key 为插槽名，`params` 声明插槽内容可访问的作用域参数
-- `children`：区块内部 UI，用内置的 `Slot` 节点声明插槽出口；`Slot` 是渲染期指令（不经过组件解析），渲染器遇到它时直接执行使用方传入的插槽渲染器；`Slot` 的 `params` 向插槽内容传作用域参数，`children` 是使用方未提供该插槽时的兜底内容
+- `schema.slots`：声明区块接收的渲染函数属性，key 为属性名，`params` 声明渲染内容可访问的作用域参数
+- `children`：区块内部 UI，用内置的 `Slot` 节点声明渲染函数的调用点；`Slot` 是渲染期指令（不经过组件解析），渲染器遇到它时直接调用使用方传入的渲染函数；`Slot` 的 `params` 向渲染内容传作用域参数，`children` 是使用方未传该渲染函数时的兜底内容
+
+协议中的插槽在 React 侧落地为 render props：使用方以 `JSSlot` 属性声明的内容会解析成 `(scope) => ReactNode` 的渲染函数，像普通属性一样传给区块（`schema.slots`、`Slot` 命名沿用跨框架协议）；`children` 为 React 原生 children，直接作为默认内容传入。只有声明过的输入（属性、事件监听、渲染函数）会进入区块内的 `this.props`，与 Vue 区块按 `defineComponent(props)` 声明过滤的机制一致；使用方传入的未声明属性与渲染器注入的内部标记（`data-id`、`data-tag` 等）不会混入。
 
 ```tsx
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
@@ -106,7 +108,7 @@ export function Example({ content }: { content: string }) {
 }
 ```
 
-在 schema 中按组件名使用区块：普通属性直接传值，事件通过声明过的属性名（如 `onExpand`）传 `JSFunction` 监听，具名插槽以 `JSSlot` 属性填充（`params` 声明插槽内容使用的参数名，`value` 为插槽节点），默认插槽直接写在区块节点的 `children`：
+在 schema 中按组件名使用区块：普通属性直接传值，事件通过声明过的属性名（如 `onExpand`）传 `JSFunction` 监听，渲染函数以 `JSSlot` 属性填充（`params` 声明渲染内容使用的参数名，`value` 为节点列表），默认内容直接写在区块节点的 `children`：
 
 ```json
 {
@@ -131,13 +133,13 @@ export function Example({ content }: { content: string }) {
   "children": [
     {
       "componentName": "Text",
-      "props": { "text": "默认插槽内容" }
+      "props": { "text": "默认内容" }
     }
   ]
 }
 ```
 
-区块拥有独立的 `state`、`methods` 与 `refs`，与所在页面互不干扰；插槽内容属于使用方，其中的 `this.state` 指向使用方页面的状态，区块通过 `Slot` 的 `params` 传出的参数优先于使用方作用域。使用方未提供插槽时，渲染 `Slot` 的 `children` 作为兜底内容。
+区块拥有独立的 `state`、`methods` 与 `refs`，与所在页面互不干扰；渲染函数返回的内容属于使用方，其中的 `this.state` 指向使用方页面的状态，区块通过 `Slot` 的 `params` 传出的参数优先于使用方作用域。使用方未传渲染函数时，渲染 `Slot` 的 `children` 作为兜底内容。
 
 ## Children
 

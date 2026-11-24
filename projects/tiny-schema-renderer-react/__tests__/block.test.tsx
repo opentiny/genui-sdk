@@ -461,6 +461,7 @@ describe('schema block', () => {
   it('renders a block without a renderer ancestor', () => {
     const PlainBlock = defineBlock('PlainBlock', {
       componentName: 'PlainBlock',
+      schema: { properties: [{ content: [{ property: 'name', type: 'string' }] }] },
       children: [
         { componentName: 'Text', props: { text: { type: 'JSExpression', value: '`hi ${this.props.name}`' } } },
       ],
@@ -468,5 +469,55 @@ describe('schema block', () => {
 
     const { container } = render(<PlainBlock name="standalone" />);
     expect(container.textContent).toBe('hi standalone');
+  });
+
+  it('filters block inputs to the declared contract, like the Vue block props', () => {
+    const strictBlock: BlockSchema = {
+      componentName: 'StrictBlock',
+      schema: {
+        properties: [{ content: [{ property: 'text', type: 'string' }] }],
+        events: { onPing: { type: 'event', functionInfo: { params: [] } } },
+        slots: { header: {} },
+      },
+      children: [
+        {
+          componentName: 'Text',
+          props: {
+            className: 'strict-props',
+            text: { type: 'JSExpression', value: 'Object.keys(this.props).sort().join(",")' },
+          },
+        },
+        { componentName: 'Slot', props: { name: 'header' } },
+      ],
+    };
+
+    const { container } = render(
+      <RendererContextProvider
+        renderSettings={{ materials: { components: {}, blocks: { StrictBlock: strictBlock } } }}
+      >
+        <SchemaRenderer
+          schema={createPageSchema([
+            {
+              componentName: 'StrictBlock',
+              props: {
+                text: 'declared',
+                rogue: 'undeclared',
+                'data-tag': 'will-not-pass',
+                onPing: { type: 'JSFunction', value: 'function() {}' },
+                header: {
+                  type: 'JSSlot',
+                  value: [{ componentName: 'Text', props: { className: 'strict-header', text: 'header' } }],
+                },
+              },
+            },
+          ])}
+        />
+      </RendererContextProvider>,
+    );
+
+    // 只有声明过的属性（text、onPing、header）进入 this.props；
+    // 未声明的属性与渲染器注入的 data-* 标记被过滤，与 Vue defineComponent(props) 一致
+    expect(container.querySelector('.strict-props')?.textContent).toBe('header,onPing,text');
+    expect(container.querySelector('.strict-header')).toBeTruthy();
   });
 });

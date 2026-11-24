@@ -36,8 +36,10 @@ See [React Ant Design materials](../materials/react-antd) for materials exports.
 
 - `schema.properties`: declares the props a block accepts (grouped arrays, `property` is the prop name); expressions inside the block read them via `this.props`
 - `schema.events`: declares the events a block exposes; the key is the prop name the consumer listens on (such as `onExpand`, aligned with bundle component event declarations), serving as a contract hint for IDEs / LLMs. Inside the block, call it directly like native React (`this.props.onExpand(...)`) — there is no extra event dispatch mechanism
-- `schema.slots`: declares the block's slots; the key is the slot name and `params` declares the scope parameters available to slot content
-- `children`: the block's internal UI; use the built-in `Slot` node to declare slot outlets. `Slot` is a render-time directive (it bypasses component resolution): when the renderer meets it, it directly invokes the slot renderer provided by the consumer. `Slot`'s `params` passes scope parameters to slot content, and its `children` are the fallback rendered when the consumer provides no slot
+- `schema.slots`: declares the render-function props a block accepts; the key is the prop name and `params` declares the scope parameters available to the rendered content
+- `children`: the block's internal UI; use the built-in `Slot` node to declare where a render function is invoked. `Slot` is a render-time directive (it bypasses component resolution): when the renderer meets it, it directly calls the render function passed by the consumer. `Slot`'s `params` passes scope parameters to the rendered content, and its `children` are the fallback rendered when the consumer passes no render function
+
+The protocol's slots land in React as render props: content the consumer declares with a `JSSlot` prop is parsed into a `(scope) => ReactNode` render function and passed to the block like a normal prop (the `schema.slots` and `Slot` naming follows the cross-framework protocol); `children` is React's native children, passed directly as the default content. Only declared inputs (props, event listeners, render functions) enter the block's `this.props`, matching the Vue block's `defineComponent(props)` declaration filtering; undeclared props passed by consumers and renderer-injected internal markers (`data-id`, `data-tag`, etc.) never mix in.
 
 ```tsx
 import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-react';
@@ -106,7 +108,7 @@ export function Example({ content }: { content: string }) {
 }
 ```
 
-Use the block by name in a schema: pass plain values to props, listen to events with a `JSFunction` on the declared prop name (such as `onExpand`), fill named slots with `JSSlot` props (`params` declares the parameter names used by the slot content, `value` holds the slot nodes), and put default slot content directly in the block node's `children`:
+Use the block by name in a schema: pass plain values to props, listen to events with a `JSFunction` on the declared prop name (such as `onExpand`), pass render functions as `JSSlot` props (`params` declares the parameter names used by the rendered content, `value` holds the node list), and put default content directly in the block node's `children`:
 
 ```json
 {
@@ -131,13 +133,13 @@ Use the block by name in a schema: pass plain values to props, listen to events 
   "children": [
     {
       "componentName": "Text",
-      "props": { "text": "Default slot content" }
+      "props": { "text": "Default content" }
     }
   ]
 }
 ```
 
-A block has its own `state`, `methods`, and `refs`, isolated from the page that renders it. Slot content belongs to the consumer, so its `this.state` refers to the consumer page's state; parameters passed by the block via `Slot`'s `params` take precedence over the consumer scope. When the consumer provides no slot, the `Slot`'s `children` are rendered as the fallback.
+A block has its own `state`, `methods`, and `refs`, isolated from the page that renders it. Content returned by render functions belongs to the consumer, so its `this.state` refers to the consumer page's state; parameters passed by the block via `Slot`'s `params` take precedence over the consumer scope. When the consumer passes no render function, the `Slot`'s `children` are rendered as the fallback.
 
 ## Children
 
