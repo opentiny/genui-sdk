@@ -24,9 +24,10 @@ export const templateChat = async (chatOptions: {
   messages: any;
   signal: any;
   templateSchema: any;
-  llmConfig: LLMConfig
+  llmConfig: LLMConfig;
+  lang?: string;
 }) => {
-  const { url, messages, signal, templateSchema, llmConfig } = chatOptions;
+  const { url, messages, signal, templateSchema, llmConfig, lang } = chatOptions;
 
   const requestMetadata = {
     playground: JSON.stringify(llmConfig),
@@ -42,6 +43,7 @@ export const templateChat = async (chatOptions: {
       messages: messages,
       metadata: requestMetadata,
       templateSchema: templateSchema,
+      ...(lang ? { lang } : {}),
     }),
   };
 
