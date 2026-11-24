@@ -5,8 +5,7 @@ import SchemaRenderer, { RENDERER_SETTINGS_KEY } from '@opentiny/tiny-schema-ren
 import { DeltaPatcher, repairJson, RepairJsonState, type IMaterials } from '@opentiny/genui-sdk-core';
 import { requiredCompleteFieldSelectors as internalRequiredCompleteFieldSelectors } from './config';
 import { GENUI_CONFIG, GENUI_MATERIALS } from '../config-provider/injection-tokens';
-import type { IRendererProps } from './renderer.types';
-import { cardIdSymbol } from '../chat/useChat';
+import type { IBaseRendererInstance, IRendererProps } from './renderer.types';
 import { useI18n } from '../chat/i18n';
 
 onErrorCaptured((error) => {
@@ -19,7 +18,7 @@ const props = withDefaults(defineProps<IRendererProps>(), {
 });
 
 const schema = ref<any>({});
-const rendererInstance = ref<SchemaRenderer | null>(null);
+const rendererInstance = ref<IBaseRendererInstance | null>(null);
 
 const callAction = (actionName: string, params: any) => {
   if (!props.customActions?.[actionName]) {
@@ -86,13 +85,13 @@ const displaySchema = computed(() => {
 let updateActionTimer: any | null = null;
 
 function updateContextAndState() {
-  rendererInstance.value?.setContext({
+  const instance = rendererInstance.value;
+  if (!instance) {
+    return;
+  }
+  instance.setContext({
     callAction,
   });
-  rendererInstance.value?.setContext({
-    [cardIdSymbol]: props.id,
-  });
-  rendererInstance.value?.setState(props.state || {});
 }
 
 watch(
@@ -146,6 +145,20 @@ watch(
     immediate: true,
   },
 );
+const getState = (): Record<string, any> => {
+  const context = rendererInstance.value?.getContext?.();
+  return (context?.state as Record<string, any>) || {};
+};
+
+const setState = (state: Record<string, any> = {}, clear = false) => {
+  rendererInstance.value?.setState(state, clear);
+};
+
+defineExpose({
+  rendererInstance,
+  getState,
+  setState,
+});
 </script>
 
 <template>

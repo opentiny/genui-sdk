@@ -1,15 +1,21 @@
 <template>
   <GenuiConfigProvider :materials="materials">
-    <GenuiRenderer :content="content" :generating="generating" :state="historyState" :customActions="customActions" />
+    <GenuiRenderer
+      ref="rendererRef"
+      :content="content"
+      :generating="generating"
+      :customActions="customActions"
+    />
   </GenuiConfigProvider>
 </template>
 
 <script setup lang="ts">
 import { materials } from '@opentiny/genui-sdk-materials-vue-opentiny-vue/materials';
-import { ref } from 'vue';
-import { GenuiConfigProvider, GenuiRenderer } from '@opentiny/genui-sdk-vue';
+import { onMounted, ref } from 'vue';
+import { GenuiConfigProvider, GenuiRenderer, type IRendererExpose } from '@opentiny/genui-sdk-vue';
 
 const generating = ref(false);
+const rendererRef = ref<IRendererExpose | null>(null);
 
 // 从历史记录中恢复的 Schema
 const content = ref({
@@ -84,13 +90,18 @@ const content = ref({
   ],
 });
 
-// 从历史记录中恢复的状态（初始化时合并到全局状态）
+// 从历史记录中恢复的状态（通过 setState 注入）
 const historyState = {
   formData: {
     name: 'John Doe',
     age: 30,
   },
 };
+
+// 挂载完成后注入历史状态；若卡片仍在流式更新，schema 变化会重置状态，需在更新后重新调用
+onMounted(() => {
+  rendererRef.value?.setState(historyState);
+});
 
 const customActions = {
   getState: {

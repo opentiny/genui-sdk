@@ -11,9 +11,9 @@ import type {
   UserTextItem,
 } from '@opentiny/tiny-robot';
 import { ref, watch, computed, h, inject } from 'vue';
-import type { Ref, Component } from 'vue';
+import type { Ref, Component, VNode } from 'vue';
 import { CustomModelProvider } from './CustomModelProvider';
-import { scrollEnd, throttle, toSlotFunction } from './chat-utils';
+import { bindCardIdToAction, normalizeSchemaCardIds, scrollEnd, throttle, toSlotFunction } from './chat-utils';
 import { useFileUpload } from './useFileUpload';
 import AttachmentsRenderer from './renderer/AttachmentsRenderer.vue';
 import TemplateDataRenderer from './renderer/TemplateDataRenderer.vue'; 
@@ -22,11 +22,11 @@ import ToolRenderer from './renderer/ToolRenderer.vue';
 import { type FileMeta, MIME_TYPE_MAP } from './file-upload/file-utils';
 import { cardIdSymbol } from './useChat';
 import { emitter } from './event-emitter';
-import type { IChatProps, ICustomActionItem, IRolesConfig } from './chat.types';
+import type { IChatProps, ICustomActionItem, IRolesConfig, ISchemaCardProps } from './chat.types';
 import GeneratingComponent from './GeneratingComponent.vue';
 import { useChatAction } from './continue-chat-action';
 import type { IChatMessage, IMessageItem, IStreamData } from '@opentiny/genui-sdk-core';
-import type { IRendererProps } from '../renderer';
+import type { IRendererExpose, IRendererProps } from '../renderer';
 import { GenuiRenderer } from '../renderer';
 import ErrorText from './ErrorText.vue';
 import { useResize } from './composable/use-resize';
@@ -136,6 +136,9 @@ const getCardMessage = (cardId: string) => {
   return flatMessages.find((message: IMessageItem) => 'id' in message && message.id === cardId);
 };
 
+// 如果用户传入的messages中包含schema-card类型的消息，则需要将其id进行规范化处理，确保在后续的操作中能够正确匹配到对应的消息
+const initialMessages = normalizeSchemaCardIds(props.messages || []);
+
 const saveState = (context: Record<string | symbol, any>) => {
   const cardId = context[cardIdSymbol];
   const cardMessage = getCardMessage(cardId);
@@ -200,8 +203,16 @@ const customActionsMap = computed(() => {
 const messageRenderers = {
   'custom-text': (props: BubbleCommonProps & { content: string }) =>
     h('span', { class: 'tr-bubble__body-text' }, props.content),
-  'schema-card': (schemaCardProps: IRendererProps) => {
-    const isGenerating = lastSchemaCardId.value === schemaCardProps.id && generating.value;
+  'schema-card': (schemaCardProps: ISchemaCardProps) => {
+    const cardId = schemaCardProps.id;
+    const isGenerating = lastSchemaCardId.value === cardId && generating.value;
+    const customActions = Object.fromEntries(
+      Object.entries({
+        ...customActionsMap.value,
+        continueChat: continueChatAction,
+        saveState: saveStateAction,
+      }).map(([name, action]) => [name, bindCardIdToAction(action as ICustomActionItem, cardId)]),
+    );
 
     return h(
       'div',
@@ -213,12 +224,10 @@ const messageRenderers = {
           requiredCompleteFieldSelectors: props.requiredCompleteFieldSelectors || [],
           generating: isGenerating,
           customComponents: customComponentsMap.value,
-          customActions: {
-            ...customActionsMap.value,
-            continueChat: continueChatAction,
-            saveState: saveStateAction,
-          },
-          key: schemaCardProps.id,
+          customActions,
+          key: cardId,
+          onVnodeMounted: (vnode: VNode) =>
+            (vnode.component?.exposed as IRendererExpose | null)?.setState(schemaCardProps.state || {}),
         },
         {
           header: toSlotFunction(props.rendererSlots?.header),
@@ -283,9 +292,9 @@ let conversation = useConversation({
       }
 
       // 如果通过 props.messages 传入了初始消息，则在会话加载完成后覆盖当前会话的消息
-      if (props.messages?.length) {
+      if (initialMessages.length) {
         const currentMessages = messageManager.value.messages.value;
-        currentMessages.splice(0, currentMessages.length, ...(props.messages as any));
+        currentMessages.splice(0, currentMessages.length, ...(initialMessages as any));
       }
     },
     onFinish(data: any, context) {
@@ -321,8 +330,8 @@ const setInputMessage = (message: string) => {
   inputMessage.value = message;
 };
 
-if (props.messages?.length) {
-  messages.value.splice(0, messages.value.length, ...(props.messages as any));
+if (initialMessages.length) {
+  messages.value.splice(0, messages.value.length, ...(initialMessages as any));
 }
 
 const { attachments, templateData, clearAttachments, processAttachments, handleFilesSelected, handleTemplateEdit } =
