@@ -11,6 +11,7 @@ export default defineConfig({
     dts({
       rollupTypes: true,
       bundledPackages: ['@opentiny/tiny-schema-renderer-react'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
     }),
   ],
   build: {
@@ -20,6 +21,7 @@ export default defineConfig({
         renderer: path.resolve(__dirname, './src/renderer/index.ts'),
         'config-provider': path.resolve(__dirname, './src/config-provider/index.ts'),
         'transform-jsx': path.resolve(__dirname, './src/transform-jsx.ts'),
+        'code-generator': path.resolve(__dirname, './src/code-generator/index.ts'),
       },
       formats: ['es'],
       fileName: (_, entryName) => `${entryName}.js`,
@@ -31,9 +33,7 @@ export default defineConfig({
         'react',
         'react-dom',
         'react/jsx-runtime',
-        ...Object.keys(packageJson.dependencies || {}).map(
-          (name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`),
-        ),
+        ...Object.keys(packageJson.dependencies || {}).map((name) => new RegExp(`^${escapeStringRegexp(name)}(/|$)`)),
       ],
     },
   },
