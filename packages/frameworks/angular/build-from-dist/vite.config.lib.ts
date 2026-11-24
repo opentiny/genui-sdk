@@ -52,6 +52,7 @@ export default defineConfig(({ mode }) => {
               };
               newPackageJson.module = './dist/index.mjs';
               newPackageJson.typings = './dist/index.d.ts';
+              newPackageJson.type = 'module';
               newPackageJson.version = packageJson.version;
               return JSON.stringify(newPackageJson, null, 2);
             },

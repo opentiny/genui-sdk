@@ -57,7 +57,8 @@
         "extraBody": {
           "thinking": {
             "type": "disabled"
-          }
+          },
+          "max_tokens": 16384
         }
       },
       {

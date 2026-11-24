@@ -40,7 +40,7 @@ jobs:
 
       - name: Build sites for GitHub Pages
         env:
-          NODE_OPTIONS: --max_old_space_size=4096
+          NODE_OPTIONS: --max_old_space_size=8192
           VITE_GENUI_DOCS_BASE: ${{ vars.DOCS_BASE }}
           VITE_GENUI_PLAYGROUND_HREF: ${{ vars.PLAYGROUND_HREF }}
           VITE_CHAT_URL: ${{ vars.PLAYGROUND_BACKEND_URL }}/chat-genui
