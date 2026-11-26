@@ -77,6 +77,14 @@
     "title": "快速集成生成式UI",
     "subtitle": "提供强大的渲染组件和开箱即用的对话组件",
     "devDoc": "开发文档",
+    "skill": {
+      "title": "一句话， 开启你的GenUI项目",
+      "description": "借助Agent提效开发流程，将繁杂的安装、配置与初始化步骤化为一句话，轻松开启GenUI应用开发。",
+      "prompt": "安装并使用 @opentiny/genui-sdk-integration-skill，为我初始化一个基于Vue3的GenUI SDK快速开始项目，并接入 @opentiny/genui-sdk-materials-vue-opentiny-vue物料。完成后，请启动项目并验证运行结果。",
+      "copyPrompt": "复制提示词",
+      "copySuccess": "复制成功",
+      "copyFail": "复制失败"
+    },
     "step1": {
       "title": "步骤1：引入并使用chat组件",
       "description": "开箱即用的chat组件内置了对话界面与消息管理",
@@ -120,6 +128,19 @@
       "title": "更多功能",
       "description": "自定义示例和自定义片段，能够助力构建更加优秀的UI界面，满足多样视觉偏好"
     }
+  },
+  "plugin": {
+    "title": "让更多AI应用拥有生成式界面",
+    "subtitle": "以开放、灵活的能力融入AI生态，让模型的回答从文字延伸为可观、可操作、可交互的界面",
+    "text": {
+      "prefix": "生成式 UI，",
+      "embed": "嵌入",
+      "suffix": " DeepSeek Harness"
+    },
+    "description": "让 AI 的回答从「一段文字」变成「能点的界面」—— 图表、表单、小应用直接在对话里渲染，你的操作自动回到下一轮对话",
+    "copy": "复制",
+    "copied": "已复制",
+    "copyFail": "复制失败"
   },
   "link": {
     "title": "即刻体验OpenTiny生成式UI",

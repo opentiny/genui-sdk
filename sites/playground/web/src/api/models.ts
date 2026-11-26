@@ -49,6 +49,7 @@ export async function getModelFeatures(modelName: string, url?: string): Promise
   return {
     ...model.features,
     supportImage,
+    context_window: (model as Record<string, any>).context_window,
   };
 }
 

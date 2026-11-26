@@ -27,6 +27,7 @@ export const chat = async (
     model: string,
     temperature: number,
     signal: any,
+    stream: boolean,
     customComponents: ICustomComponentItem[],
     customSnippets: IGenPromptSnippet[],
     customExamples: IGenPromptExample[],
@@ -34,7 +35,7 @@ export const chat = async (
     customFetch?: CustomFetch,
   }
 ) => {
-  const { url, messages, model, temperature, signal, customComponents, customSnippets, customExamples, customActions, customFetch } = chatOptions;
+  const { url, messages, model, temperature, signal, stream, customComponents, customSnippets, customExamples, customActions, customFetch } = chatOptions;
   const tgCustomConfig = {
     customComponents: removeRefFromCustomComponents(customComponents),
     customSnippets: customSnippets,
@@ -56,6 +57,7 @@ export const chat = async (
       messages: messages,
       model: model,
       temperature: temperature,
+      stream: stream ?? true,
       metadata: requestMetadata,
     }),
   };

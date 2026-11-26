@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, onUnmounted, ref } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue';
 import hljs from 'highlight.js/lib/core';
 import javascript from 'highlight.js/lib/languages/javascript';
 import { TinyButton } from '@opentiny/vue';
@@ -29,6 +29,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateIsMobile);
+  clearTimeout(copyFeedbackTimer);
 });
 
 hljs.registerLanguage('javascript', javascript);
@@ -46,6 +47,53 @@ function hightlight() {
 const handleGuideCardClick = (index: number) => {
   activeCard.value = index;
   hightlight();
+};
+
+const copyState = ref<'idle' | 'success' | 'fail'>('idle');
+let copyFeedbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+const copyLabel = computed(() => {
+  if (copyState.value === 'success') {
+    return t('guide.skill.copySuccess');
+  }
+  if (copyState.value === 'fail') {
+    return t('guide.skill.copyFail');
+  }
+  return t('guide.skill.copyPrompt');
+});
+
+const copyText = (text: string) => {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.top = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  const succeeded = document.execCommand('copy');
+  document.body.removeChild(textarea);
+  return succeeded;
+};
+
+const handleCopyPrompt = async () => {
+  const text = t('guide.skill.prompt');
+  let succeeded = false;
+
+  try {
+    if (!navigator.clipboard?.writeText) {
+      throw new Error('clipboard api unavailable');
+    }
+    await navigator.clipboard.writeText(text);
+    succeeded = true;
+  } catch {
+    succeeded = copyText(text);
+  } finally {
+    copyState.value = succeeded ? 'success' : 'fail';
+
+    clearTimeout(copyFeedbackTimer);
+    copyFeedbackTimer = setTimeout(() => {
+      copyState.value = 'idle';
+    }, 500);
+  }
 };
 </script>
 
@@ -103,6 +151,28 @@ const handleGuideCardClick = (index: number) => {
         </div>
       </div>
     </div>
+    <div class="home-guide-skill">
+      <div class="home-guide-skill-header">
+        <span class="home-guide-skill-header-icon"></span>
+        <span class="home-guide-skill-header-title">{{ t('guide.skill.title') }}</span>
+      </div>
+      <div class="home-guide-skill-descript">{{ t('guide.skill.description') }}</div>
+      <div class="home-guide-skill-content">
+        <div class="home-guide-skill-prompt">{{ t('guide.skill.prompt') }}</div>
+        <button type="button" class="home-guide-skill-copy" @click="handleCopyPrompt">
+          <span
+            class="home-guide-skill-copy-icon"
+            :class="{ 'home-guide-skill-copy-icon--success': copyState === 'success' }"
+          ></span>
+          <span
+            class="home-guide-skill-copy-icon home-guide-skill-copy-icon--success home-guide-skill-copy-icon--preload"
+            aria-hidden="true"
+          ></span>
+          <span class="home-guide-skill-copy-text">{{ copyLabel }}</span>
+        </button>
+      </div>
+    </div>
+    
   </section>
 </template>
 
@@ -114,6 +184,30 @@ const handleGuideCardClick = (index: number) => {
   justify-content: center;
   align-content: center;
   padding: 110px 12.5% 0px 12.5%;
+  @media (max-width: 1280px) {
+    padding: 80px 10% 10px 10%;
+  }
+
+  @media (max-width: 768px) {
+    padding: 40px 10% 10px 10%;
+  }
+
+  @media (min-width: 1920px) {
+    padding: 110px 240px 10px 240px;
+  }
+
+  &-title {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+
+    @media (max-width: 1280px) {
+      &-subtitle {
+        margin-bottom: 40px;
+      }
+    }
+  }
 
   &-mobile {
     width: 100%;
@@ -255,6 +349,134 @@ const handleGuideCardClick = (index: number) => {
         &-framework {
           height: 430px;
         }
+      }
+    }
+  }
+
+  &-skill {
+    width: 100%;
+    background-color: rgba(246, 246, 246, 1);
+    margin-top: 60px;
+    border-radius: 20px;
+    padding: 40px;
+
+    &-header {
+      display: flex;
+      align-items: center;
+
+      &-icon {
+        height: 40px;
+        width: 40px;
+        margin-right: 16px;
+        background: url('@/assets/genui_skill_icon.svg');
+      }
+      
+      &-title {
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 29px;
+      }
+    }
+
+    &-descript {
+      margin-top: 8px;
+      margin-left: 56px;
+      font-size: 16px;
+      line-height: 24px;
+      font-weight: 400;
+      color: rgba(128, 128, 128, 1);
+      letter-spacing: 0;
+    }
+
+    &-content {
+      margin-top: 34px;
+      width: 100%;
+      padding: 20px 30px;
+      background-color: #fff;
+      border-radius: 12px;
+    }
+
+    &-prompt {
+        font-size: 16px;
+        line-height: 30px;
+        font-weight: 400;
+        color: rgba(25, 25, 25, 1)
+      }
+    
+      &-copy {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: fit-content;
+        margin-left: auto;
+        width: 142px;
+        height: 36px;
+        border: none;
+        padding: 0;
+        font-family: inherit;
+        border-radius: 62px;
+        background-color: rgba(25, 25, 25, 1);
+        cursor: pointer;
+
+
+        &-icon {
+          width: 16px;
+          height: 16px;
+          background: url('@/assets/copy.svg');
+
+          &--success {
+            background: url('@/assets/checkmark.svg');
+          }
+
+          &--preload {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            pointer-events: none;
+          }
+        }
+
+        &-text {
+          font-size: 14px;
+          font-weight: 400;
+          line-height: 24px;
+          color: #fff;
+        }
+
+      }
+    
+      @media (max-width: 768px) {
+      margin-top: 16px;
+      padding: 20px;
+      
+      &-content {
+        padding: 20px;
+      }
+      &-header-title {
+        font-size: 15px;
+      }
+      &-descript {
+        text-align: justify;
+        text-justify: inter-ideograph;
+      }
+      &-prompt {
+        text-align: justify;
+        text-justify: inter-ideograph;
+      }
+      &-copy {
+        margin: 20px auto 0;
+        width: 220px;
+        height: 40px;
+      }
+
+      @media (max-width: 480px) {
+        &-copy {
+          width: 100%;
+        }
+        
       }
     }
   }

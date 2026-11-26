@@ -53,6 +53,8 @@ const handleGuideChange = (index: number) => {
 .home-guide-step-mobile {
   display: flex;
   justify-content: center;
+  width: 100%;
+  max-width: 100%;
 
   &-button-group {
     border-radius: 382px;
@@ -62,6 +64,11 @@ const handleGuideChange = (index: number) => {
     display: flex;
     align-items: center;
     padding: 2px;
+
+    @media (max-width: 420px) {
+      width: 100%;
+      justify-content: space-between;
+    }
   }
 
   .home-guide-step-mobile-button-group {

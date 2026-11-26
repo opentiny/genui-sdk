@@ -32,7 +32,7 @@ export class FetchChatCompletions extends ChatCompletions<Response, ChatCompleti
       },
       body: JSON.stringify({
         ...params,
-        stream: options?.stream ?? true,
+        stream: params?.stream ?? true,
       }),
     };
 
