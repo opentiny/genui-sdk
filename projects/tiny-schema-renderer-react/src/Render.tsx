@@ -4,6 +4,7 @@ import type { Node, RootNode } from './types';
 import type { PageContextValue } from './engine';
 import { getComponent } from './materials';
 import { PageContext } from './page-context';
+import { isSlotOutletName, renderSlotOutlet } from './block';
 
 export function normalizeChildren(children: Node['children']): Node[] {
   if (children == null) return [];
@@ -11,14 +12,27 @@ export function normalizeChildren(children: Node['children']): Node[] {
   return [];
 }
 
-function getChildren(schema: Node, mergeScope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
+function renderNodes(
+  nodes: Node[],
+  scope: Record<string, unknown>,
+  context: PageContextValue,
+  keyPrefix: string,
+): React.ReactNode {
+  return nodes.map((child, index) => {
+    if (!child) return null;
+    const key = child.id ?? `${keyPrefix}${child.componentName}${index}`;
+    return renderComponent(child, scope, context, key);
+  });
+}
+
+export function getChildren(schema: Node, mergeScope: Record<string, unknown>, context: PageContextValue): React.ReactNode {
   if (!Array.isArray(schema.children)) {
     const content = parseData(schema.children, mergeScope, context);
     return content as React.ReactNode;
   }
   const children = normalizeChildren(schema.children);
   if (!children.length) return null;
-  return children.map((child, i) => renderComponent(child, mergeScope, context, child.id ?? child.componentName + i));
+  return renderNodes(children, mergeScope, context, '');
 }
 
 function renderComponent(
@@ -33,9 +47,11 @@ function renderComponent(
     return null;
   }
 
-  const component = getComponent(componentName, context);
+  // Slot 出口是渲染期指令：直接执行使用方传入的插槽渲染器，不经过组件解析
+  const isOutlet = isSlotOutletName(componentName);
+  const component = isOutlet ? null : getComponent(componentName, context);
 
-  if (!component) {
+  if (!isOutlet && !component) {
     return null;
   }
 
@@ -50,11 +66,15 @@ function renderComponent(
 
     const { children: _c, schema: _schema, ...elementProps } = getBindProps(schema, mergeScope, context);
     const elementKey = index !== undefined ? index : key;
-    return React.createElement(
-      component as string | ComponentType,
-      { ...elementProps, key: elementKey },
-      getChildren(schema, mergeScope, context),
-    );
+
+    if (isOutlet) {
+      return renderSlotOutlet(schema, elementProps, mergeScope, context, elementKey);
+    }
+
+    // 区块节点与普通节点一致：JSSlot 属性已编译为插槽渲染函数留在 props 里，children 作为默认插槽内容
+    const elementPropsWithKey: Record<string, unknown> = { ...elementProps, key: elementKey };
+    const children = getChildren(schema, mergeScope, context);
+    return React.createElement(component as string | ComponentType, elementPropsWithKey, children);
   };
 
   return loop ? loopList?.map(renderElement) : renderElement();

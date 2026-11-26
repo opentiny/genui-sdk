@@ -115,7 +115,8 @@ function parseJSSlot(
   scope: Record<string, unknown>,
   ctx: PageContextValue,
 ): JSSlotRenderer {
-  const children = Array.isArray(data.value) ? data.value : [];
+  // 单节点对象是合法输入：包一层数组再进插槽渲染，数组值保持原样
+  const children = Array.isArray(data.value) ? data.value : isObject(data.value) ? [data.value] : [];
   return ($scope?: Record<string, unknown>) =>
     defaultSlotRenderer ? defaultSlotRenderer(children, { ...scope, ...$scope }, ctx) : [];
 }

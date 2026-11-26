@@ -93,6 +93,8 @@ type InvokePageOnUnmounted = () => void | Promise<void>;
 export interface SetSchemaOptions {
   invokePageOnUnmounted?: InvokePageOnUnmounted;
   setPageOnUnmounted?: (fn: LifeCycleFn | null) => void;
+  /** 由渲染器生成，区块场景下同名区块会共享同一个 id */
+  cssScopeId?: string;
 }
 
 export async function setSchema(
@@ -109,7 +111,9 @@ export async function setSchema(
     }
 
     const cssScopeId =
-      contextApi.getContext().cssScopeId ?? `data-schema-${Math.random().toString(36).slice(2, 8)}`;
+      options.cssScopeId ??
+      contextApi.getContext().cssScopeId ??
+      `data-schema-${Math.random().toString(36).slice(2, 8)}`;
     const nextContext = { ...contextApi.getContext() };
     delete nextContext.state;
     delete nextContext.refs;
