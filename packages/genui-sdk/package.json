@@ -1,0 +1,101 @@
+{
+  "name": "@opentiny/genui-sdk",
+  "version": "0.0.1",
+  "description": "OpenTiny GenUI SDK umbrella package: every GenUI SDK package re-exported from its own subpath",
+  "author": "OpenTiny Team",
+  "license": "MIT",
+  "homepage": "https://opentiny.design/genui-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentiny/genui-sdk",
+    "directory": "packages/genui-sdk"
+  },
+  "bugs": {
+    "url": "https://github.com/opentiny/genui-sdk/issues"
+  },
+  "keywords": [
+    "genui",
+    "genui-sdk",
+    "generative-ui",
+    "llm",
+    "stream-ui",
+    "schema",
+    "opentiny",
+    "vue",
+    "react",
+    "angular"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./package.json": "./package.json",
+    "./core": {
+      "types": "./core/index.d.ts",
+      "import": "./core/index.js"
+    },
+    "./server": {
+      "types": "./server/index.d.ts",
+      "import": "./server/index.js"
+    },
+    "./vue": {
+      "types": "./vue/index.d.ts",
+      "import": "./vue/index.js"
+    },
+    "./react": {
+      "types": "./react/index.d.ts",
+      "import": "./react/index.js"
+    },
+    "./angular": {
+      "types": "./angular/index.d.ts",
+      "import": "./angular/index.js"
+    },
+    "./materials-vue-opentiny-vue": {
+      "types": "./materials-vue-opentiny-vue/index.d.ts",
+      "import": "./materials-vue-opentiny-vue/index.js"
+    },
+    "./materials-vue-element-plus": {
+      "types": "./materials-vue-element-plus/index.d.ts",
+      "import": "./materials-vue-element-plus/index.js"
+    },
+    "./materials-angular-opentiny-ng": {
+      "types": "./materials-angular-opentiny-ng/index.d.ts",
+      "import": "./materials-angular-opentiny-ng/index.js"
+    },
+    "./materials-react-antd": {
+      "types": "./materials-react-antd/index.d.ts",
+      "import": "./materials-react-antd/index.js"
+    },
+    "./skill-generator": {
+      "types": "./skill-generator/index.d.ts",
+      "import": "./skill-generator/index.js"
+    }
+  },
+  "files": [
+    "core",
+    "server",
+    "vue",
+    "react",
+    "angular",
+    "materials-vue-opentiny-vue",
+    "materials-vue-element-plus",
+    "materials-angular-opentiny-ng",
+    "materials-react-antd",
+    "skill-generator"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@opentiny/genui-sdk-core": "workspace:^",
+    "@opentiny/genui-sdk-server": "workspace:^",
+    "@opentiny/genui-sdk-vue": "workspace:^",
+    "@opentiny/genui-sdk-angular": "workspace:^",
+    "@opentiny/genui-sdk-react": "workspace:^",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:^",
+    "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:^",
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:^",
+    "@opentiny/genui-sdk-materials-react-antd": "workspace:^",
+    "@opentiny/genui-sdk-integration-skill": "workspace:^",
+    "@opentiny/genui-sdk-skill-generator": "workspace:^"
+  }
+}
