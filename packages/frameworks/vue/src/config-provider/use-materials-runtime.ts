@@ -52,8 +52,14 @@ function resolveRuntimeFactories(materials: MergedMaterials | undefined): Materi
   return [...new Set(factories)];
 }
 
+/**
+ * 解析实际生效的亮暗色系：最后一个给出 colorScheme 的运行时优先（last-wins）。
+ * 没有运行时给出描述符时（例如未声明 runtimeFactory 的自定义物料），沿用显式主题语义，
+ * 避免 theme="dark" 在浅色系统下被解析成 light。
+ */
 function resolveColorScheme(
   results: IMaterialsRuntimeApplyResult[],
+  theme: string,
   systemColorScheme: ThemeColorScheme,
 ): ThemeColorScheme {
   for (let index = results.length - 1; index >= 0; index -= 1) {
@@ -62,7 +68,7 @@ function resolveColorScheme(
       return colorScheme;
     }
   }
-  return systemColorScheme;
+  return theme === 'auto' ? systemColorScheme : theme === 'dark' ? 'dark' : 'light';
 }
 
 export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
@@ -113,7 +119,7 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions) {
       }
 
       runtimeRoots.value = roots;
-      colorScheme.value = resolveColorScheme(results, toValue(options.systemColorScheme));
+      colorScheme.value = resolveColorScheme(results, theme, toValue(options.systemColorScheme));
     },
     { immediate: true },
   );

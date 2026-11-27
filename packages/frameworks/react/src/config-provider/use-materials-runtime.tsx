@@ -44,8 +44,14 @@ function resolveRuntimeFactories(materials: IMaterials | undefined): MaterialsRu
   return [...new Set(Array.isArray(runtimeFactory) ? runtimeFactory : [runtimeFactory])];
 }
 
+/**
+ * 解析实际生效的亮暗色系：最后一个给出 colorScheme 的运行时优先（last-wins）。
+ * 没有运行时给出描述符时（例如未声明 runtimeFactory 的自定义物料），沿用显式主题语义，
+ * 避免 theme="dark" 在浅色系统下被解析成 light。
+ */
 function resolveColorScheme(
   results: IMaterialsRuntimeApplyResult[],
+  theme: string,
   systemColorScheme: ThemeColorScheme,
 ): ThemeColorScheme {
   for (let index = results.length - 1; index >= 0; index -= 1) {
@@ -54,7 +60,7 @@ function resolveColorScheme(
       return colorScheme;
     }
   }
-  return systemColorScheme;
+  return theme === 'auto' ? systemColorScheme : theme === 'dark' ? 'dark' : 'light';
 }
 
 // 在布局阶段应用运行时配置，保证首帧绘制前 root 已包裹内容；SSR 环境退化为 useEffect。
@@ -111,7 +117,7 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions): UseMat
 
     // 每次应用后都更新 roots，让闭包式 root（如 Ant Design）重新渲染拿到最新配置。
     setRuntimeRoots(roots);
-    setColorScheme(resolveColorScheme(results, options.systemColorScheme));
+    setColorScheme(resolveColorScheme(results, resolvedTheme, options.systemColorScheme));
   }, [runtimeFactories, resolvedTheme, resolvedLocale, themeSystemColorScheme]);
 
   useEffect(() => {
