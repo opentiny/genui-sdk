@@ -1,0 +1,394 @@
+{
+  "data": {
+    "framework": "React",
+    "materials": {
+      "components": [
+        {
+          "component": "AntBar",
+          "description": "Ant Design 条形图（水平方向），通过 data 与 xField/yField 配置数据",
+          "npm": {
+            "package": "@ant-design/plots",
+            "exportName": "Bar",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "数据数组，元素为对象"
+                    }
+                  },
+                  {
+                    "property": "xField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "x",
+                    "description": {
+                      "zh_CN": "x 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "yField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "y",
+                    "description": {
+                      "zh_CN": "y 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "colorField",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "分组/颜色字段名，多系列时使用"
+                    }
+                  },
+                  {
+                    "property": "stack",
+                    "type": "boolean",
+                    "description": {
+                      "zh_CN": "是否堆叠"
+                    }
+                  },
+                  {
+                    "property": "height",
+                    "type": "number",
+                    "defaultValue": 320,
+                    "description": {
+                      "zh_CN": "图表高度"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntColumn",
+          "description": "Ant Design 柱状图（垂直方向），通过 data 与 xField/yField 配置数据",
+          "npm": {
+            "package": "@ant-design/plots",
+            "exportName": "Column",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "数据数组，元素为对象"
+                    }
+                  },
+                  {
+                    "property": "xField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "x",
+                    "description": {
+                      "zh_CN": "x 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "yField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "y",
+                    "description": {
+                      "zh_CN": "y 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "colorField",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "分组/颜色字段名，多系列时使用"
+                    }
+                  },
+                  {
+                    "property": "stack",
+                    "type": "boolean",
+                    "description": {
+                      "zh_CN": "是否堆叠"
+                    }
+                  },
+                  {
+                    "property": "height",
+                    "type": "number",
+                    "defaultValue": 320,
+                    "description": {
+                      "zh_CN": "图表高度"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntLine",
+          "description": "Ant Design 折线图，通过 data 与 xField/yField 配置数据，colorField 可区分多系列",
+          "npm": {
+            "package": "@ant-design/plots",
+            "exportName": "Line",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "数据数组，元素为对象"
+                    }
+                  },
+                  {
+                    "property": "xField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "x",
+                    "description": {
+                      "zh_CN": "x 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "yField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "y",
+                    "description": {
+                      "zh_CN": "y 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "colorField",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "分组/颜色字段名，多系列时使用"
+                    }
+                  },
+                  {
+                    "property": "height",
+                    "type": "number",
+                    "defaultValue": 320,
+                    "description": {
+                      "zh_CN": "图表高度"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntArea",
+          "description": "Ant Design 面积图，通过 data 与 xField/yField 配置数据，stack 可开启堆叠",
+          "npm": {
+            "package": "@ant-design/plots",
+            "exportName": "Area",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "数据数组，元素为对象"
+                    }
+                  },
+                  {
+                    "property": "xField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "x",
+                    "description": {
+                      "zh_CN": "x 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "yField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "y",
+                    "description": {
+                      "zh_CN": "y 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "colorField",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "分组/颜色字段名，多系列时使用"
+                    }
+                  },
+                  {
+                    "property": "stack",
+                    "type": "boolean",
+                    "description": {
+                      "zh_CN": "是否堆叠"
+                    }
+                  },
+                  {
+                    "property": "height",
+                    "type": "number",
+                    "defaultValue": 320,
+                    "description": {
+                      "zh_CN": "图表高度"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntRadar",
+          "description": "Ant Design 雷达图，通过 data 与 xField/yField 配置数据",
+          "npm": {
+            "package": "@ant-design/plots",
+            "exportName": "Radar",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "数据数组，元素为对象"
+                    }
+                  },
+                  {
+                    "property": "xField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "x",
+                    "description": {
+                      "zh_CN": "x 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "yField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "y",
+                    "description": {
+                      "zh_CN": "y 轴字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "colorField",
+                    "type": "string",
+                    "description": {
+                      "zh_CN": "分组/颜色字段名，多系列时使用"
+                    }
+                  },
+                  {
+                    "property": "height",
+                    "type": "number",
+                    "defaultValue": 320,
+                    "description": {
+                      "zh_CN": "图表高度"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "component": "AntPie",
+          "description": "Ant Design 饼图，通过 data、angleField（数值）与 colorField（分类）配置数据",
+          "npm": {
+            "package": "@ant-design/plots",
+            "exportName": "Pie",
+            "destructuring": true
+          },
+          "schema": {
+            "properties": [
+              {
+                "label": {
+                  "zh_CN": "基础属性"
+                },
+                "content": [
+                  {
+                    "property": "data",
+                    "type": "array",
+                    "required": true,
+                    "defaultValue": [],
+                    "description": {
+                      "zh_CN": "数据数组，元素为对象"
+                    }
+                  },
+                  {
+                    "property": "angleField",
+                    "type": "string",
+                    "required": true,
+                    "defaultValue": "value",
+                    "description": {
+                      "zh_CN": "扇区大小字段名（数值），取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "colorField",
+                    "type": "string",
+                    "required": true,
+                    "description": {
+                      "zh_CN": "扇区分类字段名，取 data 中对象的 key"
+                    }
+                  },
+                  {
+                    "property": "height",
+                    "type": "number",
+                    "defaultValue": 320,
+                    "description": {
+                      "zh_CN": "图表高度"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -36,7 +36,7 @@ genui-sdk-server
 genui-sdk-server is running on http://localhost:3100
 ```
 
-> **物料说明**：CLI 不提供物料参数，**只能使用服务端内置默认物料**，并按请求 `metadata.tinygenui.framework` 选择：`Vue` → OpenTiny Vue，`Angular` → OpenTiny Angular，其他 / 未指定 → 回落到 Vue 默认物料。因此当前端替换了物料（React 物料、Vue Element Plus、mini 精简集、自定义物料等）时，服务端仍会使用按 framework 选中的内置默认物料，与前端不一致，生成 schema 的组件名前端无法渲染；此时必须改用编程方式或 Express 集成，显式传入对应的 `materialsMeta`。详见 [Server 使用文档 - 物料配置](../../guide/server-usage)。
+> **物料说明**：不传 `--materials` 时，CLI 使用服务端内置默认物料，并按请求 `metadata.tinygenui.framework` 选择：`Vue` → OpenTiny Vue，`Angular` → OpenTiny Angular，其他 / 未指定 → 回落到 Vue 默认物料。当前端替换了物料（React 物料、Vue Element Plus、mini 精简集、自定义物料等）时，用 `-m, --materials` 指定物料包名或物料 meta 文件路径，即可让服务端物料与前端保持一致；需要选择导出名（如 Vue 精简集 `miniMaterialsMeta`）时配合 `--materials-export`。详见 [Server 使用文档 - 物料配置](../../guide/server-usage)。
 
 ## 命令
 
@@ -56,7 +56,15 @@ genui-sdk-server [选项]
 |:---|:---:|:---:|:---|
 | `--envFile <path>` | `-e` | `string` | 自定义环境变量文件路径（默认：当前目录 `.env`） |
 | `--port <port>` | `-p` | `number` | 服务启动端口（默认：3100 或环境变量 `PORT`） |
+| `--materials <source>` | `-m` | `string` | 物料来源：物料包名（如 `@opentiny/genui-sdk-materials-react-antd`，可省略 `/meta` 子路径）或导出物料元数据的模块/JSON 文件路径；不传则使用内置默认物料 |
+| `--materials-export <name>` | - | `string` | 物料模块中的导出名（默认 `materialsMeta`，如 Vue 精简集为 `miniMaterialsMeta`） |
 | `--help` | `-h` | - | 显示帮助信息 |
+
+**物料来源解析规则**：
+
+- **文件路径**：以 `.`、`/` 开头，或形如 `C:\` 的 Windows 路径，以及 `file:` URL；相对路径基于命令执行时的当前工作目录解析；`.json` 文件会被直接解析为物料元数据。
+- **包名**：从命令执行时的当前工作目录解析，因此需要在运行 CLI 的项目中安装该物料包。只给包名（如 `@opentiny/genui-sdk-materials-react-antd`）时会优先尝试 `<包名>/meta` 子路径（体积小、不加载组件实现），失败后回退到包入口。
+- **导出名**：优先取 `--materials-export` 指定的导出（默认 `materialsMeta`），其次取模块的 `default` 导出，最后将模块本身视为物料元数据。
 
 #### 环境变量
 
@@ -78,6 +86,7 @@ CLI 工具需要以下环境变量（可通过 `.env` 文件或系统环境变�
 
 - **自动端口检测**：如果指定端口被占用，会自动尝试下一个端口（最多尝试 10 次）
 - **环境变量加载**：支持从 `.env` 文件或系统环境变量加载配置
+- **物料加载**：支持按包名或模块/JSON 文件路径加载物料元数据，可用 `--materials-export` 指定导出名
 - **CORS 支持**：自动启用 CORS，允许跨域请求
 - **流式响应**：支持 SSE（Server-Sent Events）格式的流式响应
 
@@ -113,6 +122,37 @@ genui-sdk-server -p 3000
 
 ```bash
 genui-sdk-server -e /path/to/.env -p 3000
+```
+
+**指定物料包名**
+
+前端使用 React 物料时，让服务端加载同一套物料（自动命中 `/meta` 子路径）：
+
+```bash
+genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd
+```
+
+**指定物料文件路径**
+
+物料元数据来自本地模块或 JSON 文件时，传相对/绝对路径：
+
+```bash
+genui-sdk-server -m ./my-materials.mjs
+genui-sdk-server -m /path/to/materials.json
+```
+
+**指定导出名**
+
+Vue 精简集等物料元数据不在默认导出 `materialsMeta` 上时，用 `--materials-export` 指定：
+
+```bash
+genui-sdk-server -m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
+```
+
+**组合使用物料与端口**
+
+```bash
+genui-sdk-server -m @opentiny/genui-sdk-materials-vue-element-plus -p 3000
 ```
 
 **使用系统环境变量**

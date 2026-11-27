@@ -35,7 +35,7 @@ interface IStartServerOptions {
 
 - **详细信息**
 
-创建一个 Express 应用并启用 CORS，自动注册对话路由（`/chat/completions`）。如果指定端口被占用，会自动尝试下一个端口（最多尝试 `maxAttempts` 次）。启动成功后会在控制台输出服务器地址。物料在启动时通过 `materialsMeta` 固定，请求侧无法切换；未配置时按请求 `framework` 映射内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular），其他 framework 回落到 Vue 默认物料。**前端物料只要与内置默认不一致（React 物料、Vue Element Plus、mini 精简集、自定义物料等），就必须显式传入对应的 `materialsMeta`**，否则生成的组件名与前端物料不匹配；CLI 只能使用内置默认物料。
+创建一个 Express 应用并启用 CORS，自动注册对话路由（`/chat/completions`）。如果指定端口被占用，会自动尝试下一个端口（最多尝试 `maxAttempts` 次）。启动成功后会在控制台输出服务器地址。物料在启动时通过 `materialsMeta` 固定，请求侧无法切换；未配置时按请求 `framework` 映射内置默认物料（Vue → OpenTiny Vue，Angular → OpenTiny Angular），其他 framework 回落到 Vue 默认物料。**前端物料只要与内置默认不一致（React 物料、Vue Element Plus、mini 精简集、自定义物料等），就必须显式传入对应的 `materialsMeta`**，否则生成的组件名与前端物料不匹配；CLI 可通过 `-m, --materials` 加载同样的物料。
 
 - **示例**
 

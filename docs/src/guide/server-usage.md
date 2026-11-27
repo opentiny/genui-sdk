@@ -64,6 +64,15 @@ npx genui-sdk-server --envFile .env.production
 # 指定端口 简写为-p
 npx genui-sdk-server --port 3000
 
+# 指定物料包名（可省略 /meta 子路径）
+npx genui-sdk-server --materials @opentiny/genui-sdk-materials-react-antd
+
+# 指定物料模块/JSON 文件路径
+npx genui-sdk-server --materials ./my-materials.mjs
+
+# 指定物料导出名（如 Vue 精简集）
+npx genui-sdk-server --materials @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
+
 # 通过设置环境变量启动(git bash)
 export API_KEY= BASE_URL=https://your-llm-server.com/api && npx genui-sdk-server
 ```
@@ -118,12 +127,12 @@ Server 会把物料元数据（`materialsMeta`）注入 system prompt，让大�
 
 **只要前端物料与上表的内置默认不一致，就必须在服务端显式传入对应的 `materialsMeta`**，包括但不限于：
 
-| 前端物料 | 服务端需传入 |
-| --- | --- |
-| React Ant Design `@opentiny/genui-sdk-materials-react-antd` | `@opentiny/genui-sdk-materials-react-antd/meta` |
-| Vue Element Plus `@opentiny/genui-sdk-materials-vue-element-plus` | `@opentiny/genui-sdk-materials-vue-element-plus/meta` |
-| Vue 精简集 `miniMaterials` | `miniMaterialsMeta` |
-| 自定义物料 | 自行提供的 `IMaterialsMeta` |
+| 前端物料 | 编程方式需传入 | CLI 等价写法 |
+| --- | --- | --- |
+| React Ant Design `@opentiny/genui-sdk-materials-react-antd` | `@opentiny/genui-sdk-materials-react-antd/meta` | `-m @opentiny/genui-sdk-materials-react-antd` |
+| Vue Element Plus `@opentiny/genui-sdk-materials-vue-element-plus` | `@opentiny/genui-sdk-materials-vue-element-plus/meta` | `-m @opentiny/genui-sdk-materials-vue-element-plus` |
+| Vue 精简集 `miniMaterials` | `miniMaterialsMeta` | `-m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta` |
+| 自定义物料 | 自行提供的 `IMaterialsMeta` | `-m ./my-materials.mjs`（模块或 `.json` 文件路径） |
 
 以 React 前端为例：
 
@@ -153,7 +162,20 @@ startServer({
 });
 ```
 
-> CLI（`npx genui-sdk-server`）不提供物料参数，**只能使用内置默认物料**。前端一旦替换了物料（React、Element Plus、mini 精简集、自定义物料等），都必须改用「方式二：编程方式」或「方式三：集成到现有 Express 应用」显式传入 `materialsMeta`。
+> CLI（`npx genui-sdk-server`）通过 `-m, --materials` 支持按物料包名或模块/JSON 文件路径加载物料，并可用 `--materials-export` 指定导出名；不传时仍使用内置默认物料。因此无论用哪种启动方式，都能让服务端物料与前端保持一致：
+>
+> ```bash
+> # 按包名（自动优先命中 /meta 子路径）
+> npx genui-sdk-server -m @opentiny/genui-sdk-materials-react-antd
+>
+> # 按文件路径（模块或 .json）
+> npx genui-sdk-server -m ./my-materials.mjs
+>
+> # 指定导出名（如 Vue 精简集）
+> npx genui-sdk-server -m @opentiny/genui-sdk-materials-vue-opentiny-vue/meta --materials-export miniMaterialsMeta
+> ```
+>
+> 包名从命令执行时的当前工作目录解析，因此需要在运行 CLI 的项目中安装对应物料包；只给包名时会优先尝试 `<包名>/meta` 子路径，失败后回退到包入口。
 
 ## 请求发起端使用
 
