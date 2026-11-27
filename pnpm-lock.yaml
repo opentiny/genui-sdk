@@ -480,6 +480,42 @@ importers:
         specifier: ^3.0.0
         version: 3.2.4(@types/node@25.5.0)(jsdom@26.1.0)(less@4.5.1)(sass@1.97.1)(terser@5.44.1)(tsx@4.21.0)
 
+  packages/genui-sdk:
+    dependencies:
+      '@opentiny/genui-sdk-angular':
+        specifier: workspace:*
+        version: link:../frameworks/angular
+      '@opentiny/genui-sdk-core':
+        specifier: workspace:*
+        version: link:../core
+      '@opentiny/genui-sdk-integration-skill':
+        specifier: workspace:*
+        version: link:../integrate/skill/genui-integration
+      '@opentiny/genui-sdk-materials-angular-opentiny-ng':
+        specifier: workspace:*
+        version: link:../materials/angular-opentiny-ng
+      '@opentiny/genui-sdk-materials-react-antd':
+        specifier: workspace:*
+        version: link:../materials/react-antd
+      '@opentiny/genui-sdk-materials-vue-element-plus':
+        specifier: workspace:*
+        version: link:../materials/vue-element-plus
+      '@opentiny/genui-sdk-materials-vue-opentiny-vue':
+        specifier: workspace:*
+        version: link:../materials/vue-opentiny-vue
+      '@opentiny/genui-sdk-react':
+        specifier: workspace:*
+        version: link:../frameworks/react
+      '@opentiny/genui-sdk-server':
+        specifier: workspace:*
+        version: link:../server
+      '@opentiny/genui-sdk-skill-generator':
+        specifier: workspace:*
+        version: link:../skill-generator
+      '@opentiny/genui-sdk-vue':
+        specifier: workspace:*
+        version: link:../frameworks/vue
+
   packages/integrate/skill/genui-integration: {}
 
   packages/materials/angular-opentiny-ng:
