@@ -63,7 +63,7 @@ function resolveColorScheme(
   return theme === 'auto' ? systemColorScheme : theme === 'dark' ? 'dark' : 'light';
 }
 
-// 在布局阶段应用运行时配置，保证首帧绘制前 root 已包裹内容；SSR 环境退化为 useEffect。
+// 在布局阶段应用后续的运行时配置变化，保证绘制前 root 已拿到最新配置；SSR 环境退化为 useEffect。
 const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 export interface UseMaterialsRuntimeOptions {
@@ -78,46 +78,98 @@ export interface UseMaterialsRuntimeResult {
   runtimeRoots: RuntimeRoot[];
 }
 
+interface AppliedRuntimeState {
+  colorScheme: ThemeColorScheme;
+  runtimeRoots: RuntimeRoot[];
+}
+
+/**
+ * 同步执行一次运行时：回收已移除的工厂、创建缺失的实例、逐个 apply 并收集 root。
+ */
+function applyRuntimeFactories(
+  instances: Map<MaterialsRuntimeFactory, IMaterialsRuntime>,
+  factories: MaterialsRuntimeFactory[],
+  theme: string,
+  locale: MaterialsLocaleId,
+  systemColorScheme: ThemeColorScheme,
+): AppliedRuntimeState {
+  for (const [factory, runtime] of instances) {
+    if (!factories.includes(factory)) {
+      runtime.dispose?.();
+      instances.delete(factory);
+    }
+  }
+
+  const runtimeRoots: RuntimeRoot[] = [];
+  const results: IMaterialsRuntimeApplyResult[] = [];
+  for (const factory of factories) {
+    let runtime = instances.get(factory);
+    if (!runtime) {
+      runtime = factory();
+      instances.set(factory, runtime);
+    }
+    const result = runtime.apply({ theme, locale });
+    results.push(result);
+    if (result.root) {
+      runtimeRoots.push(result.root as RuntimeRoot);
+    }
+  }
+
+  return { colorScheme: resolveColorScheme(results, theme, systemColorScheme), runtimeRoots };
+}
+
+function isSameApply(a: readonly unknown[], b: readonly unknown[]): boolean {
+  return a.length === b.length && a.every((value, index) => Object.is(value, b[index]));
+}
+
 export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions): UseMaterialsRuntimeResult {
   const runtimeFactories = useMemo(() => resolveRuntimeFactories(options.materials), [options.materials]);
   const runtimeInstancesRef = useRef<Map<MaterialsRuntimeFactory, IMaterialsRuntime>>(new Map());
   const runtimeGenerationRef = useRef(0);
-  const [runtimeRoots, setRuntimeRoots] = useState<RuntimeRoot[]>([]);
-  const [colorScheme, setColorScheme] = useState<ThemeColorScheme>('light');
 
   const resolvedTheme = options.theme || 'light';
   const resolvedLocale = options.locale || 'zh_CN';
   const isAutoTheme = resolvedTheme === 'auto';
   const themeSystemColorScheme = isAutoTheme ? options.systemColorScheme : null;
+  const applyDeps = [runtimeFactories, resolvedTheme, resolvedLocale, themeSystemColorScheme] as const;
+  const lastAppliedDepsRef = useRef<readonly unknown[] | null>(null);
+  const initialAppliedRef = useRef<AppliedRuntimeState | null>(null);
+
+  // 首帧同步创建并应用运行时，让 children 第一次就挂载在 root 下。
+  // 如果等到 layout effect 再包 root，同一位置的元素类型会变化，React 会把整棵子树卸载重建
+  // （子组件挂载副作用跑两遍、state 丢失，SSR 首屏也没有 root）。
+  // 这与 Vue（setup 内 immediate watch）、Angular（ngOnChanges）的首帧时序一致。
+  // 注意：React 18 StrictMode 开发模式下首帧会被双调用，所以工厂与 apply() 必须幂等，
+  // 不能依赖「只调用一次」的假设。
+  if (initialAppliedRef.current === null) {
+    initialAppliedRef.current = applyRuntimeFactories(
+      runtimeInstancesRef.current,
+      runtimeFactories,
+      resolvedTheme,
+      resolvedLocale,
+      options.systemColorScheme,
+    );
+    lastAppliedDepsRef.current = applyDeps;
+  }
+
+  const [applied, setApplied] = useState<AppliedRuntimeState>(() => initialAppliedRef.current as AppliedRuntimeState);
 
   useIsomorphicLayoutEffect(() => {
-    const instances = runtimeInstancesRef.current;
-
-    for (const [factory, runtime] of instances) {
-      if (!runtimeFactories.includes(factory)) {
-        runtime.dispose?.();
-        instances.delete(factory);
-      }
+    // 首帧已经在渲染期应用过；仅当依赖变化时（theme / locale / 工厂列表 / auto 下的系统深浅色）才重新应用。
+    if (lastAppliedDepsRef.current && isSameApply(lastAppliedDepsRef.current, applyDeps)) {
+      return;
     }
+    lastAppliedDepsRef.current = applyDeps;
 
-    const roots: RuntimeRoot[] = [];
-    const results: IMaterialsRuntimeApplyResult[] = [];
-    for (const factory of runtimeFactories) {
-      let runtime = instances.get(factory);
-      if (!runtime) {
-        runtime = factory();
-        instances.set(factory, runtime);
-      }
-      const result = runtime.apply({ theme: resolvedTheme, locale: resolvedLocale });
-      results.push(result);
-      if (result.root) {
-        roots.push(result.root as RuntimeRoot);
-      }
-    }
-
+    const next = applyRuntimeFactories(
+      runtimeInstancesRef.current,
+      runtimeFactories,
+      resolvedTheme,
+      resolvedLocale,
+      options.systemColorScheme,
+    );
     // 每次应用后都更新 roots，让闭包式 root（如 Ant Design）重新渲染拿到最新配置。
-    setRuntimeRoots(roots);
-    setColorScheme(resolveColorScheme(results, resolvedTheme, options.systemColorScheme));
+    setApplied(next);
   }, [runtimeFactories, resolvedTheme, resolvedLocale, themeSystemColorScheme]);
 
   useEffect(() => {
@@ -136,7 +188,7 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions): UseMat
     };
   }, []);
 
-  return { colorScheme, runtimeRoots };
+  return { colorScheme: applied.colorScheme, runtimeRoots: applied.runtimeRoots };
 }
 
 export function MaterialsRuntimeRoots({ roots, children }: { roots: RuntimeRoot[]; children?: ReactNode }) {
