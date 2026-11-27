@@ -19,6 +19,7 @@ on:
           - '@opentiny/genui-sdk-integration-skill'
           - '@opentiny/genui-sdk-skill-generator'
           - '@opentiny/genui-sdk-materials-react-antd'
+          - '@opentiny/genui-sdk'
       version:
         description: '发布版本号（将写入对应包的 package.json，例如 1.0.0-beta.3）'
         required: true
@@ -163,6 +164,13 @@ jobs:
               echo "build_script=build" >> "$GITHUB_OUTPUT"
               echo "publish_dir=packages/materials/react-antd" >> "$GITHUB_OUTPUT"
               ;;
+            @opentiny/genui-sdk)
+              # 总包只有手写的转发文件，没有构建步骤
+              echo "pkg_json=packages/genui-sdk/package.json" >> "$GITHUB_OUTPUT"
+              echo "sync_pkg_json=packages/genui-sdk/package.json" >> "$GITHUB_OUTPUT"
+              echo "filter=@opentiny/genui-sdk" >> "$GITHUB_OUTPUT"
+              echo "publish_dir=packages/genui-sdk" >> "$GITHUB_OUTPUT"
+              ;;
             *)
               echo "::error::未知包: ${{ github.event.inputs.package }}"
               exit 1
@@ -191,6 +199,7 @@ jobs:
         run: node ./scripts/update-package-version.js "${{ steps.pkg.outputs.pkg_json }}" "${{ github.event.inputs.version }}"
 
       - name: Build package
+        if: steps.pkg.outputs.build_script != ''
         run: pnpm --filter ${{ steps.pkg.outputs.filter }} ${{ steps.pkg.outputs.build_script }}
 
       - name: Sync workspace deps for publish
@@ -199,8 +208,10 @@ jobs:
           FETCH_NPM_TAG: ${{ github.event.inputs.fetch_npm_tag }}
         run: node ./scripts/ci-replace-workspace-deps.js
 
-      - name: Setup .npmrc for publish
-        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
+      - name: Setup Node.js for trusted publishing
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=24.19.0 <25'
 
       - name: Publish to npm
         working-directory: ${{ steps.pkg.outputs.publish_dir }}

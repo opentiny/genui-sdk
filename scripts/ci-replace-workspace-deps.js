@@ -113,6 +113,26 @@ function resolveDepVersion(depName, publishNames, publishVersion, npmTag) {
   return { version: fetchNpmVersion(depName, npmTag), source: `npm@${npmTag}` };
 }
 
+/**
+ * workspace: 协议换成发布用的版本范围，与 pnpm publish 的语义保持一致：
+ *   workspace:*  -> 1.2.3   （精确版本）
+ *   workspace:^  -> ^1.2.3
+ *   workspace:~  -> ~1.2.3
+ */
+function toPublishedRange(versionRange, version) {
+  const operator = versionRange.slice('workspace:'.length).trim();
+
+  if (operator.startsWith('^')) {
+    return `^${version}`;
+  }
+
+  if (operator.startsWith('~')) {
+    return `~${version}`;
+  }
+
+  return version;
+}
+
 function replaceWorkspaceDeps(pkgPathArg, workspacePackageNames, publishNames, publishVersion, npmTag) {
   const pkgPath = path.resolve(process.cwd(), pkgPathArg);
   if (!fs.existsSync(pkgPath)) {
@@ -131,8 +151,9 @@ function replaceWorkspaceDeps(pkgPathArg, workspacePackageNames, publishNames, p
 
   for (const { depName, field, versionRange } of workspaceDeps) {
     const { version, source } = resolveDepVersion(depName, publishNames, publishVersion, npmTag);
-    updates.push({ depName, field, from: versionRange, to: version, source });
-    pkg[field][depName] = version;
+    const to = toPublishedRange(versionRange, version);
+    updates.push({ depName, field, from: versionRange, to, source });
+    pkg[field][depName] = to;
   }
 
   for (const item of updates) {
@@ -161,6 +182,7 @@ function main() {
   - 依赖也在 PUBLISH_PKG_JSONS 且设置了 PUBLISH_VERSION → 用 PUBLISH_VERSION
   - 其余 workspace 内部依赖 → 从 npm@FETCH_NPM_TAG 拉取（默认 latest）
   - 单包发布时不设 PUBLISH_VERSION，依赖一律走 npm
+  - workspace:* 写成精确版本，workspace:^ / workspace:~ 写成 ^x.y.z / ~x.y.z
 `);
     process.exit(1);
   }
