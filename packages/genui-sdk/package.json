@@ -86,16 +86,16 @@
     "access": "public"
   },
   "dependencies": {
-    "@opentiny/genui-sdk-core": "workspace:*",
-    "@opentiny/genui-sdk-server": "workspace:*",
-    "@opentiny/genui-sdk-vue": "workspace:*",
-    "@opentiny/genui-sdk-angular": "workspace:*",
-    "@opentiny/genui-sdk-react": "workspace:*",
-    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:*",
-    "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:*",
-    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:*",
-    "@opentiny/genui-sdk-materials-react-antd": "workspace:*",
-    "@opentiny/genui-sdk-integration-skill": "workspace:*",
-    "@opentiny/genui-sdk-skill-generator": "workspace:*"
+    "@opentiny/genui-sdk-core": "workspace:^",
+    "@opentiny/genui-sdk-server": "workspace:^",
+    "@opentiny/genui-sdk-vue": "workspace:^",
+    "@opentiny/genui-sdk-angular": "workspace:^",
+    "@opentiny/genui-sdk-react": "workspace:^",
+    "@opentiny/genui-sdk-materials-vue-opentiny-vue": "workspace:^",
+    "@opentiny/genui-sdk-materials-vue-element-plus": "workspace:^",
+    "@opentiny/genui-sdk-materials-angular-opentiny-ng": "workspace:^",
+    "@opentiny/genui-sdk-materials-react-antd": "workspace:^",
+    "@opentiny/genui-sdk-integration-skill": "workspace:^",
+    "@opentiny/genui-sdk-skill-generator": "workspace:^"
   }
 }

@@ -47,7 +47,7 @@ import { equipChatCompletions } from '@opentiny/genui-sdk/server';
 
 - There is no root import. `import '@opentiny/genui-sdk'` is not supported; always use a subpath.
 - The package depends on every package listed above, including all three frontend frameworks and all materials packages. An application that only uses one framework should install that framework's packages directly to keep `node_modules` small.
-- The CLI binaries `genui-sdk-server` and `genui-skill-generate` are provided by the sub-packages and are linked into `node_modules/.bin` as usual.
+- The CLI binaries `genui-sdk-server` and `genui-skill-generate` belong to `@opentiny/genui-sdk-server` and `@opentiny/genui-sdk-skill-generator`. The umbrella package declares no `bin`, and pnpm's isolated linker does not expose the binaries of transitive dependencies, so install the owning package directly when you need the CLI: `pnpm add @opentiny/genui-sdk-server` or `pnpm add @opentiny/genui-sdk-skill-generator`.
 - `@opentiny/genui-sdk-integration-skill` is installed as a dependency but has no subpath, because it is a documentation-only agent skill without a JavaScript entry.
 - Subpath exports require a resolver that understands the `exports` field (Node.js ≥ 12.7, Vite, webpack ≥ 5, TypeScript with `moduleResolution` set to `bundler`, `node16` or `nodenext`).
 
