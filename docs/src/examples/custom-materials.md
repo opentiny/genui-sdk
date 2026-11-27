@@ -113,12 +113,14 @@ export const materials: IMaterials = {
   components,
   requiredCompleteFieldSelectors,
   defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+  // 可选：runtimeFactory，见下方「物料运行时（主题与国际化）」
 };
 ```
 
 - `components`：组件清单，渲染器通过它解析 `componentName → 组件`。
 - `defaultPropsMap`：由 `buildMaterialDefaultValueMap` 根据 `bundle.json` 里的 `defaultValue` 自动生成，流式渲染时字段不全也能自动补全。
 - `requiredCompleteFieldSelectors`：**缓冲字段**。声明后，这些字段要等完整才参与渲染，避免流式过程中因字段不完整而报错（如 `[componentName=NSelect] > props > options`）。语法详见 [配置缓冲字段](./renderer/required-complete-field-selectors)。
+- `runtimeFactory`（可选）：物料运行时工厂，由 ConfigProvider 调用其 `apply()` 统一切换组件库主题与语言，见 [物料运行时（主题与国际化）](#物料运行时主题与国际化)。
 
 最后补上 `materials` 子路径入口：
 
@@ -472,12 +474,12 @@ const systemPrompt = genPrompt('Vue', materialsMeta);
 物料的全部"契约"就体现在两个类型上，它们都定义在 `@opentiny/genui-sdk-core`：
 
 ```typescript
-// 渲染端：组件清单 + 缓冲字段 + 默认值映射 + 主题
+// 渲染端：组件清单 + 缓冲字段 + 默认值映射 + 物料运行时
 interface IMaterials {
   components?: Record<string, unknown>;      // 组件名 → 运行时组件
   requiredCompleteFieldSelectors?: string[]; // 缓冲字段选择器
   defaultPropsMap?: Record<string, any>;     // 组件默认 Props 映射
-  themeFactory?: MaterialsThemeFactory;      // 物料主题工厂（可选），见「物料主题」
+  runtimeFactory?: MaterialsRuntimeFactory;  // 可选：组件库运行时工厂
   [key: string]: any;                        // 允许扩展其他字段
 }
 
@@ -493,10 +495,166 @@ interface IMaterialsMeta {
 
 两个类型各司其职：
 
-- **`IMaterials`**：交给前端渲染器（`GenuiConfigProvider` 注入）。渲染器拿到 Schema 里的 `componentName` 后，去 `components` 里找对应的 Vue 组件渲染；`defaultPropsMap` 用于流式渲染时补全尚未生成的属性；`requiredCompleteFieldSelectors` 用于声明"必须等字段完整才能渲染"的缓冲字段；`themeFactory` 可选，声明物料支持的主题，让框架层统一调度（详见 [物料主题](../components/materials/theme)）。
+- **`IMaterials`**：交给前端渲染器（`GenuiConfigProvider` 注入）。渲染器拿到 Schema 里的 `componentName` 后，去 `components` 里找对应的 Vue 组件渲染；`defaultPropsMap` 用于流式渲染时补全尚未生成的属性；`requiredCompleteFieldSelectors` 用于声明“必须等字段完整才能渲染”的缓冲字段；可选的 `runtimeFactory` 统一处理组件库主题、国际化与根 Provider（详见 [物料运行时](../components/core/api#imaterialsruntime)）。
 - **`IMaterialsMeta`**：交给服务端 `genPrompt`。`genPrompt` 会把 `materials`（组件协议，来自 `bundle.json`）与 `whiteList` 拼进 System Prompt，让 LLM 只使用白名单内的组件、并按照组件协议生成 Schema。
 
 两个类型通过 **`componentName`** 对齐：`IMaterials.components` 的 key 就是 Schema 里的 `componentName`，并且必须与 `IMaterialsMeta` 中每个组件的 `component` 字段一一对应。
+
+### 物料运行时（主题与国际化）
+
+当组件库需要 ConfigProvider 才能切换主题或国际化时，通过 `runtimeFactory` 接入。一个组件库只提供一个 `runtimeFactory`，返回一个运行时实例；`apply()` 可以返回一个稳定的 `root`，由它统一持有组件库 ConfigProvider。这样主题和国际化共享同一个 Provider，不会因分别包裹而相互覆盖。
+
+```typescript
+interface IMaterialsRuntime {
+  readonly themes?: readonly IThemeDescriptor[];
+  readonly locales?: readonly ILocaleDescriptor[];
+  apply(config: Readonly<{ theme: string; locale?: MaterialsLocaleId }>): {
+    theme?: IThemeDescriptor;
+    locale?: ILocaleDescriptor;
+    root?: unknown;
+  };
+  dispose?(): void;
+}
+
+type MaterialsRuntimeFactory = () => IMaterialsRuntime;
+```
+
+实现时遵循以下约束：
+
+- `root` 在 `runtimeFactory()` 的闭包里创建一次，每次 `apply()` 返回同一个引用；不要在 `apply()` 中重新创建根组件，否则包裹的子树会被反复卸载重建。
+- `root` 的组件类型必须和宿主框架一致：Vue 用 Vue 组件，React 用 React 组件，Angular 用 Angular 组件类；Angular root 还需要一个默认的 `<ng-content>`，不能直接复用其他框架的 root。
+- `apply()` 首次初始化时就会执行，此后 `theme`、`locale` 变化时再次执行；`theme` 为 `auto` 时，系统深浅色变化也会再次执行。可通过闭包中的响应式状态把新配置传给 `root`。
+- Angular 版 ConfigProvider 在 `theme` / `locale` 都未传时不会调用 `apply()`，因此也不会渲染 root；需要 root 时至少传一个。
+- ConfigProvider 未显式传入 `locale` 时，`config.locale` 为 `undefined`：作用域内的 Provider 可以回退到默认语言包；通过全局 API 切换语言的组件库应直接跳过，不要改动宿主应用已有的语言。
+- `dispose()` 只负责回收运行时级副作用；ConfigProvider 移除该工厂或自身卸载时会调用它。
+- 同一组件库的多个物料集合应复用同一个导出的 `runtimeFactory` 引用。`mergeMaterials()` 会按引用去重，不同组件库的根组件则按合并顺序嵌套。
+- 用同一个 `locales` 数组声明规范 id 和组件库语言包（`{ id, pack }`）。`applyLocale` 从 `apply()` 里抽出，写法与主题解析对称。
+
+在第二步导出的 `materials` 对象上追加 `runtimeFactory`（保留 `defaultPropsMap`、`requiredCompleteFieldSelectors` 等已有配置）：
+
+```typescript
+// src/materials/materials.ts —— 在第二步文件的基础上追加运行时相关内容
+import {
+  buildMaterialDefaultValueMap,
+  getSystemColorScheme,
+  type ILocaleDescriptor,
+  type IMaterials,
+  type IThemeDescriptor,
+  type MaterialsRuntimeFactory,
+} from '@opentiny/genui-sdk-core';
+import { defineComponent, h, ref } from 'vue';
+import { enUS, ptBR, zhCN } from 'naive-ui';
+import { materialsMeta } from '../meta';
+import { components } from './components';
+import RuntimeRoot from './runtime/RuntimeRoot.vue';
+
+// 第二步声明的缓冲字段保持不变
+const requiredCompleteFieldSelectors = [];
+
+const themes: IThemeDescriptor[] = [
+  { id: 'light', colorScheme: 'light' },
+  { id: 'dark', colorScheme: 'dark' },
+];
+
+// pack 直接使用 naive-ui 的语言包对象，由 RuntimeRoot 传给 NConfigProvider。
+const locales = [
+  { id: 'zh_CN', pack: zhCN },
+  { id: 'en_US', pack: enUS },
+  { id: 'pt_BR', pack: ptBR },
+];
+
+function resolveLocale(locale: string) {
+  return locales.find((item) => item.id === locale) ?? locales[0];
+}
+
+export const runtimeFactory: MaterialsRuntimeFactory = () => {
+  const theme = ref('light');
+  const locale = ref(zhCN);
+  const root = defineComponent({
+    name: 'CustomMaterialsRuntimeRoot',
+    setup(_, { slots }) {
+      return () => h(RuntimeRoot, { theme: theme.value, locale: locale.value }, slots);
+    },
+  });
+
+  function applyLocale(localeId: string): ILocaleDescriptor {
+    const current = resolveLocale(localeId);
+    locale.value = current.pack;
+    return current;
+  }
+
+  return {
+    themes,
+    locales,
+    apply(config) {
+      const systemColorScheme = getSystemColorScheme();
+      const descriptor = themes.find((item) => item.id === config.theme) ?? {
+        id: systemColorScheme,
+        colorScheme: systemColorScheme,
+      };
+      theme.value = descriptor.id;
+      return { theme: descriptor, locale: applyLocale(config.locale), root };
+    },
+  };
+};
+
+// 在第二步导出的 materials 上追加 runtimeFactory，保留 defaultPropsMap 与 requiredCompleteFieldSelectors。
+export const materials: IMaterials = {
+  components,
+  requiredCompleteFieldSelectors,
+  defaultPropsMap: buildMaterialDefaultValueMap(materialsMeta),
+  runtimeFactory,
+};
+```
+
+其中 `RuntimeRoot.vue` 是 `apply()` 返回的稳定 root：只创建一个组件库 ConfigProvider，并把运行时传来的 `theme`、`locale` 映射成组件库需要的值。注意 Naive UI 的 `:locale` 需要语言包对象（不是 `'zh-CN'` 这类字符串），日期文案还需要单独的 `:date-locale`：
+
+```vue
+<!-- src/materials/runtime/RuntimeRoot.vue -->
+<template>
+  <NConfigProvider :theme="naiveTheme" :locale="locale" :date-locale="dateLocale">
+    <slot />
+  </NConfigProvider>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue';
+import { darkTheme, dateEnUS, datePtBR, dateZhCN, enUS, ptBR, type NLocale } from 'naive-ui';
+
+const props = defineProps<{
+  // runtimeFactory 传入的 theme 是 'light' / 'dark' 字符串
+  theme: string;
+  // locale 是 naive-ui 语言包对象，见上方 locales 的 pack 字段
+  locale: NLocale;
+}>();
+
+// Naive UI 暗色主题需要传入 darkTheme 实例，light 传 null
+const naiveTheme = computed(() => (props.theme === 'dark' ? darkTheme : null));
+
+// 日期文案需要单独的 date-locale，按语言包对应关系转换
+const dateLocale = computed(() => {
+  if (props.locale === enUS) {
+    return dateEnUS;
+  }
+  if (props.locale === ptBR) {
+    return datePtBR;
+  }
+  return dateZhCN;
+});
+</script>
+```
+
+如果组件库只通过全局 API 切换语言、不需要 Provider，可以在 `apply()` 中只返回 `locale`，不返回 `root`。此时务必在 `config.locale === undefined` 时直接返回，不要调用全局 API。
+
+集成方仍然只需配置 `GenuiConfigProvider`：
+
+```vue
+<GenuiConfigProvider :locale="locale" :materials="materials">
+  <GenuiChat ... />
+</GenuiConfigProvider>
+```
+
+这里的 `locale` 会同时更新 GenUI Chat 文案和物料运行时；组件库内置文案（分页、空状态、日期选择器等）由运行时处理。GenUI Chat 自定义文案仍使用 ConfigProvider 的 `i18n` 属性。详细说明见 [国际化配置](./config-provider/i18n)。
 
 ### `bundle.json` 的协议类型
 
