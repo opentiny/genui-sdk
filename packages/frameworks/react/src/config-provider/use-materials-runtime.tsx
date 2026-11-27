@@ -90,7 +90,7 @@ function applyRuntimeFactories(
   instances: Map<MaterialsRuntimeFactory, IMaterialsRuntime>,
   factories: MaterialsRuntimeFactory[],
   theme: string,
-  locale: MaterialsLocaleId,
+  locale: MaterialsLocaleId | undefined,
   systemColorScheme: ThemeColorScheme,
 ): AppliedRuntimeState {
   for (const [factory, runtime] of instances) {
@@ -128,7 +128,9 @@ export function useMaterialsRuntime(options: UseMaterialsRuntimeOptions): UseMat
   const runtimeGenerationRef = useRef(0);
 
   const resolvedTheme = options.theme || 'light';
-  const resolvedLocale = options.locale || 'zh_CN';
+  // locale 不设默认值：未显式传入时原样传 undefined，由运行时决定回退
+  //（作用域 Provider 用默认语言包；全局 API 则跳过，不改宿主语言）。
+  const resolvedLocale = options.locale;
   const isAutoTheme = resolvedTheme === 'auto';
   const themeSystemColorScheme = isAutoTheme ? options.systemColorScheme : null;
   const applyDeps = [runtimeFactories, resolvedTheme, resolvedLocale, themeSystemColorScheme] as const;

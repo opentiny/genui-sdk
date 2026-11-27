@@ -35,7 +35,15 @@ function resolveLocale(locale: string) {
   return locales.find((item) => item.id === locale) ?? locales[0];
 }
 
-function applyLocale(localeId: string): ILocaleDescriptor {
+/**
+ * `@opentiny/vue-locale` 的 `use()` 是模块级全局状态，会影响整个宿主应用的语言。
+ * 因此只在显式传入 `locale` 时切换；未传（`undefined`）时保持应用当前语言不变，
+ * 避免没写 locale 的 ConfigProvider 把宿主语言重置成 `zh_CN`。
+ */
+function applyLocale(localeId: string | undefined): ILocaleDescriptor | undefined {
+  if (localeId === undefined) {
+    return undefined;
+  }
   const current = resolveLocale(localeId);
   tinyUse(current.pack);
   return current;

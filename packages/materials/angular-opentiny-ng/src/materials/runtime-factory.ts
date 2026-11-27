@@ -13,8 +13,15 @@ function resolveLocale(locale: string) {
   return locales.find((item) => item.id === locale) ?? locales[0];
 }
 
-/** TinyNG 官方入口：TiLocale.setLocale 会写入 window.tiLocale（SSR 则写 global）。 */
-function setLocale(locale: string): ILocaleDescriptor {
+/**
+ * TinyNG 官方入口：TiLocale.setLocale 会写入 window.tiLocale（SSR 则写 global），属于全局状态。
+ * 因此只在显式传入 `locale` 时切换；未传（`undefined`）时保持应用当前语言不变，
+ * 避免只改 theme 的 ConfigProvider 把全局语言重置成 `zh_CN`。
+ */
+function setLocale(locale: string | undefined): ILocaleDescriptor | undefined {
+  if (locale === undefined) {
+    return undefined;
+  }
   const current = resolveLocale(locale);
   TiLocale.setLocale(current.pack);
   return current;

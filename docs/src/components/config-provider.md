@@ -82,7 +82,7 @@ const schemaContent = {
 - **类型**: `MaterialsLocaleId`（`string`，推荐 `zh_CN`）
 - **必填**: 否
 - **默认值**: `'zh_CN'`
-- **说明**: 设置语言环境，推荐 `语言_地区` 规范 id，不限制为官方枚举。GenUI Chat 内置文案目前提供 `'zh_CN'`、`'en_US'`。物料 `locales` 自行声明支持的 id；组件库自己的 `zh-CN` / `zh-cn` 只存在于物料内部映射表。不要传入 `zh-CN`。
+- **说明**: 设置语言环境，推荐 `语言_地区` 规范 id，不限制为官方枚举。GenUI Chat 内置文案目前提供 `'zh_CN'`、`'en_US'`。物料 `locales` 自行声明支持的 id；组件库自己的 `zh-CN` / `zh-cn` 只存在于物料内部映射表。不要传入 `zh-CN`。未传入时 GenUI 文案仍为 `zh_CN`，但物料运行时收到的是 `undefined`：通过全局 API 切换语言的物料（如 OpenTiny Vue）此时不会改动应用当前语言。
 
 ```vue
 <template>

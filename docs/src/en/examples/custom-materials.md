@@ -514,7 +514,7 @@ When a UI library needs a config provider for theme or locale switching, integra
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
   readonly locales?: readonly ILocaleDescriptor[];
-  apply(config: Readonly<{ theme: string; locale: MaterialsLocaleId }>): {
+  apply(config: Readonly<{ theme: string; locale?: MaterialsLocaleId }>): {
     theme?: IThemeDescriptor;
     locale?: ILocaleDescriptor;
     root?: unknown;
@@ -531,6 +531,7 @@ Follow these constraints when implementing a runtime:
 - The root component type must match the host framework: Vue components for Vue, React components for React, and Angular component classes for Angular. An Angular root also needs a default `<ng-content>`; roots cannot be reused across frameworks.
 - `apply()` runs during initial setup, then runs again when `theme` or `locale` changes. When `theme` is `auto`, a system color-scheme change also re-invokes it. Use reactive state captured by the runtime to pass updates to `root`.
 - The Angular ConfigProvider does not call `apply()` when both `theme` and `locale` are omitted, so no root is rendered; pass at least one when you need a root.
+- When ConfigProvider receives no `locale`, `config.locale` is `undefined`. A runtime backed by a scoped provider may fall back to its default language pack; a runtime that switches locale through a global API should skip the call so the host application's locale is left untouched.
 - Use `dispose()` only for runtime-level cleanup. ConfigProvider calls it when the factory is removed or the provider unmounts.
 - Material sets for the same UI library should reuse the same exported `runtimeFactory` reference. `mergeMaterials()` deduplicates factories by reference and nests roots from different UI libraries in merge order.
 - Declare supported languages in one `locales` list as `{ id, pack }` (canonical `language_REGION` id plus the UI-library pack). Pull `applyLocale` out of `apply()`, the same way theme resolution is extracted.
@@ -649,7 +650,7 @@ const dateLocale = computed(() => {
 </script>
 ```
 
-If the library switches locale through a global API and needs no provider, return only `locale` from `apply()` and omit `root`.
+If the library switches locale through a global API and needs no provider, return only `locale` from `apply()` and omit `root`. In that case return early when `config.locale === undefined` and do not call the global API.
 
 Application integration remains unchanged:
 

@@ -25,7 +25,7 @@
 - **Default**: `undefined` (runtime is not invoked)
 - **Description**: Locale identifier in `language_REGION` form, such as `zh_CN` or `en_US`. When provided, `runtimeFactory.apply()` switches the materials locale; Angular OpenTiny NG calls `TiLocale.setLocale`. If neither `theme` nor `locale` is provided, the runtime is not invoked, so nested ConfigProviders do not override outer settings.
 
-> TinyNG locale is global. Already-mounted components do not react automatically; recreate the rendered content when switching locales (the playground's Angular CE remounts).
+> TinyNG locale is global. Already-mounted components do not react automatically; recreate the rendered content when switching locales (the playground's Angular CE remounts). When `locale` is omitted the runtime does not call `TiLocale.setLocale`, so the application's current locale is left unchanged.
 
 ```ts
 @Component({
@@ -128,7 +128,7 @@ The current Angular OpenTiny NG materials **do not return a root** and only hand
 
 `GenuiConfigProvider` can be nested. When the inner provider does not pass `materials` / `notify`, it inherits the parent configuration; passing them overrides it. `theme` / `locale` only invoke the runtime when explicitly provided, so an inner provider can override the locale or theme on its own.
 
-Note that the runtime always receives the inner provider's fully resolved config. When the inner provider passes only `theme` (or only `locale`), the missing value falls back to its default (`light` / `zh_CN`), **not** to the parent's value. For example, an inner provider that changes only the theme passes `zh_CN` to the runtime — and for TinyNG, whose materials switch the global locale through `TiLocale.setLocale` outside the root, that also resets the whole application's locale to Chinese. To preserve the other setting, always pass both `theme` and `locale` explicitly.
+Note that the runtime always receives the inner provider's own config and never **inherits the parent's values**. When the inner provider passes only `theme`, the runtime receives `locale: undefined`; the Angular OpenTiny NG materials skip `TiLocale.setLocale` in that case, so the application's global locale is not reset. Pass `locale` explicitly when the inner provider needs a specific language.
 
 ```ts
 @Component({

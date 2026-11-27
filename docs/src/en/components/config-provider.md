@@ -84,7 +84,7 @@ See [GenuiConfigProvider - Custom Theme](../examples/config-provider/custom-them
 - **Type**: `MaterialsLocaleId` (`string`, recommended `zh_CN`)
 - **Required**: No
 - **Default**: `'zh_CN'`
-- **Description**: Locale. Prefer canonical `language_REGION` ids; the type is not a closed enum. GenUI Chat ships `'zh_CN'` and `'en_US'`. Each materials package declares its own `locales`. UI-library strings such as `zh-CN` / `zh-cn` stay in the package's private map. Do not pass `zh-CN`.
+- **Description**: Locale. Prefer canonical `language_REGION` ids; the type is not a closed enum. GenUI Chat ships `'zh_CN'` and `'en_US'`. Each materials package declares its own `locales`. UI-library strings such as `zh-CN` / `zh-cn` stay in the package's private map. Do not pass `zh-CN`. When omitted, GenUI copy still defaults to `zh_CN` but the materials runtime receives `undefined`, so materials that switch locale through a global API (such as OpenTiny Vue) leave the application's current locale unchanged.
 
 ```vue
 <template>

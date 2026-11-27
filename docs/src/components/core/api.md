@@ -417,7 +417,7 @@ interface ILocaleDescriptor {
 
 interface IMaterialsRuntimeConfig {
   theme: string;
-  locale: MaterialsLocaleId; // 推荐 zh_CN 这种规范 id，可为任意字符串
+  locale?: MaterialsLocaleId; // 未显式传入时为 undefined；推荐 zh_CN 这种规范 id，可为任意字符串
 }
 
 interface IMaterialsRuntimeApplyResult {
@@ -441,6 +441,8 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 `root` 的组件类型由各框架实现决定，不能跨框架复用。
 
 `ConfigProvider.locale` 使用规范 id（推荐 `zh_CN` 这种 `语言_地区`），类型是开放字符串，官方物料之外也可以传 `ja_JP` 等。`locales` 由各物料自行声明子集。组件库的 `zh-CN` / `zh-cn` / `zhCN` 放在物料内部映射表。物料在 `apply()` 里按 id 精确查找，未声明则回退列表第一项。
+
+ConfigProvider 未显式传入 `locale` 时，运行时收到的 `config.locale` 是 `undefined`：作用域内的 Provider（如 Ant Design、Element Plus）可以回退到默认语言包；通过全局 API 切换语言的物料（如 OpenTiny Vue 的 `tinyUse`、TinyNG 的 `TiLocale.setLocale`）应当直接跳过，避免改写宿主应用已有的语言。
 
 ### MergedMaterials
 

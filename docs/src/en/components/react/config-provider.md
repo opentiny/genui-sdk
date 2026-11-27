@@ -19,7 +19,7 @@ When used with `GenuiRenderer`, you typically need to inject component materials
 
 - **Type**: `string`
 - **Required**: No
-- **Default**: `'zh_CN'`
+- **Default**: `undefined` (the runtime receives `undefined`; Ant Design materials fall back to `zh_CN`)
 - **Description**: Locale id in `language_REGION` form, such as `zh_CN` or `en_US`. The materials `runtimeFactory.apply()` performs the actual switch.
 
 ```tsx
@@ -79,7 +79,7 @@ export type NotifyHandler = (options: {
 
 - `root` must be a React component;
 - Keep the root component reference stable, usually by creating it once in the factory closure; creating a new component on every `apply()` remounts the subtree;
-- When `theme` / `locale` are omitted, the defaults `'light'` / `'zh_CN'` are used and `apply()` is always called;
+- When `theme` is omitted it is `'light'`; when `locale` is omitted the runtime receives `undefined` and decides the fallback itself (Ant Design materials fall back to `zh_CN`); `apply()` is called in both cases;
 - When `theme` is `auto`, a system color-scheme change calls `apply()` again but does not recreate an unchanged root.
 
 The root returned by the React Ant Design materials is Ant Design's `ConfigProvider`, covering both the theme algorithm and locale.

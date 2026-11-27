@@ -40,7 +40,11 @@ function resolveThemeDescriptor(theme: string, systemColorScheme: ThemeColorSche
   );
 }
 
-function resolveLocale(locale: string): ILocaleDescriptor & { pack: Locale } {
+/**
+ * 未显式传入 `locale`（`undefined`）时回退到默认语言包 `zh_CN`。
+ * 这里的 locale 只作用于 root 内的 ConfigProvider 作用域，不会影响宿主应用。
+ */
+function resolveLocale(locale: string | undefined): ILocaleDescriptor & { pack: Locale } {
   return locales.find((item) => item.id === locale) ?? locales[0];
 }
 

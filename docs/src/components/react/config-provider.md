@@ -19,7 +19,7 @@
 
 - **类型**: `string`
 - **必填**: 否
-- **默认值**: `'zh_CN'`
+- **默认值**: `undefined`（运行时收到 `undefined`；Ant Design 物料回退到 `zh_CN`）
 - **说明**: 语言标识，使用 `language_REGION` 形式，例如 `zh_CN`、`en_US`。由物料 `runtimeFactory` 的 `apply()` 负责切换实际语言。
 
 ```tsx
@@ -79,7 +79,7 @@ export type NotifyHandler = (options: {
 
 - `root` 必须是 React 组件；
 - `root` 的组件引用应保持稳定，通常在工厂闭包里只创建一次；每次 `apply()` 新建组件会导致子树反复卸载重建；
-- `theme` / `locale` 未传时使用默认值 `'light'` / `'zh_CN'`，并且始终会调用 `apply()`；
+- `theme` 未传时为 `'light'`；`locale` 未传时向运行时传 `undefined`，由运行时决定回退（Ant Design 物料回退到 `zh_CN`）；两者都会调用 `apply()`；
 - `theme` 为 `auto` 时，系统深浅色变化会重新 `apply()`，但不会重建未变化的 root。
 
 当前 React Ant Design 物料返回的 root 是 Ant Design 的 `ConfigProvider`，同时承载主题算法和 locale。

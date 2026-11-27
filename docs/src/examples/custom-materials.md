@@ -508,7 +508,7 @@ interface IMaterialsMeta {
 interface IMaterialsRuntime {
   readonly themes?: readonly IThemeDescriptor[];
   readonly locales?: readonly ILocaleDescriptor[];
-  apply(config: Readonly<{ theme: string; locale: MaterialsLocaleId }>): {
+  apply(config: Readonly<{ theme: string; locale?: MaterialsLocaleId }>): {
     theme?: IThemeDescriptor;
     locale?: ILocaleDescriptor;
     root?: unknown;
@@ -525,6 +525,7 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 - `root` 的组件类型必须和宿主框架一致：Vue 用 Vue 组件，React 用 React 组件，Angular 用 Angular 组件类；Angular root 还需要一个默认的 `<ng-content>`，不能直接复用其他框架的 root。
 - `apply()` 首次初始化时就会执行，此后 `theme`、`locale` 变化时再次执行；`theme` 为 `auto` 时，系统深浅色变化也会再次执行。可通过闭包中的响应式状态把新配置传给 `root`。
 - Angular 版 ConfigProvider 在 `theme` / `locale` 都未传时不会调用 `apply()`，因此也不会渲染 root；需要 root 时至少传一个。
+- ConfigProvider 未显式传入 `locale` 时，`config.locale` 为 `undefined`：作用域内的 Provider 可以回退到默认语言包；通过全局 API 切换语言的组件库应直接跳过，不要改动宿主应用已有的语言。
 - `dispose()` 只负责回收运行时级副作用；ConfigProvider 移除该工厂或自身卸载时会调用它。
 - 同一组件库的多个物料集合应复用同一个导出的 `runtimeFactory` 引用。`mergeMaterials()` 会按引用去重，不同组件库的根组件则按合并顺序嵌套。
 - 用同一个 `locales` 数组声明规范 id 和组件库语言包（`{ id, pack }`）。`applyLocale` 从 `apply()` 里抽出，写法与主题解析对称。
@@ -643,7 +644,7 @@ const dateLocale = computed(() => {
 </script>
 ```
 
-如果组件库只通过全局 API 切换语言、不需要 Provider，可以在 `apply()` 中只返回 `locale`，不返回 `root`。
+如果组件库只通过全局 API 切换语言、不需要 Provider，可以在 `apply()` 中只返回 `locale`，不返回 `root`。此时务必在 `config.locale === undefined` 时直接返回，不要调用全局 API。
 
 集成方仍然只需配置 `GenuiConfigProvider`：
 

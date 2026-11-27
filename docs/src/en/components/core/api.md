@@ -418,7 +418,7 @@ interface ILocaleDescriptor {
 
 interface IMaterialsRuntimeConfig {
   theme: string;
-  locale: MaterialsLocaleId; // recommended canonical id such as zh_CN; any string is allowed
+  locale?: MaterialsLocaleId; // undefined when not passed explicitly; recommended canonical id such as zh_CN; any string is allowed
 }
 
 interface IMaterialsRuntimeApplyResult {
@@ -442,6 +442,8 @@ type MaterialsRuntimeFactory = () => IMaterialsRuntime;
 The `root` component type is decided by each framework implementation and cannot be shared across frameworks.
 
 `ConfigProvider.locale` uses canonical ids (recommended `language_REGION` such as `zh_CN`). The type is an open string, so custom materials may pass `ja_JP` and similar. Each package declares its own `locales` subset. UI-library values such as `zh-CN` / `zh-cn` / `zhCN` belong in the materials' private map. The runtime matches the id in `apply()` and otherwise uses the first declared locale.
+
+When ConfigProvider receives no `locale`, the runtime gets `config.locale === undefined`. A runtime backed by a scoped provider (Ant Design, Element Plus) may fall back to its default language pack; a runtime that switches locale through a global API (OpenTiny Vue's `tinyUse`, TinyNG's `TiLocale.setLocale`) should skip the call so the host application's locale is left untouched.
 
 ### MergedMaterials
 

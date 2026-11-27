@@ -25,11 +25,17 @@ export interface ILocaleDescriptor {
 }
 
 /**
+ * 运行时配置。
+ * - `theme`：框架层已解析，未配置时为 `'light'`。
+ * - `locale`：只在 ConfigProvider 显式传入 `locale` 时有值，否则为 `undefined`。
+ *   作用域内的 Provider（如 Ant Design、Element Plus）可以在 `undefined` 时回退到默认语言包；
+ *   通过全局 API 切换语言的组件库（如 OpenTiny Vue 的 `tinyUse`、TinyNG 的 `TiLocale.setLocale`）
+ *   应在 `undefined` 时跳过，避免改写宿主应用已有的语言。
  * @experimental 实验特性，API 可能在后续版本中发生变更。
  */
 export interface IMaterialsRuntimeConfig {
   theme: string;
-  locale: string;
+  locale?: MaterialsLocaleId;
 }
 
 /**

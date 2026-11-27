@@ -30,7 +30,11 @@ function resolveThemeDescriptor(theme: string, systemColorScheme: ThemeColorSche
   );
 }
 
-function resolveLocale(locale: string) {
+/**
+ * 未显式传入 `locale`（`undefined`）时回退到默认语言包 `zh_CN`。
+ * 这里的 locale 只作用于 root 内的 ElConfigProvider 作用域，不会影响宿主应用。
+ */
+function resolveLocale(locale: string | undefined) {
   return locales.find((item) => item.id === locale) ?? locales[0];
 }
 
@@ -48,7 +52,7 @@ export const runtimeFactory: MaterialsRuntimeFactory = () => {
     },
   });
 
-  function applyLocale(localeId: string): ILocaleDescriptor {
+  function applyLocale(localeId: string | undefined): ILocaleDescriptor {
     const current = resolveLocale(localeId);
     locale.value = current.pack;
     return current;

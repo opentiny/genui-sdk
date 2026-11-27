@@ -25,7 +25,7 @@
 - **默认值**: `undefined`（不主动调用 runtime）
 - **说明**: 语言标识，使用 `language_REGION` 形式，例如 `zh_CN`、`en_US`。传入后由 `runtimeFactory` 的 `apply()` 切换物料语言，例如 Angular OpenTiny NG 会调用 `TiLocale.setLocale`。`theme` 和 `locale` 都不传时不会调用 runtime，避免嵌套 ConfigProvider 覆盖外层配置。
 
-> TinyNG 的 locale 是全局设置，已挂载组件不会自动响应；切换语言时需要重建渲染内容（playground 的 Angular CE 通过重挂载处理）。
+> TinyNG 的 locale 是全局设置，已挂载组件不会自动响应；切换语言时需要重建渲染内容（playground 的 Angular CE 通过重挂载处理）。未传 `locale` 时运行时不会调用 `TiLocale.setLocale`，应用当前语言保持不变。
 
 ```ts
 @Component({
@@ -128,7 +128,7 @@ export class GenuiExample {
 
 `GenuiConfigProvider` 支持嵌套。内层未传入 `materials` / `notify` 时会自动继承父级配置；传入时覆盖父级。`theme` / `locale` 只有显式传入时才会调用 runtime，因此内层可以单独覆盖语言或主题。
 
-注意：runtime 收到的始终是内层解析后的完整配置。内层只传 `theme`（或只传 `locale`）时，缺失的一项会回退到默认值（`light` / `zh_CN`），**而不是父级传入的值**。例如内层只改主题时，运行时收到的 locale 是 `zh_CN`——对 TinyNG 这类在 root 之外通过 `TiLocale.setLocale` 修改全局语言的物料包，这还会把整个应用的语言重置成中文。因此需要保留另一项配置时，内层必须显式传入 `theme` 和 `locale` 两个值。
+注意：runtime 收到的始终是内层自己的配置，**不会继承父级传入的值**。内层只传 `theme` 时，运行时收到的 `locale` 是 `undefined`——Angular OpenTiny NG 物料此时不会调用 `TiLocale.setLocale`，因此不会把应用的全局语言重置成默认值。如果内层需要使用特定语言，请显式传入 `locale`。
 
 ```ts
 @Component({

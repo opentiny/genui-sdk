@@ -196,9 +196,11 @@ export class GenuiConfigProvider implements AfterViewInit, OnChanges, OnInit, On
 
     this.ensureMediaQuery();
     const factories = this.syncRuntimeInstances();
+    // locale 不设默认值：未显式传入时原样传 undefined，由运行时决定回退
+    //（作用域 Provider 用默认语言包；全局 API 则跳过，不改宿主语言）。
     const config = {
       theme: this.theme ?? 'light',
-      locale: this.locale ?? 'zh_CN',
+      locale: this.locale,
     };
     const roots: Type<unknown>[] = [];
 

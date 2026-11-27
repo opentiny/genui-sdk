@@ -20,9 +20,10 @@ export interface ConfigProviderProps {
   notify?: NotifyHandler;
 }
 
+// locale 不设 prop 默认值：未显式传入时运行时拿到 undefined，不会去改写组件库的全局语言。
+// GenUI 自身文案的默认语言仍为 zh_CN，见下方 i18n watch。
 const props = withDefaults(defineProps<ConfigProviderProps>(), {
   id: 'tiny-genui-config-provider',
-  locale: 'zh_CN',
 });
 
 const i18n = useI18n();
@@ -70,8 +71,9 @@ provide(RENDERER_SETTINGS_KEY, rendererSettings);
 watch(
   () => [props.locale, props.i18n] as const,
   () => {
-    if (props.locale && props.locale !== i18n.locale.value) {
-      i18n.setLocale(props.locale);
+    const genuiLocale = props.locale ?? 'zh_CN';
+    if (genuiLocale !== i18n.locale.value) {
+      i18n.setLocale(genuiLocale);
     }
     props.i18n && i18n.mergeMessages(props.i18n);
   },
