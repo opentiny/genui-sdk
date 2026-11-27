@@ -8,11 +8,11 @@ export interface IExample {
   schema: CardSchema;
 }
 
-/** 页面可用的工具描述，typeSchema 为 TS 类型字符串（选型理由见 docs/inner-docs/utils-type-schema.md） */
+/** 页面可用的工具描述，typeSchema 为供 LLM 阅读的自定义 JSON Schema 字符串 */
 export interface IUtilsMeta {
   name: string;
   description?: string;
-  /** TS 类型字符串，如函数签名 `(date: Date | number | string, format?: string) => string`、类声明、任意值类型 */
+  /** 自定义 JSON Schema 字符串，描述函数、类、参数、返回值及方法等代码调用信息 */
   typeSchema: string;
   /** 调用示例（JS 代码片段） */
   usage?: string;

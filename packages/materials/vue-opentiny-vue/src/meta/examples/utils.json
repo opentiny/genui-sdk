@@ -8,22 +8,6 @@
         "name": "研发部"
       }
     },
-    "formattedAmount": {
-      "type": "JSExpression",
-      "value": "this.utils.formatMoney(this.state.amount, 2)"
-    },
-    "formattedDate": {
-      "type": "JSExpression",
-      "value": "this.utils.formatDate(this.state.date, 'YYYY年MM月DD日 HH:mm')"
-    },
-    "nextMonthDate": {
-      "type": "JSExpression",
-      "value": "this.utils.dayjs(this.state.date).add(1, 'month').format('YYYY-MM-DD')"
-    },
-    "deptName": {
-      "type": "JSExpression",
-      "value": "this.utils.get(this.state.user, 'dept.name', '未知部门')"
-    },
     "copied": false
   },
   "methods": {
@@ -50,7 +34,7 @@
           "props": {
             "text": {
               "type": "JSExpression",
-              "value": "this.state.formattedAmount"
+              "value": "this.utils.formatMoney(this.state.amount, 2)"
             }
           }
         },
@@ -63,7 +47,7 @@
           "props": {
             "text": {
               "type": "JSExpression",
-              "value": "this.state.formattedDate"
+              "value": "this.utils.formatDate(this.state.date, 'YYYY年MM月DD日 HH:mm')"
             }
           }
         },
@@ -76,7 +60,7 @@
           "props": {
             "text": {
               "type": "JSExpression",
-              "value": "this.state.nextMonthDate"
+              "value": "this.utils.dayjs(this.state.date).add(1, 'month').format('YYYY-MM-DD')"
             }
           }
         },
@@ -89,7 +73,7 @@
           "props": {
             "text": {
               "type": "JSExpression",
-              "value": "this.state.deptName"
+              "value": "this.utils.get(this.state.user, 'dept.name', '未知部门')"
             }
           }
         },
